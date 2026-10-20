@@ -1,5 +1,356 @@
+<script setup lang="ts">
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
+import type {
+  DatosPrevisualizacion,
+  FilaServicioNota,
+} from "@/types/cotizacion";
+
+const previewCotizacion = defineAsyncComponent(() =>
+  import("@/components/folderPricing/previewQuote.vue"));
+
+const route = useRoute();
+const router = useRouter();
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+
+// opcionesSeleccionadas: [{ listNotasQuote: [] }],
+const dialog = ref(false);
+const headers = [
+  { key: "index", title: "#" },
+  { key: "description", title: "Descripción", align: "center" },
+] as const;
+const guardarFlag = ref(false);
+const pagePrev = ref(1);
+const tiporeporte = ref("");
+const descripcion = ref("");
+const predataCotizacion = ref<DatosPrevisualizacion | null>(null);
+const dialogPreview = ref(false);
+const previewFlag = ref(false);
+const imprimirFlag = ref(false);
+const loading = ref(false);
+const dialogCambioNombreSecciones = ref(false);
+const statusincluye = ref(0);
+const statusnoincluye = ref(0);
+const cambiarStatus = ref(false);
+const selectedStatusId = ref<number | string | null>(null);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+let loadingTable: boolean | undefined;
+const frmNota = useTemplateRef("frmNota");
+const frmReporte = useTemplateRef("frmReporte");
+
+const opcionesSeleccionadas = computed(() =>
+  pricingStore.opcionCostos.filter((v) => !!v.selected),
+);
+const opcionSeleccionadaActual = computed(() => {
+  const page = pricingStore.page - 1;
+  return (
+    opcionesSeleccionadas.value[page] ||
+    opcionesSeleccionadas.value[0] ||
+    null
+  );
+});
+const actualizarNotas = computed(() => pricingStore.actualizarNotas);
+const lstSeIncluye = computed(() => {
+  const val: FilaServicioNota[] = pricingStore.listServices.filter(
+    (v) => v.status == 1,
+  );
+
+  const opcionActual = opcionSeleccionadaActual.value;
+  if (!opcionActual) {
+    return val;
+  }
+  const opcion = opcionActual.listNotasQuote.filter(
+    (v) => v.estado == 1 && v.statusincluye == 1,
+  );
+  const opcionConServicio = opcion.map((v) => ({ ...v, service: v.descripcion }));
+
+  const final = [...val, ...opcionConServicio] as FilaServicioNota[];
+
+
+  const opt = opcionActual;
+  const fechaVigencia =
+    opt.date_end || pricingStore.datosPrincipales.fecha_fin;
+  const ttransito =
+    opt.tiempo_transito ||
+    pricingStore.datosPrincipales.tiempo_transito;
+  if (fechaVigencia) {
+    final.push({
+      service: `Fecha de vigencia: ${formatDate(fechaVigencia)}`,
+    });
+  }
+  if (ttransito) {
+    const unidad = Number(ttransito) === 1 ? "día" : "días";
+    final.push({ service: `Tiempo de tránsito: ${ttransito} ${unidad}` });
+  }
+
+  return final;
+});
+const lstNoIncluye = computed(() => {
+  const val: FilaServicioNota[] = pricingStore.listServices.filter(
+    (v) => v.status == 0,
+  );
+
+  const opcionActual = opcionSeleccionadaActual.value;
+  if (!opcionActual) {
+    return val;
+  }
+  const opcion = opcionActual.listNotasQuote.filter(
+    (v) => v.estado == 1 && v.statusnoincluye == 1,
+  );
+  const opcionConServicio = opcion.map((v) => ({ ...v, service: v.descripcion }));
+
+  const final = [...val, ...opcionConServicio] as FilaServicioNota[];
+
+  return final;
+});
+
+function abrirDialogCotizacionRapida() {
+  const esperandoSeguro = pricingStore.listQuoteStatus.find(
+    (v) => v.code == "4",
+  );
+  // this.previewFlag = true;
+  nextTick(() => {
+    tiporeporte.value = "AGRUPADO";
+    selectedStatusId.value = esperandoSeguro!.id!;
+    generarPreview({ val: true });
+  });
+}
+
+function formatDate(val: string) {
+  if (!val) return "";
+  try {
+    const d = new Date(val);
+    if (isNaN(d.getTime())) return String(val);
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  } catch {
+    return String(val);
+  }
+}
+function to_link({ url = "" }: { url?: string }) {
+  window.open(url, "_blank");
+}
+function llenarNotasSeleccionadas() {
+  // @ts-expect-error Kept: the computed is read-only, so this write is ignored
+  opcionesSeleccionadas.value =
+    pricingStore.opcionCostos.filter((v) => !!v.selected);
+}
+// Shadowed by the later abrirModalTipoReporte, so this body never ran.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function abrirModalTipoReporteSombreado() {
+  tiporeporte.value = "";
+  dialogPreview.value = false;
+
+  previewFlag.value = true;
+}
+function abrirModalCambioNombreSecciones() {
+  Swal.fire({
+    icon: "question",
+    width: 1000,
+    html: "<h1> ¿Desea cambiar el nombre de la secciones?. Recuerde que  este cambio se verá reflejado solo en la cotización(pdf) </h1>",
+    allowEnterKey: false,
+    allowEscapeKey: false,
+    allowOutsideClick: false,
+    confirmButtonText: "<h1>Si cambiar</h1>",
+    showCancelButton: true,
+    showDenyButton: true,
+    cancelButtonText: "<h1>No cambiar<h1>",
+    denyButtonText: "<h1>Cerrar<h1>",
+  }).then((accion) => {
+    if (accion.isConfirmed) {
+      dialogCambioNombreSecciones.value = true;
+    }
+    if (accion.isDismissed) {
+      abrirModalTipoReportePreview();
+    }
+  });
+}
+function abrirDialog({ statusincluye: incluye = 0, statusnoincluye: noIncluye = 0 }) {
+  statusincluye.value = incluye;
+  statusnoincluye.value = noIncluye;
+  dialog.value = true;
+}
+async function anidarNota() {
+  if ((await frmNota.value!.validate()).valid) {
+    opcionSeleccionadaActual.value!.listNotasQuote.push({
+      descripcion: descripcion.value,
+      estado: 1,
+      statusincluye: statusincluye.value,
+      statusnoincluye: statusnoincluye.value,
+    });
+  }
+  setTimeout(() => {
+    descripcion.value = "";
+    frmNota.value!.resetValidation();
+  }, 10);
+  dialog.value = !dialog.value;
+}
+
+async function generar() {
+  pricingStore.tiporeporte = tiporeporte.value;
+  loading.value = true;
+
+  if ((await frmReporte.value!.validate()).valid) {
+    rootStore.state.spiner = true;
+    const name = route.name;
+    // 1. Registro inicial
+    if (name == "newQuote") {
+      await pricingStore.registrarQuote({ fullflag: true }).catch((e) =>
+        console.log(e),
+      );
+    }
+    if (name == "editQuote") {
+      await pricingStore.updateQuote();
+    }
+    if (pricingStore.nro_quote) {
+      rootStore.state.spiner = false;
+      await pricingStore.obtenerDatosEmpresa().catch((e) => console.log(e));
+
+      // 2. Generación de reportes
+      for (
+        let index = 0;
+        index < pricingStore.opcionCostos.length;
+        index++
+      ) {
+        if (
+          pricingStore.opcionCostos[index]!.selected == true
+        ) {
+          await Promise.all([
+            pricingStore.generarReporte({
+              tipo: tiporeporte.value,
+              nro_propuesta:
+                pricingStore.opcionCostos[index]!.nro_propuesta,
+              guardarFlag: guardarFlag.value,
+            }).catch((e) => console.log(e)),
+            pricingStore.setEmisionPdf(),
+          ]);
+        }
+      }
+
+       
+
+      loadingTable = false;
+      loading.value = false;
+      dialog.value = false;
+      guardarFlag.value = false;
+      dialogPreview.value = false;
+      previewFlag.value = false;
+      imprimirFlag.value = false;
+      loading.value = false;
+      dialogCambioNombreSecciones.value = false;
+      cambiarStatus.value = false;
+      // 3. Lógica de OneDrive
+      const userStr = sessionStorage.getItem("dataUser");
+      const id_branch = userStr ? JSON.parse(userStr)[0].id_branch : null;
+      const branchCreacion = [1, 2];
+
+      if (branchCreacion.includes(id_branch) && name == "newQuote") {
+        console.log("Iniciando creación de carpeta...");
+
+        // Aquí recibimos el return de la función anterior
+        const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+          nro_quote: pricingStore.nro_quote,
+          nombre: pricingStore.datosPrincipales.nombre,
+        });
+
+
+        if (urlGenerada) {
+          await pricingStore.actualizarURLEnElQuote({
+            id: pricingStore.id,
+            url: urlGenerada,
+          });
+          console.log("Base de datos actualizada con URL de OneDrive");
+        } else {
+          console.warn(
+            "No se obtuvo URL de OneDrive, se saltó la actualización.",
+          );
+        }
+      }
+
+      // 4. Redirección final
+      const destino = {
+        name: "verQuote",
+        params: { id: pricingStore.id },
+      };
+      if (
+        router.resolve(destino).fullPath !==
+        route.fullPath
+      ) {
+        await router.push(destino);
+      }else{
+        window.location.reload()
+      }
+    }
+  }
+}
+function abrirModalTipoReporte(guardar = false) {
+  guardarFlag.value = guardar;
+  imprimirFlag.value = true;
+}
+function abrirModalTipoReportePreview() {
+  tiporeporte.value = "";
+  previewFlag.value = true;
+  dialogCambioNombreSecciones.value = false;
+  pricingStore.bloquearBtnImprimir = false;
+  // valor por defecto: primer estado disponible
+  const list = pricingStore.listQuoteStatus || [];
+  const estatusDefault = list.find(
+    (estatus) =>
+      estatus.defaultstatus === 1 ||
+      estatus.defaultstatus === "1" ||
+      estatus.defaultstatus === true,
+  );
+
+  if (estatusDefault) {
+    selectedStatusId.value = estatusDefault.id!;
+  } else if (list.length > 0) {
+    selectedStatusId.value = list[0]!.id!;
+  } else {
+    selectedStatusId.value = null;
+  }
+  cambiarStatus.value = false;
+}
+async function generarPreview({ val = false }: { val?: boolean }) {
+  if (val || (await frmReporte.value!.validate()).valid) {
+    rootStore.state.spiner = true;
+    previewFlag.value = false;
+    if (cambiarStatus.value && selectedStatusId.value) {
+      pricingStore.datosPrincipales.id_status =
+        selectedStatusId.value;
+    }
+    await pricingStore.obtenerDatosEmpresa();
+    predataCotizacion.value = await pricingStore.predata({
+      tipo: tiporeporte.value,
+    });
+    rootStore.state.spiner = false;
+    dialogPreview.value = true;
+    getNombreCotizacion(pricingStore);
+  }
+}
+
+watch(opcionesSeleccionadas, () => {
+  pricingStore.page = 1;
+});
+watch(actualizarNotas, () => {
+  llenarNotasSeleccionadas();
+});
+
+onMounted(() => {
+  dialog.value = false;
+});
+</script>
+
 <template>
-  <v-card fluid v-if="opcionSeleccionadaActual">
+  <v-card
+    fluid
+    v-if="opcionSeleccionadaActual"
+  >
     <v-dialog
       v-model="dialog"
       persistent
@@ -7,10 +358,18 @@
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap" primary-title>
+        <v-card-title
+          class="d-flex align-center flex-wrap"
+          primary-title
+        >
           Registro de nueva nota - Opción
-          {{ opcionSeleccionadaActual.nro_propuesta }}<v-spacer></v-spacer>
-          <v-btn variant="text" icon color="default" @click="dialog = false">
+          {{ opcionSeleccionadaActual.nro_propuesta }}<v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="dialog = false"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -21,12 +380,17 @@
               v-model="descripcion"
               id="id"
               :rules="[(v) => !!v || 'Dato requerido']"
-            ></v-text-field>
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn @click="anidarNota" color="success">Agregar Nueva nota</v-btn>
+          <v-spacer />
+          <v-btn
+            @click="anidarNota"
+            color="success"
+          >
+            Agregar Nueva nota
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -34,20 +398,26 @@
       <v-col cols="12">
         Añadir nueva Nota: Opción
         {{ opcionSeleccionadaActual.nro_propuesta }}
-        <v-btn variant="text" icon color="primary" @click="dialog = !dialog">
+        <v-btn
+          variant="text"
+          icon
+          color="primary"
+          @click="dialog = !dialog"
+        >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
       </v-col>
-      <v-col cols="12" class="derecha">
-        
-          <div class="text-center">
-            <v-pagination
-              v-model="pricingStore.page"
-              :length="opcionesSeleccionadas.length"
-              rounded
-            ></v-pagination>
-          </div>
-        
+      <v-col
+        cols="12"
+        class="derecha"
+      >
+        <div class="text-center">
+          <v-pagination
+            v-model="pricingStore.page"
+            :length="opcionesSeleccionadas.length"
+            rounded
+          />
+        </div>
       </v-col>
       <v-col cols="12">
         <v-expansion-panels class="my-1 condensed">
@@ -69,9 +439,11 @@
                 disable-sort
                 :items-per-page="-1"
               >
-                <template v-slot:item="row">
+                <template #item="row">
                   <tr>
-                    <td class="indexTblClass">{{ row.index + 1 }}</td>
+                    <td class="indexTblClass">
+                      {{ row.index + 1 }}
+                    </td>
                     <td class="btnDescriptionClass">
                       <v-textarea
                         v-model="row.item.descripcion"
@@ -79,10 +451,11 @@
                         density="compact"
                         rows="1"
                         auto-grow
-                      ></v-textarea>
+                      />
                     </td>
                     <td class="btnTblClass">
-                      <v-btn variant="text"
+                      <v-btn
+                        variant="text"
                         icon
                         color="red"
                         size="x-small"
@@ -104,7 +477,8 @@
             <v-expansion-panel-title>
               <span class="d-inline-flex align-center">
                 Se incluye
-                <v-btn variant="text"
+                <v-btn
+                  variant="text"
                   color="success"
                   size="x-small"
                   icon
@@ -125,9 +499,11 @@
                 :items-per-page="-1"
                 disable-sort
               >
-                <template v-slot:item="row">
+                <template #item="row">
                   <tr>
-                    <td class="indexTblClass">{{ row.index + 1 }}</td>
+                    <td class="indexTblClass">
+                      {{ row.index + 1 }}
+                    </td>
 
                     <td class="btnDescriptionClass">
                       <v-textarea
@@ -137,7 +513,7 @@
                         density="compact"
                         rows="1"
                         auto-grow
-                      ></v-textarea>
+                      />
                     </td>
                   </tr>
                 </template>
@@ -151,7 +527,8 @@
           <v-expansion-panel-title>
             <span class="d-inline-flex align-center">
               No Se Incluye
-              <v-btn variant="text"
+              <v-btn
+                variant="text"
                 color="success"
                 size="x-small"
                 icon
@@ -171,9 +548,11 @@
               :items-per-page="-1"
               disable-sort
             >
-              <template v-slot:item="row">
+              <template #item="row">
                 <tr>
-                  <td class="indexTblClass">{{ row.index + 1 }}</td>
+                  <td class="indexTblClass">
+                    {{ row.index + 1 }}
+                  </td>
 
                   <td class="btnDescriptionClass">
                     <v-textarea
@@ -183,7 +562,7 @@
                       density="compact"
                       rows="1"
                       auto-grow
-                    ></v-textarea>
+                    />
                   </td>
                 </tr>
               </template>
@@ -193,17 +572,25 @@
       </v-expansion-panels>
 
       <v-col class="derecha">
-        <v-btn color="#3363A2" @click="abrirModalCambioNombreSecciones()">
-          PREVIEW COTIZACIÓN(es)</v-btn
+        <v-btn
+          color="#3363A2"
+          @click="abrirModalCambioNombreSecciones()"
         >
+          PREVIEW COTIZACIÓN(es)
+        </v-btn>
         <v-btn
           color="#FFD600"
           class="mx-1"
           @click="abrirDialogCotizacionRapida"
         >
-          <v-icon class="mx-1" size="small">mdi-folder</v-icon>Guardar en
-          Carpeta</v-btn
-        >
+          <v-icon
+            class="mx-1"
+            size="small"
+          >
+            mdi-folder
+          </v-icon>Guardar en
+          Carpeta
+        </v-btn>
       </v-col>
       <!-- <v-card-actions>
       <v-spacer></v-spacer>
@@ -240,7 +627,7 @@
               >
                 <td>{{ tipocosto.codigo }}</td>
                 <td>
-                  <v-text-field v-model="tipocosto.name"></v-text-field>
+                  <v-text-field v-model="tipocosto.name" />
                 </td>
               </tr>
             </tbody>
@@ -251,19 +638,28 @@
             class="mx-1"
             @click="abrirModalTipoReportePreview()"
             color="success"
-            >Aceptar</v-btn
           >
+            Aceptar
+          </v-btn>
           <v-btn
             class="mx-1"
             @click="dialogCambioNombreSecciones = !dialogCambioNombreSecciones"
             color="warning"
-            >Cerrar</v-btn
           >
+            Cerrar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="imprimirFlag" max-width="40%" v-if="imprimirFlag">
-      <v-card color="" class="py-5">
+    <v-dialog
+      v-model="imprimirFlag"
+      max-width="40%"
+      v-if="imprimirFlag"
+    >
+      <v-card
+        color=""
+        class="py-5"
+      >
         <v-card-title primary-title>
           SELECCIÓN DE TIPO DE REPORTE A IMPRIMIR
         </v-card-title>
@@ -278,36 +674,52 @@
                 label="Costo detallado por cada item"
                 color="red-darken-3"
                 value="DETALLE"
-              ></v-radio>
+              />
 
               <v-radio
                 label="Totales por servicios"
                 color="indigo-darken-3"
                 value="TOTAL"
-              ></v-radio>
+              />
 
               <v-radio
                 label="Reporte total general sin desglose"
                 color="orange-darken-3"
                 value="AGRUPADO"
-              ></v-radio>
+              />
             </v-radio-group>
           </v-form>
         </v-card-text>
 
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" :loading="loading" variant="text" @click="generar">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            :loading="loading"
+            variant="text"
+            @click="generar"
+          >
             Aceptar
           </v-btn>
-          <v-btn color="red" variant="text" @click="imprimirFlag = false">
+          <v-btn
+            color="red"
+            variant="text"
+            @click="imprimirFlag = false"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog v-model="previewFlag" max-width="40%" v-if="previewFlag">
-      <v-card color="" class="py-5">
+    <v-dialog
+      v-model="previewFlag"
+      max-width="40%"
+      v-if="previewFlag"
+    >
+      <v-card
+        color=""
+        class="py-5"
+      >
         <v-card-title primary-title>
           SELECCIÓN DE TIPO DE REPORTE PARA LA PREVISUALIZACIÓN
         </v-card-title>
@@ -321,28 +733,28 @@
                 label="Costo detallado por cada item"
                 color="red-darken-3"
                 value="DETALLE"
-              ></v-radio>
+              />
 
               <v-radio
                 label="Totales por servicios"
                 color="indigo-darken-3"
                 value="TOTAL"
-              ></v-radio>
+              />
 
               <v-radio
                 label="Reporte total general sin desglose"
                 color="orange-darken-3"
                 value="AGRUPADO"
-              ></v-radio>
+              />
             </v-radio-group>
 
-            <v-divider class="my-4"></v-divider>
+            <v-divider class="my-4" />
 
             <v-switch
               v-model="cambiarStatus"
               label="¿Desea cambiar el estatus de la cotización?"
               inset
-            ></v-switch>
+            />
 
             <v-slide-y-transition>
               <div v-if="cambiarStatus">
@@ -354,16 +766,26 @@
                   label="Nuevo estatus de la cotización"
                   density="compact"
                   variant="outlined"
-                ></v-select>
+                />
               </div>
             </v-slide-y-transition>
           </v-form>
         </v-card-text>
 
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="primary" variant="text" @click="generarPreview"> Aceptar </v-btn>
-          <v-btn color="red" variant="text" @click="previewFlag = false">
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="text"
+            @click="generarPreview"
+          >
+            Aceptar
+          </v-btn>
+          <v-btn
+            color="red"
+            variant="text"
+            @click="previewFlag = false"
+          >
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -380,27 +802,31 @@
         <v-card-title class="bg-indigo text-white my-0 py-0 d-flex align-center flex-wrap">
           PREVISUALIZACIÓN DE LA COTIZACIÓN - NO TIENE NINGÚN VALOR COMERCIAL
 
-          <v-spacer></v-spacer>
-          <v-btn variant="text" icon color="white" @click="dialogPreview = !dialogPreview">
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="white"
+            @click="dialogPreview = !dialogPreview"
+          >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
           <previewCotizacion
             :data="predataCotizacion"
-            v-on:cerrar="dialogPreview = $event"
+            @cerrar="dialogPreview = $event"
             :index="pagePrev"
           />
         </v-card-text>
         <v-card-actions>
-          
-            <div class="text-center">
-              <v-pagination
-                v-model="pagePrev"
-                :length="opcionesSeleccionadas.length"
-                rounded
-              ></v-pagination>
-            </div>
+          <div class="text-center">
+            <v-pagination
+              v-model="pagePrev"
+              :length="opcionesSeleccionadas.length"
+              rounded
+            />
+          </div>
           
           <v-textarea
             label="Nombre Archivo Generar"
@@ -445,353 +871,6 @@
     </v-dialog>
   </v-card>
 </template>
-
-<script>
-import { defineAsyncComponent } from "vue";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
-export default {
-  components: {
-    previewCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/previewQuote.vue")),
-  },
-  data() {
-    return {
-      // opcionesSeleccionadas: [{ listNotasQuote: [] }],
-      dialog: false,
-      headers: [
-        { key: "index", title: "#" },
-        { key: "description", title: "Descripción", align: "center" },
-      ],
-      guardarFlag: false,
-      pagePrev: 1,
-      tiporeporte: "",
-      descripcion: "",
-      predataCotizacion: null,
-      dialogPreview: false,
-      previewFlag: false,
-      imprimirFlag: false,
-      loading: false,
-      dialogCambioNombreSecciones: false,
-      statusincluye: 0,
-      statusnoincluye: 0,
-      cambiarStatus: false,
-      selectedStatusId: null,
-      esNuevoFlag: this.$route.name == "newQuote",
-    };
-  },
-  mounted() {
-    this.dialog = false;
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["registrarQuote", "getQuote", "obtenerDatosEmpresa", "generarReporte", "crearCarpetaOneDrive", "actualizarURLEnElQuote", "predata", "updateQuote", "setEmisionPdf"]),
-    abrirDialogCotizacionRapida() {
-      let esperandoSeguro = this.pricingStore.listQuoteStatus.find(
-        (v) => v.code == "4",
-      );
-      // this.previewFlag = true;
-      this.$nextTick(() => {
-        this.tiporeporte = "AGRUPADO";
-        this.selectedStatusId = esperandoSeguro.id;
-        this.generarPreview({ val: true });
-      });
-    },
-
-    formatDate(val) {
-      if (!val) return "";
-      try {
-        const d = new Date(val);
-        if (isNaN(d.getTime())) return String(val);
-        const dd = String(d.getDate()).padStart(2, "0");
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const yyyy = d.getFullYear();
-        return `${dd}/${mm}/${yyyy}`;
-      } catch (e) {
-        return String(val);
-      }
-    },
-    to_link({ url = "" }) {
-      window.open(url, "_blank");
-    },
-    llenarNotasSeleccionadas() {
-      this.opcionesSeleccionadas =
-        this.pricingStore.opcionCostos.filter((v) => !!v.selected);
-    },
-    abrirModalTipoReporte() {
-      this.tiporeporte = "";
-      this.dialogPreview = false;
-
-      this.previewFlag = true;
-    },
-    abrirModalCambioNombreSecciones() {
-      Swal.fire({
-        icon: "question",
-        width: 1000,
-        html: "<h1> ¿Desea cambiar el nombre de la secciones?. Recuerde que  este cambio se verá reflejado solo en la cotización(pdf) </h1>",
-        allowEnterKey: false,
-        allowEscapeKey: false,
-        allowOutsideClick: false,
-        confirmButtonText: "<h1>Si cambiar</h1>",
-        showCancelButton: true,
-        showDenyButton: true,
-        cancelButtonText: "<h1>No cambiar<h1>",
-        denyButtonText: "<h1>Cerrar<h1>",
-      }).then((accion) => {
-        if (accion.isConfirmed) {
-          this.dialogCambioNombreSecciones = true;
-        }
-        if (accion.isDismissed) {
-          this.abrirModalTipoReportePreview();
-        }
-      });
-    },
-    abrirDialog({ statusincluye = 0, statusnoincluye = 0 }) {
-      this.statusincluye = statusincluye;
-      this.statusnoincluye = statusnoincluye;
-      this.dialog = true;
-    },
-    async anidarNota() {
-      if ((await this.$refs.frmNota.validate()).valid) {
-        this.opcionSeleccionadaActual.listNotasQuote.push({
-          descripcion: this.descripcion,
-          estado: 1,
-          statusincluye: this.statusincluye,
-          statusnoincluye: this.statusnoincluye,
-        });
-      }
-      setTimeout(() => {
-        this.descripcion = "";
-        this.$refs.frmNota.resetValidation();
-      }, 10);
-      this.dialog = !this.dialog;
-    },
-
-    async generar() {
-      this.pricingStore.tiporeporte = this.tiporeporte;
-      this.loading = true;
-
-      if ((await this.$refs.frmReporte.validate()).valid) {
-        this.$store.state.spiner = true;
-        let name = this.$route.name;
-        // 1. Registro inicial
-        if (name == "newQuote") {
-          await this.registrarQuote({ fullflag: true }).catch((e) =>
-            console.log(e),
-          );
-        }
-        if (name == "editQuote") {
-          await this.updateQuote();
-        }
-        if (this.pricingStore.nro_quote) {
-          this.$store.state.spiner = false;
-          await this.obtenerDatosEmpresa().catch((e) => console.log(e));
-
-          // 2. Generación de reportes
-          for (
-            let index = 0;
-            index < this.pricingStore.opcionCostos.length;
-            index++
-          ) {
-            if (
-              this.pricingStore.opcionCostos[index].selected == true
-            ) {
-              await Promise.all([
-                this.generarReporte({
-                  tipo: this.tiporeporte,
-                  nro_propuesta:
-                    this.pricingStore.opcionCostos[index].nro_propuesta,
-                  guardarFlag: this.guardarFlag,
-                }).catch((e) => console.log(e)),
-                this.setEmisionPdf(),
-              ]);
-            }
-          }
-
-          this.loadingTable = false;
-          this.loading = false;
-          this.dialog = false;
-          this.guardarFlag = false;
-          this.dialogPreview = false;
-          this.previewFlag = false;
-          this.imprimirFlag = false;
-          this.loading = false;
-          this.dialogCambioNombreSecciones = false;
-          this.cambiarStatus = false;
-          // 3. Lógica de OneDrive
-          let userStr = sessionStorage.getItem("dataUser");
-          let id_branch = userStr ? JSON.parse(userStr)[0].id_branch : null;
-          let branchCreacion = [1, 2];
-
-          if (branchCreacion.includes(id_branch) && name == "newQuote") {
-            console.log("Iniciando creación de carpeta...");
-
-            // Aquí recibimos el return de la función anterior
-            const urlGenerada = await this.crearCarpetaOneDrive({
-              nro_quote: this.pricingStore.nro_quote,
-              nombre: this.pricingStore.datosPrincipales.nombre,
-            });
-
-
-            if (urlGenerada) {
-              await this.actualizarURLEnElQuote({
-                id: this.pricingStore.id,
-                url: urlGenerada,
-              });
-              console.log("Base de datos actualizada con URL de OneDrive");
-            } else {
-              console.warn(
-                "No se obtuvo URL de OneDrive, se saltó la actualización.",
-              );
-            }
-          }
-
-          // 4. Redirección final
-          const destino = {
-            name: "verQuote",
-            params: { id: this.pricingStore.id },
-          };
-          if (
-            this.$router.resolve(destino).fullPath !==
-            this.$route.fullPath
-          ) {
-            await this.$router.push(destino);
-          }else{
-            window.location.reload()
-          }
-        }
-      }
-    },
-    abrirModalTipoReporte(guardarFlag = false) {
-      this.guardarFlag = guardarFlag;
-      this.imprimirFlag = true;
-    },
-    abrirModalTipoReportePreview() {
-      this.tiporeporte = "";
-      this.previewFlag = true;
-      this.dialogCambioNombreSecciones = false;
-      this.pricingStore.bloquearBtnImprimir = false;
-      // valor por defecto: primer estado disponible
-      const list = this.pricingStore.listQuoteStatus || [];
-      const estatusDefault = list.find(
-        (estatus) =>
-          estatus.defaultstatus === 1 ||
-          estatus.defaultstatus === "1" ||
-          estatus.defaultstatus === true,
-      );
-
-      if (estatusDefault) {
-        this.selectedStatusId = estatusDefault.id;
-      } else if (list.length > 0) {
-        this.selectedStatusId = list[0].id;
-      } else {
-        this.selectedStatusId = null;
-      }
-      this.cambiarStatus = false;
-    },
-    async generarPreview({ val = false }) {
-      if (val || (await this.$refs.frmReporte.validate()).valid) {
-        this.$store.state.spiner = true;
-        this.previewFlag = false;
-        if (this.cambiarStatus && this.selectedStatusId) {
-          this.pricingStore.datosPrincipales.id_status =
-            this.selectedStatusId;
-        }
-        await this.obtenerDatosEmpresa();
-        this.predataCotizacion = await this.predata({
-          tipo: this.tiporeporte,
-        });
-        this.$store.state.spiner = false;
-        this.dialogPreview = true;
-        getNombreCotizacion(this.pricingStore);
-      }
-    },
-  },
-  computed: {
-    ...mapStores(usePricingStore),
-    opcionesSeleccionadas() {
-      return this.pricingStore.opcionCostos.filter((v) => !!v.selected);
-    },
-    opcionSeleccionadaActual() {
-      const page = this.pricingStore.page - 1;
-      return (
-        this.opcionesSeleccionadas[page] ||
-        this.opcionesSeleccionadas[0] ||
-        null
-      );
-    },
-    actualizarNotas: {
-      get() {
-        return this.pricingStore.actualizarNotas;
-      },
-      set(val) {
-        return (this.pricingStore.actualizarNotas = actualizarNotas);
-      },
-    },
-    lstSeIncluye() {
-      let val = this.pricingStore.listServices.filter(
-        (v) => v.status == 1,
-      );
-
-      const opcionActual = this.opcionSeleccionadaActual;
-      if (!opcionActual) {
-        return val;
-      }
-      let opcion = opcionActual.listNotasQuote.filter(
-        (v) => v.estado == 1 && v.statusincluye == 1,
-      );
-      opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
-
-      let final = [...val, ...opcion];
-
-      
-      const opt = opcionActual;
-      const fechaVigencia =
-        opt.date_end || this.pricingStore.datosPrincipales.fecha_fin;
-      const ttransito =
-        opt.tiempo_transito ||
-        this.pricingStore.datosPrincipales.tiempo_transito;
-      if (fechaVigencia) {
-        final.push({
-          service: `Fecha de vigencia: ${this.formatDate(fechaVigencia)}`,
-        });
-      }
-      if (ttransito) {
-        const unidad = Number(ttransito) === 1 ? "día" : "días";
-        final.push({ service: `Tiempo de tránsito: ${ttransito} ${unidad}` });
-      }
-
-      return final;
-    },
-    lstNoIncluye() {
-      let val = this.pricingStore.listServices.filter(
-        (v) => v.status == 0,
-      );
-
-      const opcionActual = this.opcionSeleccionadaActual;
-      if (!opcionActual) {
-        return val;
-      }
-      let opcion = opcionActual.listNotasQuote.filter(
-        (v) => v.estado == 1 && v.statusnoincluye == 1,
-      );
-      opcion = opcion.map((v) => ({ ...v, service: v.descripcion }));
-
-      let final = [...val, ...opcion];
-
-      return final;
-    },
-  },
-  watch: {
-    opcionesSeleccionadas() {
-      this.pricingStore.page = 1;
-    },
-    actualizarNotas() {
-      this.llenarNotasSeleccionadas();
-    },
-  },
-};
-</script>
 
 <style scoped>
 .derecha {

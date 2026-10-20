@@ -746,3 +746,5 @@ export interface OpcionComparativa extends OpcionCosto {
   gastostercero: string;
   total: string;
 }
+
+export type FilaServicioNota = Servicio & Omit<Nota, "id">;
