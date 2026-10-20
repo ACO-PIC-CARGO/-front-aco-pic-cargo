@@ -54,7 +54,7 @@
               >
                 <p>VERSUS</p>
                 PROYECCIÓN DE GASTOS
-                {{ $store.state.proyecciones.proyeccionaprobada }}
+                {{ proyeccionesStore.proyeccionaprobada }}
               </v-alert>
             </v-col>
           </v-form>
@@ -1641,8 +1641,9 @@ import TableDinamica from "@/components/comun/TableDinamica.vue";
 import FlujoPrePostComponet from "@/components/comun/TablaDinamicaFlujoPrePostMes.vue";
 import moment from "moment";
 import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
+import { useProyeccionesStore } from "@/stores/proyecciones";
 export default {
   components: {
     ProgressBar,
@@ -1733,6 +1734,7 @@ export default {
     };
   },
   computed: {
+    ...mapStores(useProyeccionesStore),
     ...mapState(["listaGanancia"]),
   },
   async mounted() {
@@ -1769,9 +1771,9 @@ export default {
       "getListBalanaceGastosFiltro",
       "getListBalanaceGananciaFiltro",
       "getComparativo",
-      "getProyeccionAprobada",
       "getFlujoPrePostMes",
     ]),
+    ...mapPiniaActions(useProyeccionesStore, ["getProyeccionAprobada"]),
     ...mapPiniaActions(useEntitiesStore, ["CargarPersona"]),
 
     toggleExpand(tipo) {
