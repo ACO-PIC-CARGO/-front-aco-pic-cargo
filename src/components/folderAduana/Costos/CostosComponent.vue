@@ -81,7 +81,6 @@ const fromDataService = ref<FormNuevoCosto>({
 });
 const frmNuevoCosto = useTemplateRef("frmNuevoCosto");
 
-
 const cancelarLlenadoNuevaOpcion = computed(() => aduanaStore.cancelarLlenadoNuevaOpcion);
 const totalFlete = computed(() => aduanaStore.totalFlete);
 const mostrarFleteImport = computed(() => {
@@ -190,8 +189,6 @@ const tipoOpcion = computed(() => {
   });
   return tipoOpcion;
 });
-
-
 
 async function recargarProveedores(e: string) {
   const opciones = [...aduanaStore.opcionCostos];

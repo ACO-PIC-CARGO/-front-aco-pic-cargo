@@ -23,7 +23,6 @@ const headers = [
 const noPorcentaje = ["04", "01", "02", "10", "11", "12"];
 const abierto = ref(0);
 
-
 const actualizarCostosFlag = computed(() => {
   return pricingStore.actualizarCostosFlag;
 });

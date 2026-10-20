@@ -39,7 +39,6 @@ let totalOption: number | undefined;
 
 let dialog: boolean | undefined;
 
-
 const actualizarComparativa = computed(() => aduanaStore.actualizarComparativa);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

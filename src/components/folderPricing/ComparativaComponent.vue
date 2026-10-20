@@ -38,7 +38,7 @@ const gastostercero = ref(false);
 const totalFleteVentas = ref(0);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let totalOption: number | undefined;
- 
+
 let dialog: boolean | undefined;
 
 const actualizarComparativa = computed(

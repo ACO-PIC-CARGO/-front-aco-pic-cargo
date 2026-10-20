@@ -249,7 +249,6 @@ const formatearArchivos = computed(() => {
     .join("<br />");
 });
 
-
 const rehidratarDesdeFormatoViejo = undefined as unknown as (datos: unknown) => void;
 const itemsProveedorList = undefined as FichaInstructivo[] | undefined;
 

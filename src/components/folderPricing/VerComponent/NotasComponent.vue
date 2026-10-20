@@ -212,8 +212,6 @@ async function generar() {
         }
       }
 
-       
-
       loadingTable = false;
       loading.value = false;
       dialog.value = false;

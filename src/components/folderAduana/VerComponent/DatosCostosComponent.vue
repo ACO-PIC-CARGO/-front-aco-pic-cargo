@@ -20,7 +20,6 @@ let mostrarCostos: boolean | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let btnIngresarCostos: boolean | undefined;
 
-
 const actualizarCostos = computed(() => {
   return aduanaStore.costoflag;
 });

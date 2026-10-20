@@ -20,8 +20,6 @@ const headers = [
 ];
 const noPorcentaje = ["04", "01", "02", "10", "11", "12"];
 
-
-
 function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impuesto }) {
   let monto: number | string = 0;
   if (item.codigo === "01") {

@@ -40,10 +40,9 @@ const fromDataService = ref<FormNuevoCosto>({
   id_multiplicador: 0,
   id_proveedor: 0,
 });
- 
+
 let totalOption: number | undefined;
 const frmNuevoCosto = useTemplateRef("frmNuevoCosto");
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const totalVenta = computed(() => {

@@ -32,7 +32,7 @@ const opcionCalculadora = computed({
     calculadorasStore.setOpcion(value); // o una mutation/action de Vuex
   },
 });
- 
+
 const opciones = computed({
   get() {
     return calculadorasStore.opciones;

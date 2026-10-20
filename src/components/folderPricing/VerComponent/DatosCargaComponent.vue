@@ -94,7 +94,7 @@ function añadirCarga() {
     err.value = "Datos requerido y mayor que cero";
   }
 }
- 
+
 async function guardarContainer() {
   err.value = "";
   if ((await frmContainer.value!.validate()).valid) {

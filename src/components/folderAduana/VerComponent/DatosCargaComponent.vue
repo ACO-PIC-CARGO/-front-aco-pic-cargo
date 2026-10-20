@@ -32,7 +32,6 @@ const containers = ref({
 const frmContainer = useTemplateRef("frmContainer");
 const frmPuerto = useTemplateRef("frmPuerto");
 
-
 const pesoVolumetrico = computed(() => {
   const datos = aduanaStore.datosPrincipales || {};
   const volumen = parseFloat(String(datos.volumen || 0)); // m³
@@ -88,8 +87,6 @@ const pesoCargable = computed(() => {
   if (!chargeable || !isFinite(chargeable)) return null;
   return parseFloat(chargeable.toFixed(2));
 });
-
-
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function añadirCarga() {

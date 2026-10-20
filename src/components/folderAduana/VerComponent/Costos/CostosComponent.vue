@@ -44,8 +44,6 @@ const fromDataService = ref<FormNuevoCosto>({
 });
 const frmNuevoCosto = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
-
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function eliminarCostos({ costo = null as unknown as Costo }: { costo?: Costo }) {
   costo.status = 0;

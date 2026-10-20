@@ -17,7 +17,6 @@ const tiporeporte = ref("");
 const dialogCambioNombreSecciones = ref(false);
 const opcionesSeleccionadas = ref([{ listNotasQuote: [] }] as unknown as OpcionCosto[]);
 
-
 const lstSeIncluye = computed(() => {
   const val: FilaServicioNota[] = aduanaStore.listServices.filter(
     (v) => v.status == 1
@@ -66,8 +65,6 @@ const lstNoIncluye = computed(() => {
 
   return final;
 });
-
-
 
 function formatDate(val: string) {
   if (!val) return "";

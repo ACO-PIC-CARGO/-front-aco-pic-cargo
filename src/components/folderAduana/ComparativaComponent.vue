@@ -42,7 +42,6 @@ let totalOption: number | undefined;
 
 let dialog: boolean | undefined;
 
-
 const actualizarComparativa = computed(() => aduanaStore.actualizarComparativa);
 
 function regregar() {

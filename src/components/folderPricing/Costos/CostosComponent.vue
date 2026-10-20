@@ -320,7 +320,6 @@ function habilidarCuandoYaHayOpciones() {
     valueFleteExport.value = 1;
     valueAlmacen.value = 1;
     valueGastosTerceros.value = 1;
-    
   });
 }
 function habilidarPrimeraAccion() {
@@ -720,7 +719,7 @@ function guardarCosto() {
     .listCostos.push(fromDataService.value);
 
   dialog.value = !dialog.value;
-  
+
   calcTotales();
 }
 function isNotPorcentaje(element: Costo, id_multiplicador: Costo["id_multiplicador"]) {

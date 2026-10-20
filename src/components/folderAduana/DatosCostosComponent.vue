@@ -37,7 +37,6 @@ let mostrarSeccionImpuestos: boolean | undefined;
 const frmDatosOpcion = useTemplateRef("frmDatosOpcion");
 const frmFecha = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
-
 const opcionesSeleccionadas = computed(() => {
   return aduanaStore.opcionCostos.filter((v) => !!v.selected);
 });

@@ -37,7 +37,6 @@ let loadingTable: boolean | undefined;
 const frmNota = useTemplateRef("frmNota");
 const frmReporte = useTemplateRef("frmReporte");
 
-
 const opcionesSeleccionadas = computed(() => {
   return aduanaStore.opcionCostos.filter((v) => !!v.selected);
 });
@@ -91,8 +90,6 @@ const lstNoIncluye = computed(() => {
 
   return final;
 });
-
-
 
 function formatDate(val: string) {
   if (!val) return "";
