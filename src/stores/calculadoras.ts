@@ -35,14 +35,13 @@ import type {
 } from "@/types/calculadora";
 import type { EstadoCotizacion, Multiplicador } from "@/types/cotizacion";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
-import { sessionBranchId } from "@/utils/sesion";
+import { sessionBranchId, sessionIsoPais } from "@/utils/sesion";
 // import funciones from "./../../mixins/funciones";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 const sessionBranches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
 const sessionUsers = () => JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[];
 const sessionPaisId = () => sessionBranches()[0]!.id_pais;
-const sessionIsoPais = (): unknown => JSON.parse(sessionStorage.getItem("iso_pais") as string);
 const confirmacionSimple = (title: string | undefined) => ({
   icon: "success" as const,
   title,

@@ -62,7 +62,6 @@ import type {
 } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import type { ProveedorPricing, TipoTransaccion } from "@/types/entidades";
-import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import {
   calcularImpuestos,
   calcularValor,
@@ -72,17 +71,7 @@ import {
   formatearNotas,
   formatearServicios,
 } from "@/utils/cotizacion";
-import { sessionBranchId } from "@/utils/sesion";
-
-const sessionUser = (): UsuarioSesion =>
-  (JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[])[0]!;
-const sessionUserIdOrEmpty = (): number | "" => {
-  const users = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[] | null;
-  return users ? users[0]!.id! : "";
-};
-const sessionSucursal = (): SucursalSesion =>
-  (JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[])[0]!;
-const sessionIsoPais = (): number => JSON.parse(sessionStorage.getItem("iso_pais") as string) as number;
+import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 export const usePricingStore = defineStore("pricing", () => {
   const {
