@@ -85,10 +85,11 @@ describe("incoterm store", () => {
 
     vi.spyOn(console, "error").mockImplementation(() => {});
     incoterm.list = [fob];
+    useAduanaStore().listIncoterms = [fob];
     respond({ ver_incoterms_config: new Error("network") });
     await incoterm.CargarIncotermsConfig();
     expect(incoterm.list).toEqual([fob]);
-    expect(aduanaCopy()).toEqual([]);
+    expect(aduanaCopy()).toEqual([fob]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 

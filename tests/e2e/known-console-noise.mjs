@@ -60,7 +60,7 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["listFlujoMensual"],
   },
   {
-    pattern: /^\[Vue warn\]: Property "(_isVue|constructor)" was accessed during render but is not defined on instance\.[\s\S]*\n\s+at <FlujoOperacionPorMesComponent>/,
+    pattern: /^\[Vue warn\]: Property "(_isVue|constructor)" was accessed during render but is not defined on instance\.[\s\S]*\n\s+at <FlujoOperacionPorMes>/,
     reason: "same pre-existing issue as the listFlujoMensual 'fecha_inicio' entry, Vue 3 wording: Sentry's component trace reads vm._isVue / vm.constructor during the failing render",
     routes: ["listFlujoMensual"],
   },

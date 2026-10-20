@@ -79,7 +79,7 @@ describe("aduana and pricing keep the lists they shared while both were Vuex mod
     ["listar_aduana", (a) => a.getListQuoteAduana()],
     ["obtener_aduana_unificar", (a) => a.getAduanaUnificar(14)],
     ["obtener_cotizacion_unificar", (a) => a.getCotizacionUnificar(14)],
-  ])("SET_LIST_QUOTES from %s keeps aduana's rows and gives pricing the rows keyed by id and position", async (path, load) => {
+  ])("SET_LIST_QUOTES from %s gives pricing aduana's rows keyed by id and position", async (path, load) => {
     respond({ [path]: accepted([{ id: 9 }, { code: "A" }]) });
     const aduana = useAduanaStore();
 
