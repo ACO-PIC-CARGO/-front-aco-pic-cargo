@@ -1,10 +1,20 @@
+<script setup lang="ts">
+import { useAduanaStore } from "@/stores/aduana";
+
+const aduanaStore = useAduanaStore();
+</script>
+
 <template>
   <v-card elevation="0">
-    <v-card-title primary-title> SERVICIOS A REALIZAR: </v-card-title>
+    <v-card-title primary-title>
+      SERVICIOS A REALIZAR:
+    </v-card-title>
     <v-card-text>
       <v-row>
         <v-col cols="3">
-          <h4 class="mb-2">ORIGEN</h4>
+          <h4 class="mb-2">
+            ORIGEN
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -15,13 +25,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.namegroupservice }}
             </template>
           </v-checkbox>
         </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">FLETE</h4>
+          <h4 class="mb-2">
+            FLETE
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -32,13 +44,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.namegroupservice }}
             </template>
-          </v-checkbox></v-col
-        >
+          </v-checkbox>
+        </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">DESTINO</h4>
+          <h4 class="mb-2">
+            DESTINO
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -49,13 +63,15 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.namegroupservice }}
             </template>
-          </v-checkbox></v-col
-        >
+          </v-checkbox>
+        </v-col>
         <v-col cols="3">
-          <h4 class="mb-2">OPCIONAL</h4>
+          <h4 class="mb-2">
+            OPCIONAL
+          </h4>
           <v-checkbox
             density="compact"
             v-for="service in aduanaStore.listServices.filter(
@@ -66,7 +82,7 @@
             :value-comparator="(value, checked) => Boolean(value) === checked"
             readonly
           >
-            <template v-slot:label>
+            <template #label>
               {{ service.namegroupservice }}
             </template>
           </v-checkbox>
@@ -82,31 +98,30 @@
             autocomplete="off"
             density="compact"
             readonly
-          >
-          </v-text-field>
+          />
           <v-text-field
             v-if="
-              (this.aduanaStore.listServices.filter(
+              (aduanaStore.listServices.filter(
                 (v) => v.codegroupservices == 15
               ).length > 0
-                ? this.aduanaStore.listServices.filter(
-                    (v) => v.codegroupservices == 15
-                  )[0].status
+                ? aduanaStore.listServices.filter(
+                  (v) => v.codegroupservices == 15
+                )[0]!.status
                 : false) ||
-              (this.aduanaStore.listServices.filter(
-                (v) => v.codegroupservices == 2
-              ).length > 0
-                ? this.aduanaStore.listServices.filter(
+                (aduanaStore.listServices.filter(
+                  (v) => v.codegroupservices == 2
+                ).length > 0
+                  ? aduanaStore.listServices.filter(
                     (v) => v.codegroupservices == 2
-                  )[0].status
-                : false) ||
-              (this.aduanaStore.listServices.filter(
-                (v) => v.codegroupservices == 6
-              ).length > 0
-                ? this.aduanaStore.listServices.filter(
+                  )[0]!.status
+                  : false) ||
+                (aduanaStore.listServices.filter(
+                  (v) => v.codegroupservices == 6
+                ).length > 0
+                  ? aduanaStore.listServices.filter(
                     (v) => v.codegroupservices == 6
-                  )[0].status
-                : false)
+                  )[0]!.status
+                  : false)
             "
             v-model="
               aduanaStore.datosPrincipales.descripcioncarga
@@ -116,26 +131,11 @@
             autocomplete="off"
             density="compact"
             readonly
-          >
-          </v-text-field>
+          />
         </v-col>
       </v-row>
     </v-card-text>
   </v-card>
 </template>
-
-<script>
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-import { useAduanaStore } from "@/stores/aduana";
-export default {
-  computed: {
-    ...mapStores(useAduanaStore),
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["getItemsServices"]),
-  },
-};
-</script>
 
 <style></style>

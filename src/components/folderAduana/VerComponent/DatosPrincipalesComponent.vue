@@ -1,10 +1,91 @@
+<script setup lang="ts">
+import { computed, ref, useTemplateRef, watch } from "vue";
+import { useStore } from "vuex";
+import { useEntitiesStore } from "@/stores/entities";
+import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
+
+const rootStore = useStore();
+const aduanaStore = useAduanaStore();
+const pricingStore = usePricingStore();
+const entitiesStore = useEntitiesStore();
+
+const buscarClienteDialog = ref(false);
+const form = useTemplateRef("form");
+
+const registroClienteFlag = computed(() => rootStore.state.registroClienteFlag);
+
+//  itemsEntities
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function changeShipment() {
+  if (aduanaStore.datosPrincipales.idtipocarga) {
+    rootStore.state.spiner = true;
+    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    await pricingStore.getPortBegin();
+    // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
+    await pricingStore.getPortEnd();
+    rootStore.state.spiner = false;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function aceptar() {
+  if ((await form.value!.validate()).valid) {
+    aduanaStore.step2 = true;
+  }
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function guardarCliente(e: unknown, { item }: { item: { id: number; namelong: string; phone: string } }) {
+  aduanaStore.datosPrincipales.id_entitie = item.id;
+  aduanaStore.datosPrincipales.nombre = item.namelong;
+  aduanaStore.datosPrincipales.telefono = item.phone;
+  buscarClienteDialog.value = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registrarNuevoCliente() {
+  rootStore.state.modalEntitie = true;
+}
+function mostrarProveedorFlag() {
+  const exw = aduanaStore.listIncoterms.filter(
+    (v) =>
+      v.id == aduanaStore.datosPrincipales.idincoterms &&
+      v.name == "EXW"
+  );
+
+  return exw.length > 0 ? true : false;
+}
+
+watch(registroClienteFlag, async () => {
+  rootStore.state.spiner = true;
+  await rootStore.dispatch("_getEntities");
+  rootStore.state.spiner = false;
+  if (entitiesStore.id) {
+    const cliente = rootStore.state.itemsEntities.filter(
+      (v: { id: number }) => v.id == entitiesStore.id
+    )[0];
+
+    aduanaStore.datosPrincipales.id_entitie = cliente.id;
+    aduanaStore.datosPrincipales.nombre = cliente.namelong;
+    aduanaStore.datosPrincipales.telefono = cliente.phone;
+  }
+  buscarClienteDialog.value = false;
+});
+</script>
+
 <template>
-  <v-container fluid class="pa-0">
+  <v-container
+    fluid
+    class="pa-0"
+  >
     <v-card elevation="0">
-      <v-card-title primary-title> Datos Principales </v-card-title>
+      <v-card-title primary-title>
+        Datos Principales
+      </v-card-title>
       <v-card-text>
-        <v-form class="px-2" ref="form">
-          
+        <v-form
+          class="px-2"
+          ref="form"
+        >
           <v-autocomplete
             label="Tipo de Marketing"
             variant="outlined"
@@ -15,7 +96,7 @@
             item-value="id"
             v-model="aduanaStore.datosPrincipales.id_marketing"
             readonly
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Estado de la cotización"
             variant="outlined"
@@ -26,7 +107,7 @@
             item-value="id"
             v-model="aduanaStore.datosPrincipales.id_status"
             readonly
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Ejecutivo"
             variant="outlined"
@@ -37,7 +118,7 @@
             item-value="id_entitie"
             v-model="aduanaStore.datosPrincipales.id_vendedor"
             readonly
-          ></v-autocomplete>
+          />
 
           <v-autocomplete
             label="Pricing"
@@ -49,7 +130,7 @@
             item-value="id_entitie"
             v-model="aduanaStore.datosPrincipales.id_pricing"
             readonly
-          ></v-autocomplete>
+          />
           <v-text-field
             label="Nombres"
             variant="outlined"
@@ -61,7 +142,7 @@
             name="nombre"
             v-model="aduanaStore.datosPrincipales.nombre"
             readonly
-          ></v-text-field>
+          />
           <v-text-field
             label="Teléfono"
             variant="outlined"
@@ -69,7 +150,7 @@
             density="compact"
             readonly
             v-model="aduanaStore.datosPrincipales.telefono"
-          ></v-text-field>
+          />
 
           <v-autocomplete
             label="Sentido"
@@ -81,7 +162,8 @@
             item-value="id"
             v-model="aduanaStore.datosPrincipales.idsentido"
             readonly
-          ></v-autocomplete>
+          />
+          <!-- @vue-expect-error return-object writes the row into the id-or-row field -->
           <v-autocomplete
             label="Tipo de Embarque"
             variant="outlined"
@@ -93,7 +175,7 @@
             v-model="aduanaStore.datosPrincipales.idtipocarga"
             return-object
             readonly
-          ></v-autocomplete>
+          />
           <v-autocomplete
             label="Incoterms"
             variant="outlined"
@@ -105,7 +187,7 @@
             v-model="aduanaStore.datosPrincipales.idincoterms"
             readonly
           >
-            <template v-slot:selection="data" >
+            <template #selection="data">
               {{ data.item.name }} - {{ data.item.description }}
             </template>
           </v-autocomplete>
@@ -119,7 +201,7 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
 
           <v-text-field
             name="Teléfono"
@@ -129,7 +211,7 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
 
           <v-text-field
             label="Dirección del proveedor"
@@ -138,97 +220,11 @@
             variant="outlined"
             readonly
             v-if="mostrarProveedorFlag()"
-          ></v-text-field>
+          />
         </v-form>
       </v-card-text>
     </v-card>
   </v-container>
 </template>
-
-<script>
-import { mapActions, mapState } from "vuex";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEntitiesStore } from "@/stores/entities";
-import { usePricingStore } from "@/stores/pricing";
-import { useAduanaStore } from "@/stores/aduana";
-
-export default {
-  data() {
-    return {
-      buscarClienteDialog: false,
-      search: "",
-      headers: [
-        { title: "Documento", key: "document" },
-        { title: "Nombres (s)", key: "namelong" },
-        { title: "Teléfono", key: "phone" },
-      ],
-      registro: useEntitiesStore().registroFlag,
-    };
-  },
-  name: "DatosPrincipalesComponent",
-  //  itemsEntities
-  mounted() {},
-  methods: {
-    ...mapActions([
-      "_getRole",
-      "_getEntities",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getQuoteStatus", "getModulesEntities", "getModality", "getShipment", "getIncoterms", "getPortBegin", "getPortEnd", "getModuleRole", "getCargarMasterDetalleNotasCotizacion"]),
-    async changeShipment() {
-      if (this.aduanaStore.datosPrincipales.idtipocarga) {
-        this.$store.state.spiner = true;
-        await this.getPortBegin();
-        await this.getPortEnd();
-        this.$store.state.spiner = false;
-      }
-    },
-    async aceptar() {
-      if ((await this.$refs.form.validate()).valid) {
-        this.aduanaStore.step2 = true;
-      }
-    },
-    guardarCliente(e, { item }) {
-      this.aduanaStore.datosPrincipales.id_entitie = item.id;
-      this.aduanaStore.datosPrincipales.nombre = item.namelong;
-      this.aduanaStore.datosPrincipales.telefono = item.phone;
-      this.buscarClienteDialog = false;
-    },
-    registrarNuevoCliente() {
-      this.$store.state.modalEntitie = true;
-    },
-    mostrarProveedorFlag() {
-      let exw = this.aduanaStore.listIncoterms.filter(
-        (v) =>
-          v.id == this.aduanaStore.datosPrincipales.idincoterms &&
-          v.name == "EXW"
-      );
-
-      return exw.length > 0 ? true : false;
-    },
-  },
-  computed: {
-    ...mapStores(useAduanaStore, usePricingStore, useEntitiesStore),
-    ...mapState(["registroClienteFlag"]),
-  },
-
-  watch: {
-    async registroClienteFlag() {
-      this.$store.state.spiner = true;
-      await this._getEntities();
-      this.$store.state.spiner = false;
-      if (!!this.entitiesStore.id) {
-        let cliente = this.$store.state.itemsEntities.filter(
-          (v) => v.id == this.entitiesStore.id
-        )[0];
-
-        this.aduanaStore.datosPrincipales.id_entitie = cliente.id;
-        this.aduanaStore.datosPrincipales.nombre = cliente.namelong;
-        this.aduanaStore.datosPrincipales.telefono = cliente.phone;
-      }
-      this.buscarClienteDialog = false;
-    },
-  },
-};
-</script>
 
 <style></style>
