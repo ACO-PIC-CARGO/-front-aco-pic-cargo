@@ -3,7 +3,7 @@ import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useStore } from "vuex";
 import dataHouse from "./DataHouse.vue";
-import ingresos from "./ingresos.vue";
+import ingresos from "./IngresosControlGastos.vue";
 import egresos from "./EgresosControlGastos.vue";
 import services from "./ServicesBilling.vue";
 import totalesProveedor from "./TotalesProveedor.vue";

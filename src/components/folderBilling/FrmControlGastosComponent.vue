@@ -11,7 +11,7 @@ import { sessionBranchId } from "@/utils/sesion";
 
 withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 
-const Ingresos = defineAsyncComponent(() => import("./ingresos.vue"));
+const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"));
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
 
 const rootStore = useStore();
