@@ -1,7 +1,5 @@
 export const LEGACY = [
   "src/api/axios-config.js",
-  "src/components/ProgrammedPayment/listProgrammedPayment.vue",
-  "src/components/ProgrammedPayment/newProgrammedPayment.vue",
   "src/components/balances/ganancia.vue",
   "src/components/folderBilling/egresos.vue",
   "src/components/folderBilling/ingresos.vue",
@@ -42,7 +40,6 @@ export const LEGACY = [
   "src/store/modules/typePhone.js",
   "src/store/modules/user.js",
   "src/store/modules/year.js",
-  "src/views/programmedPayment/listProgrammedPayment.vue",
 ];
 
 export const LEGACY_OFF = {

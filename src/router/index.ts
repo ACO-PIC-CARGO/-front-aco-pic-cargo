@@ -373,7 +373,7 @@ const routes = [
       {
         path: "folderReports/listProgrammedPayment",
         name: "listProgrammedPayment",
-        component: () => import("../views/programmedPayment/listProgrammedPayment.vue"),
+        component: () => import("../views/programmedPayment/ListProgrammedPaymentView.vue"),
       },
       {
         path: "folderBilling/lstFacturacion",

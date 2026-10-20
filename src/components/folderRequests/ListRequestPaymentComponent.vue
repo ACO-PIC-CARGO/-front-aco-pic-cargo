@@ -11,7 +11,7 @@ import type { ConceptoSolicitudPago, FacturaSolicitudPago, SolicitudPago } from 
 const componentProps = defineProps<{ filtrarFlag?: string | boolean }>();
 
 const ModalPagoControlGastoComponent = defineAsyncComponent(() =>
-  import("../../components/modal/modalPagoControlGasto.vue"));
+  import("../../components/modal/ModalPagoControlGastoComponent.vue"));
 
 const rootStore = useStore();
 const filesStore = useFilesStore();

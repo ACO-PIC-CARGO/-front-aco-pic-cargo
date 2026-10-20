@@ -34,7 +34,7 @@ const frmComentario = useTemplateRef("frmComentario");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const newProgrammedPayment = defineAsyncComponent(() =>
-  import("../ProgrammedPayment/newProgrammedPayment.vue"));
+  import("../ProgrammedPayment/NewProgrammedPaymentComponent.vue"));
 
 const moneda = ref("");
 const gasto = ref<number[] | string>("");
