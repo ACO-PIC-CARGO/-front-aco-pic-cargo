@@ -61,7 +61,7 @@ const emit = defineEmits<{
 }>();
 
 const appStore = useAppStore();
-const staleRootState = appStore as typeof appStore & {
+const undeclaredAppState = appStore as typeof appStore & {
   controlgastos: { master_houses: ControlGastoHouse[] };
   master_houses: ControlGastoHouse[];
 };
@@ -1276,7 +1276,7 @@ async function imprimirControl() {
         total_pr: parseFloat(String(element.total_total_pr)).toFixed(2),
       };
     }),
-    itemTotalHouse: staleRootState.controlgastos.master_houses.map(
+    itemTotalHouse: undeclaredAppState.controlgastos.master_houses.map(
       (element: ControlGastoHouse) => {
         return {
           consigner: element.consigner,
@@ -1427,7 +1427,7 @@ async function _generateSolicitud() {
   });
 
   const datas = {
-    id_house: staleRootState.master_houses.filter((v: ControlGastoHouse) => v.id_house)[0]!
+    id_house: undeclaredAppState.master_houses.filter((v: ControlGastoHouse) => v.id_house)[0]!
       .id_house,
     id_proveedor: proveedorId,
     conceptos: concepto,

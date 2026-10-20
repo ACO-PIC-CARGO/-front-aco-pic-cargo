@@ -53,8 +53,7 @@ let codigo_master: unknown;
 
 // ...mapAction([])
 // --------------------
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function irAEditar(_ignored?: boolean) {
+function irAEditar() {
   const id_branch =
     controlGastosStore.listControlGastos[0]!.id_branch;
   if (
@@ -467,7 +466,7 @@ onMounted(async () => {
           block
           size="small"
           v-if="!editable"
-          @click="irAEditar(false)"
+          @click="irAEditar()"
         >
           <v-icon class="mx-1">
             mdi-pencil
