@@ -65,19 +65,14 @@ describe("programaciones store", () => {
     expect(programaciones.listado).toEqual([{ id: 9 }]);
   });
 
-  test("GetTotalCotizacion keeps the rows and also runs the calculadoras request it shared the name with", async () => {
-    respond({
-      cargar_programacion: accepted([{ id: 2 }]),
-      get_total_cotizacion: accepted([{ total: 4 }]),
-    });
+  test("GetTotalCotizacion keeps the rows and sends no other request", async () => {
+    respond({ cargar_programacion: accepted([{ id: 2 }]) });
     const programaciones = useProgramacionesStore();
 
     await programaciones.GetTotalCotizacion();
 
     expect(programaciones.listProgramacion).toEqual([{ id: 2 }]);
-    expect(httpMock).toHaveBeenCalledWith(
-      expect.objectContaining({ method: "post", url: URL_MAIN + "get_total_cotizacion" }),
-    );
+    expect(httpMock).toHaveBeenCalledTimes(1);
   });
 
   test("getListProgramacion defaults a missing exchange rate to 1", async () => {

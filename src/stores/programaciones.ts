@@ -3,7 +3,6 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
-import { useCalculadorasStore } from "@/stores/calculadoras";
 import type { ApiResponse } from "@/types/api";
 import type {
   FiltroProgramacionProveedor,
@@ -59,7 +58,6 @@ export const useProgramacionesStore = defineStore("programaciones", () => {
       });
   }
   async function GetTotalCotizacion(): Promise<void> {
-    const calculadorasTotal = useCalculadorasStore().GetTotalCotizacion();
     const headers = {
       "Content-Type": "application/json",
     };
@@ -74,7 +72,6 @@ export const useProgramacionesStore = defineStore("programaciones", () => {
       sessionStorage.setItem("auth-token", data.token!);
       listProgramacion.value = response.data.data;
     });
-    await calculadorasTotal;
   }
   async function getListProgramacion(data: FiltroProgramacionProveedor): Promise<void> {
     const headers = {
