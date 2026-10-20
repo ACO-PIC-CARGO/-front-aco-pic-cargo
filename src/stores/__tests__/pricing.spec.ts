@@ -8,6 +8,7 @@ import store from "@/store";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useControlGastosStore } from "@/stores/controlGastos";
 import { useFilesStore } from "@/stores/files";
 import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -134,6 +135,7 @@ function cotizacion() {
 describe("pricing store", () => {
   let guardarCarpetaHouse: ReturnType<typeof vi.spyOn>;
   let moveFileToOneDrive: ReturnType<typeof vi.spyOn>;
+  let imprimirGuardarControlDetallado: ReturnType<typeof vi.spyOn>;
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
@@ -147,6 +149,7 @@ describe("pricing store", () => {
     useEnterprisesStore().impuesto = { impuesto: 18, nombre_impuesto: "IGV" };
     guardarCarpetaHouse = vi.spyOn(useHousesStore(), "guardarCarpetaHouse").mockResolvedValue(undefined);
     moveFileToOneDrive = vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
+    imprimirGuardarControlDetallado = vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
     vi.spyOn(window, "open").mockImplementation(() => null);
@@ -1832,7 +1835,8 @@ describe("pricing store", () => {
 
       expect(sentConfig("aprobar_cotizacion")!.headers).toEqual({ "Content-Type": "application/json", "idempotency-key": "key-1" });
       expect(guardarCarpetaHouse).toHaveBeenCalledWith({ nroMaster: "M-900 - ZEVALLOS", id: 900, idSelectedFile: ["f1", "f2"] });
-      expect(store.dispatch).toHaveBeenCalledWith("imprimirGuardarControlDetallado", { guardarEnCarpeta: false, asociadoflag: true, id: 900, id_branch: 1 });
+      expect(imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 900, id_branch: 1 });
+      expect(store.dispatch).not.toHaveBeenCalled();
       expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
     });
 
@@ -1847,6 +1851,7 @@ describe("pricing store", () => {
       await flushPromises();
 
       expect(moveFileToOneDrive).toHaveBeenCalledWith({ destinationFolderUrl: "https://drive/m", nroMaster: "M-901 - ZEVALLOS", id: 901, fileIds: ["f3"] });
+      expect(imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 901, id_branch: 1 });
       expect(router.push).not.toHaveBeenCalled();
     });
 

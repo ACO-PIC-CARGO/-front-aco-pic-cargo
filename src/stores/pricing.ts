@@ -8,6 +8,7 @@ import router from "@/router";
 import store from "@/store";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
+import { useControlGastosStore } from "@/stores/controlGastos";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useFilesStore } from "@/stores/files";
 import { useHousesStore } from "@/stores/houses";
@@ -4681,7 +4682,7 @@ export const usePricingStore = defineStore("pricing", () => {
             idSelectedFile: selectedFile.value.map((v) => v.id),
           }),
 
-          store.dispatch("imprimirGuardarControlDetallado", {
+          useControlGastosStore().imprimirGuardarControlDetallado({
             guardarEnCarpeta: false,
             asociadoflag: true,
             id: data.data[0]!.id_master,
@@ -4698,7 +4699,7 @@ export const usePricingStore = defineStore("pricing", () => {
             id: data.data[0]!.id_master,
             fileIds: selectedFile.value.map((v) => v.id),
           }),
-          store.dispatch("imprimirGuardarControlDetallado", {
+          useControlGastosStore().imprimirGuardarControlDetallado({
             guardarEnCarpeta: false,
             asociadoflag: true,
             id: data.data[0]!.id_master,
