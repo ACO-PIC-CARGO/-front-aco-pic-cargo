@@ -353,6 +353,18 @@ describe("pricing store", () => {
       expect(pricing.copylistServices).toEqual([{ id_groupservices: 4, status: 1 }]);
       expect(store.commit).toHaveBeenCalledWith("SET_LIST_SERVICES", [{ id_groupservices: 4, status: 1 }]);
       expect(vi.mocked(store.dispatch).mock.calls.map(([name]: unknown[]) => name)).toEqual(["getItemsServices"]);
+      expect(httpMock.mock.invocationCallOrder[0]).toBeLessThan(vi.mocked(store.dispatch).mock.invocationCallOrder[0]!);
+    });
+
+    test("getItemsServices still runs aduana's action and rejects when the quote has no shipment", async () => {
+      respond({});
+      const pricing = usePricingStore();
+      pricing.datosPrincipales = { idincoterms: 9, idsentido: 1 };
+
+      await expect(pricing.getItemsServices()).rejects.toThrow(TypeError);
+
+      expect(httpMock).not.toHaveBeenCalled();
+      expect(vi.mocked(store.dispatch).mock.calls.map(([name]: unknown[]) => name)).toEqual(["getItemsServices"]);
     });
 
     test("getItemsServicesDetails sends the active services and builds one option row and one sale row per cost", async () => {

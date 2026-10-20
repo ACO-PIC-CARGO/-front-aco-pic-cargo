@@ -1079,36 +1079,38 @@ export const usePricingStore = defineStore("pricing", () => {
   }
 
   async function getItemsServices(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getItemsServices",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        id_branch: sessionBranchId(),
+    const ownRequest = (async (): Promise<void> => {
+      const config = {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "getItemsServices",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: {
+          id_branch: sessionBranchId(),
 
-        id_incoterms: datosPrincipales.value.idincoterms, // 5,
-        id_modality: datosPrincipales.value.idsentido, //1,
-        // id_shipment: state.datosPrincipales.,//1,
-        id_shipment: (datosPrincipales.value.idtipocarga as TipoCarga).id
-          ? (datosPrincipales.value.idtipocarga as TipoCarga).id
-          : datosPrincipales.value.idtipocarga,
-      },
-    };
-    const ownRequest = axios<ApiResponse<Servicio[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        // let data = response.data.data;
-        if (data.data) {
-          setListServices(data.data);
-        } else {
-          setListServices([]);
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+          id_incoterms: datosPrincipales.value.idincoterms, // 5,
+          id_modality: datosPrincipales.value.idsentido, //1,
+          // id_shipment: state.datosPrincipales.,//1,
+          id_shipment: (datosPrincipales.value.idtipocarga as TipoCarga).id
+            ? (datosPrincipales.value.idtipocarga as TipoCarga).id
+            : datosPrincipales.value.idtipocarga,
+        },
+      };
+      await axios<ApiResponse<Servicio[]>>(config)
+        .then(function (response) {
+          const data = response.data;
+          // let data = response.data.data;
+          if (data.data) {
+            setListServices(data.data);
+          } else {
+            setListServices([]);
+          }
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    })();
     // While pricing was a Vuex module this dispatch also ran aduana's getItemsServices in parallel.
     const aduanaRequest: Promise<unknown> = store.dispatch("getItemsServices");
     await Promise.all([ownRequest, aduanaRequest]);
