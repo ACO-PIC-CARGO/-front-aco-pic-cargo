@@ -230,6 +230,13 @@ export interface EntidadRolListado {
   notes?: string;
 }
 
+export interface ClienteListado {
+  id: number;
+  document?: string | null;
+  nombrecompleto?: string;
+  phone?: string;
+}
+
 export interface EntidadControl {
   id: number;
   names?: string;

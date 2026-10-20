@@ -43,7 +43,7 @@
                     @recargarServiciosCostos="recargar"
                     @activarDatosCarga="activarDatosCarga"
                     :mostrarBtn="false"
-                    :EditableFlag="false"
+                    :editable-flag="false"
                   />
                 </v-col>
               </v-row>

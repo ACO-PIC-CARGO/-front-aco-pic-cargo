@@ -1,9 +1,298 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { storeToRefs } from "pinia";
+import { useStore } from "vuex";
+import Swal from "sweetalert2";
+import { useTownStore } from "@/stores/town";
+import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePricingStore } from "@/stores/pricing";
+import type { Servicio } from "@/types/cotizacion";
+
+withDefaults(defineProps<{ mostrarBtn?: boolean }>(), { mostrarBtn: true });
+const emit = defineEmits<{ activarLlenadoCostos: []; recargarCostos: [] }>();
+
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const calculadorasStore = useCalculadorasStore();
+const townStore = useTownStore();
+const { begEndList, listServices, opcionCostos, errorValorMercancia } = storeToRefs(pricingStore);
+
+const dialog = ref(false);
+const mostrarContinuarFlag = ref(true);
+const servicio = ref<Servicio>({
+  codebegend: "OP",
+  id_begend: "0",
+  service: "",
+  status: true,
+});
+const categoriasConfig = [
+  { code: "OR", title: "ORIGEN" },
+  { code: "FL", title: "FLETE" },
+  { code: "DE", title: "DESTINO" },
+  { code: "OP", title: "OPCIONAL" },
+];
+const errorIdTown = ref("");
+
+const isEmpresaPermitida = computed<boolean>(() => rootStore.getters.isEmpresaPermitida);
+const iddestino = computed(() => pricingStore.datosPrincipales.iddestino);
+// Two-way bindings para propiedades de Vuex usando getters/setters computados
+const amountModel = computed({
+  get() {
+    return pricingStore.datosPrincipales.amount;
+  },
+  set(value) {
+    pricingStore.datosPrincipales.amount = value;
+  },
+});
+const descripcionCargaModel = computed({
+  get() {
+    return pricingStore.datosPrincipales.descripcioncarga;
+  },
+  set(value) {
+    pricingStore.datosPrincipales.descripcioncarga = value;
+  },
+});
+
+const requiereValorMercancia = computed(() => {
+  const keywords = ["seguro", "impuesto", "impuestos", "aduana en destino"];
+  return listServices.value.some((s) => {
+    if (!s || !(s.status === true || s.status === 1)) return false;
+    const name = normalizeText(s.service);
+    return keywords.some((k) => name.includes(k));
+  });
+});
+
+watch(
+  iddestino,
+  (nuevoValor) => {
+    buscarYCARGAR(nuevoValor);
+  },
+  { immediate: true },
+);
+
+watch(
+  () => pricingStore.listPortEnd,
+  () => {
+    buscarYCARGAR(iddestino.value);
+  },
+  { deep: true },
+);
+
+onMounted(async () => {
+  const port = pricingStore.listPortEnd.find(
+    (v) => v.id_port == pricingStore.datosPrincipales.iddestino,
+  );
+  if (port) {
+    await townStore.cargarTownParaPricing({ id_pais: port.id_pais! });
+  }
+});
+
+function normalizeText(str: unknown) {
+  return String(str || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+}
+
+function getServicesByCode(code: string) {
+  if (code !== "OP") {
+    return listServices.value.filter((v) => v.codebegend === code);
+  }
+
+  // Lógica de "serviciosOpcionalesUnicos" optimizada dentro de una función pura
+  const vistos = new Set<string>();
+  return listServices.value
+    .filter((v) => v.codebegend === "OP")
+    .filter((s) => {
+      const name = (s.service || "").trim().toLowerCase();
+      if (!name) return true;
+      if (vistos.has(name)) return false;
+      vistos.add(name);
+      return true;
+    });
+}
+
+function guardarServicio() {
+  const selectedCategory = begEndList.value!.find(
+    (v) => v.id === servicio.value.id_begend,
+  );
+
+  if (selectedCategory) {
+    servicio.value.codebegend = selectedCategory.code;
+  }
+
+  listServices.value.push({ ...servicio.value });
+  dialog.value = false;
+  resetFormularioServicio();
+}
+
+function resetFormularioServicio() {
+  servicio.value = {
+    codebegend: "OP",
+    id_begend: "0",
+    service: "",
+    status: true,
+  };
+}
+
+function recargarCostos() {
+  pricingStore.errorValorMercancia = "";
+  pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
+}
+
+function actualizarCostoTransporte(idTown: unknown) {
+  const { datosPrincipales } = pricingStore;
+  const opcionTransporte = datosPrincipales.esindividualflag
+    ? 1
+    : datosPrincipales.esgrupalflag
+    ? 2
+    : 0;
+  const peso = parseFloat(datosPrincipales.peso as string) || 0;
+  const tarifa = calculadorasStore.lstTransporte.find(
+    (transporte) =>
+      String(transporte.id_distrito) === String(idTown) &&
+      Number(transporte.opcion) === opcionTransporte &&
+      peso >= parseFloat(transporte.peso_desde as string) &&
+      peso <= parseFloat(transporte.peso_hasta as string),
+  );
+  const monto = tarifa ? parseFloat(tarifa.tarifadolar as string) : 0;
+
+  (opcionCostos.value || []).forEach((opcion) => {
+    (opcion.listCostos || []).forEach((costo) => {
+      if (Number(costo.code_cost) === 13) {
+        costo.costounitario = monto;
+      }
+    });
+  });
+
+  pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
+}
+
+function continuarLlenadoCostos() {
+  errorIdTown.value = "";
+  pricingStore.errorValorMercancia = "";
+  let val = true;
+
+  const validarTown = listServices.value.some(
+    (v) => v.code_service == '14' && v.status == 1,
+  );
+
+  if (
+    requiereValorMercancia.value ||
+    (validarTown && !pricingStore.datosPrincipales.id_town)
+  ) {
+    const amount = pricingStore.datosPrincipales.amount;
+    if (!amount || (amount as number) <= 0) {
+      pricingStore.errorValorMercancia = "Datos Requeridos y mayor que 0";
+      val = false;
+    }
+    if (validarTown && !pricingStore.datosPrincipales.id_town) {
+      errorIdTown.value = "Datos Requeridos";
+      val = false;
+    }
+  }
+  if (val) {
+    emit("activarLlenadoCostos");
+    mostrarContinuarFlag.value = false;
+  }
+}
+
+async function showConfirmationDialog(service: Servicio) {
+  const { datosPrincipales } = pricingStore;
+  const esActivacionTransporteGrupal =
+    Number(service.code_service) === 14 &&
+    service.status &&
+    datosPrincipales.esgrupalflag;
+
+  if (esActivacionTransporteGrupal) {
+    const resultado = await Swal.fire({
+      icon: "warning",
+      title: "Cotización grupal",
+      text: 'Está en una cotización grupal. ¿Está seguro de activar el "transporte"?',
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#28a745",
+      confirmButtonText: "Sí, activar",
+      cancelButtonText: "No, cancelar",
+      allowOutsideClick: false,
+    });
+
+    if (!resultado.isConfirmed) {
+      service.status = 0;
+      return;
+    }
+  }
+
+  const mensajeTransporte =
+    "Tarifa no incluye transporte en destino se puede hacer pero necesitamos dirección de entrega";
+  const esServicioTransporte = service.service!.trim() === "TRANSPORTE EN DESTINO";
+
+  if (esServicioTransporte) {
+    const opciones = opcionCostos.value || [];
+
+    opciones.forEach((opcion) => {
+      if (!Array.isArray(opcion.listNotasQuote)) {
+        opcion.listNotasQuote = [];
+      }
+
+      const existeNota = opcion.listNotasQuote.some(
+        (n) =>
+          n.descripcion === mensajeTransporte &&
+          !n.statusincluye &&
+          !n.statusnoincluye,
+      );
+
+      if (service.status && !existeNota) {
+        opcion.listNotasQuote.push({
+          descripcion: mensajeTransporte,
+          estado: 1,
+          statusincluye: 0,
+          statusnoincluye: 0,
+        });
+      } else if (!service.status) {
+        opcion.listNotasQuote = opcion.listNotasQuote.filter(
+          (n) =>
+            !(
+              n.descripcion === mensajeTransporte &&
+              !n.statusincluye &&
+              !n.statusnoincluye
+            ),
+        );
+      }
+    });
+  }
+
+  emit("recargarCostos");
+  if (!requiereValorMercancia.value) {
+    pricingStore.errorValorMercancia = "";
+  }
+}
+
+async function buscarYCARGAR(idDestino: number | string | undefined) {
+  if (!idDestino) return;
+  const listaPuertos = pricingStore.listPortEnd || [];
+  // Usamos Number() o String() para evitar problemas de tipos
+  const port = listaPuertos.find(
+    (v) => String(v.id_port) === String(idDestino),
+  );
+
+  if (port) {
+    await townStore.cargarTownParaPricing({ id_pais: port.id_pais! });
+  }
+}
+</script>
+
 <template>
   <v-card elevation="0">
     <!-- Diálogo para Nuevo Servicio -->
-    <v-dialog v-model="dialog" max-width="30%">
+    <v-dialog
+      v-model="dialog"
+      max-width="30%"
+    >
       <v-card>
-        <v-card-title primary-title> Nuevo Servicio </v-card-title>
+        <v-card-title primary-title>
+          Nuevo Servicio
+        </v-card-title>
         <v-card-text>
           <v-select
             :items="begEndList"
@@ -11,16 +300,26 @@
             item-title="name"
             item-value="id"
             label="Categoria..."
-          ></v-select>
+          />
           <v-text-field
             label="Descripción"
             v-model="servicio.service"
-          ></v-text-field>
+          />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="success" @click="guardarServicio">Guardar</v-btn>
-          <v-btn color="red" @click="dialog = false">Cancelar</v-btn>
+          <v-spacer />
+          <v-btn
+            color="success"
+            @click="guardarServicio"
+          >
+            Guardar
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="dialog = false"
+          >
+            Cancelar
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -28,7 +327,12 @@
     <!-- Título y Subcabecera -->
     <v-card-title primary-title>
       SERVICIOS A REALIZAR:
-      <v-btn variant="text" icon color="primary" @click="dialog = true">
+      <v-btn
+        variant="text"
+        icon
+        color="primary"
+        @click="dialog = true"
+      >
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
@@ -46,23 +350,28 @@
           v-for="cat in categoriasConfig"
           :key="cat.code"
         >
-          <h4 class="mb-2">{{ cat.title }}</h4>
-          <div v-for="service in getServicesByCode(cat.code)" :key="service.id">
+          <h4 class="mb-2">
+            {{ cat.title }}
+          </h4>
+          <div
+            v-for="service in getServicesByCode(cat.code)"
+            :key="service.id"
+          >
             <v-checkbox
               density="compact"
               v-model="service.status"
               :value-comparator="(value, checked) => Boolean(value) === checked"
               @update:model-value="showConfirmationDialog(service)"
             >
-              <template v-slot:label>
+              <template #label>
                 {{ service.service }}
               </template>
             </v-checkbox>
             <template
               v-if="
                 service.code_service == 14 &&
-                service.status == 1 &&
-                isEmpresaPermitida
+                  service.status == 1 &&
+                  isEmpresaPermitida
               "
             >
               <v-autocomplete
@@ -112,7 +421,7 @@
               ]"
               @update:model-value="recargarCostos"
               @blur="recargarCostos"
-            ></v-text-field>
+            />
 
             <v-text-field
               v-model="descripcionCargaModel"
@@ -120,324 +429,32 @@
               placeholder="Descripción de carga"
               autocomplete="off"
               density="compact"
-            ></v-text-field>
+            />
           </template>
         </v-col>
       </v-row>
     </v-card-text>
 
-    <v-divider></v-divider>
+    <v-divider />
 
-    <v-card-actions class="sticky-actions pa-3" v-if="mostrarBtn">
-      <v-spacer></v-spacer>
-      <v-btn color="primary" size="large" @click="continuarLlenadoCostos">
-        <v-icon start>mdi-arrow-right-bold</v-icon>
+    <v-card-actions
+      class="sticky-actions pa-3"
+      v-if="mostrarBtn"
+    >
+      <v-spacer />
+      <v-btn
+        color="primary"
+        size="large"
+        @click="continuarLlenadoCostos"
+      >
+        <v-icon start>
+          mdi-arrow-right-bold
+        </v-icon>
         Continuar
       </v-btn>
     </v-card-actions>
   </v-card>
 </template>
-
-<script>
-import { mapGetters } from "vuex";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapState, mapStores } from "pinia";
-import { useTownStore } from "@/stores/town";
-import { useCalculadorasStore } from "@/stores/calculadoras";
-import { usePricingStore } from "@/stores/pricing";
-
-export default {
-  emits: ["activarLlenadoCostos", "recargarCostos"],
-  props: {
-    mostrarBtn: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {
-      dialog: false,
-      mostrarContinuarFlag: true,
-      servicio: {
-        codebegend: "OP",
-        id_begend: "0",
-        service: "",
-        status: true,
-      },
-      categoriasConfig: [
-        { code: "OR", title: "ORIGEN" },
-        { code: "FL", title: "FLETE" },
-        { code: "DE", title: "DESTINO" },
-        { code: "OP", title: "OPCIONAL" },
-      ],
-      errorIdTown: "",
-    };
-  },
-  async mounted() {
-    let port = this.pricingStore.listPortEnd.find(
-      (v) => v.id_port == this.pricingStore.datosPrincipales.iddestino,
-    );
-    if (port) {
-      await this.cargarTownParaPricing({ id_pais: port.id_pais });
-    }
-  },
-  computed: {
-    ...mapStores(usePricingStore, useCalculadorasStore, useTownStore),
-    ...mapState(usePricingStore, ["begEndList", "listServices", "opcionCostos", "errorValorMercancia"]),
-    ...mapGetters(["isEmpresaPermitida"]),
-    iddestino() {
-      return this.pricingStore.datosPrincipales.iddestino;
-    },
-    // Two-way bindings para propiedades de Vuex usando getters/setters computados
-    amountModel: {
-      get() {
-        return this.pricingStore.datosPrincipales.amount;
-      },
-      set(value) {
-        this.pricingStore.datosPrincipales.amount = value;
-      },
-    },
-    descripcionCargaModel: {
-      get() {
-        return this.pricingStore.datosPrincipales.descripcioncarga;
-      },
-      set(value) {
-        this.pricingStore.datosPrincipales.descripcioncarga = value;
-      },
-    },
-
-    requiereValorMercancia() {
-      const keywords = ["seguro", "impuesto", "impuestos", "aduana en destino"];
-      return this.listServices.some((s) => {
-        if (!s || !(s.status === true || s.status === 1)) return false;
-        const name = this.normalizeText(s.service);
-        return keywords.some((k) => name.includes(k));
-      });
-    },
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["getItemsServices", "getImpuestos", "getItemsServicesDetails", "getBegEndList"]),
-    ...mapPiniaActions(useTownStore, ["cargarTownParaPricing"]),
-
-    normalizeText(str) {
-      return String(str || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-    },
-
-    getServicesByCode(code) {
-      if (code !== "OP") {
-        return this.listServices.filter((v) => v.codebegend === code);
-      }
-
-      // Lógica de "serviciosOpcionalesUnicos" optimizada dentro de una función pura
-      const vistos = new Set();
-      return this.listServices
-        .filter((v) => v.codebegend === "OP")
-        .filter((s) => {
-          const name = (s.service || "").trim().toLowerCase();
-          if (!name) return true;
-          if (vistos.has(name)) return false;
-          vistos.add(name);
-          return true;
-        });
-    },
-
-    guardarServicio() {
-      const selectedCategory = this.begEndList.find(
-        (v) => v.id === this.servicio.id_begend,
-      );
-
-      if (selectedCategory) {
-        this.servicio.codebegend = selectedCategory.code;
-      }
-
-      this.listServices.push({ ...this.servicio });
-      this.dialog = false;
-      this.resetFormularioServicio();
-    },
-
-    resetFormularioServicio() {
-      this.servicio = {
-        codebegend: "OP",
-        id_begend: "0",
-        service: "",
-        status: true,
-      };
-    },
-
-    recargarCostos() {
-      this.pricingStore.errorValorMercancia = "";
-      this.pricingStore.actualizarCostosFlag =
-        !this.pricingStore.actualizarCostosFlag;
-    },
-
-    actualizarCostoTransporte(idTown) {
-      const { datosPrincipales } = this.pricingStore;
-      const opcionTransporte = datosPrincipales.esindividualflag
-        ? 1
-        : datosPrincipales.esgrupalflag
-        ? 2
-        : 0;
-      const peso = parseFloat(datosPrincipales.peso) || 0;
-      const tarifa = this.calculadorasStore.lstTransporte.find(
-        (transporte) =>
-          String(transporte.id_distrito) === String(idTown) &&
-          Number(transporte.opcion) === opcionTransporte &&
-          peso >= parseFloat(transporte.peso_desde) &&
-          peso <= parseFloat(transporte.peso_hasta),
-      );
-      const monto = tarifa ? parseFloat(tarifa.tarifadolar) : 0;
-
-      (this.opcionCostos || []).forEach((opcion) => {
-        (opcion.listCostos || []).forEach((costo) => {
-          if (Number(costo.code_cost) === 13) {
-            costo.costounitario = monto;
-          }
-        });
-      });
-
-      this.pricingStore.actualizarCostosFlag =
-        !this.pricingStore.actualizarCostosFlag;
-      this.$forceUpdate();
-    },
-
-    continuarLlenadoCostos() {
-      this.errorIdTown = "";
-      this.pricingStore.errorValorMercancia = "";
-      let val = true;
-     
-      let validarTown = this.listServices.some(
-        (v) => v.code_service == '14' && v.status == 1,
-      );
-      
-      if (
-        this.requiereValorMercancia ||
-        (validarTown && !this.pricingStore.datosPrincipales.id_town)
-      ) {
-        const amount = this.pricingStore.datosPrincipales.amount;
-        if (!amount || amount <= 0) {
-          this.pricingStore.errorValorMercancia =
-            "Datos Requeridos y mayor que 0";
-          val = false;
-        }
-        if (
-          validarTown &&
-          !this.pricingStore.datosPrincipales.id_town
-        ) {
-          this.errorIdTown = "Datos Requeridos";
-          val = false;
-        }
-      }
-      if (val) {
-        this.$emit("activarLlenadoCostos");
-        this.mostrarContinuarFlag = false;
-      }
-    },
-
-    async showConfirmationDialog(service) {
-      const { datosPrincipales } = this.pricingStore;
-      const esActivacionTransporteGrupal =
-        Number(service.code_service) === 14 &&
-        service.status &&
-        datosPrincipales.esgrupalflag;
-
-      if (esActivacionTransporteGrupal) {
-        const resultado = await Swal.fire({
-          icon: "warning",
-          title: "Cotización grupal",
-          text: 'Está en una cotización grupal. ¿Está seguro de activar el "transporte"?',
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#28a745",
-          confirmButtonText: "Sí, activar",
-          cancelButtonText: "No, cancelar",
-          allowOutsideClick: false,
-        });
-
-        if (!resultado.isConfirmed) {
-          service.status = 0;
-          this.$forceUpdate();
-          return;
-        }
-      }
-
-      const mensajeTransporte =
-        "Tarifa no incluye transporte en destino se puede hacer pero necesitamos dirección de entrega";
-      const esServicioTransporte =
-        service.service.trim() === "TRANSPORTE EN DESTINO";
-
-      if (esServicioTransporte) {
-        const opciones = this.opcionCostos || [];
-
-        opciones.forEach((opcion) => {
-          if (!Array.isArray(opcion.listNotasQuote)) {
-            opcion.listNotasQuote = [];
-          }
-
-          const existeNota = opcion.listNotasQuote.some(
-            (n) =>
-              n.descripcion === mensajeTransporte &&
-              !n.statusincluye &&
-              !n.statusnoincluye,
-          );
-
-          if (service.status && !existeNota) {
-            opcion.listNotasQuote.push({
-              descripcion: mensajeTransporte,
-              estado: 1,
-              statusincluye: 0,
-              statusnoincluye: 0,
-            });
-          } else if (!service.status) {
-            opcion.listNotasQuote = opcion.listNotasQuote.filter(
-              (n) =>
-                !(
-                  n.descripcion === mensajeTransporte &&
-                  !n.statusincluye &&
-                  !n.statusnoincluye
-                ),
-            );
-          }
-        });
-      }
-
-      this.$emit("recargarCostos");
-      if (!this.requiereValorMercancia) {
-        this.pricingStore.errorValorMercancia = "";
-      }
-    },
-    async buscarYCARGAR(idDestino) {
-      if (!idDestino) return;
-      const listaPuertos = this.pricingStore.listPortEnd || [];
-      // Usamos Number() o String() para evitar problemas de tipos
-      let port = listaPuertos.find(
-        (v) => String(v.id_port) === String(idDestino),
-      );
-
-      if (port) {
-        await this.cargarTownParaPricing({ id_pais: port.id_pais });
-      }
-    },
-  },
-  watch: {
-    iddestino: {
-      handler(nuevoValor) {
-        this.buscarYCARGAR(nuevoValor);
-      },
-      immediate: true,
-    },
-
-    "pricingStore.listPortEnd": {
-      handler() {
-        this.buscarYCARGAR(this.iddestino);
-      },
-      deep: true,
-    },
-  },
-};
-</script>
 
 <style scoped>
 .sticky-actions {
