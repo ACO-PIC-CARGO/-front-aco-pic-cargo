@@ -1,3 +1,110 @@
+<script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useRouter } from "vue-router";
+import { useStore } from "vuex";
+import modalListHouse from "@/components/modal/ModalListFile.vue";
+import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
+import Swal from "sweetalert2";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
+import type { RegistroConUrlCarpeta } from "@/types/archivos";
+import type { MasterListadoControlGasto } from "@/types/billing";
+import { sessionBranchId } from "@/utils/sesion";
+
+defineProps<{ statusReport?: boolean }>();
+
+const rootStore = useStore();
+const router = useRouter();
+const pricingStore = usePricingStore();
+const masterusuariosStore = useMasterusuariosStore();
+
+const dialogUrl = ref(false);
+const url_folderonedrive = ref("");
+const search = ref("");
+const masterEditar = ref<RegistroConUrlCarpeta>({});
+const statusDialog = ref(false);
+
+const headers = [
+  { title: "Master", key: "code_master" },
+  // {
+  //   text: "Codigo",
+  //   align: "start",
+  //   value: "code_control",
+  // },
+
+  { title: "Versión", key: "posicion" },
+  { title: "Nro MBL", key: "nro_mbl" },
+  { title: "Sentido", key: "namemodality" },
+  { title: "Embarque", key: "nameshipment" },
+  { title: "Origen", key: "nameportbegin" },
+  { title: "Destino", key: "nameportend" },
+
+  { title: "Consignatario", key: "nameconsigner" },
+  { title: "Fecha Etd", key: "fecha_etd" },
+  { title: "Fecha Eta", key: "fecha_eta" },
+
+  { title: "Acciones", key: "actions" },
+];
+
+const itemsDataControlList = computed<MasterListadoControlGasto[]>(() => rootStore.state.itemsDataControlList);
+
+onMounted(async () => {
+  await Promise.all([
+    rootStore.dispatch("_getControlList"),
+    pricingStore.getModulesEntities(),
+    pricingStore.getQuoteNoAsignadoHouse(),
+    masterusuariosStore.cargarMasterDetalleCanal(),
+    rootStore.dispatch("_getModality"),
+    rootStore.dispatch("_getProveedor"),
+    rootStore.dispatch("_getShipment"),
+  ]);
+});
+
+async function cerrarDialog() {
+  dialogUrl.value = false;
+  rootStore.state.spiner = true;
+  await rootStore.dispatch("_getControlList");
+  rootStore.state.spiner = false;
+}
+function abrirCaperta(item: MasterListadoControlGasto) {
+  console.log("item:", item);
+  masterEditar.value = { ...item };
+  url_folderonedrive.value = "";
+  dialogUrl.value = true;
+  // window.open(url, "_blank");
+}
+function editControlGasto(master: MasterListadoControlGasto) {
+  if (
+    !(
+      master.id_branch ==
+      sessionBranchId()
+    )
+  ) {
+    Swal.fire({
+      icon: "error",
+      text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
+    });
+    return;
+  }
+  router.push({
+    name: "editControlGasto",
+    params: {
+      id: master.id,
+      id_branch: master.id_branch,
+    },
+  });
+}
+function verControlGasto(master: MasterListadoControlGasto) {
+  router.push({
+    name: "verControlGasto",
+    params: {
+      id: master.id,
+      id_branch: master.id_branch,
+    },
+  });
+}
+</script>
+
 <template>
   <div>
     <v-card elevation="5">
@@ -15,7 +122,7 @@
           color="success"
           class="mb-2 ml-5"
           rounded
-          @click="$store.state.cg_filtrarData = true"
+          @click="rootStore.state.cg_filtrarData = true"
           >Filtar</v-btn
         >
         <v-spacer></v-spacer>
@@ -28,7 +135,7 @@
           hide-details
         ></v-text-field>
       </v-card-title>
-      <v-container v-if="!$store.state.dataGastos" style="height: 400px">
+      <v-container v-if="!rootStore.state.dataGastos" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
           <v-col class="text-body-large text-center" cols="12">
             Cargando informacíon
@@ -44,7 +151,7 @@
         </v-row>
       </v-container>
       <v-data-table
-        v-if="$store.state.dataGastos"
+        v-if="rootStore.state.dataGastos"
         :headers="headers"
         :items="itemsDataControlList"
         :search="search"
@@ -95,120 +202,3 @@
     />
   </div>
 </template>
-<script>
-import { mapState, mapActions } from "vuex";
-import modalListHouse from "@/components/modal/ModalListFile.vue";
-import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions } from "pinia";
-import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  name: "listMasterCom",
-  components: {
-    modalListHouse,
-    GuardarUrlMaster,
-  },
-  props: {
-    statusReport: Boolean,
-  },
-  data() {
-    return {
-      dialogUrl: false,
-      url_folderonedrive: "",
-      search: "",
-      masterEditar: {},
-      statusDialog: false,
-
-      headers: [
-        { title: "Master", key: "code_master" },
-        // {
-        //   text: "Codigo",
-        //   align: "start",
-        //   value: "code_control",
-        // },
-
-        { title: "Versión", key: "posicion" },
-        { title: "Nro MBL", key: "nro_mbl" },
-        { title: "Sentido", key: "namemodality" },
-        { title: "Embarque", key: "nameshipment" },
-        { title: "Origen", key: "nameportbegin" },
-        { title: "Destino", key: "nameportend" },
-
-        { title: "Consignatario", key: "nameconsigner" },
-        { title: "Fecha Etd", key: "fecha_etd" },
-        { title: "Fecha Eta", key: "fecha_eta" },
-
-        { title: "Acciones", key: "actions" },
-      ],
-    };
-  },
-  async mounted() {
-    await Promise.all([
-      this._getControlList(),
-      this.getModulesEntities(),
-      this.getQuoteNoAsignadoHouse(),
-      this.cargarMasterDetalleCanal(),
-      this._getModality(),
-      this._getProveedor(),
-      this._getShipment(),
-    ]);
-  },
-  computed: {
-    ...mapState(["itemsDataControlList"]),
-  },
-  methods: {
-    ...mapActions([
-      "_getControlList",
-      "_getModality",
-      "_getProveedor",
-      "_getShipment",
-    ]),
-    ...mapPiniaActions(usePricingStore, ["getModulesEntities", "getQuoteNoAsignadoHouse"]),
-    ...mapPiniaActions(useMasterusuariosStore, ["cargarMasterDetalleCanal"]),
-    async cerrarDialog() {
-      this.dialogUrl = false;
-      this.$store.state.spiner = true;
-      await this._getControlList();
-      this.$store.state.spiner = false;
-    },
-    abrirCaperta(item) {
-      console.log("item:", item);
-      this.masterEditar = { ...item };
-      this.url_folderonedrive = "";
-      this.dialogUrl = true;
-      // window.open(url, "_blank");
-    },
-    editControlGasto(master) {
-      if (
-        !(
-          master.id_branch ==
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch
-        )
-      ) {
-        Swal.fire({
-          icon: "error",
-          text: "El expediente pertenece a otra sucursal, por favor logueese con la otra sucursal.",
-        });
-        return;
-      }
-      this.$router.push({
-        name: "editControlGasto",
-        params: {
-          id: master.id,
-          id_branch: master.id_branch,
-        },
-      });
-    },
-    verControlGasto(master) {
-      this.$router.push({
-        name: "verControlGasto",
-        params: {
-          id: master.id,
-          id_branch: master.id_branch,
-        },
-      });
-    },
-  },
-};
-</script>

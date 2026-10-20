@@ -1,3 +1,11 @@
+<script setup lang="ts">
+import { useStore } from "vuex";
+import { useEnterprisesStore } from "@/stores/enterprises";
+
+const rootStore = useStore();
+const enterprisesStore = useEnterprisesStore();
+</script>
+
 <template>
   <div>
     <v-container>
@@ -7,15 +15,15 @@
         </v-col>
 
         <v-col cols="12" md="3">
-          <p>Total de Ingresos: {{ this.$store.state.totalIngresos }} USD</p>
+          <p>Total de Ingresos: {{ rootStore.state.totalIngresos }} USD</p>
         </v-col>
         <v-col cols="12" md="3">
-          <p>Total de Costos: {{ this.$store.state.totalEgresos }} USD</p>
+          <p>Total de Costos: {{ rootStore.state.totalEgresos }} USD</p>
         </v-col>
         <v-col cols="12" md="3">
           <p>
             Total de {{ enterprisesStore.impuesto.nombre_impuesto }}:
-            {{ $store.state.dataTotalIGV ? $store.state.dataTotalIGV : 0 }} USD
+            {{ rootStore.state.dataTotalIGV ? rootStore.state.dataTotalIGV : 0 }} USD
           </p>
         </v-col>
         <v-col cols="12" md="3">
@@ -23,11 +31,11 @@
             >Total PROFIT:
             {{
               (
-                (this.$store.state.totalIngresos
-                  ? this.$store.state.totalIngresos
+                (rootStore.state.totalIngresos
+                  ? rootStore.state.totalIngresos
                   : 0) -
-                (this.$store.state.totalEgresos
-                  ? this.$store.state.totalEgresos
+                (rootStore.state.totalEgresos
+                  ? rootStore.state.totalEgresos
                   : 0)
               ).toFixed(2)
             }}
@@ -38,16 +46,5 @@
     </v-container>
   </div>
 </template>
-
-<script>
-import { mapStores } from "pinia";
-import { useEnterprisesStore } from "@/stores/enterprises";
-export default {
-  name: "totales",
-  computed: {
-    ...mapStores(useEnterprisesStore),
-  },
-};
-</script>
 
 <style lang="scss" scoped></style>

@@ -1,116 +1,120 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import axios from '@/api/http';
+import type { ApiResponse } from "@/types/api";
+import type { HouseResumenFacturacion } from "@/types/billing";
+import { sessionBranchId } from "@/utils/sesion";
+
+const rootStore = useStore();
+const route = useRoute();
+
+onMounted(() => {
+  rootStore.state.drawer = true;
+  _getData();
+  if (route.params.code) {
+    rootStore.state.dataControl_Numero = route.params.code;
+  }
+  rootStore.state.drawer = false;
+});
+
+function _getData() {
+  if (route.params.id_house) {
+    const data = {
+      id: route.params.id_house,
+      id_branch: sessionBranchId(),
+    };
+    const config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    axios<ApiResponse<HouseResumenFacturacion[]>>(config)
+      .then(function (response) {
+        rootStore.state.dataHouse_modality =
+          response.data.data[0]!.id_transport;
+         
+        response.data.data[0]!.namemodality;
+        rootStore.state.dataHouse_code_house =
+          response.data.data[0]!.code_house;
+        rootStore.state.dataHouse_code_master =
+          response.data.data[0]!.code_master;
+        rootStore.state.dataHouse_shipment =
+          response.data.data[0]!.nameshipment;
+        rootStore.state.dataHouse_port_begin =
+          response.data.data[0]!.nameportbegin;
+        rootStore.state.dataHouse_port_end =
+          response.data.data[0]!.nameortEnd;
+
+        rootStore.state.dataHouse_agente = response.data.data[0]!.nameagent;
+        rootStore.state.dataHouse_operador = response.data.data[0]!.operador;
+        rootStore.state.dataHouse_ruc = response.data.data[0]!.documentlong;
+        rootStore.state.dataHouse_exp = response.data.data[0]!.nro_master;
+        rootStore.state.dataHouse_consigners =
+          response.data.data[0]!.nameconsigner;
+        rootStore.state.dataHouse_notify = response.data.data[0]!.namenotify;
+
+        rootStore.state.dataHouse_bultos = response.data.data[0]!.bultos;
+        rootStore.state.dataHouse_peso = response.data.data[0]!.peso;
+        rootStore.state.dataHouse_volumen = response.data.data[0]!.volumen;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+}
+</script>
+
 <template>
   <div>
     <v-container fluid>
       <v-row>
         <v-col cols="3">
           <div class="divExped">
-            <h3>N° CONTROL: {{ $store.state.dataControl_Numero }}</h3>
+            <h3>N° CONTROL: {{ rootStore.state.dataControl_Numero }}</h3>
             <h3 class="mt-4">
-              Master: {{ $store.state.dataHouse_code_master }}
+              Master: {{ rootStore.state.dataHouse_code_master }}
             </h3>
-            <h3 class="mt-1">House: {{ $store.state.dataHouse_code_house }}</h3>
+            <h3 class="mt-1">House: {{ rootStore.state.dataHouse_code_house }}</h3>
           </div>
         </v-col>
         <v-col cols="3">
           <h3>Datos de Generales</h3>
 
           <div>
-            <p>Sentido: {{ $store.state.dataHouse_modality }}</p>
-            <p>Tipo de Embarque: {{ $store.state.dataHouse_shipment }}</p>
-            <p>Puerto de Origen: {{ $store.state.dataHouse_port_begin }}</p>
-            <p>Puerto de Destino: {{ $store.state.dataHouse_port_end }}</p>
+            <p>Sentido: {{ rootStore.state.dataHouse_modality }}</p>
+            <p>Tipo de Embarque: {{ rootStore.state.dataHouse_shipment }}</p>
+            <p>Puerto de Origen: {{ rootStore.state.dataHouse_port_begin }}</p>
+            <p>Puerto de Destino: {{ rootStore.state.dataHouse_port_end }}</p>
           </div>
         </v-col>
         <v-col cols="3">
           <h3>Datos del Embarque</h3>
 
           <div>
-            <p>Agente: {{ $store.state.dataHouse_agente }}</p>
-            <p>Consignatario: {{ $store.state.dataHouse_consigners }}</p>
-            <p>Notify: {{ $store.state.dataHouse_notify }}</p>
+            <p>Agente: {{ rootStore.state.dataHouse_agente }}</p>
+            <p>Consignatario: {{ rootStore.state.dataHouse_consigners }}</p>
+            <p>Notify: {{ rootStore.state.dataHouse_notify }}</p>
           </div>
         </v-col>
         <v-col cols="3">
           <h3>Datos de la carga</h3>
 
           <div>
-            <p>Bultos: {{ $store.state.dataHouse_bultos }}</p>
-            <p>Peso: {{ $store.state.dataHouse_peso }} Kg</p>
-            <p>Volumen: {{ $store.state.dataHouse_volumen }} m<sup>3</sup></p>
+            <p>Bultos: {{ rootStore.state.dataHouse_bultos }}</p>
+            <p>Peso: {{ rootStore.state.dataHouse_peso }} Kg</p>
+            <p>Volumen: {{ rootStore.state.dataHouse_volumen }} m<sup>3</sup></p>
           </div>
         </v-col>
       </v-row>
     </v-container>
   </div>
 </template>
-
-<script>
-import axios from '@/api/http';
-import { mapState } from "vuex";
-export default {
-  name: "dataHouse",
-  mounted() {
-    let vm = this;
-    vm.$store.state.drawer = true;
-    this._getData();
-    if (this.$route.params.code) {
-      this.$store.state.dataControl_Numero = this.$route.params.code;
-    }
-    vm.$store.state.drawer = false;
-  },
-  methods: {
-    _getData() {
-      var vm = this;
-      if (vm.$route.params.id_house) {
-        var data = {
-          id: vm.$route.params.id_house,
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        };
-        var config = {
-          method: "post",
-          url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-        axios(config)
-          .then(function (response) {
-            vm.$store.state.dataHouse_modality =
-              response.data.data[0].id_transport;
-            response.data.data[0].namemodality;
-            vm.$store.state.dataHouse_code_house =
-              response.data.data[0].code_house;
-            vm.$store.state.dataHouse_code_master =
-              response.data.data[0].code_master;
-            vm.$store.state.dataHouse_shipment =
-              response.data.data[0].nameshipment;
-            vm.$store.state.dataHouse_port_begin =
-              response.data.data[0].nameportbegin;
-            vm.$store.state.dataHouse_port_end =
-              response.data.data[0].nameortEnd;
-
-            vm.$store.state.dataHouse_agente = response.data.data[0].nameagent;
-            vm.$store.state.dataHouse_operador = response.data.data[0].operador;
-            vm.$store.state.dataHouse_ruc = response.data.data[0].documentlong;
-            vm.$store.state.dataHouse_exp = response.data.data[0].nro_master;
-            vm.$store.state.dataHouse_consigners =
-              response.data.data[0].nameconsigner;
-            vm.$store.state.dataHouse_notify = response.data.data[0].namenotify;
-
-            vm.$store.state.dataHouse_bultos = response.data.data[0].bultos;
-            vm.$store.state.dataHouse_peso = response.data.data[0].peso;
-            vm.$store.state.dataHouse_volumen = response.data.data[0].volumen;
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-      }
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .divExped {

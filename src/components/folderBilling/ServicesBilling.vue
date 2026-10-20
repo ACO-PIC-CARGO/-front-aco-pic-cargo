@@ -1,3 +1,69 @@
+<script setup lang="ts">
+import { onMounted } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import axios from '@/api/http';
+import type { ApiResponse } from "@/types/api";
+import { sessionBranchId } from "@/utils/sesion";
+
+const rootStore = useStore();
+const route = useRoute();
+
+onMounted(() => {
+  _validaData();
+});
+
+ 
+function _deleteServices(id: number) {
+  const data = {
+    id: id,
+  };
+  const config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "deleteServices",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  axios<ApiResponse>(config)
+    .then(function (response) {
+      if (response.data.status == 200) {
+        _validaData();
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function _validaData() {
+  if (route.params.id_house) {
+    rootStore.state.house_Id_get = route.params.id_house;
+    const data = {
+      id: route.params.id_house,
+      id_branch: sessionBranchId(),
+    };
+    const config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    axios<ApiResponse>(config)
+      .then(function (response) {
+        rootStore.state.itemsHouseServices = response.data.data;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+}
+</script>
+
 <template>
   <div>
     <v-table density="compact">
@@ -11,7 +77,7 @@
         <tbody>
           <tr
             :style="`background:${item.color}`"
-            v-for="item in $store.state.itemsHouseServices"
+            v-for="item in rootStore.state.itemsHouseServices"
             :key="item.id"
           >
             <td>{{ item.nameservice }}</td>
@@ -24,69 +90,6 @@
     </v-table>
   </div>
 </template>
-<script>
-import axios from '@/api/http';
-export default {
-  name: "services",
-  data: () => ({}),
-  mounted() {
-    this._validaData();
-  },
-  methods: {
-    _deleteServices(id) {
-      var vm = this;
-      var data = {
-        id: id,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "deleteServices",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      axios(config)
-        .then(function (response) {
-          if (response.data.status == 200) {
-            vm._validaData();
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    _validaData() {
-      var vm = this;
-
-      if (vm.$route.params.id_house) {
-        vm.$store.state.house_Id_get = vm.$route.params.id_house;
-        var data = {
-          id: vm.$route.params.id_house,
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        };
-        var config = {
-          method: "post",
-          url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-        axios(config)
-          .then(function (response) {
-            vm.$store.state.itemsHouseServices = response.data.data;
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-      }
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .listMain {

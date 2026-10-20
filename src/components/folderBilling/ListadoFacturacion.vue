@@ -1,3 +1,152 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import axios from "@/api/http";
+import Swal from "sweetalert2";
+import { useEnterprisesStore } from "@/stores/enterprises";
+import type { ApiResponse } from "@/types/api";
+import type { EncabezadoTabla, FacturaListado } from "@/types/billing";
+import { sessionBranchId } from "@/utils/sesion";
+
+const enterprisesStore = useEnterprisesStore();
+
+const search = ref("");
+const lstFac = ref<FacturaListado[]>([]);
+const headers = ref<EncabezadoTabla[]>([
+  {
+    title: "Correlativo",
+    key: "correlativo",
+    align: "start",
+    sortable: false,
+  },
+
+  {
+    title: "Expediente",
+    key: "nro_master",
+    align: "start",
+    sortable: true,
+  },
+  { title: "Cliente", key: "cliente", align: "start", sortable: true },
+  {
+    title: "Origen",
+    key: "pais_origen",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Destino",
+    key: "pais_destino",
+    align: "start",
+    sortable: true,
+  },
+
+  {
+    title: "Shipment",
+    key: "shipment",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Moneda",
+    key: "symbol",
+    align: "start",
+    sortable: true,
+  },
+  {
+    title: "Monto",
+    key: "total_monto",
+    align: "start",
+    sortable: false,
+  },
+  {
+    title: "IGV",
+    key: "total_igv",
+    align: "start",
+    sortable: false,
+  },
+  { title: "Total", key: "total", align: "start", sortable: false },
+  { title: "Estado", key: "estado", align: "start", sortable: false },
+  {
+    title: "Tiene Fac. Fiscal",
+    key: "existe_fiscal",
+    align: "center",
+    sortable: false,
+  },
+  { title: "Acciones", key: "url", align: "start", sortable: false },
+]);
+
+onMounted(async () => {
+  await listadoFacturacion();
+  await enterprisesStore.obtenerImpuestoXEmpresa();
+  headers.value[8]!.title =
+    enterprisesStore.impuesto.nombre_impuesto!;
+});
+
+async function listadoFacturacion() {
+  const data = {
+    id_branch: sessionBranchId(),
+  };
+  const config = {
+    method: "get",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "listar_Factura/" +
+      sessionBranchId(),
+
+    headers: {
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios<ApiResponse<FacturaListado[]>>(config).then((response) => {
+    lstFac.value = response.data.data;
+  });
+}
+
+function verFactura(url: string) {
+  window.open(url);
+}
+ 
+function filterOnlyCapsText(value: unknown, search: string | null) {
+  const text = search ? search.toLocaleUpperCase() : null;
+  return (
+    value != null &&
+    search != null &&
+    typeof value === "string" &&
+    value.toString().toLocaleUpperCase().indexOf(text!) !== -1
+  );
+}
+
+async function eliminar(data: FacturaListado) {
+  Swal.fire({
+    icon: "question",
+    title: "ADVERTENCIA",
+    html: `Deseas <b>ANULAR</b> el correlativo con número <b>${data.correlativo}</b> perteneciente al cliente <b> ${data.cliente} </b>`,
+    showConfirmButton: true,
+    showCancelButton: true,
+    confirmButtonText: "Eliminar",
+  }).then((result) => {
+    if (result.isConfirmed) {
+      const datos = {
+        id: data.id,
+      };
+      const config = {
+        method: "put",
+        url: import.meta.env.VITE_URL_MAIN + "anular_factura",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+        data: datos,
+      };
+      axios(config).then(() => {
+        Swal.fire("Deleted!", "Factura Anulada.", "success");
+        listadoFacturacion();
+      });
+    }
+  });
+}
+</script>
+
 <template>
   <div class="">
     <v-data-table
@@ -37,160 +186,5 @@
     </v-data-table>
   </div>
 </template>
-
-<script>
-import axios from "@/api/http";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useEnterprisesStore } from "@/stores/enterprises";
-export default {
-  name: "lstFacturacionComponent",
-  data() {
-    return {
-      search: "",
-      lstFac: [],
-      headers: [
-        {
-          title: "Correlativo",
-          key: "correlativo",
-          align: "start",
-          sortable: false,
-        },
-
-        {
-          title: "Expediente",
-          key: "nro_master",
-          align: "start",
-          sortable: true,
-        },
-        { title: "Cliente", key: "cliente", align: "start", sortable: true },
-        {
-          title: "Origen",
-          key: "pais_origen",
-          align: "start",
-          sortable: true,
-        },
-        {
-          title: "Destino",
-          key: "pais_destino",
-          align: "start",
-          sortable: true,
-        },
-
-        {
-          title: "Shipment",
-          key: "shipment",
-          align: "start",
-          sortable: true,
-        },
-        {
-          title: "Moneda",
-          key: "symbol",
-          align: "start",
-          sortable: true,
-        },
-        {
-          title: "Monto",
-          key: "total_monto",
-          align: "start",
-          sortable: false,
-        },
-        {
-          title: "IGV",
-          key: "total_igv",
-          align: "start",
-          sortable: false,
-        },
-        { title: "Total", key: "total", align: "start", sortable: false },
-        { title: "Estado", key: "estado", align: "start", sortable: false },
-        {
-          title: "Tiene Fac. Fiscal",
-          key: "existe_fiscal",
-          align: "center",
-          sortable: false,
-        },
-        { title: "Acciones", key: "url", align: "start", sortable: false },
-      ],
-    };
-  },
-  async mounted() {
-    await this.listadoFacturacion();
-    await this.obtenerImpuestoXEmpresa();
-    this.headers[8].title =
-      this.enterprisesStore.impuesto.nombre_impuesto;
-  },
-  computed: {
-    ...mapStores(useEnterprisesStore),
-  },
-  methods: {
-    ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
-    async listadoFacturacion() {
-      let data = {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      let vm = this;
-      var config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "listar_Factura/" +
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config).then((response) => {
-        vm.lstFac = response.data.data;
-      });
-    },
-
-    verFactura(url) {
-      window.open(url);
-    },
-    filterOnlyCapsText(value, search) {
-      let text = search ? search.toLocaleUpperCase() : null;
-      return (
-        value != null &&
-        search != null &&
-        typeof value === "string" &&
-        value.toString().toLocaleUpperCase().indexOf(text) !== -1
-      );
-    },
-
-    async eliminar(data) {
-      let vm = this;
-
-      vm.$swal({
-        icon: "question",
-        title: "ADVERTENCIA",
-        html: `Deseas <b>ANULAR</b> el correlativo con número <b>${data.correlativo}</b> perteneciente al cliente <b> ${data.cliente} </b>`,
-        showConfirmButton: true,
-        showCancelButton: true,
-        confirmButtonText: "Eliminar",
-      }).then((result) => {
-        if (result.isConfirmed) {
-          let datos = {
-            id: data.id,
-          };
-          var config = {
-            method: "put",
-            url: import.meta.env.VITE_URL_MAIN + "anular_factura",
-
-            headers: {
-              "Content-Type": "application/json",
-            },
-            data: datos,
-          };
-          axios(config).then((response) => {
-            vm.$swal("Deleted!", "Factura Anulada.", "success");
-            vm.listadoFacturacion();
-          });
-        }
-      });
-    },
-  },
-};
-</script>
 
 <style></style>
