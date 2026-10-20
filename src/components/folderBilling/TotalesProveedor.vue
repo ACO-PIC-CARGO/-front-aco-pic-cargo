@@ -1,3 +1,688 @@
+<script setup lang="ts">
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute } from "vue-router";
+import { useStore } from "vuex";
+import axios from '@/api/http';
+import moment from "moment";
+import Swal from "sweetalert2";
+import type { ApiResponse } from "@/types/api";
+import type { ConceptoSolicitud, DocumentoProveedor, SolicitudPagoProveedor } from "@/types/billing";
+import { sessionBranchId, sessionUser } from "@/utils/sesion";
+
+const rootStore = useStore();
+const route = useRoute();
+const actualizar = computed(() => rootStore.state.actualizar);
+const itemsDataConceptos = computed<ConceptoSolicitud[]>(() => rootStore.state.itemsDataConceptos);
+
+const dialogSolicitud = ref(false);
+const dialogSolicitudDivision = ref(false);
+const nameproveedorLocal = ref("");
+const TotalLocal = ref<number | string>("");
+const proveedorId = ref<number | string>("");
+const comentarios = ref("");
+const codigo_pago = ref("");
+const codigo_master = ref("");
+const selected = ref<ConceptoSolicitud[]>([]);
+const selectedAccount = ref<unknown[]>([]);
+const total = ref<number | string>(0);
+const e1 = ref(1);
+const dataList = ref(false);
+const dialogInvoice = ref(false);
+const radio = ref(1);
+const boolFile = ref(false);
+const dialogListInvoince = ref(false);
+const payPath = ref("");
+const payfile = ref("" as unknown as File | File[]);
+const date = ref<string | null>(new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
+  .toISOString()
+  .substr(0, 10));
+const menu = ref(false);
+const dateOnOpen = ref<string | null>(null);
+const nro_invoice = ref("");
+const checkPago = ref(false);
+const checkMaster = ref(false);
+const nameproveedorSeleccionado = ref("");
+const dialogPayment = ref(false);
+const itemsSPayment = ref<SolicitudPagoProveedor[]>([]);
+const itemsListInvoice = ref<DocumentoProveedor[]>([]);
+const itemsInvoice = ref<unknown[]>([]);
+const search = ref("");
+const sPaymentId = ref<number | string>("");
+const headers = [
+  {
+    title: "Concepto",
+    align: "start",
+    sortable: false,
+
+    key: "concepto",
+  },
+  {
+    title: "Monto",
+
+    key: "monto_op",
+  },
+  {
+    title: "Status",
+
+    key: "status",
+  },
+] as const;
+const headersPdf = [
+  {
+    title: "Nombre",
+    align: "start",
+    sortable: false,
+    key: "path",
+  },
+  {
+    title: "Fecha Creado",
+    key: "fecha_letra",
+  },
+  {
+    title: "Hora Creado",
+    key: "hora_letra",
+  },
+  {
+    title: "Fecha de Solicitud",
+    key: "fecha_sol_letra",
+  },
+  {
+    title: "Fecha de Pago",
+    key: "fecha_pago_letra",
+  },
+  {
+    title: "Ver",
+    key: "accion",
+  },
+  {
+    title: "Status",
+    key: "status",
+  },
+  {
+    title: "Enviar",
+    key: "accions",
+  },
+] as const;
+const headersInvoice = [
+  {
+    title: "Nombre",
+    key: "originalname",
+  },
+  {
+    title: "Fecha",
+    key: "date_letra",
+  },
+  {
+    title: "Ver",
+    key: "path",
+  },
+  {
+    title: "Acción",
+    key: "action",
+  },
+] as const;
+const headersAccount = [
+  {
+    title: "Cuenta",
+    align: "start",
+    sortable: false,
+    key: "nameaccount",
+  },
+  { title: "Banco", key: "namebanks" },
+  { title: "Moneda", key: "namecoins" },
+  { title: "Número de cuenta", key: "accountnumber" },
+] as const;
+
+function setDate(value: moment.MomentInput) {
+  date.value = moment(value).format("YYYY-MM-DD");
+}
+function openDoc(path: string) {
+  window.open(path, "_blank");
+}
+function cleandData() {
+  nro_invoice.value = "";
+  payfile.value = [];
+  boolFile.value = false;
+}
+function openInvoice(id: number, nameproveedor: string, type: number) {
+  itemsListInvoice.value = [];
+  if (type == 1) {
+    proveedorId.value = id;
+
+    _getInvoice();
+    nameproveedorSeleccionado.value = nameproveedor;
+  } else {
+    proveedorId.value = id;
+
+    _getInvoice();
+    nameproveedorSeleccionado.value = nameproveedor;
+    //vm.dialogInvoice = true;
+  }
+}
+async function _getInvoice() {
+  var data = {
+    id_house: route.params.id_house,
+    id_proveedor: proveedorId.value,
+    id_branch: sessionBranchId(),
+  };
+  var config = {
+    method: "get",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      `list_invoice_path/${route.params.id_house}/${proveedorId.value}`,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios<ApiResponse<DocumentoProveedor[]>>(config)
+    .then(function (response) {
+      dialogListInvoince.value = true;
+      if (!!response.data.data[0]!.estadoflag) {
+        itemsListInvoice.value = response.data.data;
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _setInvoice() {
+  Swal.fire({
+    icon: "info",
+    title: "Guardando...",
+    text: "Por favor espere",
+  });
+  var data = {
+    id_house: route.params.id_house,
+    id_proveedor: proveedorId.value,
+    id_path: payPath.value,
+    type_pago: radio.value,
+    number: nro_invoice.value,
+    date: date.value,
+    status: 1,
+  };
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "setInvoice",
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios(config)
+    .then(function (response) {
+      itemsInvoice.value = response.data.data;
+      rootStore.dispatch("_getTotalesProveedor");
+      Swal.fire({
+        icon: "success",
+        title: "Documento Cargado",
+        text: "El documento ha sido cargado correctamente",
+      });
+
+      cleandData();
+      _getInvoice();
+      dialogInvoice.value = false;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _delInvoice(id: number) {
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "delInvoice/" + id,
+
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function (response) {
+      itemsInvoice.value = response.data.data;
+
+      _getInvoice();
+      dialogInvoice.value = false;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function _uploadFile() {
+  var data = new FormData();
+  data.append("name", "Prueba");
+  data.append("file", payfile.value as Blob);
+
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+
+  axios<ApiResponse<{ insertid: number }[]>>(config)
+    .then(function (response) {
+      boolFile.value = true;
+      payPath.value = JSON.stringify(response.data.data[0]!.insertid);
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function openPayments(id: number, type: number) {
+  if (type == 1) {
+    Swal.fire({
+      icon: "warning",
+      title: "Lo sentimos",
+      text: "No puede realizar solicitudes hasta colocar un proveedor real.",
+    });
+  } else {
+    _getSPaymentPro(id);
+    sPaymentId.value = id;
+    dataList.value = false;
+    dialogPayment.value = true;
+  }
+}
+function viewPdf(pdf: string) {
+  window.open(import.meta.env.VITE_URL_MAIN + pdf, "_blank");
+}
+async function _getAccountsNumber() {
+  let data = {
+    id_branch: sessionBranchId(),
+  };
+  var config = {
+    method: "post",
+    url:
+      import.meta.env.VITE_URL_MAIN + "getAccountsNumber/" + proveedorId.value,
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios(config)
+    .then(function (response) {
+      rootStore.state.itemsDataAccountsNumberList = response.data.data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function sendAdmin(id: number) {
+  Swal.fire({
+    title: "¿Desea realizar esta solicitud a Administración?",
+    showDenyButton: true,
+
+    confirmButtonText: "Si",
+    denyButtonText: `No`,
+
+    icon: "info",
+  }).then((result) => {
+    /* Read more about isConfirmed, isDenied below */
+    if (result.isConfirmed) {
+      var data = {
+        fecha_sol: new Date(
+          Date.now() - new Date().getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .substr(0, 10),
+        status: 2,
+      };
+      var config = {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "putSPaymentPro/" + id,
+        headers: {
+         
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios(config)
+        .then(function (response) {
+          Swal.fire({
+            icon: "success",
+            title: "Excelente",
+            text: "Solicitud enviada correctamente",
+          });
+
+          _getSPaymentPro(sPaymentId.value as number);
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    }
+  });
+
+  _getAccountsNumber();
+
+  // @ts-expect-error nameproveedor is not defined in this scope
+  nameproveedorLocal.value = nameproveedor;
+  // @ts-expect-error pagar is not defined in this scope
+  TotalLocal.value = pagar;
+}
+async function _getSPaymentPro(id: number) {
+  var config = {
+    method: "post",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "getSPaymentPro/" +
+      route.params.id_house +
+      "/" +
+      id +
+      "/" +
+      sessionBranchId(),
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function (response) {
+      itemsSPayment.value = response.data.data;
+      dataList.value = true;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function openPaymentFile(path: string) {
+  window.open(path, "_blank");
+}
+function solicitar(nameproveedor: string, pagar: number | string, id: number, type: number) {
+  if (type == 1) {
+    Swal.fire({
+      icon: "warning",
+      title: "Lo sentimos",
+      text: "No puede realizar solicitudes hasta colocar un proveedor real.",
+    });
+  } else {
+    proveedorId.value = id;
+    (selected.value = []),
+      (selectedAccount.value = []),
+      Swal.fire({
+          title: "¿Desea realizar una solicitud con división de pago?",
+          showDenyButton: true,
+          showCancelButton: true,
+          confirmButtonText: "Si",
+          denyButtonText: `No`,
+          cancelButtonText: "Cancelar",
+          imageUrl: "https://point.qreport.site/files/alto_icono.png",
+        })
+        .then((result) => {
+          /* Read more about isConfirmed, isDenied below */
+          if (result.isConfirmed) {
+            _getConceptos();
+          } else if (result.isDenied) {
+            _getConceptosSimple();
+            //vm.selected = vm.$store.state.itemsDataConceptos;
+            dialogSolicitud.value = !dialogSolicitud.value;
+          }
+        });
+
+    _getAccountsNumber();
+
+    nameproveedorLocal.value = nameproveedor;
+    TotalLocal.value = pagar;
+  }
+}
+async function _generateSolicitud() {
+  _calcularTotales();
+  Swal.fire({
+    icon: "info",
+    title: "Generando PDF...",
+    text: "Por favor espere",
+  });
+  var sentido;
+  if (rootStore.state.report_id_sentido == "") {
+    sentido = "";
+  } else {
+    sentido = rootStore.state.report_id_sentido;
+  }
+
+  let pago;
+  if ((total.value as number) > 0) {
+    pago = total.value;
+  } else {
+    pago = TotalLocal.value;
+  }
+
+  let concepto = [];
+
+  if (selected.value.length > 0) {
+    concepto = selected.value;
+  } else {
+    concepto = rootStore.state.itemsDataConceptos;
+  }
+
+  var datas = {
+    id_house: route.params.id_house,
+    id_proveedor: proveedorId.value,
+    conceptos: concepto,
+    monto: pago,
+    status: 1,
+  };
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "setSPaymentPro",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: datas,
+  };
+
+  axios(config)
+    .then(function (response) {
+      var data = {
+        nameProveedor: nameproveedorLocal.value,
+        nameConsignatario: rootStore.state.dataHouse_consigners,
+        totalPagar: TotalLocal.value,
+        expediente: rootStore.state.dataHouse_exp,
+        fecha: currentDate(),
+        totalProveedores: rootStore.state.itemsDataTotalesProveedor,
+        comentarios: comentarios.value,
+        codigo_pago: codigo_pago.value,
+        codigo_master: codigo_master.value,
+        cuentas: selectedAccount.value,
+        operador: rootStore.state.dataHouse_operador,
+        conceptos: rootStore.state.itemsDataConceptos,
+        selected: selected.value,
+        totalSelected: total.value,
+        number: response.data.data[0].number,
+        url_logo: sessionUser().path,
+      };
+      var config = {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
+        headers: {
+         
+          "Content-Type": "application/json",
+        },
+        data: data,
+      };
+
+      axios(config)
+        .then(function (response) {
+          rootStore.dispatch("_getTotalesProveedor");
+          Swal.fire({
+            icon: "success",
+            title: "PDF Generado",
+            text: "El PDF se descargará automaticamente",
+          });
+          window.open(
+            import.meta.env.VITE_URL_MAIN + response.data.path,
+            "_blank"
+          );
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function _calcularTotales() {
+  if (selected.value.length > 0) {
+    total.value = 0;
+
+    let calculo = 0;
+
+    selected.value.map((item) => {
+      calculo = calculo + parseFloat(String(item.total_op));
+
+      total.value = calculo.toFixed(2);
+    });
+  } else {
+    total.value = 0;
+
+    let calculo = 0;
+
+    rootStore.state.itemsDataConceptos.map((item: ConceptoSolicitud) => {
+      calculo = calculo + parseFloat(String(item.total_op));
+
+      total.value = calculo.toFixed(2);
+    });
+  }
+}
+function currentDate() {
+  const monthNames = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
+  const current = new Date();
+  const date = `${current.getDate()} de ${
+    monthNames[current.getMonth()]
+  } del ${current.getFullYear()}`;
+  return date;
+}
+function _deleteServices(id: number) {
+  var data = {
+    id: id,
+  };
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "deleteServices",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  axios(config)
+    .then(function (response) {
+      if (response.data.status == 200) {
+        _validaData();
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function _validaData() {
+  rootStore.state.spiner = true;
+  if (route.params.id_house) {
+    rootStore.state.house_Id_get = route.params.id_house;
+    var data = {
+      id: route.params.id_house,
+      id_branch: sessionBranchId(),
+    };
+    var config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    axios(config)
+      .then(function (response) {
+        rootStore.state.itemsHouseServices = response.data.data;
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+  }
+  rootStore.state.spiner = false;
+}
+async function _getConceptosSimple() {
+  var config = {
+    method: "post",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "getEgresosDivision/" +
+      route.params.id_orders +
+      "/" +
+      proveedorId.value,
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function (response) {
+      rootStore.state.itemsDataConceptos = response.data.data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+async function _getConceptos() {
+  var config = {
+    method: "post",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "getEgresosDivision/" +
+      route.params.id_orders +
+      "/" +
+      proveedorId.value,
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios(config)
+    .then(function (response) {
+      rootStore.state.itemsDataConceptos = response.data.data;
+      dialogSolicitudDivision.value = !dialogSolicitudDivision.value;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+
+watch(menu, (open) => {
+  if (open) dateOnOpen.value = date.value;
+  else date.value = dateOnOpen.value;
+});
+watch(actualizar, () => {
+  rootStore.dispatch("_getTotalesProveedor");
+});
+
+onMounted(() => {
+  _validaData();
+});
+</script>
+
 <template>
   <div>
     <h3>Total por Proveedores</h3>
@@ -66,7 +751,7 @@
                   v-if="!checkPago"
                   v-model="selectedAccount"
                   :headers="headersAccount"
-                  :items="$store.state.itemsDataAccountsNumberList"
+                  :items="rootStore.state.itemsDataAccountsNumberList"
                   hide-default-footer
                   item-value="id"
                   return-object
@@ -142,7 +827,7 @@
             v-model="selected"
             :headers="headers"
             hide-default-header
-            :items="$store.state.itemsDataConceptos"
+            :items="itemsDataConceptos"
             hide-default-footer
             item-value="concepto"
             return-object
@@ -156,7 +841,7 @@
               <v-checkbox-btn
                 v-bind="props"
                 :readonly="item.pagado == 1"
-                v-if="!item.pagado == 1"
+                v-if="(!item.pagado as unknown) == 1"
               ></v-checkbox-btn>
             </template>
             <template v-slot:[`item.status`]="{ item }">
@@ -175,7 +860,7 @@
                 size="large"
                 color="grey"
                 v-if="item.pagado == 1"
-                @click="openPaymentFile(item.path)"
+                @click="openPaymentFile(item.path as string)"
                 >mdi-eye</v-icon
               >
             </template>
@@ -185,7 +870,7 @@
           <v-data-table
             v-model="selectedAccount"
             :headers="headersAccount"
-            :items="$store.state.itemsDataAccountsNumberList"
+            :items="rootStore.state.itemsDataAccountsNumberList"
             hide-default-footer
             item-value="id"
             return-object
@@ -280,7 +965,7 @@
     <v-dialog max-width="800" v-model="dialogListInvoince">
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
-          Facturas y Performance de {{ nameproveedor }}
+          Facturas y Performance de {{ nameproveedorSeleccionado }}
           <v-spacer></v-spacer>
           <v-btn variant="outlined" @click="dialogInvoice = true" color="primary"
             >Cargar Nueva</v-btn
@@ -311,7 +996,7 @@
               {{
                 item.type_pago == 1
                   ? "FACTURA"
-                  : "" || item.type_pago == 2
+                  : String("") || item.type_pago == 2
                   ? "PERFORMANCE"
                   : "OTRO"
               }}
@@ -344,7 +1029,7 @@
     <v-dialog width="800" v-model="dialogInvoice">
       <v-card>
         <v-card-title>
-          <h3>Subir factura o proforma para {{ nameproveedor }}</h3>
+          <h3>Subir factura o proforma para {{ nameproveedorSeleccionado }}</h3>
         </v-card-title>
         <v-card-text>
           <v-container>
@@ -369,7 +1054,7 @@
                       :label="`Fecha de ${
                         radio == 1
                           ? 'Factura'
-                          : '' || radio == 2
+                          : String('') || radio == 2
                           ? 'Performance'
                           : 'Otro'
                       }`"
@@ -404,7 +1089,7 @@
                   :label="`Nro de ${
                     radio == 1
                       ? 'Factura'
-                      : '' || radio == 2
+                      : String('') || radio == 2
                       ? 'Performance'
                       : 'Otro'
                   }`"
@@ -419,7 +1104,7 @@
                   :label="`Adjuntar File de ${
                     radio == 1
                       ? 'Factura'
-                      : '' || radio == 2
+                      : String('') || radio == 2
                       ? 'Performance'
                       : 'Otro'
                   }`"
@@ -439,8 +1124,8 @@
                 </v-chip>
               </v-col>
               <v-col cols="5">
-                <v-btn
-                  :disabled="boolFile || payfile == []"
+                <!-- @vue-expect-error comparing an array by reference is always false -->
+                <v-btn :disabled="boolFile || payfile == []"
                   color="blue-grey"
                   block
                   class="ma-2 text-white"
@@ -451,7 +1136,7 @@
                   {{
                     radio == 1
                       ? "Factura"
-                      : "" || radio == 2
+                      : String("") || radio == 2
                       ? "Performance"
                       : "Otro"
                   }}
@@ -466,7 +1151,7 @@
           <v-btn color="primary" @click="_setInvoice()" :disabled="!boolFile">
             GUARDAR
             {{
-              radio == 1 ? "Factura" : "" || radio == 2 ? "Performance" : "Otro"
+              radio == 1 ? "Factura" : String("") || radio == 2 ? "Performance" : "Otro"
             }}</v-btn
           >
 
@@ -493,7 +1178,7 @@
         <tbody>
           <tr
             :style="`background:${item.color}`"
-            v-for="item in $store.state.itemsDataTotalesProveedor"
+            v-for="item in rootStore.state.itemsDataTotalesProveedor"
             :key="item.id"
           >
             <td>{{ item.nameproveedor }}</td>
@@ -563,737 +1248,6 @@
     </v-table>
   </div>
 </template>
-<script>
-import axios from '@/api/http';
-import moment from "moment";
-import { mapState, mapActions } from "vuex";
-export default {
-  name: "services",
-  data: () => ({
-    dialogSolicitud: false,
-    dialogSolicitudDivision: false,
-    nameproveedorLocal: "",
-    TotalLocal: "",
-    proveedorId: "",
-    comentarios: "",
-    codigo_pago: "",
-    codigo_master: "",
-    active: true,
-    selected: [],
-    selectedAccount: [],
-    total: 0,
-    e1: 1,
-    dataList: false,
-    dialogInvoice: false,
-    radio: 1,
-    boolFile: false,
-    dialogListInvoince: false,
-    payPath: "",
-    payfile: "",
-    item: "",
-    date: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .substr(0, 10),
-    menu: false,
-    dateOnOpen: null,
-    modal: false,
-    menu2: false,
-
-    nro_invoice: "",
-
-    checkPago: false,
-    checkMaster: false,
-
-    proveedorId: "",
-
-    nameproveedor: "",
-
-    singleSelect: false,
-    selected: [],
-    dialogPayment: false,
-    itemsSPayment: [],
-    itemsListInvoice: [],
-
-    itemsInvoice: [],
-    search: "",
-    headers: [
-      {
-        title: "Concepto",
-        align: "start",
-        sortable: false,
-
-        key: "concepto",
-      },
-      {
-        title: "Monto",
-
-        key: "monto_op",
-      },
-      {
-        title: "Status",
-
-        key: "status",
-      },
-    ],
-    sPaymentId: "",
-
-    headersPdf: [
-      {
-        title: "Nombre",
-        align: "start",
-        sortable: false,
-        key: "path",
-      },
-      {
-        title: "Fecha Creado",
-        key: "fecha_letra",
-      },
-      {
-        title: "Hora Creado",
-        key: "hora_letra",
-      },
-      {
-        title: "Fecha de Solicitud",
-        key: "fecha_sol_letra",
-      },
-      {
-        title: "Fecha de Pago",
-        key: "fecha_pago_letra",
-      },
-      {
-        title: "Ver",
-        key: "accion",
-      },
-      {
-        title: "Status",
-        key: "status",
-      },
-      {
-        title: "Enviar",
-        key: "accions",
-      },
-    ],
-
-    headersInvoice: [
-      {
-        title: "Nombre",
-        key: "originalname",
-      },
-      {
-        title: "Fecha",
-        key: "date_letra",
-      },
-      {
-        title: "Ver",
-        key: "path",
-      },
-      {
-        title: "Acción",
-        key: "action",
-      },
-    ],
-
-    headersAccount: [
-      {
-        title: "Cuenta",
-        align: "start",
-        sortable: false,
-        key: "nameaccount",
-      },
-      { title: "Banco", key: "namebanks" },
-      { title: "Moneda", key: "namecoins" },
-      { title: "Número de cuenta", key: "accountnumber" },
-    ],
-  }),
-  mounted() {
-    this._validaData();
-  },
-  computed: {
-    ...mapState(["itemsDataTotalesProveedor", "actualizar"]),
-  },
-
-  methods: {
-    ...mapActions(["_getProveedor", "_getTotalesProveedor"]),
-    setDate(value) {
-      this.date = moment(value).format("YYYY-MM-DD");
-    },
-    openDoc(path) {
-      window.open(path, "_blank");
-    },
-    cleandData() {
-      this.nro_invoice = "";
-      this.payfile = [];
-      this.boolFile = false;
-    },
-    openInvoice(id, nameproveedor, type) {
-      var vm = this;
-      vm.itemsListInvoice = [];
-      if (type == 1) {
-        vm.proveedorId = id;
-
-        vm._getInvoice();
-        vm.nameproveedor = nameproveedor;
-      } else {
-        vm.proveedorId = id;
-
-        vm._getInvoice();
-        vm.nameproveedor = nameproveedor;
-        //vm.dialogInvoice = true;
-      }
-    },
-    async _getInvoice() {
-      var vm = this;
-      var data = {
-        id_house: vm.$route.params.id_house,
-        id_proveedor: vm.proveedorId,
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      var config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          `list_invoice_path/${vm.$route.params.id_house}/${vm.proveedorId}`,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.dialogListInvoince = true;
-          if (!!response.data.data[0].estadoflag) {
-            vm.itemsListInvoice = response.data.data;
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    async _setInvoice() {
-      var vm = this;
-      vm.$swal({
-        icon: "info",
-        title: "Guardando...",
-        text: "Por favor espere",
-      });
-      var data = {
-        id_house: vm.$route.params.id_house,
-        id_proveedor: vm.proveedorId,
-        id_path: vm.payPath,
-        type_pago: vm.radio,
-        number: vm.nro_invoice,
-        date: vm.date,
-        status: 1,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "setInvoice",
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.itemsInvoice = response.data.data;
-          vm._getTotalesProveedor();
-          vm.$swal({
-            icon: "success",
-            title: "Documento Cargado",
-            text: "El documento ha sido cargado correctamente",
-          });
-
-          vm.cleandData();
-          vm._getInvoice();
-          vm.dialogInvoice = false;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    async _delInvoice(id) {
-      var vm = this;
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "delInvoice/" + id,
-
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.itemsInvoice = response.data.data;
-
-          vm._getInvoice();
-          vm.dialogInvoice = false;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    _uploadFile() {
-      var data = new FormData();
-      var vm = this;
-      data.append("name", "Prueba");
-      data.append("file", vm.payfile);
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      axios(config)
-        .then(function (response) {
-          vm.boolFile = true;
-          vm.payPath = JSON.stringify(response.data.data[0].insertid);
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    openPayments(id, type) {
-      var vm = this;
-
-      if (type == 1) {
-        vm.$swal({
-          icon: "warning",
-          title: "Lo sentimos",
-          text: "No puede realizar solicitudes hasta colocar un proveedor real.",
-        });
-      } else {
-        vm._getSPaymentPro(id);
-        vm.sPaymentId = id;
-        vm.dataList = false;
-        vm.dialogPayment = true;
-      }
-    },
-    viewPdf(pdf) {
-      window.open(import.meta.env.VITE_URL_MAIN + pdf, "_blank");
-    },
-    async _getAccountsNumber() {
-      var vm = this;
-      let data = {
-        id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-      };
-      var config = {
-        method: "post",
-        url:
-          import.meta.env.VITE_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.$store.state.itemsDataAccountsNumberList = response.data.data;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    sendAdmin(id) {
-      this.$swal({
-        title: "¿Desea realizar esta solicitud a Administración?",
-        showDenyButton: true,
-
-        confirmButtonText: "Si",
-        denyButtonText: `No`,
-
-        icon: "info",
-      }).then((result) => {
-        /* Read more about isConfirmed, isDenied below */
-        if (result.isConfirmed) {
-          var data = {
-            fecha_sol: new Date(
-              Date.now() - new Date().getTimezoneOffset() * 60000
-            )
-              .toISOString()
-              .substr(0, 10),
-            status: 2,
-          };
-          var config = {
-            method: "post",
-            url: import.meta.env.VITE_URL_MAIN + "putSPaymentPro/" + id,
-            headers: {
-             
-              "Content-Type": "application/json",
-            },
-            data: data,
-          };
-
-          var vm = this;
-
-          axios(config)
-            .then(function (response) {
-              vm.$swal({
-                icon: "success",
-                title: "Excelente",
-                text: "Solicitud enviada correctamente",
-              });
-
-              vm._getSPaymentPro(vm.sPaymentId);
-            })
-            .catch(function (error) {
-              console.error(error);
-            });
-        }
-      });
-
-      this._getAccountsNumber();
-
-      this.nameproveedorLocal = nameproveedor;
-      this.TotalLocal = pagar;
-    },
-
-    async _getSPaymentPro(id) {
-      var vm = this;
-
-      var config = {
-        method: "post",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "getSPaymentPro/" +
-          vm.$route.params.id_house +
-          "/" +
-          id +
-          "/" +
-          JSON.parse(sessionStorage.getItem("dataUser"))[0].id_branch,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.itemsSPayment = response.data.data;
-          vm.dataList = true;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    openPaymentFile(path) {
-      window.open(path, "_blank");
-    },
-
-    solicitar(nameproveedor, pagar, id, type) {
-      var vm = this;
-      if (type == 1) {
-        vm.$swal({
-          icon: "warning",
-          title: "Lo sentimos",
-          text: "No puede realizar solicitudes hasta colocar un proveedor real.",
-        });
-      } else {
-        vm.proveedorId = id;
-        (vm.selected = []),
-          (vm.selectedAccount = []),
-          vm
-            .$swal({
-              title: "¿Desea realizar una solicitud con división de pago?",
-              showDenyButton: true,
-              showCancelButton: true,
-              confirmButtonText: "Si",
-              denyButtonText: `No`,
-              cancelButtonText: "Cancelar",
-              imageUrl: "https://point.qreport.site/files/alto_icono.png",
-            })
-            .then((result) => {
-              /* Read more about isConfirmed, isDenied below */
-              if (result.isConfirmed) {
-                vm._getConceptos();
-              } else if (result.isDenied) {
-                vm._getConceptosSimple();
-                //vm.selected = vm.$store.state.itemsDataConceptos;
-                vm.dialogSolicitud = !vm.dialogSolicitud;
-              }
-            });
-
-        vm._getAccountsNumber();
-
-        vm.nameproveedorLocal = nameproveedor;
-        vm.TotalLocal = pagar;
-      }
-    },
-
-    async _generateSolicitud() {
-      var vm = this;
-      vm._calcularTotales();
-      vm.$swal({
-        icon: "info",
-        title: "Generando PDF...",
-        text: "Por favor espere",
-      });
-      var sentido;
-      if (vm.$store.state.report_id_sentido == "") {
-        sentido = "";
-      } else {
-        sentido = vm.$store.state.report_id_sentido;
-      }
-
-      let pago;
-      if (this.total > 0) {
-        pago = this.total;
-      } else {
-        pago = this.TotalLocal;
-      }
-
-      let concepto = [];
-
-      if (vm.selected.length > 0) {
-        concepto = vm.selected;
-      } else {
-        concepto = vm.$store.state.itemsDataConceptos;
-      }
-
-      var datas = {
-        id_house: vm.$route.params.id_house,
-        id_proveedor: vm.proveedorId,
-        conceptos: concepto,
-        monto: pago,
-        status: 1,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "setSPaymentPro",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: datas,
-      };
-
-      axios(config)
-        .then(function (response) {
-          var data = {
-            nameProveedor: vm.nameproveedorLocal,
-            nameConsignatario: vm.$store.state.dataHouse_consigners,
-            totalPagar: vm.TotalLocal,
-            expediente: vm.$store.state.dataHouse_exp,
-            fecha: vm.currentDate(),
-            totalProveedores: vm.$store.state.itemsDataTotalesProveedor,
-            comentarios: vm.comentarios,
-            codigo_pago: vm.codigo_pago,
-            codigo_master: vm.codigo_master,
-            cuentas: vm.selectedAccount,
-            operador: vm.$store.state.dataHouse_operador,
-            conceptos: vm.$store.state.itemsDataConceptos,
-            selected: vm.selected,
-            totalSelected: vm.total,
-            number: response.data.data[0].number,
-            url_logo: JSON.parse(sessionStorage.getItem("dataUser"))[0].path,
-          };
-          var config = {
-            method: "post",
-            url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
-            headers: {
-             
-              "Content-Type": "application/json",
-            },
-            data: data,
-          };
-
-          axios(config)
-            .then(function (response) {
-              vm._getTotalesProveedor();
-              vm.$swal({
-                icon: "success",
-                title: "PDF Generado",
-                text: "El PDF se descargará automaticamente",
-              });
-              window.open(
-                import.meta.env.VITE_URL_MAIN + response.data.path,
-                "_blank"
-              );
-            })
-            .catch(function (error) {
-              console.error(error);
-            });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    _calcularTotales() {
-      if (this.selected.length > 0) {
-        var vm = this;
-
-        vm.total = 0;
-
-        let calculo = 0;
-
-        vm.selected.map((item) => {
-          calculo = calculo + parseFloat(item.total_op);
-
-          vm.total = calculo.toFixed(2);
-        });
-      } else {
-        var vm = this;
-
-        vm.total = 0;
-
-        let calculo = 0;
-
-        vm.$store.state.itemsDataConceptos.map((item) => {
-          calculo = calculo + parseFloat(item.total_op);
-
-          vm.total = calculo.toFixed(2);
-        });
-      }
-    },
-
-    currentDate() {
-      const monthNames = [
-        "Enero",
-        "Febrero",
-        "Marzo",
-        "Abril",
-        "Mayo",
-        "Junio",
-        "Julio",
-        "Agosto",
-        "Septiembre",
-        "Octubre",
-        "Noviembre",
-        "Diciembre",
-      ];
-      const current = new Date();
-      const date = `${current.getDate()} de ${
-        monthNames[current.getMonth()]
-      } del ${current.getFullYear()}`;
-      return date;
-    },
-
-    _deleteServices(id) {
-      var vm = this;
-      var data = {
-        id: id,
-      };
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "deleteServices",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      axios(config)
-        .then(function (response) {
-          if (response.data.status == 200) {
-            vm._validaData();
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    _validaData() {
-      var vm = this;
-      vm.$store.state.spiner = true;
-      if (vm.$route.params.id_house) {
-        vm.$store.state.house_Id_get = vm.$route.params.id_house;
-        var data = {
-          id: vm.$route.params.id_house,
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
-            .id_branch,
-        };
-        var config = {
-          method: "post",
-          url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-        axios(config)
-          .then(function (response) {
-            vm.$store.state.itemsHouseServices = response.data.data;
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-      }
-      vm.$store.state.spiner = false;
-    },
-
-    async _getConceptosSimple() {
-      var vm = this;
-      var config = {
-        method: "post",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "getEgresosDivision/" +
-          vm.$route.params.id_orders +
-          "/" +
-          vm.proveedorId,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.$store.state.itemsDataConceptos = response.data.data;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-
-    async _getConceptos() {
-      var vm = this;
-      var config = {
-        method: "post",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          "getEgresosDivision/" +
-          vm.$route.params.id_orders +
-          "/" +
-          vm.proveedorId,
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.$store.state.itemsDataConceptos = response.data.data;
-          vm.dialogSolicitudDivision = !vm.dialogSolicitudDivision;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-  },
-  watch: {
-    menu(open) {
-      if (open) this.dateOnOpen = this.date;
-      else this.date = this.dateOnOpen;
-    },
-    actualizar() {
-      this._getTotalesProveedor();
-    },
-  },
-};
-</script>
 
 <style lang="scss" scoped>
 .listMain {

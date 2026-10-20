@@ -1,3 +1,524 @@
+<script setup lang="ts">
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { useStore } from "vuex";
+import axios from '@/api/http';
+import moment from "moment";
+import Swal from "sweetalert2";
+import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import { useFilesStore } from "@/stores/files";
+import { useBancosStore } from "@/stores/bancos";
+import type { ApiResponse } from "@/types/api";
+import type { CuentaBancariaPago, PagoPendienteProveedor } from "@/types/billing";
+import { sessionBranchId } from "@/utils/sesion";
+
+defineProps<{ limpar?: boolean }>();
+const emit = defineEmits<{ cancelar: []; cerrarModal: [value: boolean] }>();
+
+const rootStore = useStore();
+const bancosStore = useBancosStore();
+const filesStore = useFilesStore();
+const provedores = computed(() => rootStore.state.provedores);
+
+const msgNroOperacion = ref("");
+const comentarios = ref<string | null>("");
+const id_coins = ref(1);
+const montoMonExt = ref<number | string>(0.0);
+const acronym = ref("USD");
+const dialog = ref(false);
+const loadingPago = ref(false);
+const headersParcial = [
+  { title: "Concepto", key: "concepto" },
+  { title: "Total Operaciones (USD)", key: "total_op" },
+  { title: "Moneda Cuenta Banco", key: "acronym" },
+  { title: "Total Cuenta Banco", key: "totalopcuentabanco" },
+] as const;
+const detalles = ref<PagoPendienteProveedor["details"]>([]);
+const lstPagos = ref<PagoPendienteProveedor[]>([]);
+const payfile = ref<unknown>([]);
+const cuentas = ref<CuentaBancariaPago[]>([]);
+const selected = ref<PagoPendienteProveedor[]>([]);
+const selectedParcial = ref<PagoPendienteProveedor["details"]>([]);
+const totalDeuda = ref(0);
+const totalMonto = ref<number | string>(0);
+const tab = ref<string | number | null>(null);
+const step2 = ref(true);
+const boolFile = ref(false);
+const id_cuenta = ref<CuentaBancariaPago>("" as unknown as CuentaBancariaPago);
+const nro_operacion = ref<string | null>("");
+const search = ref("");
+const payPath = ref<number | string>(0);
+const date = ref("");
+const dataList = ref(false);
+const cabPagos = [
+  // {
+  //   text: "Expediente",
+  //   value: "nro_master",
+  //   shortable: false,
+  // },
+
+  {
+    title: "Master",
+    key: "code_master",
+    shortable: false,
+  },
+  { title: "Factura/ Proforma", key: "expedientes" },
+  {
+    title: "Procedencia",
+    key: "procedencia",
+    shortable: false,
+  },
+  { title: "Monto (USD)", key: "monto_dolar" },
+  {
+    title: "Monto Factura",
+    key: "monto_banco",
+    shortable: false,
+  },
+  {
+    title: "Tipo Cambio",
+    key: "tipo_cambio",
+  },
+
+  {
+    title: "Moneda Pagar",
+    key: "item_moneda",
+  },
+  {
+    title: "Monto Pagar",
+    key: "parcial",
+    shortable: false,
+  },
+] as const;
+const msgfile = ref<string | null>("");
+const errfile = ref<string | null>("");
+const proveedor = ref<number | string | null>("");
+let itemParcial: PagoPendienteProveedor;
+const loadingTable = ref(false);
+
+function calcularTotales() {
+  let mondolar = 0;
+  let monex = 0;
+  let mon_ex = 0;
+  selected.value.forEach(async (element) => {
+    if (element.tipo == "CG") {
+      mon_ex = 0;
+      await element.details.forEach((element2) => {
+        if (!!element2.pagar) {
+          element.tipocambio = parseFloat(element2.tipocambio).toFixed(2);
+          mon_ex =
+            parseFloat(String(mon_ex)) + parseFloat(element2.totalopcuentabanco);
+          mondolar = parseFloat(String(mondolar)) + parseFloat(element2.total_op);
+          monex =
+            parseFloat(String(monex)) + parseFloat(element2.totalopcuentabanco);
+        }
+        id_coins.value = element2
+          ? rootStore.state.itemsCoinsList.filter(
+              (v: { id: number; acronym: string }) => v.acronym == element2.acronym,
+            )[0].id
+          : 1;
+      });
+      element.monto_mon_ex = mon_ex;
+    } else {
+      element.monto_mon_ex = element.monto_mon_ex
+        ? element.monto_mon_ex
+        : element.monto_banco;
+
+      monex += parseFloat(String(element.monto_mon_ex));
+      // if (
+      //   !element.monto_mon_ex ||
+      //   typeof element.monto_mon_ex == "undefined"
+      // ) {
+      //   element.monto_mon_ex = parseFloat(
+      //     element.monto_dolar * element.tipocambio
+      //   ).toFixed(2);
+      //   monex += parseFloat(
+      //     element.monto_mon_ex ? element.monto_mon_ex : 0.0
+      //   );
+      // } else {
+      //   element.monto_mon_ex = parseFloat(
+      //     parseFloat(element.monto_dolar) * parseFloat(element.tipocambio)
+      //   ).toFixed(2);
+      //   monex = parseFloat(
+      //     parseFloat(element.monto_dolar) * parseFloat(element.tipocambio)
+      //   ).toFixed(2);
+      // }
+    }
+
+    acronym.value = rootStore.state.itemsCoinsList.filter(
+      (v: { id: number; acronym: string }) => v.id == id_coins.value,
+    )[0].acronym;
+  });
+
+  montoMonExt.value = parseFloat(String(monex)).toFixed(2);
+  calcularTotalesInput();
+  acronym.value = rootStore.state.itemsCoinsList.filter(
+    (v: { id: number; acronym: string }) => v.id == id_coins.value,
+  )[0].acronym;
+}
+async function calcularTotalesInput() {
+  let monex = 0;
+  await selected.value.forEach((element) => {
+    element.errorEx = "";
+    if (
+      parseFloat(String(element.monto_mon_ex)) >
+      parseFloat(
+        String(parseFloat(element.monto_banco) * parseFloat(String(element.tipocambio))),
+      )
+    ) {
+      element.errorEx =
+        "El monto no puede ser mayor que el monto como deuda";
+    } else {
+      monex = parseFloat(String(monex)) + parseFloat(String(element.monto_mon_ex));
+    }
+  });
+}
+async function listarPagosXControlGasto() {
+  loadingTable.value = true;
+  lstPagos.value = [];
+  nro_operacion.value = null;
+  payfile.value = null;
+  msgfile.value = null;
+  errfile.value = null;
+  id_cuenta.value = "" as unknown as CuentaBancariaPago;
+  comentarios.value = null;
+  if (!!proveedor.value) {
+    var config = {
+      method: "get",
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        "listPagoControlGastoXProveedor/" +
+        proveedor.value,
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+    };
+    await axios<ApiResponse<PagoPendienteProveedor[]>>(config)
+      .then(function (response) {
+        let res = response.data;
+
+        if (typeof res.data != "undefined") {
+          let data = response.data.data;
+          data.forEach((element) => {
+            element.tipocambio = element.tipocambio
+              ? element.tipocambio
+              : 1;
+          });
+          let index = 0;
+          data.forEach((element) => {
+            element.index = index;
+            index++;
+          });
+          lstPagos.value = data;
+          loadingTable.value = false;
+        } else {
+          lstPagos.value = [];
+          loadingTable.value = false;
+          Swal.fire({
+            icon: "info",
+            title: "AVISO IMPORTANTE",
+            text: response.data.mensaje,
+          });
+        }
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+    dataList.value = true;
+  } else {
+    lstPagos.value = [];
+    loadingTable.value = false;
+    tab.value = 1;
+    payfile.value = [];
+  }
+}
+function calcularMontoPagar() {
+  if (lstPagos.value.length > 0) {
+    let monto = lstPagos.value
+      .filter((v) => v.pagar == true)
+      .map((item) => item.monto)
+      .reduce((a, b) => parseFloat(String(a)) + parseFloat(b as string), parseFloat(String(0)));
+    totalMonto.value = parseFloat(String(monto)).toFixed(2);
+  } else {
+    totalMonto.value = 0;
+  }
+}
+function guardarMontoParciales() {
+  let a: number | null = null;
+
+  itemParcial.details.forEach((element) => {
+    a = selectedParcial.value.filter((v) => v.id == element.id).length;
+    if (a == 1) {
+      element.pagar = true;
+    } else {
+      element.pagar = false;
+    }
+  });
+
+  calcularTotales();
+  dialog.value = false;
+}
+async function getListBanksDetailsCargar() {
+  var config = {
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
+    params: {
+      id_branch: sessionBranchId(),
+    },
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+  };
+  await axios<ApiResponse<CuentaBancariaPago[]>>(config)
+    .then(function (response) {
+      let data = response.data.data;
+
+      cuentas.value = data;
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+}
+function continuar() {
+  // if (this.validar()) {
+  step2.value = false;
+  tab.value = "ref2";
+  // }
+}
+function _uploadFile() {
+  msgfile.value = "";
+  errfile.value = "";
+  if (payfile.value) {
+    var data = new FormData();
+    data.append("name", "Prueba");
+    data.append("file", payfile.value as Blob);
+
+    var config = {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
+      headers: {
+       
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios<ApiResponse<{ insertid: number }[]>>(config)
+      .then(function (response) {
+        boolFile.value = true;
+        payPath.value = JSON.stringify(response.data.data[0]!.insertid);
+        msgfile.value = "Archivo Cargado correctamente.";
+      })
+      .catch(function (error) {
+        errfile.value =
+          "Ocurrió un problmea conuníquese con el administrador del sistema";
+        console.error(error);
+      });
+  }
+}
+async function registrarPago() {
+  if (
+    filesStore.payPath == 0 ||
+    !filesStore.payPath
+  ) {
+    Swal.fire({
+      icon: "warning",
+      title: "Soporte de Pago",
+      text: "SE SUGIERE GUARDAR EL SOPORTE DE PAGO POR FAVOR ANEXARLO",
+      confirmButtonText: "Continuar, sin soporte",
+      cancelButtonText: "Cancelar",
+      showDenyButton: false,
+      allowEnterKey: false,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showCancelButton: true,
+      cancelButtonColor: "#B71C1C",
+    }).then((res) => {
+      if (res.isConfirmed) {
+        pagar();
+      }
+    });
+    return false;
+  }
+  pagar();
+}
+async function pagar() {
+  loadingPago.value = true;
+  let isaprobacion = selected.value.map((element) => {
+    return element.isaprobacion;
+  });
+  let iscontrolgasto = selected.value.map((element) => {
+    return element.iscontrolgasto;
+  });
+  let isprogramado = selected.value.map((element) => {
+    return element.isprogramado;
+  });
+  let id = selected.value.map((element) => {
+    return element.id;
+  });
+  let monto = selected.value.map((element) => {
+    return element.monto_mon_ex;
+  });
+
+  let tipo = selected.value.map((element) => {
+    return element.tipo;
+  });
+  let id_concepto: number[] = [];
+  selected.value
+    .filter((v) => v.iscontrolgasto == true)
+    .forEach((element) => {
+      element.details.forEach((detalle) => {
+        if (detalle.pagar == true) {
+          id_concepto.push(detalle.id);
+        }
+      });
+    });
+
+  let data = {
+    isaprobacion: isaprobacion,
+    iscontrolgasto: iscontrolgasto,
+    isprogramado: isprogramado,
+    id: id,
+    monto: monto,
+    id_concepto: id_concepto,
+    id_path: filesStore.payPath,
+    id_cuenta: id_cuenta.value.id,
+    fecha: date.value,
+    nro_operacion: nro_operacion.value,
+    id_proveedor: proveedor.value,
+    id_user: (JSON.parse(sessionStorage.getItem("dataUser") as string) as { id_user: number }[])[0]!.id_user,
+    tipocambio: selected.value.map((element) => {
+      return element.tipocambio;
+    }),
+    id_coins: id_coins.value,
+    comentarios: comentarios.value,
+    tipo: tipo,
+    id_correlativo: selected.value.map((element) => {
+      return element.id_correlativo ? element.id_correlativo : null;
+    }),
+  };
+
+  var config = {
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "registro_pago_detalles",
+    headers: {
+     
+      "Content-Type": "application/json",
+    },
+    data: data,
+  };
+  await axios<ApiResponse<{ msg: string }> & { statusBol?: boolean }>(config)
+    .then(function (response) {
+      filesStore.payPath = null;
+      if (response.data.statusBol) {
+        Swal.fire({
+          icon: "success",
+          title: "AVISO",
+          text: response.data.data.msg,
+        });
+
+        rootStore.state.actualizar = !rootStore.state.actualizar;
+      }
+    })
+    .catch(function (error) {
+      console.error(error);
+    });
+  loadingPago.value = false;
+  emit("cerrarModal", true);
+}
+async function limpiarFormulario() {
+  proveedor.value = null;
+  lstPagos.value = [];
+  payfile.value = [];
+  cuentas.value = [];
+  selected.value = [];
+  totalDeuda.value = 0;
+  totalMonto.value = 0;
+  tab.value = null;
+  step2.value = true;
+  boolFile.value = false;
+  id_cuenta.value = "" as unknown as CuentaBancariaPago;
+  nro_operacion.value = "";
+  search.value = "";
+  payPath.value = 0;
+  date.value = moment(new Date()).format("YYYY-MM-DD");
+  await rootStore.dispatch("cargarProveedores");
+
+  await getListBanksDetailsCargar();
+}
+function generarPagoParcial(item: PagoPendienteProveedor) {
+  itemParcial = item;
+  selectedParcial.value = item.details.filter((v) => v.pagar == true);
+  detalles.value = item.details;
+  dialog.value = true;
+}
+function obtenerMontoPagar() {
+  totalMonto.value = 0;
+  let monto = 0;
+  selected.value.forEach((element) => {
+    if (element.iscontrolgasto == true) {
+      element.details.forEach((detalles) => {
+        if (detalles.pagar) {
+          monto += parseFloat(detalles.total_op);
+        }
+      });
+    } else {
+      monto += parseFloat(element.monto_actual);
+    }
+  });
+  totalMonto.value = parseFloat(String(monto)).toFixed(2);
+}
+async function ValidaNroOp() {
+  msgNroOperacion.value = "";
+  rootStore.state.spiner = true;
+  await bancosStore.getValidaNroOp(nro_operacion.value as string);
+  if (!!bancosStore.validacionBanco!.estadoflag) {
+    msgNroOperacion.value = bancosStore.validacionBanco!.mensaje;
+    document.getElementById("nro_operacion")!.focus();
+  } else {
+    msgNroOperacion.value = "";
+  }
+
+  rootStore.state.spiner = false;
+}
+function moverSeleccionadoAlInicio() {
+  const listaPagos = rootStore.state.listPagosXProveedorCxP;
+
+  const seleccionadosIds = new Set(selected.value.map((item) => item.id));
+
+  listaPagos.sort((a: { id: number }, b: { id: number }) => {
+    const aSeleccionado = seleccionadosIds.has(a.id);
+    const bSeleccionado = seleccionadosIds.has(b.id);
+
+    if (aSeleccionado && !bSeleccionado) return -1;
+    if (!aSeleccionado && bSeleccionado) return 1;
+    return 0;
+  });
+}
+function recibirId(file: { id: unknown; archivo: unknown; inserid?: number }) {
+  console.log(file);
+  payPath.value = file.inserid as number;
+  payfile.value = file.archivo;
+
+  msgfile.value = "Archivo procesado y vinculado correctamente.";
+  errfile.value = "";
+}
+
+watch(selected, (newVal, oldVal) => {
+  calcularTotales();
+  if (newVal.length > oldVal.length) {
+    nextTick(() => {
+      moverSeleccionadoAlInicio();
+    });
+  }
+});
+
+onMounted(async () => {
+  await rootStore.dispatch("cargarProveedores");
+  await getListBanksDetailsCargar();
+});
+</script>
+
 <template>
   <v-card>
     <v-card-title primary-title>
@@ -62,7 +583,7 @@
             >
               <template v-slot:[`item.item_moneda`]="{ item }">
                 <v-autocomplete
-                  :items="$store.state.itemsCoinsList"
+                  :items="rootStore.state.itemsCoinsList"
                   v-model="id_coins"
                   item-title="acronym"
                   item-value="id"
@@ -239,546 +760,5 @@
     </v-dialog>
   </v-card>
 </template>
-
-<script>
-import axios from '@/api/http';
-import moment from "moment";
-import { mapActions, mapState } from "vuex";
-import Swal from "sweetalert2";
-import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useFilesStore } from "@/stores/files";
-import { useBancosStore } from "@/stores/bancos";
-export default {
-  emits: ["cancelar", "cerrarModal"],
-  props: { limpar: Boolean },
-  async mounted() {
-    await this.cargarProveedores();
-    await this.getListBanksDetailsCargar();
-  },
-  components: {
-    ArrastraYSolarComponent,
-  },
-  data() {
-    return {
-      loading: false,
-      msgNroOperacion: "",
-      comentarios: "",
-      montoDolar: 0.0,
-      id_coins: 1,
-      montoMonExt: 0.0,
-      acronym: "USD",
-      dialog: false,
-      loadingPago: false,
-      headersParcial: [
-        { title: "Concepto", key: "concepto" },
-        { title: "Total Operaciones (USD)", key: "total_op" },
-        { title: "Moneda Cuenta Banco", key: "acronym" },
-        { title: "Total Cuenta Banco", key: "totalopcuentabanco" },
-      ],
-      detalles: [],
-      lstPagos: [],
-      payfile: [],
-      cuentas: [],
-      selected: [],
-      selectedParcial: [],
-      totalDeuda: 0,
-      totalMonto: 0,
-      tab: null,
-      step2: true,
-      boolFile: false,
-      id_cuenta: "",
-      nro_operacion: "",
-      search: "",
-      tipocambio: 1,
-      payPath: 0,
-      date: "",
-      dataList: false,
-      cabPagos: [
-        // {
-        //   text: "Expediente",
-        //   value: "nro_master",
-        //   shortable: false,
-        // },
-
-        {
-          title: "Master",
-          key: "code_master",
-          shortable: false,
-        },
-        { title: "Factura/ Proforma", key: "expedientes" },
-        {
-          title: "Procedencia",
-          key: "procedencia",
-          shortable: false,
-        },
-        { title: "Monto (USD)", key: "monto_dolar" },
-        {
-          title: "Monto Factura",
-          key: "monto_banco",
-          shortable: false,
-        },
-        {
-          title: "Tipo Cambio",
-          key: "tipo_cambio",
-        },
-
-        {
-          title: "Moneda Pagar",
-          key: "item_moneda",
-        },
-        {
-          title: "Monto Pagar",
-          key: "parcial",
-          shortable: false,
-        },
-      ],
-      msgfile: "",
-      errfile: "",
-      proveedor: "",
-      loadingTable: false,
-    };
-  },
-  methods: {
-    ...mapActions([
-      "cargarProveedores",
-      "_getCoinsList",
-      // "_uploadFile",
-    ]),
-    ...mapPiniaActions(useBancosStore, ["getValidaNroOp"]),
-
-    calcularTotales() {
-      let mondolar = 0;
-      let monex = 0;
-      let mon_ex = 0;
-      this.selected.forEach(async (element) => {
-        if (element.tipo == "CG") {
-          mon_ex = 0;
-          await element.details.forEach((element2) => {
-            if (!!element2.pagar) {
-              element.tipocambio = parseFloat(element2.tipocambio).toFixed(2);
-              mon_ex =
-                parseFloat(mon_ex) + parseFloat(element2.totalopcuentabanco);
-              mondolar = parseFloat(mondolar) + parseFloat(element2.total_op);
-              monex =
-                parseFloat(monex) + parseFloat(element2.totalopcuentabanco);
-            }
-            this.id_coins = element2
-              ? this.$store.state.itemsCoinsList.filter(
-                  (v) => v.acronym == element2.acronym,
-                )[0].id
-              : 1;
-          });
-          element.monto_mon_ex = mon_ex;
-        } else {
-          element.monto_mon_ex = element.monto_mon_ex
-            ? element.monto_mon_ex
-            : element.monto_banco;
-
-          monex += parseFloat(element.monto_mon_ex);
-          // if (
-          //   !element.monto_mon_ex ||
-          //   typeof element.monto_mon_ex == "undefined"
-          // ) {
-          //   element.monto_mon_ex = parseFloat(
-          //     element.monto_dolar * element.tipocambio
-          //   ).toFixed(2);
-          //   monex += parseFloat(
-          //     element.monto_mon_ex ? element.monto_mon_ex : 0.0
-          //   );
-          // } else {
-          //   element.monto_mon_ex = parseFloat(
-          //     parseFloat(element.monto_dolar) * parseFloat(element.tipocambio)
-          //   ).toFixed(2);
-          //   monex = parseFloat(
-          //     parseFloat(element.monto_dolar) * parseFloat(element.tipocambio)
-          //   ).toFixed(2);
-          // }
-        }
-
-        this.acronym = this.$store.state.itemsCoinsList.filter(
-          (v) => v.id == this.id_coins,
-        )[0].acronym;
-      });
-
-      this.montoMonExt = parseFloat(monex).toFixed(2);
-      this.calcularTotalesInput();
-      this.acronym = this.$store.state.itemsCoinsList.filter(
-        (v) => v.id == this.id_coins,
-      )[0].acronym;
-    },
-
-    async calcularTotalesInput() {
-      let monex = 0;
-      await this.selected.forEach((element) => {
-        element.errorEx = "";
-        if (
-          parseFloat(element.monto_mon_ex) >
-          parseFloat(
-            parseFloat(element.monto_banco) * parseFloat(element.tipocambio),
-          )
-        ) {
-          element.errorEx =
-            "El monto no puede ser mayor que el monto como deuda";
-        } else {
-          monex = parseFloat(monex) + parseFloat(element.monto_mon_ex);
-        }
-      });
-    },
-    async listarPagosXControlGasto() {
-      var vm = this;
-      vm.loadingTable = true;
-      vm.lstPagos = [];
-      vm.nro_operacion = null;
-      vm.payfile = null;
-      vm.msgfile = null;
-      vm.errfile = null;
-      vm.id_cuenta = "";
-      vm.comentarios = null;
-      if (!!vm.proveedor) {
-        var config = {
-          method: "get",
-          url:
-            import.meta.env.VITE_URL_MAIN +
-            "listPagoControlGastoXProveedor/" +
-            vm.proveedor,
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-        };
-        await axios(config)
-          .then(function (response) {
-            let res = response.data;
-
-            if (typeof res.data != "undefined") {
-              let data = response.data.data;
-              data.forEach((element) => {
-                element.tipocambio = element.tipocambio
-                  ? element.tipocambio
-                  : 1;
-              });
-              let index = 0;
-              data.forEach((element) => {
-                element.index = index;
-                index++;
-              });
-              vm.lstPagos = data;
-              vm.loadingTable = false;
-            } else {
-              vm.lstPagos = [];
-              vm.loadingTable = false;
-              Swal.fire({
-                icon: "info",
-                title: "AVISO IMPORTANTE",
-                text: response.data.mensaje,
-              });
-            }
-          })
-          .catch(function (error) {
-            console.error(error);
-          });
-        vm.dataList = true;
-      } else {
-        vm.lstPagos = [];
-        vm.loadingTable = false;
-        vm.tab = 1;
-        vm.payfile = [];
-      }
-    },
-    calcularMontoPagar() {
-      if (this.lstPagos.length > 0) {
-        let monto = this.lstPagos
-          .filter((v) => v.pagar == true)
-          .map((item) => item.monto)
-          .reduce((a, b) => parseFloat(a) + parseFloat(b), parseFloat(0));
-        this.totalMonto = parseFloat(monto).toFixed(2);
-      } else {
-        this.totalMonto = 0;
-      }
-    },
-    guardarMontoParciales() {
-      let a = null;
-
-      this.item.details.forEach((element) => {
-        a = this.selectedParcial.filter((v) => v.id == element.id).length;
-        if (a == 1) {
-          element.pagar = true;
-        } else {
-          element.pagar = false;
-        }
-      });
-
-      this.calcularTotales();
-      this.dialog = false;
-    },
-    async getListBanksDetailsCargar() {
-      let vm = this;
-      var config = {
-        method: "get",
-        url: import.meta.env.VITE_URL_MAIN + "getListBanksDetailsCargar",
-        params: {
-          id_branch: JSON.parse(sessionStorage.getItem("dataUser"))[0]
-            .id_branch,
-        },
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-      };
-      await axios(config)
-        .then(function (response) {
-          let data = response.data.data;
-
-          vm.cuentas = data;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    },
-    continuar() {
-      // if (this.validar()) {
-      this.step2 = false;
-      this.tab = "ref2";
-      // }
-    },
-    _uploadFile() {
-      var vm = this;
-      vm.msgfile = "";
-      vm.errfile = "";
-      if (vm.payfile) {
-        var data = new FormData();
-        var vm = this;
-        data.append("name", "Prueba");
-        data.append("file", vm.payfile);
-
-        var config = {
-          method: "post",
-          url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
-          headers: {
-           
-            "Content-Type": "application/json",
-          },
-          data: data,
-        };
-
-        axios(config)
-          .then(function (response) {
-            vm.boolFile = true;
-            vm.payPath = JSON.stringify(response.data.data[0].insertid);
-            vm.msgfile = "Archivo Cargado correctamente.";
-          })
-          .catch(function (error) {
-            vm.errfile =
-              "Ocurrió un problmea conuníquese con el administrador del sistema";
-            console.error(error);
-          });
-      }
-    },
-    async registrarPago() {
-      if (
-        this.filesStore.payPath == 0 ||
-        !this.filesStore.payPath
-      ) {
-        Swal.fire({
-          icon: "warning",
-          title: "Soporte de Pago",
-          text: "SE SUGIERE GUARDAR EL SOPORTE DE PAGO POR FAVOR ANEXARLO",
-          confirmButtonText: "Continuar, sin soporte",
-          cancelButtonText: "Cancelar",
-          showDenyButton: false,
-          allowEnterKey: false,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          showCancelButton: true,
-          cancelButtonColor: "#B71C1C",
-        }).then((res) => {
-          if (res.isConfirmed) {
-            this.pagar();
-          }
-        });
-        return false;
-      }
-      this.pagar();
-    },
-    async pagar() {
-      let vm = this;
-      vm.loadingPago = true;
-      let isaprobacion = vm.selected.map((element) => {
-        return element.isaprobacion;
-      });
-      let iscontrolgasto = vm.selected.map((element) => {
-        return element.iscontrolgasto;
-      });
-      let isprogramado = vm.selected.map((element) => {
-        return element.isprogramado;
-      });
-      let id = vm.selected.map((element) => {
-        return element.id;
-      });
-      let monto = vm.selected.map((element) => {
-        return element.monto_mon_ex;
-      });
-
-      let tipo = vm.selected.map((element) => {
-        return element.tipo;
-      });
-      let id_concepto = [];
-      vm.selected
-        .filter((v) => v.iscontrolgasto == true)
-        .forEach((element) => {
-          element.details.forEach((detalle) => {
-            if (detalle.pagar == true) {
-              id_concepto.push(detalle.id);
-            }
-          });
-        });
-
-      let data = {
-        isaprobacion: isaprobacion,
-        iscontrolgasto: iscontrolgasto,
-        isprogramado: isprogramado,
-        id: id,
-        monto: monto,
-        id_concepto: id_concepto,
-        id_path: vm.filesStore.payPath,
-        id_cuenta: vm.id_cuenta.id,
-        fecha: vm.date,
-        nro_operacion: vm.nro_operacion,
-        id_proveedor: vm.proveedor,
-        id_user: JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user,
-        tipocambio: vm.selected.map((element) => {
-          return element.tipocambio;
-        }),
-        id_coins: vm.id_coins,
-        comentarios: vm.comentarios,
-        tipo: tipo,
-        id_correlativo: vm.selected.map((element) => {
-          return element.id_correlativo ? element.id_correlativo : null;
-        }),
-      };
-
-      var config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "registro_pago_detalles",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-      await axios(config)
-        .then(function (response) {
-          vm.filesStore.payPath = null;
-          if (response.data.statusBol) {
-            vm.$swal({
-              icon: "success",
-              title: "AVISO",
-              text: response.data.data.msg,
-            });
-
-            vm.$store.state.actualizar = !vm.$store.state.actualizar;
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-      this.loadingPago = false;
-      this.$emit("cerrarModal", true);
-    },
-    async limpiarFormulario() {
-      this.proveedor = null;
-      this.lstPagos = [];
-      this.payfile = [];
-      this.cuentas = [];
-      this.selected = [];
-      this.totalDeuda = 0;
-      this.totalMonto = 0;
-      this.tab = null;
-      this.step2 = true;
-      this.boolFile = false;
-      this.id_cuenta = "";
-      this.nro_operacion = "";
-      this.search = "";
-      this.payPath = 0;
-      this.date = moment(new Date()).format("YYYY-MM-DD");
-      await this.cargarProveedores();
-
-      await this.getListBanksDetailsCargar();
-    },
-    generarPagoParcial(item) {
-      this.item = item;
-      this.selectedParcial = item.details.filter((v) => v.pagar == true);
-      this.detalles = item.details;
-      this.dialog = true;
-    },
-    obtenerMontoPagar() {
-      this.totalMonto = 0;
-      let monto = 0;
-      this.selected.forEach((element) => {
-        if (element.iscontrolgasto == true) {
-          element.details.forEach((detalles) => {
-            if (detalles.pagar) {
-              monto += parseFloat(detalles.total_op);
-            }
-          });
-        } else {
-          monto += parseFloat(element.monto_actual);
-        }
-      });
-      this.totalMonto = parseFloat(monto).toFixed(2);
-    },
-    async ValidaNroOp() {
-      this.msgNroOperacion = "";
-      this.$store.state.spiner = true;
-      await this.getValidaNroOp(this.nro_operacion);
-      if (!!this.bancosStore.validacionBanco.estadoflag) {
-        this.msgNroOperacion = this.bancosStore.validacionBanco.mensaje;
-        document.getElementById("nro_operacion").focus();
-      } else {
-        this.msgNroOperacion = "";
-      }
-
-      this.$store.state.spiner = false;
-    },
-    moverSeleccionadoAlInicio() {
-      const listaPagos = this.$store.state.listPagosXProveedorCxP;
-
-      const seleccionadosIds = new Set(this.selected.map((item) => item.id));
-
-      listaPagos.sort((a, b) => {
-        const aSeleccionado = seleccionadosIds.has(a.id);
-        const bSeleccionado = seleccionadosIds.has(b.id);
-
-        if (aSeleccionado && !bSeleccionado) return -1;
-        if (!aSeleccionado && bSeleccionado) return 1;
-        return 0;
-      });
-    },
-    recibirId(file) {
-      console.log(file);
-      this.payPath = file.inserid;
-      this.payfile = file.archivo;
-
-      this.msgfile = "Archivo procesado y vinculado correctamente.";
-      this.errfile = "";
-    },
-  },
-  computed: {
-    ...mapStores(useBancosStore, useFilesStore),
-    ...mapState(["provedores", "limpiar"]),
-  },
-  watch: {
-    selected(newVal, oldVal) {
-      this.calcularTotales();
-      if (newVal.length > oldVal.length) {
-        this.$nextTick(() => {
-          this.moverSeleccionadoAlInicio();
-        });
-      }
-    },
-  },
-};
-</script>
 
 <style></style>
