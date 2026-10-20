@@ -94,6 +94,7 @@ const proveedor = ref<number | string | null>("");
 let itemParcial: PagoPendienteProveedor;
 const loadingTable = ref(false);
 
+// "_uploadFile",
 function calcularTotales() {
   let mondolar = 0;
   let monex = 0;

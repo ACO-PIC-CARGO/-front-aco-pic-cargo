@@ -223,6 +223,7 @@ async function imprimirControlDetallado(guardarEnCarpeta: boolean) {
     });
 }
 
+// ----------------------------------------------------------
 function departamentoSesion() {
   return (JSON.parse(sessionStorage.getItem("dataUser") as string) as { departamento: number }[])[0]!.departamento;
 }
