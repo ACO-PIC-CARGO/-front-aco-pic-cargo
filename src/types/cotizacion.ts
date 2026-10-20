@@ -695,6 +695,7 @@ export interface OpcionVistaPrevia {
   datosAlmacenes: LineaReporte[];
   totalGastosTercero: string;
   datosGastosTercero: LineaReporte[];
+  datosGastosTerceros?: LineaReporte[];
   conceptos: { name?: string }[];
   totalServicios: string;
   impuesto: ImpuestoReporte[];
