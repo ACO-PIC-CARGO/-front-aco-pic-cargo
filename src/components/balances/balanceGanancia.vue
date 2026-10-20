@@ -98,7 +98,7 @@
           <v-col cols="12">
             <v-autocomplete
               label="Tipo de Ingreso"
-              :items="$store.state.balances.tipoingreso"
+              :items="balancesStore.tipoingreso"
               v-model="tipoingreso"
               auto-select-first
               clearable
@@ -144,7 +144,7 @@
           <v-col cols="12">
             <v-autocomplete
               label="Tipo de Gasto"
-              :items="$store.state.balances.tipogastos"
+              :items="balancesStore.tipogastos"
               v-model="tipogastos"
               auto-select-first
               clearable
@@ -274,7 +274,7 @@
           <v-tab
             value="compare"
             prepend-icon="mdi-compare-horizontal"
-            :disabled="this.$store.state.balances.comparativo.length == 0"
+            :disabled="this.balancesStore.comparativo.length == 0"
           >
             Comparación
           </v-tab>
@@ -917,7 +917,7 @@
                 </v-col>
                 <v-col
                   cols="12"
-                  v-if="$store.state.balances.flujoprepostmes.length > 0"
+                  v-if="balancesStore.flujoprepostmes.length > 0"
                 >
                   <v-expansion-panels variant="popout">
                     <v-expansion-panel>
@@ -1618,10 +1618,10 @@
           </v-tabs-window-item>
           <v-tabs-window-item
             value="compare"
-            v-if="$store.state.balances.comparativo.length > 0"
+            v-if="balancesStore.comparativo.length > 0"
           >
             <TableDinamica
-              :items="$store.state.balances.comparativo"
+              :items="balancesStore.comparativo"
               :mes="
                 id_month
                   ? months.filter((v) => v.value == id_month)[0].text
@@ -1644,6 +1644,7 @@ import { mapActions, mapState } from "vuex";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEntitiesStore } from "@/stores/entities";
 import { useProyeccionesStore } from "@/stores/proyecciones";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   components: {
     ProgressBar,
@@ -1734,7 +1735,7 @@ export default {
     };
   },
   computed: {
-    ...mapStores(useProyeccionesStore),
+    ...mapStores(useBalancesStore, useProyeccionesStore),
     ...mapState(["listaGanancia"]),
   },
   async mounted() {
@@ -1748,31 +1749,17 @@ export default {
       this.getProyeccionAprobada(),
       this.CargarPersona(),
     ]);
-    this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;
-    this.tiposubgastosFilter = this.$store.state.balances.tiposubgastos;
+    this.tiposubingresoFilter = this.balancesStore.tiposubingreso;
+    this.tiposubgastosFilter = this.balancesStore.tiposubgastos;
     this.obtenerAnios();
     this.$store.state.spiner = false;
   },
   methods: {
     ...mapActions([
-      "getListBalanaceGanancia",
-      "getResumenBalanaceGanancia",
-      "getListBalanaceGastos",
-      "getResumenBalanaceGastos",
-      "exportarBalanceGanancia",
-      "getResumenGastosxTipoGasto",
-      "resumenIngresoTipoIngreso",
       "cargarClientes",
       "cargarProveedores",
-      "getCargarTipoIngreso",
-      "getCargarTipoSubIngreso",
-      "getCargarTipoGastos",
-      "getCargarTipoSubGastos",
-      "getListBalanaceGastosFiltro",
-      "getListBalanaceGananciaFiltro",
-      "getComparativo",
-      "getFlujoPrePostMes",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getListBalanaceGanancia", "getResumenBalanaceGanancia", "getListBalanaceGastos", "getResumenBalanaceGastos", "exportarBalanceGanancia", "getResumenGastosxTipoGasto", "resumenIngresoTipoIngreso", "getCargarTipoIngreso", "getCargarTipoSubIngreso", "getCargarTipoGastos", "getCargarTipoSubGastos", "getListBalanaceGastosFiltro", "getListBalanaceGananciaFiltro", "getComparativo", "getFlujoPrePostMes"]),
     ...mapPiniaActions(useProyeccionesStore, ["getProyeccionAprobada"]),
     ...mapPiniaActions(useEntitiesStore, ["CargarPersona"]),
 
@@ -1899,7 +1886,7 @@ export default {
     generarBalanceGanancia() {
       let resumen = {};
       resumen.description = " Ganancia Operativa + Capacitaciones";
-      this.$store.state.balances.resumenGanancia.forEach((element) => {
+      this.balancesStore.resumenGanancia.forEach((element) => {
         switch (element.mes) {
           case "01":
             resumen.enero = element.monto;
@@ -1948,7 +1935,7 @@ export default {
     generarBalanceGastos() {
       let resumen = {};
       resumen.description = "Gastos Administrativos";
-      this.$store.state.balances.resumenGastos.forEach((element) => {
+      this.balancesStore.resumenGastos.forEach((element) => {
         switch (element.mes) {
           case "01":
             resumen.enero = element.monto;
@@ -2028,10 +2015,10 @@ export default {
 
       for (
         let i = 0;
-        i < this.$store.state.balances.listaGanancia.length;
+        i < this.balancesStore.listaGanancia.length;
         i++
       ) {
-        const elemento = this.$store.state.balances.listaGanancia[i];
+        const elemento = this.balancesStore.listaGanancia[i];
 
         switch (elemento.mes) {
           case "01":
@@ -2092,7 +2079,7 @@ export default {
       this.itemsGanancia.push(montosPorMes);
 
       //   -------------------------------
-      this.$store.state.balances.listaGanancia.forEach((element) => {
+      this.balancesStore.listaGanancia.forEach((element) => {
         switch (element.mes) {
           case "01":
             this.itemsGanancia.push({
@@ -2324,8 +2311,8 @@ export default {
       var montosPorMes = {};
       montosPorMes.exp = "DETALLE DE GASTOS OPERATIVA";
       let mes = "";
-      for (let i = 0; i < this.$store.state.balances.listaGastos.length; i++) {
-        const elemento = this.$store.state.balances.listaGastos[i];
+      for (let i = 0; i < this.balancesStore.listaGastos.length; i++) {
+        const elemento = this.balancesStore.listaGastos[i];
 
         switch (elemento.mes) {
           case "01":
@@ -2385,7 +2372,7 @@ export default {
       this.itemsGastos.push(montosPorMes);
 
       //   -------------------------------
-      this.$store.state.balances.listaGastos.forEach((element) => {
+      this.balancesStore.listaGastos.forEach((element) => {
         switch (element.mes) {
           case "01":
             this.itemsGastos.push({
@@ -2634,7 +2621,7 @@ export default {
       });
     },
     geneararGastosTipoIngreso() {
-      let ingreso = this.$store.state.balances.resumenTipoIngreso;
+      let ingreso = this.balancesStore.resumenTipoIngreso;
 
       let ingresoDetalle = [];
       let data = {
@@ -2770,7 +2757,7 @@ export default {
         noviembre: 0,
         diciembre: 0,
       };
-      let gastos = this.$store.state.balances.resumenTipoGasto;
+      let gastos = this.balancesStore.resumenTipoGasto;
 
       gastos.forEach((element) => {
         data = gastosDetalle.filter(
@@ -3146,21 +3133,21 @@ export default {
     filtarSubIngreso() {
       if (!!this.tipoingreso) {
         this.tiposubingresoFilter =
-          this.$store.state.balances.tiposubingreso.filter(
+          this.balancesStore.tiposubingreso.filter(
             (v) => v.id_ingreso == this.tipoingreso
           );
       } else {
-        this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;
+        this.tiposubingresoFilter = this.balancesStore.tiposubingreso;
       }
     },
     filtarSubGasto() {
       if (!!this.tipogastos) {
         this.tiposubgastosFilter =
-          this.$store.state.balances.tiposubgastos.filter(
+          this.balancesStore.tiposubgastos.filter(
             (v) => v.id_gasto == this.tipogastos
           );
       } else {
-        this.tiposubgastosFilter = this.$store.state.balances.tiposubgastos;
+        this.tiposubgastosFilter = this.balancesStore.tiposubgastos;
       }
     },
     async filtrar() {
@@ -3269,7 +3256,7 @@ export default {
     generarGananciaDetallesFiltro() {
       this.itemsGananciaFiltro = [];
       //   -------------------------------
-      this.$store.state.balances.listaGananciaFiltro.forEach((element) => {
+      this.balancesStore.listaGananciaFiltro.forEach((element) => {
         switch (element.mes) {
           case "01":
             this.itemsGananciaFiltro.push({
@@ -3535,7 +3522,7 @@ export default {
     },
     generarGastosDetallesFiltro() {
       this.itemsGastosFiltro = [];
-      this.$store.state.balances.listaGastosFiltro.forEach((element) => {
+      this.balancesStore.listaGastosFiltro.forEach((element) => {
         switch (element.mes) {
           case "01":
             this.itemsGastosFiltro.push({

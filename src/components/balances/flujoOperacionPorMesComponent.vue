@@ -51,7 +51,7 @@
       <v-col cols="1">
         {{
           getFechaNombreMes({
-            fecha: $store.state.balances.lstFlujoOperacionesMes[0].fecha_inicio,
+            fecha: balancesStore.lstFlujoOperacionesMes[0].fecha_inicio,
           })
         }}
       </v-col>
@@ -59,7 +59,7 @@
       <v-col cols="1">
         {{
           getFechaNombreMes({
-            fecha: $store.state.balances.lstFlujoOperacionesMes[0].fecha_fin,
+            fecha: balancesStore.lstFlujoOperacionesMes[0].fecha_fin,
           })
         }}
       </v-col>
@@ -117,7 +117,7 @@
                   {{ item.tipo }}
                 </td>
                 <td
-                  v-for="i in $store.state.balances.lstFlujoOperacionesMes[0]
+                  v-for="i in balancesStore.lstFlujoOperacionesMes[0]
                     .cantidad_semanas"
                   :key="i"
                 >
@@ -166,7 +166,7 @@
                     </v-tooltip>
                   </td>
                   <td
-                    v-for="i in $store.state.balances.lstFlujoOperacionesMes[0]
+                    v-for="i in balancesStore.lstFlujoOperacionesMes[0]
                       .cantidad_semanas"
                     :key="i"
                   >
@@ -208,7 +208,7 @@
                     </td>
                     <td></td>
                     <td
-                      v-for="i in $store.state.balances
+                      v-for="i in balancesStore
                         .lstFlujoOperacionesMes[0].cantidad_semanas"
                       :key="i"
                     >
@@ -243,7 +243,7 @@
                       <td>{{ cost.persona }}</td>
                       <td></td>
                       <td
-                        v-for="i in $store.state.balances
+                        v-for="i in balancesStore
                           .lstFlujoOperacionesMes[0].cantidad_semanas"
                         :key="i"
                       >
@@ -261,7 +261,7 @@
             <tr class="totales">
               <td colspan="5">SALDOS</td>
               <td
-                v-for="i in $store.state.balances.lstFlujoOperacionesMes[0]
+                v-for="i in balancesStore.lstFlujoOperacionesMes[0]
                   .cantidad_semanas"
                 :key="i"
               >
@@ -277,7 +277,7 @@
       </v-col>
     </v-row>
     <!-- <td
-                v-for="i in $store.state.balances.lstFlujoOperacionesMes[0]
+                v-for="i in balancesStore.lstFlujoOperacionesMes[0]
                   .cantidad_semanas"
                 :key="i"
               >
@@ -289,6 +289,8 @@
 <script>
 import { mapActions } from "vuex";
 import moment from "moment";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   data: () => ({
     cantidadmes: 0,
@@ -304,16 +306,19 @@ export default {
     },
     //
   }),
+  computed: {
+    ...mapStores(useBalancesStore),
+  },
   methods: {
     ...mapActions([
-      "getListFlujoOperacionMes",
       "cargarClientes",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getListFlujoOperacionMes"]),
     formatearData() {
       let vm = this;
-      vm.flujo = this.$store.state.balances.lstFlujoOperacionesMes[0].flujo;
-      vm.fechas = vm.$store.state.balances.lstFlujoOperacionesMes[0].fechahasta;
+      vm.flujo = this.balancesStore.lstFlujoOperacionesMes[0].flujo;
+      vm.fechas = vm.balancesStore.lstFlujoOperacionesMes[0].fechahasta;
 
       let tipos = this.flujo.map((element) => {
         return element.tipo;

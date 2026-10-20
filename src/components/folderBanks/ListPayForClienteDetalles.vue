@@ -170,7 +170,7 @@
             </v-autocomplete>
             <v-autocomplete
               label="Tipo de Ingreso"
-              :items="$store.state.balances.tipoingreso"
+              :items="balancesStore.tipoingreso"
               v-model="filtro.tipoingreso"
               auto-select-first
               clearable
@@ -268,12 +268,13 @@ import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useIngresosStore } from "@/stores/ingresos";
+import { useBalancesStore } from "@/stores/balances";
 
 export default {
   components: {
@@ -383,10 +384,9 @@ export default {
     ...mapActions([
       "cargarClientes",
       "_getBanksList",
-      "getCargarTipoIngreso",
-      "getCargarTipoSubIngreso",
       "_getCoinsList",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getCargarTipoIngreso", "getCargarTipoSubIngreso"]),
     ...mapPiniaActions(useIngresosStore, ["ActualizarCXC"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     async ver(pago) {
@@ -727,11 +727,11 @@ export default {
     filtarSubIngreso() {
       if (!!this.filtro.tipoingreso) {
         this.tiposubingresoFilter =
-          this.$store.state.balances.tiposubingreso.filter(
+          this.balancesStore.tiposubingreso.filter(
             (v) => v.id_ingreso == this.filtro.tipoingreso,
           );
       } else {
-        this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;
+        this.tiposubingresoFilter = this.balancesStore.tiposubingreso;
       }
     },
     clickRow(item, event) {
@@ -820,6 +820,7 @@ export default {
     },
   },
   computed: {
+    ...mapStores(useBalancesStore),
     detalles() {
       if (Object.keys(this.Ingreso).length === 0) {
         return [];

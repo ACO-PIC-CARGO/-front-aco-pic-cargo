@@ -4,6 +4,7 @@ import moment from "moment";
 import { useStore } from "vuex";
 import { useEntitiesStore } from "@/stores/entities";
 import type { FlujoPrePostMovimiento } from "@/types/balances";
+import { useBalancesStore } from "@/stores/balances";
 
 interface FlujoCosto {
   mesfiltro?: number | string;
@@ -31,6 +32,7 @@ interface FlujoCategoria {
 const props = defineProps<{ year?: number | string; month?: string | string[] }>();
 
 const rootStore = useStore();
+const balancesStore = useBalancesStore();
 const entitiesStore = useEntitiesStore();
 
 const filtrar = ref(false);
@@ -55,9 +57,9 @@ const num = (valor: unknown) => parseFloat(String(valor));
 
 async function filtraFlujo() {
   rootStore.state.spiner = true;
-  await rootStore.dispatch("getFlujoPrePostMes", filtro.value);
+  await balancesStore.getFlujoPrePostMes(filtro.value);
 
-  items.value = rootStore.state.balances.flujoprepostmes;
+  items.value = balancesStore.flujoprepostmes;
   generarData();
   filtrar.value = false;
   rootStore.state.spiner = false;
@@ -143,7 +145,7 @@ onMounted(() => {
   filtro.value.month = props.month;
   // this.$store.state.spiner = true;
   // await this.getFlujoPrePostMes(this.filtro);
-  items.value = rootStore.state.balances.flujoprepostmes;
+  items.value = balancesStore.flujoprepostmes;
   generarData();
   // this.$store.state.spiner = false;
 });

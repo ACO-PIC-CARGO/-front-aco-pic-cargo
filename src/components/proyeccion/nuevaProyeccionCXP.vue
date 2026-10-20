@@ -90,7 +90,7 @@
             <template v-slot:[`item.gasto`]="{ item }">
               <v-select
                 :items="
-                  $store.state.balances.tipogastos.filter((v) => v.id != 0)
+                  balancesStore.tipogastos.filter((v) => v.id != 0)
                 "
                 placeholder="Tipo de Gasto"
                 v-model="item.id_gasto"
@@ -103,7 +103,7 @@
             <template v-slot:[`item.subgasto`]="{ item }">
               <v-select
                 :items="
-                  $store.state.balances.tiposubgastos.filter(
+                  balancesStore.tiposubgastos.filter(
                     (subgasto) => subgasto.id_gasto === item.id_gasto
                   )
                 "
@@ -193,8 +193,9 @@
 
 <script>
 import { mapActions } from "vuex";
-import { mapActions as mapPiniaActions } from "pinia";
+import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useProyeccionesStore } from "@/stores/proyecciones";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   data() {
     return {
@@ -259,15 +260,17 @@ export default {
       totalfinal: 0.0,
     };
   },
+  computed: {
+    ...mapStores(useBalancesStore),
+  },
   methods: {
     ...mapActions([
       "_getCoinsList",
       "_getProveedor",
-      "getCargarTipoGastos",
-      "getCargarTipoSubGastos",
       "_getChargeMonth",
       "_getChargeYear",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getCargarTipoGastos", "getCargarTipoSubGastos"]),
     ...mapPiniaActions(useProyeccionesStore, ["setProyeccion"]),
     agregarFila(item) {
       let data = {

@@ -229,6 +229,7 @@ import { mapActions } from "vuex";
 import { mapActions as mapPiniaActions } from "pinia";
 import { useSecuritysStore } from "@/stores/securitys";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   name: "AccountPaysCom",
   components: {
@@ -325,10 +326,10 @@ export default {
 
   methods: {
     ...mapActions([
-      "getListFlujoOperacionMes",
       "cargarClientes",
       "cargarProveedores",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getListFlujoOperacionMes"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     filterOnlyCapsText(value, search) {
       let text = search ? search.toLocaleUpperCase() : null;

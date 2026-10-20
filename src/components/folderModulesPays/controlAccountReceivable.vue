@@ -60,7 +60,7 @@
             <v-autocomplete
               label="Tipo de Ingreso"
               :items="
-                $store.state.balances.tipoingreso.filter((v) => v.id != 0)
+                balancesStore.tipoingreso.filter((v) => v.id != 0)
               "
               v-model="tipoingreso"
               auto-select-first
@@ -499,6 +499,7 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useHousesStore } from "@/stores/houses";
+import { useBalancesStore } from "@/stores/balances";
 
 export default {
   components: { ArrastraYSolarComponent },
@@ -568,12 +569,10 @@ export default {
       "_getChargeMonth",
       "_getChargeYear",
       "_getInvoiceAdminCxC",
-      "getArbolIngresos",
-      "getCargarTipoIngreso",
-      "getCargarTipoSubIngreso",
       "cargarProveedores",
       "cargarClientes",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getArbolIngresos", "getCargarTipoIngreso", "getCargarTipoSubIngreso"]),
     ...mapPiniaActions(useHousesStore, ["getCargarHouse"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     validarMonto(v) {
@@ -1130,11 +1129,11 @@ export default {
     filtarSubIngreso() {
       if (!!this.tipoingreso) {
         this.tiposubingresoFilter =
-          this.$store.state.balances.tiposubingreso.filter(
+          this.balancesStore.tiposubingreso.filter(
             (v) => v.id_ingreso == this.tipoingreso,
           );
       } else {
-        this.tiposubingresoFilter = this.$store.state.balances.tiposubingreso;
+        this.tiposubingresoFilter = this.balancesStore.tiposubingreso;
       }
     },
     mostrarColumna() {
@@ -1146,7 +1145,7 @@ export default {
   },
 
   computed: {
-    ...mapStores(useHousesStore, useEnterprisesStore),
+    ...mapStores(useBalancesStore, useHousesStore, useEnterprisesStore),
     ...mapState(["InvoiceAdmin"]),
   },
 

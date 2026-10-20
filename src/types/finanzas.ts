@@ -88,3 +88,83 @@ export interface RespuestaControlGasto<T = unknown> extends ApiResponse<T> {
 export interface FilaMensaje {
   mensaje: string;
 }
+
+export interface RespuestaBalance<T> {
+  estado?: boolean;
+  mensaje: string;
+  data: T;
+}
+
+export interface TipoBalance {
+  id: number;
+  name?: string;
+  [campo: string]: unknown;
+}
+
+export interface ArbolBalance {
+  id?: number | string;
+  label?: string;
+  children?: ArbolBalance[];
+  [campo: string]: unknown;
+}
+
+export interface ComparativoBalance {
+  [campo: string]: unknown;
+}
+
+export interface FlujoOperacionMes {
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  fechahasta?: unknown;
+  flujo?: unknown;
+  [campo: string]: unknown;
+}
+
+export interface FiltroMesAnio {
+  year: Numerico;
+  month: Numerico;
+}
+
+export interface FiltroComparativo {
+  month: Numerico;
+  year: Numerico;
+}
+
+export interface FiltroFlujoPrePostMes {
+  month: Numerico | string[];
+  year: Numerico;
+  ingresosflag?: Numerico | boolean;
+  gastoflag?: Numerico | boolean;
+  anteriorflag?: Numerico | boolean;
+  posterioflag?: Numerico | boolean;
+  mes?: Numerico;
+  anio?: Numerico;
+  expediente?: Numerico;
+  id_persona?: Numerico;
+  monto?: Numerico;
+}
+
+export interface FiltroDetalleGanancia {
+  year: Numerico;
+  month: Numerico;
+  tipoingreso: Numerico;
+  tiposubingreso: Numerico;
+  nro_expediente: Numerico;
+  monto: Numerico;
+}
+
+export interface FiltroDetalleGastos {
+  year: Numerico;
+  month: Numerico;
+  tipogastos: Numerico;
+  tiposubgastos: Numerico;
+  proveedor: Numerico;
+  monto: Numerico;
+}
+
+export interface FiltroFlujoOperacionMes {
+  cantidadmes: Numerico;
+  id_proveedor?: Numerico;
+  id_cliente?: Numerico;
+  nro_expediente?: Numerico;
+}

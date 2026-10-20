@@ -60,7 +60,7 @@
           <v-col cols="12" md="6" class="pb-0">
             <custom-tree-select
               v-model="id_gastos"
-              :options="$store.state.balances.arbolGastos"
+              :options="balancesStore.arbolGastos"
               :rules="[(v) => !!v || 'Dato Requerido']"
               :disabled="radio == ''"
               :outlined="false"
@@ -488,6 +488,7 @@ import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { mapActions as mapPiniaActions, mapStores } from "pinia";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   name: "controlAccountPaysCom",
   props: {
@@ -579,7 +580,7 @@ export default {
     this.$store.state.drawer = false;
   },
   computed: {
-    ...mapStores(useEnterprisesStore),
+    ...mapStores(useBalancesStore, useEnterprisesStore),
     ...mapState(["performances", "InvoiceAdmin"]),
   },
   methods: {
@@ -591,9 +592,9 @@ export default {
       "_getChargeYear",
       "_getInvoiceAdmin",
       "_getInvoice",
-      "getArbolGastos",
       "_getProveedor",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getArbolGastos"]),
     ...mapPiniaActions(useEnterprisesStore, ["obtenerImpuestoXEmpresa"]),
     recibirId(file) {
       if (Object.keys(file).length > 0) {

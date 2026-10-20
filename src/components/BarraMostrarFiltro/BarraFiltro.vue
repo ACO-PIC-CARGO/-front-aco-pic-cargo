@@ -3,6 +3,7 @@ import moment from "moment";
 import { useStore } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import type { FiltroBarra } from "@/types/filtros";
+import { useBalancesStore } from "@/stores/balances";
 
 withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
   filtro: () => ({}),
@@ -10,6 +11,7 @@ withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
 });
 
 const rootStore = useStore();
+const balancesStore = useBalancesStore();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatearFecha(fecha: string) {
@@ -193,7 +195,7 @@ function formatearFecha(fecha: string) {
       >
         <v-autocomplete
           label="Tipo de Ingreso"
-          :items="rootStore.state.balances.tipoingreso"
+          :items="balancesStore.tipoingreso"
           v-model="filtro.tipoingreso"
           auto-select-first
           readonly
@@ -213,7 +215,7 @@ function formatearFecha(fecha: string) {
       >
         <v-autocomplete
           label="Subtipo de Ingreso"
-          :items="rootStore.state.balances.tiposubingreso"
+          :items="balancesStore.tiposubingreso"
           v-model="filtro.tiposubingreso"
           auto-select-first
           readonly

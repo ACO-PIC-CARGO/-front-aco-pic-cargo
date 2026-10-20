@@ -392,6 +392,7 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useFilesStore } from "@/stores/files";
+import { useBalancesStore } from "@/stores/balances";
 export default {
   components: {
     FormatFecha,
@@ -499,13 +500,12 @@ export default {
   methods: {
     ...mapActions([
       "cargarProveedores",
-      "getCargarTipoGastos",
-      "getCargarTipoSubGastos",
       "verVacturas",
       "_getBanksList",
       "getRegistroEgresos",
       "eliminarRegistroEgresos",
     ]),
+    ...mapPiniaActions(useBalancesStore, ["getCargarTipoGastos", "getCargarTipoSubGastos"]),
     ...mapPiniaActions(useIngresosStore, ["ActualizarCXP"]),
     ...mapPiniaActions(useSecuritysStore, ["validarUsuarioAdmin"]),
     nuevo() {
@@ -915,11 +915,11 @@ export default {
     filtarSubGasto() {
       if (!!this.tipogastos) {
         this.tiposubgastosFilter =
-          this.$store.state.balances.tiposubgastos.filter(
+          this.balancesStore.tiposubgastos.filter(
             (v) => v.id_gasto == this.filtro.tipogastos,
           );
       } else {
-        this.tiposubgastosFilter = this.$store.state.balances.tiposubgastos;
+        this.tiposubgastosFilter = this.balancesStore.tiposubgastos;
       }
     },
     mostrarComisionBancaria(table_comisionbancaria) {
@@ -935,7 +935,7 @@ export default {
     },
   },
   computed: {
-    ...mapStores(useFilesStore),
+    ...mapStores(useBalancesStore, useFilesStore),
     detalles() {
       if (Object.keys(this.Ingreso).length === 0) {
         return [];
