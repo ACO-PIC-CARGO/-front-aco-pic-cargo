@@ -400,7 +400,7 @@ const routes = [
       {
         path: "folderRequest/listFlujoMensual",
         name: "listFlujoMensual",
-        component: () => import("../views/balance/flujoOperacionesMes.vue"),
+        component: () => import("../views/balance/FlujoOperacionesMesView.vue"),
       },
       {
         path: "folderPricing/lstQuote",
