@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 
 const listUser = defineAsyncComponent(() =>
   import("../../components/Calculadora/ListUserCalcComponent.vue"));
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Usuarios Calculadora";
+  appStore.mainTitle = "Usuarios Calculadora";
   console.log("mounted");
   calculadorasStore.cargarEstatus();
 });

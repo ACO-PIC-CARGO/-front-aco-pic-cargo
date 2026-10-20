@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import registroPayForProveedor from "@/components/folderBanks/RegistroPayForProveedorComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "BANCOS - PAGOS - SALIDAS";
+  appStore.mainTitle = "BANCOS - PAGOS - SALIDAS";
 });
 </script>
 

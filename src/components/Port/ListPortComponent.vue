@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePuertoStore } from "@/stores/puerto";
 import { useTransportStore } from "@/stores/transport";
 import type { Puerto } from "@/types/cotizacion";
@@ -9,7 +9,7 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const puertoStore = usePuertoStore();
 const transportStore = useTransportStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -80,7 +80,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await puertoStore.GetListPort();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
   await transportStore.cargarTransport();
 });
 </script>

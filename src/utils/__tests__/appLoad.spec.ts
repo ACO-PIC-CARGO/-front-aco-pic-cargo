@@ -2,7 +2,6 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const login = (id: number) => sessionStorage.setItem("dataUser", JSON.stringify([{ id, id_branch: 1 }]));

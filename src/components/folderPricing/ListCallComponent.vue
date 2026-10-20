@@ -2,12 +2,12 @@
 import { ref, useTemplateRef } from "vue";
 import moment from "moment";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 
 const search = ref("");
@@ -150,7 +150,7 @@ function formatearFecha(fecha: string | null | undefined) {
   return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   pricingStore.filtroCalls = {
     fechainicio: moment().format("YYYY-01-01"),
     fechafin: moment().endOf("month").format("YYYY-MM-DD"),
@@ -160,7 +160,7 @@ async function limpiar() {
 
   pricingStore.filtrarQuoteFlag = false;
   pricingStore.filtroCalls.estado = true;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
   const fechaInicio = moment(inicio);
@@ -198,7 +198,7 @@ async function imprimierCalls() {
     return;
   }
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const filtroSeleccionado: Record<string, string | undefined> = {};
   const store = pricingStore;
 
@@ -287,7 +287,7 @@ async function imprimierCalls() {
     )?.name;
   }
   if (f.id_cliente) {
-    filtroCabecera.Cliente = rootStore.state.clientes.find(
+    filtroCabecera.Cliente = appStore.clientes.find(
       (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
     )?.namelong;
   }
@@ -298,7 +298,7 @@ async function imprimierCalls() {
     filtroCabecera: filtroCabecera,
   });
   loading4.value = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registrarLlamada(id: number) {
@@ -314,7 +314,7 @@ function registrarLlamada(id: number) {
 async function guardarNota() {
   if ((await detallenota.value!.validate()).valid) {
     dialogRegistroNotaLlamada.value = false;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const data = {
       id_quote: pricingStore.id,
@@ -332,7 +332,7 @@ async function guardarNota() {
       },
     );
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 </script>

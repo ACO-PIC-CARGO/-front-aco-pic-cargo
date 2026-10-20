@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { Pais } from "@/types/catalogos";
 import type { EmailEntidad } from "@/types/entidades";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -80,7 +80,7 @@ function agregarTelefono() {
   });
 }
 function getPrefix() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   if (pais) {
@@ -89,7 +89,7 @@ function getPrefix() {
   return "+xx";
 }
 function obtenerFlag() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   let flag = "";
@@ -189,12 +189,12 @@ async function modificarCliente() {
       text: "Por favor complete todos los campos requeridos en Teléfonos y Contactos",
     });
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarCliente();
-    rootStore.state.spiner = false;
-    rootStore.state.recargarClienteFlag =
-      !rootStore.state.recargarClienteFlag;
-    rootStore.state.modalEntitie = false;
+    appStore.spiner = false;
+    appStore.recargarClienteFlag =
+      !appStore.recargarClienteFlag;
+    appStore.modalEntitie = false;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;

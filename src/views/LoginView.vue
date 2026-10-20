@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { SucursalSesion, UsuarioLogin } from "@/types/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const securitysStore = useSecuritysStore();
 
 const currentSlide = ref(0);
@@ -59,7 +59,7 @@ async function iraHome() {
  
   //-------------------------------------
   await securitysStore._getMenuItem();
-  rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+  appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
   // await this.ListProgrammedPayment();
   setTimeout(() => {
     router.push({ name: "Main" });

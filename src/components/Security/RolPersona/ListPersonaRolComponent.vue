@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import type { PersonaRol } from "@/types/seguridad";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 
 const search = ref("");
@@ -31,16 +31,16 @@ function filterPorRol() {
   dialog.value = false;
 }
 async function Guardar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.guardarRolProveedor();
   await entitiesStore.ListarPersonaTipoPersona();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.ListarPersonaTipoPersona();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   // this.dialog = true;
 });
 

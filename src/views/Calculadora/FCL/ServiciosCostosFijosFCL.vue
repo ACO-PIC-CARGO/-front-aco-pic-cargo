@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -24,7 +24,7 @@ const FleteGrupal = defineAsyncComponent(() =>
   import("../../../components/Calculadora/FleteGrupal.vue"));
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const tab = ref("fletelst");
 const id_modality = 1;
@@ -37,8 +37,8 @@ onMounted(async () => {
 
   await Promise.all([
     calculadorasStore.getOpciones(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getPais"),
+    appStore._getModality(),
+    appStore._getPais(),
     calculadorasStore.GetTipoCosto(data),
     calculadorasStore.GetCalcServicio(),
     calculadorasStore.GetCalcMultiplicador(data),

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { usePositionStore } from "@/stores/position";
 import { useSecuritysStore } from "@/stores/securitys";
@@ -10,7 +10,7 @@ import type { PosicionListado } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const userStore = useUserStore();
 const positionStore = usePositionStore();
 const securitysStore = useSecuritysStore();
@@ -46,16 +46,16 @@ const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(
 onMounted(async () => {
   userStore.model.id = route.params.id as string;
   await userStore.GetVerUsers();
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getDocumentsPais");
-  await rootStore.dispatch("_getPais");
-  await rootStore.dispatch("_getSex");
+  appStore.spiner = true;
+  await appStore._getDocumentsPais();
+  await appStore._getPais();
+  await appStore._getSex();
   await positionStore.cargarPosition();
   await securitysStore.CargarBranch();
-  await rootStore.dispatch("_getState", userStore.model.id_pais);
-  await rootStore.dispatch("_getCity", userStore.model.id_state);
-  await rootStore.dispatch("_getTown", userStore.model.id_city);
-  rootStore.state.spiner = false;
+  await appStore._getState(userStore.model.id_pais);
+  await appStore._getCity(userStore.model.id_state);
+  await appStore._getTown(userStore.model.id_city);
+  appStore.spiner = false;
 });
 
 // 10705871171
@@ -63,34 +63,34 @@ onMounted(async () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function validarUser() {
   errUsers.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateUserUsuario())!;
   if (res.estadoflag == true) {
     errUsers.value = res.mensaje;
     userStore.model.users = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function validarEmail() {
   errEmail.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateEmailUsuario())!;
   if (res.estadoflag == true) {
     errEmail.value = res.mensaje;
     userStore.model.email = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function validarDocument() {
   // this.errUsers = "";
   if (!!userStore.model.id_document && !!userStore.model.document) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const res = (await userStore.validateDocumentUsuario())!;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     if (res.estadoflag == true) {
       Swal.fire({
@@ -106,7 +106,7 @@ async function validarDocument() {
         confirmButtonColor: "green",
       }).then(async (respuesta) => {
         if (respuesta.isConfirmed) {
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           userStore.model.id_entitie = res.data[0]!.id_entitie;
           userStore.model.address = res.data[0]!.address;
           userStore.model.birthday = res.data[0]!.birthday;
@@ -121,17 +121,17 @@ async function validarDocument() {
           userStore.model.socialprincipal = res.data[0]!.socialprincipal;
           userStore.model.socialsecundary = res.data[0]!.socialsecundary;
           userStore.model.surname = res.data[0]!.surname;
-          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
-          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
-          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
-          rootStore.state.spiner = false;
+          await appStore._getState(res.data[0]!.id_pais);
+          await appStore._getCity(res.data[0]!.id_state);
+          await appStore._getTown(res.data[0]!.id_city);
+          appStore.spiner = false;
         }
         if (respuesta.isDismissed) {
           userStore.model.document = "";
         }
       });
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
   // if (res.estadoflag == true) {
   //   this.errUsers = res.mensaje;
@@ -167,27 +167,27 @@ async function agregarPosicion() {
 
 async function ObtenerEstados(id_pais: number | string | undefined) {
   loadingEstado.value = true;
-  await rootStore.dispatch("_getState", id_pais);
+  await appStore._getState(id_pais);
 
   loadingEstado.value = false;
 }
 
 async function ObtenerCity(id_state: number | string | undefined) {
   loadingCity.value = true;
-  await rootStore.dispatch("_getCity", id_state);
+  await appStore._getCity(id_state);
   loadingCity.value = false;
 }
 
 async function ObtenerDistrito(id_city: number | string | undefined) {
   loadingDistrito.value = true;
-  await rootStore.dispatch("_getTown", id_city);
+  await appStore._getTown(id_city);
   loadingDistrito.value = false;
 }
 
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function guardarUsuario() {
-  console.log(rootStore.state.itemsDocumentsPais);
+  console.log(appStore.itemsDocumentsPais);
   if ((await frmDatos.value!.validate()).valid) {
     if (userStore.positions.filter((v) => !!v.status).length == 0) {
       errPosition.value = "Es necesario asignar al menos una Position, al usuario";
@@ -251,7 +251,7 @@ async function guardarUsuario() {
           <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
-                :items="rootStore.state.itemsDocumentsPais"
+                :items="appStore.itemsDocumentsPais"
                 item-title="description"
                 item-value="id"
                 label="Tipo de Documento"
@@ -314,9 +314,8 @@ async function guardarUsuario() {
           </v-row>
           <v-row>
             <v-col cols="4">
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
-                :items="rootStore.state.itemsSex"
+                :items="appStore.itemsSex"
                 item-title="name"
                 item-value="id"
                 label="Sexo *"
@@ -329,7 +328,7 @@ async function guardarUsuario() {
               <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Pais"
-                :items="rootStore.state.itemsPais"
+                :items="appStore.itemsPais"
                 v-model="userStore.model.id_pais"
                 item-title="name"
                 item-value="id"
@@ -342,10 +341,9 @@ async function guardarUsuario() {
               cols="4"
               v-if="userStore.model.id_pais"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Estado (Región)"
-                :items="rootStore.state.itemsState"
+                :items="appStore.itemsState"
                 v-model="userStore.model.id_state"
                 item-title="name"
                 item-value="id"
@@ -359,10 +357,9 @@ async function guardarUsuario() {
               cols="4"
               v-if="userStore.model.id_state"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Ciudad"
-                :items="rootStore.state.itemsCity"
+                :items="appStore.itemsCity"
                 v-model="userStore.model.id_city"
                 item-title="name"
                 item-value="id"
@@ -376,10 +373,9 @@ async function guardarUsuario() {
               cols="4"
               v-if="userStore.model.id_city"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Distrito "
-                :items="rootStore.state.itemsTown"
+                :items="appStore.itemsTown"
                 v-model="userStore.model.id_town"
                 item-title="name"
                 item-value="id"

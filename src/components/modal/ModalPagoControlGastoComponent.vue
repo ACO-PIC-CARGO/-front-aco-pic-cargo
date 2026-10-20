@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -14,10 +14,10 @@ import { sessionBranchId } from "@/utils/sesion";
 defineProps<{ limpar?: boolean }>();
 const emit = defineEmits<{ cancelar: []; cerrarModal: [value: boolean] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
-const provedores = computed(() => rootStore.state.provedores);
+const provedores = computed(() => appStore.provedores);
 
 const msgNroOperacion = ref("");
 const comentarios = ref<string | null>("");
@@ -112,9 +112,9 @@ function calcularTotales() {
             parseFloat(String(monex)) + parseFloat(element2.totalopcuentabanco);
         }
         id_coins.value = element2
-          ? rootStore.state.itemsCoinsList.filter(
+          ? appStore.itemsCoinsList.filter(
               (v: { id: number; acronym: string }) => v.acronym == element2.acronym,
-            )[0].id
+            )[0]!.id
           : 1;
       });
       element.monto_mon_ex = mon_ex;
@@ -144,16 +144,16 @@ function calcularTotales() {
       // }
     }
 
-    acronym.value = rootStore.state.itemsCoinsList.filter(
+    acronym.value = appStore.itemsCoinsList.filter(
       (v: { id: number; acronym: string }) => v.id == id_coins.value,
-    )[0].acronym;
+    )[0]!.acronym;
   });
 
   montoMonExt.value = parseFloat(String(monex)).toFixed(2);
   calcularTotalesInput();
-  acronym.value = rootStore.state.itemsCoinsList.filter(
+  acronym.value = appStore.itemsCoinsList.filter(
     (v: { id: number; acronym: string }) => v.id == id_coins.value,
-  )[0].acronym;
+  )[0]!.acronym;
 }
 async function calcularTotalesInput() {
   let monex = 0;
@@ -420,7 +420,7 @@ async function pagar() {
           text: response.data.data.msg,
         });
 
-        rootStore.state.actualizar = !rootStore.state.actualizar;
+        appStore.actualizar = !appStore.actualizar;
       }
     })
     .catch(function (error) {
@@ -446,7 +446,7 @@ async function limpiarFormulario() {
   search.value = "";
   payPath.value = 0;
   date.value = moment(new Date()).format("YYYY-MM-DD");
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
 
   await getListBanksDetailsCargar();
 }
@@ -475,7 +475,7 @@ function obtenerMontoPagar() {
 }
 async function ValidaNroOp() {
   msgNroOperacion.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await bancosStore.getValidaNroOp(nro_operacion.value as string);
   if (!!bancosStore.validacionBanco!.estadoflag) {
     msgNroOperacion.value = bancosStore.validacionBanco!.mensaje;
@@ -484,10 +484,10 @@ async function ValidaNroOp() {
     msgNroOperacion.value = "";
   }
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function moverSeleccionadoAlInicio() {
-  const listaPagos = rootStore.state.listPagosXProveedorCxP;
+  const listaPagos = appStore.listPagosXProveedorCxP;
 
   const seleccionadosIds = new Set(selected.value.map((item) => item.id));
 
@@ -519,7 +519,7 @@ watch(selected, (newVal, oldVal) => {
 });
 
 onMounted(async () => {
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
   await getListBanksDetailsCargar();
 });
 </script>
@@ -606,7 +606,7 @@ onMounted(async () => {
             >
               <template #[`item.item_moneda`]="{ item }">
                 <v-autocomplete
-                  :items="rootStore.state.itemsCoinsList"
+                  :items="appStore.itemsCoinsList"
                   v-model="id_coins"
                   item-title="acronym"
                   item-value="id"

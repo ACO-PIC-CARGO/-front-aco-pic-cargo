@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useHousesStore } from "@/stores/houses";
 import axios from "@/api/http";
 import moment from "moment";
 import SweetAlert from "sweetalert2";
@@ -12,7 +12,7 @@ import type { RegistroBitacoraHouse } from "@/types/operaciones";
 
 const componentProps = defineProps<{ isFormActionsDisabled?: boolean }>();
 
-const rootStore = useStore();
+const housesStore = useHousesStore();
 const route = useRoute();
 
 const date = ref(new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -26,8 +26,8 @@ const dialogVerTodos = ref(false);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isBotonTrackingDisabled = computed(function () {
-  return rootStore.state.house_enlace_tracking !== "" &&
-    rootStore.state.house_enlace_tracking !== null
+  return housesStore.house_enlace_tracking !== "" &&
+    housesStore.house_enlace_tracking !== null
     ? true
     : componentProps.isFormActionsDisabled;
 });
@@ -36,7 +36,7 @@ const isBotonBitacoraDisabled = computed(function () {
   return componentProps.isFormActionsDisabled || disabledBotonBitacora.value;
 });
 const bitacoraOrdenada = computed(function () {
-  const items = rootStore.state.itemsBitacora || [];
+  const items = housesStore.itemsBitacora || [];
   return items.slice().sort(function (a: RegistroBitacoraHouse, b: RegistroBitacoraHouse) {
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
@@ -47,14 +47,14 @@ const bitacoraLimitada = computed(function () {
   return bitacoraOrdenada.value.slice(0, 3);
 });
 const totalRegistros = computed(function () {
-  return (rootStore.state.itemsBitacora || []).length;
+  return (housesStore.itemsBitacora || []).length;
 });
 const mostrarBotonVerMas = computed(function () {
   return totalRegistros.value > 3;
 });
 
 function setBitacoraFecha(value: moment.MomentInput) {
-  rootStore.state.bitacora_fecha = moment(value).format("YYYY-MM-DD");
+  housesStore.bitacora_fecha = moment(value).format("YYYY-MM-DD");
 }
 function ObtenerComentariosPredifinidos() {
   const comentarios: ComentarioEstadoHouse[] = [];
@@ -63,8 +63,8 @@ function ObtenerComentariosPredifinidos() {
   //   "itemsC omentariosPredefinidos",
   //   this.$store.state.itemsComentariosPredefinidos
   // );
-  rootStore.state.itemsComentariosPredefinidos.forEach((element: ComentarioEstadoHouse) => {
-    element.comentariousuado = rootStore.state.itemsBitacora.some(
+  housesStore.itemsComentariosPredefinidos.forEach((element: ComentarioEstadoHouse) => {
+    element.comentariousuado = housesStore.itemsBitacora.some(
       (v: RegistroBitacoraHouse) => v.comentario === element.comentario
     );
     comentarios.push(element);
@@ -72,11 +72,11 @@ function ObtenerComentariosPredifinidos() {
   return comentarios;
 }
 function cleanData() {
-  rootStore.state.bitacora_id_bitacora = "";
-  rootStore.state.bitacora_comentario_predefinido = "";
-  rootStore.state.bitacora_comentario_flag = false;
-  rootStore.state.bitacora_comentario = "";
-  rootStore.state.bitacora_visible_cliente = true;
+  housesStore.bitacora_id_bitacora = "";
+  housesStore.bitacora_comentario_predefinido = "" as never;
+  housesStore.bitacora_comentario_flag = false;
+  housesStore.bitacora_comentario = "";
+  housesStore.bitacora_visible_cliente = true;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _validaData() {
@@ -104,7 +104,7 @@ async function _deleteBitacora(id: number) {
     .then(async function (response) {
       sessionStorage.setItem("auth-token", response.data.token);
       if (response.data.status == 200) {
-        await rootStore.dispatch("_getHouseBitacora").then(() => {
+        await housesStore._getHouseBitacora().then(() => {
           _setDefaultBitacora();
         });
       }
@@ -153,7 +153,7 @@ async function _changeStatusBitacora({ id, status }: { id: number; status: numbe
     .then(async function (response) {
       sessionStorage.setItem("auth-token", response.data.token);
       if (response.data.status == 200) {
-        await rootStore.dispatch("_getHouseBitacora");
+        await housesStore._getHouseBitacora();
       }
 
       if (response.data.status == "401") {
@@ -200,7 +200,7 @@ async function _changeStatusVisibleBitacora({ id, visible_cliente }: RegistroBit
       
       sessionStorage.setItem("auth-token", response.data.token);
       if (response.data.status == 200) {
-        await rootStore.dispatch("_getHouseBitacora");
+        await housesStore._getHouseBitacora();
       }
 
       if (response.data.status == "401") {
@@ -228,19 +228,19 @@ async function _changeStatusVisibleBitacora({ id, visible_cliente }: RegistroBit
 }
 function _setDefaultBitacora() {
   disabledBotonBitacora.value = false;
-  if (!rootStore.state.itemsBitacora.length) {
-    rootStore.state.bitacora_id_bitacora = 1;
+  if (!housesStore.itemsBitacora.length) {
+    housesStore.bitacora_id_bitacora = 1;
   } else {
     if (
-      rootStore.state.itemsBitacora.length <
-      rootStore.state.itemsBitacoraLineal.length
+      housesStore.itemsBitacora.length <
+      housesStore.itemsBitacoraLineal.length
     ) {
       const dataUltimaBitacora =
-        rootStore.state.itemsBitacora[
-          rootStore.state.itemsBitacora.length - 1
-        ];
+        housesStore.itemsBitacora[
+          housesStore.itemsBitacora.length - 1
+        ]!;
       if (Object.keys(dataUltimaBitacora).length) {
-        rootStore.state.bitacora_id_bitacora =
+        housesStore.bitacora_id_bitacora =
           dataUltimaBitacora.id_bitacora + 1;
       }
     } else {
@@ -250,29 +250,29 @@ function _setDefaultBitacora() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _handleFlagComentarioManual() {
-  if (rootStore.state.bitacora_comentario_flag) {
-    rootStore.state.bitacora_comentario_predefinido = null;
+  if (housesStore.bitacora_comentario_flag) {
+    housesStore.bitacora_comentario_predefinido = null as never;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _setBitacora() {
-  if (!rootStore.state.bitacora_id_bitacora) {
+  if (!housesStore.bitacora_id_bitacora) {
     SweetAlert.fire("", "¡La bitacora es requerida!", "error");
   } else {
     let ok = true;
-    if (rootStore.state.itemsBitacora.length) {
+    if (housesStore.itemsBitacora.length) {
       const dataUltimaBitacora =
-        rootStore.state.itemsBitacora[
-          rootStore.state.itemsBitacora.length - 1
-        ];
+        housesStore.itemsBitacora[
+          housesStore.itemsBitacora.length - 1
+        ]!;
       if (
-        rootStore.state.bitacora_id_bitacora !=
+        housesStore.bitacora_id_bitacora !=
         dataUltimaBitacora.id_bitacora + 1
       ) {
         ok = false;
       }
     } else {
-      if (rootStore.state.bitacora_id_bitacora != 1) {
+      if (housesStore.bitacora_id_bitacora != 1) {
         ok = false;
       }
     }
@@ -284,8 +284,8 @@ async function _setBitacora() {
         "error"
       );
     } else if (
-      rootStore.state.bitacora_comentario_flag &&
-      !rootStore.state.bitacora_comentario
+      housesStore.bitacora_comentario_flag &&
+      !housesStore.bitacora_comentario
     ) {
       SweetAlert.fire("", "¡El comentario es requerido!", "error");
     } else {
@@ -293,15 +293,15 @@ async function _setBitacora() {
 
       const data = {
         id_house: route.params.id,
-        id_bitacora: rootStore.state.bitacora_id_bitacora,
-        id_comentario: !rootStore.state.bitacora_comentario_flag
-          ? rootStore.state.bitacora_comentario_predefinido
+        id_bitacora: housesStore.bitacora_id_bitacora,
+        id_comentario: !housesStore.bitacora_comentario_flag
+          ? housesStore.bitacora_comentario_predefinido
           : "",
-        comentario: rootStore.state.bitacora_comentario_flag
-          ? rootStore.state.bitacora_comentario
+        comentario: housesStore.bitacora_comentario_flag
+          ? housesStore.bitacora_comentario
           : "",
-        fecha: rootStore.state.bitacora_fecha,
-        visible_cliente: rootStore.state.bitacora_visible_cliente,
+        fecha: housesStore.bitacora_fecha,
+        visible_cliente: housesStore.bitacora_visible_cliente,
       };
 
       const config = {
@@ -318,7 +318,7 @@ async function _setBitacora() {
         .then(async function (response) {
           sessionStorage.setItem("auth-token", response.data.token);
           if (response.data.status == 200) {
-            await rootStore.dispatch("_getHouseBitacora").then(() => {
+            await housesStore._getHouseBitacora().then(() => {
               cleanData();
               _setDefaultBitacora();
             });
@@ -385,7 +385,7 @@ async function _setTrackingToken(token: string) {
       sessionStorage.setItem("auth-token", response.data.token);
 
       if (response.data.estadoflag) {
-        rootStore.state.house_enlace_tracking =
+        housesStore.house_enlace_tracking =
           "https://aco.agentedecargaonline.com/tracking/" +
           response.data.data[0].token;
       } else {
@@ -418,8 +418,8 @@ async function _copyEnlaceTracking(texto: string) {
 
 onMounted(async () => {
   // await this._getBitacoraLineal();
-  await rootStore.dispatch("_getComentariosPredefinidos");
-  await rootStore.dispatch("_getHouseBitacora").then(() => {
+  await housesStore._getComentariosPredefinidos();
+  await housesStore._getHouseBitacora().then(() => {
     _setDefaultBitacora();
   });
 });
@@ -437,11 +437,11 @@ onMounted(async () => {
         >
           <v-autocomplete
             append-icon="mdi-plus"
-            :items="rootStore.state.itemsBitacoraLineal"
+            :items="housesStore.itemsBitacoraLineal"
             item-title="name"
             item-value="id"
             label="Estatus del embarque"
-            v-model="rootStore.state.bitacora_id_bitacora"
+            v-model="housesStore.bitacora_id_bitacora"
             :disabled="true"
           >
             <template #selection="{ item, internalItem }">
@@ -462,7 +462,7 @@ onMounted(async () => {
                     color="indigo"
                     class="text-headline-medium font-weight-light text-white mr-3"
                   >
-                    {{ rootStore.state.itemsBitacoraLineal.indexOf(item) + 1 }}
+                    {{ housesStore.itemsBitacoraLineal.indexOf(item) + 1 }}
                   </v-avatar>
                 </template>
               </v-list-item>
@@ -479,9 +479,9 @@ onMounted(async () => {
             item-title="descripcion"
             item-value="id"
             label="Seleccione un comentario predefinido"
-            v-model="rootStore.state.bitacora_comentario_predefinido"
+            v-model="housesStore.bitacora_comentario_predefinido"
             content-class="custom-autocomplete-menu"
-            v-if="rootStore.state.bitacora_id_bitacora"
+            v-if="housesStore.bitacora_id_bitacora"
             return-object
             :disabled="true"
           >
@@ -501,10 +501,10 @@ onMounted(async () => {
         <v-col
           cols="12"
           md="12"
-          v-if="rootStore.state.bitacora_comentario_flag"
+          v-if="housesStore.bitacora_comentario_flag"
         >
           <v-text-field
-            v-model="rootStore.state.bitacora_comentario"
+            v-model="housesStore.bitacora_comentario"
             label="Comentario"
             id="txtBitacoraComentario"
             readonly
@@ -522,7 +522,7 @@ onMounted(async () => {
           >
             <template #activator="{ props }">
               <v-text-field
-                v-model="rootStore.state.bitacora_fecha"
+                v-model="housesStore.bitacora_fecha"
                 label="Fecha"
                 prepend-icon="mdi-calendar"
                 readonly
@@ -531,7 +531,7 @@ onMounted(async () => {
               />
             </template>
             <v-date-picker
-              :model-value="rootStore.state.bitacora_fecha"
+              :model-value="housesStore.bitacora_fecha"
               @update:model-value="setBitacoraFecha"
             >
               <template #actions>
@@ -547,7 +547,7 @@ onMounted(async () => {
                   variant="text"
                   color="primary"
                   @click="
-                    date = rootStore.state.bitacora_fecha;
+                    date = housesStore.bitacora_fecha;
                     modal = false;
                   "
                 >
@@ -566,7 +566,7 @@ onMounted(async () => {
           </p>
           <v-switch
             class="mt-0"
-            v-model="rootStore.state.bitacora_visible_cliente"
+            v-model="housesStore.bitacora_visible_cliente"
             :disabled="true"
           />
         </v-col>

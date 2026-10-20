@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useSecuritysStore } from "@/stores/securitys";
@@ -9,7 +9,7 @@ import type { EmpresaListado, FiltroEmpresa } from "@/types/empresas";
 import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const enterprisesStore = useEnterprisesStore();
 const securitysStore = useSecuritysStore();
 
@@ -65,11 +65,11 @@ watch(
 const originalenterprise = ref<FiltroEmpresa>({ ...enterprise.value });
 
 onMounted(async () => {
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await enterprisesStore.fetchDataEnterprise(enterprise.value);
-  rootStore.state.mainTitle = `EMPRESAS`;
-  await rootStore.dispatch("_getDocumentsPais");
-  await rootStore.dispatch("_getPais");
+  appStore.mainTitle = `EMPRESAS`;
+  await appStore._getDocumentsPais();
+  await appStore._getPais();
   await _callState();
 });
 
@@ -83,7 +83,7 @@ function readEnterprise(id: number) {
 async function _callState() {
   // Kept: id_pais has never been declared here, so the branch below has always been skipped.
   if (id_pais.value! > 0) {
-    await rootStore.dispatch("_getState", id_pais.value);
+    await appStore._getState(id_pais.value);
   }
 }
 function volver() {
@@ -331,7 +331,7 @@ function open_filter() {
             <v-autocomplete
               label="Tipo de Documento"
               v-model="enterprise.id_document"
-              :items="rootStore.state.itemsDocumentsPais"
+              :items="appStore.itemsDocumentsPais"
               item-title="description"
               item-value="id"
               clearable
@@ -362,33 +362,33 @@ function open_filter() {
           <v-row>
             <v-autocomplete
               label="País"
-              :items="rootStore.state.itemsPais"
+              :items="appStore.itemsPais"
               item-value="id"
               item-title="name"
               v-model="enterprise.id_pais"
-              @update:model-value="rootStore.dispatch('_getState', enterprise.id_pais)"
+              @update:model-value="appStore._getState(enterprise.id_pais)"
             />
           </v-row>
           <v-row>
             <v-autocomplete
               label="Región"
-              :items="rootStore.state.itemsState"
+              :items="appStore.itemsState"
               clearable
               item-value="id"
               item-title="name"
               v-model="enterprise.id_state"
-              @update:model-value="rootStore.dispatch('_getCity', enterprise.id_state)"
+              @update:model-value="appStore._getCity(enterprise.id_state)"
             />
           </v-row>
           <v-row>
             <v-autocomplete
               label="Provincia"
-              :items="rootStore.state.itemsCity"
+              :items="appStore.itemsCity"
               clearable
               item-value="id"
               item-title="name"
               v-model="enterprise.id_city"
-              @update:model-value="rootStore.dispatch('_getTown', enterprise.id_city)"
+              @update:model-value="appStore._getTown(enterprise.id_city)"
             />
           </v-row>
           <v-row>
@@ -396,7 +396,7 @@ function open_filter() {
               label="Distrito"
               v-model="enterprise.id_town"
               clearable
-              :items="rootStore.state.itemsTown"
+              :items="appStore.itemsTown"
               item-value="id"
               item-title="name"
             />

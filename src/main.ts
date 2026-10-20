@@ -8,7 +8,6 @@ import "sweetalert2/dist/sweetalert2.min.css";
 import App from "./App.vue";
 import "./registerServiceWorker";
 import router from "./router";
-import store from "./store";
 // Imported here so it captures the session and the date at app start, before the session sync below.
 import "./utils/appLoad";
 import vuetify from "./plugins/vuetify";
@@ -103,5 +102,5 @@ window.addEventListener("storage", (event) => {
   }
 });
 
-app.use(createPinia()).use(router).use(store).use(vuetify).use(VueSweetalert2);
+app.use(createPinia()).use(router).use(vuetify).use(VueSweetalert2);
 app.mount("#app");

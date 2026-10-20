@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useHousesStore } from "@/stores/houses";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
+import type { FilaConIdRaiz } from "@/types/app";
 import type { CuentaEntidadNueva, EntidadControl, OpcionCuentaBancaria } from "@/types/entidades";
 import type { Moneda } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
+const housesStore = useHousesStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -52,20 +55,20 @@ const date = ref(
 const id_tipo_proveedor = ref<number | string | null>(null);
 const frmData = useTemplateRef("frmData");
 
-const itemsDocumentsPais = computed(() => rootStore.state.itemsDocumentsPais);
-const itemsPais = computed(() => rootStore.state.itemsPais);
-const itemsState = computed(() => rootStore.state.itemsState);
-const itemsCity = computed(() => rootStore.state.itemsCity);
-const itemsTown = computed(() => rootStore.state.itemsTown);
-const itemsSex = computed(() => rootStore.state.itemsSex);
+const itemsDocumentsPais = computed(() => appStore.itemsDocumentsPais);
+const itemsPais = computed(() => appStore.itemsPais);
+const itemsState = computed(() => appStore.itemsState);
+const itemsCity = computed(() => appStore.itemsCity);
+const itemsTown = computed(() => appStore.itemsTown);
+const itemsSex = computed(() => appStore.itemsSex);
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getDocumentsPais");
-  await rootStore.dispatch("_getPais");
-  await rootStore.dispatch("_getRole");
+  appStore.spiner = true;
+  await appStore._getDocumentsPais();
+  await appStore._getPais();
+  await appStore._getRole();
   await _callState();
-  await rootStore.dispatch("_getSex");
+  await appStore._getSex();
   await _validatyDocuments();
   await masterusuariosStore.cargarMasterDetalleTipoProveedor();
   if (route.params.id) {
@@ -75,10 +78,10 @@ onMounted(async () => {
     sessionStorage.getItem("dataBranch") as string,
   )[0].id_PaisBrach;
   if (route.params.id_role) {
-    rootStore.state.id_role_actual = route.params.id_role;
+    appStore.id_role_actual = route.params.id_role;
   }
   await _validaData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 
 function _validatyDocuments() {
@@ -91,7 +94,7 @@ function _validatyDocuments() {
 
 function _callState() {
   if ((id_pais.value as number) > 0) {
-    rootStore.dispatch("_getState", id_pais.value);
+    appStore._getState(id_pais.value);
   }
 }
 
@@ -110,9 +113,9 @@ async function _getAccountsNumber() {
     },
     data: data,
   };
-  await axios<ApiResponse>(config)
+  await axios<ApiResponse<FilaConIdRaiz[]>>(config)
     .then(function (response) {
-      rootStore.state.itemsDataAccountsNumberList = response.data.data;
+      appStore.itemsDataAccountsNumberList = response.data.data;
     })
     .catch(function (error) {
       console.error(error);
@@ -132,8 +135,8 @@ function clenData() {
   id_tipo_proveedor.value = "";
 }
 function getPhone() {
-  rootStore.dispatch("ListarPhones", route.params.id);
-  rootStore.state.modalPhones = !rootStore.state.modalPhones;
+  appStore.ListarPhones(route.params.id as string);
+  appStore.modalPhones = !appStore.modalPhones;
 }
 function _validaDocumento() {
   if (n_documents.value) {
@@ -184,7 +187,7 @@ function _validaDocumento() {
 function _validaData() {
   if (route.params.id) {
     dataList.value = false;
-    rootStore.state.house_Id_get = route.params.id;
+    appStore.house_Id_get = route.params.id;
     const data = {
       id: route.params.id,
       id_branch: sessionBranchId(),
@@ -210,9 +213,9 @@ function _validaData() {
         notes.value = response.data.data[0]!.notes!;
         id_pais.value = response.data.data[0]!.id_pais!;
         id_state.value = response.data.data[0]!.id_state!;
-        rootStore.dispatch("_getCity", response.data.data[0]!.id_state);
+        appStore._getCity(response.data.data[0]!.id_state);
         id_city.value = response.data.data[0]!.id_city!;
-        rootStore.dispatch("_getTown", response.data.data[0]!.id_city);
+        appStore._getTown(response.data.data[0]!.id_city);
         id_town.value = response.data.data[0]!.id_town!;
         id_sex.value = response.data.data[0]!.id_sex!;
         id_documents.value = response.data.data[0]!.id_document!;
@@ -257,10 +260,10 @@ async function _postEntitie() {
       id_sex: id_sex.value ? id_sex.value : null,
       id_document: id_documents.value ? id_documents.value : null,
       id_branch: sessionBranchId(),
-      dataPhones: rootStore.state.itemsListPhone,
-      dataContacts: rootStore.state.itemsListContact,
+      dataPhones: appStore.itemsListPhone,
+      dataContacts: appStore.itemsListContact,
       accounts: cuentas.value,
-      id_role: rootStore.state.data_id_role,
+      id_role: entitiesStore.data_id_role,
       diascredito: diascredito.value,
       diasdeuda: diasdeuda.value,
       id_tipo_proveedor: id_tipo_proveedor.value,
@@ -299,7 +302,7 @@ async function _postEntitie() {
 
 function cambiarRole() {
   const data = {
-    id_role: rootStore.state.data_id_role,
+    id_role: entitiesStore.data_id_role,
   };
   const config = {
     method: "post",
@@ -353,7 +356,7 @@ async function _updatetEntitie() {
       id_sex: id_sex.value,
       id_document: id_documents.value,
       id_branch: sessionBranchId(),
-      telefono: rootStore.state.itemsListPhone,
+      telefono: appStore.itemsListPhone,
       diascredito: diascredito.value,
       diasdeuda: diasdeuda.value,
       id_tipo_proveedor: id_tipo_proveedor.value,
@@ -398,7 +401,7 @@ async function _updatetEntitie() {
 async function _postRoleEntitie(id_entitie: number) {
   const dataEntitie = {
     id_entities: id_entitie,
-    id_role: rootStore.state.id_role_actual,
+    id_role: appStore.id_role_actual,
   };
   const config = {
     method: "post",
@@ -411,24 +414,24 @@ async function _postRoleEntitie(id_entitie: number) {
   await axios<ApiResponse>(config)
     .then(function (response) {
       if (response.data.status == 200) {
-        if (rootStore.state.id_role_actual == 1) {
-          rootStore.dispatch("_getAgents");
+        if (appStore.id_role_actual == 1) {
+          appStore._getAgents();
           clenData();
-          rootStore.state.modalAgente = false;
-        } else if (rootStore.state.id_role_actual == 11) {
-          rootStore.dispatch("_getConsigners");
-          rootStore.dispatch("_getNotify");
+          appStore.modalAgente = false;
+        } else if (appStore.id_role_actual == 11) {
+          appStore._getConsigners();
+          appStore._getNotify();
 
           clenData();
-          rootStore.state.modalEntitie = false;
-        } else if (rootStore.state.id_role_actual == 17) {
-          rootStore.dispatch("_getColoaders");
+          appStore.modalEntitie = false;
+        } else if (appStore.id_role_actual == 17) {
+          housesStore._getColoaders();
           clenData();
-          rootStore.state.modalColoader = false;
-        } else if (rootStore.state.id_role_actual == 2) {
-          rootStore.dispatch("_getNavieras");
+          appStore.modalColoader = false;
+        } else if (appStore.id_role_actual == 2) {
+          appStore._getNavieras();
           clenData();
-          rootStore.state.modalNaviera = false;
+          appStore.modalNaviera = false;
         }
 
         Swal.fire({
@@ -436,11 +439,11 @@ async function _postRoleEntitie(id_entitie: number) {
           title: "Excelente",
           text: "Proceso éxitoso",
         });
-        if (rootStore.state.modalEntitie == false) {
-          rootStore.state.registroClienteFlag =
-            !rootStore.state.registroClienteFlag;
+        if (appStore.modalEntitie == false) {
+          appStore.registroClienteFlag =
+            !appStore.registroClienteFlag;
           entitiesStore.id = id_entitie;
-          rootStore.state.modalEntitie = false;
+          appStore.modalEntitie = false;
         } else {
           router.back();
         }
@@ -462,24 +465,24 @@ async function _postRoleEntitie(id_entitie: number) {
 }
 function _setAccounts() {
   cuentas.value.push({
-    accountIdTypeAccount: rootStore.state.accountIdTypeAccount,
-    nameaccount: rootStore.state.itemsDataAccountList.filter(
-      (v: OpcionCuentaBancaria) => v.id == rootStore.state.accountIdTypeAccount,
-    )[0].name,
-    accountIdBanks: rootStore.state.accountIdBanks,
-    namebanks: rootStore.state.itemsDataBanksList.filter(
-      (v: OpcionCuentaBancaria) => v.id == rootStore.state.accountIdBanks,
-    )[0].name,
-    accountIdCoins: rootStore.state.accountIdCoins,
-    namecoins: rootStore.state.itemsCoinsList.filter(
-      (v: Moneda) => v.id == rootStore.state.accountIdCoins,
-    )[0].acronym,
-    accountnumber: rootStore.state.accountNumer,
+    accountIdTypeAccount: appStore.accountIdTypeAccount,
+    nameaccount: appStore.itemsDataAccountList.filter(
+      (v: OpcionCuentaBancaria) => v.id == appStore.accountIdTypeAccount,
+    )[0]!.name,
+    accountIdBanks: appStore.accountIdBanks,
+    namebanks: appStore.itemsDataBanksList.filter(
+      (v: OpcionCuentaBancaria) => v.id == appStore.accountIdBanks,
+    )[0]!.name,
+    accountIdCoins: appStore.accountIdCoins,
+    namecoins: appStore.itemsCoinsList.filter(
+      (v: Moneda) => v.id == appStore.accountIdCoins,
+    )[0]!.acronym,
+    accountnumber: appStore.accountNumer,
   });
-  rootStore.state.accountIdTypeAccount = "";
-  rootStore.state.accountIdBanks = "";
-  rootStore.state.accountIdCoins = "";
-  rootStore.state.accountNumer = "";
+  appStore.accountIdTypeAccount = "";
+  appStore.accountIdBanks = "";
+  appStore.accountIdCoins = "";
+  appStore.accountNumer = "";
 }
 </script>
 
@@ -593,7 +596,7 @@ function _setAccounts() {
                   :items="itemsPais"
                   label="País"
                   v-model="id_pais"
-                  @update:model-value="rootStore.dispatch('_getState', id_pais)"
+                  @update:model-value="appStore._getState(id_pais)"
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 />
               </v-col>
@@ -606,7 +609,7 @@ function _setAccounts() {
                   item-title="name"
                   item-value="id"
                   v-model="id_state"
-                  @update:model-value="rootStore.dispatch('_getCity', id_state)"
+                  @update:model-value="appStore._getCity(id_state)"
                   label="Departamento"
                 />
               </v-col>
@@ -619,7 +622,7 @@ function _setAccounts() {
                   item-title="name"
                   item-value="id"
                   v-model="id_city"
-                  @update:model-value="rootStore.dispatch('_getTown', id_city)"
+                  @update:model-value="appStore._getTown(id_city)"
                   label="Provincia"
                 />
               </v-col>
@@ -739,8 +742,8 @@ function _setAccounts() {
 
               <v-col cols="8">
                 <v-autocomplete
-                  v-model="rootStore.state.data_id_role"
-                  :items="rootStore.state.itemsDataRoleList"
+                  v-model="entitiesStore.data_id_role"
+                  :items="appStore.itemsDataRoleList"
                   item-title="name"
                   item-value="id"
                   label="Cambiar Tipo de Role"
@@ -786,7 +789,7 @@ function _setAccounts() {
                
                 v-bind="props"
                 @click="
-                  rootStore.state.modalContacts = !rootStore.state.modalContacts
+                  appStore.modalContacts = !appStore.modalContacts
                 "
                 color="blue-grey-darken-3"
               >
@@ -808,7 +811,7 @@ function _setAccounts() {
                 size="large"
                
                 v-bind="props"
-                @click="rootStore.state.modalCuentas = !rootStore.state.modalCuentas"
+                @click="appStore.modalCuentas = !appStore.modalCuentas"
                 color="blue-grey-darken-3"
               >
                 <v-icon> mdi-bank </v-icon>
@@ -851,8 +854,8 @@ function _setAccounts() {
           <v-row>
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdTypeAccount"
-                :items="rootStore.state.itemsDataAccountList"
+                v-model="appStore.accountIdTypeAccount"
+                :items="appStore.itemsDataAccountList"
                 item-title="name"
                 item-value="id"
                 label="Cuenta"
@@ -861,8 +864,8 @@ function _setAccounts() {
 
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdBanks"
-                :items="rootStore.state.itemsDataBanksList"
+                v-model="appStore.accountIdBanks"
+                :items="appStore.itemsDataBanksList"
                 item-title="acronym"
                 item-value="id"
                 label="Banco"
@@ -871,8 +874,8 @@ function _setAccounts() {
 
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdCoins"
-                :items="rootStore.state.itemsCoinsList"
+                v-model="appStore.accountIdCoins"
+                :items="appStore.itemsCoinsList"
                 item-title="acronym"
                 item-value="id"
                 label="Moneda"
@@ -883,13 +886,13 @@ function _setAccounts() {
               <v-text-field
                 type="number"
                 label="N°. Cuenta"
-                v-model="rootStore.state.accountNumer"
+                v-model="appStore.accountNumer"
               />
             </v-col>
 
             <v-col cols="1">
               <v-btn
-                v-if="rootStore.state.accountNumer != ''"
+                v-if="appStore.accountNumer != ''"
                 class="mx-2"
                 icon
                 color="teal-darken-1"

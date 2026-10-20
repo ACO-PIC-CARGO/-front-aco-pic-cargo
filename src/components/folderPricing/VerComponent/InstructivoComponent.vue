@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
@@ -18,7 +18,7 @@ const ConfigCotizacion = defineAsyncComponent(() =>
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
@@ -84,7 +84,7 @@ let stepAprobado: number | undefined;
 
 const activarBotonAsociarMaster = computed(() => {
   if (id_opcion.value == 1) {
-    const exp = rootStore.state.itemsMasterList.find(
+    const exp = appStore.itemsMasterList.find(
       (v: ExpedienteMaster) => v.id == id_exp.value,
     );
     const clienteVarios = "CLIENTE VARIOS";
@@ -101,7 +101,7 @@ const activarBotonAsociarMaster = computed(() => {
 });
 const mostrarMensajeClienteVariosExp = computed(() => {
   if (id_opcion.value == 1) {
-    const exp = rootStore.state.itemsMasterList.find(
+    const exp = appStore.itemsMasterList.find(
       (v: ExpedienteMaster) => v.id == id_exp.value,
     );
     const clienteVarios = "CLIENTE VARIOS";
@@ -176,9 +176,9 @@ onMounted(async () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function tienePagosAsociados() {
   if (id_exp.value) {
-    const val = rootStore.state.itemsMasterList.find(
+    const val = appStore.itemsMasterList.find(
       (v: ExpedienteMaster) => v.id == id_exp.value,
-    );
+    )!;
     if (val.tienepagos) {
       return true;
     }
@@ -292,9 +292,9 @@ async function guardarConfig() {
 function verificarMaster() {
   mostrarAdvertencia.value = false;
   textValidacionCotizacionMaster.value = [];
-  const master = rootStore.state.itemsMasterList.find(
+  const master = appStore.itemsMasterList.find(
     (v: ExpedienteMaster) => v.id == id_exp.value,
-  );
+  )!;
   url_folderonedrive.value = master.url_folderonedrive;
   if (
     !(
@@ -363,7 +363,7 @@ async function imprimir() {
 }
 async function guardarNota() {
   if ((await notaForm.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const data = {
       name: descripcionNota.value,
       id_quote: route.params.id,
@@ -372,7 +372,7 @@ async function guardarNota() {
     notaForm.value!.reset();
     await pricingStore.getInstructivoId({ id: route.params.id as string });
     dialog.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 async function abrirSeleccionDeQuoteAAprobar() {
@@ -410,7 +410,7 @@ async function abrirSeleccionDeQuoteAAprobar() {
     });
     return;
   }
-  proveedorInstructivo.value = rootStore.state.provedores.find(
+  proveedorInstructivo.value = appStore.provedores.find(
     (v: ProveedorPricing) => v.id == proveedoresUnicos[0],
   );
 
@@ -420,7 +420,9 @@ async function abrirSeleccionDeQuoteAAprobar() {
     return false;
   }
 
-  await rootStore.dispatch("cargarMaster", pricingStore.datosPrincipales);
+  await appStore.cargarMaster(
+    pricingStore.datosPrincipales as unknown as Parameters<typeof appStore.cargarMaster>[0],
+  );
 
   seleccionQuoteAprobar.value = true;
 }
@@ -500,12 +502,12 @@ async function abrirModalAprobar() {
           iconColor: "red",
           width: 1000,
           html:
-            rootStore.state.itemsMasterList.length > 0
+            appStore.itemsMasterList.length > 0
               ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
               : "<h1>¿Desea crear un nuevo expediente?</h1>",
           showConfirmButton: true,
           confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-          showDenyButton: rootStore.state.itemsMasterList.length > 0,
+          showDenyButton: appStore.itemsMasterList.length > 0,
           denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
           showCloseButton: true,
           showCancelButton: false,
@@ -604,9 +606,9 @@ async function abrirModalAprobar() {
                   id_opcion: id_opcion.value,
                   url_folderonedrive: url_folderonedrive.value,
                 });
-                rootStore.state.spiner = true;
+                appStore.spiner = true;
 
-                rootStore.state.spiner = false;
+                appStore.spiner = false;
               }
             });
           }
@@ -624,12 +626,12 @@ async function abrirModalAprobar() {
         iconColor: "red",
         width: 1000,
         html:
-          rootStore.state.itemsMasterList.length > 0
+          appStore.itemsMasterList.length > 0
             ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
             : "<h1>¿Desea crear un nuevo expediente?</h1>",
         showConfirmButton: true,
         confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-        showDenyButton: rootStore.state.itemsMasterList.length > 0,
+        showDenyButton: appStore.itemsMasterList.length > 0,
         denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
         showCloseButton: true,
         showCancelButton: false,
@@ -728,9 +730,9 @@ async function abrirModalAprobar() {
                 id_opcion: id_opcion.value,
                 url_folderonedrive: url_folderonedrive.value,
               });
-              rootStore.state.spiner = true;
+              appStore.spiner = true;
 
-              rootStore.state.spiner = false;
+              appStore.spiner = false;
             }
           });
         }
@@ -893,9 +895,9 @@ async function continuarAprobarHouses() {
       id_opcion_house: id_opcion_house.value,
       url_folderonedrive: url_folderonedrive.value,
     });
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     aprobarflag.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -911,7 +913,7 @@ function getProveedor(element: OpcionCosto) {
       )[0]!.id_proveedor
     : "";
   const nameProveedor = id_proveedor
-    ? rootStore.state.provedores.find((v: ProveedorPricing) => v.id == id_proveedor)
+    ? appStore.provedores.find((v: ProveedorPricing) => v.id == id_proveedor)
     : "";
   return nameProveedor ? nameProveedor.namelong : " Sin Proveedor";
 }
@@ -960,7 +962,7 @@ function getProveedor(element: OpcionCosto) {
           <v-form ref="frmAsociarExpediente">
             <v-row>
               <v-autocomplete
-                :items="rootStore.state.itemsMasterList"
+                :items="appStore.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
                 item-title="code_master"

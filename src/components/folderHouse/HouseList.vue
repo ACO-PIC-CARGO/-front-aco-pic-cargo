@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useHousesStore } from "@/stores/houses";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
 
@@ -18,8 +18,8 @@ const houseComments = computed(() => {
     return housesStore.house.list_comentarios;
   }
   
-  if (rootStore.state.itemsHouseList) {
-    const houseItem = rootStore.state.itemsHouseList.find((h: { id: number | string }) => h.id == houseId);
+  if (appStore.itemsHouseList) {
+    const houseItem = appStore.itemsHouseList.find((h: { id: number | string }) => h.id == houseId);
     return houseItem && houseItem.list_comentarios ? houseItem.list_comentarios : [];
   }
   
@@ -38,7 +38,7 @@ function getIncotermName(item: {
   if (item.incoterms) return item.incoterms;
   if (item.name_incoterm) return item.name_incoterm;
   if (item.id_incoterms) {
-    const incoterms = rootStore.state.itemsIncoterms || [];
+    const incoterms = appStore.itemsIncoterms || [];
     const found = incoterms.find(function(inc: { id: number; name: string }) { return inc.id == item.id_incoterms; });
     if (found) return found.name;
   }
@@ -85,7 +85,7 @@ function getIncotermName(item: {
                 </thead>
                 <tbody>
                   <tr
-                    v-for="(item, index) in rootStore.state.itemsHouseList"
+                    v-for="(item, index) in appStore.itemsHouseList"
                     :key="index"
                   >
                     <td>{{ (index as number) + 1 }}</td>

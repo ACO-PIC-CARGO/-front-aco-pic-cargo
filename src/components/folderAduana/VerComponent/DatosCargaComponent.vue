@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
@@ -9,7 +9,7 @@ import { sessionIsoPais } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type { Puerto, TipoCarga } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const masterusuariosStore = useMasterusuariosStore();
 const pricingStore = usePricingStore();
@@ -164,10 +164,10 @@ async function aceptar() {
       }
     }
     if (!!validate) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await pricingStore.getItemsServices();
       await pricingStore.getMultiplicador();
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       aduanaStore.step3 = true;
     }
     //
@@ -235,7 +235,7 @@ function mostrarComboPercepcionAduana() {
 }
 
 onMounted(async () => {
-  await rootStore.dispatch("_getContainers");
+  await appStore._getContainers();
 });
 </script>
 
@@ -379,7 +379,7 @@ onMounted(async () => {
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
             <v-select
-              :items="rootStore.state.itemsContainers"
+              :items="appStore.itemsContainers"
               v-model="containers.container"
               label="Container"
               item-title="name"

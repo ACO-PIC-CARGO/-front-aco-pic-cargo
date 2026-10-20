@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import moment from "moment";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import type { FlujoPrePostMovimiento } from "@/types/balances";
 import { useBalancesStore } from "@/stores/balances";
@@ -31,7 +31,7 @@ interface FlujoCategoria {
 
 const props = defineProps<{ year?: number | string; month?: string | string[] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const balancesStore = useBalancesStore();
 const entitiesStore = useEntitiesStore();
 
@@ -56,13 +56,13 @@ const items = ref<FlujoPrePostMovimiento[]>([]);
 const num = (valor: unknown) => parseFloat(String(valor));
 
 async function filtraFlujo() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await balancesStore.getFlujoPrePostMes(filtro.value);
 
   items.value = balancesStore.flujoprepostmes;
   generarData();
   filtrar.value = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function generarData() {
   let categoria = items.value.map((element) => {

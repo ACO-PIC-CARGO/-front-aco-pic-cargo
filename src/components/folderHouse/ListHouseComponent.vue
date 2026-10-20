@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useHousesStore } from "@/stores/houses";
 import { useMastersStore } from "@/stores/masters";
@@ -11,7 +11,7 @@ import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 defineProps<{ statusReport?: boolean; statusList?: string }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
@@ -60,7 +60,7 @@ async function actualizarUrl() {
   houseEditar.value.url_folderonedrive = url_folderonedrive.value;
   dialogUrl.value = false;
   setTimeout(async () => {
-    await housesStore.listarHouse(rootStore.state.house_filtro);
+    await housesStore.listarHouse(housesStore.house_filtro);
   }, 1000);
 }
 function to_link({ url = "" }: { url?: string }) {
@@ -95,7 +95,7 @@ function abrirModalComentario(item: HouseListado) {
 async function guardarComentario() {
   if ((await frmComentario.value!.validate()).valid) {
     loading.value = true;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     await housesStore.insertComentarioHouse({
       id_house: house.value.id,
@@ -106,26 +106,26 @@ async function guardarComentario() {
 
     dialogComentario.value = !dialogComentario.value;
 
-    await rootStore.dispatch("_getHouseListAll");
+    await appStore._getHouseListAll();
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     loading.value = false;
   }
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
-  await housesStore.listarHouse(rootStore.state.house_filtro);
+  await housesStore.listarHouse(housesStore.house_filtro);
   // await this._getHouseListAll();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await Promise.all([
-    rootStore.dispatch("_getTotalHouseListAll"),
+    appStore._getTotalHouseListAll(),
     pricingStore.getModulesEntities(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getShipment"),
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getMasterList"),
+    appStore._getModality(),
+    appStore._getShipment(),
+    appStore.cargarClientes(),
+    appStore._getMasterList(),
   ]);
 });
 </script>
@@ -157,7 +157,7 @@ onMounted(async () => {
               color="secondary"
               elevation="0"
               @click="
-                rootStore.state.house_filtrarData = !rootStore.state.house_filtrarData
+                housesStore.house_filtrarData = !housesStore.house_filtrarData
               "
             >
               FILTRAR

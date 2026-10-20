@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 const TipoTelefono = defineAsyncComponent(() => import("../../components/MasterUsuario/ListTipoTelefonoComponet.vue"));
 const FilterTipoTelefono = defineAsyncComponent(() => import("../../components/filtros/FilterTipoTelefono.vue"));
 
 const masterusuariosStore = useMasterusuariosStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE TIPO DE TELÉFONO`;
+  appStore.mainTitle = `LISTADO DE TIPO DE TELÉFONO`;
 });
 </script>
 

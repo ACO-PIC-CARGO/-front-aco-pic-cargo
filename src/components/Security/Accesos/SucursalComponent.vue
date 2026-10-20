@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { UsuarioLogin } from "@/types/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const securitysStore = useSecuritysStore();
 
 const usuario = "";
@@ -44,7 +44,7 @@ async function guardarSucursal() {
     localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
     //-------------------------------------
     await securitysStore._getMenuItem();
-    rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+    appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
     // await this.ListProgrammedPayment();
     await securitysStore.ObtenerDatosConfig();
     setTimeout(() => {

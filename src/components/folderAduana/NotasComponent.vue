@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
 import { sessionBranchId } from "@/utils/sesion";
@@ -12,7 +12,7 @@ const previewCotizacion = defineAsyncComponent(() =>
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 
 // opcionesSeleccionadas: [{ listNotasQuote: [] }],
@@ -169,12 +169,12 @@ async function generar() {
   loading.value = true;
   if (!route.params.id) {
     if ((await frmReporte.value!.validate()).valid) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await aduanaStore.registrarAduana({ fullflag: true }).catch((e) => {
        console.error(e);
       });
       if (aduanaStore.nro_quote) {
-        rootStore.state.spiner = false;
+        appStore.spiner = false;
         await aduanaStore.obtenerDatosEmpresaAduana().catch((e) => {
          console.error(e);
         });
@@ -198,7 +198,7 @@ async function generar() {
         }
         loadingTable = false;
         loading.value = false;
-        rootStore.state.spiner = false;
+        appStore.spiner = false;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const id_branch = sessionBranchId();
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -229,7 +229,7 @@ async function generar() {
     }
   } else {
     if ((await frmReporte.value!.validate()).valid) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       imprimirFlag.value = false;
 
       await aduanaStore.actualizarQuoteAduana();
@@ -269,7 +269,7 @@ async function generar() {
           id: aduanaStore.id,
         },
       });
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }
   }
 }
@@ -284,13 +284,13 @@ function abrirModalTipoReportePreview() {
 }
 async function generarPreview() {
   if ((await frmReporte.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     previewFlag.value = false;
     await aduanaStore.obtenerDatosEmpresaAduana();
     predataCotizacion.value = await aduanaStore.predataAduana({
       tipo: tiporeporte.value,
     });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     dialogPreview.value = true;
   }
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useGastosStore } from "@/stores/gastos";
 import type { ApiResponse } from "@/types/api";
@@ -9,7 +9,7 @@ import type { FiltroGastoIngreso, FormGasto, TipoGasto } from "@/types/catalogos
 import { sessionBranchId } from "@/utils/sesion";
 
 const gastosStore = useGastosStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -70,7 +70,7 @@ const originalRecords = ref<FiltroGastoIngreso>({ ...records.value });
 
 onMounted(async () => {
   await gastosStore.fetchDataGasto(records.value);
-  rootStore.state.mainTitle = `Tipo de Gasto`;
+  appStore.mainTitle = `Tipo de Gasto`;
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

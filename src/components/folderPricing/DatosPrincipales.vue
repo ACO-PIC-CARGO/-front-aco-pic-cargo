@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
@@ -24,7 +24,7 @@ const emit = defineEmits<{ activarDatosCarga: [activar: boolean] }>();
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
@@ -81,15 +81,15 @@ const mostrarProveedorFlag = computed(() => {
 });
 
 watch(
-  () => rootStore.state.registroClienteFlag,
+  () => appStore.registroClienteFlag,
   async () => {
-    rootStore.state.spiner = true;
-    await rootStore.dispatch("_getEntitiesCliente");
-    rootStore.state.spiner = false;
+    appStore.spiner = true;
+    await appStore._getEntitiesCliente();
+    appStore.spiner = false;
     if (entitiesStore.id) {
-      const cliente = rootStore.state.itemsEntities.filter(
+      const cliente = appStore.itemsEntities.filter(
         (v: ClienteListado) => v.id == entitiesStore.id,
-      )[0];
+      )[0]!;
       pricingStore.datosPrincipales.id_entitie = cliente.id;
       pricingStore.datosPrincipales.nombre = cliente.nombrecompleto;
       pricingStore.datosPrincipales.telefono = cliente.phone;
@@ -100,7 +100,7 @@ watch(
 
 onMounted(async () => {
   frmDatosPrincipales.value!.resetValidation();
-  rootStore.dispatch("_getProveedor");
+  appStore._getProveedor();
   setTimeout(async () => {
     servicesActuales.value = pricingStore.listServices;
     if (route.name === "editQuote") {
@@ -131,12 +131,12 @@ async function copiarArchivos() {
   }, 500);
 }
 function registrarNuevoCliente() {
-  rootStore.state.modalEntitie = true;
+  appStore.modalEntitie = true;
 }
 function abrirModalCliente() {
   buscarClienteDialog.value = true;
-  rootStore.state.itemsEntities = [];
-  rootStore.dispatch("_getEntitiesCliente");
+  appStore.itemsEntities = [];
+  appStore._getEntitiesCliente();
 }
 function guardarCliente(e: unknown, { item }: { item: ClienteListado }) {
   if (!item.phone) {
@@ -231,9 +231,9 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
       opcionCostos: opcionNuevos.value,
     };
     setTimeout(async () => {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await pricingStore.registrarQuotePorCambioIncoterms(data);
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       if (pricingStore.nro_quote) {
         Swal.fire({
           icon: "success",
@@ -689,11 +689,11 @@ function recargarNuevo(id_incoterms?: number | string) {
               <v-col cols="12">
                 <v-data-table
                   :headers="headers"
-                  :items="rootStore.state.itemsEntities"
+                  :items="appStore.itemsEntities"
                   :search="search"
                   @dblclick:row="guardarCliente"
                   item-value="index"
-                  :loading="rootStore.state.itemsEntities.length == 0"
+                  :loading="appStore.itemsEntities.length == 0"
                   loading-text="Buscando Clientes..."
                 >
                   <template #[`item.action`]="{ item }">

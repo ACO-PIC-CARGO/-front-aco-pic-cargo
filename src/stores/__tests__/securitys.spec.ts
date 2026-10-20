@@ -5,14 +5,13 @@ import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { useSecuritysStore } from "@/stores/securitys";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn() } }));
 
 interface HttpConfig {
   method: string;
@@ -54,7 +53,8 @@ describe("securitys store", () => {
     vi.clearAllMocks();
     sessionStorage.clear();
     localStorage.clear();
-    store.state = { lstMenu: [], dataMenu: true };
+    useAppStore().lstMenu = [];
+    useSecuritysStore().dataMenu = true;
   });
   afterEach(() => {
     vi.useRealTimers();
@@ -63,6 +63,7 @@ describe("securitys store", () => {
 
   test("singin posts the login form and stores the session of a user with one branch", async () => {
     vi.useFakeTimers();
+    const setItemsMenu = vi.spyOn(useAppStore(), "_setItemsMenu").mockImplementation(() => {});
     respond({
       singin: { estadoflag: true, mensaje: "", token: "tok", data: [{ ...loginRow }] },
       "CargarBranch/7": { data: [branch] },
@@ -115,9 +116,9 @@ describe("securitys store", () => {
       params: { id_branch: 5 },
       headers: JSON_HEADERS,
     });
-    expect(store.commit).toHaveBeenCalledWith("_setItemsMenu", menu);
-    expect(store.state.dataMenu).toBe(false);
-    expect(store.state.lstMenu).toEqual(menu);
+    expect(setItemsMenu).toHaveBeenCalledWith(menu);
+    expect(useSecuritysStore().dataMenu).toBe(false);
+    expect(useAppStore().lstMenu).toEqual(menu);
     expect(sessionOf("menu")).toBe(JSON.stringify(menu));
     expect(localOf("ConfigEmpresa")).toBe(JSON.stringify(config));
   });

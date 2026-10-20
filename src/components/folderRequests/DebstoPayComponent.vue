@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -23,13 +23,13 @@ import type {
   TotalOperativo,
 } from "@/types/requests";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const programacionesStore = useProgramacionesStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
 const subgastoStore = useSubgastoStore();
 const gastosStore = useGastosStore();
-const provedores = computed(() => rootStore.state.provedores);
+const provedores = computed(() => appStore.provedores);
 const frmComentario = useTemplateRef("frmComentario");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -388,7 +388,7 @@ async function _getDebsToPayAdmin() {
   await axios(config)
     .then(function (response) {
       itemsCppa.value = response.data.data;
-      rootStore.state.drawer = false;
+      appStore.drawer = false;
       setTimeout(() => {
         calcularTotalAdministrativo({ data: response.data.data });
       }, 100);
@@ -421,7 +421,7 @@ async function _getDebsToPayFilter() {
     .then(function (response) {
       itemsCpp.value = response.data.data;
       dataList.value = true;
-      rootStore.state.drawer = false;
+      appStore.drawer = false;
     })
     .catch(function (error) {
       console.error(error);
@@ -514,7 +514,7 @@ function calcularTotalAdministrativo({ data }: { data: CuentaPagarAdmin[] }) {
       total: parseFloat(String(totalSoles)).toFixed(2),
     },
   );
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function programar({ item = null, tipo: tipoPago = 1 }: { item?: CuentaPagarProveedor | CuentaPagarAdmin | null; tipo?: number | null }) {
   selected.value = [];
@@ -590,21 +590,21 @@ async function enviarProgramacion() {
     });
 }
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await _getDebsToPay();
   await _getDebsToPayAdmin();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   offcanvas.value = false;
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   proveedorOp.value = "";
   llegadaOp.value = "";
   fechaOp.value = "";
   nro_expediente.value = "";
   await _getDebsToPay();
   await _getDebsToPayAdmin();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   offcanvas.value = false;
 }
 async function exportar() {
@@ -873,20 +873,20 @@ onMounted(async () => {
     sessionStorage.getItem("dataBranch") as string,
   )[0].moneda[0].acronym;
   offcanvas.value = false;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   cabTotalAdministrativo.value[2]!.title =
     enterprisesStore.impuesto.nombre_impuesto as string;
   await Promise.all([
     _getDebsToPay(),
     _getDebsToPayAdmin(),
     pricingStore.getModulesEntities(),
-    rootStore.dispatch("cargarProveedores"),
+    appStore.cargarProveedores(),
     gastosStore.cargarGasto(),
     enterprisesStore.obtenerImpuestoXEmpresa(),
     subgastoStore.GetListSubGasto(),
   ]);
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   programend_id.value = (
     (programacionesStore.listProgramacion as ProgramacionPago[]).filter(
       (v) => v.programend_select == true,

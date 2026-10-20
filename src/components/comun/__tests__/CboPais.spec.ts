@@ -1,11 +1,12 @@
 import { describe, expect, test, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
-import { createStore } from "vuex";
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { VAutocomplete } from "vuetify/components";
 import CboPais from "@/components/comun/CboPais.vue";
+import { useAppStore } from "@/stores/app";
 
 globalThis.ResizeObserver ??= class {
   observe() {}
@@ -14,14 +15,14 @@ globalThis.ResizeObserver ??= class {
 };
 
 function mountCboPais(props: Record<string, unknown> = {}) {
-  const getPais = vi.fn();
-  const store = createStore({
-    state: { itemsPais: [{ id: 1, name: "Peru" }, { id: 2, name: "Chile" }] },
-    actions: { _getPais: getPais },
-  });
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const appStore = useAppStore();
+  appStore.itemsPais = [{ id: 1, name: "Peru" }, { id: 2, name: "Chile" }] as never;
+  const getPais = vi.spyOn(appStore, "_getPais").mockResolvedValue();
   const wrapper = mount(CboPais, {
     props,
-    global: { plugins: [createVuetify({ components, directives }), store] },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
   });
   return { wrapper, getPais };
 }

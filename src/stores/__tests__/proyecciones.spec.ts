@@ -7,7 +7,6 @@ import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const filtro = { id_month: 3, id_year: 2026, correlativo: "C1", total_proyectado_ext: 10, estado: 1, aprobadoflag: 0 };

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -12,7 +12,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import { useFilesStore } from "@/stores/files";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const enterprisesStore = useEnterprisesStore();
 const userStore = useUserStore();
@@ -44,9 +44,9 @@ watch(
 );
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
-  rootStore.state.mainTitle = `EMPRESAS`;
+  appStore.mainTitle = `EMPRESAS`;
   enterprisesStore.model = {
     id_logo: "",
     document: "",
@@ -86,11 +86,11 @@ onMounted(async () => {
     email: "",
   };
 
-  await rootStore.dispatch("_getDocumentsPais");
-  await rootStore.dispatch("_getPais");
-  await rootStore.dispatch("_getSex");
+  await appStore._getDocumentsPais();
+  await appStore._getPais();
+  await appStore._getSex();
   await _callState();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   frmDML.value!.resetValidation();
   frmDatos.value!.resetValidation();
 });
@@ -98,7 +98,7 @@ onMounted(async () => {
 async function _callState() {
   // Kept: id_pais has never been declared here, so the branch below has always been skipped.
   if (id_pais.value! > 0) {
-    await rootStore.dispatch("_getState", id_pais.value);
+    await appStore._getState(id_pais.value);
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -118,9 +118,9 @@ async function insert() {
       return false;
     }
     if ((await frmDatos.value!.validate()).valid) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await enterprisesStore.insertEnterprise();
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }
   }
 }
@@ -128,16 +128,16 @@ async function get_state() {
   enterprisesStore.model.id_state = "";
   enterprisesStore.model.id_city = "";
   enterprisesStore.model.id_town = "";
-  await rootStore.dispatch("_getState", enterprisesStore.model.id_pais);
+  await appStore._getState(enterprisesStore.model.id_pais);
 }
 async function get_city() {
   enterprisesStore.model.id_city = "";
   enterprisesStore.model.id_town = "";
-  await rootStore.dispatch("_getCity", enterprisesStore.model.id_state);
+  await appStore._getCity(enterprisesStore.model.id_state);
 }
 async function get_town() {
   enterprisesStore.model.id_town = "";
-  await rootStore.dispatch("_getTown", enterprisesStore.model.id_city);
+  await appStore._getTown(enterprisesStore.model.id_city);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function update() {
@@ -147,30 +147,30 @@ async function update() {
 }
 async function validarUser() {
   errUsers.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateUserUsuario())!;
   if (res.estadoflag == true) {
     errUsers.value = res.mensaje;
     userStore.model.users = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function validarEmail() {
   errEmail.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateEmailUsuario())!;
   if (res.estadoflag == true) {
     errEmail.value = res.mensaje;
     userStore.model.email = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function validarDocument() {
   // this.errUsers = "";
   if (!!userStore.model.id_document && !!userStore.model.document) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const res = (await userStore.validateDocumentUsuario())!;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     if (res.estadoflag == true) {
       Swal.fire({
@@ -186,7 +186,7 @@ async function validarDocument() {
         confirmButtonColor: "green",
       }).then(async (respuesta) => {
         if (respuesta.isConfirmed) {
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           userStore.model.id_entitie = res.data[0]!.id_entitie;
           userStore.model.address = res.data[0]!.address;
           userStore.model.birthday = res.data[0]!.birthday;
@@ -201,17 +201,17 @@ async function validarDocument() {
           userStore.model.socialprincipal = res.data[0]!.socialprincipal;
           userStore.model.socialsecundary = res.data[0]!.socialsecundary;
           userStore.model.surname = res.data[0]!.surname;
-          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
-          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
-          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
-          rootStore.state.spiner = false;
+          await appStore._getState(res.data[0]!.id_pais);
+          await appStore._getCity(res.data[0]!.id_state);
+          await appStore._getTown(res.data[0]!.id_city);
+          appStore.spiner = false;
         }
         if (respuesta.isDismissed) {
           userStore.model.document = "";
         }
       });
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
   // if (res.estadoflag == true) {
   //   this.errUsers = res.mensaje;
@@ -303,7 +303,7 @@ function updateStatus(newValue: string | number | null) {
                 <v-autocomplete
                   label="Tipo de Documento (*)"
                   v-model="enterprisesStore.model.id_document"
-                  :items="rootStore.state.itemsDocumentsPais"
+                  :items="appStore.itemsDocumentsPais"
                   item-title="description"
                   item-value="id"
                   :rules="[(v) => !!v || 'Dato requerido']"
@@ -389,7 +389,7 @@ function updateStatus(newValue: string | number | null) {
               <v-col cols="3">
                 <v-autocomplete
                   label="País (*)"
-                  :items="rootStore.state.itemsPais"
+                  :items="appStore.itemsPais"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_pais"
@@ -400,7 +400,7 @@ function updateStatus(newValue: string | number | null) {
               <v-col cols="3">
                 <v-autocomplete
                   label="Región (*)"
-                  :items="rootStore.state.itemsState"
+                  :items="appStore.itemsState"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_state"
@@ -412,7 +412,7 @@ function updateStatus(newValue: string | number | null) {
               <v-col cols="3">
                 <v-autocomplete
                   label="Provincia (*)"
-                  :items="rootStore.state.itemsCity"
+                  :items="appStore.itemsCity"
                   item-value="id"
                   item-title="name"
                   v-model="enterprisesStore.model.id_city"
@@ -425,7 +425,7 @@ function updateStatus(newValue: string | number | null) {
                 <v-autocomplete
                   label="Distrito (*)"
                   v-model="enterprisesStore.model.id_town"
-                  :items="rootStore.state.itemsTown"
+                  :items="appStore.itemsTown"
                   item-value="id"
                   item-title="name"
                   :disabled="!enterprisesStore.model.id_city"
@@ -478,7 +478,7 @@ function updateStatus(newValue: string | number | null) {
             <v-row class="align-sm-center">
               <v-col cols="4">
                 <v-autocomplete
-                  :items="rootStore.state.itemsDocumentsPais"
+                  :items="appStore.itemsDocumentsPais"
                   item-title="description"
                   item-value="id"
                   label="Tipo de Documento (*)"
@@ -550,9 +550,8 @@ function updateStatus(newValue: string | number | null) {
             </v-row>
             <v-row>
               <v-col cols="4">
-                <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
                 <v-autocomplete
-                  :items="rootStore.state.itemsSex"
+                  :items="appStore.itemsSex"
                   item-title="name"
                   item-value="id"
                   label="Sexo (*)"

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const CalculadoraComponent = defineAsyncComponent(() =>
   import("../../components/folterCargaMasiva/CalculadoraComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "CARGA MASIVA CALCULADORA";
+  appStore.mainTitle = "CARGA MASIVA CALCULADORA";
 });
 </script>
 

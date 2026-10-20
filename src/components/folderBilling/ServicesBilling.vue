@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import type { ApiResponse } from "@/types/api";
 import { sessionBranchId } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 
 onMounted(() => {
@@ -28,7 +28,7 @@ function _deleteServices(id: number) {
     },
     data: data,
   };
-  axios<ApiResponse>(config)
+  axios<ApiResponse<typeof appStore.itemsHouseServices>>(config)
     .then(function (response) {
       if (response.data.status == 200) {
         _validaData();
@@ -40,7 +40,7 @@ function _deleteServices(id: number) {
 }
 function _validaData() {
   if (route.params.id_house) {
-    rootStore.state.house_Id_get = route.params.id_house;
+    appStore.house_Id_get = route.params.id_house;
     const data = {
       id: route.params.id_house,
       id_branch: sessionBranchId(),
@@ -54,9 +54,9 @@ function _validaData() {
       },
       data: data,
     };
-    axios<ApiResponse>(config)
+    axios<ApiResponse<typeof appStore.itemsHouseServices>>(config)
       .then(function (response) {
-        rootStore.state.itemsHouseServices = response.data.data;
+        appStore.itemsHouseServices = response.data.data;
       })
       .catch(function (error) {
         console.error(error);
@@ -82,7 +82,7 @@ function _validaData() {
         <tbody>
           <tr
             :style="`background:${item.color}`"
-            v-for="item in rootStore.state.itemsHouseServices"
+            v-for="item in appStore.itemsHouseServices"
             :key="item.id"
           >
             <td>{{ item.nameservice }}</td>

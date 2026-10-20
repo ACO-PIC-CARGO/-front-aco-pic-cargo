@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -14,7 +14,7 @@ withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"));
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const controlGastosStore = useControlGastosStore();
@@ -82,14 +82,14 @@ function to_direct({ url }: { url: string }) {
 }
 // --------------------
 async function recargarDatos() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     controlGastosStore.getListControlGastos(route.params.id as string),
     controlGastosStore.getListControlGastosHouses(route.params.id as string),
     controlGastosStore.getListControlGastosMaster(route.params.id as string),
   ]);
-  rootStore.state.spiner = false;
-  rootStore.dispatch("_getCoinsList");
+  appStore.spiner = false;
+  appStore._getCoinsList();
 }
  
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -238,7 +238,7 @@ function departamentoSesion() {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   prFlag.value =
     departamentoSesion() == 1
       ? true
@@ -252,20 +252,20 @@ onMounted(async () => {
     controlGastosStore.getListControlGastosHouses(route.params.id as string),
     controlGastosStore.getListControlGastosMaster(route.params.id as string),
   ]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await Promise.all([
     enterprisesStore.obtenerImpuestoXEmpresa(route.params.id_branch as string),
     controlGastosStore.cargarCorrelativo(),
-    rootStore.dispatch("cargarBranch"),
-    rootStore.dispatch("_getBanksList"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarBranch(),
+    appStore._getBanksList(),
+    appStore._getCoinsList(),
     bancosStore.getListBanksDetailsCargar(),
   ]);
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  await rootStore.dispatch("_getProveedor"), calcularProfit();
+  await appStore._getProveedor(), calcularProfit();
   codigo_master =
     controlGastosStore.listControlGastos[0]!.master_nromaster;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 

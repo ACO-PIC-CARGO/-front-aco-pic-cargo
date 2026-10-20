@@ -8,7 +8,6 @@ import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: { id_branch: 7 } } } } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const control = (data: unknown, extra: Record<string, unknown> = {}) => ({ ...accepted(data), statusBol: true, ...extra });

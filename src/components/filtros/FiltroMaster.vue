@@ -1,48 +1,50 @@
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const masterusuariosStore = useMasterusuariosStore();
 const frmFiltro = useTemplateRef("frmFiltro");
 
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
-  rootStore.state.master_filtro.pagina = 1;
-  rootStore.state.master_filtro.limite = 10;
+  mastersStore.master_filtro.pagina = 1;
+  mastersStore.master_filtro.limite = 10;
 
-  await rootStore.dispatch("_getTotalMasterList");
-  await rootStore.dispatch("_getMasterList");
+  await mastersStore._getTotalMasterList();
+  await appStore._getMasterList();
 
-  rootStore.state.master_filtrarData =
-    !rootStore.state.master_filtrarData;
+  mastersStore.master_filtrarData =
+    !mastersStore.master_filtrarData;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function activarPort(id_transport: number) {
-  await rootStore.dispatch("_getPortBegin", { id_transport: id_transport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: id_transport });
+  await appStore._getPortBegin({ id_transport: id_transport });
+  await appStore._getPortEnd({ id_transport: id_transport });
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   frmFiltro.value!.reset();
 
-  rootStore.state.master_filtro.status_operativo = "";
-  rootStore.state.master_filtro.status_administrativo = "";
-  rootStore.state.master_filtro.pagina = 1;
-  rootStore.state.master_filtro.limite = 10;
+  mastersStore.master_filtro.status_operativo = "";
+  mastersStore.master_filtro.status_administrativo = "";
+  mastersStore.master_filtro.pagina = 1;
+  mastersStore.master_filtro.limite = 10;
 
-  await rootStore.dispatch("_getTotalMasterList");
-  await rootStore.dispatch("_getMasterList");
+  await mastersStore._getTotalMasterList();
+  await appStore._getMasterList();
 
-  rootStore.state.master_filtrarData =
-    !rootStore.state.master_filtrarData;
+  mastersStore.master_filtrarData =
+    !mastersStore.master_filtrarData;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 </script>
 
@@ -61,58 +63,58 @@ async function limpiar() {
           item-value="id"
           label="Canal"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_canal"
+          v-model="mastersStore.master_filtro.id_canal"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsModality"
+          :items="appStore.itemsModality"
           item-title="name"
           item-value="id"
           label="Sentido"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_sentido"
+          v-model="mastersStore.master_filtro.id_sentido"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsShipment"
+          :items="appStore.itemsShipment"
           item-title="embarque"
           item-value="id"
           label="Tipo Embarque"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_tipo_embarque"
+          v-model="mastersStore.master_filtro.id_tipo_embarque"
           return-object
           @update:model-value="
             activarPort(
-              rootStore.state.master_filtro.id_tipo_embarque.id_transport,
+              mastersStore.master_filtro.id_tipo_embarque.id_transport,
             )
           "
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsPortBegin"
+          :items="appStore.itemsPortBegin"
           item-title="name"
           item-value="id_port"
           label="Origen"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_origen"
+          v-model="mastersStore.master_filtro.id_origen"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsPortEnd"
+          :items="appStore.itemsPortEnd"
           item-title="name"
           item-value="id_port"
           label="Destino"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_destino"
+          v-model="mastersStore.master_filtro.id_destino"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsProveedorList"
+          :items="appStore.itemsProveedorList"
           item-title="namelong"
           item-value="id"
           label="Agente"
           density="compact"
-          v-model="rootStore.state.master_filtro.id_agente"
+          v-model="mastersStore.master_filtro.id_agente"
         />
         <v-row>
           <v-col
@@ -120,7 +122,7 @@ async function limpiar() {
             md="6"
           >
             <FormatFecha
-              v-model="rootStore.state.master_filtro.fecha_etd_desde"
+              v-model="mastersStore.master_filtro.fecha_etd_desde"
               label="Fecha ETD Desde "
               :dense="true"
               :clearable="true"
@@ -131,7 +133,7 @@ async function limpiar() {
             md="6"
           >
             <FormatFecha
-              v-model="rootStore.state.master_filtro.fecha_etd_hasta"
+              v-model="mastersStore.master_filtro.fecha_etd_hasta"
               label="Fecha ETD Hasta"
               :dense="true"
               :clearable="true"
@@ -142,7 +144,7 @@ async function limpiar() {
             md="6"
           >
             <FormatFecha
-              v-model="rootStore.state.master_filtro.fecha_eta_desde"
+              v-model="mastersStore.master_filtro.fecha_eta_desde"
               label="Fecha ETA Desde"
               :dense="true"
               :clearable="true"
@@ -153,7 +155,7 @@ async function limpiar() {
             md="6"
           >
             <FormatFecha
-              v-model="rootStore.state.master_filtro.fecha_eta_hasta"
+              v-model="mastersStore.master_filtro.fecha_eta_hasta"
               label="Fecha ETA Hasta"
               :dense="true"
               :clearable="true"
@@ -162,7 +164,7 @@ async function limpiar() {
           <v-col class="col">
             <p>Estado Operativo</p>
             <v-radio-group
-              v-model="rootStore.state.master_filtro.status_operativo"
+              v-model="mastersStore.master_filtro.status_operativo"
             >
               <v-radio
                 color="green"
@@ -187,7 +189,7 @@ async function limpiar() {
               Estado Administrativo
             </p>
             <v-radio-group
-              v-model="rootStore.state.master_filtro.status_administrativo"
+              v-model="mastersStore.master_filtro.status_administrativo"
             >
               <v-radio
                 color="green"
@@ -224,7 +226,7 @@ async function limpiar() {
         class="mx-1"
         color="error"
         @click="
-          rootStore.state.master_filtrarData = !rootStore.state.master_filtrarData
+          mastersStore.master_filtrarData = !mastersStore.master_filtrarData
         "
       >
         Cancelar

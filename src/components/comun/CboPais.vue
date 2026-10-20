@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 type PaisId = number | string | Array<number | string> | null;
 
@@ -40,8 +40,8 @@ const props = withDefaults(
 );
 const emit = defineEmits<{ paisSeleccionado: [id: PaisId] }>();
 
-const rootStore = useStore();
-const itemsPais = computed(() => rootStore.state.itemsPais);
+const appStore = useAppStore();
+const itemsPais = computed(() => appStore.itemsPais);
 
 const id = ref<PaisId>("");
 
@@ -55,7 +55,7 @@ watch(
 );
 
 onMounted(async () => {
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
 });
 </script>
 

@@ -5,7 +5,6 @@ import { useMonedasStore } from "@/stores/monedas";
 import { JSON_HEADERS, URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 describe("monedas store", () => {

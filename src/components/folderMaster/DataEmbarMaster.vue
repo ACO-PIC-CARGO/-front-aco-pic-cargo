@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 //import axios from '@/api/http';
 
 defineProps<{ isFormActionsDisabled?: boolean }>();
 
-const rootStore = useStore();
-const itemsMotonave = computed(() => rootStore.state.itemsMotonave);
-const itemsContainers = computed(() => rootStore.state.itemsContainers);
-const itemsFleteCon = computed(() => rootStore.state.itemsFleteCon);
-const itemsShipment = computed(() => rootStore.state.itemsShipment);
-const itemsProveedorList = computed(() => rootStore.state.itemsProveedorList);
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
+const itemsMotonave = computed(() => appStore.itemsMotonave);
+const itemsContainers = computed(() => appStore.itemsContainers);
+const itemsFleteCon = computed(() => appStore.itemsFleteCon);
+const itemsShipment = computed(() => appStore.itemsShipment);
+const itemsProveedorList = computed(() => appStore.itemsProveedorList);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mostrarCboAerolinea = computed(() => {
@@ -36,7 +38,7 @@ const obtenerInputTypeBLMaster = computed(() => {
 const obtenerContainerName = computed(() => {
   return (containerID: number) =>
     itemsContainers.value.filter((v: { id: number }) => v.id == containerID).length
-      ? itemsContainers.value.find((v: { id: number }) => v.id == containerID).name
+      ? itemsContainers.value.find((v: { id: number }) => v.id == containerID)!.name
       : "";
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -54,28 +56,28 @@ const obtenerItemsProveedores = computed(() => {
 });
 const pesoCargable = computed(() => {
   if (isFCL()) return "";
-  const kg = parseFloat(rootStore.state.master_peso || 0);
-  const m3 = parseFloat(rootStore.state.master_volumen || 0);
+  const kg = parseFloat((mastersStore.master_peso || 0) as string);
+  const m3 = parseFloat((mastersStore.master_volumen || 0) as string);
   const chargeable = Math.max(kg, m3 * 166.66);
   return isNaN(chargeable) ? 0 : parseFloat(chargeable.toFixed(2));
 });
 const pesoVolumetrico = computed(() => {
   if (isFCL()) return "";
   if (!isAereo()) return "";
-  const m3 = parseFloat(rootStore.state.master_volumen || 0);
+  const m3 = parseFloat((mastersStore.master_volumen || 0) as string);
   const pv = m3 > 0 ? m3 * 166.66 : 0;
   return isNaN(pv) ? 0 : parseFloat(pv.toFixed(2));
 });
 
 function isAereo() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "Aéreo") {
@@ -85,13 +87,13 @@ function isAereo() {
 }
 function isLCL() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "LCL") {
@@ -101,13 +103,13 @@ function isLCL() {
 }
 function isFCL() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "FCL") {
@@ -117,15 +119,15 @@ function isFCL() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _callModalEntitie(id_role: number) {
-  rootStore.state.id_role_actual = id_role;
+  appStore.id_role_actual = id_role;
   if (id_role == 1) {
-    rootStore.state.modalAgente = !rootStore.state.modalAgente;
+    appStore.modalAgente = !appStore.modalAgente;
   } else if (id_role == 11) {
-    rootStore.state.modalEntitie = !rootStore.state.modalEntitie;
+    appStore.modalEntitie = !appStore.modalEntitie;
   } else if (id_role == 17) {
-    rootStore.state.modalColoader = !rootStore.state.modalColoader;
+    appStore.modalColoader = !appStore.modalColoader;
   } else if (id_role == 2) {
-    rootStore.state.modalNaviera = !rootStore.state.modalNaviera;
+    appStore.modalNaviera = !appStore.modalNaviera;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -136,7 +138,7 @@ function _setDataContainers(
   nroprecinto: string,
   cantidad: number | string,
 ) {
-  rootStore.state.master_itemsContainers.push({
+  appStore.master_itemsContainers.push({
     id: id,
     name: name,
     nro_container: nrocontainer,
@@ -145,21 +147,21 @@ function _setDataContainers(
   });
 }
 function _delContainers(index: number | string) {
-  rootStore.state.master_itemsContainers.splice(index as number, 1);
+  appStore.master_itemsContainers.splice(index as number, 1);
 }
 
 onMounted(async () => {
   Promise.all([
-    await rootStore.dispatch("_getProveedor"),
-    await rootStore.dispatch("_getMotonave"),
-    await rootStore.dispatch("_getContainers"),
-    await rootStore.dispatch("_getFleteCon"),
-    await rootStore.dispatch("_getCoinsList"),
-    await rootStore.dispatch("cargarClientes"),
-    await rootStore.dispatch("_getProveedorRolAgente"),
-    await rootStore.dispatch("_getProveedorRolAerolinea"),
-    await rootStore.dispatch("_getProveedorRolColoader"),
-    await rootStore.dispatch("_getProveedorRolNaviera"),
+    await appStore._getProveedor(),
+    await appStore._getMotonave(),
+    await appStore._getContainers(),
+    await appStore._getFleteCon(),
+    await appStore._getCoinsList(),
+    await appStore.cargarClientes(),
+    await mastersStore._getProveedorRolAgente(),
+    await appStore._getProveedorRolAerolinea(),
+    await mastersStore._getProveedorRolColoader(),
+    await mastersStore._getProveedorRolNaviera(),
   ]);
 
   //this._validaData();
@@ -182,12 +184,12 @@ onMounted(async () => {
             item-title="name"
             item-value="id"
             label="Motonave"
-            v-model="rootStore.state.master_id_motonave"
+            v-model="mastersStore.master_id_motonave"
           />
         </template>
         <template v-else-if="isAereo()">
           <v-text-field
-            v-model="rootStore.state.master_vuelo"
+            v-model="mastersStore.master_vuelo"
             label="Vuelo"
           />
         </template>
@@ -197,7 +199,7 @@ onMounted(async () => {
         md="6"
       >
         <v-text-field
-          v-model="rootStore.state.master_viaje"
+          v-model="mastersStore.master_viaje"
           label="Viaje"
         />
       </v-col>
@@ -217,7 +219,7 @@ onMounted(async () => {
             item-value="id"
             return-object
             label="Tipo de Contenedor"
-            v-model="rootStore.state.master_id_containers"
+            v-model="appStore.master_id_containers"
           />
         </v-col>
         <v-col
@@ -226,7 +228,7 @@ onMounted(async () => {
         >
           <v-text-field
             type="number"
-            v-model="rootStore.state.master_cantidad"
+            v-model="appStore.master_cantidad"
             label="Cantidad"
           />
         </v-col>
@@ -235,7 +237,7 @@ onMounted(async () => {
           md="3"
         >
           <v-text-field
-            v-model="rootStore.state.master_nro_containers"
+            v-model="appStore.master_nro_containers"
             label="Número de Contenedor"
           />
         </v-col>
@@ -244,7 +246,7 @@ onMounted(async () => {
           md="3"
         >
           <v-text-field
-            v-model="rootStore.state.master_nro_precinto"
+            v-model="appStore.master_nro_precinto"
             label="Sello"
           />
         </v-col>
@@ -259,7 +261,7 @@ onMounted(async () => {
             type="number"
             suffix="kg"
             label="Peso"
-            v-model="rootStore.state.master_peso"
+            v-model="mastersStore.master_peso"
           />
         </v-col>
         <v-col
@@ -270,7 +272,7 @@ onMounted(async () => {
             type="number"
             suffix="m3"
             label="Volumen"
-            v-model="rootStore.state.master_volumen"
+            v-model="mastersStore.master_volumen"
           />
         </v-col>
         <v-col
@@ -311,7 +313,7 @@ onMounted(async () => {
           item-title="name"
           item-value="id"
           label="Condición"
-          v-model="rootStore.state.master_id_condicion"
+          v-model="mastersStore.master_id_condicion"
         />
       </v-col>
       <v-col
@@ -319,7 +321,7 @@ onMounted(async () => {
         md="6"
       >
         <v-text-field
-          v-model="rootStore.state.master_monto"
+          v-model="mastersStore.master_monto"
           type="number"
           label="Monto"
         />
@@ -373,7 +375,7 @@ onMounted(async () => {
         color="primary"
         elevation="0"
         rounded
-        @click="rootStore.state.modalContainers = !rootStore.state.modalContainers"
+        @click="appStore.modalContainers = !appStore.modalContainers"
         :disabled="isFormActionsDisabled"
       >
         AGREGAR CONTENEDOR
@@ -405,7 +407,7 @@ onMounted(async () => {
           </thead>
           <tbody>
             <tr
-              v-for="(item, index) in rootStore.state.master_itemsContainers"
+              v-for="(item, index) in appStore.master_itemsContainers"
               :key="item.name"
             >
               <td>{{ item.name }}</td>

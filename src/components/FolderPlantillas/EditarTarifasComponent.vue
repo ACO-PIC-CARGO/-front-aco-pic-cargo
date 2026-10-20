@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
@@ -13,7 +13,7 @@ import type { CotizacionDetalle, OpcionCosto, TipoCarga } from "@/types/cotizaci
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 
@@ -1289,7 +1289,7 @@ function limpiarTarifas() {
             />
 
             <v-autocomplete
-              :items="rootStore.state.itemsProveedorList"
+              :items="appStore.itemsProveedorList"
               v-model="frmNuevoCosto.id_proveedor"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Proveedor*"

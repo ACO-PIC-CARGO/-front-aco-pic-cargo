@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { EmailEntidad } from "@/types/entidades";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -147,9 +147,9 @@ async function modificarProveedor() {
       text: "Por favor complete todos los campos requeridos en Teléfonos y Contactos",
     });
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarProveedor();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;

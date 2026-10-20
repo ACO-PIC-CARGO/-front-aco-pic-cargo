@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const listProyeccionCXP = defineAsyncComponent(
   () => import("../../components/proyeccion/ProyeccionCxPComponent.vue"),
 );
 
 onMounted(() => {
-  rootStore.state.mainTitle = "PROYECCIÓN DE GASTOS";
+  appStore.mainTitle = "PROYECCIÓN DE GASTOS";
 });
 </script>
 

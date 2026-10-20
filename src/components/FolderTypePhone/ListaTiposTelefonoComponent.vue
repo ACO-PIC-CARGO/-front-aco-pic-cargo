@@ -2,13 +2,13 @@
 import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTypePhoneStore } from "@/stores/type_phone";
 import type { FormTipoTelefono, TipoTelefono } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const typePhoneStore = useTypePhoneStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 
 const headers = [
@@ -70,7 +70,7 @@ const originalType = ref<FormTipoTelefono>({ ...type.value });
 
 onMounted(async () => {
   await typePhoneStore.fetchDataTypePhone(types.value);
-  rootStore.state.mainTitle = `Tipo de Teléfono`;
+  appStore.mainTitle = `Tipo de Teléfono`;
 });
 
 function volver() {

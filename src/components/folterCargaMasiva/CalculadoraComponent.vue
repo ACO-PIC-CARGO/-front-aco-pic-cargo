@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import type { Row } from "read-excel-file/browser";
@@ -11,6 +11,7 @@ import axios from "@/api/http";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { useMonedasStore } from "@/stores/monedas";
 import type { ApiResponse } from "@/types/api";
+import type { Pais } from "@/types/catalogos";
 import type {
   FilaCargaFlete,
   FormRegistroFlete,
@@ -21,8 +22,12 @@ import type {
 } from "@/types/calculadora";
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 const monedasStore = useMonedasStore();
+const staleRootView = appStore as unknown as {
+  calculadora: { contendedorCalc: unknown[]; navieraCalc: unknown[] };
+  moneda: { moneda: unknown[] };
+};
 
 // The old form starts every single selection as an empty array.
 const sinSeleccion = () => [] as unknown as OpcionRegistroFlete;
@@ -1099,14 +1104,14 @@ function validar() {
   // }
 }
 onMounted(async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getPais");
+  appStore.spiner = true;
+  await appStore._getPais();
   await monedasStore.CargarMoneda();
   await calculadorasStore.CargarSucursal();
   await calculadorasStore.CargarnavieraCalc();
   await calculadorasStore.CargarcontendedorCalc();
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 
 watch(excel, () => {
@@ -1325,8 +1330,8 @@ watch(excel, () => {
             <!-- PAIS ORIGEN -->
             <v-col cols="12">
               <v-autocomplete
-                :items="rootStore.state.itemsPais"
-                v-model="datosFormulario.paisOrigen"
+                :items="appStore.itemsPais"
+                v-model="datosFormulario.paisOrigen as unknown as Pais"
                 item-title="pais_descripcion"
                 label="País de Origen"
                 placeholder="Seleccione un país"
@@ -1363,8 +1368,8 @@ watch(excel, () => {
             <!-- PAIS DESTINO -->
             <v-col cols="12">
               <v-autocomplete
-                :items="rootStore.state.itemsPais"
-                v-model="datosFormulario.paisDestino"
+                :items="appStore.itemsPais"
+                v-model="datosFormulario.paisDestino as unknown as Pais"
                 item-title="pais_descripcion"
                 label="País de Destino"
                 placeholder="Seleccione un país"
@@ -1402,7 +1407,7 @@ watch(excel, () => {
               v-if="tipo == 'fcl'"
             >
               <v-autocomplete
-                :items="rootStore.state.calculadora.contendedorCalc"
+                :items="staleRootView.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
                 item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
@@ -1462,7 +1467,7 @@ watch(excel, () => {
             <!-- MONEDA -->
             <v-col cols="4">
               <v-autocomplete
-                :items="rootStore.state.moneda.moneda"
+                :items="staleRootView.moneda.moneda"
                 v-model="datosFormulario.moneda"
                 item-title="moneda_descripcion"
                 label="Moneda"
@@ -1572,7 +1577,7 @@ watch(excel, () => {
               v-if="tipo == 'fcl'"
             >
               <v-autocomplete
-                :items="rootStore.state.calculadora.navieraCalc"
+                :items="staleRootView.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
                 item-title="navieras_nombre"
                 label="Naviera"

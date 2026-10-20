@@ -9,7 +9,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { get: vi.fn(), put: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere" } } } }));
-vi.mock("@/store", () => ({ default: { state: { copy_house: { id_master: 12 } } } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const getMock = http.get as unknown as Mock<(url: string, config: unknown) => Promise<{ data: unknown }>>;
@@ -215,6 +214,7 @@ describe("houses store", () => {
     currentRoute.value.name = "controlHouseEditar";
     vi.spyOn(console, "log").mockImplementation(() => {});
     const houses = useHousesStore();
+    houses.copy_house = { id_master: 12 } as never;
 
     await houses.deleteHouse({ id: 1 });
     await flushPromises();

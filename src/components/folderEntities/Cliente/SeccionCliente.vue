@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import CustomAutocomplete from "../CustomAutocomplete.vue";
 import { useEntitiesStore } from "@/stores/entities";
@@ -14,7 +14,7 @@ import { useFilesStore } from "@/stores/files";
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
@@ -45,7 +45,7 @@ const showNavigationButtons = computed(() => {
   );
 });
 const filteredDocumentsPais = computed(() => {
-  const all: DocumentoPais[] = rootStore.state.itemsDocumentsPais || [];
+  const all: DocumentoPais[] = appStore.itemsDocumentsPais || [];
   const tipoPersona = masterusuariosStore.lstTipoPersona.find(
     (v) => v.id == entitiesStore.cliente.id_tipopersona,
   );
@@ -154,7 +154,7 @@ function setDocumentoFiscalByDefault(criterio = "") {
 function getIDTipoDocumento(criterio = "") {
   let id = null;
 
-  const tipoDocumentoData = (rootStore.state.itemsDocumentsPais as DocumentoPais[]).find(
+  const tipoDocumentoData = (appStore.itemsDocumentsPais as DocumentoPais[]).find(
     (v) => v.name.toUpperCase() == criterio.toUpperCase(),
   );
   if (tipoDocumentoData) {
@@ -237,9 +237,9 @@ async function handleEditarCliente(val: number) {
             item.nombrecompleto;
           pricingStore.datosPrincipales.telefono =
             item.telefono;
-          rootStore.state.modalEntitie = false;
-          rootStore.state.registroClienteFlag =
-            !rootStore.state.registroClienteFlag;
+          appStore.modalEntitie = false;
+          appStore.registroClienteFlag =
+            !appStore.registroClienteFlag;
           // setTimeout(() => window.location.reload(), 10);
         }
       });
@@ -511,12 +511,12 @@ async function modificarCliente() {
     entitiesStore.isStep4Valid =
       !entitiesStore.isStep4Valid;
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarCliente();
-    rootStore.state.spiner = false;
-    rootStore.state.recargarClienteFlag =
-      !rootStore.state.recargarClienteFlag;
-    rootStore.state.modalEntitie = false;
+    appStore.spiner = false;
+    appStore.recargarClienteFlag =
+      !appStore.recargarClienteFlag;
+    appStore.modalEntitie = false;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;
@@ -524,7 +524,7 @@ async function modificarCliente() {
   }
 }
 function getPrefix() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   if (pais) {
@@ -533,7 +533,7 @@ function getPrefix() {
   return "+xx";
 }
 function obtenerFlag() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   let flag = "";
@@ -544,7 +544,7 @@ function obtenerFlag() {
 }
 
 onMounted(async () => {
-  await rootStore.dispatch("cargarClientes");
+  await appStore.cargarClientes();
 });
 
 // Stray component option that Vue never called; kept as dead code.
@@ -710,11 +710,11 @@ function isPricingOption() {
                     variant="outlined"
                     item-title="name"
                     item-value="id"
-                    :items="rootStore.state.itemsPais"
+                    :items="appStore.itemsPais"
                     label="País"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     v-model="entitiesStore.cliente.id_pais"
-                    @update:model-value="rootStore.dispatch('_getState', entitiesStore.cliente.id_pais)"
+                    @update:model-value="appStore._getState(entitiesStore.cliente.id_pais)"
                   />
                 </v-col>
                 <v-col
@@ -724,7 +724,7 @@ function isPricingOption() {
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="rootStore.state.itemsState"
+                    :items="appStore.itemsState"
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useHousesStore } from "@/stores/houses";
 import axios from "@/api/http";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -20,7 +21,8 @@ const emit = defineEmits<{
   "send-notificacion": [item: ItemNotificacion];
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const housesStore = useHousesStore();
 const route = useRoute();
 const contenedorServicios = useTemplateRef("contenedorServicios");
 
@@ -37,8 +39,8 @@ const getDisabledPropServiceStatusSombreado = computed(() => {
   return () => true;
 });
 const tipoAreo = computed(() => {
-  const val = rootStore.state.itemsShipment.filter(
-    (v: { id: number; code: string }) => v.id == rootStore.state.house_id_trasnport
+  const val = appStore.itemsShipment.filter(
+    (v: { id: number; code: string }) => v.id == housesStore.house_id_trasnport
   );
   if (val.length > 0) {
     return val[0]!.code == "Aéreo";
@@ -108,7 +110,7 @@ async function generarTracking() {
     const response = await axios<ApiResponse<{ token: string }[]>>(config);
     sessionStorage.setItem("auth-token", response.data.token!);
     if (response.data.estadoflag) {
-      rootStore.state.house_enlace_tracking =
+      housesStore.house_enlace_tracking =
         "https://aco.agentedecargaonline.com/tracking/" +
         response.data.data[0]!.token;
       Swal.fire({ icon: "success", text: "Enlace de tracking generado" });
@@ -224,7 +226,7 @@ function _editServices(id: number, status: number) {
 }
 async function _validaData() {
   if (route.params.id) {
-    rootStore.state.house_Id_get = route.params.id;
+    appStore.house_Id_get = route.params.id;
     const data = {
       id: route.params.id,
       id_branch: sessionBranchId(),
@@ -271,11 +273,11 @@ async function _validaData() {
             lstServices.push(itemImpuestos);
           }
 
-          rootStore.state.itemsHouseServices = _sortServicesByName(
+          appStore.itemsHouseServices = _sortServicesByName(
             lstServices
           );
         } else {
-          rootStore.state.itemsHouseServices = [];
+          appStore.itemsHouseServices = [];
         }
       })
       .catch(function (error) {
@@ -301,12 +303,12 @@ function _sortServicesByName(list: ServicioHouse[]) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function showModalServices() {
-  rootStore.state.modalServices_manualMode = false;
+  housesStore.modalServices_manualMode = false;
   if (
-    (!rootStore.state.house_cotizacion &&
-      !rootStore.state.itemsHouseServices.length) ||
-    (!rootStore.state.house_incoterms &&
-      !rootStore.state.itemsHouseServices.length)
+    (!housesStore.house_cotizacion &&
+      !appStore.itemsHouseServices.length) ||
+    (!housesStore.house_incoterms &&
+      !appStore.itemsHouseServices.length)
   ) {
     Swal.fire({
       icon: "question",
@@ -327,31 +329,31 @@ function showModalServices() {
           confirmButtonColor: "#4CAF50",
           allowOutsideClick: false,
         }).then(async () => {
-          if (rootStore.state.house_incoterms) {
-            rootStore.state.spiner = true;
+          if (housesStore.house_incoterms) {
+            appStore.spiner = true;
 
             await _getServicesByIncoterms(
-              rootStore.state.house_sentido,
-              rootStore.state.house_id_trasnport,
-              rootStore.state.house_incoterms
+              housesStore.house_sentido as number,
+              housesStore.house_id_trasnport as number,
+              housesStore.house_incoterms as number
             );
 
-            rootStore.state.spiner = false;
+            appStore.spiner = false;
           }
         });
       }
     });
   } else {
-    if (rootStore.state.itemsHouseServices.length) {
-      rootStore.state.modalServices_manualMode = true;
+    if (appStore.itemsHouseServices.length) {
+      housesStore.modalServices_manualMode = true;
     }
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function toggleServiceStatusSwitch(item: ServicioHouse, index: number) {
   if (!item.status) {
-    rootStore.state.itemsHouseServices =
-      rootStore.state.itemsHouseServices.map((itemHS: ServicioHouse, i: number) => {
+    appStore.itemsHouseServices =
+      appStore.itemsHouseServices.map((itemHS: ServicioHouse, i: number) => {
         return {
           ...itemHS,
           status: i > index ? 0 : itemHS.status,
@@ -361,20 +363,20 @@ function toggleServiceStatusSwitch(item: ServicioHouse, index: number) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function deleteService(index: number) {
-  rootStore.state.itemsHouseServices.splice(index, 1);
+  appStore.itemsHouseServices.splice(index as number, 1);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _activePort(id_transport: number) {
-  await rootStore.dispatch("_getPortBegin", { id_transport: id_transport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: id_transport });
-  if (rootStore.state.master_id_trasnport.id == 1) {
-    rootStore.state.embar_title_nacn = "Aerolinea";
-  } else if (rootStore.state.master_id_trasnport.id == 2) {
-    rootStore.state.embar_title_nacn = "Naviera";
-  } else if (rootStore.state.master_id_trasnport.id == 3) {
-    rootStore.state.embar_title_nacn = "Coloader";
+  await appStore._getPortBegin({ id_transport: id_transport });
+  await appStore._getPortEnd({ id_transport: id_transport });
+  if (appStore.master_id_trasnport.id == 1) {
+    appStore.embar_title_nacn = "Aerolinea";
+  } else if (appStore.master_id_trasnport.id == 2) {
+    appStore.embar_title_nacn = "Naviera";
+  } else if (appStore.master_id_trasnport.id == 3) {
+    appStore.embar_title_nacn = "Coloader";
   } else {
-    rootStore.state.embar_title_nacn = "Aerolinea/Coloader/Naviera";
+    appStore.embar_title_nacn = "Aerolinea/Coloader/Naviera";
   }
 }
 async function _getServicesByIncoterms(
@@ -428,9 +430,9 @@ async function _getServicesByIncoterms(
           lstServices.push(itemImpuestos);
         }
 
-        rootStore.state.itemsHouseServices = lstServices;
+        appStore.itemsHouseServices = lstServices;
       } else {
-        rootStore.state.itemsHouseServices = [];
+        appStore.itemsHouseServices = [];
 
         Swal.fire({
           icon: "error",
@@ -558,7 +560,7 @@ onBeforeUnmount(() => {
 
         <tbody>
           <tr
-            v-for="item in rootStore.state.itemsHouseServices"
+            v-for="item in appStore.itemsHouseServices"
             :key="item.id"
             :style="`background:${item.color}`"
           >
@@ -611,21 +613,21 @@ onBeforeUnmount(() => {
 
                   <v-list>
                     <v-list-item
-                      @click="_editServices(item.id, 1)"
+                      @click="_editServices(item.id!, 1)"
                       link
                     >
                       <v-list-item-title>SI</v-list-item-title>
                     </v-list-item>
 
                     <v-list-item
-                      @click="_editServices(item.id, 0)"
+                      @click="_editServices(item.id!, 0)"
                       link
                     >
                       <v-list-item-title>NO</v-list-item-title>
                     </v-list-item>
 
                     <v-list-item
-                      @click="_editServices(item.id, 2)"
+                      @click="_editServices(item.id!, 2)"
                       link
                     >
                       <v-list-item-title>NO APLICA</v-list-item-title>
@@ -662,7 +664,7 @@ onBeforeUnmount(() => {
             md="6"
           >
             <v-text-field
-              :model-value="rootStore.state.house_nro_declaracion_aduana"
+              :model-value="housesStore.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               readonly
@@ -677,7 +679,7 @@ onBeforeUnmount(() => {
             md="6"
           >
             <v-text-field
-              :model-value="rootStore.state.house_canal_aduana"
+              :model-value="housesStore.house_canal_aduana"
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               readonly

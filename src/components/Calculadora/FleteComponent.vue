@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import type { AxiosRequestConfig, AxiosResponse } from "axios";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import type { Row } from "read-excel-file/browser";
@@ -26,7 +26,11 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 });
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
+const staleRootState = appStore as typeof appStore & {
+  calculadora: { contendedorCalc: unknown[]; navieraCalc: unknown[] };
+  moneda: { moneda: unknown[] };
+};
 const pricingStore = usePricingStore();
 
 // The old form starts every single selection as an empty array.
@@ -1305,9 +1309,9 @@ function validar() {
 }
 onMounted(async () => {
   const maritimo = ["LCL", "FCL"];
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   Promise.all([
-    rootStore.dispatch("_getPais"),
+    appStore._getPais(),
     pricingStore.getPortBegin({
       id_transport: maritimo.includes(props.type) ? 1 : 2,
       limit: -1,
@@ -1322,7 +1326,7 @@ onMounted(async () => {
   // await this.CargarnavieraCalc();
   // await this.CargarcontendedorCalc();
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 
 watch(excel, () => {
@@ -1478,7 +1482,7 @@ watch(excel, () => {
           </template>
           <template #[`item.pais_origen`]="{ item }">
             <v-autocomplete
-              :items="rootStore.state.itemsPais"
+              :items="appStore.itemsPais"
               item-value="id"
               item-title="name"
               v-model="item.id_pais_origen"
@@ -1486,7 +1490,7 @@ watch(excel, () => {
           </template>
           <template #[`item.pais_destino`]="{ item }">
             <v-autocomplete
-              :items="rootStore.state.itemsPais"
+              :items="appStore.itemsPais"
               item-value="id"
               item-title="name"
               v-model="item.id_pais_destino"
@@ -1598,7 +1602,7 @@ watch(excel, () => {
             <!-- PAIS ORIGEN -->
             <v-col cols="12">
               <v-autocomplete
-                :items="rootStore.state.itemsPais"
+                :items="appStore.itemsPais as unknown as OpcionRegistroFlete[]"
                 v-model="datosFormulario.paisOrigen"
                 item-title="pais_descripcion"
                 label="País de Origen"
@@ -1636,7 +1640,7 @@ watch(excel, () => {
             <!-- PAIS DESTINO -->
             <v-col cols="12">
               <v-autocomplete
-                :items="rootStore.state.itemsPais"
+                :items="appStore.itemsPais as unknown as OpcionRegistroFlete[]"
                 v-model="datosFormulario.paisDestino"
                 item-title="pais_descripcion"
                 label="País de Destino"
@@ -1675,7 +1679,7 @@ watch(excel, () => {
               v-if="type == 'FCL'"
             >
               <v-autocomplete
-                :items="rootStore.state.calculadora.contendedorCalc"
+                :items="staleRootState.calculadora.contendedorCalc"
                 v-model="datosFormulario.contenedor"
                 item-title="contenedores_nombre"
                 label="Tipo de Contenedor"
@@ -1735,7 +1739,7 @@ watch(excel, () => {
             <!-- MONEDA -->
             <v-col cols="4">
               <v-autocomplete
-                :items="rootStore.state.moneda.moneda"
+                :items="staleRootState.moneda.moneda"
                 v-model="datosFormulario.moneda"
                 item-title="moneda_descripcion"
                 label="Moneda"
@@ -1845,7 +1849,7 @@ watch(excel, () => {
               v-if="type == 'FCL'"
             >
               <v-autocomplete
-                :items="rootStore.state.calculadora.navieraCalc"
+                :items="staleRootState.calculadora.navieraCalc"
                 v-model="datosFormulario.naviera"
                 item-title="navieras_nombre"
                 label="Naviera"

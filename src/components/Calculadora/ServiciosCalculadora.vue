@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import type { SucursalSesion } from "@/types/sesion";
 
@@ -10,7 +10,7 @@ const componentProps = withDefaults(defineProps<{ type?: string; idModality?: nu
 });
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const branchPais = () => (JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[])[0]!.id_pais!;
 
@@ -131,7 +131,7 @@ async function anadirServ() {
                 <v-autocomplete
                   variant="outlined"
                   label="Modalidad"
-                  :items="rootStore.state.itemsModality"
+                  :items="appStore.itemsModality"
                   density="compact"
                   item-value="id"
                   item-title="name"
@@ -147,7 +147,7 @@ async function anadirServ() {
                 <v-autocomplete
                   variant="outlined"
                   label="Pais"
-                  :items="rootStore.state.itemsPais"
+                  :items="appStore.itemsPais"
                   density="compact"
                   item-value="id"
                   item-title="name"

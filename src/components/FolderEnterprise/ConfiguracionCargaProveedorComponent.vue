@@ -2,7 +2,7 @@
 import { onMounted, ref } from "vue";
 import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import type { SheetData } from "read-excel-file/browser";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -12,7 +12,7 @@ import type { TipoCarga } from "@/types/cotizacion";
 
 const emit = defineEmits<{ omitir: []; regresar: []; continuarClientes: [] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
@@ -72,7 +72,7 @@ function scrollToSubirCostos() {
 }
 async function continuar() {
   scrollToSubirCostos();
-  rootStore.state.dialogProcessing = true;
+  appStore.dialogProcessing = true;
   if (configEmpresaStore.lstProveedor.length > 0) {
     dividirEnSubconjuntos();
     for (const subconjunto of dividirEnSubconjuntos()) {
@@ -108,7 +108,7 @@ async function continuar() {
       }
     });
   }
-  rootStore.state.dialogProcessing = false;
+  appStore.dialogProcessing = false;
 }
 function descargarFormato() {
   window.open(`${import.meta.env.VITE_URL_MAIN}uploads/Formato Proveedor.xlsx`, "_blank");

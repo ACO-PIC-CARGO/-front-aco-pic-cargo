@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from '@/api/http';
 import moment from "moment";
@@ -17,7 +17,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ cerrar: [value: boolean] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = ref([
   {
@@ -86,7 +86,7 @@ async function guardar() {
   await axios(config)
     .then(function () {
       ListProgrammedPayment();
-      rootStore.state.refreshReport = !rootStore.state.refreshReport;
+      appStore.refreshReport = !appStore.refreshReport;
       Swal.fire("Registro Correcto");
       emit("cerrar", false);
     })
@@ -102,9 +102,9 @@ watch(() => props.id, () => {
 
 //   data: () => ({}),
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await ListProgrammedPayment();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 

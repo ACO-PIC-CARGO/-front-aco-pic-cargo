@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useCalculadorasStore } from "@/stores/calculadoras";
 import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
-import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
 import type { ConceptoCotizacionCalculadora, UsuarioCalculadora } from "@/types/calculadora";
 
@@ -20,7 +20,7 @@ interface LlamadaCalculadora {
 }
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const router = useRouter();
 
@@ -110,9 +110,9 @@ async function guardarEstadoCotizacion() {
   if ((await frmComentario.value!.validate()).valid) {
     await calculadorasStore.actualizarEstadoCotizacionCalculadora(dataCotizacion.value);
     dialogEditarEstado.value = false;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await calculadorasStore.getListUserCalc();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -186,7 +186,7 @@ async function registrarLlamada() {
             JSON.parse(sessionStorage.getItem("dataUser") as string)[0].second_surname
           } ${JSON.parse(sessionStorage.getItem("dataUser") as string)[0].names}`,
     };
-    rootStore.state.overlay = true;
+    calculadorasStore.overlay = true;
     await calculadorasStore.SetCall(data);
     // await this.getListUserCalc();
 
@@ -200,7 +200,7 @@ async function registrarLlamada() {
     };
     dialogCalls.value = false;
 
-    rootStore.state.overlay = false;
+    calculadorasStore.overlay = false;
   }
 }
 function abrirImg(item: UsuarioCalculadora) {

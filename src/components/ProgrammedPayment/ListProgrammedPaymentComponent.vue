@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -20,12 +20,12 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const emit = defineEmits<{ cerrar: [value: boolean] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
 const programacionesStore = useProgramacionesStore();
-const listPagosXProveedorCxP = computed<DetallePagoProveedor[]>(() => rootStore.state.listPagosXProveedorCxP);
+const listPagosXProveedorCxP = computed<DetallePagoProveedor[]>(() => appStore.listPagosXProveedorCxP);
 const programaciones = computed(() => programacionesStore.listado as unknown as ProgramacionConDetalles[]);
 const programacionesProveedor = computed(
   () => programacionesStore.listProgramacionxProveedor as unknown as ProgramacionProveedorFila[],
@@ -129,7 +129,7 @@ const errorTipCambio = ref("");
 
 async function ValidaNroOp() {
   msgNroOperacion.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await bancosStore.getValidaNroOp(nro_operacion.value as string);
   if (!!bancosStore.validacionBanco!.estadoflag) {
     msgNroOperacion.value = bancosStore.validacionBanco!.mensaje;
@@ -138,10 +138,10 @@ async function ValidaNroOp() {
     msgNroOperacion.value = "";
   }
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function moverSeleccionadoAlInicio() {
-  const listaPagos = rootStore.state.listPagosXProveedorCxP;
+  const listaPagos = appStore.listPagosXProveedorCxP;
 
   const seleccionadosIds = new Set(selected.value.map((item) => item.id));
 
@@ -156,9 +156,9 @@ function moverSeleccionadoAlInicio() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getAcronym() {
-  acronym.value = rootStore.state.itemsCoinsList.filter(
+  acronym.value = appStore.itemsCoinsList.filter(
     (v: { id: number }) => v.id == id_coins.value,
-  )[0].symbol;
+  )[0]!.symbol;
   if (acronym.value != "USD" && tipocambio.value == 1) {
     errorTipCambio.value = "Seleccione un tipo de cambio";
   }
@@ -171,11 +171,11 @@ function limpiarDatos() {
   tab.value = "ref1";
   step2.value = true;
   total.value = 0;
-  rootStore.state.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP = [];
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function obtenerListado() {
-  await rootStore.dispatch("_getListaPagosXProveedorCxP", id_proveedor.value);
+  await appStore._getListaPagosXProveedorCxP(id_proveedor.value);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validarSeleccionado() {
@@ -224,9 +224,9 @@ function calcularTotales() {
       monex = parseFloat(String(monex)) + parseFloat(element.monto_mon_ext);
     });
   }
-  acronym.value = rootStore.state.itemsCoinsList.filter(
+  acronym.value = appStore.itemsCoinsList.filter(
     (v: { id: number }) => v.id == id_coins.value,
-  )[0].symbol;
+  )[0]!.symbol;
   montoMonExt.value = parseFloat(String(monex)).toFixed(2);
 }
 function calcularTotalesInput() {
@@ -518,7 +518,7 @@ async function obtenerDatos() {
         const data = response.data.data[0];
         step2.value = false;
         id_proveedor.value = data.id_proveedor;
-        rootStore.state.listPagosXProveedorCxP = data.details;
+        appStore.listPagosXProveedorCxP = data.details;
         id_cuenta.value = data.id_bank;
         name_path = data.documento;
         url_documento = data.link_documento;
@@ -594,7 +594,7 @@ async function eliminarDetalle(item: ProgramacionProveedorFila & { nro_master?: 
     showDenyButton: "Cancelar",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await programacionesStore.eliminarProgramacionDetalle({ id: item.id });
       id_coins.value = 1;
       tipocambio.value = 1;
@@ -610,7 +610,7 @@ async function eliminarDetalle(item: ProgramacionProveedorFila & { nro_master?: 
         id_proveedor: id_proveedor.value,
         id: id.value,
       });
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }
   });
 }
@@ -628,13 +628,13 @@ onMounted(async () => {
   monExt.value = moneda = (JSON.parse(
     sessionStorage.getItem("dataBranch") as string,
   ) as { moneda: { symbol: string }[] }[])[0]!.moneda[0]!.symbol;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await programacionesStore.ListProgrammedPayment();
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
   await getListBanksDetailsCargar();
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
   await limpiarDatos();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -807,7 +807,7 @@ onMounted(async () => {
               >
                 <template #[`item.item_moneda`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="item.id_coins"
                     item-title="acronym"
                     item-value="id"

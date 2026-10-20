@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 
@@ -64,7 +64,7 @@ async function unificar() {
         });
       }
     });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 </script>

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 const NotasCotizacion = defineAsyncComponent(() => import("../../components/MasterUsuario/ListNotaCotizacionComponent.vue"));
 const FilterNotasCotizacion = defineAsyncComponent(() => import("../../components/filtros/FilterNotasCotizacion.vue"));
 
 const masterusuariosStore = useMasterusuariosStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE NOTAS DE LA COTIZACIÓN`;
+  appStore.mainTitle = `LISTADO DE NOTAS DE LA COTIZACIÓN`;
 });
 </script>
 

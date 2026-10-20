@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
@@ -12,7 +12,7 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 });
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const id_state = null;
 const dialogEditar = ref(false);
@@ -203,9 +203,9 @@ async function procesarExcel() {
       }
     }
   });
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   datosExcel.value = await calculadorasStore.validarTransporte({ datovalidar: datos });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 async function registrarDatos() {
@@ -219,7 +219,7 @@ async function registrarDatos() {
     return; // Detenemos la ejecución aquí
   }
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   try {
     // 2. Definimos de qué tamaño serán los lotes (ej. 500 registros por petición)
@@ -259,7 +259,7 @@ async function registrarDatos() {
     });
   } finally {
     // 7. Apagamos el spinner sin importar si hubo éxito o error
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 </script>

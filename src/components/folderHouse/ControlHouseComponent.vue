@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import dataGen from "./DataGen.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "./DataEmbar.vue";
@@ -17,18 +17,19 @@ import type { ApiResponse } from "@/types/api";
 import type { CuentaBancariaPic, ItemNotificacion, ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
+import type { HouseCopiaRaiz } from "@/types/app";
 
 //houselist,
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
-const itemsModality = computed(() => rootStore.state.itemsModality);
-const itemsShipment = computed(() => rootStore.state.itemsShipment);
+const itemsModality = computed(() => appStore.itemsModality);
+const itemsShipment = computed(() => appStore.itemsShipment);
 
 const fab = ref(false);
 const transition = "slide-y-reverse-transition";
@@ -67,8 +68,8 @@ const formatoflag = ref(true);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isBotonTrackingDisabled = computed(() => {
-  return rootStore.state.house_enlace_tracking !== "" &&
-    rootStore.state.house_enlace_tracking !== null
+  return housesStore.house_enlace_tracking !== "" &&
+    housesStore.house_enlace_tracking !== null
     ? true
     : formControlHouseReadonly.value;
 });
@@ -186,7 +187,7 @@ async function _setTrackingToken(token: string) {
       sessionStorage.setItem("auth-token", response.data.token!);
 
       if (response.data.estadoflag) {
-        rootStore.state.house_enlace_tracking =
+        housesStore.house_enlace_tracking =
           "https://aco.agentedecargaonline.com/tracking/" +
           response.data.data[0]!.token;
 
@@ -272,8 +273,8 @@ function _setMasterContainer(id_master: number, id_containers: number, quantity:
 }
 async function _setHouseEdit() {
   if (
-    !rootStore.state.house_id_consigner ||
-    !rootStore.state.itemsProveedorRolShipper
+    !appStore.house_id_consigner ||
+    !appStore.itemsProveedorRolShipper
   ) {
     Swal.fire({
       icon: "error",
@@ -285,7 +286,7 @@ async function _setHouseEdit() {
 
   loadingBotonGuardarHouse.value = true;
 
-  const lstservices = (rootStore.state.itemsHouseServices || []).map(
+  const lstservices = (appStore.itemsHouseServices || []).map(
     (item: ServicioHouse) => ({
       id: item.id || null,
       id_begend: item.id_begend || null,
@@ -296,74 +297,74 @@ async function _setHouseEdit() {
   );
 
   const data = JSON.stringify({
-    id_modality: rootStore.state.house_sentido
-      ? rootStore.state.house_sentido
+    id_modality: housesStore.house_sentido
+      ? housesStore.house_sentido
       : "",
-    id_shipment: rootStore.state.house_id_trasnport
-      ? rootStore.state.house_id_trasnport
+    id_shipment: housesStore.house_id_trasnport
+      ? housesStore.house_id_trasnport
       : "",
-    id_consigner_real: rootStore.state.house_id_consigner_real
-      ? rootStore.state.house_id_consigner_real
+    id_consigner_real: housesStore.house_id_consigner_real
+      ? housesStore.house_id_consigner_real
       : "",
-    id_port_begin: rootStore.state.house_origen
-      ? rootStore.state.house_origen
+    id_port_begin: housesStore.house_origen
+      ? housesStore.house_origen
       : "",
-    id_port_end: rootStore.state.house_destino
-      ? rootStore.state.house_destino
+    id_port_end: housesStore.house_destino
+      ? housesStore.house_destino
       : "",
-    id_proveedor: rootStore.state.house_id_agente
-      ? rootStore.state.house_id_agente
+    id_proveedor: housesStore.house_id_agente
+      ? housesStore.house_id_agente
       : "",
-    id_consigner: rootStore.state.house_id_consigner
-      ? rootStore.state.house_id_consigner
+    id_consigner: appStore.house_id_consigner
+      ? appStore.house_id_consigner
       : "",
-    id_notify: rootStore.state.house_id_notify
-      ? rootStore.state.house_id_notify
+    id_notify: housesStore.house_id_notify
+      ? housesStore.house_id_notify
       : "",
-    id_aerolinea: rootStore.state.house_id_airlines
-      ? rootStore.state.house_id_airlines
+    id_aerolinea: housesStore.house_id_airlines
+      ? housesStore.house_id_airlines
       : "",
-    id_coloader: rootStore.state.house_id_coloader
-      ? rootStore.state.house_id_coloader
+    id_coloader: housesStore.house_id_coloader
+      ? housesStore.house_id_coloader
       : "",
-    id_naviera: rootStore.state.house_id_naviera
-      ? rootStore.state.house_id_naviera
+    id_naviera: housesStore.house_id_naviera
+      ? housesStore.house_id_naviera
       : "",
-    id_incoterms: rootStore.state.house_incoterms
-      ? rootStore.state.house_incoterms
+    id_incoterms: housesStore.house_incoterms
+      ? housesStore.house_incoterms
       : "",
-    nro_hbl: rootStore.state.house_blmaster
-      ? rootStore.state.house_blmaster
+    nro_hbl: housesStore.house_blmaster
+      ? housesStore.house_blmaster
       : "",
-    id_motonave: rootStore.state.house_id_motonave
-      ? rootStore.state.house_id_motonave
+    id_motonave: housesStore.house_id_motonave
+      ? housesStore.house_id_motonave
       : "",
-    nro_viaje: rootStore.state.house_viaje
-      ? rootStore.state.house_viaje
+    nro_viaje: housesStore.house_viaje
+      ? housesStore.house_viaje
       : "",
-    bultos: rootStore.state.house_bultos
-      ? rootStore.state.house_bultos
+    bultos: housesStore.house_bultos
+      ? housesStore.house_bultos
       : "",
-    peso: rootStore.state.house_peso ? rootStore.state.house_peso : "",
-    volumen: rootStore.state.house_volumen
-      ? rootStore.state.house_volumen
+    peso: housesStore.house_peso ? housesStore.house_peso : "",
+    volumen: housesStore.house_volumen
+      ? housesStore.house_volumen
       : "",
-    id_conditions: rootStore.state.house_id_condicion
-      ? rootStore.state.house_id_condicion
+    id_conditions: housesStore.house_id_condicion
+      ? housesStore.house_id_condicion
       : "",
-    id_moneda: rootStore.state.house_id_coins
-      ? rootStore.state.house_id_coins
+    id_moneda: housesStore.house_id_coins
+      ? housesStore.house_id_coins
       : "",
-    monto: rootStore.state.house_monto ? rootStore.state.house_monto : "",
+    monto: housesStore.house_monto ? housesStore.house_monto : "",
     id_branch: sessionBranchId(),
-    id_cot: rootStore.state.house_cotizacion
-      ? rootStore.state.house_cotizacion
+    id_cot: housesStore.house_cotizacion
+      ? housesStore.house_cotizacion
       : "",
     lstservices,
-    id: rootStore.state.house_id,
+    id: housesStore.house_id,
     nro_declaracion_aduana:
-      rootStore.state.house_nro_declaracion_aduana || "",
-    canal_aduana: rootStore.state.house_canal_aduana || "",
+      housesStore.house_nro_declaracion_aduana || "",
+    canal_aduana: housesStore.house_canal_aduana || "",
   });
 
   const config = {
@@ -401,17 +402,17 @@ async function _setHouseEdit() {
 
     statusData.value = true;
 
-    console.log("url_onedrive:", rootStore.state.url_onedrive);
-    if (!rootStore.state.url_onedrive) {
-      const proveedor = rootStore.state.clientes.find(
-        (v: { id: number }) => v.id == rootStore.state.house_id_consigner,
+    console.log("url_onedrive:", housesStore.url_onedrive);
+    if (!housesStore.url_onedrive) {
+      const proveedor = appStore.clientes.find(
+        (v: { id: number }) => v.id == appStore.house_id_consigner,
       );
       const id_branch = sessionBranchId();
       const id_branchs = ["1", "2", 1, 2];
       if (id_branchs.includes(id_branch)) {
         await housesStore.guardarCarpetaHouse({
-          id: rootStore.state.house_master,
-          nroMaster: `${rootStore.state.house_master_expediente}_${proveedor.namelong}`,
+          id: housesStore.house_master,
+          nroMaster: `${housesStore.house_master_expediente}_${proveedor!.namelong}`,
         });
       }
     }
@@ -441,8 +442,8 @@ async function _setHouseEdit() {
   }
 }
 function abrirCarpeta() {
-  if (rootStore.state.url_onedrive) {
-    window.open(rootStore.state.url_onedrive, "_blank");
+  if (housesStore.url_onedrive) {
+    window.open(housesStore.url_onedrive as string, "_blank");
   } else {
     Swal.fire({
       icon: "info",
@@ -475,11 +476,11 @@ function eliminarHouse() {
 }
 function isImportacion() {
   let val = false;
-  const id = rootStore.state.house_sentido || "";
+  const id = housesStore.house_sentido || "";
 
   const name =
     itemsModality.value.filter((v: { id: number; name: string }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number; name: string }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number; name: string }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Importación") {
@@ -490,11 +491,11 @@ function isImportacion() {
 }
 function isExportacion() {
   let val = false;
-  const id = rootStore.state.house_sentido || "";
+  const id = housesStore.house_sentido || "";
 
   const name =
     itemsModality.value.filter((v: { id: number; name: string }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number; name: string }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number; name: string }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Exportación") {
@@ -505,11 +506,11 @@ function isExportacion() {
 }
 function isAereo() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "Aéreo") {
@@ -520,11 +521,11 @@ function isAereo() {
 }
 function isLCL() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "LCL") {
@@ -535,11 +536,11 @@ function isLCL() {
 }
 function isFCL() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "FCL") {
@@ -597,53 +598,53 @@ async function validarMenuNotificaciones() {
   displayMenuNotificaciones.value = false;
 
   const errores = [];
-  if (!rootStore.state.copy_house.id_modality) {
+  if (!housesStore.copy_house.id_modality) {
     errores.push("Sentido");
   }
-  if (!rootStore.state.copy_house.id_shipment) {
+  if (!housesStore.copy_house.id_shipment) {
     errores.push("Tipo de Embarque");
   }
-  if (!rootStore.state.copy_house.id_port_begin) {
+  if (!housesStore.copy_house.id_port_begin) {
     errores.push("Puerto de Origen");
   }
-  if (!rootStore.state.copy_house.id_port_end) {
+  if (!housesStore.copy_house.id_port_end) {
     errores.push("Puerto de Destino");
   }
-  if (!rootStore.state.copy_house.id_proveedor) {
+  if (!housesStore.copy_house.id_proveedor) {
     errores.push("Proveedor");
   }
-  if (!rootStore.state.copy_house.id_consigner) {
+  if (!housesStore.copy_house.id_consigner) {
     errores.push("Cliente");
   }
-  if (!rootStore.state.copy_house.emailaddress_clientefinal) {
+  if (!housesStore.copy_house.emailaddress_clientefinal) {
     errores.push("El cliente debe tener asignado un correo electrónico");
   }
-  if (!rootStore.state.copy_house.id_operador) {
+  if (!housesStore.copy_house.id_operador) {
     errores.push("Operador");
   }
-  if (!rootStore.state.copy_house.fecha_etd) {
+  if (!housesStore.copy_house.fecha_etd) {
     errores.push("Fecha ETD");
   }
-  if (!rootStore.state.copy_house.fecha_eta) {
+  if (!housesStore.copy_house.fecha_eta) {
     errores.push("Fecha ETA");
   }
   if (
     !itemsShipment.value.filter(
       (v: { id: number; code: string }) =>
-        v.id == rootStore.state.copy_house.id_shipment && v.code == "FCL",
+        v.id == housesStore.copy_house.id_shipment && v.code == "FCL",
     ).length
   ) {
-    if (!rootStore.state.copy_house.bultos) {
+    if (!housesStore.copy_house.bultos) {
       errores.push("Nº de bultos");
     }
-    if (!rootStore.state.copy_house.peso) {
+    if (!housesStore.copy_house.peso) {
       errores.push("Peso");
     }
-    if (!rootStore.state.copy_house.volumen) {
+    if (!housesStore.copy_house.volumen) {
       errores.push("Volumen");
     }
   }
-  if (!rootStore.state.copy_house.monto) {
+  if (!housesStore.copy_house.monto) {
     errores.push("Monto");
   }
 
@@ -680,12 +681,12 @@ async function _getHouseById() {
     data: data,
   };
 
-  await axios<ApiResponse<unknown[]>>(config)
+  await axios<ApiResponse<HouseCopiaRaiz[]>>(config)
     .then(function (response) {
       sessionStorage.setItem("auth-token", response.data.token!);
 
-      rootStore.state.copy_house =
-        response.data.data && response.data.data[0];
+      housesStore.copy_house =
+        response.data.data && response.data.data[0]!;
     })
     .catch(function (error) {
       console.error(error);
@@ -727,9 +728,9 @@ async function _getHouseServices() {
             lstServices.push(itemImpuestos);
           }
 
-          rootStore.state.itemsHouseServices = lstServices;
+          appStore.itemsHouseServices = lstServices;
         } else {
-          rootStore.state.itemsHouseServices = [];
+          appStore.itemsHouseServices = [];
         }
       })
       .catch(function (error) {
@@ -753,7 +754,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 
   // await vm._getHouseById();
   const data = {
-    id: rootStore.state.house_id,
+    id: housesStore.house_id,
     notificacion: notificacion.title,
     cuentasBancarias: selected.value.map((item) => item.id).join(","),
     id_branch: sessionBranchId(),
@@ -815,8 +816,8 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
         "Información de copiada. Al aceptar, se abrirá Proveedor de Corre. (Luego presiona Ctrl+V)",
       );
       const subject = `Notificación: ${notificacion.title} - House BL: ${
-        rootStore.state.copy_house.nro_hbl
-          ? rootStore.state.copy_house.nro_hbl
+        housesStore.copy_house.nro_hbl
+          ? housesStore.copy_house.nro_hbl
           : ""
       } EXPEDIENTE: ${
         // @ts-expect-error this is undefined inside this function
@@ -825,26 +826,26 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
       // 4. ABRIR EL MAIL: Solo ocurre DESPUÉS de cerrar el alert
       const body = encodeURIComponent("CONTROL + V (PEGA LA TABLA AQUÍ)");
       window.location.href = `mailto:${
-        rootStore.state.copy_house.emailaddress_clientefinal
+        housesStore.copy_house.emailaddress_clientefinal
       }?subject=${encodeURIComponent(subject)}&body=${body}`;
       loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
     });
 }
 
-watch(() => rootStore.state.modalEntitie, (val) => {
-  console.log("modalEntitie", rootStore.state.modalEntitie);
+watch(() => appStore.modalEntitie, (val) => {
+  console.log("modalEntitie", appStore.modalEntitie);
   console.log("val", val);
 });
 watch(() => housesStore.house, (val) => {
   if (val && (val.nro_hbl || val.consigner)) {
     const actionLabel =
       route.name == "controlHouseVer" ? "VER" : "EDITAR";
-    rootStore.state.mainTitle = `N° BL House ${val.nro_hbl || ""} - ${
+    appStore.mainTitle = `N° BL House ${val.nro_hbl || ""} - ${
       val.consigner || ""
     } [${actionLabel}]`;
   }
 });
-watch(() => rootStore.state.copy_house, (val) => {
+watch(() => housesStore.copy_house, (val) => {
   if (
     val &&
     (val.nro_hbl ||
@@ -855,7 +856,7 @@ watch(() => rootStore.state.copy_house, (val) => {
   ) {
     const actionLabel =
       route.name == "controlHouseVer" ? "VER" : "EDITAR";
-    rootStore.state.mainTitle = `N° BL House ${val.nro_hbl || ""} - ${
+    appStore.mainTitle = `N° BL House ${val.nro_hbl || ""} - ${
       val.consigner ||
       val.consigner_name ||
       val.namelong ||
@@ -870,7 +871,7 @@ if (
     route.name == "controlHouseVer") &&
   route.params.id
 ) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   try {
     if (typeof housesStore.verHouse === "function") {
       // await this.verHouse(this.$route.params);
@@ -882,23 +883,23 @@ if (
   if (houseView && (houseView.nro_hbl || houseView.consigner)) {
     const actionLabel =
       route.name == "controlHouseVer" ? "VER" : "EDITAR";
-    rootStore.state.mainTitle = `N° BL House ${
+    appStore.mainTitle = `N° BL House ${
       (houseView && houseView.nro_hbl) || ""
     } - ${(houseView && houseView.consigner) || ""} [${actionLabel}]`;
   } else {
     // await this._getHouseById();
     const actionLabel =
       route.name == "controlHouseVer" ? "VER" : "EDITAR";
-    rootStore.state.mainTitle = `N° BL House ${
-      (rootStore.state.copy_house &&
-        rootStore.state.copy_house.nro_hbl) ||
+    appStore.mainTitle = `N° BL House ${
+      (housesStore.copy_house &&
+        housesStore.copy_house.nro_hbl) ||
       ""
     } - ${
-      rootStore.state.copy_house &&
-      (rootStore.state.copy_house.consigner ||
-        rootStore.state.copy_house.consigner_name ||
-        rootStore.state.copy_house.namelong ||
-        rootStore.state.copy_house.cliente ||
+      housesStore.copy_house &&
+      (housesStore.copy_house.consigner ||
+        housesStore.copy_house.consigner_name ||
+        housesStore.copy_house.namelong ||
+        housesStore.copy_house.cliente ||
         "")
     } [${actionLabel}]`;
   }
@@ -906,17 +907,17 @@ if (
   if (route.name == "controlHouseVer") {
     formControlHouseReadonly.value = true;
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 onMounted(async () => {
   if (route.name == "controlHouse") {
-    rootStore.state.mainTitle = "CONTROL DE EXPEDIENTE HOUSE";
+    appStore.mainTitle = "CONTROL DE EXPEDIENTE HOUSE";
   } else if (
     (route.name == "controlHouseEditar" ||
       route.name == "controlHouseVer") &&
     route.params.id
   ) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     try {
       if (typeof housesStore.verHouse === "function") {
         // await this.verHouse(this.$route.params);
@@ -928,23 +929,23 @@ onMounted(async () => {
     if (houseView && (houseView.nro_hbl || houseView.consigner)) {
       const actionLabel =
         route.name == "controlHouseVer" ? "VER" : "EDITAR";
-      rootStore.state.mainTitle = `N° BL House ${
+      appStore.mainTitle = `N° BL House ${
         (houseView && houseView.nro_hbl) || ""
       } - ${(houseView && houseView.consigner) || ""} [${actionLabel}]`;
     } else {
       // await this._getHouseById();
       const actionLabel =
         route.name == "controlHouseVer" ? "VER" : "EDITAR";
-      rootStore.state.mainTitle = `N° BL House ${
-        (rootStore.state.copy_house &&
-          rootStore.state.copy_house.nro_hbl) ||
+      appStore.mainTitle = `N° BL House ${
+        (housesStore.copy_house &&
+          housesStore.copy_house.nro_hbl) ||
         ""
       } - ${
-        rootStore.state.copy_house &&
-        (rootStore.state.copy_house.consigner ||
-          rootStore.state.copy_house.consigner_name ||
-          rootStore.state.copy_house.namelong ||
-          rootStore.state.copy_house.cliente ||
+        housesStore.copy_house &&
+        (housesStore.copy_house.consigner ||
+          housesStore.copy_house.consigner_name ||
+          housesStore.copy_house.namelong ||
+          housesStore.copy_house.cliente ||
           "")
       } [${actionLabel}]`;
     }
@@ -952,15 +953,15 @@ onMounted(async () => {
     if (route.name == "controlHouseVer") {
       formControlHouseReadonly.value = true;
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 
   //this._getnroHouse();
   Promise.all([
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getShipment"),
+    appStore._getModality(),
+    appStore._getShipment(),
     pricingStore.getCargarEjecutivo(),
-    rootStore.dispatch("getListBanksDetailsCargarPorSucursal"),
+    appStore.getListBanksDetailsCargarPorSucursal(),
     aduanaStore.cargarListadoQuoteAduana(),
     bankStore.fetchDataBank({
       code: "",
@@ -1142,9 +1143,10 @@ onMounted(async () => {
               </v-speed-dial>
             </div>
 
+            <!-- @vue-expect-error vue-tsc reads the store as a ref inside this dead v-if block -->
             <v-text-field
-              v-if="rootStore.state.house_enlace_tracking"
-              v-model="rootStore.state.house_enlace_tracking"
+              v-if="housesStore.house_enlace_tracking"
+              v-model="housesStore.house_enlace_tracking"
               label="Enlace de Tracking"
               readonly
               variant="outlined"
@@ -1153,13 +1155,14 @@ onMounted(async () => {
               class="mt-3"
             >
               <template #append-inner>
+                <!-- @vue-expect-error vue-tsc reads the store as a ref inside this dead v-if block -->
                 <v-btn
                   variant="text"
                   icon
                   size="small"
                   color="primary"
                   @click="
-                    _copyEnlaceTracking(rootStore.state.house_enlace_tracking)
+                    _copyEnlaceTracking(housesStore.house_enlace_tracking)
                   "
                 >
                   <v-icon size="small">
@@ -1325,7 +1328,7 @@ onMounted(async () => {
         </v-speed-dial>
       </div>
       <div
-        v-if="rootStore.state.house_enlace_tracking"
+        v-if="housesStore.house_enlace_tracking"
         style="
           position: fixed;
           right: 88px;
@@ -1336,7 +1339,7 @@ onMounted(async () => {
         "
       >
         <v-text-field
-          v-model="rootStore.state.house_enlace_tracking"
+          v-model="housesStore.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
           variant="outlined"
@@ -1349,7 +1352,7 @@ onMounted(async () => {
               icon
               size="small"
               color="primary"
-              @click="_copyEnlaceTracking(rootStore.state.house_enlace_tracking)"
+              @click="_copyEnlaceTracking(housesStore.house_enlace_tracking)"
             >
               <v-icon size="small">
                 mdi-content-copy
@@ -1470,7 +1473,7 @@ onMounted(async () => {
           <v-data-table
             v-model="selected"
             :headers="headers"
-            :items="rootStore.state.cuentas_pic"
+            :items="appStore.cuentas_pic"
             item-value="id"
             return-object
             show-select

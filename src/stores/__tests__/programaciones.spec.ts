@@ -7,7 +7,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 describe("programaciones store", () => {

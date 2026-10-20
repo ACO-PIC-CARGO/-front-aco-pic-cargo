@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import listEntitiesCom from "@/components/folderEntities/ListEntities.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTA DE ${rootStore.state.menuName.toUpperCase()}`;
+  appStore.mainTitle = `LISTA DE ${appStore.menuName.toUpperCase()}`;
 });
 </script>
 

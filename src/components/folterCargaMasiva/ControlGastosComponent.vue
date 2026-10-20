@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { readSheet as readXlsxFile } from "read-excel-file/browser";
 import type { Row } from "read-excel-file/browser";
 import Swal from "sweetalert2";
@@ -10,7 +10,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import { useMastersStore } from "@/stores/masters";
 import { useControlGastosStore } from "@/stores/controlGastos";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const controlGastosStore = useControlGastosStore();
 const mastersStore = useMastersStore();
 const router = useRouter();
@@ -76,7 +76,7 @@ function subirarchivoflag() {
   return val;
 }
 async function nombreCampania() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   nombrecampania.value = (await controlGastosStore
     .getNombreCompania(id_exp.value)
     .catch((e: unknown) => console.log(e))) as string;
@@ -84,7 +84,7 @@ async function nombreCampania() {
   if (!!nombrecampania.value) {
     companiaflag.value = true;
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function nuevoExpedienteFlag() {
   return nuevoExpediente.value == true ? false : true;
@@ -373,7 +373,7 @@ async function generarControlesGastos() {
       detalle: datos.value,
       nuevo: nuevoExpediente.value,
     };
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const response: ResultadoCargaMasivaGastos[] = await controlGastosStore.CargaMasivaControlDeGastos(data);
 
     if (response[0]!.esnuevoflag == true) {
@@ -394,7 +394,7 @@ async function generarControlesGastos() {
       }
       // actualizarMaster
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     Swal.fire({
       icon: "success",
       text:
@@ -452,9 +452,9 @@ onMounted(async () => {
     }
     if (res.isDenied) {
       nuevoExpediente.value = false;
-      rootStore.state.spiner = true;
-      await rootStore.dispatch("_getMasterList");
-      rootStore.state.spiner = false;
+      appStore.spiner = true;
+      await appStore._getMasterList();
+      appStore.spiner = false;
     }
   });
 });
@@ -470,7 +470,7 @@ onMounted(async () => {
         >
           <!--  -->
           <v-autocomplete
-            :items="rootStore.state.itemsMasterList"
+            :items="appStore.itemsMasterList"
             v-model="id_exp"
             @update:model-value="nombreCampania()"
             label="Expediente"

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useReportesStore } from "@/stores/reportes";
 import type { TotalesMasterAgrupadoReporte, TotalMasterMesReporte } from "@/types/reportes";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
 
@@ -118,7 +118,7 @@ function cambiarAnio(): void {
 }
 
 async function cargarReporte(): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     reportesStore.getTotalesMasterAgrupado({
       year: anioSeleccionado.value,
@@ -128,7 +128,7 @@ async function cargarReporte(): Promise<void> {
       year: anioSeleccionado.value,
     }),
   ]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function imprimir(): Promise<void> {
   reportesStore.printTotalesMasterPorMes({

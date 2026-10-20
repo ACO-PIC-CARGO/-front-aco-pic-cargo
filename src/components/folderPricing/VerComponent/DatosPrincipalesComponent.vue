@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
 
@@ -19,14 +19,14 @@ withDefaults(
   },
 );
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 
 const buscarClienteDialog = ref(false);
 const form = useTemplateRef("form");
 
-const registroClienteFlag = computed(() => rootStore.state.registroClienteFlag);
+const registroClienteFlag = computed(() => appStore.registroClienteFlag);
 const estadoCotizacionItems = computed(() => {
   const list = pricingStore.listQuoteStatus || [];
   const idStatus = pricingStore.datosPrincipales.id_status;
@@ -47,13 +47,13 @@ const estadoCotizacionItems = computed(() => {
 });
 
 watch(registroClienteFlag, async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getEntities");
-  rootStore.state.spiner = false;
+  appStore.spiner = true;
+  await appStore._getEntities();
+  appStore.spiner = false;
   if (entitiesStore.id) {
-    const cliente = rootStore.state.itemsEntities.filter(
+    const cliente = appStore.itemsEntities.filter(
       (v: { id: number }) => v.id == entitiesStore.id,
-    )[0];
+    )[0]!;
 
     pricingStore.datosPrincipales.id_entitie = cliente.id;
     pricingStore.datosPrincipales.nombre = cliente.namelong;
@@ -64,18 +64,18 @@ watch(registroClienteFlag, async () => {
 
 //  itemsEntities
 onMounted(() => {
-  rootStore.dispatch("_getProveedor");
+  appStore._getProveedor();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function changeShipment() {
   if (pricingStore.datosPrincipales.idtipocarga) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
     await pricingStore.getPortBegin();
     // @ts-expect-error Kept: the store action destructures its argument, so the call without one throws
     await pricingStore.getPortEnd();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -93,7 +93,7 @@ function guardarCliente(e: unknown, { item }: { item: { id: number; namelong: st
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registrarNuevoCliente() {
-  rootStore.state.modalEntitie = true;
+  appStore.modalEntitie = true;
 }
 function mostrarProveedorFlag() {
   const exw = pricingStore.listIncoterms.filter(

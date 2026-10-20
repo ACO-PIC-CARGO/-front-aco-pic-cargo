@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useAduanaStore } from "@/stores/aduana";
 import { calcularValor, currencyFormat } from "@/utils/cotizacion";
@@ -11,7 +11,7 @@ const props = defineProps<{
   actualizarCostosFlag?: boolean;
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const { calcularFac } = useCotizacionCalculos();
 
@@ -692,7 +692,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -961,7 +961,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1231,7 +1231,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1501,7 +1501,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1771,7 +1771,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -2042,7 +2042,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -2312,7 +2312,7 @@ onMounted(() => {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />

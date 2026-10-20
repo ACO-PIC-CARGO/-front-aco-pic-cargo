@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useAduanaStore } from "@/stores/aduana";
@@ -24,7 +24,7 @@ const emit = defineEmits<{
   activarServicios: [];
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const masterusuariosStore = useMasterusuariosStore();
 const pricingStore = usePricingStore();
@@ -686,7 +686,7 @@ function recalcularCalculadora() {
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
             <v-select
-              :items="rootStore.state.itemsContainers"
+              :items="appStore.itemsContainers"
               v-model="containers.container"
               label="Container"
               item-title="name"

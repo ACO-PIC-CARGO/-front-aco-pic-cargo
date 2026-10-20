@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useProfitPricingStore } from "@/stores/profitPricing";
 import { useProveedorStore } from "@/stores/proveedor";
@@ -12,7 +12,7 @@ const pricingStore = usePricingStore();
 const proveedorStore = useProveedorStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const profitPricingStore = useProfitPricingStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const frmDatos = useTemplateRef("frmDatos");
 const frmAsignarCosto = ref<{ validate: () => Promise<{ valid: boolean }> }>();
@@ -127,11 +127,11 @@ function obtenerCostosEnBaseTipoCosto(codigoTipoCosto?: string) {
 }
 async function abrirModalActualizacionConceptos(id_incoterms: number | string) {
   profitPricingStore.id_incoterms = id_incoterms;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await cargarDatos().catch((e) => {
     console.error(e);
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   dialogNuevoProfit.value = true;
 }
 async function cargarDatos() {
@@ -200,7 +200,7 @@ watch(() => profitPricingStore.id_modality, () => {
     profitPricingStore.id_shipment &&
     profitPricingStore.id_modality
   ) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     setTimeout(() => {}, 500);
   }
 });
@@ -210,9 +210,9 @@ watch(() => profitPricingStore.id_shipment, () => {
     profitPricingStore.id_shipment &&
     profitPricingStore.id_modality
   ) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     setTimeout(() => {
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       mostrarIncoterms.value = true;
     }, 500);
   }

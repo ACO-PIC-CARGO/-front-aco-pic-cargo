@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import DatosPrincipales from "../../components/folderPricing/DatosPrincipales.vue";
 import DatosCargaComponent from "../../components/folderPricing/DatosCargaComponent.vue";
@@ -19,7 +19,7 @@ import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 const proveedorStore = useProveedorStore();
@@ -46,13 +46,13 @@ onMounted(async () => {
   pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
 
   pricingStore.SET_RESET();
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     pricingStore.getQuote({ id: route.params.id as string }),
     pricingStore.getShipment(),
   ]);
 
-  rootStore.state.mainTitle = `EDITAR  COTIZACIÓN - ${pricingStore.nro_quote}`;
+  appStore.mainTitle = `EDITAR  COTIZACIÓN - ${pricingStore.nro_quote}`;
 
   const idTransport = pricingStore.listShipment.filter(
     (v) => v.id == pricingStore.datosPrincipales.idtipocarga,
@@ -67,7 +67,7 @@ onMounted(async () => {
     });
   });
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   mostrar.value = true;
 
   // obtenerProveedorPricing
@@ -85,7 +85,7 @@ onMounted(async () => {
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
     pricingStore.getMultiplicador(),
     pricingStore.getTipoCostos(),
-    rootStore.dispatch("_getContainers"),
+    appStore._getContainers(),
     pricingStore.getBegEndList(),
     pricingStore.obtenerCostosPricing(),
     pricingStore.getServices(),
@@ -211,7 +211,7 @@ function recargarServicios() {
   });
 }
 async function activarLlenadoCostos() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await pricingStore.getMultiplicador();
   await pricingStore.getImpuestos();
 
@@ -286,7 +286,7 @@ async function activarLlenadoCostos() {
 
   step.value = 2;
   editableStep2.value = true;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function anadirNuevaOpcion(nro_propuesta: number) {
   // this.$store.state.spiner = true;
@@ -363,7 +363,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   // this.$store.state.spiner = false;
 }
 async function recargarCostos(event = true) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await pricingStore.getTipoCostos();
   await pricingStore.getMultiplicador();
 
@@ -475,7 +475,7 @@ async function recargarCostos(event = true) {
 
   pricingStore.llenadoCostos = false;
   indexCostos.value++;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   const isFCL = pricingStore.listShipment.some(
     (v) =>
       v.id ==

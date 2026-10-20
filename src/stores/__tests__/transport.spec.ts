@@ -10,7 +10,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 
 const row = { id: 3, code: "MAR", name: "Marítimo", description: "", status: 1 };
 const filters = { code: "M R", name: "Mar & más", description: "a/b", status: 1 };

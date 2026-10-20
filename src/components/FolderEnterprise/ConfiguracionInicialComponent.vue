@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
@@ -15,7 +15,7 @@ const Proceesing = defineAsyncComponent(() => import("../modal/ModalProcessing.v
 const emit = defineEmits<{ regresar: [] }>();
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 
@@ -236,7 +236,7 @@ function omitir() {
   });
 }
 async function guardarCostosPredefinidos() {
-  rootStore.state.dialogProcessing = true;
+  appStore.dialogProcessing = true;
   await configEmpresaStore.guardarCostos({
     id_modality: id_modality.value,
     id_shipment: id_shipment.value,
@@ -297,12 +297,12 @@ async function guardarCostosPredefinidos() {
   }
 
   setTimeout(() => {
-    rootStore.state.dialogProcessing = false;
+    appStore.dialogProcessing = false;
   }, 300);
 }
 
 async function retroceder() {
-  rootStore.state.dialogProcessing = true;
+  appStore.dialogProcessing = true;
   scrollToSubirCostos();
 
   if (subirCostos.value) {
@@ -358,14 +358,14 @@ async function retroceder() {
   }
 
   setTimeout(() => {
-    rootStore.state.dialogProcessing = false;
+    appStore.dialogProcessing = false;
   }, 300);
 }
 
 async function guardarCosto() {
   scrollToSubirCostos();
   loading.value = !loading.value;
-  rootStore.state.dialogProcessing = true;
+  appStore.dialogProcessing = true;
   await configEmpresaStore.guardarCostos({
     id_modality: id_modality.value,
     id_shipment: id_shipment.value,
@@ -418,7 +418,7 @@ async function guardarCosto() {
   }
 
   loading.value = !loading.value;
-  rootStore.state.dialogProcessing = false;
+  appStore.dialogProcessing = false;
   generarSecciones();
 
   // Mover el scroll hacia arriba al finalizar el registro
@@ -775,7 +775,7 @@ function reponerCero(valor: CostoConfig) {
                   </template>
                   <template #[`item.proveedor`]="{ item }">
                     <v-autocomplete
-                      :items="rootStore.state.itemsProveedorList"
+                      :items="appStore.itemsProveedorList"
                       v-model="item.id_proveedor"
                       density="compact"
                       hide-details
@@ -963,7 +963,7 @@ function reponerCero(valor: CostoConfig) {
             />
 
             <v-autocomplete
-              :items="rootStore.state.itemsEntities"
+              :items="appStore.itemsEntities"
               v-model="frmNuevoCosto.id_proveedor"
               :rules="[(v) => !!v || 'Dato obligatorio']"
               label="Proveedor*"

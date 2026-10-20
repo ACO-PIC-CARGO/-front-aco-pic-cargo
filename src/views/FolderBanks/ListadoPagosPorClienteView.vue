@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import listPayForCliente from "../../components/folderBanks/ListPayForClienteComponent.vue";
 // Cambia la "l" por "L"
 import listPayForClienteDetalle from "../../components/folderBanks/ListPayForClienteDetalles.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const tab = ref("agrupado");
 
 onMounted(() => {
-  rootStore.state.mainTitle = "LISTADO DE INGRESOS";
+  appStore.mainTitle = "LISTADO DE INGRESOS";
 });
 </script>
 

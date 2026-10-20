@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeMount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import type { SweetAlertIcon } from "sweetalert2";
 import moment from "moment";
@@ -48,7 +48,7 @@ import { useFilesStore } from "@/stores/files";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
@@ -104,16 +104,16 @@ onMounted(async () => {
   });
   abrirSwalConfigFlete();
   nextTick(() => {
-    rootStore.state.drawer = false;
+    appStore.drawer = false;
   });
 });
 onBeforeMount(() => {
   mostrarBtnMenu.value = !JSON.parse(sessionStorage.getItem("dataBranch") as string)[0]
     .esnuevoflag;
-  rootStore.state.drawer = mostrarBtnMenu.value;
+  appStore.drawer = mostrarBtnMenu.value;
 });
 
-const itemsOperadorList = computed<Operador[]>(() => rootStore.state.itemsOperadorList);
+const itemsOperadorList = computed<Operador[]>(() => appStore.itemsOperadorList);
 const listadoFilesDrive = computed<ArchivoDrive[]>(() => pricingStore.listadoFilesDrive);
 const operadorNombre = computed(() => {
   const isHousePage =
@@ -125,8 +125,8 @@ const operadorNombre = computed(() => {
     return "";
   }
 
-  if (rootStore.state.dataHouse_operador) {
-    return rootStore.state.dataHouse_operador;
+  if (appStore.dataHouse_operador) {
+    return appStore.dataHouse_operador;
   }
 
   const operadorId =
@@ -283,12 +283,12 @@ function abrirSwalConfigFlete() {
 async function guardarCotizacion() {
   const validacion = validarRegistro();
   if (!!validacion) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await pricingStore.registrarQuote({ fullflag: true }).catch((err: unknown) => {
       console.error("registrarQuote", err);
     });
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     Swal.fire({
       icon: "info",
       title: "Aviso",
@@ -336,7 +336,7 @@ async function editarCotizacion() {
 
   // // -----------------------------------------------------
   if (val) {
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     await pricingStore.updateQuote();
 
     const destino = {
@@ -354,7 +354,7 @@ async function editarCotizacion() {
     ) {
       await router.push(destino);
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   } else {
     Swal.fire({
       title: "ADVERTENCIA",
@@ -374,7 +374,7 @@ async function editarCotizacionAduana() {
 
   // // -----------------------------------------------------
   if (val) {
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     await aduanaStore.actualizarQuoteAduana();
 
     router.push({
@@ -386,7 +386,7 @@ async function editarCotizacionAduana() {
           : 1,
       },
     });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   } else {
     Swal.fire({
       title: "ADVERTENCIA",
@@ -402,23 +402,23 @@ async function abrirCorreo() {
   const codeAereo = [9017, 9024];
   idRole.value = [];
   dialogProveedor.value = true;
-  await rootStore.dispatch("_getRole");
+  await appStore._getRole();
   const code = pricingStore.listShipment.find(
     (v: TipoCarga) => v.id == pricingStore.datosPrincipales.idtipocarga,
   )!.code;
   switch (code) {
     case "LCL":
-      idRole.value = rootStore.state.itemsDataRoleList
+      idRole.value = appStore.itemsDataRoleList
         .filter((v: RolProveedor) => codeLCL.includes(v.code))
         .map((v: RolProveedor) => v.id);
       break;
     case "FCL":
-      idRole.value = rootStore.state.itemsDataRoleList
+      idRole.value = appStore.itemsDataRoleList
         .filter((v: RolProveedor) => codeFCL.includes(v.code))
         .map((v: RolProveedor) => v.id);
       break;
     case "Aéreo":
-      idRole.value = rootStore.state.itemsDataRoleList
+      idRole.value = appStore.itemsDataRoleList
         .filter((v: RolProveedor) => codeAereo.includes(v.code))
         .map((v: RolProveedor) => v.id);
       break;
@@ -1077,9 +1077,9 @@ function isClienteInternacional() {
   return val;
 }
 async function registrarCliente() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.guardarCliente();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function modificarCliente() {
@@ -1244,9 +1244,9 @@ async function modificarCliente() {
     entitiesStore.isStep4Valid =
       !entitiesStore.isStep4Valid;
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarCliente();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 function isProveedorInternacional() {
@@ -1262,7 +1262,7 @@ function isProveedorInternacional() {
   return val;
 }
 function isShipper() {
-  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+  const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -1273,7 +1273,7 @@ function isShipper() {
   return val;
 }
 function isNaviera() {
-  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+  const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -1284,7 +1284,7 @@ function isNaviera() {
   return val;
 }
 function isAlmacen() {
-  const val = rootStore.state.itemsDataRoleList.some((v: RolProveedor) => {
+  const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -1336,9 +1336,9 @@ async function registrarProveedor() {
     entitiesStore.isStep4Valid =
       !entitiesStore.isStep4Valid;
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.guardarProveedor();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1521,9 +1521,9 @@ async function modificarProveedor() {
     entitiesStore.isStep4Valid =
       !entitiesStore.isStep4Valid;
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarProveedor();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 function abrirModalPilotoAutomatico() {
@@ -1562,7 +1562,7 @@ watch(idRole, async () => {
   <div id="inspire">
     <v-navigation-drawer
       width="320"
-      v-model="rootStore.state.drawer"
+      v-model="appStore.drawer"
       v-if="mostrarBtnMenu"
     >
       <ListMenu />
@@ -1576,11 +1576,11 @@ watch(idRole, async () => {
       <v-app-bar-nav-icon
         aria-label="Abrir menú"
         v-if="mostrarBtnMenu"
-        @click="rootStore.state.drawer = !rootStore.state.drawer"
+        @click="appStore.drawer = !appStore.drawer"
       />
 
       <v-toolbar-title class="flex-0-1">
-        {{ rootStore.state.mainTitle }}
+        {{ appStore.mainTitle }}
       </v-toolbar-title>
 
       <v-spacer />
@@ -1609,11 +1609,11 @@ watch(idRole, async () => {
         PROFIT PR:
         {{
           (
-            (rootStore.state.totalTotalIngresos
-              ? rootStore.state.totalTotalIngresos
+            (appStore.totalTotalIngresos
+              ? appStore.totalTotalIngresos
               : 0) -
-            (rootStore.state.totalTotalEgresos
-              ? rootStore.state.totalTotalEgresos
+            (appStore.totalTotalEgresos
+              ? appStore.totalTotalEgresos
               : 0)
           ).toFixed(2)
         }}
@@ -1627,11 +1627,11 @@ watch(idRole, async () => {
         / OP:
         {{
           (
-            (rootStore.state.totalTotalIngresosOp
-              ? rootStore.state.totalTotalIngresosOp
+            (appStore.totalTotalIngresosOp
+              ? appStore.totalTotalIngresosOp
               : 0) -
-            (rootStore.state.totalTotalEgresosOp
-              ? rootStore.state.totalTotalEgresosOp
+            (appStore.totalTotalEgresosOp
+              ? appStore.totalTotalEgresosOp
               : 0)
           ).toFixed(2)
         }}
@@ -1900,11 +1900,11 @@ watch(idRole, async () => {
     </v-main>
 
     <div
-      v-if="rootStore.state.dialogProcessing"
+      v-if="appStore.dialogProcessing"
       class="dialogOverlay"
     />
     <div
-      v-if="rootStore.state.dialogProcessing"
+      v-if="appStore.dialogProcessing"
       class="dialogProcessing"
     >
       <!-- <div class="dialogOverlay"></div> -->
@@ -1981,7 +1981,7 @@ watch(idRole, async () => {
         <v-card-text>
           <v-autocomplete
             multiple
-            :items="rootStore.state.itemsDataRoleList"
+            :items="appStore.itemsDataRoleList"
             chips
             item-value="id"
             item-title="name"
@@ -1989,7 +1989,7 @@ watch(idRole, async () => {
             variant="outlined"
             label="Tipo Proveedor"
             v-model="idRole"
-            :loading="rootStore.state.itemsDataRoleList.length == 0"
+            :loading="appStore.itemsDataRoleList.length == 0"
           />
           <v-table>
             <thead>

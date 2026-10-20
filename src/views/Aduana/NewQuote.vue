@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import DatosPrincipales from "../../components/folderAduana/DatosPrincipales.vue";
 import DatosCargaComponent from "../../components/folderAduana/DatosCargaComponent.vue";
@@ -17,7 +17,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import type { Costo, TipoCarga } from "@/types/cotizacion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -41,7 +41,7 @@ const actualizarURLEnElQuote = undefined as unknown as (
 ) => Promise<void>;
 
 onMounted(async () => {
-  rootStore.state.mainTitle = "Nueva Cotización";
+  appStore.mainTitle = "Nueva Cotización";
   await pricingStore.resetQuoteNew();
   await pricingStore.getMarketingList();
   await pricingStore.getQuoteStatus();
@@ -52,12 +52,12 @@ onMounted(async () => {
   await pricingStore.getBegEndList();
   await aduanaStore.getServicesAduana();
   await aduanaStore.obtenerCostosAduana();
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
   await pricingStore.getImpuestos();
   await aduanaStore.getCargarMasterDetalleNotasCotizacionAduana();
   await enterprisesStore.obtenerImpuestoXEmpresa();
   await masterusuariosStore.cargarMasterDetallePercepcionAduana();
-  await rootStore.dispatch("_getContainers");
+  await appStore._getContainers();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -75,7 +75,7 @@ function continuarComparativa() {
   step.value = 3;
 }
 async function activarDatosCarga() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await aduanaStore.getPortBeginAduana({
     id_transport: ((aduanaStore.datosPrincipales.idtipocarga as TipoCarga)
       .id_transport
@@ -97,7 +97,7 @@ async function activarDatosCarga() {
     }
     // }, 100);
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function activarServicios() {
   ServicesComponentFlag.value = true;
@@ -121,7 +121,7 @@ async function activarServicios() {
     }
     // }, 100);
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function recargarServiciosCostos() {
   const services = [...aduanaStore.preServices];
@@ -163,7 +163,7 @@ function recargarServiciosCostos() {
 }
 async function activarLlenadoCostos() {
   try {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await aduanaStore.getMultiplicadorAduana();
     // await this.getImpuestos();
 
@@ -246,7 +246,7 @@ async function activarLlenadoCostos() {
       aduanaStore.listImpuestos;
     aduanaStore.opcionCostos[0]!.listNotasQuote =
       aduanaStore.listNotasQuote;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     Swal.fire({
       icon: "question",
       title: "Cotizar",
@@ -272,13 +272,13 @@ async function activarLlenadoCostos() {
   }
 }
 async function guardar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   aduanaStore.opcionCostos[0]!.selected = true;
   await pricingStore.registrarQuote({ fullflag: false }).catch((e) => {
     console.error("registrarQuote", e);
   });
   if (aduanaStore.nro_quote) {
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     Swal.fire({
       icon: "success",
@@ -396,7 +396,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
     listNotasQuote: aduanaStore.listNotasQuote,
   };
   aduanaStore.opcionCostos.push(newPropuesta);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function recargarCostos() {
   await aduanaStore.getTipoCostosAduana();

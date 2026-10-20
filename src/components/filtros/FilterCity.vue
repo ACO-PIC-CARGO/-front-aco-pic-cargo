@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCityStore } from "@/stores/city";
 import type { Ciudad } from "@/types/catalogos";
 
 const cityStore = useCityStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const loading = ref(false);
 const loadingEstado = ref(false);
@@ -36,7 +36,7 @@ function getName() {
 }
 async function ObtenerEstados(id_state?: number | string | null) {
   loadingEstado.value = true;
-  await rootStore.dispatch("_getState", id_state);
+  await appStore._getState(id_state);
   cityStore.model.id_state = "";
   loadingEstado.value = false;
 }
@@ -110,7 +110,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Pais"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           v-model="cityStore.filtros.id_pais"
           item-title="name"
           item-value="id"
@@ -125,7 +125,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Estado"
-          :items="rootStore.state.itemsState"
+          :items="appStore.itemsState"
           v-model="cityStore.filtros.id_state"
           item-title="name"
           item-value="id"
@@ -204,7 +204,7 @@ async function Aceptar() {
           <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="rootStore.state.itemsPais"
+            :items="appStore.itemsPais"
             v-model="cityStore.model.id_pais"
             :readonly="cityStore.tipo == 'ver'"
             item-title="name"
@@ -218,10 +218,9 @@ async function Aceptar() {
           class="col-12 py-1"
           v-if="!!cityStore.model.id_pais"
         >
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Estado (*)"
-            :items="rootStore.state.itemsState"
+            :items="appStore.itemsState"
             v-model="cityStore.model.id_state"
             :readonly="cityStore.tipo == 'ver'"
             item-title="name"

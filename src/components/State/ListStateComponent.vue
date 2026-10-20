@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useStatesStore } from "@/stores/states";
 import type { EstadoRegion } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const statesStore = useStatesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -84,7 +84,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await statesStore.GetListState();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
 });
 </script>
 

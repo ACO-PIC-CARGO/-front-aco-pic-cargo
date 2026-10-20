@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import ReportFileComponent from "@/components/Reports/ReportFileComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "REPORTE CONTROL DE FILE";
+  appStore.mainTitle = "REPORTE CONTROL DE FILE";
 });
 </script>
 

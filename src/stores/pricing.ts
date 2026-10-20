@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useControlGastosStore } from "@/stores/controlGastos";
@@ -616,7 +616,7 @@ export const usePricingStore = defineStore("pricing", () => {
     });
   }
   async function obtenerRoles(): Promise<void> {
-    itemsDataRoleList.value = store.state.itemsDataRoleList;
+    itemsDataRoleList.value = useAppStore().itemsDataRoleList;
   }
   async function ListarMontosFinalesQuoteMONGODB(): Promise<void> {
     try {
@@ -5047,7 +5047,7 @@ export const usePricingStore = defineStore("pricing", () => {
             );
           }
           montoDetails = aplicarMinimoCosto(element, montoDetails);
-          const proveedorEncontrado = store.state.provedores.find((v: ProveedorPricing) => v.id == element.id_proveedor);
+          const proveedorEncontrado = useAppStore().provedores.find((v: ProveedorPricing) => v.id == element.id_proveedor);
 
           if (element.esgastostercerosflag == 1) {
             if (isImport && !excluirIgv) {
@@ -6879,7 +6879,7 @@ export const usePricingStore = defineStore("pricing", () => {
                 (element.minimo as number)
               );
             }
-            const proveedor = store.state.provedores.find((v: ProveedorPricing) => v.id == element.id_proveedor);
+            const proveedor = useAppStore().provedores.find((v: ProveedorPricing) => v.id == element.id_proveedor);
             dataCostos.push({
               proveedor: proveedor ? proveedor.namelong : "",
               service: element.nameservice,

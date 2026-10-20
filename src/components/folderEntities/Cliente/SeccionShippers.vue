@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ProveedorShipper } from "@/types/entidades";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 
 const loading = ref(false);
@@ -46,7 +46,7 @@ async function mostrarDialogShippers() {
   dialogShippers.value = !dialogShippers.value;
 
   loading.value = true;
-  await rootStore.dispatch("_getProveedorRolShipper");
+  await appStore._getProveedorRolShipper();
   loading.value = false;
 }
 function eliminarShipper(index: number) {
@@ -101,12 +101,12 @@ async function modificarCliente() {
     return;
   }
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.actualizarCliente();
-  rootStore.state.spiner = false;
-  rootStore.state.recargarClienteFlag =
-    !rootStore.state.recargarClienteFlag;
-  rootStore.state.modalEntitie = false;
+  appStore.spiner = false;
+  appStore.recargarClienteFlag =
+    !appStore.recargarClienteFlag;
+  appStore.modalEntitie = false;
 
   entitiesStore.isReadonly = true;
   entitiesStore.isEdit = false;
@@ -223,7 +223,7 @@ async function modificarCliente() {
           />
           <v-data-table
             :headers="headersProveedoresRolShipper"
-            :items="rootStore.state.itemsProveedorRolShipper"
+            :items="appStore.itemsProveedorRolShipper"
             fixed-header
             class="elevation-1"
             v-model="lstSelectedShippers"

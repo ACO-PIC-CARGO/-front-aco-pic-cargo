@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { nextTick, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import controlAccountReceivable from "@/components/folderModulesPays/ControlAccountReceivableComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "NUEVA CUENTA POR COBRAR";
+  appStore.mainTitle = "NUEVA CUENTA POR COBRAR";
   nextTick(() => {
-    rootStore.state.drawer = false;
+    appStore.drawer = false;
   });
 });
 </script>

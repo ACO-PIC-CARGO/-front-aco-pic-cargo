@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 
@@ -23,7 +23,7 @@ const Costos = defineAsyncComponent(() =>
   ));
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -60,7 +60,7 @@ onMounted(async () => {
     pricingStore.getIncoterms(),
 
     pricingStore.getMultiplicador(),
-    rootStore.dispatch("cargarProveedores"),
+    appStore.cargarProveedores(),
     pricingStore.getBegEndList(),
     pricingStore.getTipoCostos(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
@@ -82,11 +82,11 @@ onMounted(async () => {
   await Promise.all(promisesToLoad);
   // this.mostrarStepS = true;
 
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 
   // this.$forceUpdate;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 

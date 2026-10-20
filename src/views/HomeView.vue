@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import HelloWorld from "../components/HelloWorld.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.dataControl_id_user = JSON.parse(sessionStorage.getItem("dataUser") as string)[0].id;
+  appStore.dataControl_id_user = JSON.parse(sessionStorage.getItem("dataUser") as string)[0].id;
 });
 </script>
 

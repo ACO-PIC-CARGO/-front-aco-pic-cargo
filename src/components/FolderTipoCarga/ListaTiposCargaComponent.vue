@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useShipmentStore } from "@/stores/shipment";
 import type { FiltroTipoCarga, FormTipoCarga } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
 
 const shipmentStore = useShipmentStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -70,7 +70,7 @@ const originalRecords = ref<FiltroTipoCarga>({ ...records.value });
 onMounted(async () => {
   await shipmentStore.fetchDataShipment(records.value);
   await shipmentStore.fetchDataCargarTransport();
-  rootStore.state.mainTitle = `Tipos de Carga`;
+  appStore.mainTitle = `Tipos de Carga`;
 });
 
 function updateStatus(newValue: unknown) {

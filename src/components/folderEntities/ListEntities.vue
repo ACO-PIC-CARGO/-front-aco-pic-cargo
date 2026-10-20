@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useEntitiesStore } from "@/stores/entities";
 import type { EntidadRolListado } from "@/types/entidades";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
+const entitiesStore = useEntitiesStore();
 
 const search = ref("");
 const headers = [
@@ -24,47 +26,47 @@ const headers = [
   { title: "Acciones", key: "actions" },
 ] as const;
 const btnTitle = ref("");
-const itemsEntities = computed<EntidadRolListado[]>(() => rootStore.state.itemsEntities);
+const itemsEntities = computed<EntidadRolListado[]>(() => appStore.itemsEntities);
 
 onMounted(async () => {
   console.log(route.params.id_role);
   if (Number(route.params.id_role) == 11) {
-    rootStore.state.menuName = "CLIENTES";
+    appStore.menuName = "CLIENTES";
     btnTitle.value = "CLIENTE";
   } else if (Number(route.params.id_role) == 15) {
-    rootStore.state.menuName = "PROVEEDORES";
+    appStore.menuName = "PROVEEDORES";
     btnTitle.value = "PROVEEDOR";
   }
-  await rootStore.dispatch("_getEntities", route.params.id_role);
+  await appStore._getEntities(route.params.id_role);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validData() {
   if (Number(route.params.id_role) == 11) {
-    rootStore.state.menuName = "CLIENTES";
+    appStore.menuName = "CLIENTES";
     btnTitle.value = "CLIENTE";
   } else if (Number(route.params.id_role) == 15) {
-    rootStore.state.menuName = "PROVEEDORES";
+    appStore.menuName = "PROVEEDORES";
     btnTitle.value = "PROVEEDOR";
   }
 }
 
 function openPhone(id_entitie: number) {
-  rootStore.state.id_entitie_selected = id_entitie;
-  rootStore.dispatch("_getPhone");
-  rootStore.state.modalPhonesEdit = !rootStore.state.modalPhonesEdit;
+  entitiesStore.id_entitie_selected = id_entitie;
+  appStore._getPhone();
+  appStore.modalPhonesEdit = !appStore.modalPhonesEdit;
 }
 
 function openContacts(id_entitie: number) {
-  rootStore.state.id_entitie_selected = id_entitie;
-  rootStore.dispatch("_getContacts");
-  rootStore.state.modalContactsEdit =
-    !rootStore.state.modalContactsEdit;
+  entitiesStore.id_entitie_selected = id_entitie;
+  appStore._getContacts();
+  appStore.modalContactsEdit =
+    !appStore.modalContactsEdit;
 }
 
 function sendData(id: number) {
-  rootStore.state.master_id_agente = id;
-  rootStore.state.modalAgente = false;
+  appStore.master_id_agente = id;
+  appStore.modalAgente = false;
 }
 
 function editEntitie(id: number) {
@@ -89,7 +91,7 @@ function itemRowBackground(item: EntidadRolListado) {
           elevation="0"
           rounded
           class="mb-2 ml-5"
-          :loading="!rootStore.state.dataList"
+          :loading="!appStore.dataList"
         >
           AGREGAR NUEVO
         </v-btn>
@@ -105,7 +107,7 @@ function itemRowBackground(item: EntidadRolListado) {
       </v-card-title>
 
       <v-container
-        v-if="!rootStore.state.dataList"
+        v-if="!appStore.dataList"
         style="height: 400px"
       >
         <v-row class="fill-height align-content-center justify-center">
@@ -127,7 +129,7 @@ function itemRowBackground(item: EntidadRolListado) {
       </v-container>
 
       <v-data-table
-        v-if="rootStore.state.dataList"
+        v-if="appStore.dataList"
         :row-props="({ item }) => ({ class: itemRowBackground(item) })"
         :headers="headers"
         :items="itemsEntities"

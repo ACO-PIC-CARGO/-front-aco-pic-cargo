@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import type { Row } from "read-excel-file/browser";
@@ -29,7 +29,7 @@ import type {
 } from "@/types/cotizacion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -54,7 +54,7 @@ let mostrarCostos: boolean | undefined;
 onMounted(async () => {
   pricingStore.step = 1;
   pricingStore.SET_RESET();
-  rootStore.state.mainTitle = "Nueva Cotización";
+  appStore.mainTitle = "Nueva Cotización";
   await Promise.all([
     // await this.resetQuoteNew(),
     pricingStore.getMarketingList(),
@@ -83,7 +83,7 @@ onMounted(async () => {
     pricingStore.getCargarMasterDetalleNotasCotizacion(),
     enterprisesStore.obtenerImpuestoXEmpresa(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
-    rootStore.dispatch("_getContainers"),
+    appStore._getContainers(),
   ]);
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
@@ -106,7 +106,7 @@ function continuarComparativa() {
   pricingStore.step = 3;
 }
 async function activarDatosCarga() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     pricingStore.getPortBegin({
       id_transport: ((pricingStore.datosPrincipales.idtipocarga as TipoCarga)
@@ -130,7 +130,7 @@ async function activarDatosCarga() {
     }
     // }, 100);
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function activarServicios() {
   ServicesComponentFlag.value = true;
@@ -182,7 +182,7 @@ async function activarServicios() {
     // }, 100);
   });
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function recargarServicios() {
   const services = [...pricingStore.preServices];
@@ -255,7 +255,7 @@ async function continuarLlenadoCostos() {
       : pricingStore.datosPrincipales.idtipocarga;
 
   const { esindividualflag, esgrupalflag } = pricingStore.datosPrincipales;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     pricingStore.getMultiplicador(),
 
@@ -272,7 +272,7 @@ async function continuarLlenadoCostos() {
       peso: pricingStore.datosPrincipales.peso,
     }),
   ]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   if (esgrupalflag) {
     await activarLlenadoCostosGrupal();
   } else if (esindividualflag) {
@@ -283,7 +283,7 @@ async function activarLlenadoCostosGrupal(
   indiceOpcion = 0,
   mostrarConfirmacion = true,
 ) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   const {
     datosPrincipales,
@@ -403,7 +403,7 @@ async function activarLlenadoCostosGrupal(
   opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
     .filter((v) => v.grupalflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   if (mostrarConfirmacion) {
     Swal.fire({
       icon: "question",
@@ -432,7 +432,7 @@ async function activarLlenadoCostosIndividual(
   indiceOpcion = 0,
   mostrarConfirmacion = true,
 ) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   const {
     datosPrincipales,
@@ -552,7 +552,7 @@ async function activarLlenadoCostosIndividual(
   opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
     .filter((v) => v.individualflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   if (mostrarConfirmacion) {
     Swal.fire({
       icon: "question",
@@ -700,12 +700,12 @@ function obtenerTransporteIndividual(item: Costo) {
   return monto;
 }
 async function guardar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   pricingStore.opcionCostos[0]!.selected = true;
   await pricingStore.registrarQuote({ fullflag: false }).catch(() => {});
   if (pricingStore.nro_quote) {
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     Swal.fire({
       icon: "success",
@@ -910,7 +910,7 @@ function triggerExcel() {
 async function onExcelSelected(e: { target: { files: FileList | null; value: string | null } }) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   try {
     const rows = await readXlsFile(file);
     const { actualizados } = cargarDesdeExcelDatosPrincipales(rows);
@@ -930,7 +930,7 @@ async function onExcelSelected(e: { target: { files: FileList | null; value: str
       text: "No se pudo leer el archivo Excel.",
     });
   } finally {
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     e.target.value = null;
   }
 }

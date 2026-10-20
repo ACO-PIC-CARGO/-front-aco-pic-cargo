@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
@@ -17,12 +17,12 @@ defineProps<{
   statusList?: string;
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
 
 const itemsReportFileAll = computed<ExpedienteMasterReporte[]>(
-  () => rootStore.state.itemsReportFileAll,
+  () => appStore.itemsReportFileAll,
 );
 
 const filterFlag = ref(false);
@@ -68,8 +68,8 @@ const resumenOperador = ref<Record<string, ResumenOperador> | never[]>([]);
 
 onMounted(async () => {
   loading.value = true;
-  await rootStore.dispatch("_getOperador");
-  await rootStore.dispatch("_getControlFileAll", filtro.value);
+  await appStore._getOperador();
+  await appStore._getControlFileAll(filtro.value);
   await getResumen();
   loading.value = false;
 });
@@ -80,7 +80,7 @@ function getFecha(fecha: string): string {
 }
 
 function getResumen(): void {
-  const data: ExpedienteMasterReporte[] = rootStore.state.itemsReportFileAll;
+  const data: ExpedienteMasterReporte[] = appStore.itemsReportFileAll;
   const operadoresInfo: Record<string, ResumenOperador> = {};
 
   // Itera sobre las etiquetas
@@ -112,9 +112,9 @@ function selectHouse(id: number): void {
 async function refreshReport(): Promise<void> {
   loading.value = true;
   filterFlag.value = true;
-  await rootStore.dispatch("_getControlFileAll", filtro.value);
+  await appStore._getControlFileAll(filtro.value);
   await getResumen();
-  rootStore.state.reportsDialog = false;
+  appStore.reportsDialog = false;
   filterFlag.value = false;
   loading.value = false;
 }
@@ -126,7 +126,7 @@ function getRowBackground(item: { background: string }): string {
 }
 
 async function _generatePDF(): Promise<boolean | undefined> {
-  if (rootStore.state.itemsReportFileAll.length == 0) {
+  if (appStore.itemsReportFileAll.length == 0) {
     Swal.fire({
       icon: "error",
       text: "No se encontraron registros",
@@ -146,7 +146,7 @@ function getColor(color: string): string {
 <template>
   <div>
     <v-dialog
-      v-model="rootStore.state.reportsDialog"
+      v-model="appStore.reportsDialog"
       width="600"
       persistent
     >
@@ -244,7 +244,7 @@ function getColor(color: string): string {
             />
           </v-radio-group>
           <v-autocomplete
-            :items="rootStore.state.itemsOperadorList"
+            :items="appStore.itemsOperadorList"
             item-value="id"
             item-title="namelong"
             label="Operador"
@@ -287,7 +287,7 @@ function getColor(color: string): string {
             color="error"
             :loading="loading"
             variant="text"
-            @click="rootStore.state.reportsDialog = !rootStore.state.reportsDialog"
+            @click="appStore.reportsDialog = !appStore.reportsDialog"
           >
             Cerrar
           </v-btn>
@@ -298,7 +298,7 @@ function getColor(color: string): string {
       <v-card-title class="d-flex align-center flex-wrap">
         LISTA DE EXPEDIENTES MASTER's
         <v-btn
-          @click="rootStore.state.reportsDialog = !rootStore.state.reportsDialog"
+          @click="appStore.reportsDialog = !appStore.reportsDialog"
           class="ml-4"
           rounded
           elevation="0"
@@ -459,7 +459,7 @@ function getColor(color: string): string {
           >
             <p>
               Total de Expedientes Master:
-              {{ rootStore.state.itemsReportFileAll.length }}
+              {{ appStore.itemsReportFileAll.length }}
             </p>
           </v-col>
 

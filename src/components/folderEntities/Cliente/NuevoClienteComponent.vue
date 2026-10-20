@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import SeccionCliente from "./SeccionCliente.vue";
 import SeccionTelefonos from "./SeccionTelefonos.vue";
 import SeccionConvenios from "./SeccionConvenios.vue";
@@ -19,7 +19,7 @@ withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 const emit = defineEmits<{ btnGuardar: [value: boolean] }>();
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -73,7 +73,7 @@ function getIDTipoPersona(criterio = "") {
 function getIDTipoDocumento(criterio = "") {
   let id = null;
 
-  const tipoDocumentoData = (rootStore.state.itemsDocumentsPais as DocumentoPais[]).find(
+  const tipoDocumentoData = (appStore.itemsDocumentsPais as DocumentoPais[]).find(
     (v) => v.name.toUpperCase() == criterio.toUpperCase()
   );
   if (tipoDocumentoData) {
@@ -84,20 +84,20 @@ function getIDTipoDocumento(criterio = "") {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   //this.$refs.formProveedor.reset();
   await Promise.all([
-    rootStore.dispatch("_getDocumentsPais"),
+    appStore._getDocumentsPais(),
     masterusuariosStore.cargarMasterDetalleTipoProveedor(),
-    rootStore.dispatch("_getPais"),
+    appStore._getPais(),
     masterusuariosStore.cargarMasterDetalleTipoTransaccion(),
     masterusuariosStore.cargarTipoTelefono(),
-    rootStore.dispatch("_getRole"),
+    appStore._getRole(),
     coinsStore.getCoinsListCargar(),
     bankStore.getBanksListCargar(),
-    rootStore.dispatch("_getSex"),
+    appStore._getSex(),
     masterusuariosStore.cargarTipoPersona(),
-    rootStore.dispatch("_getProveedorRolShipper"),
+    appStore._getProveedorRolShipper(),
   ]);
   entitiesStore.stepper = 1;
   entitiesStore.isEdit = false;
@@ -147,14 +147,14 @@ onMounted(async () => {
     tipoTelefono;
   entitiesStore.cliente.contactoActual.id_tipotelefono =
     tipoTelefono;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
 <template>
   <div>
     <v-overlay
-      :model-value="rootStore.state.spiner"
+      :model-value="appStore.spiner"
       class="align-center justify-center"
     >
       <v-row class="fill-height align-content-center justify-center">

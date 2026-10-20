@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
@@ -19,7 +19,7 @@ const ConfigCotizacion = defineAsyncComponent(() =>
 // ListCall: () => import("../folderPricing/comun/listCall.vue"),
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -37,9 +37,9 @@ function redirect() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function filtrarCotizaciones(item: ResumenEstadoCotizacion) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function guardarConfig() {
   await configEmpresaStore.GuardarConfiguracionEmpresa();
@@ -48,19 +48,19 @@ async function guardarConfig() {
 }
 
 onMounted(async () => {
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
   pricingStore.e1 = 1;
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
   dialog.value = !val.existecot;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([pricingStore.getListQuote(), pricingStore.getQuoteCall()]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await Promise.all([
     pricingStore.cargarTrabajadores(),
     pricingStore.getQuoteStatus(),
     pricingStore.getMarketingList(),
     pricingStore.getResumenPorEstado(),
-    rootStore.dispatch("cargarClientes"),
+    appStore.cargarClientes(),
     masterusuariosStore.cargarTemperaturaLeds(),
     // this.getListEnviadoCliente(),
     // this.getListRecibidoCotizacion(),

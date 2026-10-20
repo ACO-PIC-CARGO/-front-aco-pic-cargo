@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const OpcionesMembresia = defineAsyncComponent(() =>
   import("@/components/Membresia/OpcionesMembresia.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.drawer = false;
-  rootStore.state.mainTitle = "Membresía";
+  appStore.drawer = false;
+  appStore.mainTitle = "Membresía";
 });
 </script>
 

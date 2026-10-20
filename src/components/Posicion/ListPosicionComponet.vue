@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { usePositionStore } from "@/stores/position";
 import type { PosicionListado } from "@/types/seguridad";
 import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const positionStore = usePositionStore();
 
 const search = ref("");
@@ -67,8 +67,8 @@ async function nuevo() {
     status: 1,
     id_branch: sessionBranchId(),
   };
-  await rootStore.dispatch("_getState", positionStore.model.id_state);
-  await rootStore.dispatch("_getCity", positionStore.model.id_state);
+  await appStore._getState(positionStore.model.id_state);
+  await appStore._getCity(positionStore.model.id_state);
   positionStore.drawer = !positionStore.drawer;
   loadingNuevo.value = !loadingNuevo.value;
 }
@@ -101,7 +101,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await positionStore.GetListPosition();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
 });
 </script>
 

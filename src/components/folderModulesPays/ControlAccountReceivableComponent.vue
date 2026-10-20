@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -16,7 +16,6 @@ import type {
   ConceptoCuenta,
   ConceptoNuevo,
   ExpedienteCuenta,
-  MonedaCuenta,
   TotalCuenta,
 } from "@/types/modulesPays";
 
@@ -31,11 +30,11 @@ const props = defineProps<{
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const balancesStore = useBalancesStore();
 const housesStore = useHousesStore();
 const enterprisesStore = useEnterprisesStore();
-const InvoiceAdmin = computed(() => rootStore.state.InvoiceAdmin);
+const InvoiceAdmin = computed(() => appStore.InvoiceAdmin);
 const validacionConcepto = useTemplateRef("validacionConcepto");
 
 const tipoingreso = ref<number | null>(null);
@@ -65,7 +64,8 @@ const id_cliente = ref<string | number>("");
 const fecha = ref("");
 const nro_factura = ref("");
 const nro_serie = ref("");
-const id_coins = ref("" as unknown as MonedaCuenta);
+type MonedaFila = (typeof appStore.itemsCoinsList)[number];
+const id_coins = ref("" as unknown as MonedaFila);
 const monto = ref("");
 const igv = ref("");
 const total = ref<TotalCuenta>({
@@ -216,7 +216,7 @@ function _valida() {
     id_expediente.value = props.exp!;
     _getProformace();
     id_proformace.value = props.pro as unknown as ComprobanteCuenta;
-    rootStore.dispatch("cargarProveedores");
+    appStore.cargarProveedores();
     id_proveedor = props.id_pro;
   }
 }
@@ -231,8 +231,8 @@ function sendPro(id: ComprobanteCuenta, idPro: number) {
   dialogPro.value = false;
 }
 function _callModalEntitie() {
-  rootStore.state.id_role_actual = 11;
-  rootStore.state.modalAdmin = !rootStore.state.modalAdmin;
+  appStore.id_role_actual = 11;
+  appStore.modalAdmin = !appStore.modalAdmin;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _uploadFile() {
@@ -312,7 +312,7 @@ function cleanData() {
   fecha.value = "";
   nro_factura.value = "";
   nro_serie.value = "";
-  id_coins.value = "" as unknown as MonedaCuenta;
+  id_coins.value = "" as unknown as MonedaFila;
   monto.value = "";
   igv.value = "";
   total.value = "" as unknown as TotalCuenta;
@@ -655,57 +655,57 @@ function mostrarColumna() {
 }
 
 watch(InvoiceAdmin, async () => {
-  id_proformace.value = InvoiceAdmin.value[0].id_proformace;
-  id_expediente.value = InvoiceAdmin.value[0].id_expediente;
-  id_cliente.value = InvoiceAdmin.value[0].id_cliente;
-  date.value = new Date(InvoiceAdmin.value[0].fecha)
+  id_proformace.value = InvoiceAdmin.value[0]!.id_proformace;
+  id_expediente.value = InvoiceAdmin.value[0]!.id_expediente;
+  id_cliente.value = InvoiceAdmin.value[0]!.id_cliente;
+  date.value = new Date(InvoiceAdmin.value[0]!.fecha)
     .toISOString()
     .substring(0, 10);
-  nro_factura.value = InvoiceAdmin.value[0].nro_factura;
-  nro_serie.value = InvoiceAdmin.value[0].nro_serie;
-  id_coins.value = InvoiceAdmin.value[0].id_coins
-    ? InvoiceAdmin.value[0].id_coins
-    : "";
-  monto.value = InvoiceAdmin.value[0].monto;
-  radio.value = InvoiceAdmin.value[0].type_payment;
-  payPathName.value = InvoiceAdmin.value[0].originalname;
-  payPath.value = InvoiceAdmin.value[0].path;
-  id_path.value = InvoiceAdmin.value[0].id_path;
-  id_proformace.value = InvoiceAdmin.value[0].id_proformance;
-  id_month.value = InvoiceAdmin.value[0].id_month;
-  id_year.value = InvoiceAdmin.value[0].id_year;
-  tipocambio.value = InvoiceAdmin.value[0].tipocambio;
-  name_path.value = InvoiceAdmin.value[0].name_path;
+  nro_factura.value = InvoiceAdmin.value[0]!.nro_factura;
+  nro_serie.value = InvoiceAdmin.value[0]!.nro_serie;
+  id_coins.value = (InvoiceAdmin.value[0]!.id_coins
+    ? InvoiceAdmin.value[0]!.id_coins
+    : "") as MonedaFila;
+  monto.value = InvoiceAdmin.value[0]!.monto;
+  radio.value = InvoiceAdmin.value[0]!.type_payment;
+  payPathName.value = InvoiceAdmin.value[0]!.originalname;
+  payPath.value = InvoiceAdmin.value[0]!.path;
+  id_path.value = InvoiceAdmin.value[0]!.id_path;
+  id_proformace.value = InvoiceAdmin.value[0]!.id_proformance;
+  id_month.value = InvoiceAdmin.value[0]!.id_month;
+  id_year.value = InvoiceAdmin.value[0]!.id_year;
+  tipocambio.value = InvoiceAdmin.value[0]!.tipocambio;
+  name_path.value = InvoiceAdmin.value[0]!.name_path;
 
-  tipoingreso.value = InvoiceAdmin.value[0].id_tipoingreso;
-  id_tipoingreso.value = InvoiceAdmin.value[0].id_subingreso;
+  tipoingreso.value = InvoiceAdmin.value[0]!.id_tipoingreso;
+  id_tipoingreso.value = InvoiceAdmin.value[0]!.id_subingreso;
   // DETALLES
 
-  itemsproductos.value = InvoiceAdmin.value[0].details;
+  itemsproductos.value = InvoiceAdmin.value[0]!.details;
 });
 watch(tipoingreso, () => {
   filtarSubIngreso();
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     enterprisesStore.obtenerImpuestoXEmpresa(),
     cleanData(),
     balancesStore.getArbolIngresos(),
     housesStore.getCargarHouse(),
     _valida(),
-    rootStore.dispatch("_getPerformance"),
-    rootStore.dispatch("_getChargeMonth"),
-    rootStore.dispatch("_getChargeYear"),
+    appStore._getPerformance(),
+    appStore._getChargeMonth(),
+    appStore._getChargeYear(),
     balancesStore.getCargarTipoIngreso(),
     balancesStore.getCargarTipoSubIngreso(),
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarClientes(),
+    appStore._getCoinsList(),
     filtarSubIngreso(),
   ]);
   if (!!route.params.id) {
-    await rootStore.dispatch("_getInvoiceAdminCxC", route.params.id);
+    await appStore._getInvoiceAdminCxC(route.params.id as string);
     calculcularTotal();
   }
 
@@ -715,7 +715,7 @@ onMounted(async () => {
     afecto: "true",
     total: 0,
   };
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -777,7 +777,7 @@ onMounted(async () => {
               >
                 <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
                 <v-autocomplete
-                  :items="rootStore.state.month"
+                  :items="appStore.month"
                   item-title="description"
                   item-value="id"
                   label="Mes del Ingreso"
@@ -791,7 +791,7 @@ onMounted(async () => {
               >
                 <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
                 <v-autocomplete
-                  :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
                   item-title="description"
                   item-value="id"
                   label="Año del Ingreso"
@@ -841,7 +841,7 @@ onMounted(async () => {
             md="6"
           >
             <v-autocomplete
-              :items="rootStore.state.performances"
+              :items="appStore.performances"
               item-title="description"
               item-value="id"
               label="Tipo de Comprobante"
@@ -856,7 +856,7 @@ onMounted(async () => {
             md="6"
           >
             <v-autocomplete
-              :items="rootStore.state.clientes"
+              :items="appStore.clientes"
               item-title="namelong"
               item-value="id"
               label="Cliente"
@@ -915,7 +915,7 @@ onMounted(async () => {
           >
             <v-autocomplete
               :disabled="radio == ''"
-              :items="rootStore.state.itemsCoinsList"
+              :items="appStore.itemsCoinsList"
               v-model="id_coins"
               item-title="acronym"
               item-value="id"

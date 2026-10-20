@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useBankStore } from "@/stores/bank";
 import type { BancoFila, FiltroBancos } from "@/types/finanzas";
@@ -11,7 +11,7 @@ import type {
 } from "@/types/banksProveedor";
 import { sessionBranchId } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const frmCuenta = useTemplateRef("frmCuenta");
 const formNew = useTemplateRef("formNew");
@@ -273,8 +273,8 @@ originalRecord.value = { ...record.value };
 originalRecords.value = { ...records.value };
 onMounted(async () => {
   await bankStore.fetchDataBank(records.value);
-  rootStore.state.mainTitle = `Banco`;
-  await rootStore.dispatch("_getCoinsList", records.value);
+  appStore.mainTitle = `Banco`;
+  await (appStore._getCoinsList as (records: unknown) => Promise<void>)(records.value);
 });
 </script>
 
@@ -818,7 +818,7 @@ onMounted(async () => {
           >
             <template #[`item.coins`]="{ item }">
               <v-autocomplete
-                :items="rootStore.state.itemsCoinsList"
+                :items="appStore.itemsCoinsList"
                 v-model="item.id_coin"
                 item-title="acronym"
                 item-value="id"
@@ -880,7 +880,7 @@ onMounted(async () => {
         <v-card-text>
           <v-form ref="frmCuenta">
             <v-autocomplete
-              :items="rootStore.state.itemsCoinsList"
+              :items="appStore.itemsCoinsList"
               v-model="cuenta.id_coin"
               item-title="acronym"
               item-value="id"

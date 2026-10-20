@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useIncotermStore } from "@/stores/incoterm";
 import type { FiltroIncoterms, FormIncoterm } from "@/types/catalogos";
 import type { Incoterm } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
 
 const incotermStore = useIncotermStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "name" },
@@ -65,7 +65,7 @@ const originalRecords = ref<FiltroIncoterms>({ ...records.value });
 
 onMounted(async () => {
   await incotermStore.fetchDataIncoterms(records.value);
-  rootStore.state.mainTitle = `Incoterm`;
+  appStore.mainTitle = `Incoterm`;
 });
 
 function updateStatus(newValue: unknown) {

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
@@ -14,7 +14,7 @@ import type {
 } from "@/types/proyecciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
@@ -119,7 +119,7 @@ function agregarFilaNueva(item?: FilaProyeccion): void {
 }
 
 function calcularMontoFinal(item: FilaProyeccion): void {
-  const symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.id == item.id_coin,
   )[0]!.symbol;
   if (symbol != "USD") {
@@ -137,7 +137,7 @@ function calcularTotales(): void {
   let montolocal = 0;
   let totalmonlocalSuma = 0;
   let totalfinalSuma = 0;
-  const id_dolar = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const id_dolar = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.symbol == "USD",
   )[0]!.id;
   items.value
@@ -167,7 +167,7 @@ function calcularTotalTipoCambio(): void {
     .filter((v) => !!v.estado)
     .forEach((item) => {
       if (item.id_coin) {
-        symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+        symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
           (v) => v.id == item.id_coin,
         )[0]!.symbol;
         if (symbol != "USD") {
@@ -280,12 +280,12 @@ async function editar(): Promise<void> {
   }
 }
 async function validateAprobacion(): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const data = { id_month: id_month.value, id_year: id_year.value };
   const res = (await proyeccionesStore.validateProyeccionAprobacion(
     data,
   )) as RespuestaValidacionAprobacion;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   if (!!res.estado) {
     Swal.fire({
       icon: "question",
@@ -307,14 +307,14 @@ async function validateAprobacion(): Promise<void> {
   }
 }
 async function apProyeccion(): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const data = {
     id: route.params.id,
   };
   await proyeccionesStore.aprobarProyeccion(data);
   await proyeccionesStore.verProyeccion(route.params.id as string);
   setData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function copyProyeccion(): Promise<void> {
   loading.value = true;
@@ -332,19 +332,19 @@ async function copyProyeccion(): Promise<void> {
 
 onMounted(async () => {
   monExt.value = moneda.value = (sessionSucursal() as SucursalSesionProyeccion).moneda[0]!.symbol;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await balancesStore.getCargarTipoGastos();
   await balancesStore.getCargarTipoSubGastos();
-  await rootStore.dispatch("_getCoinsList");
-  await rootStore.dispatch("cargarProveedores");
-  await rootStore.dispatch("_getChargeYear");
-  await rootStore.dispatch("_getChargeMonth");
+  await appStore._getCoinsList();
+  await appStore.cargarProveedores();
+  await appStore._getChargeYear();
+  await appStore._getChargeMonth();
   await proyeccionesStore.verProyeccion(route.params.id as string);
 
   setTimeout(() => {
     setData();
-    rootStore.state.spiner = false;
-    rootStore.state.drawer = false;
+    appStore.spiner = false;
+    appStore.drawer = false;
   }, 2000);
 });
 </script>
@@ -366,7 +366,7 @@ onMounted(async () => {
                 md="2"
               >
                 <v-select
-                  :items="rootStore.state.month"
+                  :items="appStore.month"
                   v-model="id_month"
                   label="Mes"
                   density="compact"
@@ -381,7 +381,7 @@ onMounted(async () => {
                 md="2"
               >
                 <v-select
-                  :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
                   v-model="id_year"
                   label="Año"
                   density="compact"
@@ -503,7 +503,7 @@ onMounted(async () => {
             </template>
             <template #[`item.proveedor`]="{ item }">
               <v-autocomplete
-                :items="rootStore.state.provedores"
+                :items="appStore.provedores"
                 v-model="item.id_entitie"
                 item-title="namelong"
                 placeholder="Proveedor"
@@ -532,7 +532,7 @@ onMounted(async () => {
             </template>
             <template #[`item.moneda`]="{ item }">
               <v-select
-                :items="rootStore.state.itemsCoinsList"
+                :items="appStore.itemsCoinsList"
                 item-title="symbol"
                 v-model="item.id_coin"
                 label="Moneda"
@@ -627,7 +627,7 @@ onMounted(async () => {
           <v-row>
             <v-col cols="12">
               <v-select
-                :items="rootStore.state.month"
+                :items="appStore.month"
                 v-model="id_monthn"
                 label="Mes"
                 density="compact"
@@ -639,7 +639,7 @@ onMounted(async () => {
 
             <v-col cols="12">
               <v-select
-                :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                :items="Array.isArray(appStore.year) ? appStore.year : []"
                 v-model="id_yearn"
                 label="Año"
                 density="compact"

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useStatesStore } from "@/stores/states";
 import type { EstadoRegion } from "@/types/catalogos";
 
 const statesStore = useStatesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const loading = ref(false);
 const StateModel = ref<Partial<EstadoRegion>>({});
@@ -99,7 +99,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Pais"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           v-model="statesStore.StateFilter.id_pais"
           item-title="name"
           item-value="id"
@@ -177,7 +177,7 @@ async function Aceptar() {
           <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="rootStore.state.itemsPais"
+            :items="appStore.itemsPais"
             v-model="statesStore.StateModel.id_pais"
             :readonly="statesStore.tipo == 'ver'"
             item-title="name"

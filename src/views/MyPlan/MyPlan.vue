@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { storeToRefs } from "pinia";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import "@/styles/plans-theme.css";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDialog.vue";
@@ -43,7 +43,7 @@ const readCompanyName = (): string => {
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const {
   plan,
@@ -85,7 +85,7 @@ watch(plan, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.mainTitle = "MI PLAN";
+  appStore.mainTitle = "MI PLAN";
   const { query } = route;
   const transactionId = query.transaccion as string | undefined;
   if (transactionId || query.paquete) router.replace({ name: "miPlan" });

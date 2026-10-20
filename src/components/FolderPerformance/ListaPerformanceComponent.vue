@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePerformanceStore } from "@/stores/performance";
 import type { FiltroPerformance, FormPerformance, Performance } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const performanceStore = usePerformanceStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -64,7 +64,7 @@ const originalRecords = ref<FiltroPerformance>({ ...records.value });
 
 onMounted(async () => {
   await performanceStore.fetchDataPerformance(records.value);
-  rootStore.state.mainTitle = `Tipos de Documentos Comerciales`;
+  appStore.mainTitle = `Tipos de Documentos Comerciales`;
 });
 
 function updateStatus(newValue: unknown) {

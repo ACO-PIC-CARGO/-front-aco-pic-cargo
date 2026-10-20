@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useComentariosPredefinidosStore } from "@/stores/comentariosPredefinidos";
 import type { ComentarioPredefinido, FiltroComentariosPredefinidos, FormComentarioPredefinido } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const comentariosPredefinidosStore = useComentariosPredefinidosStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code", width: "15%" },
@@ -55,7 +55,7 @@ watch(
 onMounted(async () => {
   await comentariosPredefinidosStore.fetchListadoComentariosPredefinidos(filterData.value);
 
-  rootStore.state.mainTitle = "LISTADO DE COMENTARIOS PREDEFINIDOS DE BITÁCORA";
+  appStore.mainTitle = "LISTADO DE COMENTARIOS PREDEFINIDOS DE BITÁCORA";
 });
 
 function validateCodigo(v: string | null) {

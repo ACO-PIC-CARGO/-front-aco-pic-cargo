@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -21,7 +21,7 @@ const props = defineProps<{
 }>();
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const securitysStore = useSecuritysStore();
 
 const filtroflag = ref(false);
@@ -288,7 +288,7 @@ async function _putInvoice() {
     });
 }
 async function _getInvoiceAdminCxC() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const config = {
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getInvoiceAdminCxC",
@@ -323,7 +323,7 @@ async function _getInvoiceAdminCxC() {
     .catch(function (error) {
       console.error(error);
     });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   filtroflag.value = false;
 }
 async function delPro(id: number) {
@@ -412,10 +412,10 @@ async function EliminarCuenta(id: number) {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await _getInvoiceAdminCxC();
-  rootStore.state.spiner = false;
-  rootStore.dispatch("cargarClientes");
+  appStore.spiner = false;
+  appStore.cargarClientes();
 });
 </script>
 
@@ -636,7 +636,7 @@ onMounted(async () => {
         <v-divider />
         <v-card-text>
           <v-autocomplete
-            :items="rootStore.state.clientes"
+            :items="appStore.clientes"
             v-model="id_cliente"
             item-title="namelong"
             item-value="id"

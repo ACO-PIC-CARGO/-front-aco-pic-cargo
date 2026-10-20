@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
@@ -51,7 +51,7 @@ const UnificarCotizacion = defineAsyncComponent(
 );
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -63,16 +63,16 @@ const mostrarStepS = ref(false);
 
 onMounted(async () => {
   // this.$store.commit("SET_RESET");
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   verFlag.value = false;
   await Promise.all([
     pricingStore.getQuote({ id: route.params.id as string }),
     pricingStore.getShipment(),
   ]);
 
-  rootStore.state.mainTitle = `VER  COTIZACIÓN - ${pricingStore.nro_quote}`;
+  appStore.mainTitle = `VER  COTIZACIÓN - ${pricingStore.nro_quote}`;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   verFlag.value = true;
 
   // Buscar el tipo de carga y validar que existe
@@ -90,7 +90,7 @@ onMounted(async () => {
     pricingStore.getIncoterms(),
     pricingStore.getPersonalPricing(),
     pricingStore.getMultiplicador(),
-    rootStore.dispatch("cargarProveedores"),
+    appStore.cargarProveedores(),
     pricingStore.getBegEndList(),
     pricingStore.getTipoCostos(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
@@ -131,7 +131,7 @@ onMounted(async () => {
 
   pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
 
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
   if (route.params.step) {
     nextTick(() => {
       setTimeout(() => {

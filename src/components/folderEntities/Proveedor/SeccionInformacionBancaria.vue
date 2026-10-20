@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useCoinsStore } from "@/stores/coins";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useBankStore } from "@/stores/bank";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -96,9 +96,9 @@ async function modificarProveedor() {
     return;
   }
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.actualizarProveedor();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 
   entitiesStore.isReadonly = true;
   entitiesStore.isEdit = false;

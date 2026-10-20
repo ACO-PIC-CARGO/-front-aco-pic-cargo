@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const NuevoComponent = defineAsyncComponent(() =>
   import("@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `REGISTRAR PROVEEDOR`;
+  appStore.mainTitle = `REGISTRAR PROVEEDOR`;
 });
 </script>
 

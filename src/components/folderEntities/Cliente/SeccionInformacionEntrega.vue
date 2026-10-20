@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import type { Pais } from "@/types/catalogos";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 
 const isFormReadonly = computed(() => {
@@ -30,7 +30,7 @@ function validarTelefono(v: string) {
   return true;
 }
 function getPrefix() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   if (pais) {
@@ -39,7 +39,7 @@ function getPrefix() {
   return "+xx";
 }
 function obtenerFlag() {
-  const pais = (rootStore.state.itemsPais as Pais[]).find(
+  const pais = (appStore.itemsPais as Pais[]).find(
     (v) => v.id == entitiesStore.cliente.id_pais,
   );
   let flag = "";
@@ -59,12 +59,12 @@ async function modificarCliente() {
     return;
   }
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.actualizarCliente();
-  rootStore.state.spiner = false;
-  rootStore.state.recargarClienteFlag =
-    !rootStore.state.recargarClienteFlag;
-  rootStore.state.modalEntitie = false;
+  appStore.spiner = false;
+  appStore.recargarClienteFlag =
+    !appStore.recargarClienteFlag;
+  appStore.modalEntitie = false;
 
   entitiesStore.isReadonly = true;
   entitiesStore.isEdit = false;
@@ -151,7 +151,7 @@ async function modificarCliente() {
             >
               <v-autocomplete
                 density="compact"
-                :items="rootStore.state.itemsState"
+                :items="appStore.itemsState"
                 item-title="name"
                 item-value="id"
                 label="Departamento"
@@ -159,10 +159,7 @@ async function modificarCliente() {
                   entitiesStore.informacionEntrega.id_departamento
                 "
                 @update:model-value="
-                  rootStore.dispatch(
-                    '_getCity',
-                    entitiesStore.informacionEntrega.id_departamento,
-                  )
+                  appStore._getCity(entitiesStore.informacionEntrega.id_departamento)
                 "
               />
             </v-col>
@@ -174,16 +171,13 @@ async function modificarCliente() {
             >
               <v-autocomplete
                 density="compact"
-                :items="rootStore.state.itemsCity"
+                :items="appStore.itemsCity"
                 item-title="name"
                 item-value="id"
                 label="Provincia"
                 v-model="entitiesStore.informacionEntrega.id_provincia"
                 @update:model-value="
-                  rootStore.dispatch(
-                    '_getTown',
-                    entitiesStore.informacionEntrega.id_provincia,
-                  )
+                  appStore._getTown(entitiesStore.informacionEntrega.id_provincia)
                 "
               />
             </v-col>
@@ -195,7 +189,7 @@ async function modificarCliente() {
             >
               <v-autocomplete
                 density="compact"
-                :items="rootStore.state.itemsTown"
+                :items="appStore.itemsTown"
                 item-title="name"
                 item-value="id"
                 label="Distrito"

@@ -1,21 +1,22 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
+import type { ServicioHouse } from "@/types/operaciones";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.dispatch("_getBegEndList");
+  appStore._getBegEndList();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleanData() {
-  rootStore.state.services_name = "";
-  rootStore.state.services_price = "";
+  appStore.services_name = "";
+  appStore.services_price = "";
 }
 function _getHouseServices() {
   const data = {
@@ -31,9 +32,9 @@ function _getHouseServices() {
     },
     data: data,
   };
-  axios<ApiResponse>(config)
+  axios<ApiResponse<ServicioHouse[]>>(config)
     .then(function (response) {
-      rootStore.state.itemsHouseServices = response.data.data;
+      appStore.itemsHouseServices = response.data.data;
     })
     .catch(function (error) {
       console.error(error);
@@ -42,9 +43,9 @@ function _getHouseServices() {
 function _setServices() {
   const data = {
     id_house: route.params.id,
-    id_begend: rootStore.state.service_id_begend,
-    nameservice: rootStore.state.services_name,
-    price_services: rootStore.state.services_price,
+    id_begend: appStore.service_id_begend,
+    nameservice: appStore.services_name,
+    price_services: appStore.services_price,
     status: 1,
   };
   const config = {
@@ -59,7 +60,7 @@ function _setServices() {
   axios<{ status: number }>(config)
     .then(function (response) {
       if (response.data.status == 200) {
-        rootStore.state.modalServices = false;
+        appStore.modalServices = false;
         _getHouseServices();
       }
     })
@@ -75,22 +76,22 @@ function _setServices() {
       <v-row density="compact">
         <v-col cols="12">
           <v-autocomplete
-            :items="rootStore.state.itemsBegEndList"
+            :items="appStore.itemsBegEndList"
             item-title="name"
             item-value="id"
-            v-model="rootStore.state.service_id_begend"
+            v-model="appStore.service_id_begend"
           />
         </v-col>
         <v-col cols="12">
           <v-text-field
-            v-model="rootStore.state.services_name"
+            v-model="appStore.services_name"
             label="Nombre del servicio"
           />
         </v-col>
         <v-col cols="12">
           <v-text-field
             type="number"
-            v-model="rootStore.state.services_price"
+            v-model="appStore.services_price"
             label="Precio"
           />
         </v-col>

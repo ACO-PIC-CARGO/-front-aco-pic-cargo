@@ -1,21 +1,21 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
 import { usePricingStore } from "@/stores/pricing";
 
 defineProps<{ isFormActionsDisabled?: boolean }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
-const itemsContainers = computed(() => rootStore.state.itemsContainers);
+const itemsContainers = computed(() => appStore.itemsContainers);
 
 function cleanData() {
-  rootStore.state.house_cantidad = "";
+  housesStore.house_cantidad = "";
 }
 function _deleteContainers(id: number) {
   const data = {
@@ -32,7 +32,7 @@ function _deleteContainers(id: number) {
   axios(config)
     .then(function (response) {
       if (response.data.status == 200) {
-        rootStore.dispatch("_getHouseContainers");
+        housesStore._getHouseContainers(undefined as never);
       }
     })
     .catch(function (error) {
@@ -66,7 +66,7 @@ function _setHouseContainers(
     .then(function (response) {
       if (response.data.status == 200) {
         //vm.$store.state.modalServices = false;
-        rootStore.dispatch("_getHouseContainers");
+        housesStore._getHouseContainers(undefined as never);
         cleanData();
       }
     })
@@ -122,25 +122,25 @@ async function _validaData() {
     //   .catch(function (error) {
     //     console.error(error);
     //   });
-    await rootStore.dispatch("_getHouseContainers");
+    await housesStore._getHouseContainers(undefined as never);
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _callModalEntitie(id_role: number) {
-  rootStore.state.id_role_actual = id_role;
+  appStore.id_role_actual = id_role;
   if (id_role == 1) {
-    rootStore.state.modalAgente = !rootStore.state.modalAgente;
+    appStore.modalAgente = !appStore.modalAgente;
   } else if (id_role == 11) {
-    rootStore.state.modalEntitie = !rootStore.state.modalEntitie;
+    appStore.modalEntitie = !appStore.modalEntitie;
   } else if (id_role == 17) {
-    rootStore.state.modalColoader = !rootStore.state.modalColoader;
+    appStore.modalColoader = !appStore.modalColoader;
   } else if (id_role == 2) {
-    rootStore.state.modalNaviera = !rootStore.state.modalNaviera;
+    appStore.modalNaviera = !appStore.modalNaviera;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _setDataContainers(id: number, name: string, cantidad: number) {
-  rootStore.state.master_itemsContainers.push({
+  appStore.master_itemsContainers.push({
     id: id,
     name: name,
     // @ts-expect-error nrocontainer is not defined in this scope
@@ -152,34 +152,34 @@ function _setDataContainers(id: number, name: string, cantidad: number) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _delContainers(index: number) {
-  rootStore.state.master_itemsContainers.splice(index, 1);
+  appStore.master_itemsContainers.splice(index, 1);
 }
 function limpiarData() {
-  rootStore.state.house_id_agente = "";
-  rootStore.state.house_id_consigner = "";
-  rootStore.state.house_id_notify = "";
-  rootStore.state.house_id_airlines = "";
-  rootStore.state.house_id_coloader = "";
-  rootStore.state.house_id_agente = "";
-  rootStore.state.house_id_naviera = "";
-  rootStore.state.house_blmaster = "";
-  rootStore.state.house_id_motonave = "";
-  rootStore.state.house_viaje = "";
-  rootStore.state.house_bultos = "";
-  rootStore.state.house_peso = "";
-  rootStore.state.house_volumen = "";
-  rootStore.state.house_id_condicion = "";
-  rootStore.state.house_id_coins = "";
-  rootStore.state.house_monto = "";
-  rootStore.state.house_id = "";
+  housesStore.house_id_agente = "";
+  appStore.house_id_consigner = "";
+  housesStore.house_id_notify = "";
+  housesStore.house_id_airlines = "";
+  housesStore.house_id_coloader = "";
+  housesStore.house_id_agente = "";
+  housesStore.house_id_naviera = "";
+  housesStore.house_blmaster = "";
+  housesStore.house_id_motonave = "";
+  housesStore.house_viaje = "";
+  housesStore.house_bultos = "";
+  housesStore.house_peso = "";
+  housesStore.house_volumen = "";
+  housesStore.house_id_condicion = "";
+  housesStore.house_id_coins = "";
+  housesStore.house_monto = "";
+  housesStore.house_id = "";
 }
 
 onMounted(async () => {
   limpiarData();
   await Promise.all([
-    rootStore.dispatch("_getProveedor"),
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getProveedorRolShipper"),
+    appStore._getProveedor(),
+    appStore.cargarClientes(),
+    appStore._getProveedorRolShipper(),
     // this.getListQuote(),
   ]);
 
@@ -310,7 +310,7 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="rootStore.state.master_id_trasnport.id == 2"
+        v-if="appStore.master_id_trasnport.id == 2"
       >
         <v-autocomplete
           :items="itemsContainers"
@@ -318,7 +318,7 @@ onMounted(async () => {
           item-value="id"
           return-object
           label="Tipo de contenedor"
-          v-model="rootStore.state.house_id_containers"
+          v-model="housesStore.house_id_containers"
         />
       </v-col>
       <v-col
@@ -326,11 +326,11 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="rootStore.state.master_id_trasnport.id == 2"
+        v-if="appStore.master_id_trasnport.id == 2"
       >
         <v-text-field
           label="N°. Contenedor"
-          v-model="rootStore.state.house_nro_containers"
+          v-model="housesStore.house_nro_containers"
         />
       </v-col>
       <v-col
@@ -338,11 +338,11 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="rootStore.state.master_id_trasnport.id == 2"
+        v-if="appStore.master_id_trasnport.id == 2"
       >
         <v-text-field
           label="N°. Precinto"
-          v-model="rootStore.state.house_nro_precinto"
+          v-model="housesStore.house_nro_precinto"
         />
       </v-col>
       <v-col
@@ -350,10 +350,10 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="rootStore.state.master_id_trasnport.id == 2"
+        v-if="appStore.master_id_trasnport.id == 2"
       >
         <v-text-field
-          v-model="rootStore.state.house_cantidad"
+          v-model="housesStore.house_cantidad"
           label="Cant."
         >
           <template #append-inner>
@@ -361,11 +361,11 @@ onMounted(async () => {
               class="btn__add"
               @click="
                 _setHouseContainers(
-                  rootStore.state.house_id_containers.id,
-                  rootStore.state.house_id_containers.name,
-                  rootStore.state.house_nro_containers,
-                  rootStore.state.house_nro_precinto,
-                  rootStore.state.house_cantidad,
+                  housesStore.house_id_containers.id,
+                  housesStore.house_id_containers.name,
+                  housesStore.house_nro_containers as string,
+                  housesStore.house_nro_precinto as string,
+                  housesStore.house_cantidad as string,
                 )
               "
               color="green"
@@ -378,7 +378,7 @@ onMounted(async () => {
 
       <v-col
         cols="12"
-        v-if="rootStore.state.master_id_trasnport.id == 2"
+        v-if="appStore.master_id_trasnport.id == 2"
       >
         <v-table
           fixed-header
@@ -406,7 +406,7 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr
-                v-for="item in rootStore.state.itemsHouseContainers"
+                v-for="item in housesStore.itemsHouseContainers"
                 :key="item.id"
               >
                 <td>{{ item.name }}</td>

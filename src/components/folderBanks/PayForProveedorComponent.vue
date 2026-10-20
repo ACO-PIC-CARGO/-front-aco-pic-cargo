@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -11,19 +11,19 @@ import type { CuentaBancariaPic } from "@/types/operaciones";
 import type {
   CuentaSalidaPago,
   DetallePagoProveedor,
-  ProveedorPago,
 } from "@/types/banksProveedor";
+import type { ProveedorRaiz } from "@/types/app";
 import { sessionBranchId } from "@/utils/sesion";
 
 const props = defineProps<{ tipo?: string }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
-const listPagosXProveedorCxP = computed<DetallePagoProveedor[]>(() => rootStore.state.listPagosXProveedorCxP);
-const provedores = computed(() => rootStore.state.provedores);
+const listPagosXProveedorCxP = computed<DetallePagoProveedor[]>(() => appStore.listPagosXProveedorCxP);
+const provedores = computed(() => appStore.provedores);
 const frmRegister = useTemplateRef("frmRegister");
 
 const loading = ref(false);
@@ -38,7 +38,7 @@ const date = ref(new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
   .substr(0, 10));
 const payfile = ref<File[]>([]);
 const payPath = ref("");
-const id_proveedor = ref<ProveedorPago>("" as unknown as ProveedorPago);
+const id_proveedor = ref<ProveedorRaiz>("" as unknown as ProveedorRaiz);
 const boolFile = ref(false);
 const cuentas = ref<CuentaBancariaPic[]>([]);
 const id_cuenta = ref<CuentaSalidaPago>("" as unknown as CuentaSalidaPago);
@@ -96,7 +96,7 @@ const msgNroOperacion = ref("");
 
 const symbol = computed(() => {
   let symbol = "";
-  const coin = rootStore.state.itemsCoinsList.find(
+  const coin = appStore.itemsCoinsList.find(
     (v: { id: number }) => v.id == id_coins.value,
   );
   if (coin) {
@@ -107,9 +107,9 @@ const symbol = computed(() => {
 
 function obtenerListado() {
   tab.value = 0;
-  rootStore.state.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP = [];
   if (id_proveedor.value) {
-    rootStore.dispatch("_getListaPagosXProveedorCxP", id_proveedor.value.id);
+    appStore._getListaPagosXProveedorCxP(id_proveedor.value.id);
   }
   selected.value = [];
 }
@@ -328,8 +328,8 @@ function continuar() {
 }
 function calcularTotales() {
   let monex = 0;
-  const coins = [...rootStore.state.itemsCoinsList];
-  const moneda = coins.filter((v) => v.id == id_coins.value)[0];
+  const coins = [...appStore.itemsCoinsList];
+  const moneda = coins.filter((v) => v.id == id_coins.value)[0]!;
 
   if (selected.value.length > 0) {
     if (moneda.acronym != "USD") {
@@ -367,12 +367,12 @@ function calculamonto_pagar_exrTotalesInput() {
 function limpiarDatos() {
   payfile.value = [];
   payPath.value = "";
-  id_proveedor.value = "" as unknown as ProveedorPago;
+  id_proveedor.value = "" as unknown as ProveedorRaiz;
   boolFile.value = false;
   tab.value = "ref1";
   step2.value = true;
   total.value = 0;
-  rootStore.state.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP = [];
 }
 async function obtenerDatos() {
   if (props.tipo == "ver") {
@@ -393,7 +393,7 @@ async function obtenerDatos() {
         const data = response.data.data[0];
         step2.value = false;
         id_proveedor.value = data.id_proveedor;
-        rootStore.state.listPagosXProveedorCxP = data.details;
+        appStore.listPagosXProveedorCxP = data.details;
         id_cuenta.value = data.id_bank;
         name_path.value = data.documento;
         url_documento.value = data.link_documento;
@@ -409,7 +409,7 @@ async function obtenerDatos() {
 async function ValidaNroOp() {
   msgNroOperacion.value = "";
   successMessages.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = await bancosStore.getValidaNroOp(nro_operacion.value);
 
   if (!!bancosStore.validacionBanco!.estadoflag) {
@@ -421,10 +421,10 @@ async function ValidaNroOp() {
     successMessages.value = `Existen Operaciones con Nro(s) Similiares: ${res!.mensaje}`;
   }
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function moverSeleccionadoAlInicio() {
-  const listaPagos = rootStore.state.listPagosXProveedorCxP;
+  const listaPagos = appStore.listPagosXProveedorCxP;
 
   const seleccionadosIds = new Set(selected.value.map((item) => item.id));
 
@@ -459,15 +459,15 @@ onMounted(async () => {
   filesStore.payPath = null;
   filesStore.datosPath = null;
   tab.value = 1;
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
   await obtenerListado();
   await getListBanksDetailsCargar();
   await limpiarDatos();
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
   setTimeout(() => {
     obtenerDatos();
   }, 1000);
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -551,7 +551,7 @@ onMounted(async () => {
               >
                 <template #[`item.item_moneda`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="id_coins"
                     item-title="acronym"
                     item-value="id"

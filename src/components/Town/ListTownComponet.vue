@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTownStore } from "@/stores/town";
 import type { Distrito } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const townStore = useTownStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -40,8 +40,8 @@ async function ver(item: Distrito) {
   const datos = { ...item };
   townStore.tipo = "ver";
   townStore.model = datos;
-  await rootStore.dispatch("_getState", datos.id_pais);
-  await rootStore.dispatch("_getCity", datos.id_state);
+  await appStore._getState(datos.id_pais);
+  await appStore._getCity(datos.id_state);
   loading.value = !loading.value;
   townStore.drawer = !townStore.drawer;
 }
@@ -50,8 +50,8 @@ async function editar(item: Distrito) {
   const datos = { ...item };
   townStore.tipo = "editar";
   townStore.model = datos;
-  await rootStore.dispatch("_getState", datos.id_pais);
-  await rootStore.dispatch("_getCity", datos.id_state);
+  await appStore._getState(datos.id_pais);
+  await appStore._getCity(datos.id_state);
   loading.value = !loading.value;
   townStore.drawer = !townStore.drawer;
 }
@@ -100,7 +100,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await townStore.GetListTown();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
 });
 </script>
 

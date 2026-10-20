@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import dataGen from "./DataGenMaster.vue";
 import houselist from "./HouseListMaster.vue";
 import dataEmbar from "./DataEmbarMaster.vue";
@@ -10,10 +11,11 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { sessionBranchId } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const route = useRoute();
 const appRouter = useRouter();
-const itemsOperadorList = computed(() => rootStore.state.itemsOperadorList);
+const itemsOperadorList = computed(() => appStore.itemsOperadorList);
 
 const formControlMasterReadonly = ref(false);
 const loadingBotonNuevoHouse = ref(false);
@@ -23,17 +25,17 @@ const transition = "slide-y-reverse-transition";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const operadorNombre = computed(() => {
-  if (!rootStore.state.master_id_operador || !itemsOperadorList.value) {
+  if (!mastersStore.master_id_operador || !itemsOperadorList.value) {
     return "";
   }
   const operador = itemsOperadorList.value.find(
-    (op: { id: number; namelong: string }) => op.id == rootStore.state.master_id_operador,
+    (op: { id: number; namelong: string }) => op.id == mastersStore.master_id_operador,
   );
   return operador ? operador.namelong : "";
 });
 
 async function recargarDatos() {
-  await rootStore.dispatch("_getHouseList");
+  await appStore._getHouseList();
 }
 async function irAVerMaster() {
   await appRouter.push({
@@ -160,7 +162,7 @@ function _setHouseContainer(
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _setMasterServices(id_master: number, id_house: number, i: number) {
-  rootStore.state.itemsServicesList.map(function (item: { id_begend: number; nameservice: string; price: number }) {
+  mastersStore.itemsServicesList.map(function (item: { id_begend: number; nameservice: string; price: number }) {
     const data = {
       id_house: id_house,
       id_begend: item.id_begend,
@@ -183,8 +185,8 @@ function _setMasterServices(id_master: number, id_house: number, i: number) {
       });
   });
 
-  rootStore.state.statusData = true;
-  rootStore.state.master_itemsContainers.map(function (item: { id: number; nro_container: string; nro_precinto: string; cantidad: number }) {
+  mastersStore.statusData = true;
+  (appStore.master_itemsContainers as { id: number; nro_container: string; nro_precinto: string; cantidad: number }[]).map(function (item) {
     /*vm._setMasterContainer(
       id_master,
       item.id,
@@ -202,23 +204,23 @@ function _setMasterServices(id_master: number, id_house: number, i: number) {
     );
   });
 
-  rootStore.dispatch("_getHouseList");
+  appStore._getHouseList();
 
-  if (i == rootStore.state.master_cantidad_house) {
+  if (i == mastersStore.master_cantidad_house) {
     Swal.fire({
       icon: "success",
       title: "Excelente",
       text:
         "Master registrado éxitosamente con el número " +
-        rootStore.state.master_expediente,
+        mastersStore.master_expediente,
     });
   }
 }
 async function addNewHouse() {
   loadingBotonNuevoHouse.value = !loadingBotonNuevoHouse.value;
 
-  await _setHouse(rootStore.state.master_insertId);
-  await rootStore.dispatch("_getHouseList");
+  await _setHouse(mastersStore.master_insertId as unknown as Parameters<typeof _setHouse>[0]);
+  await appStore._getHouseList();
 
   loadingBotonNuevoHouse.value = !loadingBotonNuevoHouse.value;
 
@@ -248,7 +250,7 @@ async function addNewHouse() {
 }
 async function _setHouse({ id_master = "", pintaSuccess = true }) {
   console.log("ssssssssssss");
-  const finalIdMaster = id_master || rootStore.state.master_insertId;
+  const finalIdMaster = id_master || mastersStore.master_insertId;
   if (!finalIdMaster) {
     Swal.fire({
       icon: "error",
@@ -259,7 +261,7 @@ async function _setHouse({ id_master = "", pintaSuccess = true }) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const i = rootStore.state.itemsHouseList.length + 1;
+  const i = appStore.itemsHouseList.length + 1;
   const data = JSON.stringify({
     id_master: finalIdMaster,
     // ... rest of your data object
@@ -312,88 +314,88 @@ async function _setHouse({ id_master = "", pintaSuccess = true }) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _setMasterHouse(id_master: number | string) {
-  for (let i = 1; i <= rootStore.state.master_cantidad_house; i++) {
+  for (let i = 1; i <= mastersStore.master_cantidad_house; i++) {
     const data = JSON.stringify({
-      code_house: rootStore.state.house_expediente + "-" + i,
+      code_house: appStore.house_expediente + "-" + i,
       id_master: !id_master || id_master == "" ? null : id_master,
       nro_house:
-        !rootStore.state.house_nro_expediente ||
-        rootStore.state.house_nro_expediente == ""
+        !mastersStore.house_nro_expediente ||
+        mastersStore.house_nro_expediente == ""
           ? null
-          : rootStore.state.house_nro_expediente,
+          : mastersStore.house_nro_expediente,
       id_agent:
-        !rootStore.state.master_id_agente ||
-        rootStore.state.master_id_agente == ""
+        !appStore.master_id_agente ||
+        appStore.master_id_agente == ""
           ? null
-          : rootStore.state.master_id_agente,
+          : appStore.master_id_agente,
       id_consigner: null,
       id_notify:
-        !rootStore.state.master_id_notify ||
-        rootStore.state.master_id_notify == ""
+        !mastersStore.master_id_notify ||
+        mastersStore.master_id_notify == ""
           ? null
-          : rootStore.state.master_id_notify,
+          : mastersStore.master_id_notify,
       id_aerolinea:
-        !rootStore.state.master_id_airlines ||
-        rootStore.state.master_id_airlines == ""
+        !mastersStore.master_id_airlines ||
+        mastersStore.master_id_airlines == ""
           ? null
-          : rootStore.state.master_id_airlines,
+          : mastersStore.master_id_airlines,
       id_coloader:
-        !rootStore.state.master_id_coloader ||
-        rootStore.state.master_id_coloader == ""
+        !mastersStore.master_id_coloader ||
+        mastersStore.master_id_coloader == ""
           ? null
-          : rootStore.state.master_id_coloader,
+          : mastersStore.master_id_coloader,
       id_naviera:
-        !rootStore.state.master_id_naviera ||
-        rootStore.state.master_id_naviera == ""
+        !mastersStore.master_id_naviera ||
+        mastersStore.master_id_naviera == ""
           ? null
-          : rootStore.state.master_id_naviera,
+          : mastersStore.master_id_naviera,
       id_incoterms:
-        !rootStore.state.master_incoterms ||
-        rootStore.state.master_incoterms == ""
+        !mastersStore.master_incoterms ||
+        mastersStore.master_incoterms == ""
           ? null
-          : rootStore.state.master_incoterms,
+          : mastersStore.master_incoterms,
       nro_hbl:
-        !rootStore.state.master_blmaster ||
-        rootStore.state.master_blmaster == ""
+        !mastersStore.master_blmaster ||
+        mastersStore.master_blmaster == ""
           ? null
-          : rootStore.state.master_blmaster,
+          : mastersStore.master_blmaster,
       id_motonave:
-        !rootStore.state.master_id_motonave ||
-        rootStore.state.master_id_motonave == ""
+        !mastersStore.master_id_motonave ||
+        mastersStore.master_id_motonave == ""
           ? null
-          : rootStore.state.master_id_motonave,
+          : mastersStore.master_id_motonave,
       nro_viaje:
-        !rootStore.state.master_viaje || rootStore.state.master_viaje == ""
+        !mastersStore.master_viaje || mastersStore.master_viaje == ""
           ? null
-          : rootStore.state.master_viaje,
+          : mastersStore.master_viaje,
       bultos:
-        !rootStore.state.master_bultos ||
-        rootStore.state.master_bultos == ""
+        !mastersStore.master_bultos ||
+        mastersStore.master_bultos == ""
           ? null
-          : rootStore.state.master_bultos,
+          : mastersStore.master_bultos,
       peso:
-        !rootStore.state.master_peso || rootStore.state.master_peso == ""
+        !mastersStore.master_peso || mastersStore.master_peso == ""
           ? null
-          : rootStore.state.master_peso,
+          : mastersStore.master_peso,
       volumen:
-        !rootStore.state.master_volumen ||
-        rootStore.state.master_volumen == ""
+        !mastersStore.master_volumen ||
+        mastersStore.master_volumen == ""
           ? null
-          : rootStore.state.master_volumen,
+          : mastersStore.master_volumen,
       id_conditions:
-        !rootStore.state.master_id_condicion ||
-        rootStore.state.master_id_condicion == ""
+        !mastersStore.master_id_condicion ||
+        mastersStore.master_id_condicion == ""
           ? null
-          : rootStore.state.master_id_condicion,
+          : mastersStore.master_id_condicion,
       id_moneda:
-        !rootStore.state.master_id_coins ||
-        rootStore.state.master_id_coins == ""
+        !mastersStore.master_id_coins ||
+        mastersStore.master_id_coins == ""
           ? null
-          : rootStore.state.master_id_coins,
+          : mastersStore.master_id_coins,
       monto:
-        !rootStore.state.master_monto || rootStore.state.master_monto == ""
+        !mastersStore.master_monto || mastersStore.master_monto == ""
           ? null
-          : rootStore.state.master_monto,
+          : mastersStore.master_monto,
       status: 1,
       id_branch: sessionBranchId(),
     });
@@ -427,159 +429,159 @@ function _setMasterHouse(id_master: number | string) {
 }
 async function _putMaster() {
   if (validate()) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const cuotas = [];
-    for (let i = 0; i < rootStore.state.nro_cuotas; i++) {
+    for (let i = 0; i < appStore.nro_cuotas; i++) {
       cuotas.push({
-        porcentaje: rootStore.state.cuota[i],
-        fecha: rootStore.state.fechacuota[i],
+        porcentaje: appStore.cuota[i],
+        fecha: appStore.fechacuota[i],
       });
     }
 
     const data = JSON.stringify({
-      nro_master: rootStore.state.nro_master,
-      code_master: rootStore.state.master_expediente,
-      id_cot: rootStore.state.master_cotizanion,
-      id_modality: rootStore.state.master_sentido,
+      nro_master: mastersStore.nro_master,
+      code_master: mastersStore.master_expediente,
+      id_cot: mastersStore.master_cotizanion,
+      id_modality: mastersStore.master_sentido,
       id_shipment:
-        rootStore.state.master_id_trasnport &&
-        rootStore.state.master_id_trasnport.id
-          ? rootStore.state.master_id_trasnport.id
-          : rootStore.state.master_id_trasnport,
-      id_incoterms: rootStore.state.master_incoterms,
+        appStore.master_id_trasnport &&
+        appStore.master_id_trasnport.id
+          ? appStore.master_id_trasnport.id
+          : appStore.master_id_trasnport,
+      id_incoterms: mastersStore.master_incoterms,
       id_port_begin:
-        !rootStore.state.master_origen ||
-        rootStore.state.master_origen == ""
+        !appStore.master_origen ||
+        appStore.master_origen == ""
           ? null
-          : rootStore.state.master_origen,
+          : appStore.master_origen,
       id_port_end:
-        !rootStore.state.master_destino ||
-        rootStore.state.master_destino == ""
+        !appStore.master_destino ||
+        appStore.master_destino == ""
           ? null
-          : rootStore.state.master_destino,
+          : appStore.master_destino,
       id_operador:
-        !rootStore.state.master_id_operador ||
-        rootStore.state.master_id_operador == ""
+        !mastersStore.master_id_operador ||
+        mastersStore.master_id_operador == ""
           ? null
-          : rootStore.state.master_id_operador,
+          : mastersStore.master_id_operador,
       fecha_eta:
-        !rootStore.state.master_fecha_eta ||
-        rootStore.state.master_fecha_eta == ""
+        !mastersStore.master_fecha_eta ||
+        mastersStore.master_fecha_eta == ""
           ? null
-          : rootStore.state.master_fecha_eta,
+          : mastersStore.master_fecha_eta,
       fecha_etd:
-        !rootStore.state.master_fecha_etd ||
-        rootStore.state.master_fecha_etd == ""
+        !mastersStore.master_fecha_etd ||
+        mastersStore.master_fecha_etd == ""
           ? null
-          : rootStore.state.master_fecha_etd,
+          : mastersStore.master_fecha_etd,
       fecha_disponibilidad:
-        !rootStore.state.master_fecha_disponibilidad ||
-        rootStore.state.master_fecha_disponibilidad == ""
+        !mastersStore.master_fecha_disponibilidad ||
+        mastersStore.master_fecha_disponibilidad == ""
           ? null
-          : rootStore.state.master_fecha_disponibilidad,
+          : mastersStore.master_fecha_disponibilidad,
       ganancia_pricing:
-        !rootStore.state.master_ganancia_pricing ||
-        rootStore.state.master_ganancia_pricing == ""
+        !mastersStore.master_ganancia_pricing ||
+        mastersStore.master_ganancia_pricing == ""
           ? null
-          : rootStore.state.master_ganancia_pricing,
+          : mastersStore.master_ganancia_pricing,
       ganancia_operaciones:
-        !rootStore.state.master_ganancia_operaciones ||
-        rootStore.state.master_ganancia_operaciones == ""
+        !mastersStore.master_ganancia_operaciones ||
+        mastersStore.master_ganancia_operaciones == ""
           ? null
-          : rootStore.state.master_ganancia_operaciones,
+          : mastersStore.master_ganancia_operaciones,
       id_agent:
-        !rootStore.state.master_id_agente ||
-        rootStore.state.master_id_agente == ""
+        !appStore.master_id_agente ||
+        appStore.master_id_agente == ""
           ? null
-          : rootStore.state.master_id_agente,
+          : appStore.master_id_agente,
       id_consigner:
-        !rootStore.state.master_id_consigner ||
-        rootStore.state.master_id_consigner == ""
+        !mastersStore.master_id_consigner ||
+        mastersStore.master_id_consigner == ""
           ? null
-          : rootStore.state.master_id_consigner,
+          : mastersStore.master_id_consigner,
       id_notify:
-        !rootStore.state.master_id_notify ||
-        rootStore.state.master_id_notify == ""
+        !mastersStore.master_id_notify ||
+        mastersStore.master_id_notify == ""
           ? null
-          : rootStore.state.master_id_notify,
+          : mastersStore.master_id_notify,
       id_aerolinea:
-        !rootStore.state.master_id_airlines ||
-        rootStore.state.master_id_airlines == ""
+        !mastersStore.master_id_airlines ||
+        mastersStore.master_id_airlines == ""
           ? null
-          : rootStore.state.master_id_airlines,
+          : mastersStore.master_id_airlines,
       id_coloader:
-        !rootStore.state.master_id_coloader ||
-        rootStore.state.master_id_coloader == ""
+        !mastersStore.master_id_coloader ||
+        mastersStore.master_id_coloader == ""
           ? null
-          : rootStore.state.master_id_coloader,
+          : mastersStore.master_id_coloader,
       id_naviera:
-        !rootStore.state.master_id_naviera ||
-        rootStore.state.master_id_naviera == ""
+        !mastersStore.master_id_naviera ||
+        mastersStore.master_id_naviera == ""
           ? null
-          : rootStore.state.master_id_naviera,
+          : mastersStore.master_id_naviera,
       nro_mbl:
-        !rootStore.state.master_blmaster ||
-        rootStore.state.master_blmaster == ""
+        !mastersStore.master_blmaster ||
+        mastersStore.master_blmaster == ""
           ? null
-          : rootStore.state.master_blmaster,
+          : mastersStore.master_blmaster,
       id_motonave:
-        !rootStore.state.master_id_motonave ||
-        rootStore.state.master_id_motonave == ""
+        !mastersStore.master_id_motonave ||
+        mastersStore.master_id_motonave == ""
           ? null
-          : rootStore.state.master_id_motonave,
+          : mastersStore.master_id_motonave,
       nro_viaje:
-        !rootStore.state.master_viaje || rootStore.state.master_viaje == ""
+        !mastersStore.master_viaje || mastersStore.master_viaje == ""
           ? null
-          : rootStore.state.master_viaje,
+          : mastersStore.master_viaje,
       bultos:
-        !rootStore.state.master_bultos ||
-        rootStore.state.master_bultos == ""
+        !mastersStore.master_bultos ||
+        mastersStore.master_bultos == ""
           ? null
-          : rootStore.state.master_bultos,
+          : mastersStore.master_bultos,
       peso:
-        !rootStore.state.master_peso || rootStore.state.master_peso == ""
+        !mastersStore.master_peso || mastersStore.master_peso == ""
           ? null
-          : rootStore.state.master_peso,
+          : mastersStore.master_peso,
       volumen:
-        !rootStore.state.master_volumen ||
-        rootStore.state.master_volumen == ""
+        !mastersStore.master_volumen ||
+        mastersStore.master_volumen == ""
           ? null
-          : rootStore.state.master_volumen,
+          : mastersStore.master_volumen,
       id_conditions:
-        !rootStore.state.master_id_condicion ||
-        rootStore.state.master_id_condicion == ""
+        !mastersStore.master_id_condicion ||
+        mastersStore.master_id_condicion == ""
           ? null
-          : rootStore.state.master_id_condicion,
+          : mastersStore.master_id_condicion,
       id_moneda:
-        !rootStore.state.master_id_coins ||
-        rootStore.state.master_id_coins == ""
+        !mastersStore.master_id_coins ||
+        mastersStore.master_id_coins == ""
           ? null
-          : rootStore.state.master_id_coins,
+          : mastersStore.master_id_coins,
       monto:
-        !rootStore.state.master_monto || rootStore.state.master_monto == ""
+        !mastersStore.master_monto || mastersStore.master_monto == ""
           ? null
-          : rootStore.state.master_monto,
+          : mastersStore.master_monto,
       status: 1,
       id_branch: sessionBranchId(),
       cuotas: cuotas,
-      nro_cuotas: rootStore.state.nro_cuotas,
-      grupalflag: rootStore.state.grupalflag,
-      fecha_libre_almacenaje: rootStore.state.fecha_libre_almacenaje,
+      nro_cuotas: appStore.nro_cuotas,
+      grupalflag: mastersStore.grupalflag,
+      fecha_libre_almacenaje: mastersStore.fecha_libre_almacenaje,
       fecha_libre_sobreestadia:
-        rootStore.state.fecha_libre_sobreestadia || null,
-      almacen_recepcion: rootStore.state.almacen_recepcion,
-      dias_sobreestadia: rootStore.state.dias_sobreestadia,
-      id_canal: rootStore.state.id_canal,
-      nro_manifiesto: rootStore.state.nro_manifiesto,
-      namecampaign: rootStore.state.namecampaign,
-      master_itemsContainers: rootStore.state.master_itemsContainers,
-      vuelo: rootStore.state.master_vuelo || null,
-      nro_containers: rootStore.state.master_nro_containers || null,
-      nro_precinto: rootStore.state.master_nro_precinto || null,
-      salidaflag: rootStore.state.salidaflag || null,
-      llegadaflag: rootStore.state.llegadaflag || null,
-      disponibilidadflag: rootStore.state.disponibilidadflag || null,
+        mastersStore.fecha_libre_sobreestadia || null,
+      almacen_recepcion: mastersStore.almacen_recepcion,
+      dias_sobreestadia: mastersStore.dias_sobreestadia,
+      id_canal: mastersStore.id_canal,
+      nro_manifiesto: mastersStore.nro_manifiesto,
+      namecampaign: mastersStore.namecampaign,
+      master_itemsContainers: appStore.master_itemsContainers,
+      vuelo: mastersStore.master_vuelo || null,
+      nro_containers: appStore.master_nro_containers || null,
+      nro_precinto: appStore.master_nro_precinto || null,
+      salidaflag: mastersStore.salidaflag || null,
+      llegadaflag: mastersStore.llegadaflag || null,
+      disponibilidadflag: mastersStore.disponibilidadflag || null,
     });
 
     const config = {
@@ -587,7 +589,7 @@ async function _putMaster() {
       url:
         import.meta.env.VITE_URL_MAIN +
         "editMaster/" +
-        rootStore.state.master_Id_get,
+        mastersStore.master_Id_get,
       headers: {
         "Content-Type": "application/json",
       },
@@ -633,73 +635,73 @@ async function _putMaster() {
           text: error,
         });
       });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 function cleanData() {
-  rootStore.state.master_nro_expediente = "";
+  mastersStore.master_nro_expediente = "";
   // vm.$store.state.master_expediente = "";
   //id_cot: vm.$store.state.master_cotizanion
-  rootStore.state.master_sentido = "";
-  rootStore.state.master_id_trasnport = "";
-  rootStore.state.master_incoterms = "";
-  rootStore.state.master_origen = "";
-  rootStore.state.master_destino = "";
-  rootStore.state.master_id_operador = "";
-  rootStore.state.master_ganancia_pricing = "";
-  rootStore.state.master_ganancia_operaciones = "";
-  rootStore.state.master_id_agente = "";
-  rootStore.state.master_id_consigner = "";
-  rootStore.state.master_id_notify = "";
-  rootStore.state.master_id_airlines = "";
-  rootStore.state.master_id_coloader = "";
-  rootStore.state.master_id_naviera = "";
-  rootStore.state.master_blmaster = "";
-  rootStore.state.master_id_motonave = "";
-  rootStore.state.master_viaje = "";
-  rootStore.state.master_bultos = "";
-  rootStore.state.master_peso = "";
-  rootStore.state.master_volumen = "";
-  rootStore.state.master_id_condicion = "";
-  rootStore.state.master_id_coins = "";
-  rootStore.state.master_monto = "";
-  rootStore.state.cuotas = 3;
-  rootStore.state.grupalflag = false;
-  rootStore.state.cuota = [];
-  rootStore.state.fechacuota = [];
-  rootStore.state.url_folderonedrive = "";
-  rootStore.state.master_itemsContainers = [];
+  mastersStore.master_sentido = "";
+  appStore.master_id_trasnport = "" as never;
+  mastersStore.master_incoterms = "";
+  appStore.master_origen = "";
+  appStore.master_destino = "";
+  mastersStore.master_id_operador = "";
+  mastersStore.master_ganancia_pricing = "";
+  mastersStore.master_ganancia_operaciones = "";
+  appStore.master_id_agente = "";
+  mastersStore.master_id_consigner = "";
+  mastersStore.master_id_notify = "";
+  mastersStore.master_id_airlines = "";
+  mastersStore.master_id_coloader = "";
+  mastersStore.master_id_naviera = "";
+  mastersStore.master_blmaster = "";
+  mastersStore.master_id_motonave = "";
+  mastersStore.master_viaje = "";
+  mastersStore.master_bultos = "";
+  mastersStore.master_peso = "";
+  mastersStore.master_volumen = "";
+  mastersStore.master_id_condicion = "";
+  mastersStore.master_id_coins = "";
+  mastersStore.master_monto = "";
+  mastersStore.cuotas = 3;
+  mastersStore.grupalflag = false;
+  appStore.cuota = [];
+  appStore.fechacuota = [];
+  mastersStore.url_folderonedrive = "";
+  appStore.master_itemsContainers = [];
 }
 function validate() {
   let val = true;
   let sum = 0;
   let html = "<ul>";
-  if (rootStore.state.grupalflag) {
+  if (mastersStore.grupalflag) {
     let fechaAnterior = "";
-    for (let i = 0; i < rootStore.state.nro_cuotas; i++) {
-      if (rootStore.state.cuota[i] < 0) {
+    for (let i = 0; i < appStore.nro_cuotas; i++) {
+      if ((appStore.cuota[i] as number) < 0) {
         val = false;
         html += `<li> El porcentaje ${i + 1} no puede ser negativo</li>`;
       }
 
-      if (rootStore.state.cuota[i] > 100) {
+      if ((appStore.cuota[i] as number) > 100) {
         val = false;
         html += `<li> El porcentaje ${
           i + 1
         }  no puede ser mayor que el 100% </li>`;
       }
 
-      sum += parseFloat(rootStore.state.cuota[i]);
+      sum += parseFloat(appStore.cuota[i] as string);
 
-      if (!rootStore.state.fechacuota[i]) {
+      if (!appStore.fechacuota[i]) {
         html += `<li> La fecha de pago ${i + 1} es requerida</li>`;
-      } else if (rootStore.state.fechacuota[i] < fechaAnterior) {
+      } else if (appStore.fechacuota[i]! < fechaAnterior) {
         html += `<li> La fecha de pago ${
           i + 1
         } debe ser mayor o igual a la anterior</li>`;
       }
 
-      fechaAnterior = rootStore.state.fechacuota[i];
+      fechaAnterior = appStore.fechacuota[i]!;
     }
 
     if (sum != 100) {
@@ -708,44 +710,44 @@ function validate() {
     }
   }
 
-  if (rootStore.state.dias_sobreestadia) {
-    if (rootStore.state.dias_sobreestadia < 0) {
+  if (mastersStore.dias_sobreestadia) {
+    if ((mastersStore.dias_sobreestadia as number) < 0) {
       val = false;
       html +=
         "<li>Días Libres de Sobreestadía no pueden ser negativos</li>";
     }
   }
-  if (!rootStore.state.master_sentido) {
+  if (!mastersStore.master_sentido) {
     val = false;
     html += "<li>El sentido es requerido</li>";
   }
-  if (!rootStore.state.master_id_trasnport) {
+  if (!appStore.master_id_trasnport) {
     val = false;
     html += "<li>El tipo de embarque es requerido</li>";
   }
-  if (!rootStore.state.master_incoterms) {
+  if (!mastersStore.master_incoterms) {
     val = false;
     html += "<li>El incoterms es requerido</li>";
   }
-  if (!rootStore.state.master_origen) {
+  if (!appStore.master_origen) {
     val = false;
     html += "<li>El origen es requerido</li>";
   }
-  if (!rootStore.state.master_destino) {
+  if (!appStore.master_destino) {
     val = false;
     html += "<li>El destino es requerido</li>";
   }
-  if (!rootStore.state.master_fecha_eta) {
+  if (!mastersStore.master_fecha_eta) {
     val = false;
     html += "<li>La fecha eta es requerida</li>";
   }
-  if (!rootStore.state.master_fecha_etd) {
+  if (!mastersStore.master_fecha_etd) {
     val = false;
     html += "<li>La fecha etd es requerida</li>";
   }
   if (
-    rootStore.state.statusData &&
-    !rootStore.state.itemsHouseList.length
+    mastersStore.statusData &&
+    !appStore.itemsHouseList.length
   ) {
     val = false;
     html +=
@@ -763,134 +765,134 @@ function validate() {
 }
 async function _setMaster() {
   if (validate()) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const cuotas = [];
-    for (let i = 0; i < rootStore.state.nro_cuotas; i++) {
+    for (let i = 0; i < appStore.nro_cuotas; i++) {
       cuotas.push({
-        porcentaje: rootStore.state.cuota[i],
-        fecha: rootStore.state.fechacuota[i],
+        porcentaje: appStore.cuota[i],
+        fecha: appStore.fechacuota[i],
       });
     }
     //vm._getnroMaster();
     const data = JSON.stringify({
-      nro_master: rootStore.state.master_nro_expediente,
-      code_master: rootStore.state.master_expediente,
-      id_cot: rootStore.state.master_cotizanion
-        ? rootStore.state.master_cotizanion
+      nro_master: mastersStore.master_nro_expediente,
+      code_master: mastersStore.master_expediente,
+      id_cot: mastersStore.master_cotizanion
+        ? mastersStore.master_cotizanion
         : null,
-      id_modality: rootStore.state.master_sentido,
-      id_shipment: rootStore.state.master_id_trasnport.id,
-      id_incoterms: rootStore.state.master_incoterms,
+      id_modality: mastersStore.master_sentido,
+      id_shipment: appStore.master_id_trasnport.id,
+      id_incoterms: mastersStore.master_incoterms,
       id_port_begin:
-        !rootStore.state.master_origen ||
-        rootStore.state.master_origen == ""
+        !appStore.master_origen ||
+        appStore.master_origen == ""
           ? null
-          : rootStore.state.master_origen,
+          : appStore.master_origen,
       id_port_end:
-        !rootStore.state.master_destino ||
-        rootStore.state.master_destino == ""
+        !appStore.master_destino ||
+        appStore.master_destino == ""
           ? null
-          : rootStore.state.master_destino,
+          : appStore.master_destino,
       id_operador:
-        !rootStore.state.master_id_operador ||
-        rootStore.state.master_id_operador == ""
+        !mastersStore.master_id_operador ||
+        mastersStore.master_id_operador == ""
           ? null
-          : rootStore.state.master_id_operador,
-      fecha_eta: rootStore.state.master_fecha_eta,
-      fecha_etd: rootStore.state.master_fecha_etd,
-      fecha_disponibilidad: rootStore.state.master_fecha_disponibilidad,
-      ganancia_pricing: rootStore.state.master_ganancia_pricing
-        ? rootStore.state.master_ganancia_pricing
+          : mastersStore.master_id_operador,
+      fecha_eta: mastersStore.master_fecha_eta,
+      fecha_etd: mastersStore.master_fecha_etd,
+      fecha_disponibilidad: mastersStore.master_fecha_disponibilidad,
+      ganancia_pricing: mastersStore.master_ganancia_pricing
+        ? mastersStore.master_ganancia_pricing
         : null,
-      ganancia_operaciones: rootStore.state.master_ganancia_operaciones
-        ? rootStore.state.master_ganancia_operaciones
+      ganancia_operaciones: mastersStore.master_ganancia_operaciones
+        ? mastersStore.master_ganancia_operaciones
         : null,
-      id_agent: rootStore.state.master_id_agente
-        ? rootStore.state.master_id_agente
+      id_agent: appStore.master_id_agente
+        ? appStore.master_id_agente
         : null,
-      id_consigner: rootStore.state.master_id_consigner,
+      id_consigner: mastersStore.master_id_consigner,
       id_notify:
-        !rootStore.state.master_id_notify ||
-        rootStore.state.master_id_notify == ""
+        !mastersStore.master_id_notify ||
+        mastersStore.master_id_notify == ""
           ? null
-          : rootStore.state.master_id_notify,
-      id_aerolinea: rootStore.state.master_id_airlines
-        ? rootStore.state.master_id_airlines
+          : mastersStore.master_id_notify,
+      id_aerolinea: mastersStore.master_id_airlines
+        ? mastersStore.master_id_airlines
         : null,
       id_coloader:
-        !rootStore.state.master_id_coloader ||
-        rootStore.state.master_id_coloader == ""
+        !mastersStore.master_id_coloader ||
+        mastersStore.master_id_coloader == ""
           ? null
-          : rootStore.state.master_id_coloader,
+          : mastersStore.master_id_coloader,
       id_naviera:
-        !rootStore.state.master_id_naviera ||
-        rootStore.state.master_id_naviera == ""
+        !mastersStore.master_id_naviera ||
+        mastersStore.master_id_naviera == ""
           ? null
-          : rootStore.state.master_id_naviera,
+          : mastersStore.master_id_naviera,
       nro_mbl:
-        !rootStore.state.master_blmaster ||
-        rootStore.state.master_blmaster == ""
+        !mastersStore.master_blmaster ||
+        mastersStore.master_blmaster == ""
           ? null
-          : rootStore.state.master_blmaster,
+          : mastersStore.master_blmaster,
       id_motonave:
-        !rootStore.state.master_id_motonave ||
-        rootStore.state.master_id_motonave == ""
+        !mastersStore.master_id_motonave ||
+        mastersStore.master_id_motonave == ""
           ? null
-          : rootStore.state.master_id_motonave,
+          : mastersStore.master_id_motonave,
       nro_viaje:
-        !rootStore.state.master_viaje || rootStore.state.master_viaje == ""
+        !mastersStore.master_viaje || mastersStore.master_viaje == ""
           ? null
-          : rootStore.state.master_viaje,
+          : mastersStore.master_viaje,
       bultos:
-        !rootStore.state.master_bultos ||
-        rootStore.state.master_bultos == ""
+        !mastersStore.master_bultos ||
+        mastersStore.master_bultos == ""
           ? null
-          : rootStore.state.master_bultos,
+          : mastersStore.master_bultos,
       peso:
-        !rootStore.state.master_peso || rootStore.state.master_peso == ""
+        !mastersStore.master_peso || mastersStore.master_peso == ""
           ? null
-          : rootStore.state.master_peso,
+          : mastersStore.master_peso,
       volumen:
-        !rootStore.state.master_volumen ||
-        rootStore.state.master_volumen == ""
+        !mastersStore.master_volumen ||
+        mastersStore.master_volumen == ""
           ? null
-          : rootStore.state.master_volumen,
+          : mastersStore.master_volumen,
       id_conditions:
-        !rootStore.state.master_id_condicion ||
-        rootStore.state.master_id_condicion == ""
+        !mastersStore.master_id_condicion ||
+        mastersStore.master_id_condicion == ""
           ? null
-          : rootStore.state.master_id_condicion,
+          : mastersStore.master_id_condicion,
       id_moneda:
-        !rootStore.state.master_id_coins ||
-        rootStore.state.master_id_coins == ""
+        !mastersStore.master_id_coins ||
+        mastersStore.master_id_coins == ""
           ? null
-          : rootStore.state.master_id_coins,
+          : mastersStore.master_id_coins,
       monto:
-        !rootStore.state.master_monto || rootStore.state.master_monto == ""
+        !mastersStore.master_monto || mastersStore.master_monto == ""
           ? null
-          : rootStore.state.master_monto,
+          : mastersStore.master_monto,
       status: 1,
       id_branch: sessionBranchId(),
       cuotas: cuotas,
-      nro_cuotas: rootStore.state.nro_cuotas,
-      grupalflag: rootStore.state.grupalflag,
-      fecha_libre_almacenaje: rootStore.state.fecha_libre_almacenaje,
+      nro_cuotas: appStore.nro_cuotas,
+      grupalflag: mastersStore.grupalflag,
+      fecha_libre_almacenaje: mastersStore.fecha_libre_almacenaje,
       fecha_libre_sobreestadia:
-        rootStore.state.fecha_libre_sobreestadia || null,
-      almacen_recepcion: rootStore.state.almacen_recepcion,
-      dias_sobreestadia: rootStore.state.dias_sobreestadia,
-      id_canal: rootStore.state.id_canal,
-      nro_manifiesto: rootStore.state.nro_manifiesto,
-      namecampaign: rootStore.state.namecampaign,
-      master_itemsContainers: rootStore.state.master_itemsContainers,
+        mastersStore.fecha_libre_sobreestadia || null,
+      almacen_recepcion: mastersStore.almacen_recepcion,
+      dias_sobreestadia: mastersStore.dias_sobreestadia,
+      id_canal: mastersStore.id_canal,
+      nro_manifiesto: mastersStore.nro_manifiesto,
+      namecampaign: mastersStore.namecampaign,
+      master_itemsContainers: appStore.master_itemsContainers,
       // Nuevos campos para embarque
-      vuelo: rootStore.state.master_vuelo || null,
-      nro_containers: rootStore.state.master_nro_containers || null,
-      nro_precinto: rootStore.state.master_nro_precinto || null,
-      salidaflag: rootStore.state.salidaflag || null,
-      llegadaflag: rootStore.state.llegadaflag || null,
-      disponibilidadflag: rootStore.state.disponibilidadflag || null,
+      vuelo: mastersStore.master_vuelo || null,
+      nro_containers: appStore.master_nro_containers || null,
+      nro_precinto: appStore.master_nro_precinto || null,
+      salidaflag: mastersStore.salidaflag || null,
+      llegadaflag: mastersStore.llegadaflag || null,
+      disponibilidadflag: mastersStore.disponibilidadflag || null,
     });
 
     const config = {
@@ -926,7 +928,7 @@ async function _setMaster() {
               }, 10);
             }
           });
-          rootStore.state.spiner = false;
+          appStore.spiner = false;
           return;
         }
 
@@ -945,7 +947,7 @@ async function _setMaster() {
             title: "Error",
             text: "No se pudo obtener el ID del expediente creado. Revise la consola para más detalles.",
           });
-          rootStore.state.spiner = false;
+          appStore.spiner = false;
           return;
         }
 
@@ -983,8 +985,8 @@ async function _setMaster() {
             },
           });
         }
-        rootStore.state.itemsHouseList = [];
-        rootStore.state.master_insertId = id_master;
+        appStore.itemsHouseList = [];
+        mastersStore.master_insertId = id_master;
 
         // vm.$router.push({
         //   name: "controlMasterEditar",
@@ -1001,7 +1003,7 @@ async function _setMaster() {
           text: "Error al crear el expediente: " + (error.message || error),
         });
       });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -1009,20 +1011,20 @@ onMounted(async () => {
   // this.$store.state.spiner = true;
 
   if (route.name == "controlMaster") {
-    rootStore.state.mainTitle = "CONTROL DE EXPEDIENTE MÁSTER";
+    appStore.mainTitle = "CONTROL DE EXPEDIENTE MÁSTER";
   } else if (route.name == "controlMasterEditar") {
     nextTick(() => {
       setTimeout(() => {
-        rootStore.state.mainTitle =
+        appStore.mainTitle =
           "CONTROL DE EXPEDIENTE MÁSTER [EDITAR] - N° Exp:" +
-          rootStore.state.nro_master;
+          mastersStore.nro_master;
       }, 2000);
     });
   } else if (route.name == "controlMasterVer") {
-    rootStore.state.mainTitle = "CONTROL DE EXPEDIENTE MÁSTER [MODO VISTA]";
+    appStore.mainTitle = "CONTROL DE EXPEDIENTE MÁSTER [MODO VISTA]";
     formControlMasterReadonly.value = true;
   }
-  await Promise.all([cleanData(), rootStore.dispatch("_getnroHouse")]);
+  await Promise.all([cleanData(), appStore._getnroHouse()]);
 
   // this.$store.state.spiner = false;
 
@@ -1072,7 +1074,7 @@ onMounted(async () => {
         </v-col>
         <v-col cols="12">
           <houselist
-            v-if="rootStore.state.statusData"
+            v-if="mastersStore.statusData"
             @recargar-datos="recargarDatos"
           />
         </v-col>
@@ -1114,8 +1116,8 @@ onMounted(async () => {
             </template>
             <!-- Invertimos el orden en el DOM para que el último quede ARRIBA al abrir hacia arriba -->
             <v-btn
-              v-if="rootStore.state.url_folderonedrive"
-              @click="rootStore.dispatch('openURL', { url: rootStore.state.url_folderonedrive })"
+              v-if="mastersStore.url_folderonedrive"
+              @click="mastersStore.openURL({ url: mastersStore.url_folderonedrive })"
               color="yellow"
             >
               <v-icon start>
@@ -1124,7 +1126,7 @@ onMounted(async () => {
               Carpeta
             </v-btn>
             <v-btn
-              v-if="rootStore.state.statusData"
+              v-if="mastersStore.statusData"
               @click="addNewHouse()"
               color="primary"
               :loading="loadingBotonNuevoHouse"

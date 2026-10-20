@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 
 const SectionCalculadora = defineAsyncComponent(() =>
@@ -17,7 +17,7 @@ const FleteListComponent = defineAsyncComponent(() =>
   import("../../../components/Calculadora/FleteListComponent.vue"));
 
 const calculadorasStore = useCalculadorasStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const tab = ref("serv");
 const id_modality = 1;
@@ -29,8 +29,8 @@ onMounted(async () => {
   };
 
   await Promise.all([
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getPais"),
+    appStore._getModality(),
+    appStore._getPais(),
     calculadorasStore.GetTipoCosto(data),
     calculadorasStore.GetCalcServicio(),
     calculadorasStore.GetCalcMultiplicador(data),

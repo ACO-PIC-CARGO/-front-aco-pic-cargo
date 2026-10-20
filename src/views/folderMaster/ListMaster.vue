@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import { useSecuritysStore } from "@/stores/securitys";
 import listMasterCom from "@/components/folderMaster/ListMasterComponent.vue";
 import FiltroMaster from "@/components/filtros/FiltroMaster.vue";
@@ -9,15 +10,16 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 const ConfigCotizacion = defineAsyncComponent(() =>
   import("@/components/folderPricing/ConfigExpediente.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
 
 const dialogConfig = ref(false);
 
 onMounted(() => {
-  rootStore.state.drawer = false;
-  rootStore.state.mainTitle = "LISTA DE EXPEDIENTES";
+  appStore.drawer = false;
+  appStore.mainTitle = "LISTA DE EXPEDIENTES";
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string);
   dialogConfig.value = !val.existemaster;
 });
@@ -35,12 +37,12 @@ async function guardarConfig() {
       <listMasterCom />
     </div>
     <v-navigation-drawer
-      v-model="rootStore.state.master_filtrarData"
+      v-model="mastersStore.master_filtrarData"
       location="right"
       
       width="30%"
       temporary
-      v-if="rootStore.state.master_filtrarData"
+      v-if="mastersStore.master_filtrarData"
     >
       <v-card elevation="0">
         <FiltroMaster />

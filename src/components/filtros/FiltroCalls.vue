@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -87,13 +87,13 @@ function validarFiltroFechas() {
 }
 async function filtrar() {
   if (!validarFiltroFechas()) return;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await pricingStore.getQuoteCall(pricingStore.filtroCalls);
   pricingStore.filtrarCallsFlag = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   pricingStore.filtroCalls.id_marketing = null;
   pricingStore.filtroCalls.id_status = null;
   pricingStore.filtroCalls.id_entities = null;
@@ -110,7 +110,7 @@ async function limpiar() {
   pricingStore.filtroCalls.estado = true;
   await pricingStore.getQuoteCall(pricingStore.filtroCalls);
   pricingStore.filtrarCallsFlag = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 onMounted(async () => {
   // await this.getMarketingList();
@@ -156,7 +156,7 @@ onMounted(async () => {
               <v-autocomplete
                 label="Cliente"
                 density="compact"
-                :items="rootStore.state.clientes"
+                :items="appStore.clientes"
                 item-title="namelong"
                 item-value="id"
                 placeholder="Clientes"

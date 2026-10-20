@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import dataHouse from "./DataHouse.vue";
 import ingresos from "./IngresosControlGastos.vue";
 import egresos from "./EgresosControlGastos.vue";
@@ -16,7 +16,7 @@ import type { ApiResponse } from "@/types/api";
 import type { AbonoCliente, DatosFactura, RespuestaFactura, SucursalFactura } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const enterprisesStore = useEnterprisesStore();
 
@@ -73,8 +73,8 @@ const headersdebs = [
   },
 ] as const;
 
-function _setControl(...args: unknown[]) {
-  return rootStore.dispatch("_setControl", ...args);
+function _setControl() {
+  return appStore._setControl();
 }
 function setDate(value: moment.MomentInput) {
   date.value = moment(value).format("YYYY-MM-DD");
@@ -307,88 +307,88 @@ async function _generatePDF() {
     text: "Por favor espere",
   });
   let sentido;
-  if (rootStore.state.report_id_sentido == "") {
+  if (appStore.report_id_sentido == "") {
     sentido = "";
   } else {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sentido = rootStore.state.report_id_sentido;
+    sentido = appStore.report_id_sentido;
   }
   const data = {
     nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto,
-    nro_control: rootStore.state.dataControl_Numero,
+    nro_control: appStore.dataControl_Numero,
     profit: (
-      (rootStore.state.totalTotalIngresos
-        ? rootStore.state.totalTotalIngresos
+      (appStore.totalTotalIngresos
+        ? appStore.totalTotalIngresos
         : 0) -
-      (rootStore.state.totalTotalEgresos
-        ? rootStore.state.totalTotalEgresos
+      (appStore.totalTotalEgresos
+        ? appStore.totalTotalEgresos
         : 0)
     ).toFixed(2),
-    code_master: rootStore.state.dataHouse_code_master,
-    code_house: rootStore.state.dataHouse_code_house,
-    sentido: rootStore.state.dataHouse_modality,
-    tipo_embarque: rootStore.state.dataHouse_shipment,
-    puerto_origen: rootStore.state.dataHouse_port_begin,
-    puerto_destino: rootStore.state.dataHouse_port_end,
-    agente: rootStore.state.dataHouse_agente,
-    consignatario: rootStore.state.dataHouse_consigners,
-    notify: rootStore.state.dataHouse_notify,
-    bultos: rootStore.state.dataHouse_bultos,
-    peso: rootStore.state.dataHouse_peso,
-    volumen: rootStore.state.dataHouse_volumen,
-    itemsIngreso: rootStore.state.itemsDataIngresosList,
-    itemsEgreso: rootStore.state.itemsDataEgresosList,
-    itemsTotalesProveedores: rootStore.state.itemsDataTotalesProveedor,
-    ruc: rootStore.state.dataHouse_ruc,
-    totalIngreso: rootStore.state.totalIngresos,
-    totalIngresoOp: rootStore.state.totalIngresosOp,
-    totalEgreso: rootStore.state.totalEgresos,
-    totalEgresoOp: rootStore.state.totalEgresosOp,
-    exp: rootStore.state.dataHouse_exp,
-    totalIgv: rootStore.state.dataHouse_exp,
-    totalIgvEgresos: rootStore.state.totalIgvEgresos,
-    totalIgvEgresosOp: rootStore.state.totalIgvEgresosOp,
-    totalTotalEgresos: rootStore.state.totalTotalEgresos,
-    totalTotalEgresosOp: rootStore.state.totalTotalEgresosOp,
-    totalIgvIngresos: rootStore.state.totalIgvIngresos,
-    totalIgvIngresosOp: rootStore.state.totalIgvIngresosOp,
-    totalTotalIngresos: rootStore.state.totalTotalIngresos,
-    totalTotalIngresosOp: rootStore.state.totalTotalIngresosOp,
+    code_master: appStore.dataHouse_code_master,
+    code_house: appStore.dataHouse_code_house,
+    sentido: appStore.dataHouse_modality,
+    tipo_embarque: appStore.dataHouse_shipment,
+    puerto_origen: appStore.dataHouse_port_begin,
+    puerto_destino: appStore.dataHouse_port_end,
+    agente: appStore.dataHouse_agente,
+    consignatario: appStore.dataHouse_consigners,
+    notify: appStore.dataHouse_notify,
+    bultos: appStore.dataHouse_bultos,
+    peso: appStore.dataHouse_peso,
+    volumen: appStore.dataHouse_volumen,
+    itemsIngreso: appStore.itemsDataIngresosList,
+    itemsEgreso: appStore.itemsDataEgresosList,
+    itemsTotalesProveedores: appStore.itemsDataTotalesProveedor,
+    ruc: appStore.dataHouse_ruc,
+    totalIngreso: appStore.totalIngresos,
+    totalIngresoOp: appStore.totalIngresosOp,
+    totalEgreso: appStore.totalEgresos,
+    totalEgresoOp: appStore.totalEgresosOp,
+    exp: appStore.dataHouse_exp,
+    totalIgv: appStore.dataHouse_exp,
+    totalIgvEgresos: appStore.totalIgvEgresos,
+    totalIgvEgresosOp: appStore.totalIgvEgresosOp,
+    totalTotalEgresos: appStore.totalTotalEgresos,
+    totalTotalEgresosOp: appStore.totalTotalEgresosOp,
+    totalIgvIngresos: appStore.totalIgvIngresos,
+    totalIgvIngresosOp: appStore.totalIgvIngresosOp,
+    totalTotalIngresos: appStore.totalTotalIngresos,
+    totalTotalIngresosOp: appStore.totalTotalIngresosOp,
     gananciapr: (
-      (rootStore.state.totalTotalIngresos
-        ? rootStore.state.totalTotalIngresos
+      (appStore.totalTotalIngresos
+        ? appStore.totalTotalIngresos
         : 0) -
-      (rootStore.state.totalTotalEgresos
-        ? rootStore.state.totalTotalEgresos
+      (appStore.totalTotalEgresos
+        ? appStore.totalTotalEgresos
         : 0)
     ).toFixed(2),
     igvpr: Math.abs(
       (
-        rootStore.state.totalIgvIngresos -
-        rootStore.state.totalIgvEgresos
+        appStore.totalIgvIngresos -
+        appStore.totalIgvEgresos
       ).toFixed(2) as unknown as number
     ),
     subtotalpr: (
-      rootStore.state.totalTotalIngresos -
-      rootStore.state.totalTotalEgresos
+      appStore.totalTotalIngresos -
+      appStore.totalTotalEgresos
     ).toFixed(2),
     gananciaop: (
-      (rootStore.state.totalTotalIngresosOp
-        ? rootStore.state.totalTotalIngresosOp
+      (appStore.totalTotalIngresosOp
+        ? appStore.totalTotalIngresosOp
         : 0) -
-      (rootStore.state.totalTotalEgresosOp
-        ? rootStore.state.totalTotalEgresosOp
+      (appStore.totalTotalEgresosOp
+        ? appStore.totalTotalEgresosOp
         : 0)
     ).toFixed(2),
     igvop: Math.abs(
       (
-        rootStore.state.totalIgvIngresosOp -
-        rootStore.state.totalIgvEgresosOp
+        appStore.totalIgvIngresosOp -
+        appStore.totalIgvEgresosOp
       ).toFixed(2) as unknown as number
     ),
     subtotalop: (
-      rootStore.state.totalTotalIngresosOp -
-      rootStore.state.totalTotalEgresosOp
+      appStore.totalTotalIngresosOp -
+      appStore.totalTotalEgresosOp
     ).toFixed(2),
   };
 
@@ -428,18 +428,18 @@ onBeforeMount(() => {
   _getDebsClient();
 });
 onMounted(() => {
-  rootStore.state.dataControl_id_house = route.params.id_house;
+  appStore.dataControl_id_house = route.params.id_house;
   all();
-  rootStore.dispatch("_getBanksList");
-  rootStore.dispatch("_getCoinsList");
+  appStore._getBanksList();
+  appStore._getCoinsList();
   cargarBranch();
   if (route.params.id_control) {
-    rootStore.state.drawer = false;
-    rootStore.state.dataControl_id_user = (JSON.parse(
+    appStore.drawer = false;
+    appStore.dataControl_id_user = (JSON.parse(
       sessionStorage.getItem("dataUser") as string
     ) as { id: number }[])[0]!.id;
   }
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -462,7 +462,7 @@ onMounted(() => {
             v-if="!route.params.id_control"
             block
             @click="_setControl"
-            :disabled="rootStore.state.dataControl_Numero != ''"
+            :disabled="appStore.dataControl_Numero != ''"
             color="primary"
           >
             GENERAR CONTROL
@@ -471,7 +471,7 @@ onMounted(() => {
             v-if="route.params.id_control"
             block
             @click="_setControl"
-            :disabled="rootStore.state.dataControl_Numero != ''"
+            :disabled="appStore.dataControl_Numero != ''"
             color="primary"
           >
             GENERAR NUEVA VERSION DE CONTROL
@@ -488,7 +488,7 @@ onMounted(() => {
           </v-btn>
 
           <v-btn
-            :disabled="rootStore.state.dataControl_Numero == ''"
+            :disabled="appStore.dataControl_Numero == ''"
             block
             color="primary"
             class="mt-2"
@@ -497,7 +497,7 @@ onMounted(() => {
             CARGAR ABONOS DEL CLIENTE
           </v-btn>
           <v-btn
-            :disabled="rootStore.state.dataControl_Numero == ''"
+            :disabled="appStore.dataControl_Numero == ''"
             block
             color="pink"
             class="mt-2"
@@ -547,7 +547,7 @@ onMounted(() => {
 
           <v-card
             class="mt-5"
-            :disabled="rootStore.state.dataControl_Numero == ''"
+            :disabled="appStore.dataControl_Numero == ''"
           >
             <v-card-text>
               <totales />
@@ -572,7 +572,7 @@ onMounted(() => {
 
           <v-card
             class="mt-5"
-            :disabled="rootStore.state.dataControl_Numero == ''"
+            :disabled="appStore.dataControl_Numero == ''"
           >
             <v-card-text>
               <totalesProveedor />
@@ -729,7 +729,7 @@ onMounted(() => {
                     md="4"
                   >
                     <v-autocomplete
-                      :items="rootStore.state.itemsDataBanksList"
+                      :items="appStore.itemsDataBanksList"
                       v-model="id_banks"
                       item-title="acronym"
                       item-value="id"
@@ -741,7 +741,7 @@ onMounted(() => {
                     md="4"
                   >
                     <v-autocomplete
-                      :items="rootStore.state.itemsCoinsList"
+                      :items="appStore.itemsCoinsList"
                       v-model="id_coins"
                       item-title="acronym"
                       item-value="id"

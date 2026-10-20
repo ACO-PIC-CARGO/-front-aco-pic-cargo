@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { sessionBranchId } from "@/utils/sesion";
 import type { AbonoCliente, ConceptoSolicitudPago } from "@/types/requests";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 
 const itemsSPayment = ref<unknown[]>([]);
@@ -115,9 +115,9 @@ let paymoneda: string | undefined;
 let paymonto: string | undefined;
 
 function getDebs() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   _getDebsClient();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function editControl(nro_master: string) {
   appRouter.push({
@@ -362,11 +362,11 @@ function viewPdf(pdf: string) {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await _getDebsClient();
-  await rootStore.dispatch("_getBanksList");
-  await rootStore.dispatch("_getCoinsList");
-  rootStore.state.spiner = false;
+  await appStore._getBanksList();
+  await appStore._getCoinsList();
+  appStore.spiner = false;
 });
 </script>
 

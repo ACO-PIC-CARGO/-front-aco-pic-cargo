@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useConfiguracionStore } from "@/stores/configuracion";
 
 const LCLTextWhatsappCotizacion = defineAsyncComponent(() =>
@@ -12,18 +12,18 @@ const FCLTextWhatsappCotizacion = defineAsyncComponent(() =>
     "@/components/Configuracion/Pricing/FCLTextWhatsappCotizacion.vue"
   ));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const configuracionStore = useConfiguracionStore();
 
 const tab = ref("lcl");
 
 onMounted(async () => {
-  Promise.all([configuracionStore.getTextWhatsapp(), rootStore.dispatch("_getContainers")]).catch(
+  Promise.all([configuracionStore.getTextWhatsapp(), appStore._getContainers()]).catch(
     (error) => {
       console.error("Error al cargar los datos:", error);
     },
   );
-  rootStore.state.mainTitle =
+  appStore.mainTitle =
     "Actualizar Texto Para Envío de Cotización por WSP";
 });
 </script>

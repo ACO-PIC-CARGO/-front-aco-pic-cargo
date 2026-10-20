@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTownStore } from "@/stores/town";
 import { useUserStore } from "@/stores/user";
 import type { FormUsuario } from "@/types/seguridad";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const userStore = useUserStore();
 const townStore = useTownStore();
 
@@ -94,7 +94,7 @@ async function Aceptar() {
         >
           <v-autocomplete
             label="Tipo Documento"
-            :items="rootStore.state.itemsDocumentsPais"
+            :items="appStore.itemsDocumentsPais"
             v-model="userStore.filtros.id_document"
             item-title="name"
             item-value="id"

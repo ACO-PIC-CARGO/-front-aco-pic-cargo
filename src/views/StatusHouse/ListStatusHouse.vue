@@ -2,14 +2,14 @@
 import { nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useStatushouseStore } from "@/stores/statushouse";
 import type { ComentarioEstadoHouse, EstadoHouse } from "@/types/catalogos";
 
 const statushouseStore = useStatushouseStore();
 const { listStatusHouse, orden } = storeToRefs(statushouseStore);
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 
 const filtrar = ref(false);
@@ -69,9 +69,9 @@ function eliminarComentario(comentario: ComentarioEstadoHouse) {
     confirmButtonText: "Sí, eliminarlo!",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await statushouseStore.EliminarComentario(comentario);
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       dialog.value = false;
     }
   });
@@ -87,9 +87,9 @@ function eliminar(estado: EstadoHouse) {
     confirmButtonText: "Sí, eliminarlo!",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await statushouseStore.EliminarStatus(estado);
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }
   });
 }
@@ -253,9 +253,9 @@ async function guardarOrden() {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await statushouseStore.getListStatusHouse();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await pricingStore.getModality();
   await pricingStore.getShipment();
 });

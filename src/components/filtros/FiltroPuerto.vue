@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePuertoStore } from "@/stores/puerto";
 import { useTransportStore } from "@/stores/transport";
 import type { Puerto } from "@/types/cotizacion";
 
 const puertoStore = usePuertoStore();
 const transportStore = useTransportStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const loading = ref(false);
 const PortModel = ref<Puerto>({});
@@ -117,7 +117,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Pais"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           v-model="puertoStore.PortFilter.id_pais"
           item-title="name"
           item-value="id"
@@ -202,7 +202,7 @@ async function Aceptar() {
           <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="rootStore.state.itemsPais"
+            :items="appStore.itemsPais"
             v-model="puertoStore.PortModel.id_pais"
             :readonly="puertoStore.tipo == 'ver'"
             item-title="name"

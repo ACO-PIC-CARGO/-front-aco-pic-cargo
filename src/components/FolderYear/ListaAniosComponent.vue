@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useYearStore } from "@/stores/year";
 import type { ApiResponse } from "@/types/api";
@@ -9,7 +9,7 @@ import type { Anio, FiltroAnio, FormAnio } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const yearStore = useYearStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "description" },
@@ -63,7 +63,7 @@ const originalRecords = ref<FiltroAnio>({ ...records.value });
 
 onMounted(async () => {
   await yearStore.fetchDataYear(records.value);
-  rootStore.state.mainTitle = `Año`;
+  appStore.mainTitle = `Año`;
 });
 
 function updateStatus(newValue: unknown) {

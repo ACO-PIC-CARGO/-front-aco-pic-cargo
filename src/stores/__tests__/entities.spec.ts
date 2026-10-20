@@ -5,18 +5,17 @@ import Swal from "sweetalert2";
 import type { SweetAlertOptions } from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere", params: {} } } } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {} } }));
 
 const postMock = (http as unknown as { post: Mock }).post;
 const currentRoute = router.currentRoute as unknown as { value: { name: string; params: Record<string, unknown> } };
-const rootState = () => store.state as Record<string, unknown>;
+const rootState = () => useAppStore();
 const sentUrls = () => httpMock.mock.calls.map(([config]) => config.url.slice(URL_MAIN.length));
 const swalCall = (n = 0) => vi.mocked(Swal.fire).mock.calls[n]![0];
 
@@ -40,7 +39,7 @@ describe("entities store", () => {
     sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 7, usuario: "ana" }]));
     vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
     currentRoute.value = { name: "somewhere", params: {} };
-    store.state = { modalEntitie: false, registroClienteFlag: false };
+    Object.assign(useAppStore(), { modalEntitie: false, registroClienteFlag: false });
     vi.spyOn(console, "log").mockImplementation(() => {});
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
@@ -267,7 +266,7 @@ describe("entities store", () => {
   test("guardarCliente from the client dialog keeps the new id, flips the registration flag and closes the dialog", async () => {
     respond({ registrar_cliente: accepted([{ id_entitie: 33 }]) });
     const entities = useEntitiesStore();
-    store.state = { modalEntitie: true, registroClienteFlag: false, entities };
+    Object.assign(useAppStore(), { modalEntitie: true, registroClienteFlag: false });
 
     await entities.guardarCliente();
     await flushPromises();
@@ -324,7 +323,7 @@ describe("entities store", () => {
   test("guardarProveedor from the client dialog keeps the new id and closes the dialog", async () => {
     respond({ registrar_proveedor: accepted([{ id_entitie: 40 }]) });
     const entities = useEntitiesStore();
-    store.state = { modalEntitie: true, registroClienteFlag: true, entities };
+    Object.assign(useAppStore(), { modalEntitie: true, registroClienteFlag: true });
 
     await entities.guardarProveedor();
     await flushPromises();

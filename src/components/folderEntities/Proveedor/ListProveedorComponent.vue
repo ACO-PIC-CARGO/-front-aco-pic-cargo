@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { EntidadListado } from "@/types/entidades";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -68,29 +68,29 @@ function eliminar(item: EntidadListado) {
   });
 }
 async function obtenerTelContactoProveedor(id: number) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.telConctactoProveedor({ id: id });
   dialogTelCont.value = true;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function exportProveedor() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.exportListProveedor();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 onMounted(async () => {
   entitiesStore.lstProveedor = [];
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.getListProveedor();
   await Promise.all([
-    rootStore.dispatch("_getDocumentsPais"),
+    appStore._getDocumentsPais(),
     masterusuariosStore.cargarMasterDetalleTipoProveedor(),
-    rootStore.dispatch("_getPais"),
-    rootStore.dispatch("_getRole"),
+    appStore._getPais(),
+    appStore._getRole(),
     masterusuariosStore.cargarTipoTelefono(),
   ]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 

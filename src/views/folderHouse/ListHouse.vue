@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useHousesStore } from "@/stores/houses";
 import listMasterCom from "@/components/folderHouse/ListHouseComponent.vue";
 import FiltroHouse from "@/components/filtros/FiltroHouse.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const housesStore = useHousesStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "LISTA DE EXPEDIENTES HOUSE's";
+  appStore.mainTitle = "LISTA DE EXPEDIENTES HOUSE's";
 });
 </script>
 
@@ -16,12 +18,12 @@ onMounted(() => {
     <listMasterCom />
 
     <v-navigation-drawer
-      v-model="rootStore.state.house_filtrarData"
+      v-model="housesStore.house_filtrarData"
       location="right"
 
       width="30%"
       temporary
-      v-if="rootStore.state.house_filtrarData"
+      v-if="housesStore.house_filtrarData"
     >
       <v-card elevation="0">
         <FiltroHouse />

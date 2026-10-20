@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
 import { useSecuritysStore } from "@/stores/securitys";
@@ -11,7 +11,7 @@ import { sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { CotizacionListado, FormNotaLlamada } from "@/types/cotizacion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
 const securitysStore = useSecuritysStore();
@@ -267,7 +267,7 @@ function abrirModal(quoteFila: CotizacionListado) {
 }
 async function updateQuoteRecibidoEnviado() {
   if ((await frmEstado.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const data = {
       id: quote.value!.id,
       id_master_recibidocotizacion: id_master_recibidocotizacion.value,
@@ -280,7 +280,7 @@ async function updateQuoteRecibidoEnviado() {
     await aduanaStore.actualizarAduanaRecibidoEnviado(data);
     await aduanaStore.getListQuoteAduana();
     dialog.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     frmEstado.value!.reset();
   }
 }
@@ -296,7 +296,7 @@ function registrarLlamada(id: number | undefined) {
 async function guardarNota() {
   if ((await detallenota.value!.validate()).valid) {
     dialogRegistroNotaLlamada.value = false;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const data = {
       id_quote: pricingStore.id,
@@ -312,7 +312,7 @@ async function guardarNota() {
       console.log(err);
     });
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -378,9 +378,9 @@ function abrirModalAprobar({ item: item }: { item: CotizacionListado }) {
             id_exp: id_exp.value,
             fecha_validez: fecha_validez,
           });
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           await aduanaStore.getListQuoteAduana();
-          rootStore.state.spiner = false;
+          appStore.spiner = false;
         }
       });
     }
@@ -409,10 +409,10 @@ async function aprobar() {
       id_exp: id_exp.value,
       fecha_validez: fecha_validez,
     });
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await aduanaStore.getListQuoteAduana();
     aprobarflag.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -467,7 +467,7 @@ onMounted(async () => {
     estado: "activo",
   };
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await aduanaStore.getListQuoteAduana();
   await pricingStore.getListRecibidoCotizacion();
   await pricingStore.getListEnviadoCliente();
@@ -478,7 +478,7 @@ onMounted(async () => {
   //   idtipocarga: "",
   //   idincoterms: "",
   // });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -989,7 +989,7 @@ onMounted(async () => {
           <v-form ref="frmAprobar">
             <v-row>
               <v-autocomplete
-                :items="rootStore.state.itemsMasterList"
+                :items="appStore.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
                 item-title="code_master"

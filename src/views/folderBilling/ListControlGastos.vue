@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import listControlGastosCom from "@/components/folderBilling/ListControlGastosComponent.vue";
 import FiltroControlGastos from "@/components/filtros/FiltroControlGastos.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "LISTA DE CONTROL DE GASTOS";
+  appStore.mainTitle = "LISTA DE CONTROL DE GASTOS";
 });
 </script>
 
@@ -16,7 +16,7 @@ onMounted(() => {
     <listControlGastosCom />
 
     <v-navigation-drawer
-      v-model="rootStore.state.cg_filtrarData"
+      v-model="appStore.cg_filtrarData"
       location="right"
       
       width="20%"

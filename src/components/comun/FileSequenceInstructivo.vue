@@ -4,7 +4,7 @@ import { useRoute } from "vue-router";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import ArrastraYSolarComponent from "./ArrastraYSolarComponentFile.vue";
 import { usePuertoStore } from "@/stores/puerto";
 import { usePricingStore } from "@/stores/pricing";
@@ -35,7 +35,7 @@ const props = withDefaults(
 const emit = defineEmits<{ cerrarDialogo: []; continuar: [] }>();
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const pricingStore = usePricingStore() as ReturnType<typeof usePricingStore> & {
   emailaddress?: string;
@@ -972,7 +972,7 @@ function cargarDatosIncoterms() {
 function cargarDatosProveedor() {
 
   proveedor.value = encontrar(
-    rootStore.state.itemsProveedorList,
+    appStore.itemsProveedorList,
     datosPrincipales.id_proveedor,
   );
 }
@@ -1058,7 +1058,7 @@ onMounted(async () => {
     const idBuscado =
       proveedoresUnicos.length > 0 ? proveedoresUnicos[0] : null;
     proveedorInstructivo.value =
-      rootStore.state.provedores.find((v: ProveedorPricing) => v.id == idBuscado) || {};
+      appStore.provedores.find((v: ProveedorPricing) => v.id == idBuscado) || {};
   }
   puertoOrigen.value = (await puertoStore.verPuerto({
     id_transport: idTipoCarga as number | undefined,

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const BalanceGeneral = defineAsyncComponent(() => import("@/components/balances/BalanceGananciaComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "ESTADO DE GANANCIA Y PERDIDAS";
+  appStore.mainTitle = "ESTADO DE GANANCIA Y PERDIDAS";
 });
 </script>
 

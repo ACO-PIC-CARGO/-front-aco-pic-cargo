@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import BotonChateaConNosotros from "../../components/comun/BotonChateaConNosotros.vue";
 import ConfiguracionCargaClienteComponent from "../../components/FolderEnterprise/ConfiguracionCargaClienteComponent.vue";
 import ConfiguracionCargaProveedorComponent from "../../components/FolderEnterprise/ConfiguracionCargaProveedorComponent.vue";
@@ -10,7 +10,8 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const appStoreWithSpinner = appStore as typeof appStore & { spinner?: boolean };
 
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
@@ -24,21 +25,21 @@ const editarConfig = ref(false);
 const dialog = ref(true);
 
 onMounted(async () => {
-  rootStore.state.drawer = false;
-  rootStore.state.spinner = true;
+  appStore.drawer = false;
+  appStoreWithSpinner.spinner = true;
   await pricingStore.getModality();
   await pricingStore.getShipment();
   await pricingStore.getIncoterms();
-  await rootStore.dispatch("_getDocumentsPais");
-  await rootStore.dispatch("_getProveedor");
-  rootStore.state.spinner = false;
+  await appStore._getDocumentsPais();
+  await appStore._getProveedor();
+  appStoreWithSpinner.spinner = false;
   await securitysStore.ObtenerDatosConfig();
 });
 
 async function guardarDatosEmpresa() {
-  rootStore.state.dialogProcessing = true;
+  appStore.dialogProcessing = true;
   await configEmpresaStore.actualizarDatoEmpresa();
-  rootStore.state.dialogProcessing = false;
+  appStore.dialogProcessing = false;
   editarProveedor.value = true;
   e1.value = 2;
 }

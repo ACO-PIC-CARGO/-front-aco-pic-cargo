@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 
 const ListAirlinesComponet = defineAsyncComponent(() => import("@/components/Maestros/Airlines/ListAirlinesComponet.vue"));
 const FilterAirlinesComponet = defineAsyncComponent(() => import("../../components/filtros/FiltroAirlines.vue"));
 
 const airlinesStore = useAirlinesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE AEROLÍNEAS`;
+  appStore.mainTitle = `LISTADO DE AEROLÍNEAS`;
 });
 </script>
 

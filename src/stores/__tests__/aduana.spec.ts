@@ -4,7 +4,7 @@ import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -14,10 +14,8 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
-const rootState = store.state as Record<string, unknown>;
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
 const postedBody = (path: string) => postMock.mock.calls.find(([url]) => url === URL_MAIN + path)?.[1];
 const sentConfig = (path: string) => httpMock.mock.calls.find(([config]) => config.url.slice(URL_MAIN.length).split("?")[0] === path)?.[0];
@@ -137,7 +135,6 @@ describe("aduana store", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     sessionStorage.clear();
-    for (const key of Object.keys(rootState)) if (key !== "aduana") delete rootState[key];
     sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 1, nombrecompleto: "ANA PRICING", path: "logo.png" }]));
     sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 1, trade_name: "PIC LOGISTICA SAC" }]));
     sessionStorage.setItem("iso_pais", "9589");
@@ -765,10 +762,10 @@ describe("aduana store", () => {
       aduana.listInstructivo = [
         { expediente: "EXP1", sentido: "IMPORTACION", carga: "LCL", incoterms: "FOB", direccion: "CALLE 1", proveedor: "PROV", origen: "SHANGHAI", destino: "CALLAO", fiscal: "F", ruc: "R" },
       ];
-      rootState.provedores = [
+      useAppStore().provedores = [
         { id: 40, namelong: "NAVIERA UNO" },
         { id: 41, namelong: "AGENTE DOS" },
-      ];
+      ] as never;
       return aduana;
     }
 

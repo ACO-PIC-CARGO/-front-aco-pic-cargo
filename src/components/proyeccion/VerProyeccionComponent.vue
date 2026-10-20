@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
 import type {
@@ -12,7 +12,7 @@ import type {
 } from "@/types/proyecciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
@@ -95,7 +95,7 @@ function agregarFila(item: FilaProyeccion): void {
 }
 
 function calcularMontoFinal(item: FilaProyeccion): void {
-  const symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.id == item.id_coin,
   )[0]!.symbol;
   if (symbol != "USD") {
@@ -113,7 +113,7 @@ function calcularTotales(): void {
   let montolocal = 0;
   let totalmonlocalSuma = 0;
   let totalfinalSuma = 0;
-  const id_dolar = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const id_dolar = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.symbol == "USD",
   )[0]!.id;
   items.value
@@ -139,7 +139,7 @@ function calcularTotalTipoCambio(): void {
   let symbol = "";
   items.value.forEach((item) => {
     if (item.id_coin) {
-      symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+      symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
         (v) => v.id == item.id_coin,
       )[0]!.symbol;
       if (symbol != "USD") {
@@ -155,9 +155,9 @@ function calcularTotalTipoCambio(): void {
   calcularTotales();
 }
 async function exportar(): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await proyeccionesStore.exportarVerProyeccion(route.params.id as string);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 function eliminarfila(item: FilaProyeccion): void {
@@ -252,18 +252,18 @@ function editar(): void {
 
 onMounted(async () => {
   monExt.value = moneda.value = (sessionSucursal() as SucursalSesionProyeccion).moneda[0]!.symbol;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   await proyeccionesStore.verProyeccion(route.params.id as string);
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
   await balancesStore.getCargarTipoGastos();
   await balancesStore.getCargarTipoSubGastos();
-  await rootStore.dispatch("_getChargeYear");
-  await rootStore.dispatch("_getChargeMonth");
-  await rootStore.dispatch("cargarProveedores");
+  await appStore._getChargeYear();
+  await appStore._getChargeMonth();
+  await appStore.cargarProveedores();
   setData();
-  rootStore.state.spiner = false;
-  rootStore.state.drawer = false;
+  appStore.spiner = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -285,7 +285,7 @@ onMounted(async () => {
                   md="2"
                 >
                   <v-select
-                    :items="rootStore.state.month"
+                    :items="appStore.month"
                     v-model="id_month"
                     label="Mes"
                     density="compact"
@@ -301,7 +301,7 @@ onMounted(async () => {
                   md="2"
                 >
                   <v-select
-                    :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                    :items="Array.isArray(appStore.year) ? appStore.year : []"
                     v-model="id_year"
                     label="Año"
                     density="compact"
@@ -416,7 +416,7 @@ onMounted(async () => {
               </template>
               <template #[`item.proveedor`]="{ item }">
                 <v-autocomplete
-                  :items="rootStore.state.provedores"
+                  :items="appStore.provedores"
                   v-model="item.id_entitie"
                   item-title="namelong"
                   placeholder="Proveedor"
@@ -448,7 +448,7 @@ onMounted(async () => {
               </template>
               <template #[`item.moneda`]="{ item }">
                 <v-select
-                  :items="rootStore.state.itemsCoinsList"
+                  :items="appStore.itemsCoinsList"
                   item-title="symbol"
                   v-model="item.id_coin"
                   label="Moneda"

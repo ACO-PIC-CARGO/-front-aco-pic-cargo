@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
 import type { FiltroMultiplicador, TipoContenedor } from "@/types/catalogos";
 import type { Multiplicador } from "@/types/cotizacion";
 
 const multiplicadorStore = useMultiplicadorStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Tipo de Carga", align: "start", key: "type_carga" },
@@ -60,7 +60,7 @@ watch(
   () => multiplicadorStore.record.id_containers,
   (newRecord) => {
     if (newRecord) {
-      const container = rootStore.state.itemsContainers.find((v: TipoContenedor) => v.id == newRecord);
+      const container = appStore.itemsContainers.find((v: TipoContenedor) => v.id == newRecord)!;
       multiplicadorStore.record.name = container.name;
     } else {
       multiplicadorStore.record.name = "";
@@ -82,9 +82,9 @@ onMounted(async () => {
   Promise.all([
     multiplicadorStore.fetchDataMultiplicador(records.value),
     multiplicadorStore.fetchDataCargarShipment(),
-    rootStore.dispatch("_getContainers"),
+    appStore._getContainers(),
   ]);
-  rootStore.state.mainTitle = `Multiplicadores`;
+  appStore.mainTitle = `Multiplicadores`;
 });
 
 function updateStatus(newValue: unknown) {
@@ -455,7 +455,7 @@ function validateNumber(value: string | number | null | undefined) {
               label="Contenedor Asociado"
               clearable
               v-model="multiplicadorStore.record.id_containers"
-              :items="rootStore.state.itemsContainers"
+              :items="appStore.itemsContainers"
               item-title="name"
               item-value="id"
             />

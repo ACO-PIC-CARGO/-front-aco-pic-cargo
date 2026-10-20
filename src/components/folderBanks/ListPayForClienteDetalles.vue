@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
@@ -21,7 +21,7 @@ import type {
 import type { TipoBalance } from "@/types/finanzas";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
@@ -159,16 +159,16 @@ async function limpiar() {
     administrativo: true,
     nro_exp: "",
   };
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await getListBanksDetailsCxC();
   dialogFiltro.value = !dialogFiltro.value;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await getListBanksDetailsCxC();
   dialogFiltro.value = !dialogFiltro.value;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function nuevo() {
@@ -428,7 +428,7 @@ async function exportar() {
   // exportar_listado_reporte_pagos
 }
 async function obtenerListado() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await getListBanksDetailsCxC();
   dato.value = {
     id: "",
@@ -441,7 +441,7 @@ async function obtenerListado() {
     soporte: "",
     id_path: "",
   };
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function filtarSubIngreso() {
   if (!!filtro.value.tipoingreso) {
@@ -465,9 +465,9 @@ function clickRow(item: IngresoCliente, event: { isExpanded?: boolean }) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function ActualizarIngreso() {
   await ingresosStore.ActualizarCXC(Ingreso.value);
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await getListBanksDetailsCxC();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   EditarIngresoFlag.value = false;
 }
 async function editar(item: IngresoCliente) {
@@ -543,20 +543,20 @@ onMounted(async () => {
   usuario.value = sessionUser().usuario as string;
   filtro.value.fechadesde = moment().format("YYYY-01-01");
   filtro.value.fechahasta = moment().endOf("month").format("YYYY-MM-DD");
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await getListBanksDetailsCxC();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 
   await Promise.all([
     balancesStore.getCargarTipoIngreso(),
-    rootStore.dispatch("_getBanksList"),
+    appStore._getBanksList(),
     balancesStore.getCargarTipoSubIngreso(),
     filtarSubIngreso(),
     getListBanksDetailsCargar(),
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarClientes(),
+    appStore._getCoinsList(),
   ]);
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -730,7 +730,7 @@ onMounted(async () => {
           </v-card-title>
           <v-card-text>
             <v-select
-              :items="rootStore.state.itemsDataBanksList"
+              :items="appStore.itemsDataBanksList"
               v-model="filtro.id_banco"
               label="Banco Origen"
               item-title="acronym"
@@ -754,7 +754,7 @@ onMounted(async () => {
               hide-details
             />
             <v-autocomplete
-              :items="rootStore.state.clientes"
+              :items="appStore.clientes"
               v-model="filtro.id_consigner"
               label="Consignatario"
               item-title="namelong"

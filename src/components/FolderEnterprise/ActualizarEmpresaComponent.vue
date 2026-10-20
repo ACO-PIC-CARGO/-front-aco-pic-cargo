@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useCoinsStore } from "@/stores/coins";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -15,7 +15,7 @@ import { useBankStore } from "@/stores/bank";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const filesStore = useFilesStore();
 const coinsStore = useCoinsStore();
@@ -98,9 +98,9 @@ watch(
         "tipoimpuesto",
         "phone",
       ];
-      rootStore.dispatch("_getState", newRecord.id_pais);
-      rootStore.dispatch("_getCity", newRecord.id_state);
-      rootStore.dispatch("_getTown", newRecord.id_city);
+      appStore._getState(newRecord.id_pais);
+      appStore._getCity(newRecord.id_state);
+      appStore._getTown(newRecord.id_city);
 
       const target = enterprise.value as unknown as Record<string, unknown>;
       const source = newRecord as Record<string, unknown>;
@@ -127,8 +127,8 @@ onMounted(async () => {
   await enterprisesStore.readEnterprise(route.params.id as string);
   await Promise.all([
     masterusuariosStore.cargarImpuestoRenta(),
-    rootStore.dispatch("_getDocumentsPais"),
-    rootStore.dispatch("_getPais"),
+    appStore._getDocumentsPais(),
+    appStore._getPais(),
     enterprisesStore.listarCuentaEmpresa(),
     bankStore.fetchDataBank({
       code: "",
@@ -143,14 +143,14 @@ onMounted(async () => {
     id: 0,
     name: "Crear Nuevo Banco",
   });
-  rootStore.state.mainTitle = `ACTUALIZAR EMPRESA`;
+  appStore.mainTitle = `ACTUALIZAR EMPRESA`;
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _callState() {
   // Kept: id_pais has never been declared here, so the branch below has always been skipped.
   if (id_pais.value! > 0) {
-    rootStore.dispatch("_getState", id_pais.value);
+    appStore._getState(id_pais.value);
   }
 }
 function abrirModalNuevaCuenta() {
@@ -170,16 +170,16 @@ async function get_state() {
   enterprise.value.id_state = "";
   enterprise.value.id_city = "";
   enterprise.value.id_town = null;
-  await rootStore.dispatch("_getState", enterprise.value.id_pais);
+  await appStore._getState(enterprise.value.id_pais);
 }
 async function get_city() {
   enterprise.value.id_city = "";
   enterprise.value.id_town = null;
-  await rootStore.dispatch("_getCity", enterprise.value.id_state);
+  await appStore._getCity(enterprise.value.id_state);
 }
 async function get_town() {
   enterprise.value.id_town = null;
-  await rootStore.dispatch("_getTown", enterprise.value.id_city);
+  await appStore._getTown(enterprise.value.id_city);
 }
 async function update() {
   if ((await form.value!.validate()).valid) {
@@ -321,7 +321,7 @@ async function guardarCuenta() {
                       <v-autocomplete
                         label="Tipo de Documento (*)"
                         v-model="enterprise.id_document"
-                        :items="rootStore.state.itemsDocumentsPais"
+                        :items="appStore.itemsDocumentsPais"
                         item-title="description"
                         item-value="id"
                         :rules="[(v) => !!v || 'Dato requerido']"
@@ -452,7 +452,7 @@ async function guardarCuenta() {
                     >
                       <v-autocomplete
                         label="País (*)"
-                        :items="rootStore.state.itemsPais"
+                        :items="appStore.itemsPais"
                         item-value="id"
                         item-title="name"
                         v-model="enterprise.id_pais"
@@ -467,7 +467,7 @@ async function guardarCuenta() {
                     >
                       <v-autocomplete
                         label="Región (*)"
-                        :items="rootStore.state.itemsState"
+                        :items="appStore.itemsState"
                         item-value="id"
                         item-title="name"
                         v-model="enterprise.id_state"
@@ -482,7 +482,7 @@ async function guardarCuenta() {
                     >
                       <v-autocomplete
                         label="Provincia (*)"
-                        :items="rootStore.state.itemsCity"
+                        :items="appStore.itemsCity"
                         item-value="id"
                         item-title="name"
                         v-model="enterprise.id_city"
@@ -497,7 +497,7 @@ async function guardarCuenta() {
                     >
                       <v-autocomplete
                         label="Distrito (*)"
-                        :items="rootStore.state.itemsTown"
+                        :items="appStore.itemsTown"
                         item-value="id"
                         item-title="name"
                         v-model="enterprise.id_town"

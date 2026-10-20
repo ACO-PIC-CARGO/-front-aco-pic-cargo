@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useSubingresoStore } from "@/stores/subingreso";
 
 const SubIngreso = defineAsyncComponent(() => import("../../components/FolderIngresos/ListSubIngresoCompponent.vue"));
 const FilterBegend = defineAsyncComponent(() => import("../../components/filtros/FilterSubIngreso.vue"));
 
 const subingresoStore = useSubingresoStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE SUB INGRESOS`;
+  appStore.mainTitle = `LISTADO DE SUB INGRESOS`;
 });
 </script>
 

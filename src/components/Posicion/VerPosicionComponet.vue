@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePositionStore } from "@/stores/position";
 import type { UsuarioNoAsignado } from "@/types/seguridad";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const positionStore = usePositionStore();
 
 const tab = ref("datos");
@@ -33,10 +33,10 @@ const headersUsuarios = [
 
 onMounted(async () => {
   positionStore.model.id = route.params.id as string;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await positionStore.verPosition();
   await positionStore.cargarUsuarioNoAsignadoPosicion();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 
 

@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const VerComponent = defineAsyncComponent(() =>
   import("@/components/folderEntities/Proveedor/VerProveedorComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `VER PROVEEDOR`;
+  appStore.mainTitle = `VER PROVEEDOR`;
 });
 </script>
 

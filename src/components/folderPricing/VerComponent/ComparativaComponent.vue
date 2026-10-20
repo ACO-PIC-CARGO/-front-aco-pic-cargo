@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { usePricingStore } from "@/stores/pricing";
@@ -12,7 +12,7 @@ import type {
   OpcionComparativa,
 } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const { calcularFac } = useCotizacionCalculos();
 
@@ -220,7 +220,7 @@ async function calcularTotalesOpciones() {
           (v) => v.esopcionflag == 1 && v.code_cost == 4
         )[0]!.id_proveedor
       : "";
-    const proveedor = rootStore.state.provedores.find(
+    const proveedor = appStore.provedores.find(
       (v: { id: number | string }) => v.id == id_proveedor,
     )
         ;

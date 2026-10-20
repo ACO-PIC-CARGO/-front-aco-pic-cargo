@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
 import type {
@@ -12,7 +12,7 @@ import type {
 } from "@/types/proyecciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
 const proyeccionesStore = useProyeccionesStore();
@@ -93,7 +93,7 @@ function agregarFila(item: FilaProyeccion): void {
 }
 
 function calcularMontoFinal(item: FilaProyeccion): void {
-  const symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.id == item.id_coin,
   )[0]!.symbol;
   if (symbol != "USD") {
@@ -111,7 +111,7 @@ function calcularTotales(): void {
   let montolocal = 0;
   let totalmonlocalSuma = 0;
   let totalfinalSuma = 0;
-  const id_dolar = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+  const id_dolar = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
     (v) => v.symbol == "USD",
   )[0]!.id;
   items.value
@@ -137,7 +137,7 @@ function calcularTotalTipoCambio(): void {
   let symbol = "";
   items.value.forEach((item) => {
     if (item.id_coin) {
-      symbol = (rootStore.state.itemsCoinsList as MonedaProyeccion[]).filter(
+      symbol = (appStore.itemsCoinsList as MonedaProyeccion[]).filter(
         (v) => v.id == item.id_coin,
       )[0]!.symbol;
       if (symbol != "USD") {
@@ -234,7 +234,7 @@ function volver(): void {
 
 onMounted(async () => {
   monExt.value = moneda.value = (sessionSucursal() as SucursalSesionProyeccion).moneda[0]!.symbol;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   if (items.value.length == 0) {
     const data = {
       id_gasto: "",
@@ -247,14 +247,14 @@ onMounted(async () => {
     };
     items.value.push(data);
   }
-  await rootStore.dispatch("_getCoinsList");
-  await rootStore.dispatch("_getProveedor");
+  await appStore._getCoinsList();
+  await appStore._getProveedor();
   await balancesStore.getCargarTipoGastos();
   await balancesStore.getCargarTipoSubGastos();
-  await rootStore.dispatch("_getChargeYear");
-  await rootStore.dispatch("_getChargeMonth");
-  rootStore.state.spiner = false;
-  rootStore.state.drawer = false;
+  await appStore._getChargeYear();
+  await appStore._getChargeMonth();
+  appStore.spiner = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -275,7 +275,7 @@ onMounted(async () => {
                 md="2"
               >
                 <v-select
-                  :items="rootStore.state.month"
+                  :items="appStore.month"
                   v-model="id_month"
                   label="Mes"
                   density="compact"
@@ -290,7 +290,7 @@ onMounted(async () => {
                 md="2"
               >
                 <v-select
-                  :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
                   v-model="id_year"
                   label="Año"
                   density="compact"
@@ -404,7 +404,7 @@ onMounted(async () => {
             </template>
             <template #[`item.proveedor`]="{ item }">
               <v-autocomplete
-                :items="rootStore.state.itemsProveedorList"
+                :items="appStore.itemsProveedorList"
                 v-model="item.id_entitie"
                 item-title="namelong"
                 placeholder="Proveedor"
@@ -434,7 +434,7 @@ onMounted(async () => {
             </template>
             <template #[`item.moneda`]="{ item }">
               <v-select
-                :items="rootStore.state.itemsCoinsList"
+                :items="appStore.itemsCoinsList"
                 item-title="symbol"
                 v-model="item.id_coin"
                 label="Moneda"

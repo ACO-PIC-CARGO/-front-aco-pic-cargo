@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTownStore } from "@/stores/town";
 
 const Town = defineAsyncComponent(() => import("../../components/Town/ListTownComponet.vue"));
 const FilterTown = defineAsyncComponent(() => import("../../components/filtros/FilterTown.vue"));
 
 const townStore = useTownStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE DISTRITOS`;
+  appStore.mainTitle = `LISTADO DE DISTRITOS`;
 });
 </script>
 

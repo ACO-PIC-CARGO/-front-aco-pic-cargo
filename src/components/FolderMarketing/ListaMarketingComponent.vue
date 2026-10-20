@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useMarketingStore } from "@/stores/marketing";
 import type { ApiResponse } from "@/types/api";
@@ -9,7 +9,7 @@ import type { FiltroMarketing, FormMarketing, Marketing } from "@/types/catalogo
 import { sessionBranchId } from "@/utils/sesion";
 
 const marketingStore = useMarketingStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -92,7 +92,7 @@ const originalMarktingList = ref<FiltroMarketing>({ ...marketing_list.value });
 
 onMounted(async () => {
   await marketingStore.fetchDataMarketing(marketing_list.value);
-  rootStore.state.mainTitle = `Tipo de Marketing`;
+  appStore.mainTitle = `Tipo de Marketing`;
 });
 
 async function exportar() {

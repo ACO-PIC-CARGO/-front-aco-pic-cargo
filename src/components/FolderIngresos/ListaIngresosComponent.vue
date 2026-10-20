@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useIngresosStore } from "@/stores/ingresos";
 import type { ApiResponse } from "@/types/api";
@@ -9,7 +9,7 @@ import type { FiltroGastoIngreso, FormIngreso, TipoIngreso } from "@/types/catal
 import { sessionBranchId } from "@/utils/sesion";
 
 const ingresosStore = useIngresosStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -70,7 +70,7 @@ const originalRecords = ref<FiltroGastoIngreso>({ ...records.value });
 
 onMounted(async () => {
   await ingresosStore.fetchDataIngreso(records.value);
-  rootStore.state.mainTitle = `Tipo de Ingreso`;
+  appStore.mainTitle = `Tipo de Ingreso`;
 });
 
 async function resetRecord(option?: string) {

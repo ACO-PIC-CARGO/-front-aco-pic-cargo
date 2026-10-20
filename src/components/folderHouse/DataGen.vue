@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
@@ -10,14 +11,16 @@ import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse, ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
+import type { BegEndHouseRaiz, TipoEmbarqueRaiz } from "@/types/app";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
-const recargarClienteFlag = computed(() => rootStore.state.recargarClienteFlag);
+const recargarClienteFlag = computed(() => appStore.recargarClienteFlag);
 
 const error = ref("");
 const dialogCliente = ref(false);
@@ -50,23 +53,23 @@ const formNewService = useTemplateRef("formNewService");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const esAereo = computed(() => {
-  const v = rootStore.state.house_id_trasnport;
+  const v = housesStore.house_id_trasnport;
   const id = v && typeof v === "object" ? v.id : v;
-  const shipment = rootStore.state.itemsShipment.find((s: { id: number }) => s.id == id);
+  const shipment = appStore.itemsShipment.find((s: { id: number }) => s.id == id);
   return shipment && shipment.code === "Aéreo";
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const esFCL = computed(() => {
-  const v = rootStore.state.house_id_trasnport;
+  const v = housesStore.house_id_trasnport;
   const id = v && typeof v === "object" ? v.id : v;
-  const shipment = rootStore.state.itemsShipment.find((s: { id: number }) => s.id == id);
+  const shipment = appStore.itemsShipment.find((s: { id: number }) => s.id == id);
   return shipment && shipment.code === "FCL";
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const esLCL = computed(() => {
-  const v = rootStore.state.house_id_trasnport;
+  const v = housesStore.house_id_trasnport;
   const id = v && typeof v === "object" ? v.id : v;
-  const shipment = rootStore.state.itemsShipment.find((s: { id: number }) => s.id == id);
+  const shipment = appStore.itemsShipment.find((s: { id: number }) => s.id == id);
   return shipment && shipment.code === "LCL";
 });
 
@@ -75,62 +78,62 @@ function isDisabled(item: { porasignar?: boolean }) {
   return !item.porasignar; // Deshabilita si el estado no es "activo"
 }
 function irAMaster() {
-  console.log("ir a master", rootStore.state.id_master);
+  console.log("ir a master", housesStore.id_master);
   appRouter.push({
     name: "controlMasterVer",
     params: {
-      id: rootStore.state.id_master,
+      id: housesStore.id_master,
     },
   });
 }
 function reset() {
-  rootStore.state.copy_house = null;
-  rootStore.state.dataHouse_transporte = null;
-  rootStore.state.house_origen = null;
-  rootStore.state.house_destino = null;
-  rootStore.state.house_sentido = null;
-  rootStore.state.house_id_trasnport = null;
-  rootStore.state.house_incoterms = null;
-  rootStore.state.house_cotizacion = null;
-  rootStore.state.house_cotizacionaduana = null;
-  rootStore.state.house_origen = null;
-  rootStore.state.house_destino = null;
-  rootStore.state.house_expediente = null;
-  rootStore.state.house_master = null;
-  rootStore.state.house_master_expediente = null;
-  rootStore.state.house_id_agente = null;
-  rootStore.state.house_id_consigner = null;
-  rootStore.state.house_id_notify = null;
-  rootStore.state.house_id_airlines = null;
-  rootStore.state.house_id_coloader = null;
-  rootStore.state.house_id_naviera = null;
-  rootStore.state.house_blmaster = null;
-  rootStore.state.house_id_motonave = null;
-  rootStore.state.house_viaje = null;
-  rootStore.state.house_bultos = null;
-  rootStore.state.house_peso = null;
-  rootStore.state.house_volumen = null;
-  rootStore.state.house_id_condicion = null;
-  rootStore.state.house_id_coins = null;
-  rootStore.state.house_monto = null;
-  rootStore.state.house_id = null;
-  rootStore.state.url_onedrive = null;
-  rootStore.state.house_id_consigner_real = null;
-  rootStore.state.itemsHouseContainers = null;
-  rootStore.state.house_nro_declaracion_aduana = null;
-  rootStore.state.house_canal_aduana = null;
-  rootStore.state.house_enlace_tracking = null;
+  housesStore.copy_house = null as never;
+  housesStore.dataHouse_transporte = null;
+  housesStore.house_origen = null;
+  housesStore.house_destino = null;
+  housesStore.house_sentido = null;
+  housesStore.house_id_trasnport = null;
+  housesStore.house_incoterms = null;
+  housesStore.house_cotizacion = null;
+  housesStore.house_cotizacionaduana = null;
+  housesStore.house_origen = null;
+  housesStore.house_destino = null;
+  appStore.house_expediente = null;
+  housesStore.house_master = null;
+  housesStore.house_master_expediente = null;
+  housesStore.house_id_agente = null;
+  appStore.house_id_consigner = null;
+  housesStore.house_id_notify = null;
+  housesStore.house_id_airlines = null;
+  housesStore.house_id_coloader = null;
+  housesStore.house_id_naviera = null;
+  housesStore.house_blmaster = null;
+  housesStore.house_id_motonave = null;
+  housesStore.house_viaje = null;
+  housesStore.house_bultos = null;
+  housesStore.house_peso = null;
+  housesStore.house_volumen = null;
+  housesStore.house_id_condicion = null;
+  housesStore.house_id_coins = null;
+  housesStore.house_monto = null;
+  housesStore.house_id = null;
+  housesStore.url_onedrive = null;
+  housesStore.house_id_consigner_real = null;
+  housesStore.itemsHouseContainers = null;
+  housesStore.house_nro_declaracion_aduana = null;
+  housesStore.house_canal_aduana = null;
+  housesStore.house_enlace_tracking = null as never;
 }
 function _callModalEntitie(id_role: number) {
-  rootStore.state.id_role_actual = id_role;
+  appStore.id_role_actual = id_role;
   if (id_role == 1) {
-    rootStore.state.modalAgente = !rootStore.state.modalAgente;
+    appStore.modalAgente = !appStore.modalAgente;
   } else if (id_role == 11) {
-    rootStore.state.modalEntitie = !rootStore.state.modalEntitie;
+    appStore.modalEntitie = !appStore.modalEntitie;
   } else if (id_role == 17) {
-    rootStore.state.modalColoader = !rootStore.state.modalColoader;
+    appStore.modalColoader = !appStore.modalColoader;
   } else if (id_role == 2) {
-    rootStore.state.modalNaviera = !rootStore.state.modalNaviera;
+    appStore.modalNaviera = !appStore.modalNaviera;
   }
 }
 function aduanaaprobada(item: CotizacionListado) {
@@ -152,14 +155,14 @@ async function guardar() {
 }
 async function _setHouseEdit() {
   error.value = "";
-  if (!rootStore.state.house_id_consigner) {
+  if (!appStore.house_id_consigner) {
     error.value = "Dato Requerido";
     return false;
   }
 
   loadingBotonGuardarHouse = true;
 
-  const lstservices = (rootStore.state.itemsHouseServices || []).map(
+  const lstservices = (appStore.itemsHouseServices || []).map(
     (item: ServicioHouse) => ({
       id: item.id || null,
       id_begend: item.id_begend || null,
@@ -170,74 +173,74 @@ async function _setHouseEdit() {
   );
 
   const data = JSON.stringify({
-    id_modality: rootStore.state.house_sentido
-      ? rootStore.state.house_sentido
+    id_modality: housesStore.house_sentido
+      ? housesStore.house_sentido
       : "",
-    id_shipment: rootStore.state.house_id_trasnport
-      ? rootStore.state.house_id_trasnport
+    id_shipment: housesStore.house_id_trasnport
+      ? housesStore.house_id_trasnport
       : "",
-    id_consigner_real: rootStore.state.house_id_consigner_real
-      ? rootStore.state.house_id_consigner_real
+    id_consigner_real: housesStore.house_id_consigner_real
+      ? housesStore.house_id_consigner_real
       : "",
-    id_port_begin: rootStore.state.house_origen
-      ? rootStore.state.house_origen
+    id_port_begin: housesStore.house_origen
+      ? housesStore.house_origen
       : "",
-    id_port_end: rootStore.state.house_destino
-      ? rootStore.state.house_destino
+    id_port_end: housesStore.house_destino
+      ? housesStore.house_destino
       : "",
-    id_proveedor: rootStore.state.house_id_agente
-      ? rootStore.state.house_id_agente
+    id_proveedor: housesStore.house_id_agente
+      ? housesStore.house_id_agente
       : "",
-    id_consigner: rootStore.state.house_id_consigner
-      ? rootStore.state.house_id_consigner
+    id_consigner: appStore.house_id_consigner
+      ? appStore.house_id_consigner
       : "",
-    id_notify: rootStore.state.house_id_notify
-      ? rootStore.state.house_id_notify
+    id_notify: housesStore.house_id_notify
+      ? housesStore.house_id_notify
       : "",
-    id_aerolinea: rootStore.state.house_id_airlines
-      ? rootStore.state.house_id_airlines
+    id_aerolinea: housesStore.house_id_airlines
+      ? housesStore.house_id_airlines
       : "",
-    id_coloader: rootStore.state.house_id_coloader
-      ? rootStore.state.house_id_coloader
+    id_coloader: housesStore.house_id_coloader
+      ? housesStore.house_id_coloader
       : "",
-    id_naviera: rootStore.state.house_id_naviera
-      ? rootStore.state.house_id_naviera
+    id_naviera: housesStore.house_id_naviera
+      ? housesStore.house_id_naviera
       : "",
-    id_incoterms: rootStore.state.house_incoterms
-      ? rootStore.state.house_incoterms
+    id_incoterms: housesStore.house_incoterms
+      ? housesStore.house_incoterms
       : "",
-    nro_hbl: rootStore.state.house_blmaster
-      ? rootStore.state.house_blmaster
+    nro_hbl: housesStore.house_blmaster
+      ? housesStore.house_blmaster
       : "",
-    id_motonave: rootStore.state.house_id_motonave
-      ? rootStore.state.house_id_motonave
+    id_motonave: housesStore.house_id_motonave
+      ? housesStore.house_id_motonave
       : "",
-    nro_viaje: rootStore.state.house_viaje
-      ? rootStore.state.house_viaje
+    nro_viaje: housesStore.house_viaje
+      ? housesStore.house_viaje
       : "",
-    bultos: rootStore.state.house_bultos
-      ? rootStore.state.house_bultos
+    bultos: housesStore.house_bultos
+      ? housesStore.house_bultos
       : "",
-    peso: rootStore.state.house_peso ? rootStore.state.house_peso : "",
-    volumen: rootStore.state.house_volumen
-      ? rootStore.state.house_volumen
+    peso: housesStore.house_peso ? housesStore.house_peso : "",
+    volumen: housesStore.house_volumen
+      ? housesStore.house_volumen
       : "",
-    id_conditions: rootStore.state.house_id_condicion
-      ? rootStore.state.house_id_condicion
+    id_conditions: housesStore.house_id_condicion
+      ? housesStore.house_id_condicion
       : "",
-    id_moneda: rootStore.state.house_id_coins
-      ? rootStore.state.house_id_coins
+    id_moneda: housesStore.house_id_coins
+      ? housesStore.house_id_coins
       : "",
-    monto: rootStore.state.house_monto ? rootStore.state.house_monto : "",
+    monto: housesStore.house_monto ? housesStore.house_monto : "",
     id_branch: sessionBranchId(),
-    id_cot: rootStore.state.house_cotizacion
-      ? rootStore.state.house_cotizacion
+    id_cot: housesStore.house_cotizacion
+      ? housesStore.house_cotizacion
       : "",
     lstservices,
-    id: rootStore.state.house_id,
+    id: housesStore.house_id,
     nro_declaracion_aduana:
-      rootStore.state.house_nro_declaracion_aduana || "",
-    canal_aduana: rootStore.state.house_canal_aduana || "",
+      housesStore.house_nro_declaracion_aduana || "",
+    canal_aduana: housesStore.house_canal_aduana || "",
   });
 
   const config = {
@@ -276,16 +279,16 @@ async function _setHouseEdit() {
 
     statusData = true;
 
-    if (!rootStore.state.url_onedrive) {
-      const proveedor = rootStore.state.clientes.find(
-        (v: { id: number }) => v.id == rootStore.state.house_id_consigner,
+    if (!housesStore.url_onedrive) {
+      const proveedor = appStore.clientes.find(
+        (v: { id: number }) => v.id == appStore.house_id_consigner,
       );
       const id_branch = sessionBranchId();
       const id_branchs = ["1", "2", 1, 2];
       if (id_branchs.includes(id_branch)) {
         await housesStore.guardarCarpetaHouse({
-          id: rootStore.state.house_master,
-          nroMaster: `${rootStore.state.house_master_expediente}_${proveedor.namelong}`,
+          id: housesStore.house_master,
+          nroMaster: `${housesStore.house_master_expediente}_${proveedor!.namelong}`,
         });
       }
     }
@@ -325,7 +328,7 @@ async function validarExistePagosMaster() {
        
       },
       params: {
-        id: rootStore.state.house_cotizacion,
+        id: housesStore.house_cotizacion,
       },
     };
     const res = await axios(config).then((res) => {
@@ -339,13 +342,13 @@ async function validarExistePagosMaster() {
 }
 async function asignarDatos() {
   dataAprobar.value = pricingStore.listQuotes.filter(
-    (v) => v.id == rootStore.state.house_cotizacion,
+    (v) => v.id == housesStore.house_cotizacion,
   )[0] as CotizacionAsociableHouse;
   dialogCostos.value = true;
 }
 async function asignarDatosAduana() {
   dataAprobar.value = aduanaStore.listQuotes2.filter(
-    (v) => v.id == rootStore.state.house_cotizacionaduana,
+    (v) => v.id == housesStore.house_cotizacionaduana,
   )[0] as CotizacionAsociableHouse;
   console.log(dataAprobar.value);
   dialogCostosAduana.value = true;
@@ -358,9 +361,9 @@ async function asociarCotizacionP() {
     (v) => v.descripcion === "TOTAL",
   )[0]!.igv;
   await pricingStore.aprobarCotizacion({
-    id_quote: rootStore.state.house_cotizacion, //
+    id_quote: housesStore.house_cotizacion, //
     nuevoexpediente: false, //
-    id_exp: rootStore.state.house_master, //
+    id_exp: housesStore.house_master, //
     fecha_validez: "", //
     totalIngreso: valor, //
     igvIngreso: igv, //
@@ -379,9 +382,9 @@ async function asociarCotizacionA() {
     (v) => v.descripcion === "TOTAL",
   )[0]!.igv;
   await aduanaStore.aprobarCotizacionAduana({
-    id_quote: rootStore.state.house_cotizacionaduana, //
+    id_quote: housesStore.house_cotizacionaduana, //
     nuevoexpediente: false, //
-    id_exp: rootStore.state.house_master, //
+    id_exp: housesStore.house_master, //
     fecha_validez: "", //
     totalIngreso: valor, //
     igvIngreso: igv, //
@@ -397,77 +400,77 @@ async function _validaData() {
     await housesStore.verHouse(route.params);
     const house = housesStore.house;
 
-    rootStore.state.copy_house = house;
-    rootStore.state.id_master = house.id_master;
-    rootStore.state.telexconfirmado = house.telexconfirmado;
-    rootStore.state.fechaconfirmaciontelex = house.fechaconfirmaciontelex;
-    rootStore.state.dataHouse_transporte = house.id_transport;
-    rootStore.state.house_origen = house.id_port_begin;
-    rootStore.state.house_destino = house.id_port_end;
-    rootStore.state.house_sentido = house.id_modality;
-    rootStore.state.house_id_trasnport = house.id_shipment;
-    rootStore.state.house_incoterms = house.id_incoterms;
-    rootStore.state.house_cotizacion = house.id_cot;
-    rootStore.state.house_cotizacionaduana = house.id_quoteaduana;
+    housesStore.copy_house = house;
+    housesStore.id_master = house.id_master;
+    housesStore.telexconfirmado = house.telexconfirmado;
+    housesStore.fechaconfirmaciontelex = house.fechaconfirmaciontelex;
+    housesStore.dataHouse_transporte = house.id_transport;
+    housesStore.house_origen = house.id_port_begin;
+    housesStore.house_destino = house.id_port_end;
+    housesStore.house_sentido = house.id_modality;
+    housesStore.house_id_trasnport = house.id_shipment;
+    housesStore.house_incoterms = house.id_incoterms;
+    housesStore.house_cotizacion = house.id_cot;
+    housesStore.house_cotizacionaduana = house.id_quoteaduana;
 
     id_transport = house.id_transport;
 
-    rootStore.state.house_origen = house.id_port_begin;
-    rootStore.state.house_destino = house.id_port_end;
-    rootStore.state.house_expediente = house.code_house;
-    rootStore.state.house_master = house.id_master;
-    rootStore.state.house_master_expediente = house.code_master;
-    rootStore.state.house_id_agente = house.id_proveedor;
-    rootStore.state.house_id_consigner = house.id_consigner;
-    rootStore.state.house_id_notify = house.id_notify;
-    rootStore.state.house_id_airlines = house.id_aerolinea;
-    rootStore.state.house_id_coloader = house.id_coloader;
-    rootStore.state.house_id_vendedor = house.id_vendedor;
-    rootStore.state.house_id_pricing = house.id_pricing;
+    housesStore.house_origen = house.id_port_begin;
+    housesStore.house_destino = house.id_port_end;
+    appStore.house_expediente = house.code_house;
+    housesStore.house_master = house.id_master;
+    housesStore.house_master_expediente = house.code_master;
+    housesStore.house_id_agente = house.id_proveedor;
+    appStore.house_id_consigner = house.id_consigner;
+    housesStore.house_id_notify = house.id_notify;
+    housesStore.house_id_airlines = house.id_aerolinea;
+    housesStore.house_id_coloader = house.id_coloader;
+    housesStore.house_id_vendedor = house.id_vendedor;
+    housesStore.house_id_pricing = house.id_pricing;
     //this.$store.state.house_id_agente = house.id_agent;
-    rootStore.state.house_id_naviera = house.id_naviera;
-    rootStore.state.house_blmaster = house.nro_hbl;
-    rootStore.state.house_id_motonave = house.id_motonave;
-    rootStore.state.house_viaje = house.nro_viaje;
-    rootStore.state.house_bultos = house.bultos;
-    rootStore.state.house_peso = house.peso;
-    rootStore.state.house_volumen = house.volumen;
-    rootStore.state.house_id_condicion = house.id_conditions;
-    rootStore.state.house_id_coins = house.id_moneda;
-    rootStore.state.house_monto = house.monto;
-    rootStore.state.house_id = house.id;
-    rootStore.state.url_onedrive = house.url_onedrive;
-    rootStore.state.house_id_consigner_real = house.id_consigner_real;
-    rootStore.state.itemsHouseContainers = house.itemshousecontainers;
-    rootStore.state.house_nro_declaracion_aduana =
+    housesStore.house_id_naviera = house.id_naviera;
+    housesStore.house_blmaster = house.nro_hbl;
+    housesStore.house_id_motonave = house.id_motonave;
+    housesStore.house_viaje = house.nro_viaje;
+    housesStore.house_bultos = house.bultos;
+    housesStore.house_peso = house.peso;
+    housesStore.house_volumen = house.volumen;
+    housesStore.house_id_condicion = house.id_conditions;
+    housesStore.house_id_coins = house.id_moneda;
+    housesStore.house_monto = house.monto;
+    housesStore.house_id = house.id;
+    housesStore.url_onedrive = house.url_onedrive;
+    housesStore.house_id_consigner_real = house.id_consigner_real;
+    housesStore.itemsHouseContainers = house.itemshousecontainers as typeof housesStore.itemsHouseContainers;
+    housesStore.house_nro_declaracion_aduana =
       house.nro_declaracion_aduana || "";
-    rootStore.state.house_canal_aduana = house.canal_aduana || "";
+    housesStore.house_canal_aduana = house.canal_aduana || "";
     const id_cot = house.id_cot;
     const id_quote = house.id_quoteaduana;
     bloquearQuote.value = !!(id_cot || id_quote);
     Promise.all([
-      rootStore.dispatch("_getPortBegin", {
+      appStore._getPortBegin({
         id_transport: house.id_transport,
         id: house.id_port_begin,
       }),
-      rootStore.dispatch("_getPortEnd", {
+      appStore._getPortEnd({
         id_transport: house.id_transport,
         id: house.id_port_end,
       }),
-      rootStore.dispatch("_getServicesBegin"),
-      rootStore.dispatch("_getBitacoraLineal", {
-        id_modalidad: rootStore.state.house_sentido,
-        id_shipment: rootStore.state.house_id_trasnport,
-        id_incoterms: rootStore.state.house_incoterms,
+      mastersStore._getServicesBegin(),
+      housesStore._getBitacoraLineal({
+        id_modalidad: housesStore.house_sentido,
+        id_shipment: housesStore.house_id_trasnport,
+        id_incoterms: housesStore.house_incoterms,
       }),
       // this._getComentariosPredefinidos(),
     ]);
-    rootStore.state.house_enlace_tracking = house.token_rastreo
+    housesStore.house_enlace_tracking = house.token_rastreo
       ? "https://aco.agentedecargaonline.com/tracking/" +
         house.token_rastreo
       : "";
     if (
-      !rootStore.state.house_id_consigner &&
+      !appStore.house_id_consigner &&
       !!route.params.activar
     ) {
       dialogCliente.value = true;
@@ -587,62 +590,62 @@ async function _validaData() {
   // }
 }
 async function _activePort(id_transport: number) {
-  await rootStore.dispatch("_getPortBegin", { id_transport: id_transport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: id_transport });
-  if (rootStore.state.master_id_trasnport.id == 1) {
-    rootStore.state.embar_title_nacn = "Aerolinea";
-  } else if (rootStore.state.master_id_trasnport.id == 2) {
-    rootStore.state.embar_title_nacn = "Naviera";
-  } else if (rootStore.state.master_id_trasnport.id == 3) {
-    rootStore.state.embar_title_nacn = "Coloader";
+  await appStore._getPortBegin({ id_transport: id_transport });
+  await appStore._getPortEnd({ id_transport: id_transport });
+  if (appStore.master_id_trasnport.id == 1) {
+    appStore.embar_title_nacn = "Aerolinea";
+  } else if (appStore.master_id_trasnport.id == 2) {
+    appStore.embar_title_nacn = "Naviera";
+  } else if (appStore.master_id_trasnport.id == 3) {
+    appStore.embar_title_nacn = "Coloader";
   } else {
-    rootStore.state.embar_title_nacn = "Aerolinea/Coloader/Naviera";
+    appStore.embar_title_nacn = "Aerolinea/Coloader/Naviera";
   }
 }
 function _getDataService() {
-  rootStore.dispatch("_getServicesBegin");
+  mastersStore._getServicesBegin();
   // this._getBitacoraList();
   // this._getBitacoraLineal();
 }
 async function setNewService() {
   if ((await formNewService.value!.validate()).valid) {
     const dataBegend =
-      rootStore.state.itemsBegEndList.find(
+      appStore.itemsBegEndList.find(
         (v: { id: number }) => v.id === house_service_id_begend.value,
-      ) || {};
+      ) || ({} as BegEndHouseRaiz);
     const dataService = {
-      id_begend: house_service_id_begend.value,
-      namebegend: dataBegend.name,
+      id_begend: house_service_id_begend.value as number,
+      namebegend: dataBegend.name as string,
       position_begend: dataBegend.position_begend,
       nameservice: house_service_name.value,
       status: 0,
     };
 
     let value_itemImpuestos = null;
-    const index_itemImpuestos = rootStore.state.itemsHouseServices.findIndex(
+    const index_itemImpuestos = appStore.itemsHouseServices.findIndex(
       (item: ServicioHouse) => item.nameservice!.toUpperCase() == "IMPUESTOS",
     );
     if (index_itemImpuestos !== -1) {
       value_itemImpuestos =
-        rootStore.state.itemsHouseServices[index_itemImpuestos];
-      rootStore.state.itemsHouseServices.splice(index_itemImpuestos, 1);
+        appStore.itemsHouseServices[index_itemImpuestos]!;
+      appStore.itemsHouseServices.splice(index_itemImpuestos, 1);
     }
 
-    rootStore.state.itemsHouseServices.push(dataService);
+    appStore.itemsHouseServices.push(dataService);
 
     if (value_itemImpuestos !== null) {
-      rootStore.state.itemsHouseServices.push(value_itemImpuestos);
+      appStore.itemsHouseServices.push(value_itemImpuestos);
     }
 
-    rootStore.state.modalServices_manualMode = false;
+    housesStore.modalServices_manualMode = false;
   }
 
   formNewService.value!.reset();
 }
 function cancelNewService() {
   formNewService.value!.reset();
-  rootStore.state.modalServices_manualMode =
-    !rootStore.state.modalServices_manualMode;
+  housesStore.modalServices_manualMode =
+    !housesStore.modalServices_manualMode;
 }
 
 watch(recargarClienteFlag, async () => {
@@ -650,7 +653,7 @@ watch(recargarClienteFlag, async () => {
     method: "get",
     url:
       import.meta.env.VITE_URL_MAIN +
-      `ver_proveedor?id=${rootStore.state.house_id_consigner}`,
+      `ver_proveedor?id=${appStore.house_id_consigner}`,
     headers: {
      
       "Content-Type": "application/json",
@@ -662,9 +665,9 @@ watch(recargarClienteFlag, async () => {
       const res = response.data;
       if (res.estadoflag) {
         const proveedor = res.data[0];
-        rootStore.state.copy_house.emailaddress_clientefinal =
+        housesStore.copy_house.emailaddress_clientefinal =
           proveedor.emailaddress;
-        console.log(rootStore.state.copy_house.emailaddress_clientefinal);
+        console.log(housesStore.copy_house.emailaddress_clientefinal);
       }
     })
     .catch(function (error) {
@@ -673,8 +676,8 @@ watch(recargarClienteFlag, async () => {
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = false;
-  rootStore.state.spiner = true;
+  appStore.spiner = false;
+  appStore.spiner = true;
   reset();
   // console.log(this.$route.params)
   nextTick(() => {
@@ -684,29 +687,29 @@ onMounted(async () => {
   });
   await Promise.all([
     _validaData(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getShipment"),
-    rootStore.dispatch("_getIncoterms"),
-    rootStore.dispatch("_getnroMaster"),
-    rootStore.dispatch("_getAgents"),
-    rootStore.dispatch("_getConsigners"),
-    rootStore.dispatch("_getNotify"),
-    rootStore.dispatch("_getColoaders"),
-    rootStore.dispatch("_getAirlines"),
-    rootStore.dispatch("_getNavieras"),
-    rootStore.dispatch("_getProveedorRolNaviera"),
-    rootStore.dispatch("_getMotonave"),
-    rootStore.dispatch("_getContainers"),
-    rootStore.dispatch("_getFleteCon"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore._getModality(),
+    appStore._getShipment(),
+    appStore._getIncoterms(),
+    mastersStore._getnroMaster(),
+    appStore._getAgents(),
+    appStore._getConsigners(),
+    appStore._getNotify(),
+    housesStore._getColoaders(),
+    appStore._getAirlines(),
+    appStore._getNavieras(),
+    mastersStore._getProveedorRolNaviera(),
+    appStore._getMotonave(),
+    appStore._getContainers(),
+    appStore._getFleteCon(),
+    appStore._getCoinsList(),
 
-    rootStore.dispatch("_getProveedor"),
-    rootStore.dispatch("_getBegEndList"),
-    rootStore.dispatch("_getHouseContainers", { id: route.params.id }),
+    appStore._getProveedor(),
+    appStore._getBegEndList(),
+    housesStore._getHouseContainers({ id: route.params.id }),
   ]);
   if (
-    rootStore.state.house_cotizacion ||
-    rootStore.state.house_cotizacionaduana
+    housesStore.house_cotizacion ||
+    housesStore.house_cotizacionaduana
   ) {
     await pricingStore.getQuoteNoAsignadoHouse();
   } else {
@@ -714,11 +717,11 @@ onMounted(async () => {
     await aduanaStore.ListarMontosFinalesAduanaMONGODB();
   }
 
-  rootStore.state.house_id_coins = rootStore.state.itemsCoinsList.filter(
+  housesStore.house_id_coins = appStore.itemsCoinsList.filter(
     (v: { symbol: string }) => v.symbol === "USD",
-  )[0].id;
+  )[0]!.id;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -732,7 +735,7 @@ onMounted(async () => {
       >
         <v-text-field
           readonly
-          v-model="rootStore.state.house_master_expediente"
+          v-model="housesStore.house_master_expediente"
           label="N° de Expedientes Master"
           append-inner-icon="mdi-eye"
           @click:append-inner="irAMaster()"
@@ -755,7 +758,7 @@ onMounted(async () => {
           item-title="code"
           item-value="id"
           v-model:search="searchHouseCotizacion"
-          v-model="rootStore.state.house_cotizacion"
+          v-model="housesStore.house_cotizacion"
           @update:model-value="asignarDatos()"
           clearable
           :disabled="bloquearQuote"
@@ -771,7 +774,7 @@ onMounted(async () => {
           item-title="quote"
           item-value="id"
           v-model:search="searchHouseCotizacionAduana"
-          v-model="rootStore.state.house_cotizacionaduana"
+          v-model="housesStore.house_cotizacionaduana"
           @update:model-value="asignarDatosAduana()"
           clearable
           :item-props="(item) => ({ disabled: aduanaaprobada(item) })"
@@ -785,11 +788,11 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsModality"
+          :items="appStore.itemsModality"
           item-title="name"
           item-value="id"
           label="Sentido"
-          v-model="rootStore.state.house_sentido"
+          v-model="housesStore.house_sentido"
           @update:model-value="_getDataService()"
         />
       </v-col>
@@ -798,13 +801,13 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsShipment"
+          :items="appStore.itemsShipment"
           item-title="embarque"
           item-value="id"
           label="Tipo de Embarque"
           return-object
-          v-model="rootStore.state.house_id_trasnport"
-          @update:model-value="_activePort(rootStore.state.house_id_trasnport.id_transport)"
+          v-model="housesStore.house_id_trasnport as TipoEmbarqueRaiz"
+          @update:model-value="_activePort((housesStore.house_id_trasnport as TipoEmbarqueRaiz).id_transport)"
         />
       </v-col>
       <v-col
@@ -812,11 +815,11 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsIncoterms"
+          :items="appStore.itemsIncoterms"
           item-title="name"
           item-value="id"
           label="Incoterms"
-          v-model="rootStore.state.house_incoterms"
+          v-model="housesStore.house_incoterms"
           @update:model-value="_getDataService()"
         />
       </v-col>
@@ -827,12 +830,12 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsPortBegin"
+          :items="appStore.itemsPortBegin"
           item-title="name"
           item-value="id_port"
           label="Origen"
           readonly
-          v-model="rootStore.state.house_origen"
+          v-model="housesStore.house_origen"
         />
       </v-col>
       <v-col
@@ -840,12 +843,12 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsPortEnd"
+          :items="appStore.itemsPortEnd"
           item-title="name"
           item-value="id_port"
           label="Destino"
           readonly
-          v-model="rootStore.state.house_destino"
+          v-model="housesStore.house_destino"
         />
       </v-col>
       <v-col
@@ -853,11 +856,11 @@ onMounted(async () => {
         md="4"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsColoaders"
+          :items="housesStore.itemsColoaders"
           item-title="namelong"
           item-value="id"
           label="Coloader"
-          v-model="rootStore.state.house_id_coloader"
+          v-model="housesStore.house_id_coloader"
         >
           <template #selection="{ item, internalItem }">
             <span
@@ -879,7 +882,7 @@ onMounted(async () => {
       >
         <v-text-field
           type="number"
-          v-model="rootStore.state.house_bultos"
+          v-model="housesStore.house_bultos"
           label="Bultos"
         />
       </v-col>
@@ -890,7 +893,7 @@ onMounted(async () => {
         <v-text-field
           type="number"
           suffix="kg"
-          v-model="rootStore.state.house_peso"
+          v-model="housesStore.house_peso"
           label="Peso"
         />
       </v-col>
@@ -901,14 +904,14 @@ onMounted(async () => {
         <v-text-field
           type="number"
           suffix="m3"
-          v-model="rootStore.state.house_volumen"
+          v-model="housesStore.house_volumen"
           label="Volumen"
         />
       </v-col>
     </v-row>
 
     <v-dialog
-      v-model="rootStore.state.modalServices_manualMode"
+      v-model="housesStore.modalServices_manualMode"
       max-width="400"
     >
       <v-card>
@@ -919,8 +922,8 @@ onMounted(async () => {
             icon
             color="red"
             @click="
-              rootStore.state.modalServices_manualMode =
-                !rootStore.state.modalServices_manualMode
+              housesStore.modalServices_manualMode =
+                !housesStore.modalServices_manualMode
             "
           >
             <v-icon>mdi-close</v-icon>
@@ -932,7 +935,7 @@ onMounted(async () => {
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    :items="rootStore.state.itemsBegEndList"
+                    :items="appStore.itemsBegEndList"
                     item-title="name"
                     item-value="id"
                     label="Ubicación/Tramo"
@@ -1101,11 +1104,11 @@ onMounted(async () => {
         </v-card-title>
         <v-card-text>
           <v-autocomplete
-            :items="rootStore.state.clientes"
+            :items="appStore.clientes"
             item-title="namelong"
             item-value="id"
             label="Cliente HBL"
-            v-model="rootStore.state.house_id_consigner"
+            v-model="appStore.house_id_consigner"
             :error-messages="error"
             menu-icon=""
           >
@@ -1125,7 +1128,7 @@ onMounted(async () => {
           <v-btn
             color="success"
             @click="guardar"
-            :loading="rootStore.state.spiner"
+            :loading="appStore.spiner"
           >
             Guardar
           </v-btn>
@@ -1134,7 +1137,7 @@ onMounted(async () => {
             class="mx-2"
           >
             {{
-              rootStore.state.spiner
+              appStore.spiner
                 ? "Se está terminando de cargar los datos. Un momento Por favor "
                 : ""
             }}

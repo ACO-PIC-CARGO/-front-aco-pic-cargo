@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import type { FiltroProyeccion, ProyeccionListado } from "@/types/finanzas";
 import type { UsuarioSesionProyeccion } from "@/types/proyecciones";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 const proyeccionesStore = useProyeccionesStore();
 
@@ -58,12 +58,12 @@ function editar(id: unknown): void {
   appRouter.push({ name: "editarProyeccion", params: { id: id as string } });
 }
 async function eliminar(id: unknown): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   let data: Record<string, unknown> = { id: id };
   await proyeccionesStore.eliminarProyeccion(data);
   data = {};
   await proyeccionesStore.getProyeccion(data as unknown as FiltroProyeccion);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function copiar(itemFila: ProyeccionListado): void {
   id_month.value = "";
@@ -124,15 +124,15 @@ onMounted(async () => {
     estado: "",
     aprobadoflag: "",
   };
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     proyeccionesStore.getProyeccion(data),
-    rootStore.dispatch("_getChargeMonth"),
-    rootStore.dispatch("_getChargeYear"),
+    appStore._getChargeMonth(),
+    appStore._getChargeYear(),
   ]);
   generarflag.value = proyeccionesStore.listProyeccion.length == 0;
-  rootStore.state.spiner = false;
-  rootStore.state.drawer = false;
+  appStore.spiner = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -277,7 +277,7 @@ onMounted(async () => {
           <v-row>
             <v-col cols="12">
               <v-select
-                :items="rootStore.state.month"
+                :items="appStore.month"
                 v-model="id_month"
                 label="Mes"
                 density="compact"
@@ -289,7 +289,7 @@ onMounted(async () => {
 
             <v-col cols="12">
               <v-select
-                :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                :items="Array.isArray(appStore.year) ? appStore.year : []"
                 v-model="id_year"
                 label="Año"
                 density="compact"
@@ -346,7 +346,7 @@ onMounted(async () => {
           <v-row>
             <v-col cols="12">
               <v-select
-                :items="rootStore.state.month"
+                :items="appStore.month"
                 v-model="id_monthn"
                 label="Mes"
                 density="compact"
@@ -358,7 +358,7 @@ onMounted(async () => {
 
             <v-col cols="12">
               <v-select
-                :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+                :items="Array.isArray(appStore.year) ? appStore.year : []"
                 v-model="id_yearn"
                 label="Año"
                 density="compact"
@@ -412,7 +412,7 @@ onMounted(async () => {
         <v-row>
           <v-col cols="12">
             <v-select
-              :items="rootStore.state.month"
+              :items="appStore.month"
               v-model="id_month"
               label="Mes"
               density="compact"
@@ -423,7 +423,7 @@ onMounted(async () => {
           </v-col>
           <v-col cols="12">
             <v-select
-              :items="Array.isArray(rootStore.state.year) ? rootStore.state.year : []"
+              :items="Array.isArray(appStore.year) ? appStore.year : []"
               v-model="id_year"
               label="Año"
               density="compact"

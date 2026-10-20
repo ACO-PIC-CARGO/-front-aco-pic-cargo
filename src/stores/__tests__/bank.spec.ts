@@ -7,7 +7,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
 
 const defaults = "listar_bank?id_branch=7&code=&name=&acronym=&description=&status=1";

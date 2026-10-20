@@ -9,7 +9,6 @@ import { accepted, flushPromises, httpMock, rejected, respond } from "./catalogH
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(() => Promise.resolve({ isConfirmed: false })) } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 
 type Aduana = ReturnType<typeof useAduanaStore>;
 type Pricing = ReturnType<typeof usePricingStore>;

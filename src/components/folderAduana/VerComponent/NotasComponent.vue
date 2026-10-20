@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
 import type { FilaServicioNota, OpcionCosto } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 
 const headers = [
@@ -111,7 +111,7 @@ function abrirModalCambioHeader() {
   });
 }
 async function generar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   previewFlag.value = false;
   await aduanaStore.obtenerDatosEmpresaAduana();
   for (
@@ -142,7 +142,7 @@ async function generar() {
     }
   }
   Swal.close();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 onMounted(() => {

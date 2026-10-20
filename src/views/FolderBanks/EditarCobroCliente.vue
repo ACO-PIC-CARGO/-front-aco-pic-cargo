@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useBankStore } from "@/stores/bank";
@@ -15,12 +15,12 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const props = defineProps<{ tipo?: string }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
-const listPagosXProveedorCxP = computed<DetallePagoCliente[]>(() => rootStore.state.listPagosXProveedorCxP);
-const clientes = computed(() => rootStore.state.clientes);
+const listPagosXProveedorCxP = computed<DetallePagoCliente[]>(() => appStore.listPagosXProveedorCxP);
+const clientes = computed(() => appStore.clientes);
 
 const loading = ref(false);
 const date = ref("");
@@ -79,7 +79,7 @@ const headers = [
 ];
 
 async function obtenerListado() {
-  rootStore.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
   date.value = "";
   payfile.value = [];
   boolFile.value = false;
@@ -87,7 +87,7 @@ async function obtenerListado() {
   id_banco_origen.value = "";
   nro_operacion.value = "";
   if (id_proveedor.value.id && props.tipo == "nuevo") {
-    await rootStore.dispatch("_getListaPagosXProveedorCxC", id_proveedor.value.id);
+    await appStore._getListaPagosXProveedorCxC(id_proveedor.value.id);
   } else {
     selected.value = [];
   }
@@ -141,17 +141,17 @@ function validarMonto(details: DetallePagoCliente) {
   }
 }
 function obtenerSymbol() {
-  symbol.value = rootStore.state.itemsCoinsList.filter(
+  symbol.value = appStore.itemsCoinsList.filter(
     (v: { id: number }) => v.id == id_coins.value,
-  )[0].symbol;
+  )[0]!.symbol;
 }
 function calcularMonto() {
   if (selected.value.length > 0) {
     selected.value.forEach((element) => {
       id_coins.value = element.id_coins;
-      symbol.value = rootStore.state.itemsCoinsList.filter(
+      symbol.value = appStore.itemsCoinsList.filter(
         (v: { id: number }) => v.id == selected.value[0]!.id_coins,
-      )[0].symbol;
+      )[0]!.symbol;
       element.montopagar = parseFloat(
         String((element.monto_pagar as number) * (element.tipocambio as number)),
       ).toFixed(2);
@@ -308,7 +308,7 @@ function limpiarDatos() {
   tab.value = "ref1";
   step2.value = true;
   total.value = 0;
-  rootStore.state.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP = [];
 }
 async function obtenerDatos() {
   if (props.tipo == "ver") {
@@ -328,7 +328,7 @@ async function obtenerDatos() {
         // @ts-expect-error data is not defined
         id_proveedor.value = data.id_proveedor;
         // @ts-expect-error data is not defined
-        rootStore.state.listPagosXProveedorCxP = data.details;
+        appStore.listPagosXProveedorCxP = data.details;
         // @ts-expect-error data is not defined
         id_cuenta.value = data.id_bank;
         // @ts-expect-error data is not defined
@@ -354,18 +354,18 @@ watch(selected, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getBanksList");
-  await rootStore.dispatch("cargarClientes");
+  appStore.spiner = true;
+  await appStore._getBanksList();
+  await appStore.cargarClientes();
   await obtenerListado();
   await getListBanksDetailsCargar();
   await getListBanksDetailsCargar();
   await limpiarDatos();
   await obtenerDatos();
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
   await bankStore.verCobroRealizado(route.params.nro_operacion as string);
-  rootStore.state.spiner = false;
-  rootStore.state.drawer = false;
+  appStore.spiner = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -427,7 +427,7 @@ onMounted(async () => {
               <!-- eslint-disable-next-line vue/no-unused-vars -->
               <template #[`item.moneda`]="{ item }">
                 <v-autocomplete
-                  :items="rootStore.state.itemsCoinsList"
+                  :items="appStore.itemsCoinsList"
                   v-model="id_coins"
                   item-title="acronym"
                   item-value="id"
@@ -577,7 +577,7 @@ onMounted(async () => {
             cols="4"
           >
             <v-select
-              :items="rootStore.state.itemsDataBanksList"
+              :items="appStore.itemsDataBanksList"
               v-model="bankStore.record.id_banco_origin"
               label="Banco Origen"
               item-title="acronym"

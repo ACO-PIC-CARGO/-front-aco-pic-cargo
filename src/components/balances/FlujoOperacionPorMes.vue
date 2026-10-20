@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useBalancesStore } from "@/stores/balances";
 import type {
@@ -12,7 +12,7 @@ import type {
   TipoFlujoMes,
 } from "@/types/estadoGanancias";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const balancesStore = useBalancesStore();
 
 const cantidadmes = ref(0);
@@ -134,7 +134,7 @@ function formatearData() {
   items.value = costosTipo;
 }
 async function previous() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   items.value = [];
   cantidadmes.value--;
   const data = {
@@ -145,10 +145,10 @@ async function previous() {
   };
   await balancesStore.getListFlujoOperacionMes(data);
   formatearData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function next() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   items.value = [];
   cantidadmes.value++;
   const data = {
@@ -159,10 +159,10 @@ async function next() {
   };
   await balancesStore.getListFlujoOperacionMes(data);
   formatearData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function Filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   items.value = [];
   const data = {
     cantidadmes: cantidadmes.value,
@@ -172,11 +172,11 @@ async function Filtrar() {
   };
   await balancesStore.getListFlujoOperacionMes(data);
   formatearData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   filtroFlag.value = !filtroFlag.value;
 }
 async function Formatear() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   items.value = [];
   cantidadmes.value = 0;
   filtro.value.id_proveedor = "";
@@ -191,7 +191,7 @@ async function Formatear() {
   await balancesStore.getListFlujoOperacionMes(data);
   formatearData();
   filtroFlag.value = !filtroFlag.value;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function calcularTotalDescripcion({
   tipo = "",
@@ -286,9 +286,9 @@ function getFechaNombreMes({ fecha = "" }) {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("cargarClientes");
-  await rootStore.dispatch("cargarProveedores");
+  appStore.spiner = true;
+  await appStore.cargarClientes();
+  await appStore.cargarProveedores();
   const data = {
     cantidadmes: cantidadmes.value,
     id_proveedor: filtro.value.id_proveedor,
@@ -297,7 +297,7 @@ onMounted(async () => {
   };
   await balancesStore.getListFlujoOperacionMes(data);
   formatearData();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -327,7 +327,7 @@ onMounted(async () => {
         </v-card-title>
         <v-card-text>
           <v-autocomplete
-            :items="rootStore.state.provedores"
+            :items="appStore.provedores"
             v-model="filtro.id_proveedor"
             item-title="namelong"
             item-value="id"
@@ -335,7 +335,7 @@ onMounted(async () => {
             label="Proveedor"
           />
           <v-autocomplete
-            :items="rootStore.state.clientes"
+            :items="appStore.clientes"
             v-model="filtro.id_cliente"
             item-title="namelong"
             item-value="id"

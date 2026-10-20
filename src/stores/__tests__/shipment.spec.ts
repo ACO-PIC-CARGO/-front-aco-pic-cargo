@@ -12,7 +12,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 
 const fcl = { id: 3, code: "FCL", name: "FCL", description: "", id_transport: 1, status: 1 };
 const filters = { id_transport: 2, name: "F C", description: "a/b", status: 1 };

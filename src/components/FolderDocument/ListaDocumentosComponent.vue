@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useDocumentStore } from "@/stores/document";
 import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const documentStore = useDocumentStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -67,7 +67,7 @@ const originalDocuments = ref<FiltroCatalogo>({ ...documents.value });
 
 onMounted(async () => {
   await documentStore.fetchDataDocument(documents.value);
-  rootStore.state.mainTitle = `Tipo de Documentos`;
+  appStore.mainTitle = `Tipo de Documentos`;
 });
 
 async function clear(option?: string) {

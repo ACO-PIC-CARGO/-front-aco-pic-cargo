@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { usePricingStore } from "@/stores/pricing";
 import { calcularValor, currencyFormat } from "@/utils/cotizacion";
@@ -11,7 +11,7 @@ const props = defineProps<{
   actualizarCostosFlag?: boolean;
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const { calcularFac } = useCotizacionCalculos();
 
@@ -586,7 +586,7 @@ function formatoFecha(fecha: string | null | undefined) {
                       density="compact"
                       item-title="namelong"
                       item-value="id"
-                      :items="rootStore.state.provedores"
+                      :items="appStore.provedores"
                       v-model="valor.id_proveedor"
                       hide-details
                     />
@@ -830,7 +830,7 @@ function formatoFecha(fecha: string | null | undefined) {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1049,7 +1049,7 @@ function formatoFecha(fecha: string | null | undefined) {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1257,7 +1257,7 @@ function formatoFecha(fecha: string | null | undefined) {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1471,7 +1471,7 @@ function formatoFecha(fecha: string | null | undefined) {
                       density="compact"
                       item-title="namelong"
                       item-value="id"
-                      :items="rootStore.state.provedores"
+                      :items="appStore.provedores"
                       v-model="valor.id_proveedor"
                       hide-details
                     />
@@ -1715,7 +1715,7 @@ function formatoFecha(fecha: string | null | undefined) {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />
@@ -1934,7 +1934,7 @@ function formatoFecha(fecha: string | null | undefined) {
                     density="compact"
                     item-title="namelong"
                     item-value="id"
-                    :items="rootStore.state.provedores"
+                    :items="appStore.provedores"
                     v-model="valor.id_proveedor"
                     hide-details
                   />

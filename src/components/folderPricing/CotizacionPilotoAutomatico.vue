@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useProveedorStore } from "@/stores/proveedor";
@@ -12,7 +12,7 @@ import type { Costo, Numerico } from "@/types/cotizacion";
 const emit = defineEmits<{ close: [] }>();
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const proveedorStore = useProveedorStore();
 const { calcularFac } = useCotizacionCalculos();
@@ -1066,7 +1066,7 @@ function isNotaCredito(code: Numerico) {
   return code == 69 ? true : false;
 }
 async function editarCotizacion() {
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await pricingStore.updateQuote();
 
   router.push({
@@ -1078,7 +1078,7 @@ async function editarCotizacion() {
         : 1,
     },
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   emit("close");
 }
 

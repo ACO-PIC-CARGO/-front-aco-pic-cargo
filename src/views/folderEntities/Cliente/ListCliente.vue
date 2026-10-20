@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 
 const ListClienteComponentVue = defineAsyncComponent(() =>
   import("@/components/folderEntities/Cliente/ListClienteComponent.vue"));
 const FiltroCliente = defineAsyncComponent(() => import("@/components/filtros/FiltroCliente.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE CLIENTES`;
+  appStore.mainTitle = `LISTADO DE CLIENTES`;
 });
 </script>
 

@@ -3,7 +3,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import type { AxiosRequestConfig } from "axios";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { ApiResponse } from "@/types/api";
@@ -11,7 +11,7 @@ import type { LoginSessionRow, ProgrammedPaymentFlag } from "@/types/login";
 import type { SucursalSesion } from "@/types/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const securitysStore = useSecuritysStore();
 const { _getMenuItem } = securitysStore;
 
@@ -73,7 +73,7 @@ function __getLogin() {
           },
         ];
 
-        rootStore.state.departamentoUser = row.departamento;
+        appStore.departamentoUser = row.departamento;
 
         dataBranch.value = [
           {

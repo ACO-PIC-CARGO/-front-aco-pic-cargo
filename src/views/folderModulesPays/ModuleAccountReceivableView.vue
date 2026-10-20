@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { nextTick, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moduleAccountReceivableCom from "@/components/folderModulesPays/ModuleAccountReceivableComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "CONTROL DE CUENTAS POR COBRAR ADMINISTRATIVAS";
+  appStore.mainTitle = "CONTROL DE CUENTAS POR COBRAR ADMINISTRATIVAS";
   nextTick(() => {
-    rootStore.state.drawer = false;
+    appStore.drawer = false;
   });
 });
 </script>

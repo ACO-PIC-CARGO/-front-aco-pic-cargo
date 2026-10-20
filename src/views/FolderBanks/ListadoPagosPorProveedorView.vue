@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import listPayForProveedor from "@/components/folderBanks/ListPayForProveedorComponent.vue";
 import pagosPorProveedorDetallado from "../../components/folderBanks/PagosPorProveedorDetalladoComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const tab = ref("agrupado");
 
 onMounted(() => {
-  rootStore.state.mainTitle = "LISTADO DE SALIDAS";
+  appStore.mainTitle = "LISTADO DE SALIDAS";
 });
 </script>
 

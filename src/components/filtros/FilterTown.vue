@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTownStore } from "@/stores/town";
 import type { Distrito } from "@/types/catalogos";
 
 const townStore = useTownStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const loading = ref(false);
 const loadingEstado = ref(false);
@@ -37,14 +37,14 @@ function getName() {
 }
 async function ObtenerEstados(id_pais?: number | string | null) {
   loadingEstado.value = true;
-  await rootStore.dispatch("_getState", id_pais);
+  await appStore._getState(id_pais);
   townStore.model.id_state = "";
   townStore.model.id_city = "";
   loadingEstado.value = false;
 }
 async function ObtenerCity(id_state?: number | string | null) {
   loadingCity.value = true;
-  await rootStore.dispatch("_getCity", id_state);
+  await appStore._getCity(id_state);
   townStore.model.id_city = "";
   loadingCity.value = false;
 }
@@ -118,7 +118,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Pais"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           v-model="townStore.filtros.id_pais"
           item-title="name"
           item-value="id"
@@ -133,7 +133,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Estado (Región)"
-          :items="rootStore.state.itemsState"
+          :items="appStore.itemsState"
           v-model="townStore.filtros.id_state"
           item-title="name"
           item-value="id"
@@ -149,7 +149,7 @@ async function Aceptar() {
         <!-- @vue-expect-error the filter form keeps the edit form's tipo != 'ver' check -->
         <v-autocomplete
           label="Ciudad"
-          :items="rootStore.state.itemsCity"
+          :items="appStore.itemsCity"
           v-model="townStore.filtros.id_city"
           item-title="name"
           item-value="id"
@@ -228,7 +228,7 @@ async function Aceptar() {
           <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="rootStore.state.itemsPais"
+            :items="appStore.itemsPais"
             v-model="townStore.model.id_pais"
             :readonly="townStore.tipo == 'ver'"
             item-title="name"
@@ -242,10 +242,9 @@ async function Aceptar() {
           class="col-12 py-1"
           v-if="!!townStore.model.id_pais"
         >
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Estado (Región) (*)"
-            :items="rootStore.state.itemsState"
+            :items="appStore.itemsState"
             v-model="townStore.model.id_state"
             :readonly="townStore.tipo == 'ver'"
             item-title="name"
@@ -260,10 +259,9 @@ async function Aceptar() {
           class="col-12 py-1"
           v-if="!!townStore.model.id_state"
         >
-          <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Ciudad (*)"
-            :items="rootStore.state.itemsCity"
+            :items="appStore.itemsCity"
             v-model="townStore.model.id_city"
             :readonly="townStore.tipo == 'ver'"
             item-title="name"

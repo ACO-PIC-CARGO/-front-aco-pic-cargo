@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, mergeProps, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
@@ -16,14 +16,14 @@ import type {
 
 withDefaults(defineProps<{ verflag?: boolean }>(), { verflag: false });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
 const securitysStore = useSecuritysStore();
-const provedores = computed(() => rootStore.state.provedores);
+const provedores = computed(() => appStore.provedores);
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
 const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
 const ArrastraYSolarComponent = defineAsyncComponent(() =>
@@ -447,7 +447,7 @@ function recalcularTotal() {
 
 watch(id_cuenta, (newVal) => {
   const id_coins = newVal.id_coins;
-  const coins = rootStore.state.itemsCoinsList.find(
+  const coins = appStore.itemsCoinsList.find(
     (coin: { id: number }) => coin.id === id_coins,
   );
   symbol.value = coins ? coins.symbol : "USD";
@@ -466,15 +466,15 @@ watch(selected, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.mainTitle = "BANCOS - VER SALIDA";
-  rootStore.state.spiner = true;
+  appStore.mainTitle = "BANCOS - VER SALIDA";
+  appStore.spiner = true;
   await Promise.all([
-    rootStore.dispatch("cargarProveedores"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarProveedores(),
+    appStore._getCoinsList(),
     bancosStore.getListBanksDetailsCargar(),
   ]);
   const data = (await bankStore.verRegistroEgresos({ id: route.params.id })) as unknown as RegistroEgresoVer;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   proveedor.value = data.id_proveedor;
   id_cuenta.value =
     bancosStore.cuentas.find(

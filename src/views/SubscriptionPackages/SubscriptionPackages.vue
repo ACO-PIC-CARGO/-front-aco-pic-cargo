@@ -2,7 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import "@/styles/plans-theme.css";
 import PackageCard from "@/components/SubscriptionPackages/PackageCard.vue";
 import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
@@ -28,7 +28,7 @@ const confirmDeactivation = (pkg: SubscriptionPackage) =>
     reverseButtons: true,
   });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const { packages, activePackageCount } = storeToRefs(subscriptionsStore);
 const { toPlanView } = subscriptionsStore;
@@ -60,7 +60,7 @@ const emptyFilterMessage = computed(() =>
 );
 
 onMounted(() => {
-  rootStore.state.mainTitle = "PAQUETES DE SUSCRIPCIÓN";
+  appStore.mainTitle = "PAQUETES DE SUSCRIPCIÓN";
   loadAll();
   subscriptionsStore.loadPackageModules();
 });

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
@@ -12,12 +12,12 @@ import { sessionBranchId } from "@/utils/sesion";
 
 defineProps<{ tipo?: string }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
 const filesStore = useFilesStore();
-const provedores = computed(() => rootStore.state.provedores);
+const provedores = computed(() => appStore.provedores);
 
 const symbol = "";
 const montoMonExt = ref<number | string>(0);
@@ -183,13 +183,13 @@ watch(selected, () => {
 });
 
 onMounted(async () => {
-  await rootStore.dispatch("cargarProveedores");
+  await appStore.cargarProveedores();
   await getListBanksDetailsCargar();
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
   await bankStore.verPagoRealizado(route.params.nro_operacion as string);
   calcularTotal();
 
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -267,7 +267,7 @@ onMounted(async () => {
               >
                 <template #[`item.item_moneda`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="item.id_coins"
                     item-title="acronym"
                     item-value="id"

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import CheckDebsComponent from "../../components/folderRequests/CheckDebsComponent.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Abonos para confirmar";
+  appStore.mainTitle = "Abonos para confirmar";
 });
 </script>
 

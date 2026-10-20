@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useConfiguracionStore } from "@/stores/configuracion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type { TextoWhatsappFcl } from "@/types/configuracion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const configuracionStore = useConfiguracionStore();
 const { fcl } = storeToRefs(configuracionStore);
 
 const loading = ref(false);
 
-const itemsContainers = computed<TipoContenedor[]>(() => rootStore.state.itemsContainers);
+const itemsContainers = computed<TipoContenedor[]>(() => appStore.itemsContainers);
 const listadoTextoFCL = computed<TextoWhatsappFcl[]>(() => {
   if (Object.keys(fcl.value).length > 0) {
     return itemsContainers.value.map((container) => ({

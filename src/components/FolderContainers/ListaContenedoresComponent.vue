@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useContainersStore } from "@/stores/containers";
 import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const containersStore = useContainersStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -94,7 +94,7 @@ const originalRecords = ref<FiltroCatalogo>({ ...records.value });
 
 onMounted(async () => {
   await containersStore.fetchDataContainers(records.value);
-  rootStore.state.mainTitle = `Tipo de Contenedor`;
+  appStore.mainTitle = `Tipo de Contenedor`;
 });
 
 function updateStatus(newValue: unknown) {

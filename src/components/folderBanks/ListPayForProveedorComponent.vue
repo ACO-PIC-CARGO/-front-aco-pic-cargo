@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
@@ -23,7 +23,7 @@ import type {
 } from "@/types/banksProveedor";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 const bankStore = useBankStore();
 const balancesStore = useBalancesStore();
@@ -217,10 +217,10 @@ async function editar(pago: PagoEgresoFila) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function ActualizarIngreso() {
   await ingresosStore.ActualizarCXP(Ingreso.value);
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   // @ts-expect-error the filter argument is missing
   await bankStore.getRegistroEgresos();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   EditarIngresoFlag.value = false;
 }
 function _uploadFile() {
@@ -268,15 +268,15 @@ async function Limpiar() {
   filtro.value.desde = moment().format("YYYY-01-01");
   filtro.value.hasta = moment().endOf("month").format("YYYY-MM-DD");
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await bankStore.getRegistroEgresos(filtro.value);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await bankStore.getRegistroEgresos(filtro.value);
   dialogFiltro.value = !dialogFiltro.value;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function verInvoice(id: number, editar = false) {
@@ -417,7 +417,7 @@ async function actualizarCGEgreso() {
   }
 }
 async function obtenerListado() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   // @ts-expect-error the filter argument is missing
   await bankStore.getRegistroEgresos();
   dato.value = {
@@ -430,7 +430,7 @@ async function obtenerListado() {
     soporte: "",
     id_path: "",
   };
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function verSoport(ruta: unknown) {
   window.open(ruta as string, "_blank");
@@ -540,22 +540,22 @@ onMounted(async () => {
   filtro.value.hasta = moment().endOf("month").format("YYYY-MM-DD");
   usuario.value = sessionUser().usuario as string;
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await bankStore.getRegistroEgresos(filtro.value);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   Promise.all([
     getListBanksDetailsCargar(),
     balancesStore.getCargarTipoGastos(),
     balancesStore.getCargarTipoSubGastos(),
-    rootStore.dispatch("cargarProveedores"),
-    rootStore.dispatch("_getBanksList"),
+    appStore.cargarProveedores(),
+    appStore._getBanksList(),
   ]).then(() => {
     // vm.cuentas = vm.$store.state.bank.list.map((item) => ({
     //   id: item.id,
     //   label: item.cuenta,
     // }));
   });
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 });
 </script>
 
@@ -892,7 +892,7 @@ onMounted(async () => {
             hide-details
           />
           <v-autocomplete
-            :items="rootStore.state.provedores"
+            :items="appStore.provedores"
             v-model="filtro.id_proveedor"
             label="Proveedor"
             item-title="namelong"

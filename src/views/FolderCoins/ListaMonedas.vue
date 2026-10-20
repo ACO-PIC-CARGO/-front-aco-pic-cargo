@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const ListCoinsComponent = defineAsyncComponent(() => import("@/components/FolderCoins/ListaMonedasComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Monedas";
+  appStore.mainTitle = "Monedas";
 });
 </script>
 

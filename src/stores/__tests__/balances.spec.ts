@@ -5,7 +5,6 @@ import { useBalancesStore } from "@/stores/balances";
 import { JSON_HEADERS, URL_MAIN, httpMock } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 type Balances = ReturnType<typeof useBalancesStore>;

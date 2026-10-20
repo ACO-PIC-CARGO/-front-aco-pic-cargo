@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
 import type { EgresoExpediente, ExpedienteSinSolicitud } from "@/types/requests";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
-const itemsHouseListAll = computed<ExpedienteSinSolicitud[]>(() => rootStore.state.itemsHouseListAll);
+const itemsHouseListAll = computed<ExpedienteSinSolicitud[]>(() => appStore.itemsHouseListAll);
 
 const search = ref("");
 const dialogPayment = ref(false);
@@ -205,7 +205,7 @@ watch(menu, (open) => {
 });
 
 onMounted(() => {
-  rootStore.dispatch("_getHouseListAll");
+  appStore._getHouseListAll();
 });
 </script>
 
@@ -222,7 +222,7 @@ onMounted(() => {
       </v-card-title>
       <v-card-text>
         <v-data-table
-          v-if="rootStore.state.dataHouse"
+          v-if="appStore.dataHouse"
           :headers="headers"
           :items="itemsHouseListAll"
           :search="search"
@@ -363,7 +363,7 @@ onMounted(() => {
                 md="4"
               >
                 <v-autocomplete
-                  :items="rootStore.state.itemsDataBanksList"
+                  :items="appStore.itemsDataBanksList"
                   v-model="paybanco"
                   item-title="acronym"
                   item-value="id"
@@ -375,7 +375,7 @@ onMounted(() => {
                 md="4"
               >
                 <v-autocomplete
-                  :items="rootStore.state.itemsCoinsList"
+                  :items="appStore.itemsCoinsList"
                   v-model="paymoneda"
                   item-title="acronym"
                   item-value="id"

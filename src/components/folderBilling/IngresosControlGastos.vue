@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
@@ -57,7 +57,7 @@ const emit = defineEmits<{
   recalcularProfit: [];
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const controlGastosStore = useControlGastosStore();
@@ -603,10 +603,10 @@ async function nuevoControlGasto(house: HouseIngreso) {
   house.id_master = route.params.id as string;
   await controlGastosStore.setControl(house as HouseIngreso & { id_master: string | number });
   await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function obtenerMoneda() {
-  const monedas = [...rootStore.state.itemsCoinsList];
+  const monedas = [...appStore.itemsCoinsList];
   sufmoneda.value = monedas.find(
     (v: MonedaItem) => v.id == ingresos.value.id_coins,
   )?.symbol;
@@ -716,9 +716,9 @@ async function _setDebsClient() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function listControlGasto() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function uploadFile() {
@@ -1184,7 +1184,7 @@ async function generarDocumento() {
     coinSelect.value!.focus();
     return;
   }
-  const monedas = [...rootStore.state.itemsCoinsList];
+  const monedas = [...appStore.itemsCoinsList];
   const monedaSeleccionada = monedas.find((v) => v.id === id_coins.value);
   if (monedaSeleccionada) {
     datosFactura.coins = monedaSeleccionada.symbol;
@@ -1338,12 +1338,12 @@ async function registrarProformaFiscal() {
         title: "Documento Cargado",
         text: "El documento ha sido cargado correctamente",
       });
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await Promise.all([
         housesStore.getFacturasFiscales(house.value),
         controlGastosStore.getListControlGastosHouses(route.params.id as string),
       ]);
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     } else {
       Swal.fire({
         icon: "error",
@@ -1394,13 +1394,13 @@ async function eliminarProformaFiscal(id: number | string = "") {
             });
 
             isDataTableLoading.value = true;
-            rootStore.state.spiner = true;
+            appStore.spiner = true;
             await Promise.all([
               housesStore.getFacturasFiscales(house.value),
               controlGastosStore.getListControlGastosHouses(route.params.id as string),
             ]);
             isDataTableLoading.value = false;
-            rootStore.state.spiner = false;
+            appStore.spiner = false;
           } else {
             Swal.fire({
               icon: "error",
@@ -1476,9 +1476,9 @@ async function aplicarCambioExpediente() {
     dialogCambiarExpediente.value = false;
     return;
   }
-  const targetLabel = rootStore.state.itemsMasterList.find(
+  const targetLabel = appStore.itemsMasterList.find(
     (x: ExpedienteItem) => x.id === selectedNuevoExpediente.value,
-  ).code_master;
+  )!.code_master;
   const res = await Swal.fire({
     icon: "question",
     title: "Confirmar cambio",
@@ -2201,7 +2201,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="ingresos.id_coins"
                     item-title="acronym"
                     item-value="id"
@@ -2221,7 +2221,7 @@ onMounted(async () => {
                     density="compact"
                     v-if="
                       ingresos.id_coins &&
-                        rootStore.state.itemsCoinsList.find(
+                        appStore.itemsCoinsList.find(
                           (c: MonedaItem) => c.id === ingresos.id_coins,
                         )?.symbol != 'USD'
                     "
@@ -2552,7 +2552,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="id_coins"
                     item-title="acronym"
                     item-value="id"
@@ -2611,7 +2611,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsDataBanksList"
+                    :items="appStore.itemsDataBanksList"
                     v-model="id_banks"
                     item-title="acronym"
                     item-value="id"
@@ -2750,7 +2750,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsDataBanksList"
+                    :items="appStore.itemsDataBanksList"
                     v-model="id_banks"
                     item-title="acronym"
                     item-value="id"
@@ -2781,7 +2781,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="id_coins"
                     item-title="acronym"
                     item-value="id"
@@ -2933,7 +2933,7 @@ onMounted(async () => {
                 </v-col>
                 <v-col cols="4">
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     item-title="symbol"
                     item-value="id"
                     label="Moneda"
@@ -2946,10 +2946,10 @@ onMounted(async () => {
                 </v-col>
                 <v-col
                   cols="8"
-                  v-if="rootStore.state.branchs.length > 1"
+                  v-if="appStore.branchs.length > 1"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.branchs"
+                    :items="appStore.branchs"
                     item-title="trade_name"
                     item-value="id"
                     label="Sucursal"
@@ -3280,7 +3280,7 @@ onMounted(async () => {
         <v-card-text>
           <v-autocomplete
             :items="
-              rootStore.state.itemsMasterList.filter(
+              appStore.itemsMasterList.filter(
                 (v: { id: number | string }) => v.id != route.params.id,
               )
             "
@@ -3415,7 +3415,7 @@ onMounted(async () => {
         <v-card-text>
           <v-form ref="frmCopiar">
             <v-autocomplete
-              :items="rootStore.state.itemsCoinsList"
+              :items="appStore.itemsCoinsList"
               v-model="ingresos.id_coins"
               item-title="acronym"
               item-value="id"
@@ -3431,7 +3431,7 @@ onMounted(async () => {
               step="0.01"
               :rules="[(v) => !!v || 'Dato Requerido']"
               v-if="
-                rootStore.state.itemsCoinsList.some(
+                appStore.itemsCoinsList.some(
                   (v: MonedaItem) => v.id == ingresos.id_coins && v.acronym !== 'USD',
                 )
               "

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const ListMultiplicadorComponent = defineAsyncComponent(() => import("@/components/FolderMultiplicador/ListaMultiplicadoresComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Multiplicadores";
+  appStore.mainTitle = "Multiplicadores";
 });
 </script>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import ProgressBar from "@/components/comun/ProgressBar.vue";
 import TableDinamica from "@/components/comun/TableDinamica.vue";
@@ -13,7 +13,7 @@ import type { CabeceraBalance, FilaBalance, MesBalance, ValorCelda } from "@/typ
 import type { FiltroDetalleGanancia, FiltroDetalleGastos, TipoBalance } from "@/types/finanzas";
 import { sessionBranchId } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 const balancesStore = useBalancesStore();
 const proyeccionesStore = useProyeccionesStore();
@@ -1467,9 +1467,9 @@ function generarCabecerasFiltro() {
   }
 }
 async function exportar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await balancesStore.exportarBalanceGanancia({ year: year.value, month: month.value as unknown as string });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function filtarSubIngreso() {
   if (!!tipoingreso.value) {
@@ -2208,9 +2208,9 @@ watch(month, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
-    rootStore.dispatch("cargarProveedores"),
+    appStore.cargarProveedores(),
     balancesStore.getCargarTipoIngreso(),
     balancesStore.getCargarTipoGastos(),
     balancesStore.getCargarTipoSubIngreso(),
@@ -2221,7 +2221,7 @@ onMounted(async () => {
   tiposubingresoFilter.value = balancesStore.tiposubingreso;
   tiposubgastosFilter.value = balancesStore.tiposubgastos;
   obtenerAnios();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -2428,7 +2428,7 @@ onMounted(async () => {
           <v-col cols="12">
             <v-autocomplete
               label="Proveedor"
-              :items="rootStore.state.provedores"
+              :items="appStore.provedores"
               v-model="proveedor"
               auto-select-first
               clearable

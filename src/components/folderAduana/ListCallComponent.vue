@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
 import moment from "moment";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
 
@@ -79,12 +79,12 @@ const filtro = {
 };
 
 async function imprimierCalls() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   loading4.value = true;
   // @ts-expect-error Kept: the action destructures other keys, so filtro is ignored.
   await pricingStore.imprimiReporteListadoCalls({ filtro: filtro });
   loading4.value = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function registrarLlamada(id: number | undefined) {
   fromData = {
@@ -99,7 +99,7 @@ function registrarLlamada(id: number | undefined) {
 async function guardarNota() {
   if ((await detallenota.value!.validate()).valid) {
     dialogRegistroNotaLlamada.value = false;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const data = {
       id_quote: pricingStore.id,
@@ -115,14 +115,14 @@ async function guardarNota() {
       console.log(err);
     });
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await aduanaStore.getQuoteCallAduana(filtro);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 

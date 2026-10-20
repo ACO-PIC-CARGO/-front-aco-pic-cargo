@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -15,7 +15,7 @@ import type { FiltroPagoProveedorDetallado } from "@/types/banksProveedor";
 import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const reportesStore = useReportesStore();
 const securitysStore = useSecuritysStore();
 
@@ -170,9 +170,9 @@ async function Limpiar() {
   };
   filtro.value.desde = moment().format("YYYY-01-01");
   filtro.value.hasta = moment().endOf("month").format("YYYY-MM-DD");
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await reportesStore.getListarBancosgastosDetalles(filtro.value);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   dialogFiltro.value = false;
 }
 
@@ -313,7 +313,7 @@ onMounted(async () => {
             hide-details
           />
           <v-autocomplete
-            :items="rootStore.state.provedores"
+            :items="appStore.provedores"
             v-model="filtro.id_proveedor"
             label="Proveedor"
             item-title="namelong"

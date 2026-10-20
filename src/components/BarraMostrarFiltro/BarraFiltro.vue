@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import moment from "moment";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import FormatFecha from "../comun/FormatFecha.vue";
 import type { FiltroBarra } from "@/types/filtros";
 import { useBalancesStore } from "@/stores/balances";
@@ -10,7 +10,7 @@ withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
   cuentas: () => [],
 });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const balancesStore = useBalancesStore();
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -137,7 +137,7 @@ function formatearFecha(fecha: string) {
         v-if="filtro.id_proveedor"
       >
         <v-autocomplete
-          :items="rootStore.state.provedores"
+          :items="appStore.provedores"
           v-model="filtro.id_proveedor"
           label="Proveedor"
           item-title="namelong"
@@ -156,7 +156,7 @@ function formatearFecha(fecha: string) {
         v-if="filtro.id_consigner"
       >
         <v-autocomplete
-          :items="rootStore.state.clientes"
+          :items="appStore.clientes"
           v-model="filtro.id_consigner"
           label="Consignatario"
           item-title="namelong"
@@ -175,7 +175,7 @@ function formatearFecha(fecha: string) {
         v-if="filtro.id_cliente"
       >
         <v-autocomplete
-          :items="rootStore.state.clientes"
+          :items="appStore.clientes"
           v-model="filtro.id_cliente"
           label="Consignatario"
           item-title="namelong"
@@ -253,7 +253,7 @@ function formatearFecha(fecha: string) {
         v-if="filtro.id_banco"
       >
         <v-select
-          :items="rootStore.state.itemsDataBanksList"
+          :items="appStore.itemsDataBanksList"
           v-model="filtro.id_banco"
           label="Banco Origen"
           item-title="acronym"

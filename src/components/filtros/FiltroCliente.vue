@@ -1,27 +1,27 @@
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const frmFiltro = useTemplateRef("frmFiltro");
 
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.getListClientes();
   entitiesStore.filtrarProveedor =
     !entitiesStore.filtrarProveedor;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   frmFiltro.value!.reset();
   entitiesStore.filtro.status = "1";
   await entitiesStore.getListClientes();
   entitiesStore.filtrarProveedor =
     !entitiesStore.filtrarProveedor;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 </script>
 
@@ -51,7 +51,7 @@ async function limpiar() {
         />
 
         <v-select
-          :items="rootStore.state.itemsDocumentsPais"
+          :items="appStore.itemsDocumentsPais"
           item-title="description"
           item-value="id"
           label="Tipo de Documento Fiscal"
@@ -69,15 +69,15 @@ async function limpiar() {
         <v-autocomplete
           item-title="name"
           item-value="id"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           label="País"
           clearable
           v-model="entitiesStore.filtro.id_pais"
-          @update:model-value="rootStore.dispatch('_getState', entitiesStore.filtro.id_pais)"
+          @update:model-value="appStore._getState(entitiesStore.filtro.id_pais)"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsState"
+          :items="appStore.itemsState"
           item-title="name"
           item-value="id"
           label="Departamento"

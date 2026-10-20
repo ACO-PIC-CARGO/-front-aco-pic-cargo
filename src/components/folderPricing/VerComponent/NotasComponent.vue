@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
 import type {
@@ -17,7 +17,7 @@ const EnviarCotizacionWhatsapp = defineAsyncComponent(() =>
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 
 // opcionesSeleccionadas: [{ listNotasQuote: [] }],
@@ -176,7 +176,7 @@ async function generar() {
   loading.value = true;
 
   if ((await frmReporte.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const name = route.name;
     // 1. Registro inicial
     if (name == "newQuote") {
@@ -188,7 +188,7 @@ async function generar() {
       await pricingStore.updateQuote();
     }
     if (pricingStore.nro_quote) {
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       await pricingStore.obtenerDatosEmpresa().catch((e) => console.log(e));
 
       // 2. Generación de reportes
@@ -296,7 +296,7 @@ function abrirModalTipoReportePreview() {
 }
 async function generarPreview() {
   if ((await frmReporte.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     previewFlag.value = false;
     if (cambiarStatus.value && selectedStatusId.value) {
       pricingStore.datosPrincipales.id_status =
@@ -306,7 +306,7 @@ async function generarPreview() {
     predataCotizacion.value = await pricingStore.predata({
       tipo: tiporeporte.value,
     });
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     dialogPreview.value = true;
     getNombreCotizacion(pricingStore);
   }

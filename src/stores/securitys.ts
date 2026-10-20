@@ -4,7 +4,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { ItemMenu, SucursalSesion, UsuarioLogin } from "@/types/sesion";
 
@@ -97,7 +97,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
           await setTimeout(async () => {
             await _getMenuItem();
             await ObtenerDatosConfig();
-            store.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+            useAppStore().lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
           }, 1000);
           // await this.ListProgrammedPayment();
 
@@ -203,7 +203,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
   //     });
   // },
   async function _getMenuItem() {
-    store.state.dataMenu = false;
+    dataMenu.value = false;
     const dataUser = readDataUser();
     const data = JSON.stringify({
       id_entitie: dataUser[0]!.id_user,
@@ -219,7 +219,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
       .then(function (response) {
         sessionStorage.setItem("menu", JSON.stringify(response.data.data));
         localStorage.setItem("menu", JSON.stringify(response.data.data));
-        store.commit("_setItemsMenu", response.data.data);
+        useAppStore()._setItemsMenu(response.data.data);
       })
       .catch(function (error) {
         console.error(error);

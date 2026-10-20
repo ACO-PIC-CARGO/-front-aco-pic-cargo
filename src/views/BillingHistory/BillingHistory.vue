@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import "@/styles/plans-theme.css";
 import { notifySuccess } from "@/utils/request";
 import { stopCheckoutEvents } from "@/plugins/paddle";
@@ -19,7 +19,7 @@ const HEADERS = [
   { title: "Factura", key: "invoice", sortable: false },
 ] as const;
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const { billingRows: rows, paymentCard } = storeToRefs(subscriptionsStore);
 
@@ -35,7 +35,7 @@ const canUpdatePaymentMethod = computed(
 );
 
 onMounted(() => {
-  rootStore.state.mainTitle = "HISTORIAL DE FACTURACIÓN";
+  appStore.mainTitle = "HISTORIAL DE FACTURACIÓN";
   loadHistory();
 });
 

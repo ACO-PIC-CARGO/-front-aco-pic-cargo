@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import SeccionCliente from "./SeccionCliente.vue";
 import SeccionTelefonos from "./SeccionTelefonos.vue";
 import SeccionConvenios from "./SeccionConvenios.vue";
@@ -12,7 +12,7 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useBankStore } from "@/stores/bank";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -22,36 +22,30 @@ entitiesStore.lstProveedores_x_nombre = [];
 entitiesStore.lstProveedores_x_documento = [];
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   //this.$refs.formProveedor.reset();
-  await rootStore.dispatch("_getDocumentsPais");
+  await appStore._getDocumentsPais();
   await masterusuariosStore.cargarMasterDetalleTipoProveedor();
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
   await masterusuariosStore.cargarMasterDetalleTipoTransaccion();
   await masterusuariosStore.cargarTipoTelefono();
-  await rootStore.dispatch("_getRole");
+  await appStore._getRole();
   await coinsStore.getCoinsListCargar();
   await bankStore.getBanksListCargar();
-  await rootStore.dispatch("_getSex");
+  await appStore._getSex();
   await masterusuariosStore.cargarTipoPersona();
-  await rootStore.dispatch("_getProveedorRolShipper");
+  await appStore._getProveedorRolShipper();
   await entitiesStore.verCliente();
-  await rootStore.dispatch("_getState", entitiesStore.cliente.id_pais);
-  await rootStore.dispatch(
-    "_getCity",
-    entitiesStore.informacionEntrega.id_departamento
-  );
-  await rootStore.dispatch(
-    "_getTown",
-    entitiesStore.informacionEntrega.id_provincia
-  );
-  rootStore.state.spiner = false;
+  await appStore._getState(entitiesStore.cliente.id_pais);
+  await appStore._getCity(entitiesStore.informacionEntrega.id_departamento);
+  await appStore._getTown(entitiesStore.informacionEntrega.id_provincia);
+  appStore.spiner = false;
 
   entitiesStore.stepper = 1;
   entitiesStore.isEdit = false;
   entitiesStore.isReadonly = true;
 
-  rootStore.state.mainTitle = `VER CLIENTE: CLI - ${entitiesStore.cliente.correlativo}`;
+  appStore.mainTitle = `VER CLIENTE: CLI - ${entitiesStore.cliente.correlativo}`;
 });
 </script>
 

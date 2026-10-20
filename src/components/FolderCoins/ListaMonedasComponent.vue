@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCoinsStore } from "@/stores/coins";
 import type { FiltroMonedas, FormMoneda, Moneda } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const coinsStore = useCoinsStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -73,7 +73,7 @@ const originalRecords = ref<FiltroMonedas>({ ...records.value });
 
 onMounted(async () => {
   await coinsStore.fetchDataCoins(records.value);
-  rootStore.state.mainTitle = `Monedas`;
+  appStore.mainTitle = `Monedas`;
 });
 
 function updateStatus(newValue: unknown) {

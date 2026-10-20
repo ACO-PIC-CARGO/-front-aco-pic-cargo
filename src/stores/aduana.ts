@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
@@ -4244,14 +4244,14 @@ export const useAduanaStore = defineStore("aduana", () => {
             );
           }
           dataCostos.push({
-            proveedor: store.state.provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!
+            proveedor: useAppStore().provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!
               .namelong,
             service: element.nameservice,
             valor: montoDetails,
             orden: orden,
             igv: 0,
             total: montoDetails,
-            id: store.state.provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!.id,
+            id: useAppStore().provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!.id,
           });
           igvCostosOpcion += 0;
           montoCostosOpcion += parseFloat(String(montoDetails));
@@ -5841,7 +5841,7 @@ export const useAduanaStore = defineStore("aduana", () => {
               );
             }
             dataCostos.push({
-              proveedor: store.state.provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!
+              proveedor: useAppStore().provedores.filter((v: ProveedorPricing) => v.id == element.id_proveedor)[0]!
                 .namelong,
               service: element.nameservice,
               valor: montoDetails,

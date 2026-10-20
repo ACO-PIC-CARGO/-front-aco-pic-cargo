@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useGroupservicesStore } from "@/stores/groupservices";
 import type { FiltroCatalogo, FormServicio, GrupoServicio } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const groupservicesStore = useGroupservicesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -67,7 +67,7 @@ const originalRecords = ref<FiltroCatalogo>({ ...records.value });
 
 onMounted(async () => {
   await groupservicesStore.fetchDataGroupServices(records.value);
-  rootStore.state.mainTitle = `Servicio`;
+  appStore.mainTitle = `Servicio`;
 });
 
 function updateStatus(newValue: unknown) {

@@ -4,7 +4,7 @@ import { toRaw } from "vue";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useAduanaStore } from "@/stores/aduana";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -18,10 +18,8 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: {} } } } }));
-vi.mock("@/store", () => ({ default: { state: {}, commit: vi.fn(), dispatch: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
 
-const rootState = store.state as Record<string, unknown>;
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
 const postedBody = (path: string) => postMock.mock.calls.find(([url]) => url === URL_MAIN + path)?.[1];
 const sentConfig = (path: string) => httpMock.mock.calls.find(([config]) => config.url.slice(URL_MAIN.length).split("?")[0] === path)?.[0];
@@ -140,7 +138,6 @@ describe("pricing store", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     sessionStorage.clear();
-    for (const key of Object.keys(rootState)) if (key !== "pricing" && key !== "listener") delete rootState[key];
     sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 1, nombrecompleto: "ANA PRICING", path: "logo.png", users: "ana" }]));
     sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 1, trade_name: "PIC LOGISTICA SAC" }]));
     sessionStorage.setItem("iso_pais", "9589");
@@ -1692,10 +1689,10 @@ describe("pricing store", () => {
       pricing.listInstructivo = [
         { notas: "NOTA", code_house: "H1", code_master: null, expediente: "EXP1", sentido: "IMPORTACION", carga: "LCL", incoterms: "FOB", direccion: "CALLE 1", proveedor: "PROV", origen: "CALLAO", destino: "SHANGHAI", fiscal: "F", ruc: "R" },
       ];
-      rootState.provedores = [
+      useAppStore().provedores = [
         { id: 40, namelong: "NAVIERA UNO" },
         { id: 41, namelong: "AGENTE DOS" },
-      ];
+      ] as never;
       useMasterusuariosStore().lstPercepcionAduana = [{ id: 53, descripcion: "PRIMERA IMPORTACION" }];
       return pricing;
     }
@@ -1836,7 +1833,6 @@ describe("pricing store", () => {
       expect(sentConfig("aprobar_cotizacion")!.headers).toEqual({ "Content-Type": "application/json", "idempotency-key": "key-1" });
       expect(guardarCarpetaHouse).toHaveBeenCalledWith({ nroMaster: "M-900 - ZEVALLOS", id: 900, idSelectedFile: ["f1", "f2"] });
       expect(imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 900, id_branch: 1 });
-      expect(store.dispatch).not.toHaveBeenCalled();
       expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
     });
 

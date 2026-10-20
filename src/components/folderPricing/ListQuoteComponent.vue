@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -25,7 +25,7 @@ withDefaults(
 );
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const securitysStore = useSecuritysStore();
 
@@ -226,12 +226,12 @@ function formatearFecha(fecha: string | null | undefined) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function cambiarPagina() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await pricingStore.getListQuote();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   pricingStore.filtro = {
     fechainicio: moment().format("YYYY-01-01"),
     fechadesde: moment().format("YYYY-01-01"),
@@ -244,7 +244,7 @@ async function limpiar() {
 
   pricingStore.filtrarQuoteFlag = false;
   pricingStore.filtro.estado = true;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function displayMarketing(item: CotizacionListado) {
   // Prefer server-provided friendly name if present
@@ -378,9 +378,9 @@ function abrirCaperta(item: CotizacionListado) {
 async function cerrarDialog() {
   console.log("llegó");
   dialogUrl.value = false;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await pricingStore.getListQuote();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
   const fechaInicio = moment(inicio);
@@ -503,7 +503,7 @@ async function reporteListado() {
     )?.name;
   }
   if (f.id_cliente) {
-    filtroCabecera.Cliente = rootStore.state.clientes.find(
+    filtroCabecera.Cliente = appStore.clientes.find(
       (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
     )?.namelong;
   }
@@ -542,7 +542,7 @@ function abrirModal(selected: CotizacionListado) {
 }
 async function updateQuoteRecibidoEnviado() {
   if ((await frmEstado.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const data = {
       id: quote.value!.id,
       id_master_recibidocotizacion: id_master_recibidocotizacion.value,
@@ -555,7 +555,7 @@ async function updateQuoteRecibidoEnviado() {
     await pricingStore.actualizarQuoteRecibidoEnviado(data);
     await pricingStore.getListQuote();
     dialog.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     frmEstado.value!.reset();
   }
 }
@@ -572,7 +572,7 @@ function registrarLlamada(item: CotizacionListado) {
 async function guardarNota() {
   if ((await detallenota.value!.validate()).valid) {
     dialogRegistroNotaLlamada.value = false;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     const data = {
       id_quote: pricingStore.id,
@@ -589,7 +589,7 @@ async function guardarNota() {
       console.log(err);
     });
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -655,9 +655,9 @@ function abrirModalAprobar({ item: item }: { item: CotizacionListado }) {
             id_exp: id_exp.value,
             fecha_validez: fecha_validez,
           });
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           await pricingStore.getListQuote();
-          rootStore.state.spiner = false;
+          appStore.spiner = false;
         }
       });
     }
@@ -686,10 +686,10 @@ async function aprobar() {
       id_exp: id_exp.value,
       fecha_validez: fecha_validez,
     });
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await pricingStore.getListQuote();
     aprobarflag.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -827,15 +827,15 @@ watch(
       clearTimeout(typingTimer.value);
     }
     typingTimer.value = setTimeout(async () => {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await pricingStore.getListQuote();
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }, 500);
   },
 );
 
 onMounted(async () => {
-  rootStore.state.mainTitle = "LISTADO DE COTIZACIONES";
+  appStore.mainTitle = "LISTADO DE COTIZACIONES";
   // await this.getListQuote();
 
   // await this.cargarMaster({
@@ -1660,7 +1660,7 @@ onMounted(async () => {
           <v-form ref="frmAprobar">
             <v-row>
               <v-autocomplete
-                :items="rootStore.state.itemsMasterList"
+                :items="appStore.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
                 item-title="code_master"

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
@@ -10,8 +11,10 @@ import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionHouse, ServicioCotizadoHouse } from "@/types/cotizacion";
 import type { ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
+import type { BegEndHouseRaiz, TipoEmbarqueRaiz } from "@/types/app";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const route = useRoute();
 const router = useRouter();
 const housesStore = useHousesStore();
@@ -59,7 +62,7 @@ const quotesFiltered = computed(() => {
 });
 const quoteCodeDisplay = computed(() => {
   const quoteId =
-    rootStore.state.house_cotizacion ||
+    housesStore.house_cotizacion ||
     housesStore.house.id_cot;
 
   if (!quoteId) return "";
@@ -81,54 +84,54 @@ const pesoVolumetrico = computed(() => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function asignarDatos() {
-  if (rootStore.state.house_cotizacion) {
+  if (housesStore.house_cotizacion) {
     let id_shipment = 0;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     await pricingStore.getQuoteDataNoAsignadaHouse({
-      id_quote: rootStore.state.house_cotizacion,
+      id_quote: housesStore.house_cotizacion,
     });
 
     if (
       Object.keys(pricingStore.dataQuote as object).length &&
       dataQuoteAsignada.value.id_modality ==
-        rootStore.state.copy_house.id_modality &&
+        housesStore.copy_house.id_modality &&
       dataQuoteAsignada.value.id_shipment ==
-        rootStore.state.copy_house.id_shipment &&
+        housesStore.copy_house.id_shipment &&
       dataQuoteAsignada.value.id_port_begin ==
-        rootStore.state.copy_house.id_port_begin &&
+        housesStore.copy_house.id_port_begin &&
       dataQuoteAsignada.value.id_port_end ==
-        rootStore.state.copy_house.id_port_end
+        housesStore.copy_house.id_port_end
     ) {
-      rootStore.state.house_sentido =
+      housesStore.house_sentido =
         dataQuoteAsignada.value.id_modality;
-      rootStore.state.house_id_trasnport =
+      housesStore.house_id_trasnport =
         dataQuoteAsignada.value.id_shipment;
-      rootStore.state.house_id_consigner =
+      appStore.house_id_consigner =
         dataQuoteAsignada.value.id_cliente;
-      rootStore.state.house_incoterms =
+      housesStore.house_incoterms =
         dataQuoteAsignada.value.id_incoterms;
 
-      if (typeof rootStore.state.house_id_trasnport === "object") {
-        id_shipment = rootStore.state.house_id_trasnport.id_transport;
-      } else if (typeof rootStore.state.house_id_trasnport === "number") {
-        id_shipment = rootStore.state.itemsShipment.filter(
+      if (typeof housesStore.house_id_trasnport === "object") {
+        id_shipment = (housesStore.house_id_trasnport as TipoEmbarqueRaiz).id_transport;
+      } else if (typeof housesStore.house_id_trasnport === "number") {
+        id_shipment = appStore.itemsShipment.filter(
           (v: { id: number }) => v.id == dataQuoteAsignada.value.id_shipment,
-        )[0].id_transport;
+        )[0]!.id_transport;
       }
 
-      rootStore.state.house_bultos =
+      housesStore.house_bultos =
         dataQuoteAsignada.value.nro_bultos;
-      rootStore.state.house_peso =
+      housesStore.house_peso =
         dataQuoteAsignada.value.peso;
-      rootStore.state.house_volumen =
+      housesStore.house_volumen =
         dataQuoteAsignada.value.volumen;
-      rootStore.state.house_monto =
+      housesStore.house_monto =
         dataQuoteAsignada.value.monto;
       await _activePort(id_shipment);
-      rootStore.state.house_origen =
+      housesStore.house_origen =
         dataQuoteAsignada.value.id_port_begin;
-      rootStore.state.house_destino =
+      housesStore.house_destino =
         dataQuoteAsignada.value.id_port_end;
 
       // Ubicación/Tramo (categoría del servicio: Origen, Flete, Destino, Opcional)
@@ -182,7 +185,7 @@ async function asignarDatos() {
         lstServices.push(itemImpuestos);
       }
 
-      rootStore.state.itemsHouseServices = lstServices;
+      appStore.itemsHouseServices = lstServices;
     } else {
       Swal.fire({
         icon: "error",
@@ -193,11 +196,11 @@ async function asignarDatos() {
         allowOutsideClick: false,
       });
 
-      rootStore.state.house_cotizacion = "";
+      housesStore.house_cotizacion = "";
       searchHouseCotizacion.value = "";
     }
 
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -221,64 +224,64 @@ async function _validaData() {
         sessionStorage.setItem("auth-token", response.data.token);
         console.log('id_vendedor',response.data.data[0].id_vendedor)
         console.log('id_pricing',response.data.data[0].id_pricing)
-        rootStore.state.copy_house = response.data.data[0];
-        rootStore.state.dataHouse_transporte =
+        housesStore.copy_house = response.data.data[0];
+        housesStore.dataHouse_transporte =
           response.data.data[0].id_transport;
-        rootStore.state.house_origen = response.data.data[0].id_port_begin;
-        rootStore.state.house_destino = response.data.data[0].id_port_end;
-        rootStore.state.house_sentido = response.data.data[0].id_modality;
-        rootStore.state.house_id_vendedor = response.data.data[0].id_vendedor;
-        rootStore.state.house_id_pricing = response.data.data[0].id_pricing;
-        rootStore.state.house_id_trasnport =
+        housesStore.house_origen = response.data.data[0].id_port_begin;
+        housesStore.house_destino = response.data.data[0].id_port_end;
+        housesStore.house_sentido = response.data.data[0].id_modality;
+        housesStore.house_id_vendedor = response.data.data[0].id_vendedor;
+        housesStore.house_id_pricing = response.data.data[0].id_pricing;
+        housesStore.house_id_trasnport =
           response.data.data[0].id_shipment;
-        rootStore.state.house_incoterms =
+        housesStore.house_incoterms =
           response.data.data[0].id_incoterms;
-        rootStore.state.house_cotizacion = response.data.data[0].id_cot;
-        await rootStore.dispatch("_getPortBegin", {
+        housesStore.house_cotizacion = response.data.data[0].id_cot;
+        await appStore._getPortBegin({
           id_transport: response.data.data[0].id_transport,
           id: response.data.data[0].id_port_begin,
         });
-        await rootStore.dispatch("_getPortEnd", {
+        await appStore._getPortEnd({
           id_transport: response.data.data[0].id_transport,
           id: response.data.data[0].id_port_end,
         });
-        rootStore.state.house_origen = response.data.data[0].id_port_begin;
-        rootStore.state.house_destino = response.data.data[0].id_port_end;
-        rootStore.state.house_expediente = response.data.data[0].code_house;
-        rootStore.state.house_master_expediente =
+        housesStore.house_origen = response.data.data[0].id_port_begin;
+        housesStore.house_destino = response.data.data[0].id_port_end;
+        appStore.house_expediente = response.data.data[0].code_house;
+        housesStore.house_master_expediente =
           response.data.data[0].code_master;
-        rootStore.state.house_id_agente =
+        housesStore.house_id_agente =
           response.data.data[0].id_proveedor;
-        rootStore.state.house_id_consigner =
+        appStore.house_id_consigner =
           response.data.data[0].id_consigner;
-        rootStore.state.house_id_notify = response.data.data[0].id_notify;
-        rootStore.state.house_id_airlines =
+        housesStore.house_id_notify = response.data.data[0].id_notify;
+        housesStore.house_id_airlines =
           response.data.data[0].id_aerolinea;
-        rootStore.state.house_id_coloader =
+        housesStore.house_id_coloader =
           response.data.data[0].id_coloader;
         //vm.$store.state.house_id_agente = response.data.data[0].id_agent;
-        rootStore.state.house_id_naviera = response.data.data[0].id_naviera;
-        rootStore.state.house_blmaster = response.data.data[0].nro_hbl;
-        rootStore.state.house_id_motonave =
+        housesStore.house_id_naviera = response.data.data[0].id_naviera;
+        housesStore.house_blmaster = response.data.data[0].nro_hbl;
+        housesStore.house_id_motonave =
           response.data.data[0].id_motonave;
-        rootStore.state.house_viaje = response.data.data[0].nro_viaje;
-        rootStore.state.house_bultos = response.data.data[0].bultos;
-        rootStore.state.house_peso = response.data.data[0].peso;
-        rootStore.state.house_volumen = response.data.data[0].volumen;
-        rootStore.state.house_id_condicion =
+        housesStore.house_viaje = response.data.data[0].nro_viaje;
+        housesStore.house_bultos = response.data.data[0].bultos;
+        housesStore.house_peso = response.data.data[0].peso;
+        housesStore.house_volumen = response.data.data[0].volumen;
+        housesStore.house_id_condicion =
           response.data.data[0].id_conditions;
-        rootStore.state.house_id_coins = response.data.data[0].id_moneda;
-        rootStore.state.house_monto = response.data.data[0].monto;
-        rootStore.state.house_id = response.data.data[0].id;
-        rootStore.state.house_id_consigner_real =
+        housesStore.house_id_coins = response.data.data[0].id_moneda;
+        housesStore.house_monto = response.data.data[0].monto;
+        housesStore.house_id = response.data.data[0].id;
+        housesStore.house_id_consigner_real =
           response.data.data[0].id_consigner_real;
-        rootStore.state.house_nro_declaracion_aduana =
+        housesStore.house_nro_declaracion_aduana =
           response.data.data[0].nro_declaracion_aduana || "";
-        rootStore.state.house_canal_aduana =
+        housesStore.house_canal_aduana =
           response.data.data[0].canal_aduana || "";
-        await rootStore.dispatch("_getServicesBegin");
+        await mastersStore._getServicesBegin();
         // await vm._getBitacoraLineal();
-        rootStore.state.house_enlace_tracking = response.data.data[0]
+        housesStore.house_enlace_tracking = response.data.data[0]
           .token_rastreo
           ? "https://aco.agentedecargaonline.com/tracking/" +
             response.data.data[0].token_rastreo
@@ -292,81 +295,81 @@ async function _validaData() {
 }
 async function _activePort(idTransport: number) {
   id_transport.value = idTransport;
-  await rootStore.dispatch("_getPortBegin", { id_transport: idTransport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: idTransport });
-  if (rootStore.state.master_id_trasnport.id == 1) {
-    rootStore.state.embar_title_nacn = "Aerolinea";
-  } else if (rootStore.state.master_id_trasnport.id == 2) {
-    rootStore.state.embar_title_nacn = "Naviera";
-  } else if (rootStore.state.master_id_trasnport.id == 3) {
-    rootStore.state.embar_title_nacn = "Coloader";
+  await appStore._getPortBegin({ id_transport: idTransport });
+  await appStore._getPortEnd({ id_transport: idTransport });
+  if (appStore.master_id_trasnport.id == 1) {
+    appStore.embar_title_nacn = "Aerolinea";
+  } else if (appStore.master_id_trasnport.id == 2) {
+    appStore.embar_title_nacn = "Naviera";
+  } else if (appStore.master_id_trasnport.id == 3) {
+    appStore.embar_title_nacn = "Coloader";
   } else {
-    rootStore.state.embar_title_nacn = "Aerolinea/Coloader/Naviera";
+    appStore.embar_title_nacn = "Aerolinea/Coloader/Naviera";
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _getDataService() {
-  rootStore.dispatch("_getServicesBegin");
+  mastersStore._getServicesBegin();
   // this._getBitacoraList();
   // this._getBitacoraLineal();
 }
 async function setNewService() {
   if ((await formNewService.value!.validate()).valid) {
     const dataBegend =
-      rootStore.state.itemsBegEndList.find(
+      appStore.itemsBegEndList.find(
         (v: { id: number }) => v.id === house_service_id_begend.value,
-      ) || {};
+      ) || ({} as BegEndHouseRaiz);
     const dataService = {
-      id_begend: house_service_id_begend.value,
-      namebegend: dataBegend.name,
+      id_begend: house_service_id_begend.value as number,
+      namebegend: dataBegend.name as string,
       position_begend: dataBegend.position_begend,
       nameservice: house_service_name.value,
       status: 0,
     };
 
     let value_itemImpuestos = null;
-    const index_itemImpuestos = rootStore.state.itemsHouseServices.findIndex(
+    const index_itemImpuestos = appStore.itemsHouseServices.findIndex(
       (item: ServicioHouse) => item.nameservice!.toUpperCase() == "IMPUESTOS",
     );
     if (index_itemImpuestos !== -1) {
       value_itemImpuestos =
-        rootStore.state.itemsHouseServices[index_itemImpuestos];
-      rootStore.state.itemsHouseServices.splice(index_itemImpuestos, 1);
+        appStore.itemsHouseServices[index_itemImpuestos]!;
+      appStore.itemsHouseServices.splice(index_itemImpuestos, 1);
     }
 
-    rootStore.state.itemsHouseServices.push(dataService);
+    appStore.itemsHouseServices.push(dataService);
 
     if (value_itemImpuestos !== null) {
-      rootStore.state.itemsHouseServices.push(value_itemImpuestos);
+      appStore.itemsHouseServices.push(value_itemImpuestos);
     }
 
-    rootStore.state.modalServices_manualMode = false;
+    housesStore.modalServices_manualMode = false;
   }
 
   formNewService.value!.reset();
 }
 function cancelNewService() {
   formNewService.value!.reset();
-  rootStore.state.modalServices_manualMode =
-    !rootStore.state.modalServices_manualMode;
+  housesStore.modalServices_manualMode =
+    !housesStore.modalServices_manualMode;
 }
 async function recargarPuertoOrigen(textoBuscar: string) {
-  await rootStore.dispatch("_getPortBegin", {
-    id_transport: id_transport.value,
-    id: rootStore.state.master_origen,
+  await appStore._getPortBegin({
+    id_transport: id_transport.value as number,
+    id: appStore.master_origen,
     search: textoBuscar,
   });
 }
 async function recargarPuertoDestino(textoBuscar: string) {
-  await rootStore.dispatch("_getPortEnd", {
-    id_transport: id_transport.value,
-    id: rootStore.state.master_destino,
+  await appStore._getPortEnd({
+    id_transport: id_transport.value as number,
+    id: appStore.master_destino,
     search: textoBuscar,
   });
 }
 function verCotizacion() {
   const quoteId =
-    rootStore.state.house_cotizacion ||
+    housesStore.house_cotizacion ||
     housesStore.house.id_cot;
   if (quoteId) {
     router.push(`/home/folderPricing/verQuote/${quoteId}`);
@@ -374,7 +377,7 @@ function verCotizacion() {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   // await this._getModality();
   // await this._getShipment();
@@ -396,13 +399,13 @@ onMounted(async () => {
   // await this._validaData();
   // await this._getProveedor();
   // await this._getHouseContainers();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 
-  await rootStore.dispatch("_getBegEndList");
+  await appStore._getBegEndList();
   //this._getnroMaster();
   // this._validaData();
   //this.$store.state.drawer = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 
   // await this.getQuoteNoAsignadoHouse();
 });
@@ -452,7 +455,7 @@ onMounted(async () => {
           :items="aduanaStore.listQuotes2"
           item-title="quote"
           item-value="id"
-          v-model="rootStore.state.house_cotizacionaduana"
+          v-model="housesStore.house_cotizacionaduana"
           clearable
         />
       </v-col>
@@ -639,8 +642,8 @@ onMounted(async () => {
           <v-text-field
             label="Tipo de contenedor"
             :model-value="
-              (rootStore.state.house_id_containers &&
-                rootStore.state.house_id_containers.name) ||
+              (housesStore.house_id_containers &&
+                housesStore.house_id_containers.name) ||
                 ''
             "
             readonly
@@ -652,7 +655,7 @@ onMounted(async () => {
         >
           <v-text-field
             label="Cantidad de contenedores"
-            :model-value="rootStore.state.house_cantidad"
+            :model-value="housesStore.house_cantidad"
             readonly
           />
         </v-col>
@@ -682,7 +685,7 @@ onMounted(async () => {
     </v-row>
 
     <v-dialog
-      v-model="rootStore.state.modalServices_manualMode"
+      v-model="housesStore.modalServices_manualMode"
       max-width="400"
     >
       <v-card>
@@ -693,8 +696,8 @@ onMounted(async () => {
             icon
             color="red"
             @click="
-              rootStore.state.modalServices_manualMode =
-                !rootStore.state.modalServices_manualMode
+              housesStore.modalServices_manualMode =
+                !housesStore.modalServices_manualMode
             "
           >
             <v-icon>mdi-close</v-icon>
@@ -706,7 +709,7 @@ onMounted(async () => {
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    :items="rootStore.state.itemsBegEndList"
+                    :items="appStore.itemsBegEndList"
                     item-title="name"
                     item-value="id"
                     label="Ubicación/Tramo"

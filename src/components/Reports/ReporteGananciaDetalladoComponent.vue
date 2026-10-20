@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useReportesStore } from "@/stores/reportes";
 import type {
   DetalleExpedienteMes,
   TotalesMasterGeneralAgrupadoReporte,
 } from "@/types/reportes";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
@@ -181,7 +181,7 @@ watch(itemsPerPage, () => {
 });
 
 async function recargarFiltro(): Promise<void> {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   page.value = 1;
   await Promise.all([
     reportesStore.getTotalesMasterGeneralAgrupado({
@@ -193,7 +193,7 @@ async function recargarFiltro(): Promise<void> {
       mes: mesesSeleccionados.value.join(","),
     }),
   ]);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function toggleMes(value: string): void {
   const index = mesesTemporales.value.indexOf(value);

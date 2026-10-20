@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 import type { Aerolinea } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const airlinesStore = useAirlinesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -25,7 +25,7 @@ const headers = [
 
 onMounted(async () => {
   loading.value = true;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
   await airlinesStore.GetListAirline();
   loading.value = false;
 });

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import modalListHouse from "@/components/modal/ModalListFile.vue";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import Swal from "sweetalert2";
@@ -13,7 +13,7 @@ import { sessionBranchId } from "@/utils/sesion";
 
 defineProps<{ statusReport?: boolean }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const router = useRouter();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -46,25 +46,25 @@ const headers = [
   { title: "Acciones", key: "actions" },
 ];
 
-const itemsDataControlList = computed<MasterListadoControlGasto[]>(() => rootStore.state.itemsDataControlList);
+const itemsDataControlList = computed<MasterListadoControlGasto[]>(() => appStore.itemsDataControlList);
 
 onMounted(async () => {
   await Promise.all([
-    rootStore.dispatch("_getControlList"),
+    appStore._getControlList(),
     pricingStore.getModulesEntities(),
     pricingStore.getQuoteNoAsignadoHouse(),
     masterusuariosStore.cargarMasterDetalleCanal(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getProveedor"),
-    rootStore.dispatch("_getShipment"),
+    appStore._getModality(),
+    appStore._getProveedor(),
+    appStore._getShipment(),
   ]);
 });
 
 async function cerrarDialog() {
   dialogUrl.value = false;
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getControlList");
-  rootStore.state.spiner = false;
+  appStore.spiner = true;
+  await appStore._getControlList();
+  appStore.spiner = false;
 }
 function abrirCaperta(item: MasterListadoControlGasto) {
   console.log("item:", item);
@@ -122,7 +122,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
           color="success"
           class="mb-2 ml-5"
           rounded
-          @click="rootStore.state.cg_filtrarData = true"
+          @click="appStore.cg_filtrarData = true"
         >
           Filtar
         </v-btn>
@@ -137,7 +137,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
         />
       </v-card-title>
       <v-container
-        v-if="!rootStore.state.dataGastos"
+        v-if="!appStore.dataGastos"
         style="height: 400px"
       >
         <v-row class="fill-height align-content-center justify-center">
@@ -158,7 +158,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
         </v-row>
       </v-container>
       <v-data-table
-        v-if="rootStore.state.dataGastos"
+        v-if="appStore.dataGastos"
         :headers="headers"
         :items="itemsDataControlList"
         :search="search"

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const loading = ref(false);
@@ -35,7 +35,7 @@ function getName() {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function ObtenerEstados(id_state: number | string) {
   loadingEstado.value = true;
-  await rootStore.dispatch("_getState", id_state);
+  await appStore._getState(id_state);
   masterusuariosStore.model.id_state = "";
   loadingEstado.value = false;
 }

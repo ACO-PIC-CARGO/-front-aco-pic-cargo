@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const EditarCliente = defineAsyncComponent(() =>
   import("@/components/folderEntities/Cliente/EditarClienteComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `MODIFICAR CLIENTE`;
+  appStore.mainTitle = `MODIFICAR CLIENTE`;
 });
 </script>
 

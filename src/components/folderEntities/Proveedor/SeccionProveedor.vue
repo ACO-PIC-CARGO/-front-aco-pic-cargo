@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import CustomAutocomplete from "../CustomAutocomplete.vue";
 import { useEntitiesStore } from "@/stores/entities";
@@ -13,7 +13,7 @@ const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: 
 const emit = defineEmits<{ ObtenerProveedor: [id: number] }>();
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -64,7 +64,7 @@ watch(
 );
 
 function isShipper() {
-  const val = (rootStore.state.itemsDataRoleList as RolProveedor[]).some((v) => {
+  const val = (appStore.itemsDataRoleList as RolProveedor[]).some((v) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -75,7 +75,7 @@ function isShipper() {
   return val;
 }
 function isNaviera() {
-  const val = (rootStore.state.itemsDataRoleList as RolProveedor[]).some((v) => {
+  const val = (appStore.itemsDataRoleList as RolProveedor[]).some((v) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -86,7 +86,7 @@ function isNaviera() {
   return val;
 }
 function isAlmacen() {
-  const val = (rootStore.state.itemsDataRoleList as RolProveedor[]).some((v) => {
+  const val = (appStore.itemsDataRoleList as RolProveedor[]).some((v) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
       v.id == entitiesStore.proveedor.id_tipoproveedor &&
@@ -409,9 +409,9 @@ async function modificarProveedor() {
     entitiesStore.isStep4Valid =
       !entitiesStore.isStep4Valid;
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarProveedor();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;
@@ -420,7 +420,7 @@ async function modificarProveedor() {
 }
 
 onMounted(async () => {
-  await rootStore.dispatch("cargarClientes");
+  await appStore.cargarClientes();
   console.log("isPricing", props.isPricing);
 });
 </script>
@@ -488,7 +488,7 @@ onMounted(async () => {
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="rootStore.state.itemsDataRoleList"
+                    :items="appStore.itemsDataRoleList"
                     item-title="name"
                     item-value="id"
                     label="Tipo de Proveedor"
@@ -523,7 +523,7 @@ onMounted(async () => {
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="rootStore.state.itemsDocumentsPais"
+                    :items="appStore.itemsDocumentsPais"
                     item-title="description"
                     item-value="id"
                     label="Tipo de Documento Fiscal"
@@ -564,11 +564,11 @@ onMounted(async () => {
                     variant="outlined"
                     item-title="name"
                     item-value="id"
-                    :items="rootStore.state.itemsPais"
+                    :items="appStore.itemsPais"
                     label="País"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                     v-model="entitiesStore.proveedor.id_pais"
-                    @update:model-value="rootStore.dispatch('_getState', entitiesStore.proveedor.id_pais)"
+                    @update:model-value="appStore._getState(entitiesStore.proveedor.id_pais)"
                   />
                 </v-col>
                 <v-col
@@ -578,7 +578,7 @@ onMounted(async () => {
                   <v-autocomplete
                     density="compact"
                     variant="outlined"
-                    :items="rootStore.state.itemsState"
+                    :items="appStore.itemsState"
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"

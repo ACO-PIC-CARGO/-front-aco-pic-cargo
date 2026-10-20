@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useCityStore } from "@/stores/city";
 import type { Ciudad } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const cityStore = useCityStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const search = ref("");
 const loading = ref(false);
@@ -36,7 +36,7 @@ async function ver(item: Ciudad) {
   const datos = { ...item };
   cityStore.tipo = "ver";
   cityStore.model = datos;
-  await rootStore.dispatch("_getState", datos.id_pais);
+  await appStore._getState(datos.id_pais);
   loading.value = !loading.value;
   cityStore.drawer = !cityStore.drawer;
 }
@@ -45,7 +45,7 @@ async function editar(item: Ciudad) {
   const datos = { ...item };
   cityStore.tipo = "editar";
   cityStore.model = datos;
-  await rootStore.dispatch("_getState", datos.id_pais);
+  await appStore._getState(datos.id_pais);
   loading.value = !loading.value;
   cityStore.drawer = !cityStore.drawer;
 }
@@ -93,7 +93,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await cityStore.GetListCity();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getPais");
+  await appStore._getPais();
 });
 </script>
 

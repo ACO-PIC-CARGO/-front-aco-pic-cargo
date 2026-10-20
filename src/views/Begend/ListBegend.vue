@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useBegendStore } from "@/stores/begend";
 
 const Begend = defineAsyncComponent(() => import("../../components/Begend/ListBegendComponent.vue"));
 const FilterBegend = defineAsyncComponent(() => import("../../components/filtros/FilterBegend.vue"));
 
 const begendStore = useBegendStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE SERVICIOS`;
+  appStore.mainTitle = `LISTADO DE SERVICIOS`;
 });
 </script>
 

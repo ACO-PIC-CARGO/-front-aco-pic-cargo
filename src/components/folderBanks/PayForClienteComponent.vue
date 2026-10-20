@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
-import type { ClientePago, CuentaDestinoCliente, DetallePagoCliente } from "@/types/banks";
+import type { CuentaDestinoCliente, DetallePagoCliente } from "@/types/banks";
+import type { ClienteRaiz } from "@/types/app";
 import { sessionBranchId } from "@/utils/sesion";
 
 const props = defineProps<{ tipo?: string }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const filesStore = useFilesStore();
 const bankStore = useBankStore();
-const listPagosXProveedorCxP = computed<DetallePagoCliente[]>(() => rootStore.state.listPagosXProveedorCxP);
-const clientes = computed(() => rootStore.state.clientes);
+const listPagosXProveedorCxP = computed<DetallePagoCliente[]>(() => appStore.listPagosXProveedorCxP);
+const clientes = computed(() => appStore.clientes);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let msgfile: string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -34,7 +35,7 @@ const payfile = ref<File[]>([]);
 const selected = ref<DetallePagoCliente[]>([]);
 const id_coins = ref<number | string>("");
 const payPath = ref("");
-const id_proveedor = ref<ClientePago>("" as unknown as ClientePago);
+const id_proveedor = ref<ClienteRaiz>("" as unknown as ClienteRaiz);
 const boolFile = ref(false);
 const cuentas = ref<CuentaDestinoCliente[]>([]);
 const id_cuenta = ref<CuentaDestinoCliente>("" as unknown as CuentaDestinoCliente);
@@ -89,9 +90,9 @@ const headers = [
 const symbol = computed(() => {
   let symbol = "";
   if (id_coins.value) {
-    symbol = rootStore.state.itemsCoinsList.filter(
+    symbol = appStore.itemsCoinsList.filter(
       (v: { id: number }) => v.id == id_coins.value,
-    )[0].symbol;
+    )[0]!.symbol;
   }
   return symbol;
 });
@@ -117,7 +118,7 @@ async function ValidateNroOperacion() {
   }
 }
 async function obtenerListado() {
-  rootStore.state.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP.listPagosXProveedorCxP = [];
   date.value = "";
   payfile.value = [];
   boolFile.value = false;
@@ -125,7 +126,7 @@ async function obtenerListado() {
   id_banco_origen.value = "";
   nro_operacion.value = "";
   if (id_proveedor.value.id && props.tipo == "nuevo") {
-    await rootStore.dispatch("_getListaPagosXProveedorCxC", id_proveedor.value.id);
+    await appStore._getListaPagosXProveedorCxC(id_proveedor.value.id);
   } else {
     selected.value = [];
   }
@@ -164,7 +165,7 @@ function calcularMonto() {
       console.log(element);
       id_coins.value = element.id_coins;
       // @ts-expect-error symbol is a read-only computed
-      symbol.value = rootStore.state.itemsCoinsList.filter(
+      symbol.value = appStore.itemsCoinsList.filter(
         (v: { id: number }) => v.id == selected.value[0]!.id_coins,
       )[0].symbol;
       element.montopagar = parseFloat(String(element.monto_deuda)).toFixed(2);
@@ -317,13 +318,13 @@ function continuar() {
 function limpiarDatos() {
   payfile.value = [];
   payPath.value = "";
-  id_proveedor.value = "" as unknown as ClientePago;
+  id_proveedor.value = "" as unknown as ClienteRaiz;
   selected.value = [];
   boolFile.value = false;
   tab.value = "ref1";
   step2.value = true;
   total.value = 0;
-  rootStore.state.listPagosXProveedorCxP = [];
+  appStore.listPagosXProveedorCxP = [];
 }
 async function obtenerDatos() {
   if (props.tipo == "ver") {
@@ -344,7 +345,7 @@ async function obtenerDatos() {
         // @ts-expect-error data is not defined
         id_proveedor.value = data.id_proveedor;
         // @ts-expect-error data is not defined
-        rootStore.state.listPagosXProveedorCxP = data.details;
+        appStore.listPagosXProveedorCxP = data.details;
         // @ts-expect-error data is not defined
         id_cuenta.value = data.id_bank;
         // @ts-expect-error data is not defined
@@ -369,7 +370,7 @@ function recibirId(file: { inserid?: string; archivo: unknown }) {
   errfile = "";
 }
 function moverSeleccionadoAlInicio() {
-  const listaPagos = rootStore.state.listPagosXProveedorCxP;
+  const listaPagos = appStore.listPagosXProveedorCxP;
 
   const seleccionadosIds = new Set(selected.value.map((item) => item.id));
 
@@ -393,16 +394,16 @@ watch(selected, (newVal, oldVal) => {
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getBanksList");
-  await rootStore.dispatch("cargarClientes");
+  appStore.spiner = true;
+  await appStore._getBanksList();
+  await appStore.cargarClientes();
   await obtenerListado();
   await getListBanksDetailsCargar();
   await limpiarDatos();
   await obtenerDatos();
-  await rootStore.dispatch("_getCoinsList");
+  await appStore._getCoinsList();
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 });
 </script>
 
@@ -460,7 +461,7 @@ onMounted(async () => {
             <v-col
               md="12"
               cols="12"
-              v-if="rootStore.state.listPagosXProveedorCxP.length > 0"
+              v-if="appStore.listPagosXProveedorCxP.length > 0"
             >
               <v-data-table
                 :headers="headers"
@@ -473,7 +474,7 @@ onMounted(async () => {
               >
                 <template #[`item.moneda`]="{ item }">
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="id_coins"
                     item-title="acronym"
                     item-value="id"
@@ -514,7 +515,7 @@ onMounted(async () => {
             <v-col
               md="12"
               cols="12"
-              v-if="rootStore.state.listPagosXProveedorCxP.length > 0"
+              v-if="appStore.listPagosXProveedorCxP.length > 0"
             >
               <div
                 class="text-right"
@@ -657,7 +658,7 @@ onMounted(async () => {
               cols="4"
             >
               <v-select
-                :items="rootStore.state.itemsDataBanksList"
+                :items="appStore.itemsDataBanksList"
                 v-model="id_banco_origen"
                 label="Banco Origen"
                 item-title="acronym"

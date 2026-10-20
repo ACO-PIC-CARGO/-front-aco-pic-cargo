@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { ModuloEntidad } from "@/types/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const itemsModule = ref<ModuloEntidad[]>([]);
 
@@ -41,7 +41,7 @@ function _getEntitiesModule() {
         "idMenuName",
         JSON.parse(JSON.stringify(itemsModule.value))[0].name
       );
-      rootStore.dispatch("_getGroupList");
+      appStore._getGroupList();
     })
     .catch(function (error) {
       console.error(error);
@@ -49,11 +49,11 @@ function _getEntitiesModule() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _setidMenu(idMenu: number | string, name: string) {
-  rootStore.state.dataList = false;
+  appStore.dataList = false;
   sessionStorage.setItem("idMenu", String(idMenu));
   sessionStorage.setItem("idMenuName", name);
 
-  rootStore.dispatch("_getGroupList");
+  appStore._getGroupList();
 }
 </script>
 

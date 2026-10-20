@@ -10,7 +10,6 @@ import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, re
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { commit: vi.fn() } }));
 
 const fob = { id: 3, name: "FOB", description: "FREE ON BOARD", status: 1 };
 const defaultList = URL_MAIN + "listar_incoterms?id_branch=7&name=&description=&status=1";

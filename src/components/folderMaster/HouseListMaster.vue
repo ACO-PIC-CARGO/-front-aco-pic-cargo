@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
@@ -9,7 +10,8 @@ import type { HouseDeMaster } from "@/types/operacionesMaster";
 
 const emit = defineEmits<{ recargarDatos: [] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const route = useRoute();
 const router = useRouter();
 const housesStore = useHousesStore();
@@ -23,23 +25,23 @@ const selectedNuevoExpediente = ref<number | number[] | null>([]);
 const house = ref<HouseDeMaster>({} as HouseDeMaster);
 
 const displayedItems = computed(() => {
-  const list = rootStore.state.itemsHouseList || [];
+  const list = appStore.itemsHouseList || [];
   return showAll.value ? list : list.slice(0, 3);
 });
 const masterComments = computed(() => {
   const masterId =
-    rootStore.state.master_insertId || rootStore.state.master_Id_get;
+    mastersStore.master_insertId || mastersStore.master_Id_get;
   if (!masterId) return [];
 
   if (
-    rootStore.state.rowMaster &&
-    rootStore.state.rowMaster.list_comentarios
+    mastersStore.rowMaster &&
+    mastersStore.rowMaster.list_comentarios
   ) {
-    return rootStore.state.rowMaster.list_comentarios;
+    return mastersStore.rowMaster.list_comentarios;
   }
 
-  if (rootStore.state.itemsMasterList) {
-    const masterItem = rootStore.state.itemsMasterList.find(
+  if (appStore.itemsMasterList) {
+    const masterItem = appStore.itemsMasterList.find(
       (m: { id: number }) => m.id == masterId,
     );
     return masterItem && masterItem.list_comentarios
@@ -50,11 +52,11 @@ const masterComments = computed(() => {
   return [];
 });
 const totalHouses = computed(() => {
-  const list = rootStore.state.itemsHouseList || [];
+  const list = appStore.itemsHouseList || [];
   return list.length;
 });
 const totalPesoHouse = computed(() => {
-  const list = rootStore.state.itemsHouseList || [];
+  const list = appStore.itemsHouseList || [];
   const total = list.reduce(
     (acc: number, it: HouseDeMaster) => acc + (parseFloat(String(it.peso)) || 0),
     0,
@@ -62,7 +64,7 @@ const totalPesoHouse = computed(() => {
   return Number.isFinite(total) ? Number(total.toFixed(2)) : 0;
 });
 const totalVolumenHouse = computed(() => {
-  const list = rootStore.state.itemsHouseList || [];
+  const list = appStore.itemsHouseList || [];
   const total = list.reduce(
     (acc: number, it: HouseDeMaster) => acc + (parseFloat(String(it.volumen)) || 0),
     0,
@@ -74,7 +76,7 @@ const sumaTotal = computed(() => {
   return 0;
 });
 const esAereo = computed(() => {
-  const st = rootStore.state;
+  const st = appStore;
   const id =
     st.master_id_trasnport && st.master_id_trasnport.id
       ? st.master_id_trasnport.id
@@ -101,9 +103,9 @@ async function aplicarCambioExpediente() {
     dialogCambiarExpediente.value = false;
     return;
   }
-  const targetLabel = rootStore.state.itemsMasterList.find(
+  const targetLabel = appStore.itemsMasterList.find(
     (x: { id: number }) => x.id === selectedNuevoExpediente.value,
-  ).code_master;
+  )!.code_master;
   const res = await Swal.fire({
     icon: "question",
     title: "Confirmar cambio",
@@ -179,7 +181,7 @@ function getIncotermName(item: HouseDeMaster) {
   if (item.incoterms) return item.incoterms;
   if (item.name_incoterm) return item.name_incoterm;
   if (item.id_incoterms) {
-    const incoterms = rootStore.state.itemsIncoterms || [];
+    const incoterms = appStore.itemsIncoterms || [];
     const found = incoterms.find(function (inc: { id: number; name: string }) {
       return inc.id == item.id_incoterms;
     });
@@ -205,12 +207,12 @@ function eliminar(id: number) {
   });
 }
 
-watch(() => rootStore.state.itemsHouseList, () => {
+watch(() => appStore.itemsHouseList, () => {
   openExpand.value = 0;
 });
 
 onMounted(async () => {
-  await rootStore.dispatch("_getMasterList");
+  await appStore._getMasterList();
   nextTick(() => {
     openExpand.value = 0;
   });
@@ -279,8 +281,8 @@ onMounted(async () => {
               </v-row>
               <div
                 v-if="
-                  rootStore.state.itemsHouseList &&
-                    rootStore.state.itemsHouseList.length > 3 &&
+                  appStore.itemsHouseList &&
+                    appStore.itemsHouseList.length > 3 &&
                     !showAll
                 "
                 class="mb-2"
@@ -442,7 +444,7 @@ onMounted(async () => {
           <v-card-text>
             <v-autocomplete
               :items="
-                rootStore.state.itemsMasterList.filter(
+                appStore.itemsMasterList.filter(
                   (v: { id: number | string }) => v.id != route.params.id,
                 )
               "

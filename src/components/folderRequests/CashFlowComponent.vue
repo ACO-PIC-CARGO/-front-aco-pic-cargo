@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
 import type { CuentaFlujoCaja } from "@/types/requests";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const itemsCpp = ref<CuentaFlujoCaja[]>([]);
 const itemsCpc = ref<CuentaFlujoCaja[]>([]);
@@ -220,7 +220,7 @@ async function _getDebsToPay() {
     .then(function (response) {
       itemsCpp.value = response.data.data;
       dataList.value = true;
-      rootStore.state.drawer = false;
+      appStore.drawer = false;
     })
     .catch(function (error) {
       console.error(error);
@@ -241,7 +241,7 @@ async function _getDebsToPayc() {
     .then(function (response) {
       itemsCpc.value = response.data.data;
       dataList.value = true;
-      rootStore.state.drawer = false;
+      appStore.drawer = false;
     })
     .catch(function (error) {
       console.error(error);
@@ -268,7 +268,7 @@ async function _getDebsToPayFilter() {
     .then(function (response) {
       itemsCpp.value = response.data.data;
       dataList.value = true;
-      rootStore.state.drawer = false;
+      appStore.drawer = false;
     })
     .catch(function (error) {
       console.error(error);

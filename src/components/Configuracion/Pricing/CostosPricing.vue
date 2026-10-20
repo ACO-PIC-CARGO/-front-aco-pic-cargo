@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 // @ts-expect-error lodash ships no type declarations
 import _ from "lodash";
 import ModelCostos from "./ModelCostos.vue";
@@ -12,7 +12,7 @@ import { useProveedorStore } from "@/stores/proveedor";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const pricingStore = usePricingStore();
 const incotermStore = useIncotermStore();
@@ -136,13 +136,13 @@ async function guardar() {
 }
 async function obtenerDatos() {
   cargandoTabla.value = true;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   mostrarListadoIncoterms.value = false;
   await configuracionStore.ObtenerIncotermsConfigCostos({
     id_modality: id_modality.value,
     id_shipment: id_shipment.value,
   });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 // mostrarListadoIncoterms() {

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "@/api/http";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { CuentaBancariaPic } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
@@ -25,7 +25,7 @@ export const useBancosStore = defineStore("bancos", () => {
     };
     await axios<ApiResponse<CuentaBancariaPic[]>>(config)
       .then(function (response) {
-        store.state.cuentas_pic = response.data.data;
+        useAppStore().cuentas_pic = response.data.data;
         cuentas.value = response.data.data;
       })
       .catch(function (error) {

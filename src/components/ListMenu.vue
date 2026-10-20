@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
@@ -10,7 +10,7 @@ import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 
 const route = useRoute();
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const securitysStore = useSecuritysStore();
 const subscriptionsStore = useSubscriptionsStore();
@@ -35,11 +35,11 @@ const person: UsuarioSesion = JSON.parse(sessionStorage.getItem("dataUser") as s
 onMounted(() => {
   subscriptionsStore.reloadPlanAccess();
   setTimeout(() => {
-    rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+    appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
   }, 10);
 });
 
-const lstMenu = computed<ItemMenu[]>(() => rootStore.state.lstMenu);
+const lstMenu = computed<ItemMenu[]>(() => appStore.lstMenu);
 const listIncoterms = computed<Incoterm[]>(() => pricingStore.listIncoterms);
 const actualizarCostosFlag = computed(() => pricingStore.actualizarCostosFlag);
 const isAereoPricing = computed(() => {
@@ -95,8 +95,8 @@ const pesoVolumetrico = computed(() => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _nextView(name: string, id_role: number | string, namemodule: string) {
-  rootStore.state.dataList = false;
-  rootStore.state.menuName = namemodule;
+  appStore.dataList = false;
+  appStore.menuName = namemodule;
 
   router.push({ name: name, params: { id_role } });
 }
@@ -120,7 +120,7 @@ function mostrarVolumen() {
 }
 function isLockedItem(item: ItemMenu) {
   return Boolean(
-    subscriptionsStore.lockedModuleForRoute(rootStore.state.lstMenu, item.route),
+    subscriptionsStore.lockedModuleForRoute(appStore.lstMenu, item.route),
   );
 }
 function getRouteForItem(item: ItemMenu): { name?: string } {

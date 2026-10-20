@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 
@@ -9,10 +9,10 @@ const FilterQuoteStatus = defineAsyncComponent(() => import("../../components/fi
 
 const QuoteStatusStore = useQuoteStatusStore();
 const airlinesStore = useAirlinesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE ESTADOS DE LA COTIZACIÓN`;
+  appStore.mainTitle = `LISTADO DE ESTADOS DE LA COTIZACIÓN`;
 });
 </script>
 

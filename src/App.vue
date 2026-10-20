@@ -3,7 +3,7 @@ import { defineAsyncComponent, onBeforeMount, onMounted, ref, useTemplateRef } f
 import { io } from "socket.io-client";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
@@ -26,7 +26,7 @@ const EditarCliente = defineAsyncComponent(
 );
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const { smAndDown } = useDisplay();
 
@@ -51,9 +51,9 @@ const isPricing = ref(false);
 const formContenedor = useTemplateRef("formContenedor");
 
 onMounted(async () => {
-  rootStore.state.security = JSON.parse(sessionStorage.getItem("security") as string);
+  appStore.security = JSON.parse(sessionStorage.getItem("security") as string);
   setTimeout(() => {
-    rootStore.state.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+    appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
     _getVersion();
   }, 10);
 
@@ -77,7 +77,7 @@ onMounted(async () => {
     dialogVersion.value = true; // Muestra tu diálogo actual
   });
 
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 
   if (route.params.id) {
     id.value = route.params.id;
@@ -117,17 +117,17 @@ async function actualizar() {
   }, 5000); // espera 5 segundos
 }
 async function registrarCliente() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.guardarCliente();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function modificarCliente() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await entitiesStore.actualizarCliente();
-  rootStore.state.modalEntitie = false;
-  rootStore.state.recargarClienteFlag =
-    !rootStore.state.recargarClienteFlag;
-  rootStore.state.spiner = false;
+  appStore.modalEntitie = false;
+  appStore.recargarClienteFlag =
+    !appStore.recargarClienteFlag;
+  appStore.spiner = false;
 }
 function closeWelcome() {
   sessionStorage.setItem("welcome", "1");
@@ -149,7 +149,7 @@ async function _setDataContainers(
   cantidad: number | string,
 ) {
   if ((await formContenedor.value!.validate()).valid) {
-    rootStore.state.master_itemsContainers.push({
+    appStore.master_itemsContainers.push({
       id_container: id,
       name: name,
       nro_container: nrocontainer,
@@ -157,21 +157,21 @@ async function _setDataContainers(
       cantidad: cantidad,
     });
 
-    rootStore.state.modalContainers = false;
+    appStore.modalContainers = false;
 
-    rootStore.state.master_id_containers = "";
-    rootStore.state.master_nro_containers = "";
-    rootStore.state.master_nro_precinto = "";
-    rootStore.state.master_cantidad = "";
+    appStore.master_id_containers = "" as unknown as typeof appStore.master_id_containers;
+    appStore.master_nro_containers = "";
+    appStore.master_nro_precinto = "";
+    appStore.master_cantidad = "";
   }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleanData() {
-  rootStore.state.accountIdTypeAccount = "";
-  rootStore.state.accountIdBanks = "";
-  rootStore.state.accountIdCoins = "";
-  rootStore.state.accountNumer = "";
+  appStore.accountIdTypeAccount = "";
+  appStore.accountIdBanks = "";
+  appStore.accountIdCoins = "";
+  appStore.accountNumer = "";
 }
 
 async function _getVersion() {
@@ -247,9 +247,9 @@ async function _getAccountsNumber() {
     },
     data: data,
   };
-  await axios<ApiResponse>(config)
+  await axios<ApiResponse<typeof appStore.itemsDataAccountsNumberList>>(config)
     .then(function (response) {
-      rootStore.state.itemsDataAccountsNumberList = response.data.data;
+      appStore.itemsDataAccountsNumberList = response.data.data;
     })
     .catch(function (error) {
       console.error(error);
@@ -259,11 +259,11 @@ async function _getAccountsNumber() {
 async function _setAccounts() {
   const data = {
     id_entities: route.params.id,
-    id_account: rootStore.state.accountIdTypeAccount,
-    id_banks: rootStore.state.accountIdBanks,
-    id_coins: rootStore.state.accountIdCoins,
-    accountNumber: rootStore.state.accountNumer,
-    status: rootStore.state.accountStatus,
+    id_account: appStore.accountIdTypeAccount,
+    id_banks: appStore.accountIdBanks,
+    id_coins: appStore.accountIdCoins,
+    accountNumber: appStore.accountNumer,
+    status: appStore.accountStatus,
     id_branch: JSON.parse(sessionStorage.getItem("dataUser") as string)[0].id_branch,
   };
   const config = {
@@ -285,22 +285,22 @@ async function _setAccounts() {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _delContainers(index: number) {
-  rootStore.state.master_itemsContainers.splice(index, 1);
+  appStore.master_itemsContainers.splice(index, 1);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _nextListAgents() {
-  rootStore.dispatch("_getEntities", 1);
+  appStore._getEntities(1);
 
   listAgente.value = !listAgente.value;
 }
 
 function _deletePhones(index: number) {
-  rootStore.state.itemsListPhone.splice(index, 1);
+  appStore.itemsListPhone.splice(index, 1);
 }
 
 function _deleteContacts(i: number | string) {
-  rootStore.state.itemsListContact.splice(i, 1);
+  appStore.itemsListContact.splice(i as number, 1);
 }
 
 function mostrarBtnGuardar() {
@@ -331,7 +331,7 @@ function mostrarBtnGuardar() {
   <v-app>
     <router-view />
     <v-overlay
-      :model-value="rootStore.state.spiner"
+      :model-value="appStore.spiner"
       class="align-center justify-center"
     >
       <v-row class="fill-height align-content-center justify-center">
@@ -523,8 +523,8 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalEntitie"
-      v-if="rootStore.state.modalEntitie"
+      v-model="appStore.modalEntitie"
+      v-if="appStore.modalEntitie"
       width="90%"
     >
       <v-card>
@@ -534,17 +534,17 @@ function mostrarBtnGuardar() {
             variant="text"
             icon
             color="red"
-            @click="rootStore.state.modalEntitie = !rootStore.state.modalEntitie"
+            @click="appStore.modalEntitie = !appStore.modalEntitie"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
           <EditarCliente
-            v-if="rootStore.state.house_id_consigner"
+            v-if="appStore.house_id_consigner"
             @btn-guardar="guardarClienteFlag = $event"
             :is-pricing="isPricing"
-            :house-id-consigner="rootStore.state.house_id_consigner"
+            :house-id-consigner="appStore.house_id_consigner as number"
           />
           <NuevoCliente
             @btn-guardar="guardarClienteFlag = $event"
@@ -562,7 +562,7 @@ function mostrarBtnGuardar() {
             Guardar
           </v-btn>
           <v-btn
-            v-if="rootStore.state.house_id_consigner"
+            v-if="appStore.house_id_consigner"
             color="success"
             @click="modificarCliente"
             class="px-10"
@@ -574,7 +574,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalvelocidad"
+      v-model="appStore.modalvelocidad"
       max-width="1200"
     >
       <v-card>
@@ -592,7 +592,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalvelocidad = false"
+            @click="appStore.modalvelocidad = false"
           >
             Cerrar
           </v-btn>
@@ -601,7 +601,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalContainers"
+      v-model="appStore.modalContainers"
       max-width="390"
     >
       <v-card>
@@ -614,31 +614,31 @@ function mostrarBtnGuardar() {
               <v-row>
                 <v-col cols="12">
                   <v-autocomplete
-                    :items="rootStore.state.itemsContainers"
+                    :items="appStore.itemsContainers"
                     item-title="name"
                     item-value="id"
                     return-object
                     label="Tipo de contenedor"
-                    v-model="rootStore.state.master_id_containers"
+                    v-model="appStore.master_id_containers"
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
-                    v-model="rootStore.state.master_nro_containers"
+                    v-model="appStore.master_nro_containers"
                     label="Nro. Contenedor"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
-                    v-model="rootStore.state.master_nro_precinto"
+                    v-model="appStore.master_nro_precinto"
                     label="Nro. Precinto"
                   />
                 </v-col>
                 <v-col cols="12">
                   <v-text-field
                     type="number"
-                    v-model="rootStore.state.master_cantidad"
+                    v-model="appStore.master_cantidad"
                     label="Cant."
                     :rules="[
                       (v) => !!v || 'Dato Requerido',
@@ -650,11 +650,11 @@ function mostrarBtnGuardar() {
                   <v-btn
                     @click="
                       _setDataContainers(
-                        rootStore.state.master_id_containers.id,
-                        rootStore.state.master_id_containers.name,
-                        rootStore.state.master_nro_containers,
-                        rootStore.state.master_nro_precinto,
-                        rootStore.state.master_cantidad,
+                        appStore.master_id_containers.id,
+                        appStore.master_id_containers.name,
+                        appStore.master_nro_containers,
+                        appStore.master_nro_precinto,
+                        appStore.master_cantidad,
                       )
                     "
                     block
@@ -672,7 +672,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalContainers = false"
+            @click="appStore.modalContainers = false"
           >
             Cerrar
           </v-btn>
@@ -681,7 +681,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalPhones"
+      v-model="appStore.modalPhones"
       max-width="550"
     >
       <v-card>
@@ -692,30 +692,30 @@ function mostrarBtnGuardar() {
           <v-row>
             <v-col cols="4">
               <v-autocomplete
-                :items="rootStore.state.itemsPhone"
+                :items="appStore.itemsPhone"
                 item-title="name"
                 item-value="id"
                 label="Tipo de Teléfono"
                 return-object
-                v-model="rootStore.state.phone_id"
+                v-model="appStore.phone_id"
               />
             </v-col>
             <v-col cols="6">
               <v-text-field
-                v-model="rootStore.state.phone_number"
+                v-model="appStore.phone_number"
                 label="N°. Teléfono"
               />
             </v-col>
             <v-col cols="2">
               <v-btn
                 v-if="
-                  rootStore.state.phone_id != '' && rootStore.state.phone_number != ''
+                  (appStore.phone_id as unknown) != '' && appStore.phone_number != ''
                 "
                 class="mx-2"
                 icon
                 color="teal-darken-1"
                 elevation="0"
-                @click="rootStore.dispatch('_addPhones', route.params.id)"
+                @click="appStore._addPhones(route.params.id as string)"
               >
                 <v-icon size="x-large">
                   mdi-plus
@@ -740,7 +740,7 @@ function mostrarBtnGuardar() {
               </thead>
               <tbody>
                 <tr
-                  v-for="item of rootStore.state.itemsListPhone"
+                  v-for="item of appStore.itemsListPhone"
                   :key="item.id"
                 >
                   <td>{{ item.name }}</td>
@@ -791,7 +791,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalPhones = false"
+            @click="appStore.modalPhones = false"
           >
             Cerrar
           </v-btn>
@@ -800,7 +800,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalPhonesEdit"
+      v-model="appStore.modalPhonesEdit"
       max-width="550"
     >
       <v-card>
@@ -825,7 +825,7 @@ function mostrarBtnGuardar() {
               </thead>
               <tbody>
                 <tr
-                  v-for="item of rootStore.state.itemsListPhoneEdit"
+                  v-for="item of appStore.itemsListPhoneEdit"
                   :key="item.id"
                 >
                   <td>{{ item.tipo_phone }}</td>
@@ -873,7 +873,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalPhonesEdit = false"
+            @click="appStore.modalPhonesEdit = false"
           >
             Cerrar
           </v-btn>
@@ -882,7 +882,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalContacts"
+      v-model="appStore.modalContacts"
       max-width="750"
     >
       <v-card>
@@ -894,27 +894,27 @@ function mostrarBtnGuardar() {
             <v-col cols="7">
               <v-text-field
                 label="Nombre Completo"
-                v-model="rootStore.state.contact_name"
+                v-model="appStore.contact_name"
               />
             </v-col>
 
             <v-col cols="3">
               <v-text-field
-                v-model="rootStore.state.contact_number"
+                v-model="appStore.contact_number"
                 label="N°. Teléfono"
               />
             </v-col>
             <v-col cols="2">
               <v-btn
                 v-if="
-                  rootStore.state.contact_name != '' &&
-                    rootStore.state.contact_number != ''
+                  appStore.contact_name != '' &&
+                    appStore.contact_number != ''
                 "
                 class="mx-2"
                 icon
                 color="teal-darken-1"
                 elevation="0"
-                @click="rootStore.dispatch('_addContacts')"
+                @click="appStore._addContacts()"
               >
                 <v-icon size="x-large">
                   mdi-plus
@@ -939,7 +939,7 @@ function mostrarBtnGuardar() {
               </thead>
               <tbody>
                 <tr
-                  v-for="(item, i) of rootStore.state.itemsListContact"
+                  v-for="(item, i) of appStore.itemsListContact"
                   :key="item.id"
                 >
                   <td>{{ item.name }}</td>
@@ -986,7 +986,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalContacts = false"
+            @click="appStore.modalContacts = false"
           >
             Cerrar
           </v-btn>
@@ -995,7 +995,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalCuentas"
+      v-model="appStore.modalCuentas"
       max-width="750"
     >
       <v-card>
@@ -1006,8 +1006,8 @@ function mostrarBtnGuardar() {
           <v-row>
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdTypeAccount"
-                :items="rootStore.state.itemsDataAccountList"
+                v-model="appStore.accountIdTypeAccount"
+                :items="appStore.itemsDataAccountList"
                 item-title="name"
                 item-value="id"
                 label="Cuenta"
@@ -1016,8 +1016,8 @@ function mostrarBtnGuardar() {
 
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdBanks"
-                :items="rootStore.state.itemsDataBanksList"
+                v-model="appStore.accountIdBanks"
+                :items="appStore.itemsDataBanksList"
                 item-title="acronym"
                 item-value="id"
                 label="Banco"
@@ -1026,8 +1026,8 @@ function mostrarBtnGuardar() {
 
             <v-col cols="2">
               <v-autocomplete
-                v-model="rootStore.state.accountIdCoins"
-                :items="rootStore.state.itemsCoinsList"
+                v-model="appStore.accountIdCoins"
+                :items="appStore.itemsCoinsList"
                 item-title="acronym"
                 item-value="id"
                 label="Moneda"
@@ -1038,13 +1038,13 @@ function mostrarBtnGuardar() {
               <v-text-field
                 type="number"
                 label="N°. Cuenta"
-                v-model="rootStore.state.accountNumer"
+                v-model="appStore.accountNumer"
               />
             </v-col>
 
             <v-col cols="1">
               <v-btn
-                v-if="rootStore.state.accountNumer != ''"
+                v-if="appStore.accountNumer != ''"
                 class="mx-2"
                 icon
                 color="teal-darken-1"
@@ -1080,7 +1080,7 @@ function mostrarBtnGuardar() {
               </thead>
               <tbody>
                 <tr
-                  v-for="item of rootStore.state.itemsDataAccountsNumberList"
+                  v-for="item of appStore.itemsDataAccountsNumberList"
                   :key="item.id"
                 >
                   <td>{{ item.nameaccount }}</td>
@@ -1108,7 +1108,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalCuentas = false"
+            @click="appStore.modalCuentas = false"
           >
             Cerrar
           </v-btn>
@@ -1117,7 +1117,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalContactsEdit"
+      v-model="appStore.modalContactsEdit"
       max-width="750"
     >
       <v-card>
@@ -1129,13 +1129,13 @@ function mostrarBtnGuardar() {
             <v-col cols="7">
               <v-text-field
                 label="Nombre Completo"
-                v-model="rootStore.state.contact_name"
+                v-model="appStore.contact_name"
               />
             </v-col>
 
             <v-col cols="5">
               <v-text-field
-                v-model="rootStore.state.contact_number"
+                v-model="appStore.contact_number"
                 label="N°. Teléfono"
               />
             </v-col>
@@ -1173,7 +1173,7 @@ function mostrarBtnGuardar() {
               </thead>
               <tbody>
                 <tr
-                  v-for="item of rootStore.state.itemsListContactEdit"
+                  v-for="item of appStore.itemsListContactEdit"
                   :key="item.id"
                 >
                   <td>{{ item.name }}</td>
@@ -1213,7 +1213,7 @@ function mostrarBtnGuardar() {
           <v-btn
             color="green-darken-1"
             variant="text"
-            @click="rootStore.state.modalContactsEdit = false"
+            @click="appStore.modalContactsEdit = false"
           >
             Cerrar
           </v-btn>
@@ -1222,7 +1222,7 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <v-dialog
-      v-model="rootStore.state.modalServices"
+      v-model="appStore.modalServices"
       max-width="400"
     >
       <v-card>
@@ -1232,7 +1232,7 @@ function mostrarBtnGuardar() {
             variant="text"
             icon
             color="red"
-            @click="rootStore.state.modalServices = !rootStore.state.modalServices"
+            @click="appStore.modalServices = !appStore.modalServices"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>

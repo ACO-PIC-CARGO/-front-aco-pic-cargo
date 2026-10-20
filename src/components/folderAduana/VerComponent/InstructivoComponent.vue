@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
@@ -16,7 +16,7 @@ const ConfigCotizacion = defineAsyncComponent(() =>
   import("@/components/folderPricing/ConfigExpediente.vue"));
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
@@ -85,9 +85,9 @@ async function guardarConfig() {
 function verificarMaster() {
   mostrarAdvertencia.value = false;
   textValidacionCotizacionMaster.value = [];
-  const master = rootStore.state.itemsMasterList.filter(
+  const master = appStore.itemsMasterList.filter(
     (v: ExpedienteMaster) => v.id == id_exp.value
-  )[0];
+  )[0]!;
   if (
     !(
       aduanaStore.datosPrincipales.idsentido ==
@@ -155,7 +155,7 @@ async function imprimir() {
 }
 async function guardarNota() {
   if ((await notaForm.value!.validate()).valid) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const data = {
       name: descripcionNota.value,
       id_quote: route.params.id,
@@ -164,7 +164,7 @@ async function guardarNota() {
     notaForm.value!.reset();
     await pricingStore.getInstructivoId({ id: route.params.id as string });
     dialog.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 async function abrirSeleccionDeQuoteAAprobar() {
@@ -173,7 +173,7 @@ async function abrirSeleccionDeQuoteAAprobar() {
   if (dialogConfig.value) {
     return false;
   }
-  await rootStore.dispatch("cargarMaster", aduanaStore.datosPrincipales);
+  await appStore.cargarMaster(aduanaStore.datosPrincipales as Parameters<typeof appStore.cargarMaster>[0]);
 
   seleccionQuoteAprobar.value = true;
 }
@@ -226,12 +226,12 @@ async function abrirModalAprobar() {
           iconColor: "red",
           width: 1000,
           html:
-            rootStore.state.itemsMasterList.length > 0
+            appStore.itemsMasterList.length > 0
               ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
               : "<h1>¿Desea crear un nuevo expediente?</h1>",
           showConfirmButton: true,
           confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-          showDenyButton: rootStore.state.itemsMasterList.length > 0,
+          showDenyButton: appStore.itemsMasterList.length > 0,
           denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
           showCloseButton: true,
           showCancelButton: false,
@@ -328,9 +328,9 @@ async function abrirModalAprobar() {
                   id_house: id_house.value,
                   id_opcion: id_opcion.value,
                 });
-                rootStore.state.spiner = true;
+                appStore.spiner = true;
 
-                rootStore.state.spiner = false;
+                appStore.spiner = false;
               }
             });
           }
@@ -348,12 +348,12 @@ async function abrirModalAprobar() {
         iconColor: "red",
         width: 1000,
         html:
-          rootStore.state.itemsMasterList.length > 0
+          appStore.itemsMasterList.length > 0
             ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
             : "<h1>¿Desea crear un nuevo expediente?</h1>",
         showConfirmButton: true,
         confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-        showDenyButton: rootStore.state.itemsMasterList.length > 0,
+        showDenyButton: appStore.itemsMasterList.length > 0,
         denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
         showCloseButton: true,
         showCancelButton: false,
@@ -448,9 +448,9 @@ async function abrirModalAprobar() {
                 listCostosInstructivo: listCostosInstructivo,
                 listVentasInstructivo: listVentasInstructivo,
               });
-              rootStore.state.spiner = true;
+              appStore.spiner = true;
 
-              rootStore.state.spiner = false;
+              appStore.spiner = false;
             }
           });
         }
@@ -593,9 +593,9 @@ async function aprobar() {
       id_opcion: id_opcion.value,
       id_opcion_house: id_opcion_house.value,
     });
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     aprobarflag.value = false;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
 }
 
@@ -611,7 +611,7 @@ function getProveedor(element: OpcionCosto) {
       )[0]!.id_proveedor
     : "";
   const nameProveedor = id_proveedor
-    ? rootStore.state.provedores.filter((v: ProveedorPricing) => v.id == id_proveedor)[0]
+    ? appStore.provedores.filter((v: ProveedorPricing) => v.id == id_proveedor)[0]!
         .namelong
     : "";
   return nameProveedor;
@@ -662,7 +662,7 @@ function getProveedor(element: OpcionCosto) {
           <v-form ref="masterForm">
             <v-row>
               <v-autocomplete
-                :items="rootStore.state.itemsMasterList"
+                :items="appStore.itemsMasterList"
                 v-model="id_exp"
                 label="Expediente"
                 item-title="code_master"

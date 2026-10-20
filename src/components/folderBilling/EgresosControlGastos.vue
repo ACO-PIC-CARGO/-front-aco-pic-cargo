@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useAppStore } from "@/stores/app";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
@@ -60,7 +60,11 @@ const emit = defineEmits<{
   statusBtn: [status: number];
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const staleRootState = appStore as typeof appStore & {
+  controlgastos: { master_houses: ControlGastoHouse[] };
+  master_houses: ControlGastoHouse[];
+};
 const route = useRoute();
 const bankStore = useBankStore();
 const controlGastosStore = useControlGastosStore();
@@ -470,7 +474,7 @@ function obtenerMoneda() {
     id_coins.value !== "" &&
     id_coins.value !== null
   ) {
-    const monedaSeleccionada = rootStore.state.itemsCoinsList.find(
+    const monedaSeleccionada = appStore.itemsCoinsList.find(
       (v: MonedaItem) => v.id == id_coins.value,
     );
 
@@ -625,14 +629,14 @@ function validarSolicitudPago(egreso: EgresoProveedor) {
   }
 }
 async function abrirModalPorcentajeProveedor(item: EgresoProveedor) {
-  rootStore.state.cuota = [];
-  rootStore.state.fechacuota = [];
+  appStore.cuota = [];
+  appStore.fechacuota = [];
   dataProveedor = item;
-  rootStore.state.nro_cuotas = item.nro_cuotas ? item.nro_cuotas : 3;
+  appStore.nro_cuotas = item.nro_cuotas ? item.nro_cuotas : 3;
   if (!!item.nro_cuotas) {
     await item.cuotas.forEach((element) => {
-      rootStore.state.cuota.push(element.porcentaje);
-      rootStore.state.fechacuota.push(element.fecha);
+      appStore.cuota.push(element.porcentaje);
+      appStore.fechacuota.push(element.fecha);
     });
   }
   // } else {
@@ -653,8 +657,8 @@ function validatePorcentaje() {
   let val = true;
   let sum = 0;
   let html = "<ul>";
-  for (let i = 0; i < rootStore.state.nro_cuotas; i++) {
-    sum += parseFloat(rootStore.state.cuota[i]);
+  for (let i = 0; i < appStore.nro_cuotas; i++) {
+    sum += parseFloat(appStore.cuota[i] as string);
   }
   if (sum != 100) {
     val = false;
@@ -681,12 +685,12 @@ async function _setData() {
   );
 
   if (!!master) {
-    const moneda = rootStore.state.itemsCoinsList.find(
+    const moneda = appStore.itemsCoinsList.find(
       (v: MonedaItem) => v.id == id_coins.value,
     );
 
     const exiteOtraMoneda = master.detalle.some(
-      (v) => v.acronym != moneda.acronym,
+      (v) => v.acronym != moneda!.acronym,
     );
     if (exiteOtraMoneda) {
       Swal.fire({
@@ -757,7 +761,7 @@ function solicitar(egreso: EgresoProveedor) {
   id_master = egreso.id_master;
   id_tipotransaccion =
     (
-      rootStore.state.itemsProveedorList.find(
+      appStore.itemsProveedorList.find(
         (v: ProveedorItem) => v.id == egreso.id_proveedor,
       ) || {}
     ).id_tipotransaccion || "";
@@ -875,10 +879,10 @@ async function InsertarActualizarPorcentajeProveedor() {
   ) {
     loadingPorcentaje.value = true;
     const cuotas = [];
-    for (let i = 0; i < rootStore.state.nro_cuotas; i++) {
+    for (let i = 0; i < appStore.nro_cuotas; i++) {
       cuotas.push({
-        porcentaje: rootStore.state.cuota[i],
-        fecha: rootStore.state.fechacuota[i],
+        porcentaje: appStore.cuota[i],
+        fecha: appStore.fechacuota[i],
       });
     }
 
@@ -886,7 +890,7 @@ async function InsertarActualizarPorcentajeProveedor() {
       id_master: dataProveedor!.id_master,
       id_proveedor: dataProveedor!.id_proveedor,
       id_correlativo: dataProveedor!.id_correlativo,
-      nro_cuotas: rootStore.state.nro_cuotas,
+      nro_cuotas: appStore.nro_cuotas,
       cuotas: cuotas,
     };
     await controlGastosStore.guardarCuotasCgeTipoProveedor(data);
@@ -913,7 +917,7 @@ async function _getAccountsNumber() {
 
   await axios(config)
     .then(function (response) {
-      rootStore.state.itemsDataAccountsNumberList =
+      appStore.itemsDataAccountsNumberList =
         response.data.data || [];
     })
     .catch(function (error) {
@@ -1119,7 +1123,7 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }) 
     denyButtonText: "Cancelar",
   }).then((result) => {
     if (result.isConfirmed) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       const config = {
         method: "put",
         url: import.meta.env.VITE_URL_MAIN + "delEgregso/" + item.id,
@@ -1136,7 +1140,7 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }) 
               title: "informacíon",
               text: res.mensaje,
             });
-            rootStore.state.spiner = false;
+            appStore.spiner = false;
             await controlGastosStore.getListControlGastosMaster(route.params.id as string);
           } else {
             Swal.fire({
@@ -1144,7 +1148,7 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }) 
               title: "informacíon",
               text: res.mensaje,
             });
-            rootStore.state.spiner = false;
+            appStore.spiner = false;
           }
         })
         .catch(function (error) {
@@ -1183,9 +1187,9 @@ async function _getSPaymentPro(egreso: EgresoProveedor | number | undefined) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function listControlGasto() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function activarSeccion3() {
   // console.log(this.egresos)
@@ -1272,7 +1276,7 @@ async function imprimirControl() {
         total_pr: parseFloat(String(element.total_total_pr)).toFixed(2),
       };
     }),
-    itemTotalHouse: rootStore.state.controlgastos.master_houses.map(
+    itemTotalHouse: staleRootState.controlgastos.master_houses.map(
       (element: ControlGastoHouse) => {
         return {
           consigner: element.consigner,
@@ -1355,7 +1359,7 @@ async function eliminar(id: number) {
     id: id,
   };
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   const config = {
     method: "put",
@@ -1379,9 +1383,9 @@ async function eliminar(id: number) {
       }).then(async (result) => {
         if (result.isConfirmed) {
           dialogPayment.value = false;
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-          rootStore.state.spiner = false;
+          appStore.spiner = false;
         }
       });
     })
@@ -1389,7 +1393,7 @@ async function eliminar(id: number) {
       console.error(error);
     });
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function _generateSolicitud() {
   loading.value = true;
@@ -1423,7 +1427,7 @@ async function _generateSolicitud() {
   });
 
   const datas = {
-    id_house: rootStore.state.master_houses.filter((v: ControlGastoHouse) => v.id_house)[0]
+    id_house: staleRootState.master_houses.filter((v: ControlGastoHouse) => v.id_house)[0]!
       .id_house,
     id_proveedor: proveedorId,
     conceptos: concepto,
@@ -1463,7 +1467,7 @@ async function _generateSolicitud() {
           controlGastosStore.listControlGastos[0]!
             .master_nromaster,
         cuentas: selectedAccount.value,
-        operador: rootStore.state.dataHouse_operador,
+        operador: appStore.dataHouse_operador,
         conceptos: conceptos.value,
         selected: selected.value,
         totalSelected: total,
@@ -1916,8 +1920,8 @@ onMounted(async () => {
     bankStore.getBanksListCargar(),
     coinsStore.getCoinsListCargar(),
     masterusuariosStore.cargarMasterDetalleTipoTransaccion(),
-    rootStore.dispatch("_getProveedor"),
-    rootStore.dispatch("_getMasterList"),
+    appStore._getProveedor(),
+    appStore._getMasterList(),
   ]);
 
   headers.value[2]!.title =
@@ -2425,7 +2429,7 @@ onMounted(async () => {
                 </v-col>
                 <v-col cols="4">
                   <v-autocomplete
-                    :items="rootStore.state.itemsProveedorList"
+                    :items="appStore.itemsProveedorList"
                     item-title="namelong"
                     item-value="id"
                     v-model="egresos.id_proveedor"
@@ -2493,7 +2497,7 @@ onMounted(async () => {
                   md="3"
                 >
                   <v-autocomplete
-                    :items="rootStore.state.itemsCoinsList"
+                    :items="appStore.itemsCoinsList"
                     v-model="id_coins"
                     item-title="acronym"
                     item-value="id"
@@ -3010,7 +3014,7 @@ onMounted(async () => {
                     v-if="!checkPago"
                     v-model="selectedAccount"
                     :headers="headersAccount"
-                    :items="rootStore.state.itemsDataAccountsNumberList"
+                    :items="appStore.itemsDataAccountsNumberList"
                     hide-default-footer
                     item-value="id"
                     return-object
@@ -3183,7 +3187,7 @@ onMounted(async () => {
           <v-data-table
             v-model="selectedAccount"
             :headers="headersAccount"
-            :items="rootStore.state.itemsDataAccountsNumberList"
+            :items="appStore.itemsDataAccountsNumberList"
             hide-default-footer
             item-value="id"
             return-object
@@ -3336,7 +3340,7 @@ onMounted(async () => {
                   density="compact"
                   class="col-3"
                   label="Nro Cuotas"
-                  v-model="rootStore.state.nro_cuotas"
+                  v-model="appStore.nro_cuotas"
                   min="1"
                   type="number"
                   :rules="[(v) => !!v || 'Dato Requerido']"
@@ -3344,7 +3348,7 @@ onMounted(async () => {
               </v-col>
               <v-col
                 cols="6"
-                v-for="n in Number(rootStore.state.nro_cuotas)"
+                v-for="n in Number(appStore.nro_cuotas)"
                 :key="n"
               >
                 <v-row>
@@ -3352,7 +3356,7 @@ onMounted(async () => {
                     <v-text-field
                       density="compact"
                       :label="`Porcentaje Cuota-${n}`"
-                      v-model="rootStore.state.cuota[n - 1]"
+                      v-model="appStore.cuota[n - 1]"
                       type="number"
                       suffix="%"
                       min="0"
@@ -3371,7 +3375,7 @@ onMounted(async () => {
                       density="compact"
                       :rules="[(v) => !!v || 'Dato Requerido']"
                       :label="`Fecha de pago ${n}`"
-                      v-model="rootStore.state.fechacuota[n - 1]"
+                      v-model="appStore.fechacuota[n - 1]"
                       type="date"
                     />
                   </v-col>
@@ -3535,7 +3539,7 @@ onMounted(async () => {
         <v-card-text>
           <v-form ref="frmCopiar">
             <v-autocomplete
-              :items="rootStore.state.itemsCoinsList"
+              :items="appStore.itemsCoinsList"
               v-model="egreso.id_coins"
               item-title="acronym"
               item-value="id"
@@ -3552,7 +3556,7 @@ onMounted(async () => {
               step="0.01"
               :rules="[(v) => !!v || 'Dato Requerido']"
               v-if="
-                rootStore.state.itemsCoinsList.some(
+                appStore.itemsCoinsList.some(
                   (v: MonedaItem) => v.id == egreso.id_coins && v.acronym !== 'USD',
                 )
               "
@@ -3591,7 +3595,7 @@ onMounted(async () => {
               v-model="id_masterdestino"
               :rules="[(v) => !!v || 'Dato Requerido']"
               :items="
-                rootStore.state.itemsMasterList.filter(
+                appStore.itemsMasterList.filter(
                   (v: ExpedienteItem) => v.id != egreso.id_master,
                 )
               "

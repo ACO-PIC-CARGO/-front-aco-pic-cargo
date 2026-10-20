@@ -1,50 +1,50 @@
 <script setup lang="ts">
 import { useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const masterusuariosStore = useMasterusuariosStore();
 const frmFiltro = useTemplateRef("frmFiltro");
 
 async function filtrar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   if (
-    rootStore.state.controlgastosfiltro.id_tipo_embarqu &&
-    Object.keys(rootStore.state.controlgastosfiltro.id_tipo_embarque)
+    appStore.controlgastosfiltro.id_tipo_embarqu &&
+    Object.keys(appStore.controlgastosfiltro.id_tipo_embarque)
       .length > 0
   ) {
-    rootStore.state.controlgastosfiltro.id_transport =
-      rootStore.state.controlgastosfiltro.id_tipo_embarque.id_transport;
+    appStore.controlgastosfiltro.id_transport =
+      appStore.controlgastosfiltro.id_tipo_embarque.id_transport;
   } else {
-    rootStore.state.controlgastosfiltro.id_transport = null;
+    appStore.controlgastosfiltro.id_transport = null;
   }
-  await rootStore.dispatch("_getControlList");
+  await appStore._getControlList();
 
-  rootStore.state.cg_filtrarData = !rootStore.state.cg_filtrarData;
+  appStore.cg_filtrarData = !appStore.cg_filtrarData;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function activarPort(id_transport: number | string) {
-  await rootStore.dispatch("_getPortBegin", { id_transport: id_transport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: id_transport });
+  await appStore._getPortBegin({ id_transport: id_transport });
+  await appStore._getPortEnd({ id_transport: id_transport });
 }
 async function limpiar() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   frmFiltro.value!.reset();
 
-  rootStore.state.controlgastosfiltro.status_operativo = "";
-  rootStore.state.controlgastosfiltro.status_administrativo = "";
-  rootStore.state.controlgastosfiltro.pagina = 1;
-  rootStore.state.controlgastosfiltro.limite = 10;
+  appStore.controlgastosfiltro.status_operativo = "";
+  appStore.controlgastosfiltro.status_administrativo = "";
+  appStore.controlgastosfiltro.pagina = 1;
+  appStore.controlgastosfiltro.limite = 10;
 
-  await rootStore.dispatch("_getControlList");
+  await appStore._getControlList();
 
-  rootStore.state.cg_filtrarData = !rootStore.state.cg_filtrarData;
+  appStore.cg_filtrarData = !appStore.cg_filtrarData;
 
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 </script>
 
@@ -58,45 +58,45 @@ async function limpiar() {
     <v-card-text>
       <v-form ref="frmFiltro">
         <v-autocomplete
-          :items="rootStore.state.itemsModality"
+          :items="appStore.itemsModality"
           item-title="name"
           item-value="id"
           label="Sentido"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_sentido"
+          v-model="appStore.controlgastosfiltro.id_sentido"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsShipment"
+          :items="appStore.itemsShipment"
           item-title="embarque"
           item-value="id"
           label="Tipo Embarque"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_tipo_embarque"
+          v-model="appStore.controlgastosfiltro.id_tipo_embarque"
           return-object
           @update:model-value="
             activarPort(
-              rootStore.state.controlgastosfiltro.id_tipo_embarque.id_transport,
+              appStore.controlgastosfiltro.id_tipo_embarque.id_transport,
             )
           "
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsPortBegin"
+          :items="appStore.itemsPortBegin"
           item-title="name"
           item-value="id_port"
           label="Origen"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_origen"
+          v-model="appStore.controlgastosfiltro.id_origen"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsPortEnd"
+          :items="appStore.itemsPortEnd"
           item-title="name"
           item-value="id_port"
           label="Destino"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_destino"
+          v-model="appStore.controlgastosfiltro.id_destino"
         />
 
         <v-autocomplete
@@ -105,44 +105,44 @@ async function limpiar() {
           item-value="id"
           label="Canal"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_canal"
+          v-model="appStore.controlgastosfiltro.id_canal"
         />
 
         <v-autocomplete
-          :items="rootStore.state.itemsProveedorList"
+          :items="appStore.itemsProveedorList"
           item-title="namelong"
           item-value="id"
           label="Agente"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.id_agente"
+          v-model="appStore.controlgastosfiltro.id_agente"
         />
 
         <v-text-field
           
           label="Nro MBL"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.nro_mbl"
+          v-model="appStore.controlgastosfiltro.nro_mbl"
         />
 
         <v-text-field
           type="date"
           label="Fecha ETD"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.fecha_etd"
+          v-model="appStore.controlgastosfiltro.fecha_etd"
         />
 
         <v-text-field
           type="date"
           label="Fecha ETA"
           density="compact"
-          v-model="rootStore.state.controlgastosfiltro.fecha_eta"
+          v-model="appStore.controlgastosfiltro.fecha_eta"
         />
 
         <v-row>
           <v-col class="col">
             <p>Estado Operativo</p>
             <v-radio-group
-              v-model="rootStore.state.controlgastosfiltro.status_operativo"
+              v-model="appStore.controlgastosfiltro.status_operativo"
             >
               <v-radio
                 color="green"
@@ -167,7 +167,7 @@ async function limpiar() {
               Estado Administrativo
             </p>
             <v-radio-group
-              v-model="rootStore.state.controlgastosfiltro.status_administrativo"
+              v-model="appStore.controlgastosfiltro.status_administrativo"
             >
               <v-radio
                 color="green"
@@ -203,7 +203,7 @@ async function limpiar() {
         size="small"
         class="mx-1"
         color="error"
-        @click="rootStore.state.cg_filtrarData = !rootStore.state.cg_filtrarData"
+        @click="appStore.cg_filtrarData = !appStore.cg_filtrarData"
       >
         Cancelar
       </v-btn>

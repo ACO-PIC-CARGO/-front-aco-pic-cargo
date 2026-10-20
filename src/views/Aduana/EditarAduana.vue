@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import DatosPrincipales from "../../components/folderAduana/DatosPrincipales.vue";
 import DatosCargaComponent from "../../components/folderAduana/DatosCargaComponent.vue";
@@ -16,7 +16,7 @@ import { useAduanaStore } from "@/stores/aduana";
 import type { Costo, OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -37,14 +37,14 @@ watch(step, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
     await aduanaStore.getAdunaVer({ id: route.params.id as string }),
     await aduanaStore.getShipmentAduana(),
   ]);
 
-  rootStore.state.mainTitle = `EDITAR  COTIZACIÓN - ${aduanaStore.nro_quote}`;
-  rootStore.state.spiner = false;
+  appStore.mainTitle = `EDITAR  COTIZACIÓN - ${aduanaStore.nro_quote}`;
+  appStore.spiner = false;
   mostrar.value = true;
   const idTipoCarga = aduanaStore.listShipment.filter(
     (v) => v.id == (aduanaStore.datosPrincipales.idtipocarga as number | string)
@@ -79,7 +79,7 @@ onMounted(async () => {
   mostrarStepS.value = true;
   aduanaStore.llenadoCostos = false;
   await Promise.all([
-    rootStore.dispatch("_getContainers"),
+    appStore._getContainers(),
     pricingStore.getBegEndList(),
     aduanaStore.obtenerCostosAduana(),
     aduanaStore.getServicesAduana(),
@@ -169,7 +169,7 @@ function recargarServicios() {
   });
 }
 async function activarLlenadoCostos() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await aduanaStore.getMultiplicadorAduana();
   await pricingStore.getImpuestos();
 
@@ -250,7 +250,7 @@ async function activarLlenadoCostos() {
 
   step.value = 2;
   editableStep2.value = true;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function anadirNuevaOpcion(nro_propuesta: number) {
   // this.$store.state.spiner = true;
@@ -330,7 +330,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   // this.$store.state.spiner = false;
 }
 async function recargarCostos(event = true) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await aduanaStore.getTipoCostosAduana();
   await aduanaStore.getMultiplicadorAduana();
 
@@ -444,7 +444,7 @@ async function recargarCostos(event = true) {
 
   aduanaStore.llenadoCostos = false;
   indexCostos.value++;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   const isFCL = aduanaStore.listShipment.some(
     (v) =>
       v.id ==

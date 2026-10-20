@@ -2,16 +2,13 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
-import store from "@/store";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("@/store", () => ({ default: { state: {} } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
-const rootState = store.state as Record<string, unknown>;
 const sentUrls = () => httpMock.mock.calls.map(([config]) => config.url.slice(URL_MAIN.length));
 // The calculator store is untyped for this spec: it drives every action through one shape.
 type Calc = Record<string, unknown> & Record<string, (arg?: unknown) => Promise<unknown>>;
@@ -22,7 +19,6 @@ describe("calculadoras store", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     sessionStorage.clear();
-    for (const key of Object.keys(rootState)) delete rootState[key];
     sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 7, users: "ana" }]));
     sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 3, id_pais: 139 }]));
     sessionStorage.setItem("iso_pais", "9589");
@@ -52,7 +48,7 @@ describe("calculadoras store", () => {
   test("CargarPuertoPorTipoPorPais raises the root overlay while it reads the ports, then returns them", async () => {
     let overlayDuringRequest: unknown;
     httpMock.mockImplementation(async () => {
-      overlayDuringRequest = rootState.overlay;
+      overlayDuringRequest = calc().overlay;
       return { data: accepted([{ puerto_descripcion: "CALLAO" }]) };
     });
 
@@ -60,7 +56,7 @@ describe("calculadoras store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "CargarPuertoXPaisXTipo/139/M", headers: JSON_HEADERS });
     expect(overlayDuringRequest).toBe(true);
-    expect(rootState.overlay).toBe(false);
+    expect(calc().overlay).toBe(false);
     expect(ports).toEqual([{ puerto_descripcion: "CALLAO" }]);
   });
 
@@ -71,7 +67,7 @@ describe("calculadoras store", () => {
 
     expect(ports).toEqual([]);
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", title: "Sin puertos" });
-    expect(rootState.overlay).toBe(true);
+    expect(calc().overlay).toBe(true);
   });
 
   describe.each([
@@ -86,7 +82,7 @@ describe("calculadoras store", () => {
 
       expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + path, headers: JSON_HEADERS });
       expect(c[key]).toEqual([{ id: 1 }]);
-      expect(rootState.overlay).toBe(false);
+      expect(calc().overlay).toBe(false);
     });
 
     test("shows the message, keeps nothing and still lowers the overlay when the backend rejects", async () => {
@@ -97,7 +93,7 @@ describe("calculadoras store", () => {
 
       expect(c[key]).toBeUndefined();
       expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", title: "Sin datos" });
-      expect(rootState.overlay).toBe(false);
+      expect(calc().overlay).toBe(false);
     });
   });
 

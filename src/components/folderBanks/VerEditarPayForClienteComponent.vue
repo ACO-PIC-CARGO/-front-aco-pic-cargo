@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, mergeProps, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
@@ -16,14 +16,14 @@ import type {
 
 withDefaults(defineProps<{ verflag?: boolean }>(), { verflag: false });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
 const securitysStore = useSecuritysStore();
-const clientes = computed(() => rootStore.state.clientes);
+const clientes = computed(() => appStore.clientes);
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
 const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
 const ArrastraYSolarComponent = defineAsyncComponent(() =>
@@ -455,7 +455,7 @@ function fn_totalAbonado(item: DetalleIngresoRegistrado) {
 
 watch(id_cuenta, (newVal) => {
   const id_coins = newVal.id_coins;
-  const coins = rootStore.state.itemsCoinsList.find(
+  const coins = appStore.itemsCoinsList.find(
     (coin: { id: number }) => coin.id === id_coins,
   );
   symbol.value = coins ? coins.symbol : "USD";
@@ -474,14 +474,14 @@ watch(selected, () => {
 });
 
 onMounted(async () => {
-  rootStore.state.mainTitle = "BANCOS - VER INGRESO";
-  rootStore.state.spiner = true;
+  appStore.mainTitle = "BANCOS - VER INGRESO";
+  appStore.spiner = true;
   // Desestructuramos el quinto elemento del array que devuelve el Promise.all
   const [, , , , data] = (await Promise.all([
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarClientes(),
+    appStore._getCoinsList(),
     bancosStore.getListBanksDetailsCargar(),
-    rootStore.dispatch("_getBanksList"),
+    appStore._getBanksList(),
     bankStore.verRegistroIngresos({ id: route.params.id }), // <-- Entra al paralelo
   ])) as unknown as [unknown, unknown, unknown, unknown, RegistroIngresoCliente];
 
@@ -492,7 +492,7 @@ onMounted(async () => {
   //   this._getBanksList(),
   // ]);
   // let data = await this.verRegistroIngresos({ id: this.$route.params.id });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   cliente.value = data.cliente;
   urlfile.value = data.filename;
   id_cuenta.value =
@@ -753,7 +753,7 @@ onMounted(async () => {
                   class="py-1"
                 >
                   <v-select
-                    :items="rootStore.state.itemsDataBanksList"
+                    :items="appStore.itemsDataBanksList"
                     v-model="id_banco_origen"
                     label="Banco Origen"
                     item-title="acronym"

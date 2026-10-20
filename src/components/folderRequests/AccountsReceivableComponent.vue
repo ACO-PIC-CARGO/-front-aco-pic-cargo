@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -20,12 +20,12 @@ import type {
   TotalOperativo,
 } from "@/types/requests";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
 const subingresoStore = useSubingresoStore();
 const ingresosStore = useIngresosStore();
-const clientes = computed(() => rootStore.state.clientes);
+const clientes = computed(() => appStore.clientes);
 const frmComentario = useTemplateRef("frmComentario");
 
 const moneda = ref("");
@@ -265,7 +265,7 @@ async function exportarPDF() {
   });
 }
 async function _getDebsToPay() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   dataList.value = false;
   const config = {
     method: "get",
@@ -296,7 +296,7 @@ async function _getDebsToPay() {
     .catch(function (error) {
       console.error(error);
     });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _getDebsToPayFilter() {
@@ -327,7 +327,7 @@ async function _getDebsToPayFilter() {
     });
 }
 async function _getInvoiceAdminCxCAdmin() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const config = {
     method: "get",
     url:
@@ -361,7 +361,7 @@ async function _getInvoiceAdminCxCAdmin() {
     .catch(function (error) {
       console.error(error);
     });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function calcularTotalOperativo({ data }: { data: ClienteCxc[] }) {
   totalOperativo.value = [];
@@ -482,7 +482,7 @@ function calcularTotalAdministrativo({ data }: { data: ClienteCxcAdmin[] }) {
       total: parseFloat(String(totalSoles)).toFixed(2),
     }
   );
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function descargarArchivos() {
   if (
@@ -745,8 +745,8 @@ onMounted(async () => {
   await _getDebsToPay();
   await _getInvoiceAdminCxCAdmin();
   await enterprisesStore.obtenerImpuestoXEmpresa();
-  rootStore.state.drawer = false;
-  await rootStore.dispatch("cargarClientes");
+  appStore.drawer = false;
+  await appStore.cargarClientes();
   await ingresosStore.cargarIngreso();
   await subingresoStore.GetListSubIngreso();
 });

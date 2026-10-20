@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useStore } from "vuex";
+import { useMastersStore } from "@/stores/masters";
 
-const rootStore = useStore();
+const mastersStore = useMastersStore();
 </script>
 
 <template>
@@ -10,8 +10,8 @@ const rootStore = useStore();
     <v-container fluid>
       <v-row class="Services__Main">
         <v-col
-          v-for="items in rootStore.state.itemsServicesBegin"
-          :key="items"
+          v-for="items in mastersStore.itemsServicesBegin"
+          :key="items as unknown as string"
           cols="12"
           md="6"
         >
@@ -21,7 +21,7 @@ const rootStore = useStore();
             <v-list-item
               class="listMain"
               v-for="child in items.groupservice"
-              :key="child"
+              :key="child as unknown as string"
             >
               <template #prepend>
                 <v-avatar size="28">

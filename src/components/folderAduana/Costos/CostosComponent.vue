@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import NuevoProveedorComponentVue from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useAduanaStore } from "@/stores/aduana";
@@ -17,7 +17,7 @@ const props = defineProps<{
   recargarSegmentos?: boolean;
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const entitiesStore = useEntitiesStore();
 const { calcularFac } = useCotizacionCalculos();
@@ -202,7 +202,7 @@ async function recargarProveedores(e: string) {
         IdProveedor.push(costo.id_proveedor);
     });
   });
-  await rootStore.dispatch("cargarProveedores", {
+  await (appStore.cargarProveedores as (filters: { id: string; search: string }) => Promise<void>)({
     id: IdProveedor.join(","),
     search: e,
   });
@@ -210,7 +210,7 @@ async function recargarProveedores(e: string) {
 async function nuevoProveedor() {
   const res = await entitiesStore.guardarProveedor();
   if (!!res.estadoflag) {
-    await rootStore.dispatch("cargarProveedores");
+    await appStore.cargarProveedores();
     costo.value.id_proveedor = res.data![0]!.id_entitie;
     dialogNuevoProveedor.value = false;
   }
@@ -1369,7 +1369,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -1710,7 +1710,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           menu-icon=""
@@ -2052,7 +2052,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -2394,7 +2394,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -2737,7 +2737,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -3078,7 +3078,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -3421,7 +3421,7 @@ onMounted(async () => {
                           density="compact"
                           item-title="namelong"
                           item-value="id"
-                          :items="rootStore.state.provedores"
+                          :items="appStore.provedores"
                           v-model="valor.id_proveedor"
                           @update:search="recargarProveedores"
                           hide-details
@@ -3717,7 +3717,7 @@ onMounted(async () => {
                   label="Proveedor"
                   item-title="namelong"
                   item-value="id"
-                  :items="rootStore.state.provedores"
+                  :items="appStore.provedores"
                   v-model="fromDataService.id_proveedor"
                   @update:search="recargarProveedores"
                   :rules="[(v) => !!v || 'Dato requerido']"

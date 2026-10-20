@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useStore } from "vuex";
+import { useMastersStore } from "@/stores/masters";
 
-const rootStore = useStore();
+const mastersStore = useMastersStore();
 </script>
 
 <template>
@@ -10,8 +10,8 @@ const rootStore = useStore();
 
     <v-expansion-panels class="mt-3">
       <v-expansion-panel
-        v-for="items in rootStore.state.itemsBitacoraList"
-        :key="items"
+        v-for="items in mastersStore.itemsBitacoraList"
+        :key="items as unknown as string"
       >
         <v-expansion-panel-title>
           {{ items.namegroupservice }}
@@ -20,7 +20,7 @@ const rootStore = useStore();
           <v-list lines="three">
             <v-list-item
               v-for="child in items.groupservice"
-              :key="child"
+              :key="child as unknown as string"
             >
               <template #prepend>
                 <v-checkbox />

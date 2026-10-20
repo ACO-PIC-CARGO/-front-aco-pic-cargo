@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const flujoOperacionPorMesComponent = defineAsyncComponent(() => import("@/components/balances/FlujoOperacionPorMes.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "FLUJO PROYECCIÓN MES";
+  appStore.mainTitle = "FLUJO PROYECCIÓN MES";
 });
 </script>
 

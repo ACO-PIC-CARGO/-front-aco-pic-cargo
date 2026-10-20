@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -13,9 +13,9 @@ const componentProps = defineProps<{ filtrarFlag?: string | boolean }>();
 const ModalPagoControlGastoComponent = defineAsyncComponent(() =>
   import("../../components/modal/ModalPagoControlGastoComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
-const actualizar = computed(() => rootStore.state.actualizar);
+const actualizar = computed(() => appStore.actualizar);
 
 const itemsSPayment = ref<SolicitudPago[]>([]);
 const search = ref("");
@@ -322,7 +322,7 @@ function abrirPagoProveedor() {
   // this.idProveedor = id;
   filesStore.payPath = null;
   dialogPagoControlGasto.value = true;
-  rootStore.state.limpiar = !rootStore.state.limpiar;
+  appStore.limpiar = !appStore.limpiar;
 }
 async function reversar(item: SolicitudPago) {
   Swal.fire({
@@ -365,9 +365,9 @@ async function reversarProceso(item: SolicitudPago) {
     });
 }
 async function getDebs() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await _getRequestPayment();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 
 watch(menu, (open) => {
@@ -384,17 +384,17 @@ watch(actualizar, () => {
   itemsSPayment.value = [];
   setTimeout(() => {
     _getRequestPayment();
-    rootStore.dispatch("_getBanksList");
-    rootStore.dispatch("_getCoinsList");
+    appStore._getBanksList();
+    appStore._getCoinsList();
   }, 100);
 });
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await _getRequestPayment();
-  await rootStore.dispatch("_getBanksList");
-  await rootStore.dispatch("_getCoinsList");
-  rootStore.state.spiner = false;
+  await appStore._getBanksList();
+  await appStore._getCoinsList();
+  appStore.spiner = false;
 });
 </script>
 
@@ -634,7 +634,7 @@ onMounted(async () => {
                 md="4"
               >
                 <v-autocomplete
-                  :items="rootStore.state.itemsDataBanksList"
+                  :items="appStore.itemsDataBanksList"
                   v-model="paybanco"
                   item-title="acronym"
                   item-value="id"
@@ -646,7 +646,7 @@ onMounted(async () => {
                 md="4"
               >
                 <v-autocomplete
-                  :items="rootStore.state.itemsCoinsList"
+                  :items="appStore.itemsCoinsList"
                   v-model="paymoneda"
                   item-title="acronym"
                   item-value="id"

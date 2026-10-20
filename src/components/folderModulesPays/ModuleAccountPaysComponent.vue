@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -12,7 +12,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import type { CuentaListado } from "@/types/modulesPays";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const securitysStore = useSecuritysStore();
 
 const itemsListInvoice = ref<CuentaListado[]>([]);
@@ -279,7 +279,7 @@ function limpiar() {
   _getInvoiceAdmin();
 }
 async function _getInvoiceAdmin() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const config = {
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getInvoiceAdmin",
@@ -313,7 +313,7 @@ async function _getInvoiceAdmin() {
     .catch(function (error) {
       console.error(error);
     });
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   filtroflag.value = false;
 }
 async function delPro(id: number) {
@@ -402,11 +402,11 @@ async function EliminarCuenta(id: number) {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
 
   await _getInvoiceAdmin();
-  rootStore.state.spiner = false;
-  Promise.all([rootStore.dispatch("cargarProveedores")]);
+  appStore.spiner = false;
+  Promise.all([appStore.cargarProveedores()]);
 });
 </script>
 
@@ -621,7 +621,7 @@ onMounted(async () => {
         <v-divider />
         <v-card-text>
           <v-autocomplete
-            :items="rootStore.state.provedores"
+            :items="appStore.provedores"
             v-model="id_proveedor"
             item-title="namelong"
             item-value="id"

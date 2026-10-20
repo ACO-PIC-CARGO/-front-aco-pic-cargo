@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
@@ -12,11 +12,11 @@ import type {
   OperacionSimilar,
 } from "@/types/banks";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
-const clientes = computed(() => rootStore.state.clientes);
+const clientes = computed(() => appStore.clientes);
 const validacionDatosPrincipales = useTemplateRef("validacionDatosPrincipales");
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
 const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
@@ -293,12 +293,12 @@ async function obtenerListado() {
   operacionesSimilares.value = [];
   mostrarDetalle.value = false;
   if (cliente.value) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
 
     try {
       await bankStore.getDeudaDeClientePorSucursal(cliente.value);
     } finally {
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
     }
   } else {
     bankStore.deudaACliente = [];
@@ -557,7 +557,7 @@ watch(id_cuenta, (newVal, oldVal) => {
       calcularTotal();
     }
     const id_coins = newVal.id_coins;
-    const coins = rootStore.state.itemsCoinsList.find(
+    const coins = appStore.itemsCoinsList.find(
       (coin: { id: number }) => coin.id === id_coins,
     );
     symbol.value = coins ? coins.symbol : "USD";
@@ -580,12 +580,12 @@ watch(selected, () => {
 
 onMounted(async () => {
   bankStore.deudaACliente = [];
-  rootStore.state.mainTitle = "BANCOS - NUEVO INGRESO";
+  appStore.mainTitle = "BANCOS - NUEVO INGRESO";
   await Promise.all([
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getCoinsList"),
+    appStore.cargarClientes(),
+    appStore._getCoinsList(),
     bancosStore.getListBanksDetailsCargar(),
-    rootStore.dispatch("_getBanksList"),
+    appStore._getBanksList(),
   ]);
 });
 </script>
@@ -979,7 +979,7 @@ onMounted(async () => {
                     class="py-1"
                   >
                     <v-autocomplete
-                      :items="rootStore.state.itemsDataBanksList"
+                      :items="appStore.itemsDataBanksList"
                       v-model="id_banco_origen"
                       label="Banco Origen"
                       item-title="acronym"

@@ -3,7 +3,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef } f
 import { onBeforeRouteLeave } from "vue-router";
 import { storeToRefs } from "pinia";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import "@/styles/plans-theme.css";
 import LegalSectionEditor from "./LegalSectionEditor.vue";
 import { useLegalPagesStore } from "@/stores/legalPages";
@@ -40,7 +40,7 @@ const focusById = (id: string) => {
   if (element) element.focus();
 };
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const legalPagesStore = useLegalPagesStore();
 const { pages, drafts, limits, dirtySlugs } = storeToRefs(legalPagesStore);
 const { formatUpdatedAt, draftErrors, hasDraftErrors, placeholders } = legalPagesStore;
@@ -84,7 +84,7 @@ onBeforeRouteLeave(async () => {
 });
 
 onMounted(() => {
-  rootStore.state.mainTitle = "PÁGINAS LEGALES";
+  appStore.mainTitle = "PÁGINAS LEGALES";
   window.addEventListener("beforeunload", warnBeforeUnload);
   load();
 });

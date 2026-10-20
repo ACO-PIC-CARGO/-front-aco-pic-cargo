@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const Users = defineAsyncComponent(() => import("@/components/Users/NuevoUserComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `NUEVO USUARIO`;
+  appStore.mainTitle = `NUEVO USUARIO`;
 });
 </script>
 

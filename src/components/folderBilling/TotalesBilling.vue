@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useEnterprisesStore } from "@/stores/enterprises";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const enterprisesStore = useEnterprisesStore();
 </script>
 
@@ -18,13 +18,13 @@ const enterprisesStore = useEnterprisesStore();
           cols="12"
           md="3"
         >
-          <p>Total de Ingresos: {{ rootStore.state.totalIngresos }} USD</p>
+          <p>Total de Ingresos: {{ appStore.totalIngresos }} USD</p>
         </v-col>
         <v-col
           cols="12"
           md="3"
         >
-          <p>Total de Costos: {{ rootStore.state.totalEgresos }} USD</p>
+          <p>Total de Costos: {{ appStore.totalEgresos }} USD</p>
         </v-col>
         <v-col
           cols="12"
@@ -32,7 +32,7 @@ const enterprisesStore = useEnterprisesStore();
         >
           <p>
             Total de {{ enterprisesStore.impuesto.nombre_impuesto }}:
-            {{ rootStore.state.dataTotalIGV ? rootStore.state.dataTotalIGV : 0 }} USD
+            {{ appStore.dataTotalIGV ? appStore.dataTotalIGV : 0 }} USD
           </p>
         </v-col>
         <v-col
@@ -42,11 +42,11 @@ const enterprisesStore = useEnterprisesStore();
           <b>Total PROFIT:
             {{
               (
-                (rootStore.state.totalIngresos
-                  ? rootStore.state.totalIngresos
+                (appStore.totalIngresos
+                  ? appStore.totalIngresos
                   : 0) -
-                (rootStore.state.totalEgresos
-                  ? rootStore.state.totalEgresos
+                (appStore.totalEgresos
+                  ? appStore.totalEgresos
                   : 0)
               ).toFixed(2)
             }}

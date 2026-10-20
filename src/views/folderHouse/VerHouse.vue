@@ -2,7 +2,7 @@
 import { v4 as uuidv4 } from "uuid";
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
@@ -18,13 +18,13 @@ import { useBankStore } from "@/stores/bank";
 
 //houselist,
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
-const itemsShipment = computed(() => rootStore.state.itemsShipment);
+const itemsShipment = computed(() => appStore.itemsShipment);
 
 const selected = ref<CuentaBancariaPic[]>([]);
 const errorCuentas = ref("");
@@ -177,7 +177,7 @@ async function _setTrackingToken(token: string) {
       sessionStorage.setItem("auth-token", response.data.token);
 
       if (response.data.estadoflag) {
-        rootStore.state.house_enlace_tracking =
+        housesStore.house_enlace_tracking =
           "https://aco.agentedecargaonline.com/tracking/" +
           response.data.data[0].token;
 
@@ -253,71 +253,71 @@ async function _setHouseEdit() {
 
   //vm._getnroMaster();
   const data = JSON.stringify({
-    id_modality: rootStore.state.house_sentido
-      ? rootStore.state.house_sentido
+    id_modality: housesStore.house_sentido
+      ? housesStore.house_sentido
       : "",
-    id_shipment: rootStore.state.house_id_trasnport
-      ? rootStore.state.house_id_trasnport
+    id_shipment: housesStore.house_id_trasnport
+      ? housesStore.house_id_trasnport
       : "",
-    id_consigner_real: rootStore.state.house_id_consigner_real
-      ? rootStore.state.house_id_consigner_real
+    id_consigner_real: housesStore.house_id_consigner_real
+      ? housesStore.house_id_consigner_real
       : "",
-    id_port_begin: rootStore.state.house_origen
-      ? rootStore.state.house_origen
+    id_port_begin: housesStore.house_origen
+      ? housesStore.house_origen
       : "",
-    id_port_end: rootStore.state.house_destino
-      ? rootStore.state.house_destino
+    id_port_end: housesStore.house_destino
+      ? housesStore.house_destino
       : "",
-    id_proveedor: rootStore.state.house_id_agente
-      ? rootStore.state.house_id_agente
+    id_proveedor: housesStore.house_id_agente
+      ? housesStore.house_id_agente
       : "",
-    id_consigner: rootStore.state.house_id_consigner
-      ? rootStore.state.house_id_consigner
+    id_consigner: appStore.house_id_consigner
+      ? appStore.house_id_consigner
       : "",
-    id_notify: rootStore.state.house_id_notify
-      ? rootStore.state.house_id_notify
+    id_notify: housesStore.house_id_notify
+      ? housesStore.house_id_notify
       : "",
-    id_aerolinea: rootStore.state.house_id_airlines
-      ? rootStore.state.house_id_airlines
+    id_aerolinea: housesStore.house_id_airlines
+      ? housesStore.house_id_airlines
       : "",
-    id_coloader: rootStore.state.house_id_coloader
-      ? rootStore.state.house_id_coloader
+    id_coloader: housesStore.house_id_coloader
+      ? housesStore.house_id_coloader
       : "",
-    id_naviera: rootStore.state.house_id_naviera
-      ? rootStore.state.house_id_naviera
+    id_naviera: housesStore.house_id_naviera
+      ? housesStore.house_id_naviera
       : "",
-    id_incoterms: rootStore.state.house_incoterms
-      ? rootStore.state.house_incoterms
+    id_incoterms: housesStore.house_incoterms
+      ? housesStore.house_incoterms
       : "",
-    nro_hbl: rootStore.state.house_blmaster
-      ? rootStore.state.house_blmaster
+    nro_hbl: housesStore.house_blmaster
+      ? housesStore.house_blmaster
       : "",
-    id_motonave: rootStore.state.house_id_motonave
-      ? rootStore.state.house_id_motonave
+    id_motonave: housesStore.house_id_motonave
+      ? housesStore.house_id_motonave
       : "",
-    nro_viaje: rootStore.state.house_viaje
-      ? rootStore.state.house_viaje
+    nro_viaje: housesStore.house_viaje
+      ? housesStore.house_viaje
       : "",
-    bultos: rootStore.state.house_bultos
-      ? rootStore.state.house_bultos
+    bultos: housesStore.house_bultos
+      ? housesStore.house_bultos
       : "",
-    peso: rootStore.state.house_peso ? rootStore.state.house_peso : "",
-    volumen: rootStore.state.house_volumen
-      ? rootStore.state.house_volumen
+    peso: housesStore.house_peso ? housesStore.house_peso : "",
+    volumen: housesStore.house_volumen
+      ? housesStore.house_volumen
       : "",
-    id_conditions: rootStore.state.house_id_condicion
-      ? rootStore.state.house_id_condicion
+    id_conditions: housesStore.house_id_condicion
+      ? housesStore.house_id_condicion
       : "",
-    id_moneda: rootStore.state.house_id_coins
-      ? rootStore.state.house_id_coins
+    id_moneda: housesStore.house_id_coins
+      ? housesStore.house_id_coins
       : "",
-    monto: rootStore.state.house_monto ? rootStore.state.house_monto : "",
+    monto: housesStore.house_monto ? housesStore.house_monto : "",
     id_branch: sessionBranchId(),
-    id_cot: rootStore.state.house_cotizacion
-      ? rootStore.state.house_cotizacion
+    id_cot: housesStore.house_cotizacion
+      ? housesStore.house_cotizacion
       : "",
-    lstservices: rootStore.state.itemsHouseServices || [],
-    id: rootStore.state.house_id,
+    lstservices: appStore.itemsHouseServices || [],
+    id: housesStore.house_id,
   });
 
   const config = {
@@ -352,7 +352,7 @@ async function _setHouseEdit() {
       }
 
       statusData.value = true;
-      await rootStore.dispatch("_getHouseList");
+      await appStore._getHouseList();
       await _getHouseById();
       await _getHouseServices();
 
@@ -482,11 +482,11 @@ function isExportacion() {
 }
 function isAereo() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "Aéreo") {
@@ -497,11 +497,11 @@ function isAereo() {
 }
 function isLCL() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "LCL") {
@@ -512,11 +512,11 @@ function isLCL() {
 }
 function isFCL() {
   let val = false;
-  const id = rootStore.state.house_id_trasnport;
+  const id = housesStore.house_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
       : "";
 
   if (code == "FCL") {
@@ -694,9 +694,9 @@ async function _getHouseServices() {
             lstServices.push(itemImpuestos);
           }
 
-          rootStore.state.itemsHouseServices = lstServices;
+          appStore.itemsHouseServices = lstServices;
         } else {
-          rootStore.state.itemsHouseServices = [];
+          appStore.itemsHouseServices = [];
         }
       })
       .catch(function (error) {
@@ -720,7 +720,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 
   await _getHouseById();
   const data = {
-    id: rootStore.state.house_id,
+    id: housesStore.house_id,
     notificacion: notificacion,
     house: housesStore.house,
     user: sessionUser(),
@@ -783,7 +783,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 }
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await housesStore.verHouse(route.params);
   await pricingStore.getCargarEjecutivo();
   if (route.name == "controlHouseVer") {
@@ -791,7 +791,7 @@ onMounted(async () => {
   }
   const actionLabel =
     route.name == "controlHouseEditar" ? "EDITAR" : "VER";
-  rootStore.state.mainTitle = `N° BL House ${
+  appStore.mainTitle = `N° BL House ${
     (housesStore.house &&
       housesStore.house.nro_hbl) ||
     ""
@@ -800,7 +800,7 @@ onMounted(async () => {
       housesStore.house.consigner) ||
     ""
   } [${actionLabel}]`;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   await bankStore.fetchDataBank({
     code: "",
     name: "",
@@ -996,7 +996,7 @@ onMounted(async () => {
         </v-speed-dial>
       </div>
       <div
-        v-if="rootStore.state.house_enlace_tracking"
+        v-if="housesStore.house_enlace_tracking"
         style="
           position: fixed;
           right: 88px;
@@ -1007,7 +1007,7 @@ onMounted(async () => {
         "
       >
         <v-text-field
-          v-model="rootStore.state.house_enlace_tracking"
+          v-model="housesStore.house_enlace_tracking"
           label="Enlace de Tracking"
           readonly
           variant="outlined"
@@ -1020,7 +1020,7 @@ onMounted(async () => {
               icon
               size="small"
               color="primary"
-              @click="_copyEnlaceTracking(rootStore.state.house_enlace_tracking)"
+              @click="_copyEnlaceTracking(housesStore.house_enlace_tracking)"
             >
               <v-icon size="small">
                 mdi-content-copy
@@ -1148,7 +1148,7 @@ onMounted(async () => {
           <v-data-table
             v-model="selected"
             :headers="headers"
-            :items="rootStore.state.cuentas_pic"
+            :items="appStore.cuentas_pic"
             item-value="id"
             return-object
             show-select

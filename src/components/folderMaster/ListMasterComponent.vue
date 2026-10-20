@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import axios from "@/api/http";
 import type { AxiosResponse } from "axios";
@@ -17,14 +17,14 @@ import type { CotizacionListado } from "@/types/cotizacion";
 import type { MasterListado } from "@/types/operacionesMaster";
 import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const appRouter = useRouter();
 const pricingStore = usePricingStore();
 const mastersStore = useMastersStore();
 const masterusuariosStore = useMasterusuariosStore();
 const securitysStore = useSecuritysStore();
-const itemsMasterList = computed(() => rootStore.state.itemsMasterList);
-const itemsModality = computed(() => rootStore.state.itemsModality);
+const itemsMasterList = computed(() => appStore.itemsMasterList);
+const itemsModality = computed(() => appStore.itemsModality);
 const frmQuote = useTemplateRef("frmQuote");
 const frmComentario = useTemplateRef("frmComentario");
 
@@ -65,9 +65,9 @@ const mastersConHouse = computed(() => {
 
 async function cerrarDialog() {
   dialogUrl.value = false;
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getMasterList");
-  rootStore.state.spiner = false;
+  appStore.spiner = true;
+  await appStore._getMasterList();
+  appStore.spiner = false;
 }
 function irControlGastos(id: number) {
   appRouter.push({
@@ -142,15 +142,15 @@ async function reactivarMaster({
     });
     return false;
   }
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await mastersStore.controlGastosReactivar({
     id: id,
     activaranulado: activaranulado,
     abriroperativo: abriroperativo,
     abriradministrativo: abriradministrativo,
   });
-  await rootStore.dispatch("_getMasterList");
-  rootStore.state.spiner = false;
+  await appStore._getMasterList();
+  appStore.spiner = false;
 }
 // validarUsuarioAdmin
 // controlGastosReactivar
@@ -175,7 +175,7 @@ async function actualizarUrl() {
   masterEditar.value.url_folderonedrive = url_folderonedrive.value;
   dialogUrl.value = false;
   setTimeout(async () => {
-    await rootStore.dispatch("_getMasterList");
+    await appStore._getMasterList();
   }, 1000);
 }
 async function guardarFechas() {
@@ -215,7 +215,7 @@ async function guardarFechas() {
     }
 
     // Ahora 'this' funcionará correctamente
-    await rootStore.dispatch("_getMasterList");
+    await appStore._getMasterList();
     dialogFecha.value = false;
     loading.value = false;
   } catch (error) {
@@ -296,7 +296,7 @@ function _lockMaster(id: number) {
 
           if (response.data.estadoflag) {
             Swal.fire("Cerrado!", "Expediente cerrado", "success");
-            await rootStore.dispatch("_getMasterList");
+            await appStore._getMasterList();
           } else {
             Swal.fire({
               icon: response.data.status == "401" ? "error" : "info",
@@ -349,9 +349,9 @@ function _nullMaster(id: number) {
 
           if (response.data.estadoflag) {
             Swal.fire("Anulado!", "Expediente anulado", "success");
-            rootStore.state.spiner = true;
-            await rootStore.dispatch("_getMasterList");
-            rootStore.state.spiner = false;
+            appStore.spiner = true;
+            await appStore._getMasterList();
+            appStore.spiner = false;
           } else {
             Swal.fire({
               icon: response.data.status == "401" ? "error" : "info",
@@ -401,7 +401,7 @@ function _lockMasterAdm(id: number) {
 
           if (response.data.estadoflag) {
             Swal.fire("Cerrado!", "Expediente cerrado", "success");
-            await rootStore.dispatch("_getMasterList");
+            await appStore._getMasterList();
           } else {
             Swal.fire({
               icon: response.data.status == "401" ? "error" : "info",
@@ -463,7 +463,7 @@ function abrirModalNotaMaster(item: MasterListado) {
 async function guardarComentario() {
   if ((await frmComentario.value!.validate()).valid) {
     loading.value = true;
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await mastersStore.insertComentarioMaster({
       id_entitie: id_vendedor.value as number,
       id_master: master.value.id,
@@ -471,9 +471,9 @@ async function guardarComentario() {
       comentario: comentario.value,
     });
     dialog.value = !dialog.value;
-    await rootStore.dispatch("_getMasterList");
+    await appStore._getMasterList();
     comentario.value = "";
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     loading.value = false;
   }
 }
@@ -493,7 +493,7 @@ function isImportacion(id: number) {
 
   const name =
     itemsModality.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Importación") {
@@ -508,7 +508,7 @@ function isExportacion(id: number) {
 
   const name =
     itemsModality.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Exportación") {
@@ -533,15 +533,15 @@ async function getMasterListPaginated(options: { page?: number; itemsPerPage?: n
     sortDesc = [],
   } = options;
 
-  rootStore.state.master_filtro.pagina = page;
-  rootStore.state.master_filtro.limite = itemsPerPage;
-  rootStore.state.master_filtro.orden = sortBy
+  mastersStore.master_filtro.pagina = page;
+  mastersStore.master_filtro.limite = itemsPerPage;
+  mastersStore.master_filtro.orden = sortBy
     .map((item, i) => item + " " + (!sortDesc[i] ? "ASC" : "DESC"))
     .toString();
-  rootStore.state.master_filtro.busqueda = search.value;
+  mastersStore.master_filtro.busqueda = search.value;
 
   loadingDataTable.value = true;
-  await rootStore.dispatch("_getMasterList");
+  await appStore._getMasterList();
   loadingDataTable.value = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -581,17 +581,17 @@ function deleteMaster(id: number) {
 }
 
 onMounted(async () => {
-  rootStore.state.drawer = false;
-  rootStore.state.spiner = true;
-  await rootStore.dispatch("_getMasterList");
-  rootStore.state.spiner = false;
+  appStore.drawer = false;
+  appStore.spiner = true;
+  await appStore._getMasterList();
+  appStore.spiner = false;
   await Promise.all([
     pricingStore.getModulesEntities(),
     pricingStore.getQuoteNoAsignadoHouse(),
     masterusuariosStore.cargarMasterDetalleCanal(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getProveedor"),
-    rootStore.dispatch("_getShipment"),
+    appStore._getModality(),
+    appStore._getProveedor(),
+    appStore._getShipment(),
   ]);
 });
 </script>
@@ -693,8 +693,8 @@ onMounted(async () => {
               rounded
               class="ml-3"
               @click="
-                rootStore.state.master_filtrarData =
-                  !rootStore.state.master_filtrarData
+                mastersStore.master_filtrarData =
+                  !mastersStore.master_filtrarData
               "
             >
               FILTRAR

@@ -3,7 +3,6 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
-import store from "@/store";
 import type { ApiResponse } from "@/types/api";
 import type {
   ConceptoCotizacionCalculadora,
@@ -103,7 +102,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function CargarPuertoPorTipoPorPais(data: { id_pais?: number | string; tipo?: string; type?: string }): Promise<PuertoCalculadora[]> {
-    store.state.overlay = true;
+    overlay.value = true;
     const valores = await axios<ApiResponse<PuertoCalculadora[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `CargarPuertoXPaisXTipo/${data.id_pais}/${data.tipo}`,
@@ -116,12 +115,12 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
       });
       return [];
     }
-    store.state.overlay = false;
+    overlay.value = false;
     return valores.data.data;
   }
 
   async function CargarnavieraCalc(): Promise<void> {
-    store.state.overlay = true;
+    overlay.value = true;
     const valores = await axios<ApiResponse<NavieraCalculadora[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `cargar_navieras`,
@@ -135,11 +134,11 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
         title: valores.data.mensaje,
       });
     }
-    store.state.overlay = false;
+    overlay.value = false;
   }
 
   async function CargarcontendedorCalc(): Promise<void> {
-    store.state.overlay = true;
+    overlay.value = true;
     const valores = await axios<ApiResponse<ContenedorCalculadora[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `cargar_contenedores`,
@@ -153,7 +152,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
         title: valores.data.mensaje,
       });
     }
-    store.state.overlay = false;
+    overlay.value = false;
   }
 
   async function CargarSucursal(): Promise<void> {

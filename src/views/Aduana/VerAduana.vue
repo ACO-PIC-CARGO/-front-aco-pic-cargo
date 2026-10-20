@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
@@ -35,7 +35,7 @@ const UnificarCotizacion = defineAsyncComponent(() =>
   import("@/components/folderAduana/VerComponent/UnificarCotizacion.vue"));
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -46,14 +46,14 @@ const mostrarStepS = ref(false);
 const verFlag = ref(true);
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   verFlag.value = false;
   await Promise.all([
     aduanaStore.getAdunaVer({ id: route.params.id as string }),
     aduanaStore.getShipmentAduana(),
   ]);
-  rootStore.state.mainTitle = `VER  COTIZACIÓN - ${aduanaStore.nro_quote}`;
-  rootStore.state.spiner = false;
+  appStore.mainTitle = `VER  COTIZACIÓN - ${aduanaStore.nro_quote}`;
+  appStore.spiner = false;
   verFlag.value = true;
 
   const idTipoCarga = aduanaStore.listShipment.filter(
@@ -75,7 +75,7 @@ onMounted(async () => {
     aduanaStore.getIncotermsAduana(),
     aduanaStore.getPersonalPricingAduana(),
     aduanaStore.getMultiplicadorAduana(),
-    rootStore.dispatch("cargarProveedores"),
+    appStore.cargarProveedores(),
     // this.getBegEndList(),
     aduanaStore.getTipoCostosAduana(),
     masterusuariosStore.cargarMasterDetallePercepcionAduana(),
@@ -96,7 +96,7 @@ onMounted(async () => {
     aduanaStore.generaInstructivoAduana();
   }, 1000);
   aduanaStore.actualizarCostosFlag = false;
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
 
   if (route.params.step) {
     aduanaStore.e1 = route.params.step

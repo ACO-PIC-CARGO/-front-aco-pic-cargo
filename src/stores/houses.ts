@@ -3,7 +3,6 @@ import { computed, ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
-import store from "@/store";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { FilaConIdRaiz, FilaRaiz, FiltroExpedientesRaiz, HouseCopiaRaiz, RegistroBitacoraRaiz, TipoEmbarqueRaiz } from "@/types/app";
@@ -200,7 +199,7 @@ export const useHousesStore = defineStore("houses", () => {
             const ruta = router.currentRoute.value.name;
             console.log("ruta", ruta);
             if (ruta === "controlHouseEditar") {
-              const id_master = store.state.copy_house.id_master;
+              const id_master = copy_house.value!.id_master;
               router.push({
                 name: "controlMasterEditar",
                 params: {

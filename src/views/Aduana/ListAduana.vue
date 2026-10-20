@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
@@ -18,7 +18,7 @@ const ConfigCotizacion = defineAsyncComponent(() =>
 // ListCall: () => import("../folderPricing/comun/listCall.vue"),
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
@@ -35,7 +35,7 @@ function redirect() {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function filtrarCotizaciones(item: ResumenEstadoCotizacion) {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   pricingStore.filtro = {
     id_marketing: "",
     id_status: item.id,
@@ -48,7 +48,7 @@ async function filtrarCotizaciones(item: ResumenEstadoCotizacion) {
     estado: "activo",
   };
   // await this.getListQuoteAduana();
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function guardarConfig() {
   await configEmpresaStore.GuardarConfiguracionEmpresa();
@@ -57,7 +57,7 @@ async function guardarConfig() {
 }
 
 onMounted(() => {
-  rootStore.state.drawer = false;
+  appStore.drawer = false;
   pricingStore.e1 = 1;
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
   dialog.value = !val.existecot;

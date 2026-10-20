@@ -10,4 +10,3 @@ interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
 declare module "moment/dist/locale/es";
-declare module "vuex";

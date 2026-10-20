@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
+import { useMastersStore } from "@/stores/masters";
 import axios from "@/api/http";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
@@ -9,17 +10,18 @@ import type { CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionParaMaster } from "@/types/operacionesMaster";
 import { sessionSucursal, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
+const mastersStore = useMastersStore();
 const route = useRoute();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
-const itemsModality = computed(() => rootStore.state.itemsModality);
-const itemsShipment = computed(() => rootStore.state.itemsShipment);
-const itemsPortBegin = computed(() => rootStore.state.itemsPortBegin);
-const itemsPortEnd = computed(() => rootStore.state.itemsPortEnd);
-const itemsIncoterms = computed(() => rootStore.state.itemsIncoterms);
-const itemsOperadorList = computed(() => rootStore.state.itemsOperadorList);
-const itemsContainers = computed(() => rootStore.state.itemsContainers);
+const itemsModality = computed(() => appStore.itemsModality);
+const itemsShipment = computed(() => appStore.itemsShipment);
+const itemsPortBegin = computed(() => appStore.itemsPortBegin);
+const itemsPortEnd = computed(() => appStore.itemsPortEnd);
+const itemsIncoterms = computed(() => appStore.itemsIncoterms);
+const itemsOperadorList = computed(() => appStore.itemsOperadorList);
+const itemsContainers = computed(() => appStore.itemsContainers);
 
 const mostrarflag = ref(true);
 const mostrarGrupal = ref(false);
@@ -34,11 +36,11 @@ const obtenerInputTypeBLMaster = computed(() => {
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const operadorNombre = computed(() => {
-  if (!rootStore.state.master_id_operador || !itemsOperadorList.value) {
+  if (!mastersStore.master_id_operador || !itemsOperadorList.value) {
     return "";
   }
   const operador = itemsOperadorList.value.find(
-    (op: { id: number; namelong: string }) => op.id == rootStore.state.master_id_operador,
+    (op: { id: number; namelong: string }) => op.id == mastersStore.master_id_operador,
   );
   return operador ? operador.namelong : "";
 });
@@ -46,51 +48,51 @@ const operadorNombre = computed(() => {
 async function _activePort(idTransport: number) {
   id_transport.value = idTransport;
 
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
-    rootStore.dispatch("_getPortBegin", { id_transport: idTransport }),
-    rootStore.dispatch("_getPortEnd", { id_transport: idTransport }),
+    appStore._getPortBegin({ id_transport: idTransport }),
+    appStore._getPortEnd({ id_transport: idTransport }),
   ]);
 
-  if (rootStore.state.master_id_trasnport.id == 1) {
-    rootStore.state.embar_title_nacn = "Aerolinea";
-  } else if (rootStore.state.master_id_trasnport.id == 2) {
-    rootStore.state.embar_title_nacn = "Naviera";
-  } else if (rootStore.state.master_id_trasnport.id == 3) {
-    rootStore.state.embar_title_nacn = "Coloader";
+  if (appStore.master_id_trasnport.id == 1) {
+    appStore.embar_title_nacn = "Aerolinea";
+  } else if (appStore.master_id_trasnport.id == 2) {
+    appStore.embar_title_nacn = "Naviera";
+  } else if (appStore.master_id_trasnport.id == 3) {
+    appStore.embar_title_nacn = "Coloader";
   } else {
-    rootStore.state.embar_title_nacn = "Aerolinea/Coloader/Naviera";
+    appStore.embar_title_nacn = "Aerolinea/Coloader/Naviera";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 function _getDataService() {
-  rootStore.dispatch("_getServicesBegin");
+  mastersStore._getServicesBegin();
   // this._getBitacoraList();
   // this._getServicesList();
 }
 function _getValidad() {
-  rootStore.state.master_id_operador = sessionUser().id;
+  mastersStore.master_id_operador = sessionUser().id;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _getDate() {
-  if (rootStore.state.master_sentido == 1) {
-    rootStore.state.master_fecha_disponibilidad =
-      rootStore.state.master_fecha_eta;
-  } else if (rootStore.state.master_sentido == 2) {
-    rootStore.state.master_fecha_disponibilidad =
-      rootStore.state.master_fecha_etd;
+  if (mastersStore.master_sentido == 1) {
+    mastersStore.master_fecha_disponibilidad =
+      mastersStore.master_fecha_eta;
+  } else if (mastersStore.master_sentido == 2) {
+    mastersStore.master_fecha_disponibilidad =
+      mastersStore.master_fecha_etd;
   }
 }
 function _validaDatass() {
   if (route.params.id) {
-    rootStore.state.master_Id_get = route.params.id;
+    mastersStore.master_Id_get = route.params.id;
 
     const config = {
       method: "post",
       url:
         import.meta.env.VITE_URL_MAIN +
         "getMasterId/" +
-        rootStore.state.master_Id_get,
+        mastersStore.master_Id_get,
       headers: {
         "Content-Type": "application/json",
       },
@@ -101,106 +103,106 @@ function _validaDatass() {
 
         sessionStorage.setItem("auth-token", response.data.token);
 
-        rootStore.state.master_insertId = rootStore.state.master_Id_get;
-        rootStore.state.nro_master = response.data.data[0].nro_master;
-        rootStore.state.master_cantidad_house =
+        mastersStore.master_insertId = mastersStore.master_Id_get;
+        mastersStore.nro_master = response.data.data[0].nro_master;
+        mastersStore.master_cantidad_house =
           response.data.data[0].cantidad_house;
-        rootStore.state.master_nro_expediente =
+        mastersStore.master_nro_expediente =
           response.data.data[0].code_master;
-        rootStore.state.master_expediente =
+        mastersStore.master_expediente =
           response.data.data[0].code_master;
-        rootStore.state.master_sentido = response.data.data[0].id_modality;
-        rootStore.state.master_id_trasnport =
+        mastersStore.master_sentido = response.data.data[0].id_modality;
+        appStore.master_id_trasnport =
           response.data.data[0].id_shipment;
-        rootStore.state.master_cotizanion = response.data.data[0].id_cot;
-        rootStore.state.master_incoterms =
+        mastersStore.master_cotizanion = response.data.data[0].id_cot;
+        mastersStore.master_incoterms =
           response.data.data[0].id_incoterms;
         id_transport.value = response.data.data[0].id_transport;
-        await rootStore.dispatch("_getPortBegin", {
+        await appStore._getPortBegin({
           id_transport: response.data.data[0].id_transport,
           id: response.data.data[0].id_port_begin,
         });
-        await rootStore.dispatch("_getPortEnd", {
+        await appStore._getPortEnd({
           id_transport: response.data.data[0].id_transport,
           id: response.data.data[0].id_port_end,
         });
 
-        rootStore.state.master_origen = response.data.data[0].id_port_begin;
-        rootStore.state.master_destino = response.data.data[0].id_port_end;
-        rootStore.state.master_id_operador =
+        appStore.master_origen = response.data.data[0].id_port_begin;
+        appStore.master_destino = response.data.data[0].id_port_end;
+        mastersStore.master_id_operador =
           response.data.data[0].id_operador;
-        rootStore.state.master_fecha_eta = response.data.data[0].fecha_eta;
-        rootStore.state.master_fecha_etd = response.data.data[0].fecha_etd;
-        rootStore.state.master_fecha_disponibilidad =
+        mastersStore.master_fecha_eta = response.data.data[0].fecha_eta;
+        mastersStore.master_fecha_etd = response.data.data[0].fecha_etd;
+        mastersStore.master_fecha_disponibilidad =
           response.data.data[0].fecha_disponibilidad;
-        rootStore.state.master_ganancia_pricing =
+        mastersStore.master_ganancia_pricing =
           response.data.data[0].ganancia_pricing;
-        rootStore.state.master_ganancia_operaciones =
+        mastersStore.master_ganancia_operaciones =
           response.data.data[0].ganancia_operaciones;
-        rootStore.state.master_id_agente = response.data.data[0].id_agent;
-        rootStore.state.master_id_consigner =
+        appStore.master_id_agente = response.data.data[0].id_agent;
+        mastersStore.master_id_consigner =
           response.data.data[0].id_consigner;
-        rootStore.state.master_id_notify = response.data.data[0].id_notify;
-        rootStore.state.master_id_airlines =
+        mastersStore.master_id_notify = response.data.data[0].id_notify;
+        mastersStore.master_id_airlines =
           response.data.data[0].id_aerolinea;
-        rootStore.state.statusData = true;
-        rootStore.state.salidaflag = response.data.data[0].salidaflag;
-        rootStore.state.llegadaflag = response.data.data[0].llegadaflag;
-        rootStore.state.disponibilidadflag =
+        mastersStore.statusData = true;
+        mastersStore.salidaflag = response.data.data[0].salidaflag;
+        mastersStore.llegadaflag = response.data.data[0].llegadaflag;
+        mastersStore.disponibilidadflag =
           response.data.data[0].disponibilidadflag;
-        rootStore.state.master_id_coloader =
+        mastersStore.master_id_coloader =
           response.data.data[0].id_coloader;
-        rootStore.state.master_id_naviera =
+        mastersStore.master_id_naviera =
           response.data.data[0].id_naviera;
-        rootStore.state.master_blmaster = response.data.data[0].nro_mbl;
-        rootStore.state.master_id_motonave =
+        mastersStore.master_blmaster = response.data.data[0].nro_mbl;
+        mastersStore.master_id_motonave =
           response.data.data[0].id_motonave;
-        rootStore.state.master_viaje = response.data.data[0].nro_viaje;
+        mastersStore.master_viaje = response.data.data[0].nro_viaje;
         // Nuevos campos de embarque
-        rootStore.state.master_vuelo = response.data.data[0].vuelo;
-        rootStore.state.master_nro_containers =
+        mastersStore.master_vuelo = response.data.data[0].vuelo;
+        appStore.master_nro_containers =
           response.data.data[0].nro_containers;
-        rootStore.state.master_nro_precinto =
+        appStore.master_nro_precinto =
           response.data.data[0].nro_precinto;
-        rootStore.state.master_bultos = response.data.data[0].bultos;
-        rootStore.state.master_peso = response.data.data[0].peso;
-        rootStore.state.master_volumen = response.data.data[0].volumen;
-        rootStore.state.master_id_condicion =
+        mastersStore.master_bultos = response.data.data[0].bultos;
+        mastersStore.master_peso = response.data.data[0].peso;
+        mastersStore.master_volumen = response.data.data[0].volumen;
+        mastersStore.master_id_condicion =
           response.data.data[0].id_conditions;
-        rootStore.state.master_id_coins = response.data.data[0].id_moneda;
-        rootStore.state.master_monto = response.data.data[0].monto;
-        rootStore.state.grupalflag = response.data.data[0].grupalflag;
-        rootStore.state.nro_cuotas = response.data.data[0].nro_cuotas;
-        rootStore.state.comentario = response.data.data[0].comentario;
-        rootStore.state.fecha_libre_almacenaje =
+        mastersStore.master_id_coins = response.data.data[0].id_moneda;
+        mastersStore.master_monto = response.data.data[0].monto;
+        mastersStore.grupalflag = response.data.data[0].grupalflag;
+        appStore.nro_cuotas = response.data.data[0].nro_cuotas;
+        mastersStore.comentario = response.data.data[0].comentario;
+        mastersStore.fecha_libre_almacenaje =
           response.data.data[0].fecha_libre_almacenaje;
-        rootStore.state.fecha_libre_sobreestadia =
+        mastersStore.fecha_libre_sobreestadia =
           response.data.data[0].fecha_libre_sobreestadia;
-        rootStore.state.almacen_recepcion =
+        mastersStore.almacen_recepcion =
           response.data.data[0].almacen_recepcion;
-        rootStore.state.dias_sobreestadia =
+        mastersStore.dias_sobreestadia =
           response.data.data[0].dias_sobreestadia;
-        rootStore.state.id_canal =
+        mastersStore.id_canal =
           response.data.data[0].id_masterdetallecanal;
-        rootStore.state.nro_manifiesto =
+        mastersStore.nro_manifiesto =
           response.data.data[0].nro_manifiesto;
-        rootStore.state.url_folderonedrive =
+        mastersStore.url_folderonedrive =
           response.data.data[0].url_folderonedrive;
 
         const cuotas = response.data.data[0].cuotas || [];
         cuotas.forEach((element: { porcentaje: number; fecha: string }) => {
-          rootStore.state.cuota.push(element.porcentaje);
-          rootStore.state.fechacuota.push(element.fecha);
+          appStore.cuota.push(element.porcentaje);
+          appStore.fechacuota.push(element.fecha);
         });
-        rootStore.state.namecampaign = response.data.data[0].namecampaign;
-        rootStore.state.master_itemsContainers =
+        mastersStore.namecampaign = response.data.data[0].namecampaign;
+        appStore.master_itemsContainers =
           response.data.data[0].lstmastercontainers.map((item: { id_container: number }) => {
             return {
               ...item,
               name: itemsContainers.value.filter(
                 (v: { id: number }) => v.id == item.id_container,
               ).length
-                ? itemsContainers.value.find((v: { id: number }) => v.id == item.id_container)
+                ? itemsContainers.value.find((v: { id: number }) => v.id == item.id_container)!
                     .name
                 : "",
             };
@@ -208,7 +210,7 @@ function _validaDatass() {
         mostrarflag.value = false;
         mostrarflag.value = true;
 
-        await rootStore.dispatch("_getHouseList");
+        await appStore._getHouseList();
       })
       .catch(function (error) {
         console.error(error);
@@ -216,68 +218,68 @@ function _validaDatass() {
   }
 }
 function limpiar() {
-  rootStore.state.master_nro_expediente = "";
-  rootStore.state.master_expediente = "";
-  rootStore.state.master_sentido = "";
-  rootStore.state.master_id_trasnport = "";
-  rootStore.state.master_incoterms = "";
-  rootStore.state.master_origen = "";
-  rootStore.state.master_destino = "";
-  rootStore.state.master_id_operador = "";
-  rootStore.state.master_ganancia_pricing = "";
-  rootStore.state.master_ganancia_operaciones = "";
-  rootStore.state.master_id_agente = "";
-  rootStore.state.master_id_consigner = "";
-  rootStore.state.master_id_notify = "";
-  rootStore.state.master_id_airlines = "";
-  rootStore.state.statusData = "";
-  rootStore.state.master_id_coloader = "";
-  rootStore.state.master_id_naviera = "";
-  rootStore.state.master_blmaster = "";
-  rootStore.state.master_id_motonave = "";
-  rootStore.state.master_viaje = "";
-  rootStore.state.master_bultos = "";
-  rootStore.state.master_volumen = "";
-  rootStore.state.master_id_condicion = "";
-  rootStore.state.master_id_coins = "";
-  rootStore.state.master_monto = "";
-  rootStore.state.grupalflag = false;
-  rootStore.state.nro_cuotas = 3;
-  rootStore.state.comentario = [];
-  rootStore.state.cuota = [];
-  rootStore.state.master_fecha_eta = "";
-  rootStore.state.master_fecha_etd = "";
-  rootStore.state.master_fecha_disponibilidad = "";
-  rootStore.state.fecha_libre_almacenaje = "";
-  rootStore.state.almacen_recepcion = "";
-  rootStore.state.dias_sobreestadia = "";
-  rootStore.state.id_canal = "";
-  rootStore.state.nro_manifiesto = "";
+  mastersStore.master_nro_expediente = "";
+  mastersStore.master_expediente = "";
+  mastersStore.master_sentido = "";
+  appStore.master_id_trasnport = "" as never;
+  mastersStore.master_incoterms = "";
+  appStore.master_origen = "";
+  appStore.master_destino = "";
+  mastersStore.master_id_operador = "";
+  mastersStore.master_ganancia_pricing = "";
+  mastersStore.master_ganancia_operaciones = "";
+  appStore.master_id_agente = "";
+  mastersStore.master_id_consigner = "";
+  mastersStore.master_id_notify = "";
+  mastersStore.master_id_airlines = "";
+  mastersStore.statusData = "";
+  mastersStore.master_id_coloader = "";
+  mastersStore.master_id_naviera = "";
+  mastersStore.master_blmaster = "";
+  mastersStore.master_id_motonave = "";
+  mastersStore.master_viaje = "";
+  mastersStore.master_bultos = "";
+  mastersStore.master_volumen = "";
+  mastersStore.master_id_condicion = "";
+  mastersStore.master_id_coins = "";
+  mastersStore.master_monto = "";
+  mastersStore.grupalflag = false;
+  appStore.nro_cuotas = 3;
+  mastersStore.comentario = [];
+  appStore.cuota = [];
+  mastersStore.master_fecha_eta = "";
+  mastersStore.master_fecha_etd = "";
+  mastersStore.master_fecha_disponibilidad = "";
+  mastersStore.fecha_libre_almacenaje = "";
+  mastersStore.almacen_recepcion = "";
+  mastersStore.dias_sobreestadia = "";
+  mastersStore.id_canal = "";
+  mastersStore.nro_manifiesto = "";
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function obternerDatosCotizacion() {
-  if (!!rootStore.state.master_cotizanion && !route.params.id) {
+  if (!!mastersStore.master_cotizanion && !route.params.id) {
     const cot = pricingStore.listQuotes.filter(
-      (v) => v.id == rootStore.state.master_cotizanion,
+      (v) => v.id == mastersStore.master_cotizanion,
     )[0] as CotizacionListado & CotizacionParaMaster;
-    rootStore.state.master_sentido = cot.id_modality;
-    rootStore.state.master_id_trasnport = cot.id_shipment;
+    mastersStore.master_sentido = cot.id_modality;
+    appStore.master_id_trasnport = cot.id_shipment as never;
     const id_transport = itemsShipment.value.filter(
       (v: { id: number }) => v.id == cot.id_shipment,
-    )[0].id_transport;
+    )[0]!.id_transport;
     await _activePort(id_transport);
-    rootStore.state.master_incoterms = cot.id_incoterms;
-    rootStore.state.master_origen = cot.id_port_begin;
-    rootStore.state.master_destino = cot.id_port_end;
-    rootStore.state.master_fecha_disponibilidad = cot.fecha_fin;
-    rootStore.state.master_id_operador = cot.id_vendedor;
+    mastersStore.master_incoterms = cot.id_incoterms;
+    appStore.master_origen = cot.id_port_begin;
+    appStore.master_destino = cot.id_port_end;
+    mastersStore.master_fecha_disponibilidad = cot.fecha_fin as string;
+    mastersStore.master_id_operador = cot.id_vendedor;
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function validarCampaniaGrupales() {
   let val = true;
   if (route.params.id) {
-    const cantidadHouse = rootStore.state.itemsHouseList;
+    const cantidadHouse = appStore.itemsHouseList;
     if (cantidadHouse.length > 1) {
       val = false;
     }
@@ -287,13 +289,13 @@ function validarCampaniaGrupales() {
 }
 function isAereo() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "Aéreo") {
@@ -303,13 +305,13 @@ function isAereo() {
 }
 function isLCL() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "LCL") {
@@ -319,13 +321,13 @@ function isLCL() {
 }
 function isFCL() {
   let val = false;
-  const id = rootStore.state.master_id_trasnport.id
-    ? rootStore.state.master_id_trasnport.id
-    : rootStore.state.master_id_trasnport;
+  const id = appStore.master_id_trasnport.id
+    ? appStore.master_id_trasnport.id
+    : appStore.master_id_trasnport;
 
   const code =
     itemsShipment.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0].code
+      ? itemsShipment.value.filter((v: { id: number }) => v.id == id)[0]!.code
       : "";
 
   if (code == "FCL") {
@@ -335,11 +337,11 @@ function isFCL() {
 }
 function isImportacion() {
   let val = false;
-  const id = rootStore.state.master_sentido || "";
+  const id = mastersStore.master_sentido || "";
 
   const name =
     itemsModality.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Importación") {
@@ -350,11 +352,11 @@ function isImportacion() {
 }
 function isExportacion() {
   let val = false;
-  const id = rootStore.state.master_sentido || "";
+  const id = mastersStore.master_sentido || "";
 
   const name =
     itemsModality.value.filter((v: { id: number }) => v.id == id).length > 0
-      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0].name
+      ? itemsModality.value.filter((v: { id: number }) => v.id == id)[0]!.name
       : "";
 
   if (name == "Exportación") {
@@ -366,32 +368,32 @@ function isExportacion() {
 function handleSentido() {
   if (isImportacion()) {
     const nombreEmpresa = "PIC CARGO S.A.C";
-    const empresa = rootStore.state.clientes.filter(
+    const empresa = appStore.clientes.filter(
       (item: { namelong: string }) => item.namelong.toUpperCase() == nombreEmpresa,
     ).length
-      ? rootStore.state.clientes.find(
+      ? appStore.clientes.find(
           (item: { namelong: string }) => item.namelong.toUpperCase() == nombreEmpresa,
-        ).id
+        )!.id
       : "";
 
-    rootStore.state.master_id_consigner = empresa;
-    rootStore.state.master_id_notify = empresa;
+    mastersStore.master_id_consigner = empresa;
+    mastersStore.master_id_notify = empresa;
   } else if (isExportacion()) {
-    rootStore.state.master_id_consigner = "";
-    rootStore.state.master_id_notify = "";
+    mastersStore.master_id_consigner = "";
+    mastersStore.master_id_notify = "";
   }
 }
 async function recargarPuertoOrigen(textoBuscar: string) {
-  await rootStore.dispatch("_getPortBegin", {
-    id_transport: id_transport.value,
-    id: rootStore.state.master_origen,
+  await appStore._getPortBegin({
+    id_transport: id_transport.value as number,
+    id: appStore.master_origen,
     search: textoBuscar,
   });
 }
 async function recargarPuertoDestino(textoBuscar: string) {
-  await rootStore.dispatch("_getPortEnd", {
-    id_transport: id_transport.value,
-    id: rootStore.state.master_destino,
+  await appStore._getPortEnd({
+    id_transport: id_transport.value as number,
+    id: appStore.master_destino,
     search: textoBuscar,
   });
 }
@@ -399,24 +401,24 @@ async function recargarPuertoDestino(textoBuscar: string) {
 onMounted(async () => {
   const branch = sessionSucursal();
   mostrarGrupal.value = branch.id == 1;
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   limpiar();
   await Promise.all([
     _getValidad(),
-    rootStore.dispatch("_getModality"),
-    rootStore.dispatch("_getShipment"),
-    rootStore.dispatch("_getIncoterms"),
+    appStore._getModality(),
+    appStore._getShipment(),
+    appStore._getIncoterms(),
     masterusuariosStore.cargarMasterDetalleCanal(),
-    rootStore.dispatch("_getOperador"),
-    rootStore.dispatch("cargarClientes"),
-    rootStore.dispatch("_getProveedorRolAgente"),
-    rootStore.dispatch("_getProveedorRolColoader"),
+    appStore._getOperador(),
+    appStore.cargarClientes(),
+    mastersStore._getProveedorRolAgente(),
+    mastersStore._getProveedorRolColoader(),
     _validaDatass(),
   ]);
   if (!route.params.id) {
-    await rootStore.dispatch("_getnroMaster");
+    await mastersStore._getnroMaster();
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   //this.$store.state.drawer = false;
 });
 </script>
@@ -431,7 +433,7 @@ onMounted(async () => {
         md="12"
       >
         <v-text-field
-          v-model="rootStore.state.master_expediente"
+          v-model="mastersStore.master_expediente"
           label="N° de Expedientes"
           disabled
         />
@@ -443,7 +445,7 @@ onMounted(async () => {
       >
         <v-checkbox
           label="Campañas Grupales"
-          v-model="rootStore.state.grupalflag"
+          v-model="mastersStore.grupalflag"
         />
       </v-col>
       <v-col
@@ -451,9 +453,9 @@ onMounted(async () => {
         v-if="mostrarGrupal"
       >
         <v-text-field
-          v-if="rootStore.state.grupalflag"
+          v-if="mastersStore.grupalflag"
           label="Nro Cuotas"
-          v-model="rootStore.state.nro_cuotas"
+          v-model="appStore.nro_cuotas"
           min="0"
           type="number"
         />
@@ -461,17 +463,17 @@ onMounted(async () => {
       <v-col
         cols="12"
         md="12"
-        v-if="rootStore.state.grupalflag"
+        v-if="mastersStore.grupalflag"
       >
         <v-text-field
-          v-model="rootStore.state.namecampaign"
+          v-model="mastersStore.namecampaign"
           label="Nombre de Campaña"
         />
       </v-col>
 
       <v-col
         cols="12"
-        v-if="!!rootStore.state.grupalflag"
+        v-if="!!mastersStore.grupalflag"
       >
         <center class="my-5">
           <h3>Porcentaje y Fecha de pago</h3>
@@ -479,14 +481,14 @@ onMounted(async () => {
         <v-row>
           <v-col
             cols="6"
-            v-for="n in Number(rootStore.state.nro_cuotas)"
+            v-for="n in Number(appStore.nro_cuotas)"
             :key="n"
           >
             <v-row>
               <v-col cols="4">
                 <v-text-field
                   :label="`Porcentaje Cuota-${n}`"
-                  v-model="rootStore.state.cuota[n - 1]"
+                  v-model="appStore.cuota[n - 1]"
                   type="number"
                   suffix="%"
                   min="0"
@@ -504,7 +506,7 @@ onMounted(async () => {
                 <v-text-field
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   :label="`Fecha de pago ${n}`"
-                  v-model="rootStore.state.fechacuota[n - 1]"
+                  v-model="appStore.fechacuota[n - 1]"
                   type="date"
                   density="compact"
                 />
@@ -523,7 +525,7 @@ onMounted(async () => {
           item-title="name"
           item-value="id"
           label="Sentido"
-          v-model="rootStore.state.master_sentido"
+          v-model="mastersStore.master_sentido"
           @update:model-value="handleSentido(), _getDataService()"
         />
       </v-col>
@@ -537,8 +539,8 @@ onMounted(async () => {
           item-value="id"
           label="Tipo de Embarque"
           return-object
-          v-model="rootStore.state.master_id_trasnport"
-          @update:model-value="_activePort(rootStore.state.master_id_trasnport.id_transport)"
+          v-model="appStore.master_id_trasnport"
+          @update:model-value="_activePort(appStore.master_id_trasnport.id_transport)"
         />
       </v-col>
       <v-col
@@ -550,7 +552,7 @@ onMounted(async () => {
           item-title="name"
           item-value="id"
           label="Incoterms"
-          v-model="rootStore.state.master_incoterms"
+          v-model="mastersStore.master_incoterms"
           @update:model-value="_getDataService()"
         />
       </v-col>
@@ -564,7 +566,7 @@ onMounted(async () => {
           item-title="name"
           item-value="id_port"
           label="Origen"
-          v-model="rootStore.state.master_origen"
+          v-model="appStore.master_origen"
           @update:search="recargarPuertoOrigen"
         />
       </v-col>
@@ -578,7 +580,7 @@ onMounted(async () => {
           item-title="name"
           item-value="id_port"
           label="Destino"
-          v-model="rootStore.state.master_destino"
+          v-model="appStore.master_destino"
           @update:search="recargarPuertoDestino"
         />
       </v-col>
@@ -593,7 +595,7 @@ onMounted(async () => {
           step="1"
           min="1"
           readonly
-          v-model="rootStore.state.master_cantidad_house"
+          v-model="mastersStore.master_cantidad_house"
           label="Cantidad de House"
         />
       </v-col>
@@ -606,7 +608,7 @@ onMounted(async () => {
           item-title="namelong"
           item-value="id"
           label="Operador"
-          v-model="rootStore.state.master_id_operador"
+          v-model="mastersStore.master_id_operador"
         />
       </v-col>
       <v-col
@@ -615,11 +617,11 @@ onMounted(async () => {
         v-if="isAereo() || isFCL() || isLCL()"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsProveedorRolAgente"
+          :items="mastersStore.itemsProveedorRolAgente"
           item-title="namelong"
           item-value="id"
           label="Agente"
-          v-model="rootStore.state.master_id_agente"
+          v-model="appStore.master_id_agente"
         />
       </v-col>
       <v-col
@@ -628,11 +630,11 @@ onMounted(async () => {
         v-if="isLCL()"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsProveedorRolColoader"
+          :items="mastersStore.itemsProveedorRolColoader"
           item-title="namelong"
           item-value="id"
           label="Coloader"
-          v-model="rootStore.state.master_id_coloader"
+          v-model="mastersStore.master_id_coloader"
         />
       </v-col>
       <v-col
@@ -641,11 +643,11 @@ onMounted(async () => {
         v-if="isFCL()"
       >
         <v-autocomplete
-          :items="rootStore.state.itemsProveedorRolNaviera"
+          :items="mastersStore.itemsProveedorRolNaviera"
           item-title="namelong"
           item-value="id"
           label="Naviera"
-          v-model="rootStore.state.master_id_naviera"
+          v-model="mastersStore.master_id_naviera"
         />
       </v-col>
       <!--
@@ -665,7 +667,7 @@ onMounted(async () => {
       >
         <v-text-field
           :type="obtenerInputTypeBLMaster"
-          v-model="rootStore.state.master_blmaster"
+          v-model="mastersStore.master_blmaster"
           :label="obtenerLabelBLMaster"
         />
       </v-col>

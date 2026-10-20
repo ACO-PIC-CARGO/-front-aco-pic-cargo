@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
 import router from "@/router";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { Numerico } from "@/types/cotizacion";
 import type {
@@ -469,16 +469,16 @@ export const useEntitiesStore = defineStore("entities", () => {
               text: data.mensaje,
               allowOutsideClick: false,
               confirmButtonText:
-                store.state.modalEntitie == true
+                useAppStore().modalEntitie == true
                   ? "Aceptar"
                   : "Ir al listado",
             }).then((res) => {
               if (res.isConfirmed) {
-                if (store.state.modalEntitie == true) {
-                  store.state.registroClienteFlag =
-                    !store.state.registroClienteFlag;
+                if (useAppStore().modalEntitie == true) {
+                  useAppStore().registroClienteFlag =
+                    !useAppStore().registroClienteFlag;
                   id.value = data.data[0]!.id_entitie;
-                  store.state.modalEntitie = false;
+                  useAppStore().modalEntitie = false;
                 } else {
                   lstProveedor.value = [];
                   router.push({
@@ -828,17 +828,17 @@ export const useEntitiesStore = defineStore("entities", () => {
             text: data.mensaje,
             allowOutsideClick: false,
             confirmButtonText:
-              store.state.modalEntitie == true
+              useAppStore().modalEntitie == true
                 ? "Aceptar"
                 : "Ir al listado",
           }).then((res) => {
             if (res.isConfirmed) {
-              if (store.state.modalEntitie == true) {
+              if (useAppStore().modalEntitie == true) {
                 console.log("ddddd", data.data[0]);
-                store.state.registroClienteFlag =
-                  !store.state.registroClienteFlag;
+                useAppStore().registroClienteFlag =
+                  !useAppStore().registroClienteFlag;
                 id.value = data.data[0]!.id_entitie;
-                store.state.modalEntitie = false;
+                useAppStore().modalEntitie = false;
               } else {
                 lstProveedor.value = [];
                 router.push({

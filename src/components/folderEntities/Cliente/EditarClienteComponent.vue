@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import SeccionCliente from "./SeccionCliente.vue";
 import SeccionTelefonos from "./SeccionTelefonos.vue";
 import SeccionConvenios from "./SeccionConvenios.vue";
@@ -14,7 +14,7 @@ import { useBankStore } from "@/stores/bank";
 
 const props = withDefaults(defineProps<{ houseIdConsigner?: number | null }>(), { houseIdConsigner: null });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -24,41 +24,35 @@ entitiesStore.lstProveedores_x_nombre = [];
 entitiesStore.lstProveedores_x_documento = [];
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   //this.$refs.formProveedor.reset();
   await Promise.all([
-    rootStore.dispatch("_getDocumentsPais"),
+    appStore._getDocumentsPais(),
     masterusuariosStore.cargarMasterDetalleTipoProveedor(),
-    rootStore.dispatch("_getPais"),
+    appStore._getPais(),
     masterusuariosStore.cargarMasterDetalleTipoTransaccion(),
     masterusuariosStore.cargarTipoTelefono(),
-    rootStore.dispatch("_getRole"),
+    appStore._getRole(),
     coinsStore.getCoinsListCargar(),
     bankStore.getBanksListCargar(),
-    rootStore.dispatch("_getSex"),
+    appStore._getSex(),
     masterusuariosStore.cargarTipoPersona(),
-    rootStore.dispatch("_getProveedorRolShipper"),
+    appStore._getProveedorRolShipper(),
     props.houseIdConsigner
       ? entitiesStore.verCliente(props.houseIdConsigner)
       : entitiesStore.verCliente(),
   ]);
-  await rootStore.dispatch("_getState", entitiesStore.cliente.id_pais);
-  await rootStore.dispatch(
-    "_getCity",
-    entitiesStore.informacionEntrega.id_departamento,
-  );
-  await rootStore.dispatch(
-    "_getTown",
-    entitiesStore.informacionEntrega.id_provincia,
-  );
-  rootStore.state.spiner = false;
+  await appStore._getState(entitiesStore.cliente.id_pais);
+  await appStore._getCity(entitiesStore.informacionEntrega.id_departamento);
+  await appStore._getTown(entitiesStore.informacionEntrega.id_provincia);
+  appStore.spiner = false;
 
   entitiesStore.stepper = 1;
   entitiesStore.isEdit = true;
   entitiesStore.isReadonly = false;
   entitiesStore.showBtnSaveFlag = true;
 
-  rootStore.state.mainTitle = `MODIFICAR CLIENTE: CLI`;
+  appStore.mainTitle = `MODIFICAR CLIENTE: CLI`;
 });
 </script>
 

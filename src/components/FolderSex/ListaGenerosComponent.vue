@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useSexStore } from "@/stores/sex";
 import type { ApiResponse } from "@/types/api";
@@ -9,7 +9,7 @@ import type { FiltroSexo, FormSexo, Sexo } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const sexStore = useSexStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -76,7 +76,7 @@ const originalRecords = ref<FiltroSexo>({ ...records.value });
 
 onMounted(async () => {
   await sexStore.fetchDataSex(records.value);
-  rootStore.state.mainTitle = `Género`;
+  appStore.mainTitle = `Género`;
 });
 
 function updateStatus(newValue: unknown) {

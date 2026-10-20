@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 import type { Aerolinea } from "@/types/catalogos";
 
 const airlinesStore = useAirlinesStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const errIATA = ref("");
 const errICAO = ref("");
@@ -150,7 +150,7 @@ async function Limpiar() {
       >
         <v-autocomplete
           label="Pais"
-          :items="rootStore.state.itemsPais"
+          :items="appStore.itemsPais"
           v-model="airlinesStore.AirlineFilter.id_pais"
           item-title="name"
           item-value="id"
@@ -233,7 +233,7 @@ async function Limpiar() {
           <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
           <v-autocomplete
             label="Pais (*)"
-            :items="rootStore.state.itemsPais"
+            :items="appStore.itemsPais"
             v-model="airlinesStore.AirlineModel.id_pais"
             item-title="name"
             item-value="id"

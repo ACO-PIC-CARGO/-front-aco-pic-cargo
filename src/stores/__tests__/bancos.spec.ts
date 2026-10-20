@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import store from "@/store";
+import { useAppStore } from "@/stores/app";
 import { useBancosStore } from "@/stores/bancos";
 import { JSON_HEADERS, URL_MAIN, accepted, httpMock, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
-vi.mock("@/store", () => ({ default: { state: { cuentas_pic: [] }, commit: vi.fn(), dispatch: vi.fn() } }));
 
 describe("bancos store", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
-    store.state.cuentas_pic = [];
+    useAppStore().cuentas_pic = [] as never;
     sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 7 }]));
   });
 
@@ -28,7 +27,7 @@ describe("bancos store", () => {
       headers: JSON_HEADERS,
     });
     expect(bancos.cuentas).toEqual([{ id: 1, label: "BCP" }]);
-    expect(store.state.cuentas_pic).toEqual([{ id: 1, label: "BCP" }]);
+    expect(useAppStore().cuentas_pic).toEqual([{ id: 1, label: "BCP" }]);
   });
 
   test("getListBanksDetailsCargar keeps both lists when the request fails", async () => {
@@ -36,12 +35,12 @@ describe("bancos store", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     const bancos = useBancosStore();
     bancos.cuentas = [{ id: 5 }] as never;
-    store.state.cuentas_pic = [{ id: 6 }];
+    useAppStore().cuentas_pic = [{ id: 6 }] as never;
 
     await bancos.getListBanksDetailsCargar();
 
     expect(bancos.cuentas).toEqual([{ id: 5 }]);
-    expect(store.state.cuentas_pic).toEqual([{ id: 6 }]);
+    expect(useAppStore().cuentas_pic).toEqual([{ id: 6 }]);
   });
 
   test("getValidaNroOp keeps the validation, returns the answer and null when the request fails", async () => {

@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useTypepaymentStore } from "@/stores/typepayment";
 
 const TypePayment = defineAsyncComponent(() => import("../../components/TypePayment/ListTypePaymentComponent.vue"));
 const FilterTypePayment = defineAsyncComponent(() => import("../../components/filtros/FilterTypePayment.vue"));
 
 const typepaymentStore = useTypepaymentStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = `LISTADO DE TIPOS DE PAGO`;
+  appStore.mainTitle = `LISTADO DE TIPOS DE PAGO`;
 });
 </script>
 

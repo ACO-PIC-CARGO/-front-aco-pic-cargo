@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const nuevaProyeccion = defineAsyncComponent(
   () => import("../../components/proyeccion/EditarProyeccionComponent.vue"),
 );
 
 onMounted(() => {
-  rootStore.state.mainTitle = "VER PROYECCIÓN DE GASTOS";
+  appStore.mainTitle = "VER PROYECCIÓN DE GASTOS";
 });
 </script>
 

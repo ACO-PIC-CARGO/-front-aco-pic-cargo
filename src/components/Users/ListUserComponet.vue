@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
 import { useUserStore } from "@/stores/user";
 import type { UsuarioListado } from "@/types/seguridad";
 
 const router = useRouter();
-const rootStore = useStore();
+const appStore = useAppStore();
 const userStore = useUserStore();
 const subscriptionsStore = useSubscriptionsStore();
 
@@ -92,7 +92,7 @@ onMounted(async () => {
   loading.value = !loading.value;
   await userStore.GetListUsers();
   loading.value = !loading.value;
-  await rootStore.dispatch("_getDocumentsPais");
+  await appStore._getDocumentsPais();
 });
 </script>
 

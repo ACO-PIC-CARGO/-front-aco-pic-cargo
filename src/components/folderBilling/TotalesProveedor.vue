@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -9,10 +9,10 @@ import type { ApiResponse } from "@/types/api";
 import type { ConceptoSolicitud, DocumentoProveedor, SolicitudPagoProveedor } from "@/types/billing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
-const actualizar = computed(() => rootStore.state.actualizar);
-const itemsDataConceptos = computed<ConceptoSolicitud[]>(() => rootStore.state.itemsDataConceptos);
+const actualizar = computed(() => appStore.actualizar);
+const itemsDataConceptos = computed<ConceptoSolicitud[]>(() => appStore.itemsDataConceptos);
 
 const dialogSolicitud = ref(false);
 const dialogSolicitudDivision = ref(false);
@@ -216,7 +216,7 @@ async function _setInvoice() {
   await axios(config)
     .then(function (response) {
       itemsInvoice.value = response.data.data;
-      rootStore.dispatch("_getTotalesProveedor");
+      appStore._getTotalesProveedor();
       Swal.fire({
         icon: "success",
         title: "Documento Cargado",
@@ -309,7 +309,7 @@ async function _getAccountsNumber() {
   };
   await axios(config)
     .then(function (response) {
-      rootStore.state.itemsDataAccountsNumberList = response.data.data;
+      appStore.itemsDataAccountsNumberList = response.data.data;
     })
     .catch(function (error) {
       console.error(error);
@@ -442,11 +442,11 @@ async function _generateSolicitud() {
     text: "Por favor espere",
   });
   let sentido;
-  if (rootStore.state.report_id_sentido == "") {
+  if (appStore.report_id_sentido == "") {
     sentido = "";
   } else {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    sentido = rootStore.state.report_id_sentido;
+    sentido = appStore.report_id_sentido;
   }
 
   let pago;
@@ -461,7 +461,7 @@ async function _generateSolicitud() {
   if (selected.value.length > 0) {
     concepto = selected.value;
   } else {
-    concepto = rootStore.state.itemsDataConceptos;
+    concepto = appStore.itemsDataConceptos;
   }
 
   const datas = {
@@ -485,17 +485,17 @@ async function _generateSolicitud() {
     .then(function (response) {
       const data = {
         nameProveedor: nameproveedorLocal.value,
-        nameConsignatario: rootStore.state.dataHouse_consigners,
+        nameConsignatario: appStore.dataHouse_consigners,
         totalPagar: TotalLocal.value,
-        expediente: rootStore.state.dataHouse_exp,
+        expediente: appStore.dataHouse_exp,
         fecha: currentDate(),
-        totalProveedores: rootStore.state.itemsDataTotalesProveedor,
+        totalProveedores: appStore.itemsDataTotalesProveedor,
         comentarios: comentarios.value,
         codigo_pago: codigo_pago.value,
         codigo_master: codigo_master.value,
         cuentas: selectedAccount.value,
-        operador: rootStore.state.dataHouse_operador,
-        conceptos: rootStore.state.itemsDataConceptos,
+        operador: appStore.dataHouse_operador,
+        conceptos: appStore.itemsDataConceptos,
         selected: selected.value,
         totalSelected: total.value,
         number: response.data.data[0].number,
@@ -513,7 +513,7 @@ async function _generateSolicitud() {
 
       axios(config)
         .then(function (response) {
-          rootStore.dispatch("_getTotalesProveedor");
+          appStore._getTotalesProveedor();
           Swal.fire({
             icon: "success",
             title: "PDF Generado",
@@ -548,7 +548,7 @@ function _calcularTotales() {
 
     let calculo = 0;
 
-    rootStore.state.itemsDataConceptos.map((item: ConceptoSolicitud) => {
+    appStore.itemsDataConceptos.map((item: ConceptoSolicitud) => {
       calculo = calculo + parseFloat(String(item.total_op));
 
       total.value = calculo.toFixed(2);
@@ -601,9 +601,9 @@ function _deleteServices(id: number) {
     });
 }
 function _validaData() {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   if (route.params.id_house) {
-    rootStore.state.house_Id_get = route.params.id_house;
+    appStore.house_Id_get = route.params.id_house;
     const data = {
       id: route.params.id_house,
       id_branch: sessionBranchId(),
@@ -619,13 +619,13 @@ function _validaData() {
     };
     axios(config)
       .then(function (response) {
-        rootStore.state.itemsHouseServices = response.data.data;
+        appStore.itemsHouseServices = response.data.data;
       })
       .catch(function (error) {
         console.error(error);
       });
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function _getConceptosSimple() {
   const config = {
@@ -643,7 +643,7 @@ async function _getConceptosSimple() {
   };
   await axios(config)
     .then(function (response) {
-      rootStore.state.itemsDataConceptos = response.data.data;
+      appStore.itemsDataConceptos = response.data.data;
     })
     .catch(function (error) {
       console.error(error);
@@ -665,7 +665,7 @@ async function _getConceptos() {
   };
   await axios(config)
     .then(function (response) {
-      rootStore.state.itemsDataConceptos = response.data.data;
+      appStore.itemsDataConceptos = response.data.data;
       dialogSolicitudDivision.value = !dialogSolicitudDivision.value;
     })
     .catch(function (error) {
@@ -678,7 +678,7 @@ watch(menu, (open) => {
   else date.value = dateOnOpen.value;
 });
 watch(actualizar, () => {
-  rootStore.dispatch("_getTotalesProveedor");
+  appStore._getTotalesProveedor();
 });
 
 onMounted(() => {
@@ -796,7 +796,7 @@ onMounted(() => {
                   v-if="!checkPago"
                   v-model="selectedAccount"
                   :headers="headersAccount"
-                  :items="rootStore.state.itemsDataAccountsNumberList"
+                  :items="appStore.itemsDataAccountsNumberList"
                   hide-default-footer
                   item-value="id"
                   return-object
@@ -960,7 +960,7 @@ onMounted(() => {
           <v-data-table
             v-model="selectedAccount"
             :headers="headersAccount"
-            :items="rootStore.state.itemsDataAccountsNumberList"
+            :items="appStore.itemsDataAccountsNumberList"
             hide-default-footer
             item-value="id"
             return-object
@@ -1362,7 +1362,7 @@ onMounted(() => {
         <tbody>
           <tr
             :style="`background:${item.color}`"
-            v-for="item in rootStore.state.itemsDataTotalesProveedor"
+            v-for="item in appStore.itemsDataTotalesProveedor"
             :key="item.id"
           >
             <td>{{ item.nameproveedor }}</td>

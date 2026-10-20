@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import { useModalityStore } from "@/stores/modality";
 import type { FiltroModalidad, FormModalidad, Modalidad } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
 
 const modalityStore = useModalityStore();
-const rootStore = useStore();
+const appStore = useAppStore();
 
 const headers = [
   { title: "Código", align: "start", key: "code" },
@@ -66,7 +66,7 @@ const originalRecords = ref<FiltroModalidad>({ ...records.value });
 
 onMounted(async () => {
   await modalityStore.fetchDataModality(records.value);
-  rootStore.state.mainTitle = `Modalidad`;
+  appStore.mainTitle = `Modalidad`;
 });
 
 function updateStatus(newValue: unknown) {

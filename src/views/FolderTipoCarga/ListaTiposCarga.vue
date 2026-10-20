@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const ListShipmentComponent = defineAsyncComponent(() => import("@/components/FolderTipoCarga/ListaTiposCargaComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Tipos de Carga";
+  appStore.mainTitle = "Tipos de Carga";
 });
 </script>
 

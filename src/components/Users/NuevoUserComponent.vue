@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { usePositionStore } from "@/stores/position";
 import { useSecuritysStore } from "@/stores/securitys";
@@ -8,7 +8,7 @@ import { useUserStore } from "@/stores/user";
 import type { PosicionListado } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const userStore = useUserStore();
 const positionStore = usePositionStore();
 const securitysStore = useSecuritysStore();
@@ -39,11 +39,11 @@ const frmPosicion = useTemplateRef("frmPosicion");
 const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
 onMounted(async () => {
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   await Promise.all([
-    rootStore.dispatch("_getDocumentsPais"),
-    rootStore.dispatch("_getPais"),
-    rootStore.dispatch("_getSex"),
+    appStore._getDocumentsPais(),
+    appStore._getPais(),
+    appStore._getSex(),
     positionStore.cargarPosition(),
     securitysStore.CargarBranch(),
   ]);
@@ -73,7 +73,7 @@ onMounted(async () => {
   };
   userStore.sucursales = [];
   userStore.positions = [];
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
   frmDatos.value!.resetValidation();
 });
 
@@ -82,30 +82,30 @@ onMounted(async () => {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function validarUser() {
   errUsers.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateUserUsuario())!;
   if (res.estadoflag == true) {
     errUsers.value = res.mensaje;
     userStore.model.users = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function validarEmail() {
   errEmail.value = "";
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   const res = (await userStore.validateEmailUsuario())!;
   if (res.estadoflag == true) {
     errEmail.value = res.mensaje;
     userStore.model.email = "";
   }
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 async function validarDocument() {
   // this.errUsers = "";
   if (!!userStore.model.id_document && !!userStore.model.document) {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     const res = (await userStore.validateDocumentUsuario())!;
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     if (res.estadoflag == true) {
       Swal.fire({
@@ -121,7 +121,7 @@ async function validarDocument() {
         confirmButtonColor: "green",
       }).then(async (respuesta) => {
         if (respuesta.isConfirmed) {
-          rootStore.state.spiner = true;
+          appStore.spiner = true;
           userStore.model.id_entitie = res.data[0]!.id_entitie;
           userStore.model.address = res.data[0]!.address;
           userStore.model.birthday = res.data[0]!.birthday;
@@ -136,17 +136,17 @@ async function validarDocument() {
           userStore.model.socialprincipal = res.data[0]!.socialprincipal;
           userStore.model.socialsecundary = res.data[0]!.socialsecundary;
           userStore.model.surname = res.data[0]!.surname;
-          await rootStore.dispatch("_getState", res.data[0]!.id_pais);
-          await rootStore.dispatch("_getCity", res.data[0]!.id_state);
-          await rootStore.dispatch("_getTown", res.data[0]!.id_city);
-          rootStore.state.spiner = false;
+          await appStore._getState(res.data[0]!.id_pais);
+          await appStore._getCity(res.data[0]!.id_state);
+          await appStore._getTown(res.data[0]!.id_city);
+          appStore.spiner = false;
         }
         if (respuesta.isDismissed) {
           userStore.model.document = "";
         }
       });
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   }
   // if (res.estadoflag == true) {
   //   this.errUsers = res.mensaje;
@@ -179,18 +179,18 @@ async function agregarPosicion() {
 
 async function ObtenerEstados(id_pais: number | string | undefined) {
   loadingEstado.value = true;
-  await rootStore.dispatch("_getState", id_pais);
+  await appStore._getState(id_pais);
 
   loadingEstado.value = false;
 }
 async function ObtenerCity(id_state: number | string | undefined) {
   loadingCity.value = true;
-  await rootStore.dispatch("_getCity", id_state);
+  await appStore._getCity(id_state);
   loadingCity.value = false;
 }
 async function ObtenerDistrito(id_city: number | string | undefined) {
   loadingDistrito.value = true;
-  await rootStore.dispatch("_getTown", id_city);
+  await appStore._getTown(id_city);
   loadingDistrito.value = false;
 }
 
@@ -247,9 +247,9 @@ async function guardarUsuario() {
     //   this.tab = "sucursal";
     //   return false;
     // }
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await userStore.setUsers();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
   } else {
     tab.value = "datos";
   }
@@ -340,7 +340,7 @@ const vNoSpaces = (el: HTMLElement) => {
           <v-row class="align-sm-center">
             <v-col cols="4">
               <v-autocomplete
-                :items="rootStore.state.itemsDocumentsPais"
+                :items="appStore.itemsDocumentsPais"
                 item-title="description"
                 item-value="id"
                 label="Tipo de Documento (*)"
@@ -432,9 +432,8 @@ const vNoSpaces = (el: HTMLElement) => {
           </v-row>
           <v-row>
             <v-col cols="4">
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
-                :items="rootStore.state.itemsSex"
+                :items="appStore.itemsSex"
                 item-title="name"
                 item-value="id"
                 label="Sexo (*)"
@@ -447,7 +446,7 @@ const vNoSpaces = (el: HTMLElement) => {
               <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Pais (*)"
-                :items="rootStore.state.itemsPais"
+                :items="appStore.itemsPais"
                 v-model="userStore.model.id_pais"
                 item-title="name"
                 item-value="id"
@@ -460,10 +459,9 @@ const vNoSpaces = (el: HTMLElement) => {
               cols="4"
               v-if="userStore.model.id_pais"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Estado (Región)"
-                :items="rootStore.state.itemsState"
+                :items="appStore.itemsState"
                 v-model="userStore.model.id_state"
                 item-title="name"
                 item-value="id"
@@ -476,10 +474,9 @@ const vNoSpaces = (el: HTMLElement) => {
               cols="4"
               v-if="userStore.model.id_state"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Ciudad"
-                :items="rootStore.state.itemsCity"
+                :items="appStore.itemsCity"
                 v-model="userStore.model.id_city"
                 item-title="name"
                 item-value="id"
@@ -492,10 +489,9 @@ const vNoSpaces = (el: HTMLElement) => {
               cols="4"
               v-if="userStore.model.id_city"
             >
-              <!-- @vue-expect-error the root state items are untyped until the Vuex store is typed -->
               <v-autocomplete
                 label="Distrito"
-                :items="rootStore.state.itemsTown"
+                :items="appStore.itemsTown"
                 v-model="userStore.model.id_town"
                 item-title="name"
                 item-value="id"

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import listControlGastosCom from "@/components/folderBilling/ListadoFacturacion.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "LISTA DE FACTURAS";
+  appStore.mainTitle = "LISTA DE FACTURAS";
 });
 </script>
 

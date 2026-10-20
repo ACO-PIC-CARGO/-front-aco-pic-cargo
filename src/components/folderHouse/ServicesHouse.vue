@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
@@ -13,7 +13,7 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const componentProps = defineProps<{ isFormActionsDisabled?: boolean }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
 
@@ -33,7 +33,7 @@ function abrirModalConfirmaTelex() {
   dialogConfirmarTelex.value = true;
 }
 async function confirmarTelex() {
-  const { telexconfirmado: telexconfirmadoActual, fechaconfirmaciontelex: fechaconfirmaciontelexActual } = rootStore.state;
+  const { telexconfirmado: telexconfirmadoActual, fechaconfirmaciontelex: fechaconfirmaciontelexActual } = housesStore;
   if (!telexconfirmado) {
     fechaconfirmaciontelex.value = false;
   }
@@ -55,16 +55,16 @@ async function confirmarTelex() {
     });
     return;
   }
-  rootStore.state.spiner = true;
+  appStore.spiner = true;
   loading.value = true;
   await housesStore.setConfirmarTelex({
     id: route.params.id,
-    telexconfirmado: rootStore.state.telexconfirmado,
-    fechaconfirmaciontelex: rootStore.state.fechaconfirmaciontelex,
+    telexconfirmado: housesStore.telexconfirmado,
+    fechaconfirmaciontelex: housesStore.fechaconfirmaciontelex,
   });
   loading.value = false;
   dialogConfirmarTelex.value = false;
-  rootStore.state.spiner = false;
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getDisabledPropServiceStatus(index: number | string) {
@@ -199,7 +199,7 @@ function _editServices(id: number, status: number) {
 }
 async function _validaData() {
   if (route.params.id) {
-    rootStore.state.house_Id_get = route.params.id;
+    appStore.house_Id_get = route.params.id;
     const data = {
       id: route.params.id,
       id_branch: sessionBranchId(),
@@ -245,10 +245,10 @@ async function _validaData() {
             lstServices.push(itemImpuestos);
           }
 
-          rootStore.state.itemsHouseServices =
+          appStore.itemsHouseServices =
             _sortServicesByName(lstServices);
         } else {
-          rootStore.state.itemsHouseServices = [];
+          appStore.itemsHouseServices = [];
         }
       })
       .catch(function (error) {
@@ -257,12 +257,12 @@ async function _validaData() {
   }
 }
 function showModalServices() {
-  rootStore.state.modalServices_manualMode = false;
+  housesStore.modalServices_manualMode = false;
   if (
-    (!rootStore.state.house_cotizacion &&
-      !rootStore.state.itemsHouseServices.length) ||
-    (!rootStore.state.house_incoterms &&
-      !rootStore.state.itemsHouseServices.length)
+    (!housesStore.house_cotizacion &&
+      !appStore.itemsHouseServices.length) ||
+    (!housesStore.house_incoterms &&
+      !appStore.itemsHouseServices.length)
   ) {
     Swal.fire({
       icon: "question",
@@ -283,23 +283,23 @@ function showModalServices() {
           confirmButtonColor: "#4CAF50",
           allowOutsideClick: false,
         }).then(async () => {
-          if (rootStore.state.house_incoterms) {
-            rootStore.state.spiner = true;
+          if (housesStore.house_incoterms) {
+            appStore.spiner = true;
 
             await _getServicesByIncoterms(
-              rootStore.state.house_sentido,
-              rootStore.state.house_id_trasnport,
-              rootStore.state.house_incoterms,
+              housesStore.house_sentido as number,
+              housesStore.house_id_trasnport as number,
+              housesStore.house_incoterms as number,
             );
 
-            rootStore.state.spiner = false;
+            appStore.spiner = false;
           }
         });
       }
     });
   } else {
-    if (rootStore.state.itemsHouseServices.length) {
-      rootStore.state.modalServices_manualMode = true;
+    if (appStore.itemsHouseServices.length) {
+      housesStore.modalServices_manualMode = true;
     }
   }
 }
@@ -328,20 +328,20 @@ function _sortServicesByName(list: ServicioHouse[]) {
   return sorted;
 }
 function deleteService(index: number | string) {
-  rootStore.state.itemsHouseServices.splice(index, 1);
+  appStore.itemsHouseServices.splice(index as number, 1);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _activePort(id_transport: number) {
-  await rootStore.dispatch("_getPortBegin", { id_transport: id_transport });
-  await rootStore.dispatch("_getPortEnd", { id_transport: id_transport });
-  if (rootStore.state.master_id_trasnport.id == 1) {
-    rootStore.state.embar_title_nacn = "Aerolinea";
-  } else if (rootStore.state.master_id_trasnport.id == 2) {
-    rootStore.state.embar_title_nacn = "Naviera";
-  } else if (rootStore.state.master_id_trasnport.id == 3) {
-    rootStore.state.embar_title_nacn = "Coloader";
+  await appStore._getPortBegin({ id_transport: id_transport });
+  await appStore._getPortEnd({ id_transport: id_transport });
+  if (appStore.master_id_trasnport.id == 1) {
+    appStore.embar_title_nacn = "Aerolinea";
+  } else if (appStore.master_id_trasnport.id == 2) {
+    appStore.embar_title_nacn = "Naviera";
+  } else if (appStore.master_id_trasnport.id == 3) {
+    appStore.embar_title_nacn = "Coloader";
   } else {
-    rootStore.state.embar_title_nacn = "Aerolinea/Coloader/Naviera";
+    appStore.embar_title_nacn = "Aerolinea/Coloader/Naviera";
   }
 }
 async function _getServicesByIncoterms(
@@ -394,10 +394,10 @@ async function _getServicesByIncoterms(
           lstServices.push(itemImpuestos);
         }
 
-        rootStore.state.itemsHouseServices =
+        appStore.itemsHouseServices =
           _sortServicesByName(lstServices);
       } else {
-        rootStore.state.itemsHouseServices = [];
+        appStore.itemsHouseServices = [];
 
         Swal.fire({
           icon: "error",
@@ -410,15 +410,15 @@ async function _getServicesByIncoterms(
     });
 }
 
-watch(() => rootStore.state.itemsHouseServices, (newValue) => {
+watch(() => appStore.itemsHouseServices, (newValue) => {
   newValue.forEach((item: ServicioHouse) => {
     logNameService(item);
   });
 }, { deep: true });
-watch(() => rootStore.state.telexconfirmado, () => {
+watch(() => housesStore.telexconfirmado, () => {
   mostrarBtnTelex.value = true;
-  if (!rootStore.state.telexconfirmado) {
-    rootStore.state.fechaconfirmaciontelex = null;
+  if (!housesStore.telexconfirmado) {
+    housesStore.fechaconfirmaciontelex = null;
   }
 });
 
@@ -480,7 +480,7 @@ onMounted(async () => {
         <tbody>
           <tr
             :style="`background:${item.color}`"
-            v-for="(item, index) in rootStore.state.itemsHouseServices"
+            v-for="(item, index) in appStore.itemsHouseServices"
             :key="item.id"
           >
             <!-- <td>{{ item.namebegend }}</td> -->
@@ -554,19 +554,19 @@ onMounted(async () => {
                 </template>
                 <v-list>
                   <v-list-item
-                    @click="_editServices(item.id, 1)"
+                    @click="_editServices(item.id!, 1)"
                     link
                   >
                     <v-list-item-title>SI</v-list-item-title>
                   </v-list-item>
                   <v-list-item
-                    @click="_editServices(item.id, 0)"
+                    @click="_editServices(item.id!, 0)"
                     link
                   >
                     <v-list-item-title>NO</v-list-item-title>
                   </v-list-item>
                   <v-list-item
-                    @click="_editServices(item.id, 2)"
+                    @click="_editServices(item.id!, 2)"
                     link
                   >
                     <v-list-item-title>NO APLICA</v-list-item-title>
@@ -613,7 +613,7 @@ onMounted(async () => {
             md="6"
           >
             <v-text-field
-              v-model="rootStore.state.house_nro_declaracion_aduana"
+              v-model="housesStore.house_nro_declaracion_aduana"
               label="N° Declaración de Aduana"
               prepend-icon="mdi-file-document-outline"
               :disabled="isFormActionsDisabled"
@@ -627,7 +627,7 @@ onMounted(async () => {
             md="6"
           >
             <v-text-field
-              v-model="rootStore.state.house_canal_aduana"
+              v-model="housesStore.house_canal_aduana"
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               :disabled="isFormActionsDisabled"
@@ -647,16 +647,16 @@ onMounted(async () => {
         <v-row>
           <v-col cols="3">
             <v-switch
-              :label="rootStore.state.telexconfirmado ? 'Si' : 'No'"
-              v-model="rootStore.state.telexconfirmado"
+              :label="housesStore.telexconfirmado ? 'Si' : 'No'"
+              v-model="housesStore.telexconfirmado"
             />
           </v-col>
           <v-col cols="9">
             <FormatFecha
-              v-if="rootStore.state.telexconfirmado"
+              v-if="housesStore.telexconfirmado"
               :outlined="true"
               label="Fecha de confirmación"
-              v-model="rootStore.state.fechaconfirmaciontelex"
+              v-model="housesStore.fechaconfirmaciontelex"
               :clearable="true"
             />
           </v-col>
@@ -697,7 +697,7 @@ onMounted(async () => {
             <v-select
               item-title="text"
               :items="cboConfirmaTelex"
-              v-model="rootStore.state.telexconfirmado"
+              v-model="housesStore.telexconfirmado"
               label="Estado del documento"
               variant="outlined"
               density="compact"
@@ -706,7 +706,7 @@ onMounted(async () => {
               :outlined="true"
               :dense="true"
               label="Fecha de confirmación"
-              v-model="rootStore.state.fechaconfirmaciontelex"
+              v-model="housesStore.fechaconfirmaciontelex"
               :clearable="true"
             />
           </v-form>

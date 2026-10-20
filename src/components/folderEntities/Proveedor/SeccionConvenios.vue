@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import moment from "moment";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ConvenioEntidad, TarifaEntidad } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const filesStore = useFilesStore();
 const entitiesStore = useEntitiesStore();
 
@@ -226,9 +226,9 @@ async function modificarProveedor() {
       text: "Por favor complete todos los campos requeridos en Convenios y Tarifas",
     });
   } else {
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     await entitiesStore.actualizarProveedor();
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;

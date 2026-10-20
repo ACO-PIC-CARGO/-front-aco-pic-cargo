@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 
 const ListDocumentsComponent = defineAsyncComponent(() => import("@/components/FolderDocument/ListaDocumentosComponent.vue"));
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "TIPO DE DOCUMENTOS";
+  appStore.mainTitle = "TIPO DE DOCUMENTOS";
 });
 </script>
 

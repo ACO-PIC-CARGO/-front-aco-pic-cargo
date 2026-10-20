@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useTownStore } from "@/stores/town";
 import { useCalculadorasStore } from "@/stores/calculadoras";
@@ -11,7 +11,7 @@ import type { Servicio } from "@/types/cotizacion";
 withDefaults(defineProps<{ mostrarBtn?: boolean }>(), { mostrarBtn: true });
 const emit = defineEmits<{ activarLlenadoCostos: []; recargarCostos: [] }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 const townStore = useTownStore();
@@ -33,7 +33,7 @@ const categoriasConfig = [
 ];
 const errorIdTown = ref("");
 
-const isEmpresaPermitida = computed<boolean>(() => rootStore.getters.isEmpresaPermitida);
+const isEmpresaPermitida = computed(() => appStore.isEmpresaPermitida);
 const iddestino = computed(() => pricingStore.datosPrincipales.iddestino);
 // Two-way bindings para propiedades de Vuex usando getters/setters computados
 const amountModel = computed({

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import ServiciosTarifasComponent from "@/components/FolderPlantillas/ServiciosTarifasComponent.vue";
 import EditarTarifasComponent from "@/components/FolderPlantillas/EditarTarifasComponent.vue";
 import { usePricingStore } from "@/stores/pricing";
 
 const route = useRoute();
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const spinnerView = appStore as typeof appStore & { spinner?: boolean };
 
 const componentKey = ref(0);
 
@@ -17,16 +18,16 @@ const modoEditar = computed(() => {
 });
 
 onMounted(async () => {
-  if (rootStore.state.spinner !== undefined) {
-    rootStore.state.spinner = true;
+  if (spinnerView.spinner !== undefined) {
+    spinnerView.spinner = true;
   }
   await Promise.all([
     pricingStore.getModality(),
     pricingStore.getShipment(),
-    rootStore.dispatch("_getProveedor"),
+    appStore._getProveedor(),
   ]);
-  if (rootStore.state.spinner !== undefined) {
-    rootStore.state.spinner = false;
+  if (spinnerView.spinner !== undefined) {
+    spinnerView.spinner = false;
   }
 });
 watch(() => route.query, () => {

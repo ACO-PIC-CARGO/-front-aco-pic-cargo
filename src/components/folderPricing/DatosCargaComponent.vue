@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useAduanaStore } from "@/stores/aduana";
@@ -35,7 +35,7 @@ const emit = defineEmits<{
   activarServicios: [];
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
@@ -648,7 +648,7 @@ async function anadirCarga() {
     const puertoDestino = pricingStore.listPortEnd.find(
       (v) => v.id_port == datos.iddestino,
     );
-    rootStore.state.spiner = true;
+    appStore.spiner = true;
     if (!!datos.idorigen && !!datos.iddestino) {
       await calculadorasStore.obtenerFleteCalculadora({
         shipment: shipment!.code,
@@ -658,7 +658,7 @@ async function anadirCarga() {
         peso: datos.peso,
       });
     }
-    rootStore.state.spiner = false;
+    appStore.spiner = false;
     const { esgrupalflag, esindividualflag } = datos;
     cambiarMontosACero({ esgrupalflag, esindividualflag });
     frmDatosCarga.value!.reset();
@@ -1251,7 +1251,7 @@ function confirmarSeleccionDistrito() {
                 variant="outlined"
                 density="compact"
                 class="my-1"
-                :items="rootStore.state.itemsProveedorList"
+                :items="appStore.itemsProveedorList"
                 item-title="namelong"
                 item-value="id"
                 v-model="pricingStore.datosPrincipales.id_proveedor"
@@ -1554,7 +1554,7 @@ function confirmarSeleccionDistrito() {
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
             <v-select
-              :items="rootStore.state.itemsContainers"
+              :items="appStore.itemsContainers"
               v-model="containers.container"
               label="Container"
               item-title="name"

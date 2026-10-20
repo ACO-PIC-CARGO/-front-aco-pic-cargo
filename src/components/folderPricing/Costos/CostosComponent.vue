@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import type { Ref } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import NuevoProveedorComponentVue from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
@@ -20,7 +20,7 @@ const props = defineProps<{
   recargarSegmentos?: boolean;
 }>();
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const proveedorStore = useProveedorStore();
 const entitiesStore = useEntitiesStore();
@@ -225,7 +225,7 @@ const tipoOpcion = computed(() => {
 async function nuevoProveedor() {
   const res = await entitiesStore.guardarProveedor();
   if (!!res.estadoflag) {
-    await rootStore.dispatch("cargarProveedores");
+    await appStore.cargarProveedores();
     costo.value.id_proveedor = res.data![0]!.id_entitie;
     dialogNuevoProveedor.value = false;
   }

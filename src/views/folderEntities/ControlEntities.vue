@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import controlEntitiesCom from "@/components/folderEntities/ControlEntities.vue";
 
-const rootStore = useStore();
+const appStore = useAppStore();
 
 onMounted(() => {
-  rootStore.state.mainTitle = "Datos Generales de la Entidad";
+  appStore.mainTitle = "Datos Generales de la Entidad";
 });
 </script>
 

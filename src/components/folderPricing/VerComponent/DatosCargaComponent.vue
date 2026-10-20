@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
-import { useStore } from "vuex";
+import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
@@ -12,7 +12,7 @@ withDefaults(defineProps<{ mostrarproveedor?: boolean }>(), {
   mostrarproveedor: true,
 });
 
-const rootStore = useStore();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -64,7 +64,7 @@ const pesoCargable = computed(() => {
 });
 
 onMounted(async () => {
-  await rootStore.dispatch("_getContainers");
+  await appStore._getContainers();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -146,10 +146,10 @@ async function aceptar() {
       }
     }
     if (validate) {
-      rootStore.state.spiner = true;
+      appStore.spiner = true;
       await pricingStore.getItemsServices();
       await pricingStore.getMultiplicador();
-      rootStore.state.spiner = false;
+      appStore.spiner = false;
       pricingStore.step3 = true;
     }
     //
@@ -239,7 +239,7 @@ function mostrarComboPercepcionAduana() {
                 variant="outlined"
                 density="compact"
                 class="my-1"
-                :items="rootStore.state.itemsProveedorList"
+                :items="appStore.itemsProveedorList"
                 item-title="namelong"
                 item-value="id"
                 readonly
@@ -431,7 +431,7 @@ function mostrarComboPercepcionAduana() {
           <!-- {{ $store.state.itemsContainers }} -->
           <v-form ref="frmContainer">
             <v-select
-              :items="rootStore.state.itemsContainers"
+              :items="appStore.itemsContainers"
               v-model="containers.container"
               label="Container"
               item-title="name"
