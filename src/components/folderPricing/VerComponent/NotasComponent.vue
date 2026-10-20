@@ -11,7 +11,7 @@ import type {
 } from "@/types/cotizacion";
 
 const previewCotizacion = defineAsyncComponent(() =>
-  import("@/components/folderPricing/previewQuote.vue"));
+  import("@/components/folderPricing/PreviewQuote.vue"));
 const EnviarCotizacionWhatsapp = defineAsyncComponent(() =>
   import("@/components/comun/EnviarCotizacionWhatsapp.vue"));
 

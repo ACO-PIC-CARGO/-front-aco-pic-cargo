@@ -386,7 +386,7 @@ import { usePricingStore } from "@/stores/pricing";
 export default {
   components: {
     previewCotizacion: defineAsyncComponent(() =>
-      import("@/components/folderPricing/previewQuote.vue")),
+      import("@/components/folderPricing/PreviewQuote.vue")),
   },
   data() {
     return {

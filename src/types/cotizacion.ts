@@ -593,6 +593,52 @@ export interface FiltrosReporte {
 
 export type DatosPrevisualizacion = Record<string, unknown>;
 
+export interface OpcionVistaPrevia {
+  date_end?: string | null;
+  tiempo_transito?: number | string;
+  totalFlete: string;
+  datosFlete: LineaReporte[];
+  totalOrigen: string;
+  datosOrigen: LineaReporte[];
+  totalLocales: string;
+  datosLocales: LineaReporte[];
+  totalAduanas: string;
+  datosAduanas: LineaReporte[];
+  totalAlmacenes: string;
+  datosAlmacenes: LineaReporte[];
+  totalGastosTercero: string;
+  datosGastosTercero: LineaReporte[];
+  conceptos: { name?: string }[];
+  totalServicios: string;
+  impuesto: ImpuestoReporte[];
+  totalImpuesto: string;
+  totalImpuestosIGV: string;
+  total: string;
+  listServices: Servicio[];
+  listNotasQuote: Nota[];
+}
+
+export interface VistaPreviaCotizacion {
+  tipo?: string;
+  isImport?: boolean;
+  iso?: string | number;
+  cliente?: string;
+  origen?: string;
+  destino?: string;
+  sentido?: string;
+  embarque?: string;
+  icoterm?: string;
+  numerobultos?: Numerico;
+  peso?: Numerico;
+  volumen?: Numerico;
+  TipoCostos: { name?: string; codigo?: string }[];
+  flete?: EstadoServicioReporte[];
+  almacen?: EstadoServicioReporte[];
+  aduana?: EstadoServicioReporte[];
+  local?: EstadoServicioReporte[];
+  OpcionesSelecciondas: OpcionVistaPrevia[];
+}
+
 export interface AprobacionCotizacion {
   IdempotencyKey?: string;
   nuevoexpediente?: boolean;
