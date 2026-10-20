@@ -268,6 +268,13 @@ export interface ConceptoProfitPricing {
   price?: number | string | null;
 }
 
+export interface DetalleLlamada {
+  id?: number;
+  fecha?: string;
+  notes?: string;
+  namelong?: string;
+}
+
 export interface CotizacionListado {
   id?: number;
   index?: number;
@@ -278,7 +285,27 @@ export interface CotizacionListado {
   nombres?: string;
   statusquote?: number;
   status?: string;
-  aprobadoflag?: boolean;
+  status_code?: number | string;
+  statusmain?: number | string;
+  aprobadoflag?: boolean | string | number;
+  created?: string;
+  pricing?: string;
+  ejecutivo_ventas?: string;
+  telefono?: string;
+  sentido?: string;
+  tipo_de_carga?: string;
+  incoterms?: string;
+  origen?: string;
+  destino?: string;
+  marketing?: string;
+  id_marketing?: number | string;
+  idmarketing?: number | string;
+  idMarketing?: number | string;
+  fechaemisionpdf?: string;
+  id_master_recibidocotizacion?: number | string;
+  id_master_enviadocliente?: number | string;
+  fecha_enviocliente?: string;
+  details?: DetalleLlamada[];
 }
 
 export interface LlamadaCotizacion {
@@ -287,6 +314,46 @@ export interface LlamadaCotizacion {
   codigo?: string;
   cliente?: string;
   status?: string;
+  created_at?: string;
+  fecha_ultima_llamada?: string;
+  ultimo_comentario?: string;
+  ejecutivo_pricing?: string;
+  ejecutivo_ventas?: string;
+  telefono?: string;
+  sentido?: string;
+  tipo_de_carga?: string;
+  incoterms?: string;
+  origen?: string;
+  destino?: string;
+  marketing?: string;
+  fechaemisionpdf?: string;
+}
+
+export interface HouseListado {
+  id: number;
+  id_cot?: number | string | null;
+  code_house?: string;
+  code_master?: string;
+  nro_house?: string;
+  nro_hbl?: string;
+  nameconsigner?: string;
+  nameportbegin?: string;
+  nameportend?: string;
+}
+
+export interface HouseDisponible {
+  id: number;
+  codigo: string;
+  master: string;
+  cliente: string;
+  origen: string;
+  destino: string;
+}
+
+export interface FormNotaLlamada {
+  date: string;
+  descripcion: string;
+  identities: number | string;
 }
 
 export interface ResumenEstadoCotizacion {
@@ -406,15 +473,21 @@ export interface ServicioInstructivo {
 
 export interface FiltroCotizaciones {
   fechainicio: string;
+  fechadesde?: string;
   fechafin: string;
-  tipopdf: number;
+  fechaemisiondesde?: string | null;
+  fechaemisionhasta?: string | null;
+  tipopdf?: number;
+  id_cliente?: number | string | null;
+  id_pricing?: number | string | null;
   id_entities?: number | string | null;
   id_marketing?: number | string | null;
   id_status?: number | string | null;
   id_modality?: number | string | null;
   id_shipment?: number | string | null;
   id_incoterm?: number | string | null;
-  estado?: string | null;
+  id_masterdetalletemperaturaventa?: number | string | null;
+  estado?: string | boolean | null;
 }
 
 export interface CotizacionHouse {

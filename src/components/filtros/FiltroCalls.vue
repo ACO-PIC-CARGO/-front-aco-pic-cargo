@@ -1,8 +1,139 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { useStore } from "vuex";
+import FormatFecha from "../comun/FormatFecha.vue";
+import moment from "moment";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { usePricingStore } from "@/stores/pricing";
+
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+const masterusuariosStore = useMasterusuariosStore();
+
+const errorFiltroFecha = ref("");
+
+function validarFiltroFechas() {
+  errorFiltroFecha.value = "";
+
+  const filtro = pricingStore.filtroCalls;
+
+  // Normalizar fechas: detectar valores vacíos o inválidos
+  const tieneFecha = (fecha: unknown) => {
+    if (fecha === null || fecha === undefined) {
+      return false;
+    }
+
+    const valor = String(fecha).trim().toLowerCase();
+
+    return (
+      valor !== "" &&
+      valor !== "null" &&
+      valor !== "undefined" &&
+      valor !== "invalid date"
+    );
+  };
+
+  const creacionDesde = tieneFecha(filtro.fechainicio);
+  const creacionHasta = tieneFecha(filtro.fechafin);
+
+  const envioDesde = tieneFecha(filtro.fechaemisiondesde);
+  const envioHasta = tieneFecha(filtro.fechaemisionhasta);
+
+  // 1. No permitir mezclar creación y envío
+  if ((creacionDesde || creacionHasta) && (envioDesde || envioHasta)) {
+    errorFiltroFecha.value = "Solo 1 tipo de fecha: Creación o envío.";
+
+    return false;
+  }
+
+  // 2. Obligatoriamente debe existir un rango completo
+  if (!creacionDesde && !creacionHasta && !envioDesde && !envioHasta) {
+    errorFiltroFecha.value =
+      "Debes seleccionar un rango de fechas: Creación o de envío.";
+
+    return false;
+  }
+
+  // 3. Validar rango de creación
+  if (creacionDesde && !creacionHasta) {
+    errorFiltroFecha.value = "Debes seleccionar la Fecha Creación Hasta.";
+
+    return false;
+  }
+
+  if (!creacionDesde && creacionHasta) {
+    errorFiltroFecha.value = "Debes seleccionar la Fecha Creación Desde.";
+
+    return false;
+  }
+
+  // 4. Validar rango de envío
+  if (envioDesde && !envioHasta) {
+    errorFiltroFecha.value =
+      "Debes seleccionar la Fecha Envío Cliente Hasta.";
+
+    return false;
+  }
+
+  if (!envioDesde && envioHasta) {
+    errorFiltroFecha.value =
+      "Debes seleccionar la Fecha Envío Cliente Desde.";
+
+    return false;
+  }
+
+  // 5. Todas las validaciones pasaron
+  return true;
+}
+async function filtrar() {
+  if (!validarFiltroFechas()) return;
+  rootStore.state.spiner = true;
+  await pricingStore.getQuoteCall(pricingStore.filtroCalls);
+  pricingStore.filtrarCallsFlag = false;
+  rootStore.state.spiner = false;
+}
+async function limpiar() {
+  rootStore.state.spiner = true;
+  pricingStore.filtroCalls.id_marketing = null;
+  pricingStore.filtroCalls.id_status = null;
+  pricingStore.filtroCalls.id_entities = null;
+  pricingStore.filtroCalls.id_modality = null;
+  pricingStore.filtroCalls.id_shipment = null;
+  pricingStore.filtroCalls.id_incoterm = null;
+  pricingStore.filtroCalls.fechaemisiondesde = null;
+  pricingStore.filtroCalls.fechaemisionhasta = null;
+  pricingStore.filtroCalls.fechafin =
+    moment().format("YYYY-01-01");
+  pricingStore.filtroCalls.fechafin = moment()
+    .endOf("month")
+    .format("YYYY-MM-DD");
+  pricingStore.filtroCalls.estado = true;
+  await pricingStore.getQuoteCall(pricingStore.filtroCalls);
+  pricingStore.filtrarCallsFlag = false;
+  rootStore.state.spiner = false;
+}
+onMounted(async () => {
+  // await this.getMarketingList();
+  // await this.getModulesEntities();
+  // await this.getQuoteStatus();
+  // await this.getModality();
+  // await this.getShipment();
+  // await this.getIncoterms();
+});
+</script>
+
 <template>
-  <v-card elevation="1" class="clsCardFiltro">
-    <v-card-title class="d-flex align-center flex-wrap" primary-title>
-      Filtrar Cotización <v-spacer></v-spacer>
-      <v-btn variant="text"
+  <v-card
+    elevation="1"
+    class="clsCardFiltro"
+  >
+    <v-card-title
+      class="d-flex align-center flex-wrap"
+      primary-title
+    >
+      Filtrar Cotización <v-spacer />
+      <v-btn
+        variant="text"
         icon
         color="default"
         @click="
@@ -17,20 +148,27 @@
       <v-form ref="frmFiltro">
         <v-container>
           <v-row>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 label="Cliente"
                 density="compact"
-                :items="$store.state.clientes"
+                :items="rootStore.state.clientes"
                 item-title="namelong"
                 item-value="id"
                 placeholder="Clientes"
                 v-model="pricingStore.filtroCalls.id_cliente"
                 clearable
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listMarketing"
                 label="Tipo de Marketing"
@@ -39,9 +177,13 @@
                 item-value="id"
                 v-model="pricingStore.filtroCalls.id_marketing"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listQuoteStatus"
                 label="Estado de la Cotización"
@@ -50,9 +192,13 @@
                 item-value="id"
                 v-model="pricingStore.filtroCalls.id_status"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listEjecutivo"
                 label="Pricing."
@@ -61,9 +207,13 @@
                 item-value="id_entitie"
                 v-model="pricingStore.filtroCalls.id_pricing"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listEjecutivo"
                 label="Ejecutivo."
@@ -72,9 +222,13 @@
                 item-value="id_entitie"
                 v-model="pricingStore.filtroCalls.id_entities"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listModality"
                 label="Sentido"
@@ -83,9 +237,13 @@
                 item-title="name"
                 item-value="id"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listShipment"
                 label="Carga*"
@@ -94,10 +252,13 @@
                 item-value="id"
                 v-model="pricingStore.filtroCalls.id_shipment"
                 clearable
-              >
-              </v-autocomplete>
+              />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="pricingStore.listIncoterms"
                 label="Incoterm*"
@@ -106,10 +267,14 @@
                 item-value="id"
                 v-model="pricingStore.filtroCalls.id_incoterm"
                 clearable
-              ></v-autocomplete>
+              />
             </v-col>
 
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <v-autocomplete
                 :items="masterusuariosStore.lstTemperatura"
                 v-model="
@@ -122,18 +287,18 @@
                 clearable
                 label="Temperatura de Lead"
               >
-                <template v-slot:item="{ item, props }">
+                <template #item="{ item, props }">
                   <v-list-item v-bind="props">
-                    <template v-slot:prepend>
+                    <template #prepend>
                       <span
                         class="d-inline-block"
                         :style="{
                           backgroundColor: item.codigo,
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                    }"
-                      ></span>
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                        }"
+                      />
                     </template>
                   </v-list-item>
                 </template>
@@ -143,14 +308,18 @@
 
           <v-row>
             <v-col cols="12">
-              <v-divider></v-divider>
+              <v-divider />
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="12">
               <b>Filtro Fechas:</b>
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Desde"
@@ -159,7 +328,11 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <FormatFecha
                 :dense="true"
                 label="Fecha Envío Cliente Hasta"
@@ -168,7 +341,11 @@
               />
             </v-col>
 
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <FormatFecha
                 :dense="true"
                 label="Fecha Creación Desde"
@@ -177,7 +354,11 @@
                 clearable
               />
             </v-col>
-            <v-col cols="12" md="6" class="py-1">
+            <v-col
+              cols="12"
+              md="6"
+              class="py-1"
+            >
               <FormatFecha
                 :dense="true"
                 label="Fecha Creación Hasta"
@@ -186,11 +367,17 @@
                 clearable
               />
             </v-col>
-            <v-col cols="12" v-if="errorFiltroFecha">
-              <v-alert density="compact" style="background: #ffcdd2; color: #b71c1c">
+            <v-col
+              cols="12"
+              v-if="errorFiltroFecha"
+            >
+              <v-alert
+                density="compact"
+                style="background: #ffcdd2; color: #b71c1c"
+              >
                 <b>{{ errorFiltroFecha }}</b>
               </v-alert>
-              <span> </span>
+              <span />
             </v-col>
 
             <!-- <v-col cols="12">
@@ -204,7 +391,7 @@
 
           <v-row>
             <v-col cols="12">
-              <v-divider></v-divider>
+              <v-divider />
             </v-col>
           </v-row>
           <v-row>
@@ -215,12 +402,12 @@
                   label="Reporte por Estatus"
                   color="green"
                   :value="1"
-                ></v-radio>
+                />
                 <v-radio
                   label="Reporte por Vendedor"
                   color="green"
                   :value="2"
-                ></v-radio>
+                />
               </v-radio-group>
             </v-col>
           </v-row>
@@ -228,144 +415,23 @@
       </v-form>
     </v-card-text>
     <v-card-actions>
-      <v-spacer></v-spacer>
-      <v-btn class="mx-1" color="success" @click="filtrar()">Filtrar</v-btn>
-      <v-btn class="mx-1" color="default" @click="limpiar()">Limpiar</v-btn>
+      <v-spacer />
+      <v-btn
+        class="mx-1"
+        color="success"
+        @click="filtrar()"
+      >
+        Filtrar
+      </v-btn>
+      <v-btn
+        class="mx-1"
+        color="default"
+        @click="limpiar()"
+      >
+        Limpiar
+      </v-btn>
     </v-card-actions>
   </v-card>
 </template>
-
-<script>
-import FormatFecha from "../comun/FormatFecha.vue";
-import moment from "moment";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  components: {
-    FormatFecha,
-  },
-  data() {
-    return {
-      errorFiltroFecha: "",
-    };
-  },
-  computed: {
-    ...mapStores(usePricingStore, useMasterusuariosStore),
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["getMarketingList", "getModulesEntities", "getQuoteStatus", "getModality", "getShipment", "getIncoterms", "getListQuote", "getQuoteCall"]),
-
-    validarFiltroFechas() {
-      this.errorFiltroFecha = "";
-
-      const filtro = this.pricingStore.filtroCalls;
-
-      // Normalizar fechas: detectar valores vacíos o inválidos
-      const tieneFecha = (fecha) => {
-        if (fecha === null || fecha === undefined) {
-          return false;
-        }
-
-        const valor = String(fecha).trim().toLowerCase();
-
-        return (
-          valor !== "" &&
-          valor !== "null" &&
-          valor !== "undefined" &&
-          valor !== "invalid date"
-        );
-      };
-
-      const creacionDesde = tieneFecha(filtro.fechainicio);
-      const creacionHasta = tieneFecha(filtro.fechafin);
-
-      const envioDesde = tieneFecha(filtro.fechaemisiondesde);
-      const envioHasta = tieneFecha(filtro.fechaemisionhasta);
-
-      // 1. No permitir mezclar creación y envío
-      if ((creacionDesde || creacionHasta) && (envioDesde || envioHasta)) {
-        this.errorFiltroFecha = "Solo 1 tipo de fecha: Creación o envío.";
-
-        return false;
-      }
-
-      // 2. Obligatoriamente debe existir un rango completo
-      if (!creacionDesde && !creacionHasta && !envioDesde && !envioHasta) {
-        this.errorFiltroFecha =
-          "Debes seleccionar un rango de fechas: Creación o de envío.";
-
-        return false;
-      }
-
-      // 3. Validar rango de creación
-      if (creacionDesde && !creacionHasta) {
-        this.errorFiltroFecha = "Debes seleccionar la Fecha Creación Hasta.";
-
-        return false;
-      }
-
-      if (!creacionDesde && creacionHasta) {
-        this.errorFiltroFecha = "Debes seleccionar la Fecha Creación Desde.";
-
-        return false;
-      }
-
-      // 4. Validar rango de envío
-      if (envioDesde && !envioHasta) {
-        this.errorFiltroFecha =
-          "Debes seleccionar la Fecha Envío Cliente Hasta.";
-
-        return false;
-      }
-
-      if (!envioDesde && envioHasta) {
-        this.errorFiltroFecha =
-          "Debes seleccionar la Fecha Envío Cliente Desde.";
-
-        return false;
-      }
-
-      // 5. Todas las validaciones pasaron
-      return true;
-    },
-    async filtrar() {
-      if (!this.validarFiltroFechas()) return;
-      this.$store.state.spiner = true;
-      await this.getQuoteCall(this.pricingStore.filtroCalls);
-      this.pricingStore.filtrarCallsFlag = false;
-      this.$store.state.spiner = false;
-    },
-    async limpiar() {
-      this.$store.state.spiner = true;
-      this.pricingStore.filtroCalls.id_marketing = null;
-      this.pricingStore.filtroCalls.id_status = null;
-      this.pricingStore.filtroCalls.id_entities = null;
-      this.pricingStore.filtroCalls.id_modality = null;
-      this.pricingStore.filtroCalls.id_shipment = null;
-      this.pricingStore.filtroCalls.id_incoterm = null;
-      this.pricingStore.filtroCalls.fechaemisiondesde = null;
-      this.pricingStore.filtroCalls.fechaemisionhasta = null;
-      this.pricingStore.filtroCalls.fechafin =
-        moment().format("YYYY-01-01");
-      this.pricingStore.filtroCalls.fechafin = moment()
-        .endOf("month")
-        .format("YYYY-MM-DD");
-      this.pricingStore.filtroCalls.estado = true;
-      await this.getQuoteCall(this.pricingStore.filtroCalls);
-      this.pricingStore.filtrarCallsFlag = false;
-      this.$store.state.spiner = false;
-    },
-  },
-  async mounted() {
-    // await this.getMarketingList();
-    // await this.getModulesEntities();
-    // await this.getQuoteStatus();
-    // await this.getModality();
-    // await this.getShipment();
-    // await this.getIncoterms();
-  },
-};
-</script>
 
 <style></style>

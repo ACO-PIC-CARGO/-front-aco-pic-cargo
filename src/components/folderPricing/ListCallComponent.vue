@@ -1,3 +1,342 @@
+<script setup lang="ts">
+import { ref, useTemplateRef } from "vue";
+import moment from "moment";
+import Swal from "sweetalert2";
+import { useStore } from "vuex";
+import { usePricingStore } from "@/stores/pricing";
+import { sessionUserIdOrEmpty } from "@/utils/sesion";
+import type { FormNotaLlamada } from "@/types/cotizacion";
+
+const rootStore = useStore();
+const pricingStore = usePricingStore();
+
+const search = ref("");
+const loading4 = ref(false);
+const dialogRegistroNotaLlamada = ref(false);
+const detallenota = useTemplateRef("detallenota");
+let fromData = undefined as unknown as FormNotaLlamada;
+const headers = [
+  // {
+  //   value: "acciones",
+  //   text: "",
+  //   align: "center",
+  //   groupable: true,
+  //   estado: true,
+  // },
+  {
+    key: "created_at",
+    title: "FECHA CREACIÓN",
+    align: "center",
+    groupable: true,
+    estado: true,
+    dataType: "Date",
+  },
+  //  {
+  //    value: "status_recibido",
+  //   text: "RECIBIDO COTIZACION EN PRICING",
+  //    align: "center",
+  //   groupable: true,
+  //    estado: true,
+  //  },
+  //  {
+  //    value: "enviadocliente",
+  //    text: "ENVIADO AL CLIENTE",
+  //    align: "center",
+  //    groupable: true,
+  //    estado: true,
+  //  },
+  {
+    key: "llamadas",
+    title: "DATOS LLAMADA",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "status",
+    title: "ESTATUS",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+
+  {
+    key: "codigo",
+    title: "NÚMERO DE COTIZACIÓN",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "ejecutivo_pricing",
+    title: "EJECUTIVO PRICING",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "ejecutivo_ventas",
+    title: "EJECUTIVO VENTAS",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "cliente",
+    title: "CLIENTE",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "telefono",
+    title: "TÉLEFONO",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "sentido",
+    title: "SENTIDO",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "tipo_de_carga",
+    title: "T. C.",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "incoterms",
+    title: "INCOTERMS",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "origen",
+    title: "ORIGEN",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "destino",
+    title: "DESTINO",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "marketing",
+    title: "MARKETING",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
+  {
+    key: "fechaemisionpdf",
+    title: "FECHA ENVÍADO A CLIENTE",
+    align: "center",
+  },
+] as const;
+
+function formatearFecha(fecha: string | null | undefined) {
+  if (!fecha) return "";
+
+  return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
+}
+async function limpiar() {
+  rootStore.state.spiner = true;
+  pricingStore.filtroCalls = {
+    fechainicio: moment().format("YYYY-01-01"),
+    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+  };
+  // this.$store.state.pricing.filtroCalls.estado = true;
+  await pricingStore.getQuoteCall();
+
+  pricingStore.filtrarQuoteFlag = false;
+  pricingStore.filtroCalls.estado = true;
+  rootStore.state.spiner = false;
+}
+function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
+  const fechaInicio = moment(inicio);
+  const fechaFin = moment(fin);
+  return (
+    fechaInicio.isValid() &&
+    fechaFin.isValid() &&
+    fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+  );
+}
+async function imprimierCalls() {
+  const f = pricingStore.filtroCalls;
+  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+    f.fechainicio,
+    f.fechafin,
+  );
+  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+    f.fechaemisiondesde,
+    f.fechaemisionhasta,
+  );
+
+  if (rangoCreacionExcedido || rangoEmisionExcedido) {
+    const rangoExcedido =
+      rangoCreacionExcedido && rangoEmisionExcedido
+        ? "Los rangos de creación y emisión"
+        : rangoCreacionExcedido
+          ? "El rango de creación"
+          : "El rango de emisión";
+    await Swal.fire({
+      icon: "warning",
+      title: "No se puede generar el reporte",
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      confirmButtonText: "Revisar fechas",
+    });
+    return;
+  }
+
+  rootStore.state.spiner = true;
+  const filtroSeleccionado: Record<string, string | undefined> = {};
+  const store = pricingStore;
+
+  if (f.fechainicio)
+    filtroSeleccionado["Fecha Creación de Cotización inicio"] =
+      f.fechainicio;
+  if (f.fechafin)
+    filtroSeleccionado["Fecha Creación de Cotización fin"] = f.fechafin;
+  if (f.fechaemisiondesde)
+    filtroSeleccionado["Fecha de Envío Al Cliente  Desde"] =
+      f.fechaemisiondesde;
+  if (f.fechaemisionhasta)
+    filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
+      f.fechaemisionhasta;
+  if (f.id_marketing) {
+    filtroSeleccionado.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroSeleccionado.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+
+  const filtroCabecera: Record<string, string | undefined> = {};
+
+  if (f.id_marketing) {
+    filtroCabecera.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroCabecera.Pricing = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroCabecera.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroCabecera.Shipment = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroCabecera.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+  if (f.id_cliente) {
+    filtroCabecera.Cliente = rootStore.state.clientes.find(
+      (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
+    )?.namelong;
+  }
+
+  loading4.value = true;
+  await pricingStore.imprimiReporteListadoCalls({
+    filtroSeleccionado: filtroSeleccionado,
+    filtroCabecera: filtroCabecera,
+  });
+  loading4.value = false;
+  rootStore.state.spiner = false;
+}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function registrarLlamada(id: number) {
+  fromData = {
+    date: moment().format("YYYY-MM-DD"),
+    descripcion: "",
+    identities: sessionUserIdOrEmpty(),
+  };
+  console.log(id);
+  pricingStore.id = id;
+  dialogRegistroNotaLlamada.value = true;
+}
+async function guardarNota() {
+  if ((await detallenota.value!.validate()).valid) {
+    dialogRegistroNotaLlamada.value = false;
+    rootStore.state.spiner = true;
+
+    const data = {
+      id_quote: pricingStore.id,
+      id_operador: fromData.identities,
+      comentario: fromData.descripcion,
+      fecha: fromData.date,
+    };
+
+    await pricingStore.guardarNotaQuote(data).catch((err) => {
+      console.log(err);
+    });
+    await pricingStore.getQuoteCall(pricingStore.filtroCalls).catch(
+      (err) => {
+        console.log(err);
+      },
+    );
+
+    rootStore.state.spiner = false;
+  }
+}
+</script>
+
 <template>
   <v-container fluid>
     <v-dialog
@@ -16,13 +355,12 @@
               v-model="fromData.date"
               readonly
               type="date"
-            ></v-text-field>
+            />
             <v-text-field
               v-model="fromData.descripcion"
               :rules="[(v) => !!v || 'El dato es requerido']"
               label="Descripcion"
-            >
-            </v-text-field>
+            />
             <v-autocomplete
               :items="pricingStore.listEjecutivo"
               label="Ejecutivo."
@@ -31,12 +369,18 @@
               item-title="name"
               item-value="id_entitie"
               v-model="fromData.identities"
-            ></v-autocomplete>
+            />
           </v-form>
         </v-card-text>
         <v-card-actions>
           <div class="flex-grow-1 text-right">
-            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn
+              variant="text"
+              color="success"
+              @click="guardarNota"
+            >
+              Aceptar
+            </v-btn>
             <v-btn
               variant="text"
               color="red"
@@ -49,11 +393,20 @@
       </v-card>
     </v-dialog>
     <v-row>
-      <v-col cols="12" class="mt-3 clsFiltro">
+      <v-col
+        cols="12"
+        class="mt-3 clsFiltro"
+      >
         <v-row>
-          <v-col cols="6" class="py-1">
+          <v-col
+            cols="6"
+            class="py-1"
+          >
             <v-row>
-              <v-col cols="4" class="clsFechaPor">
+              <v-col
+                cols="4"
+                class="clsFechaPor"
+              >
                 <v-text-field
                   model-value="Fecha Creación"
                   label="Fecha Por"
@@ -62,7 +415,7 @@
                   density="compact"
                   variant="outlined"
                   prepend-icon="mdi-calendar-month"
-                ></v-text-field>
+                />
               </v-col>
 
               <v-col cols="4">
@@ -77,7 +430,7 @@
                   variant="outlined"
                   label="Desde"
                   id="frmFechaDesde"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -90,7 +443,7 @@
                   hide-details
                   variant="outlined"
                   label="Hasta"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
           </v-col>
@@ -99,11 +452,14 @@
             class="py-1"
             v-if="
               pricingStore.filtroCalls.fechaemisiondesde ||
-              pricingStore.filtroCalls.fechaemisionhasta
+                pricingStore.filtroCalls.fechaemisionhasta
             "
           >
             <v-row>
-              <v-col cols="4" class="clsFechaPor">
+              <v-col
+                cols="4"
+                class="clsFechaPor"
+              >
                 <v-text-field
                   model-value="Fecha Envíado"
                   label="Fecha Por"
@@ -112,7 +468,7 @@
                   variant="outlined"
                   density="compact"
                   prepend-icon="mdi-calendar-month"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -127,7 +483,7 @@
                   hide-details
                   variant="outlined"
                   label="Desde"
-                ></v-text-field>
+                />
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -142,7 +498,7 @@
                   hide-details
                   variant="outlined"
                   label="Hasta"
-                ></v-text-field>
+                />
               </v-col>
             </v-row>
           </v-col>
@@ -163,7 +519,7 @@
               item-title="name"
               item-value="id"
               v-model="pricingStore.filtroCalls.id_marketing"
-            ></v-autocomplete>
+            />
           </v-col>
           <!-- <v-col cols="12" md="2" class="py-1" v-if="$store.state.pricing.filtroCalls.id_status">
             <v-autocomplete
@@ -194,7 +550,7 @@
               item-title="name"
               item-value="id_entitie"
               v-model="pricingStore.filtroCalls.id_pricing"
-            ></v-autocomplete>
+            />
           </v-col>
           <v-col
             cols="12"
@@ -212,7 +568,7 @@
               item-title="name"
               item-value="id_entitie"
               v-model="pricingStore.filtroCalls.id_entities"
-            ></v-autocomplete>
+            />
           </v-col>
           <v-col
             cols="12"
@@ -230,7 +586,7 @@
               variant="outlined"
               item-title="name"
               item-value="id"
-            ></v-autocomplete>
+            />
           </v-col>
           <v-col
             cols="12"
@@ -248,8 +604,7 @@
               item-title="embarque"
               item-value="id"
               v-model="pricingStore.filtroCalls.id_shipment"
-            >
-            </v-autocomplete>
+            />
           </v-col>
           <v-col
             cols="12"
@@ -267,12 +622,16 @@
               item-title="name"
               item-value="id"
               v-model="pricingStore.filtroCalls.id_incoterm"
-            ></v-autocomplete>
+            />
           </v-col>
         </v-row>
       </v-col>
 
-      <v-col cols="12" lg="4" xl="4">
+      <v-col
+        cols="12"
+        lg="4"
+        xl="4"
+      >
         <v-text-field
           placeholder="Buscar..."
           label="Buscar"
@@ -282,7 +641,7 @@
           variant="outlined"
           messages=" "
         >
-          <template v-slot:message>
+          <template #message>
             <span v-if="search">
               <v-icon color="orange">mdi-file-alert</v-icon> Este filtro no se
               usará para el exportar en pdf
@@ -290,7 +649,11 @@
           </template>
         </v-text-field>
       </v-col>
-      <v-col cols="12" lg="8" xl="8">
+      <v-col
+        cols="12"
+        lg="8"
+        xl="8"
+      >
         <div class="text-right">
           <v-btn
             color="red"
@@ -314,8 +677,15 @@
             <v-icon>mdi-filter</v-icon>
             Filtrar
           </v-btn>
-          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
-            <v-icon class="mx-1">mdi-filter-remove</v-icon>
+          <v-btn
+            color="default"
+            class="mx-1 my-1"
+            size="small"
+            @click="limpiar()"
+          >
+            <v-icon class="mx-1">
+              mdi-filter-remove
+            </v-icon>
             Limpiar
           </v-btn>
         </div>
@@ -333,16 +703,15 @@
         disable-sort
         item-value="rowId"
       >
-        <template v-slot:[`item.fechaemisionpdf`]="{ item }">
+        <template #[`item.fechaemisionpdf`]="{ item }">
           <span v-if="item.fechaemisionpdf">
             {{ item.fechaemisionpdf }}
           </span>
         </template>
-        <template v-slot:[`item.llamadas`]="{ item }">
-          <span style="font-weight: bold"
-            >{{ item.fecha_ultima_llamada }}
+        <template #[`item.llamadas`]="{ item }">
+          <span style="font-weight: bold">{{ item.fecha_ultima_llamada }}
           </span>
-          <br />
+          <br>
           <span
             style="
               font-size: 0.8rem;
@@ -430,348 +799,5 @@
     </v-row>
   </v-container>
 </template>
-
-<script>
-import moment from "moment";
-import Swal from "sweetalert2";
-import { mapActions as mapPiniaActions, mapStores } from "pinia";
-import { usePricingStore } from "@/stores/pricing";
-export default {
-  data() {
-    return {
-      search: "",
-      loading4: false,
-      dialogRegistroNotaLlamada: false,
-      headers: [
-        // {
-        //   value: "acciones",
-        //   text: "",
-        //   align: "center",
-        //   groupable: true,
-        //   estado: true,
-        // },
-        {
-          key: "created_at",
-          title: "FECHA CREACIÓN",
-          align: "center",
-          groupable: true,
-          estado: true,
-          dataType: "Date",
-        },
-        //  {
-        //    value: "status_recibido",
-        //   text: "RECIBIDO COTIZACION EN PRICING",
-        //    align: "center",
-        //   groupable: true,
-        //    estado: true,
-        //  },
-        //  {
-        //    value: "enviadocliente",
-        //    text: "ENVIADO AL CLIENTE",
-        //    align: "center",
-        //    groupable: true,
-        //    estado: true,
-        //  },
-        {
-          key: "llamadas",
-          title: "DATOS LLAMADA",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "status",
-          title: "ESTATUS",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-
-        {
-          key: "codigo",
-          title: "NÚMERO DE COTIZACIÓN",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "ejecutivo_pricing",
-          title: "EJECUTIVO PRICING",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "ejecutivo_ventas",
-          title: "EJECUTIVO VENTAS",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "cliente",
-          title: "CLIENTE",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "telefono",
-          title: "TÉLEFONO",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "sentido",
-          title: "SENTIDO",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "tipo_de_carga",
-          title: "T. C.",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "incoterms",
-          title: "INCOTERMS",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "origen",
-          title: "ORIGEN",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "destino",
-          title: "DESTINO",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "marketing",
-          title: "MARKETING",
-          align: "center",
-          groupable: true,
-          estado: true,
-        },
-        {
-          key: "fechaemisionpdf",
-          title: "FECHA ENVÍADO A CLIENTE",
-          align: "center",
-        },
-      ],
-    };
-  },
-  async mounted() {},
-  computed: {
-    ...mapStores(usePricingStore),
-  },
-  methods: {
-    ...mapPiniaActions(usePricingStore, ["getQuoteCall", "imprimiReporteListadoCalls", "guardarNotaQuote"]),
-    formatearFecha(fecha) {
-      if (!fecha) return "";
-
-      return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
-    },
-    async limpiar() {
-      this.$store.state.spiner = true;
-      this.pricingStore.filtroCalls = {
-        fechainicio: moment().format("YYYY-01-01"),
-        fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-      };
-      // this.$store.state.pricing.filtroCalls.estado = true;
-      await this.getQuoteCall();
-
-      this.pricingStore.filtrarQuoteFlag = false;
-      this.pricingStore.filtroCalls.estado = true;
-      this.$store.state.spiner = false;
-    },
-    rangoFechaSuperaUnMes(inicio, fin) {
-      const fechaInicio = moment(inicio);
-      const fechaFin = moment(fin);
-      return (
-        fechaInicio.isValid() &&
-        fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
-      );
-    },
-    async imprimierCalls() {
-      const f = this.pricingStore.filtroCalls;
-      const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
-        f.fechainicio,
-        f.fechafin,
-      );
-      const rangoEmisionExcedido = this.rangoFechaSuperaUnMes(
-        f.fechaemisiondesde,
-        f.fechaemisionhasta,
-      );
-
-      if (rangoCreacionExcedido || rangoEmisionExcedido) {
-        const rangoExcedido =
-          rangoCreacionExcedido && rangoEmisionExcedido
-            ? "Los rangos de creación y emisión"
-            : rangoCreacionExcedido
-              ? "El rango de creación"
-              : "El rango de emisión";
-        await Swal.fire({
-          icon: "warning",
-          title: "No se puede generar el reporte",
-          html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
-          confirmButtonText: "Revisar fechas",
-        });
-        return;
-      }
-
-      this.$store.state.spiner = true;
-      let filtroSeleccionado = {};
-      const store = this.pricingStore;
-
-      if (f.fechainicio)
-        filtroSeleccionado["Fecha Creación de Cotización inicio"] =
-          f.fechainicio;
-      if (f.fechafin)
-        filtroSeleccionado["Fecha Creación de Cotización fin"] = f.fechafin;
-      if (f.fechaemisiondesde)
-        filtroSeleccionado["Fecha de Envío Al Cliente  Desde"] =
-          f.fechaemisiondesde;
-      if (f.fechaemisionhasta)
-        filtroSeleccionado["Fecha de Envío Al Cliente  Hasta"] =
-          f.fechaemisionhasta;
-      if (f.id_marketing) {
-        filtroSeleccionado.Marketing = store.listMarketing.find(
-          (v) => v.id == f.id_marketing,
-        )?.name;
-      }
-      if (f.id_status) {
-        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
-          (v) => v.id == f.id_status,
-        )?.name;
-      }
-      if (f.id_pricing) {
-        filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_pricing,
-        )?.name;
-      }
-      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
-        filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_entities,
-        )?.name;
-      }
-      if (f.id_modality) {
-        filtroSeleccionado.Modalidad = store.listModality.find(
-          (v) => v.id == f.id_modality,
-        )?.name;
-      }
-      if (f.id_shipment) {
-        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
-          (v) => v.id == f.id_shipment,
-        )?.embarque;
-      }
-      if (f.id_incoterm) {
-        filtroSeleccionado.Incoterms = store.listIncoterms.find(
-          (v) => v.id == f.id_incoterm,
-        )?.name;
-      }
-
-      let filtroCabecera = {};
-
-      if (f.id_marketing) {
-        filtroCabecera.Marketing = store.listMarketing.find(
-          (v) => v.id == f.id_marketing,
-        )?.name;
-      }
-      if (f.id_status) {
-        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
-          (v) => v.id == f.id_status,
-        )?.name;
-      }
-      if (f.id_pricing) {
-        filtroCabecera.Pricing = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_pricing,
-        )?.name;
-      }
-      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
-        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
-          (v) => v.id_entitie == f.id_entities,
-        )?.name;
-      }
-      if (f.id_modality) {
-        filtroCabecera.Modalidad = store.listModality.find(
-          (v) => v.id == f.id_modality,
-        )?.name;
-      }
-      if (f.id_shipment) {
-        filtroCabecera.Shipment = store.listShipment.find(
-          (v) => v.id == f.id_shipment,
-        )?.embarque;
-      }
-      if (f.id_incoterm) {
-        filtroCabecera.Incoterms = store.listIncoterms.find(
-          (v) => v.id == f.id_incoterm,
-        )?.name;
-      }
-      if (f.id_cliente) {
-        filtroCabecera.Cliente = this.$store.state.clientes.find(
-          (v) => v.id == f.id_cliente,
-        )?.namelong;
-      }
-
-      this.loading4 = true;
-      await this.imprimiReporteListadoCalls({
-        filtroSeleccionado: filtroSeleccionado,
-        filtroCabecera: filtroCabecera,
-      });
-      this.loading4 = false;
-      this.$store.state.spiner = false;
-    },
-    registrarLlamada(id) {
-      this.fromData = {
-        date: moment().format("YYYY-MM-DD"),
-        descripcion: "",
-        identities: JSON.parse(sessionStorage.getItem("dataUser"))
-          ? JSON.parse(sessionStorage.getItem("dataUser"))[0].id
-          : "",
-      };
-      console.log(id);
-      this.pricingStore.id = id;
-      this.dialogRegistroNotaLlamada = true;
-    },
-    async guardarNota() {
-      if ((await this.$refs.detallenota.validate()).valid) {
-        this.dialogRegistroNotaLlamada = false;
-        this.$store.state.spiner = true;
-
-        let data = {
-          id_quote: this.pricingStore.id,
-          id_operador: this.fromData.identities,
-          comentario: this.fromData.descripcion,
-          fecha: this.fromData.date,
-        };
-
-        await this.guardarNotaQuote(data).catch((err) => {
-          console.log(err);
-        });
-        await this.getQuoteCall(this.pricingStore.filtroCalls).catch(
-          (err) => {
-            console.log(err);
-          },
-        );
-
-        this.$store.state.spiner = false;
-      }
-    },
-  },
-};
-</script>
 
 <style></style>
