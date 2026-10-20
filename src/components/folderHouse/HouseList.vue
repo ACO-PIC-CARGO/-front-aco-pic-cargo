@@ -140,5 +140,3 @@ function getIncotermName(item: {
     </v-card>
   </div>
 </template>
-
-

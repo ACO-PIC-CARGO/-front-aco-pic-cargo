@@ -26,7 +26,6 @@ const mastersStore = useMastersStore();
                 <v-checkbox />
               </template>
 
-              
               <v-list-item-title>
                 {{
                   child.namebitacora

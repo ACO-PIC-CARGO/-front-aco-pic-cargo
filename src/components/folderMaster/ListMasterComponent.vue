@@ -524,7 +524,7 @@ function isExportacion(id: number) {
 //     ? nameconsigner
 //     : "";
 // },
- 
+
 async function getMasterListPaginated(options: { page?: number; itemsPerPage?: number; sortBy?: string[]; sortDesc?: boolean[] } = {}) {
   const {
     page = 1,
@@ -1061,7 +1061,6 @@ onMounted(async () => {
                 icon
                 class="mx-1"
                 v-bind="props"
-               
                 @click="editFechas(item)"
               >
                 <v-icon class="mx-1">
@@ -1094,7 +1093,6 @@ onMounted(async () => {
                 variant="text"
                 icon
                 v-bind="props"
-               
                 v-if="item.status == 1"
                 color="#212121"
                 size="small"
@@ -1156,7 +1154,6 @@ onMounted(async () => {
               >
                 <v-icon class="mx-1">mdi-lock</v-icon>
 
-               
               </v-btn>
             </template>
             <span>Cerrar Expediente Administrativo</span>
@@ -1168,7 +1165,6 @@ onMounted(async () => {
                 v-if="item.status == 1"
                 icon
                 v-bind="props"
-               
                 @click="abrirCaperta(item)"
                 color="#212121"
                 size="small"
@@ -1182,7 +1178,7 @@ onMounted(async () => {
           </v-tooltip>
           <!-- <v-tooltip top>
             <template v-slot:activator="{ on, attrs }">
-              
+
               <v-btn
                 icon
                 fab
@@ -1195,7 +1191,6 @@ onMounted(async () => {
               >
                 <v-icon class="mx-1">mdi-comment-alert-outline</v-icon>
 
-              
               </v-btn>
             </template>
             <span>Añadir Estado/ Comentario</span>

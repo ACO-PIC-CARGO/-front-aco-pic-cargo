@@ -90,19 +90,19 @@ async function recargarDatos() {
   appStore.spiner = false;
   appStore._getCoinsList();
 }
- 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function calcularMontoDolar() {
   monto.value = parseFloat(
     String(((monto_abonado.value ? monto_abonado.value : 0) as number) / tipocambio.value),
   ).toFixed(2);
 }
- 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function openDoc(path: string) {
   window.open(path, "_blank");
 }
- 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cleandData() {
   date = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -120,7 +120,7 @@ function cleandData() {
   monto_abonado.value = "";
   number.value = "";
 }
- 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function currentDate() {
   const monthNames = [

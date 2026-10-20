@@ -105,7 +105,7 @@ async function listadoFacturacion() {
 function verFactura(url: string) {
   window.open(url);
 }
- 
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function filterOnlyCapsText(value: unknown, search: string | null) {
   const text = search ? search.toLocaleUpperCase() : null;

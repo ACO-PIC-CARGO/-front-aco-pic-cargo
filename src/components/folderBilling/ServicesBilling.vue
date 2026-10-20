@@ -13,7 +13,6 @@ onMounted(() => {
   _validaData();
 });
 
- 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _deleteServices(id: number) {
   const data = {

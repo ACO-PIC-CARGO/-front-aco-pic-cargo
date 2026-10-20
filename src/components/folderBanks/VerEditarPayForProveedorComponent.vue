@@ -121,7 +121,7 @@ const itemsOrdenados = computed(() => {
     return 0;
   });
 });
- 
+
 const montoFinal = computed(() => {
   let gastoBancario = 0;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

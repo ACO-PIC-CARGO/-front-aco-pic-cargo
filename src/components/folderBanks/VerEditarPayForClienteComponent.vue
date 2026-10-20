@@ -140,7 +140,6 @@ const montoFinal = computed(() => {
   return total.toFixed(4);
 });
 
-
 function confirmarEliminar() {
   Swal.fire({
     icon: "warning",

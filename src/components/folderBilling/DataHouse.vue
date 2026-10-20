@@ -38,7 +38,7 @@ function _getData() {
       .then(function (response) {
         appStore.dataHouse_modality =
           response.data.data[0]!.id_transport;
-         
+
         // eslint-disable-next-line @typescript-eslint/no-unused-expressions
         response.data.data[0]!.namemodality;
         appStore.dataHouse_code_house =

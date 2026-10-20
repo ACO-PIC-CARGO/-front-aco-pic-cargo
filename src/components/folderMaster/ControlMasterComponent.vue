@@ -1084,7 +1084,6 @@ onMounted(async () => {
               icon
               size="large"
               location="bottom left"
-              
               color="info"
               @click="irAVerMaster()"
             >
