@@ -91,7 +91,7 @@ function normalizeText(str: unknown) {
   return String(str || "")
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 function getServicesByCode(code: string) {

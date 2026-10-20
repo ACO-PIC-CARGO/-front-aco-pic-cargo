@@ -352,7 +352,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   });
   const newPropuesta = {
     nro_propuesta: nro_propuesta,
-    // @ts-expect-error Kept: moment is not imported in this view, so the call throws a ReferenceError as before
+    // @ts-expect-error moment is not imported in this view, so this call throws
     date_end: moment().add(7, 'days').format("YYYY-MM-DD"),
     tiempo_transito: 35,
     listCostos: cDuplicado,
