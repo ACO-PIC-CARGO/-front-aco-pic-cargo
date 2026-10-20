@@ -11,7 +11,7 @@ const ListQuote = defineAsyncComponent(() =>
   import("@/components/folderAduana/ListAduanaComponent.vue"));
 const ListCall = defineAsyncComponent(() => import("@/components/folderAduana/ListCallComponent.vue"));
 // FiltroQuote: () => import("@/components/filtros/FiltroQuote.vue"),
-// FiltroCalls: () => import("@/components/filtros/FiltroCalls.vue"),
+// FiltroCalls: () => import("@/components/filtros/FiltroCalls"),
 const ConfigCotizacion = defineAsyncComponent(() =>
   import("@/components/folderPricing/ConfigCotizacion.vue"));
 

@@ -80,10 +80,11 @@ function showPaymentForm(plan: PlanPrecioMembresia) {
   selectedPlanId.value = plan.plan_id; // Guarda el ID del plan seleccionado
   paymentDialog.value = true; // Abre el diálogo de pago
 }
+// Not defined anywhere, so calling it throws.
+const $axios = undefined as unknown as { post: (url: string, body: unknown) => Promise<{ data: { message: string } }> };
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function processPayment(planId: number | null) {
   try {
-    // @ts-expect-error no $axios global exists, so the payment throws before any request.
     const response = await $axios.post(
       import.meta.env.VITE_URL_MAIN + "getPayment",
       {
