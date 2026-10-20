@@ -164,7 +164,7 @@ const routes = [
       {
         path: "folderHouse/list",
         name: "listHouse",
-        component: () => import("../views/folderHouse/listHouse.vue"),
+        component: () => import("../views/folderHouse/ListHouse.vue"),
       },
       {
         path: "folderHouse/control",

@@ -4,6 +4,7 @@ import type { CotizacionListado, LineaInstructivo } from "@/types/cotizacion";
 
 export interface ComentarioHouse {
   fecha?: string;
+  ejecutivo?: string;
   comentario?: string;
   nombre?: string;
 }

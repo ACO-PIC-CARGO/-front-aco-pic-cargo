@@ -1,4 +1,5 @@
 import type { ApiResponse } from "./api";
+import type { ComentarioHouse } from "./operaciones";
 
 export type Numerico = number | string | null | undefined;
 
@@ -365,6 +366,12 @@ export interface LlamadaCotizacion {
 export interface HouseListado {
   id: number;
   id_cot?: number | string | null;
+  id_quote?: number;
+  quote_number?: string | null;
+  id_master?: number;
+  status?: number;
+  url_folderonedrive?: string;
+  list_comentarios: ComentarioHouse[];
   code_house?: string;
   code_master?: string;
   nro_house?: string;

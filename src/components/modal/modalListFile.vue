@@ -26,7 +26,7 @@
 </template>
 
 <script>
-import listHouse from "@/components/folderHouse/listHouse.vue";
+import listHouse from "@/components/folderHouse/ListHouseComponent.vue";
 export default {
   name: "modalListFile",
   emits: ["update:dialog"],
