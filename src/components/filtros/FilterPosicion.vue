@@ -11,6 +11,10 @@ const frmDML = useTemplateRef("frmDML");
 
 const drawer = computed(() => positionStore.drawer);
 
+// Not defined anywhere, so calling these throws.
+const setTown = undefined as unknown as () => Promise<void>;
+const ActualizarTown = undefined as unknown as () => Promise<void>;
+
 watch(drawer, () => {
   model.value = { ...positionStore.model };
 });
@@ -54,7 +58,6 @@ async function Aceptar() {
   if (positionStore.tipo == "nuevo") {
     if ((await frmDML.value!.validate()).valid) {
       loading.value = true;
-      // @ts-expect-error setTown is not mapped in this filter, so this call always throws.
       await setTown();
       await positionStore.GetListPosition();
       loading.value = false;
@@ -63,7 +66,6 @@ async function Aceptar() {
   if (positionStore.tipo == "editar") {
     loading.value = true;
     if ((await frmDML.value!.validate()).valid) {
-      // @ts-expect-error ActualizarTown is not mapped in this filter, so this call always throws.
       await ActualizarTown();
       await positionStore.GetListPosition();
     }
