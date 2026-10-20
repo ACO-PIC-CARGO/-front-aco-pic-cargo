@@ -87,9 +87,12 @@ test("adds an income line to an expense control", async ({ page }) => {
   await page.waitForURL(/\/control\/ver\/\d+$/);
   const masterId = page.url().match(/\/control\/ver\/(\d+)$/)[1];
 
+  const housesLoaded = page.waitForResponse((r) => r.url().includes("/control_gastos_listhouses") && r.request().method() === "GET");
   await page.goto(`/home/folderBilling/editControlGastos/view/${masterId}/1`);
+  await housesLoaded;
   await waitForPageToSettle(page);
   await expect(page.getByText(masterCode).first()).toBeVisible();
+  await expect(page.getByRole("button", { name: /^(Nuevo Concepto|Nuevo Control de Gastos Ingresos)$/ }).first()).toBeVisible();
   const incomeRows = page.getByRole("row").filter({ hasText: /\(\d+\) - \d+/ });
   const operationsTotal = async () => {
     const totals = await incomeRows.evaluateAll((rows) => rows.map((row) => row.cells[3].innerText));
