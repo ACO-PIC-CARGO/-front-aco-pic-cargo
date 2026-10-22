@@ -15,6 +15,11 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const expanded = ref(props.step.comments.length > 0);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
+const switchLabel = computed(() => {
+  if (confirmed.value) return `${props.step.name} confirmado`;
+  if (props.blockedBy) return `Confirmar ${props.step.name}. Primero confirma «${props.blockedBy}»`;
+  return `Confirmar ${props.step.name}`;
+});
 const shownDate = computed(() => (props.step.confirmed_at ? dateLabel(props.step.confirmed_at, timeZone.value) : "-"));
 const confirmedAtLabel = computed(() =>
   props.step.confirmed_at ? stepDateTimeLabel(props.step.confirmed_at, timeZone.value) : "",
@@ -78,7 +83,7 @@ const confirmedAtLabel = computed(() =>
       <div class="house-step__switch">
         <v-switch
           :model-value="confirmed"
-          :aria-label="confirmed ? `${step.name} confirmado` : `Confirmar ${step.name}`"
+          :aria-label="switchLabel"
           color="primary"
           inset
           hide-details
