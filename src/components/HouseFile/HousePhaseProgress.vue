@@ -1,136 +1,54 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
-import AcoIconTile from "@/components/aco/AcoIconTile.vue";
-import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { dateLabel } from "./houseTrackingFormat";
-import type { PhaseStatus } from "@/types/houseTracking";
+import type { HouseTrackingPhase } from "@/types/houseTracking";
 
-const STATUS: Record<PhaseStatus, { tone: "success" | "primary" | "neutral"; label: string; tile: "solid" | "primary" | "neutral" }> = {
-  completed: { tone: "success", label: "Completado", tile: "solid" },
-  in_progress: { tone: "primary", label: "En curso", tile: "primary" },
-  pending: { tone: "neutral", label: "Pendiente", tile: "neutral" },
-};
+const STATUS_LABELS = { completed: "Completado", in_progress: "En curso", pending: "Pendiente" } as const;
 
 const { phases } = storeToRefs(useHouseTrackingStore());
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
+const currentIndex = computed(() => phases.value.findIndex((phase) => phase.status === "in_progress"));
+
+const subtitle = (phase: HouseTrackingPhase) =>
+  phase.completed_at
+    ? `${STATUS_LABELS[phase.status]} · ${dateLabel(phase.completed_at, timeZone.value)}`
+    : STATUS_LABELS[phase.status];
 </script>
 
 <template>
-  <section
+  <v-stepper
     v-if="phases.length"
-    class="aco-card house-phase-progress"
+    :model-value="currentIndex"
+    alt-labels
+    flat
+    border
+    rounded="lg"
     aria-label="Progreso por fases"
   >
-    <ol class="house-phase-progress__list">
-      <li
-        v-for="phase in phases"
+    <v-stepper-header class="elevation-0">
+      <template
+        v-for="(phase, index) in phases"
         :key="phase.id"
-        class="house-phase-progress__phase"
-        :class="`is-${phase.status}`"
       >
-        <p class="aco-title-row">
-          {{ phase.name }}
-        </p>
-        <span class="house-phase-progress__tile">
-          <AcoIconTile
-            :icon="phase.icon"
-            :tone="STATUS[phase.status].tile"
-          />
-          <v-icon
-            v-if="phase.status === 'completed'"
-            class="house-phase-progress__check"
-            icon="mdi-check-circle"
-            color="primary"
-            size="18"
-          />
-        </span>
-        <span class="house-phase-progress__status">
-          <AcoStatusChip
-            :tone="STATUS[phase.status].tone"
-            :label="STATUS[phase.status].label"
-          />
-          <span
-            v-if="phase.completed_at"
-            class="aco-caption"
-          >{{ dateLabel(phase.completed_at, timeZone) }}</span>
-        </span>
-      </li>
-    </ol>
-  </section>
+        <v-divider
+          v-if="index"
+          :thickness="2"
+          :color="phases[index - 1]!.status === 'completed' ? 'primary' : undefined"
+          :class="{ 'border-opacity-100': phases[index - 1]!.status === 'completed' }"
+        />
+        <v-stepper-item
+          :value="index"
+          :title="phase.name"
+          :subtitle="subtitle(phase)"
+          :icon="phase.icon"
+          :complete-icon="phase.icon"
+          :complete="phase.status === 'completed'"
+          :color="phase.status === 'pending' ? 'neutral' : 'primary'"
+        />
+      </template>
+    </v-stepper-header>
+  </v-stepper>
 </template>
-
-<style scoped>
-.house-phase-progress {
-  padding: var(--aco-space-3) var(--aco-space-4);
-}
-
-.house-phase-progress__list {
-  display: grid;
-  grid-auto-columns: minmax(130px, 1fr);
-  grid-auto-flow: column;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  overflow-x: auto;
-}
-
-.house-phase-progress__phase {
-  position: relative;
-  display: grid;
-  justify-items: center;
-  gap: var(--aco-space-1);
-  text-align: center;
-}
-
-.house-phase-progress__phase p {
-  margin: 0;
-  line-height: 18px;
-}
-
-.house-phase-progress__phase:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  top: 46px;
-  left: calc(50% + 32px);
-  width: calc(100% - 64px);
-  border-top: 2px dashed rgb(var(--v-theme-border));
-}
-
-.house-phase-progress__phase.is-completed:not(:last-child)::after {
-  border-top-style: solid;
-  border-top-color: rgb(var(--v-theme-primary));
-}
-
-.house-phase-progress__tile {
-  position: relative;
-}
-
-.house-phase-progress__check {
-  position: absolute;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 50%;
-  background: rgb(var(--v-theme-surface));
-}
-
-.house-phase-progress__status {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: var(--aco-space-2);
-}
-
-@media (max-width: 600px) {
-  .house-phase-progress__list {
-    grid-auto-flow: row;
-    gap: var(--aco-space-3);
-  }
-
-  .house-phase-progress__phase::after {
-    display: none;
-  }
-}
-</style>

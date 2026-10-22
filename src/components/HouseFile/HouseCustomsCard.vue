@@ -5,50 +5,37 @@ const housesStore = useHousesStore();
 </script>
 
 <template>
-  <section
-    class="aco-card house-customs"
+  <v-card
+    tag="section"
+    variant="flat"
+    border
+    rounded="lg"
+    class="pa-3"
     aria-labelledby="house-customs-title"
   >
     <h2
       id="house-customs-title"
-      class="aco-title-card"
+      class="text-title-medium font-weight-bold mb-2"
     >
       Datos de Aduana
     </h2>
-    <dl class="house-customs__list">
+    <div class="d-flex flex-wrap gc-8 gr-2">
       <div>
-        <dt class="aco-caption">
+        <div class="text-body-small text-medium-emphasis">
           N° de declaración
-        </dt>
-        <dd class="aco-title-row">
+        </div>
+        <div class="text-body-medium font-weight-bold">
           {{ housesStore.house.nro_declaracion_aduana || "—" }}
-        </dd>
+        </div>
       </div>
       <div>
-        <dt class="aco-caption">
+        <div class="text-body-small text-medium-emphasis">
           Canal
-        </dt>
-        <dd class="aco-title-row">
+        </div>
+        <div class="text-body-medium font-weight-bold">
           {{ housesStore.house.canal_aduana || "—" }}
-        </dd>
+        </div>
       </div>
-    </dl>
-  </section>
+    </div>
+  </v-card>
 </template>
-
-<style scoped>
-.house-customs {
-  padding: var(--aco-space-5);
-}
-
-.house-customs__list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--aco-space-4);
-  margin: var(--aco-space-3) 0 0;
-}
-
-.house-customs__list dd {
-  margin: 0;
-}
-</style>

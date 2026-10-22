@@ -773,14 +773,77 @@ onMounted(async () => {
             md="8"
             lg="9"
           >
-            <div class="house-file__main">
+            <div class="d-flex flex-column ga-3">
               <HouseFileHeader :house-id="houseId" />
               <HousePhaseProgress />
-              <HouseStepList
-                :house-id="houseId"
-                :load-error="trackingError"
-                @retry="loadTracking"
-              />
+              <v-row density="compact">
+                <v-col
+                  cols="12"
+                  lg="6"
+                >
+                  <HouseStepList
+                    :house-id="houseId"
+                    :load-error="trackingError"
+                    @retry="loadTracking"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  lg="6"
+                  class="d-flex flex-column ga-3"
+                >
+                  <v-card
+                    variant="flat"
+                    border
+                    rounded="lg"
+                    class="pa-3"
+                  >
+                    <dataGen />
+                  </v-card>
+                  <v-card
+                    variant="flat"
+                    border
+                    rounded="lg"
+                    class="pa-3"
+                  >
+                    <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
+                  </v-card>
+                  <HouseCustomsCard />
+                  <v-row
+                    v-if="$route.name != 'controlHouseVer'"
+                    class="mt-2"
+                  >
+                    <v-col
+                      cols="4"
+                      md="4"
+                    >
+                      <v-btn
+                        color="success"
+                        @click="_setHouseEdit()"
+                        block
+                        size="small"
+                        :loading="loadingBotonGuardarHouse"
+                      >
+                        GUARDAR CAMBIOS
+                      </v-btn>
+                    </v-col>
+                    <v-col
+                      cols="4"
+                      md="4"
+                    >
+                      <v-btn
+                        color="red"
+                        @click="eliminarHouse()"
+                        block
+                        size="small"
+                        :loading="loadingBotonEliminarHouse"
+                      >
+                        ELIMINAR
+                      </v-btn>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
             </div>
           </v-col>
           <v-col
@@ -789,61 +852,6 @@ onMounted(async () => {
             lg="3"
           >
             <ClientTrackingPreview />
-          </v-col>
-          <v-col
-            cols="12"
-            md="4"
-          >
-            <section class="aco-card house-file__section">
-              <dataGen />
-            </section>
-          </v-col>
-          <v-col
-            cols="12"
-            md="4"
-          >
-            <section class="aco-card house-file__section">
-              <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
-            </section>
-          </v-col>
-          <v-col
-            cols="12"
-            md="4"
-          >
-            <HouseCustomsCard />
-
-            <v-row class="mt-2">
-              <template v-if="$route.name != 'controlHouseVer'">
-                <v-col
-                  cols="4"
-                  md="4"
-                >
-                  <v-btn
-                    color="success"
-                    @click="_setHouseEdit()"
-                    block
-                    size="small"
-                    :loading="loadingBotonGuardarHouse"
-                  >
-                    GUARDAR CAMBIOS
-                  </v-btn>
-                </v-col>
-                <v-col
-                  cols="4"
-                  md="4"
-                >
-                  <v-btn
-                    color="red"
-                    @click="eliminarHouse()"
-                    block
-                    size="small"
-                    :loading="loadingBotonEliminarHouse"
-                  >
-                    ELIMINAR
-                  </v-btn>
-                </v-col>
-              </template>
-            </v-row>
           </v-col>
         </v-row>
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
@@ -1069,16 +1077,6 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.house-file__main {
-  display: grid;
-  gap: var(--aco-space-3);
-}
-
-.house-file__section {
-  height: 100%;
-  padding: var(--aco-space-3);
-}
-
 ._content__bitacora {
   height: 90vh;
   overflow-y: scroll;

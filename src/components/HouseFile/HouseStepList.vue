@@ -25,40 +25,42 @@ function openConfirm(step: HouseTrackingStep) {
 </script>
 
 <template>
-  <section
-    class="aco-card house-step-list"
+  <v-card
+    tag="section"
+    variant="flat"
+    border
+    rounded="lg"
+    class="pa-3"
     aria-labelledby="house-step-list-title"
   >
     <h2
       id="house-step-list-title"
-      class="aco-title-card"
+      class="text-title-medium font-weight-bold"
     >
       Servicios a Realizar
     </h2>
-    <div class="house-step-list__toolbar">
-      <div class="house-step-list__incoterm">
-        <v-icon
-          icon="mdi-web"
-          color="primary"
-          size="22"
-        />
-        <span class="aco-title-row">Incoterm</span>
-        <span class="house-step-list__incoterm-value">{{ housesStore.house.incoterms || "—" }}</span>
-      </div>
-      <p class="house-step-list__hint">
-        <v-icon
-          icon="mdi-information-outline"
-          color="primary"
-          size="18"
-        />
-        Confirma cada paso en orden. Los pasos visibles al cliente aparecen en su tracking.
-      </p>
+    <div class="d-flex flex-wrap align-center ga-2 my-2">
+      <v-chip
+        prepend-icon="mdi-web"
+        variant="outlined"
+        size="small"
+        label
+      >
+        Incoterm <strong class="ms-1">{{ housesStore.house.incoterms || "—" }}</strong>
+      </v-chip>
+      <v-alert
+        density="compact"
+        variant="tonal"
+        color="primary"
+        icon="mdi-information-outline"
+        class="flex-grow-1 text-body-small"
+        text="Confirma cada paso en orden. Los pasos visibles al cliente aparecen en su tracking."
+      />
     </div>
     <v-alert
       v-if="loadError"
       type="error"
       variant="tonal"
-      class="mt-4"
       :text="loadError"
     >
       <template #append>
@@ -72,27 +74,41 @@ function openConfirm(step: HouseTrackingStep) {
     </v-alert>
     <v-skeleton-loader
       v-else-if="loading && !allSteps.length"
-      type="list-item-avatar-two-line@4"
+      type="table-row@6"
     />
     <p
       v-else-if="!allSteps.length"
-      class="aco-body house-step-list__empty"
+      class="text-body-medium text-medium-emphasis"
     >
       Tu empresa aún no tiene pasos de seguimiento. Configúralos en Ficheros › Fases y pasos.
     </p>
-    <template v-else>
-      <div
-        class="house-step-list__head"
-        aria-hidden="true"
-      >
-        <span>#</span>
-        <span>Servicio</span>
-        <span>Fecha</span>
-        <span>Estado</span>
-        <span class="house-step-list__head-center">Confirmar</span>
-        <span />
-      </div>
-      <ol class="house-step-list__steps">
+    <v-table
+      v-else
+      density="compact"
+    >
+      <thead>
+        <tr>
+          <th class="px-1">
+            #
+          </th>
+          <th class="px-1">
+            Servicio
+          </th>
+          <th class="px-1">
+            Fecha
+          </th>
+          <th class="px-1">
+            Estado
+          </th>
+          <th class="px-1 text-center">
+            Confirmar
+          </th>
+          <th class="px-0">
+            <span class="d-sr-only">Comentarios</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
         <HouseStepItem
           v-for="step in allSteps"
           :key="step.id"
@@ -101,91 +117,12 @@ function openConfirm(step: HouseTrackingStep) {
           :blocked-by="step.state === 'blocked' ? nextStepName : null"
           @confirm="openConfirm(step)"
         />
-      </ol>
-    </template>
+      </tbody>
+    </v-table>
     <HouseStepConfirmDialog
       v-model="dialog"
       :house-id="props.houseId"
       :step="selected"
     />
-  </section>
+  </v-card>
 </template>
-
-<style scoped>
-.house-step-list {
-  --house-step-columns: 28px minmax(0, 1fr) 136px 112px 92px 32px;
-
-  padding: var(--aco-space-3) var(--aco-space-4);
-}
-
-.house-step-list__toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--aco-space-2) var(--aco-space-4);
-  margin: var(--aco-space-2) 0;
-}
-
-.house-step-list__incoterm {
-  display: flex;
-  align-items: center;
-  gap: var(--aco-space-3);
-}
-
-.house-step-list__incoterm-value {
-  min-width: 120px;
-  padding: var(--aco-space-1) var(--aco-space-3);
-  border: 1px solid rgb(var(--v-theme-border));
-  border-radius: var(--aco-radius-control);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.house-step-list__hint {
-  display: flex;
-  flex: 1 1 260px;
-  align-items: center;
-  gap: var(--aco-space-2);
-  margin: 0;
-  padding: var(--aco-space-1) var(--aco-space-3);
-  border-radius: var(--aco-radius-control);
-  background: rgba(var(--v-theme-primary-soft), 0.6);
-  font-size: 13px;
-  color: rgb(var(--v-theme-text-muted));
-}
-
-.house-step-list__head {
-  display: grid;
-  grid-template-columns: var(--house-step-columns);
-  gap: var(--aco-space-3);
-  padding: var(--aco-space-1) 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--v-theme-text-muted));
-}
-
-.house-step-list__head-center {
-  text-align: center;
-}
-
-.house-step-list__steps {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.house-step-list__empty {
-  margin-top: var(--aco-space-4);
-  color: rgb(var(--v-theme-text-muted));
-}
-
-@media (max-width: 760px) {
-  .house-step-list {
-    padding: var(--aco-space-4);
-  }
-
-  .house-step-list__head {
-    display: none;
-  }
-}
-</style>

@@ -17,80 +17,58 @@ const items = computed(() => [
 </script>
 
 <template>
-  <header class="aco-card house-file-header">
-    <div class="house-file-header__item">
+  <v-card
+    tag="header"
+    variant="flat"
+    border
+    rounded="lg"
+    class="d-flex flex-wrap align-center gc-6 gr-2 px-4 py-2"
+  >
+    <div class="d-flex align-center ga-2">
       <v-icon
         icon="mdi-file-document-outline"
-        size="22"
         color="primary"
+        size="22"
       />
       <div>
-        <p class="aco-caption">
+        <div class="text-body-small text-medium-emphasis">
           Expediente
-        </p>
-        <p class="aco-title-row house-file-header__value">
+        </div>
+        <div class="d-flex align-center ga-2 text-body-medium font-weight-bold">
           {{ shown(housesStore.house.code_house) }}
-          <span
+          <v-chip
             v-if="housesStore.house.incoterms"
-            class="aco-chip aco-chip--primary"
-          >{{ housesStore.house.incoterms }}</span>
-        </p>
+            size="x-small"
+            color="primary"
+            variant="tonal"
+            label
+          >
+            {{ housesStore.house.incoterms }}
+          </v-chip>
+        </div>
       </div>
     </div>
     <div
       v-for="item in items"
       :key="item.label"
-      class="house-file-header__item"
+      class="d-flex align-center ga-2"
     >
       <v-icon
         :icon="item.icon"
-        size="20"
         color="primary"
+        size="20"
       />
       <div>
-        <p class="aco-caption">
+        <div class="text-body-small text-medium-emphasis">
           {{ item.label }}
-        </p>
-        <p class="aco-title-row house-file-header__value">
+        </div>
+        <div class="text-body-medium font-weight-bold">
           {{ item.value }}
-        </p>
+        </div>
       </div>
     </div>
-    <div class="house-file-header__action">
+    <div class="ms-auto">
       <TrackingLinkButton :house-id="houseId" />
     </div>
-  </header>
+  </v-card>
 </template>
-
-<style scoped>
-.house-file-header {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--aco-space-2) var(--aco-space-5);
-  padding: var(--aco-space-2) var(--aco-space-4);
-}
-
-.house-file-header__item {
-  display: flex;
-  align-items: center;
-  gap: var(--aco-space-2);
-  min-width: 0;
-  color: rgb(var(--v-theme-on-surface));
-}
-
-.house-file-header__item p {
-  margin: 0;
-  line-height: 1.25;
-}
-
-.house-file-header__value {
-  display: flex;
-  align-items: center;
-  gap: var(--aco-space-2);
-}
-
-.house-file-header__action {
-  margin-left: auto;
-}
-</style>

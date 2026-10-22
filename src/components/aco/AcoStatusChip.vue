@@ -1,29 +1,21 @@
 <script setup lang="ts">
-defineProps<{ tone: "success" | "primary" | "neutral"; label: string }>();
+const COLORS = { success: "success-ink", primary: "primary", neutral: "neutral-ink" } as const;
+
+defineProps<{ tone: keyof typeof COLORS; label: string }>();
 </script>
 
 <template>
-  <span
-    class="aco-chip aco-status-chip"
-    :class="`aco-chip--${tone}`"
+  <v-chip
+    size="x-small"
+    variant="tonal"
+    :color="COLORS[tone]"
+    class="font-weight-bold"
   >
-    <span
-      class="aco-status-chip__dot"
-      aria-hidden="true"
+    <v-icon
+      start
+      icon="mdi-circle"
+      size="8"
     />
     {{ label }}
-  </span>
+  </v-chip>
 </template>
-
-<style scoped>
-.aco-status-chip {
-  gap: 6px;
-}
-
-.aco-status-chip__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: currentColor;
-}
-</style>

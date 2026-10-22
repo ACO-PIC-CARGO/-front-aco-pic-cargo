@@ -2,7 +2,6 @@
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
-import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { clientSteps, dayMonth, stepDateTimeLabel } from "./houseTrackingFormat";
@@ -15,75 +14,94 @@ const expanded = ref<number[]>([]);
 const toggle = (id: number) => {
   expanded.value = expanded.value.includes(id) ? expanded.value.filter((item) => item !== id) : [...expanded.value, id];
 };
+const shortDay = (iso: string) => {
+  const { day, month } = dayMonth(iso, timeZone.value);
+  return `${day} ${month}`;
+};
 </script>
 
 <template>
-  <section
-    class="aco-card client-preview"
+  <v-card
+    tag="section"
+    variant="flat"
+    border
+    rounded="lg"
+    class="pa-3"
     aria-labelledby="client-preview-title"
   >
-    <header class="client-preview__header">
+    <div class="d-flex ga-2 mb-2">
       <v-icon
         icon="mdi-eye-outline"
         color="primary"
-        size="28"
       />
       <div>
         <h2
           id="client-preview-title"
-          class="aco-title-card"
+          class="text-title-medium font-weight-bold"
         >
           Vista de Tracking (Cliente)
         </h2>
-        <p class="aco-caption">
+        <p class="text-body-small text-medium-emphasis">
           Así se verán los servicios seleccionados en el tracking del cliente.
         </p>
       </div>
-    </header>
+    </div>
     <p
       v-if="!steps.length"
-      class="aco-body client-preview__empty"
+      class="text-body-medium text-medium-emphasis"
     >
       Ningún paso está marcado como visible para el cliente.
     </p>
-    <ol
+    <v-timeline
       v-else
-      class="client-preview__list"
+      side="end"
+      align="start"
+      density="compact"
+      truncate-line="both"
+      line-thickness="2"
     >
-      <li
+      <v-timeline-item
         v-for="step in steps"
         :key="step.id"
-        class="client-preview__step"
+        :dot-color="step.confirmed_at ? 'primary' : 'neutral'"
+        size="small"
+        width="100%"
+        fill-dot
       >
-        <div class="client-preview__when">
-          <AcoStepNumber
-            :number="step.number"
-            :muted="!step.confirmed_at"
-            size="sm"
-          />
-          <template v-if="step.confirmed_at">
-            <span class="aco-title-row">{{ dayMonth(step.confirmed_at, timeZone).day }}</span>
-            <span class="aco-caption">{{ dayMonth(step.confirmed_at, timeZone).month }}</span>
-          </template>
-        </div>
-        <div class="client-preview__card">
-          <div class="client-preview__row">
+        <template #icon>
+          <span class="text-label-small font-weight-bold">{{ step.number }}</span>
+        </template>
+        <v-card
+          variant="flat"
+          border
+          rounded="lg"
+          class="pa-2"
+        >
+          <div class="d-flex align-center ga-2">
             <v-icon
               :icon="step.icon"
               :color="step.confirmed_at ? 'primary' : 'neutral'"
-              size="22"
+              size="20"
             />
-            <div class="client-preview__body">
-              <span class="aco-title-row">{{ step.name }}</span>
-              <AcoStatusChip
-                :tone="step.confirmed_at ? 'success' : 'neutral'"
-                :label="step.confirmed_at ? 'Confirmado' : 'Pendiente'"
-              />
+            <div class="flex-grow-1">
+              <div class="text-body-medium font-weight-medium">
+                {{ step.name }}
+              </div>
+              <div class="d-flex flex-wrap align-center ga-2">
+                <AcoStatusChip
+                  :tone="step.confirmed_at ? 'success' : 'neutral'"
+                  :label="step.confirmed_at ? 'Confirmado' : 'Pendiente'"
+                />
+                <span
+                  v-if="step.confirmed_at"
+                  class="text-body-small text-medium-emphasis"
+                >{{ shortDay(step.confirmed_at) }}</span>
+              </div>
             </div>
             <v-btn
               icon
               variant="text"
-              size="small"
+              size="x-small"
               :aria-expanded="expanded.includes(step.id)"
               :aria-label="`Ver detalle de ${step.name}`"
               @click="toggle(step.id)"
@@ -93,85 +111,19 @@ const toggle = (id: number) => {
           </div>
           <div
             v-if="expanded.includes(step.id)"
-            class="client-preview__detail"
+            class="d-flex flex-column ga-1 mt-2 text-body-small"
           >
-            <p class="aco-caption">
+            <span class="text-medium-emphasis">
               {{ step.confirmed_at ? `Confirmado el ${stepDateTimeLabel(step.confirmed_at, timeZone)}` : "Aún pendiente" }}
-            </p>
-            <p
+            </span>
+            <span
               v-for="comment in step.comments"
               :key="comment.id"
-              class="aco-body"
-            >
-              {{ comment.comment }}
-            </p>
+              class="text-break"
+            >{{ comment.comment }}</span>
           </div>
-        </div>
-      </li>
-    </ol>
-  </section>
+        </v-card>
+      </v-timeline-item>
+    </v-timeline>
+  </v-card>
 </template>
-
-<style scoped>
-.client-preview {
-  padding: var(--aco-space-3) var(--aco-space-4);
-}
-
-.client-preview__header {
-  display: flex;
-  gap: var(--aco-space-3);
-  margin-bottom: var(--aco-space-3);
-}
-
-.client-preview__list {
-  display: grid;
-  gap: var(--aco-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.client-preview__step {
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  gap: var(--aco-space-3);
-}
-
-.client-preview__when {
-  display: grid;
-  justify-items: center;
-  align-content: start;
-  gap: 2px;
-}
-
-.client-preview__card {
-  padding: var(--aco-space-2) var(--aco-space-3);
-  border: 1px solid rgb(var(--v-theme-border));
-  border-radius: var(--aco-radius-control);
-}
-
-.client-preview__row {
-  display: flex;
-  align-items: center;
-  gap: var(--aco-space-2);
-}
-
-.client-preview__body {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  justify-items: start;
-  min-width: 0;
-}
-
-.client-preview__detail {
-  display: grid;
-  gap: var(--aco-space-2);
-  margin-top: var(--aco-space-3);
-  overflow-wrap: anywhere;
-}
-
-.client-preview__empty {
-  color: rgb(var(--v-theme-text-muted));
-}
-</style>

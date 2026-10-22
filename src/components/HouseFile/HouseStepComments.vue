@@ -35,155 +35,108 @@ async function add() {
 </script>
 
 <template>
-  <v-form
-    class="house-step-comments"
-    @submit.prevent="add"
-  >
-    <div class="house-step-comments__top">
-      <ul
-        v-if="step.comments.length"
-        class="house-step-comments__list"
+  <v-form @submit.prevent="add">
+    <v-sheet
+      color="primary-soft"
+      rounded="lg"
+      class="d-flex flex-column ga-2 pa-3"
+    >
+      <div
+        v-for="item in step.comments"
+        :key="item.id"
+        class="d-flex align-start ga-2"
       >
-        <li
-          v-for="item in step.comments"
-          :key="item.id"
-          class="house-step-comments__item"
-        >
-          <v-icon
-            icon="mdi-comment-outline"
-            size="18"
-          />
-          <span class="house-step-comments__when">{{ stepDateTimeLabel(item.created_at, timeZone) }}</span>
-          <span class="house-step-comments__text">{{ item.comment }}</span>
-          <span
-            class="aco-chip"
-            :class="item.is_public ? 'aco-chip--success' : 'aco-chip--neutral'"
-          >{{ item.is_public ? "Público" : "Interno" }}</span>
-        </li>
-      </ul>
+        <v-icon
+          icon="mdi-comment-outline"
+          size="16"
+          class="mt-1"
+        />
+        <div class="flex-grow-1">
+          <div class="d-flex flex-wrap align-center ga-2 text-body-small text-medium-emphasis">
+            {{ stepDateTimeLabel(item.created_at, timeZone) }} · {{ item.author ?? "Usuario" }}
+            <v-chip
+              size="x-small"
+              variant="tonal"
+              :color="item.is_public ? 'success-ink' : 'neutral-ink'"
+            >
+              {{ item.is_public ? "Público" : "Interno" }}
+            </v-chip>
+          </div>
+          <div class="text-body-medium text-break">
+            {{ item.comment }}
+          </div>
+        </div>
+      </div>
       <p
-        v-else
-        class="aco-caption"
+        v-if="!step.comments.length"
+        class="text-body-small text-medium-emphasis"
       >
         Aún no hay comentarios en este paso.
       </p>
-      <v-btn
+      <div
         v-if="!adding"
-        color="primary"
-        variant="outlined"
-        size="small"
-        prepend-icon="mdi-plus-circle-outline"
-        @click="adding = true"
+        class="d-flex justify-end"
       >
-        Agregar comentario
-      </v-btn>
-    </div>
-    <div
-      v-if="adding"
-      class="house-step-comments__form"
-    >
-      <v-textarea
-        v-model="comment"
-        label="Comentario"
-        :counter="COMMENT_MAX"
-        rows="2"
-        auto-grow
-        density="compact"
-        hide-details="auto"
-        autofocus
-      />
-      <div class="house-step-comments__actions">
-        <v-switch
-          v-model="isPublic"
-          label="Visible para el cliente"
-          color="primary"
-          inset
-          hide-details
-          density="compact"
-        />
-        <v-spacer />
-        <v-btn
-          variant="text"
-          size="small"
-          @click="close"
-        >
-          Cancelar
-        </v-btn>
         <v-btn
           color="primary"
-          variant="flat"
+          variant="outlined"
           size="small"
-          type="submit"
-          :loading="saving"
+          prepend-icon="mdi-plus-circle-outline"
+          class="text-none"
+          @click="adding = true"
         >
-          Guardar
+          Agregar comentario
         </v-btn>
       </div>
-      <v-alert
-        v-if="serverError"
-        type="warning"
-        variant="tonal"
-        density="compact"
-        :text="serverError"
-      />
-    </div>
+      <template v-else>
+        <v-textarea
+          v-model="comment"
+          label="Comentario"
+          :counter="COMMENT_MAX"
+          rows="2"
+          auto-grow
+          density="compact"
+          bg-color="surface"
+          hide-details="auto"
+          autofocus
+        />
+        <div class="d-flex flex-wrap align-center ga-2">
+          <v-switch
+            v-model="isPublic"
+            label="Visible para el cliente"
+            color="primary"
+            inset
+            hide-details
+            density="compact"
+          />
+          <v-spacer />
+          <v-btn
+            variant="text"
+            size="small"
+            class="text-none"
+            @click="close"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            size="small"
+            type="submit"
+            class="text-none"
+            :loading="saving"
+          >
+            Guardar
+          </v-btn>
+        </div>
+        <v-alert
+          v-if="serverError"
+          type="warning"
+          variant="tonal"
+          density="compact"
+          :text="serverError"
+        />
+      </template>
+    </v-sheet>
   </v-form>
 </template>
-
-<style scoped>
-.house-step-comments {
-  display: grid;
-  gap: var(--aco-space-3);
-  padding: var(--aco-space-3) var(--aco-space-4);
-  border-radius: var(--aco-radius-control);
-  background: rgba(var(--v-theme-primary-soft), 0.55);
-}
-
-.house-step-comments__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--aco-space-3);
-}
-
-.house-step-comments__list {
-  display: grid;
-  flex: 1 1 280px;
-  gap: var(--aco-space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.house-step-comments__item {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--aco-space-2) var(--aco-space-3);
-  font-size: 13px;
-}
-
-.house-step-comments__when {
-  color: rgb(var(--v-theme-text-muted));
-  white-space: nowrap;
-}
-
-.house-step-comments__text {
-  flex: 1 1 160px;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-
-.house-step-comments__form {
-  display: grid;
-  gap: var(--aco-space-2);
-}
-
-.house-step-comments__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--aco-space-2);
-}
-</style>
