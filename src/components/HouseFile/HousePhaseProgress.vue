@@ -4,7 +4,7 @@ import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import { phaseDateLabel } from "./houseTrackingFormat";
+import { dateLabel } from "./houseTrackingFormat";
 import type { PhaseStatus } from "@/types/houseTracking";
 
 const STATUS: Record<PhaseStatus, { tone: "success" | "primary" | "neutral"; label: string; tile: "solid" | "primary" | "neutral" }> = {
@@ -48,7 +48,7 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
           />
         </span>
         <p class="aco-caption">
-          {{ phaseDateLabel(phase.completed_at, timeZone) }}
+          {{ dateLabel(phase.completed_at, timeZone) }}
         </p>
         <AcoStatusChip
           :tone="STATUS[phase.status].tone"

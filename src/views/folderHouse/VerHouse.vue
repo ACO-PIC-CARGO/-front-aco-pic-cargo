@@ -774,8 +774,8 @@ onMounted(async () => {
         <v-row class="mt-1">
           <v-col
             cols="12"
-            md="7"
-            lg="8"
+            md="8"
+            lg="9"
           >
             <HouseStepList
               :house-id="houseId"
@@ -785,8 +785,8 @@ onMounted(async () => {
           </v-col>
           <v-col
             cols="12"
-            md="5"
-            lg="4"
+            md="4"
+            lg="3"
           >
             <ClientTrackingPreview />
           </v-col>

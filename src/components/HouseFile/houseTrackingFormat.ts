@@ -7,7 +7,7 @@ export const dayMonth = (iso: string, timeZone: string) => {
   return { day: date.format("DD"), month: SHORT_MONTHS[date.month()]! };
 };
 
-export const phaseDateLabel = (iso: string | null, timeZone: string): string =>
+export const dateLabel = (iso: string | null, timeZone: string): string =>
   iso ? shortDate(inTimeZone(iso, timeZone)) : "–";
 
 export const stepDateTimeLabel = (iso: string, timeZone: string): string => {

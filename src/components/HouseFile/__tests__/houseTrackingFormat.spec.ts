@@ -4,7 +4,7 @@ import {
   dayMonth,
   fromDateAndTime,
   latestComment,
-  phaseDateLabel,
+  dateLabel,
   stepDateTimeLabel,
   toDateAndTime,
   trackingLink,
@@ -29,8 +29,8 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
 
 test("timestamps are shown in the company's zone with the project date format", () => {
   expect(dayMonth("2026-10-04T03:30:00Z", LIMA)).toEqual({ day: "03", month: "OCT" });
-  expect(phaseDateLabel("2026-01-15T12:00:00Z", LIMA)).toBe("15/ENE/2026");
-  expect(phaseDateLabel(null, LIMA)).toBe("–");
+  expect(dateLabel("2026-01-15T12:00:00Z", LIMA)).toBe("15/ENE/2026");
+  expect(dateLabel(null, LIMA)).toBe("–");
   expect(stepDateTimeLabel("2026-10-01T21:40:00.000Z", LIMA)).toBe("01/OCT/2026 16:40");
   expect(stepDateTimeLabel("2026-10-01T21:40:00.000Z", MEXICO)).toBe("01/OCT/2026 15:40");
 });

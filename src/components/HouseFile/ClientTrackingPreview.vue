@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
-import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
@@ -64,9 +63,10 @@ const toggle = (id: number) => {
         </div>
         <div class="client-preview__card">
           <div class="client-preview__row">
-            <AcoIconTile
+            <v-icon
               :icon="step.icon"
-              size="sm"
+              color="primary"
+              size="28"
             />
             <div class="client-preview__body">
               <span class="aco-title-row">{{ step.name }}</span>
@@ -128,7 +128,7 @@ const toggle = (id: number) => {
 
 .client-preview__step {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 40px minmax(0, 1fr);
   gap: var(--aco-space-3);
 }
 
@@ -143,8 +143,9 @@ const toggle = (id: number) => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
   border-radius: 50%;
   background: rgb(var(--v-theme-primary));
   color: rgb(var(--v-theme-on-primary));
@@ -152,7 +153,7 @@ const toggle = (id: number) => {
 }
 
 .client-preview__card {
-  padding: var(--aco-space-3);
+  padding: var(--aco-space-2) var(--aco-space-3);
   border: 1px solid rgb(var(--v-theme-border));
   border-radius: var(--aco-radius-control);
 }

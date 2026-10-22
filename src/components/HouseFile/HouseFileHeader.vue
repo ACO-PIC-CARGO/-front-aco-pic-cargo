@@ -21,7 +21,8 @@ const items = computed(() => [
     <div class="house-file-header__item">
       <v-icon
         icon="mdi-file-document-outline"
-        size="32"
+        size="26"
+        color="primary"
       />
       <div>
         <p class="aco-caption">
@@ -43,7 +44,8 @@ const items = computed(() => [
     >
       <v-icon
         :icon="item.icon"
-        size="28"
+        size="22"
+        color="primary"
       />
       <div>
         <p class="aco-caption">
@@ -65,13 +67,13 @@ const items = computed(() => [
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--aco-space-4) var(--aco-space-5);
-  padding: var(--aco-space-4) var(--aco-space-5);
+  gap: var(--aco-space-3) var(--aco-space-6);
+  padding: var(--aco-space-3) var(--aco-space-5);
 }
 
 .house-file-header__item {
   display: flex;
-  flex: 1 1 150px;
+  flex: 0 1 auto;
   align-items: center;
   gap: var(--aco-space-3);
   min-width: 0;

@@ -3,12 +3,14 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import HouseStepItem from "./HouseStepItem.vue";
 import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
+import { useHousesStore } from "@/stores/houses";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; loadError: string }>();
 const emit = defineEmits<{ retry: [] }>();
 
+const housesStore = useHousesStore();
 const store = useHouseTrackingStore();
 const { phases, loading } = storeToRefs(store);
 const dialog = ref(false);
@@ -31,8 +33,27 @@ function openConfirm(step: HouseTrackingStep) {
       id="house-step-list-title"
       class="aco-title-card"
     >
-      Seguimiento del expediente
+      Servicios a Realizar
     </h2>
+    <div class="house-step-list__toolbar">
+      <div class="house-step-list__incoterm">
+        <v-icon
+          icon="mdi-web"
+          color="primary"
+          size="22"
+        />
+        <span class="aco-title-row">Incoterm</span>
+        <span class="house-step-list__incoterm-value">{{ housesStore.house.incoterms || "—" }}</span>
+      </div>
+      <p class="house-step-list__hint">
+        <v-icon
+          icon="mdi-information-outline"
+          color="primary"
+          size="18"
+        />
+        Confirma cada paso en orden. Los pasos visibles al cliente aparecen en su tracking.
+      </p>
+    </div>
     <v-alert
       v-if="loadError"
       type="error"
@@ -59,19 +80,29 @@ function openConfirm(step: HouseTrackingStep) {
     >
       Tu empresa aún no tiene pasos de seguimiento. Configúralos en Ficheros › Fases y pasos.
     </p>
-    <ol
-      v-else
-      class="house-step-list__steps"
-    >
-      <HouseStepItem
-        v-for="step in allSteps"
-        :key="step.id"
-        :house-id="props.houseId"
-        :step="step"
-        :blocked-by="step.state === 'blocked' ? nextStepName : null"
-        @confirm="openConfirm(step)"
-      />
-    </ol>
+    <template v-else>
+      <div
+        class="house-step-list__head"
+        aria-hidden="true"
+      >
+        <span>#</span>
+        <span>Servicio</span>
+        <span>Fecha</span>
+        <span>Estado</span>
+        <span class="house-step-list__head-center">Enviar a Tracking</span>
+        <span />
+      </div>
+      <ol class="house-step-list__steps">
+        <HouseStepItem
+          v-for="step in allSteps"
+          :key="step.id"
+          :house-id="props.houseId"
+          :step="step"
+          :blocked-by="step.state === 'blocked' ? nextStepName : null"
+          @confirm="openConfirm(step)"
+        />
+      </ol>
+    </template>
     <HouseStepConfirmDialog
       v-model="dialog"
       :house-id="props.houseId"
@@ -82,11 +113,63 @@ function openConfirm(step: HouseTrackingStep) {
 
 <style scoped>
 .house-step-list {
+  --house-step-columns: 28px minmax(0, 1fr) 136px 112px 92px 32px;
+
   padding: var(--aco-space-5);
 }
 
+.house-step-list__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--aco-space-3) var(--aco-space-4);
+  margin: var(--aco-space-4) 0;
+}
+
+.house-step-list__incoterm {
+  display: flex;
+  align-items: center;
+  gap: var(--aco-space-3);
+}
+
+.house-step-list__incoterm-value {
+  min-width: 120px;
+  padding: var(--aco-space-2) var(--aco-space-3);
+  border: 1px solid rgb(var(--v-theme-border));
+  border-radius: var(--aco-radius-control);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.house-step-list__hint {
+  display: flex;
+  flex: 1 1 260px;
+  align-items: center;
+  gap: var(--aco-space-2);
+  margin: 0;
+  padding: var(--aco-space-2) var(--aco-space-3);
+  border-radius: var(--aco-radius-control);
+  background: rgba(var(--v-theme-primary-soft), 0.6);
+  font-size: 13px;
+  color: rgb(var(--v-theme-text-muted));
+}
+
+.house-step-list__head {
+  display: grid;
+  grid-template-columns: var(--house-step-columns);
+  gap: var(--aco-space-3);
+  padding: var(--aco-space-2) 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(var(--v-theme-text-muted));
+}
+
+.house-step-list__head-center {
+  text-align: center;
+}
+
 .house-step-list__steps {
-  margin: var(--aco-space-4) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -94,5 +177,15 @@ function openConfirm(step: HouseTrackingStep) {
 .house-step-list__empty {
   margin-top: var(--aco-space-4);
   color: rgb(var(--v-theme-text-muted));
+}
+
+@media (max-width: 760px) {
+  .house-step-list {
+    padding: var(--aco-space-4);
+  }
+
+  .house-step-list__head {
+    display: none;
+  }
 }
 </style>

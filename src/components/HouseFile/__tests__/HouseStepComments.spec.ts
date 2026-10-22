@@ -31,13 +31,14 @@ const step: HouseTrackingStep = {
   comments: [],
 };
 
-test("comments stay writable inside the read-only house form", () => {
+test("comments stay writable inside the read-only house form", async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
   const wrapper = mount(
     { render: () => h(VForm, { readonly: true }, () => h(HouseStepComments, { houseId: 1, step })) },
     { global: { plugins: [createVuetify({ components, directives }), pinia] } },
   );
+  await wrapper.findAll("button").find((button) => button.text().includes("Agregar comentario"))!.trigger("click");
   expect(wrapper.find("textarea").attributes("readonly")).toBeUndefined();
   expect(wrapper.find('input[type="checkbox"]').attributes("readonly")).toBeUndefined();
   wrapper.unmount();
