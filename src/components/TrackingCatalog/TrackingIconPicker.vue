@@ -1,46 +1,123 @@
 <script setup lang="ts">
+import { computed, onMounted, ref } from "vue";
+import { useDisplay } from "vuetify";
 import AcoIconTile from "@/components/aco/AcoIconTile.vue";
+import TrackingIconOption from "./TrackingIconOption.vue";
+import { filterIcons, loadIconCatalog, toIconCatalog, toRows } from "./iconCatalog";
 import { TRACKING_ICONS } from "./trackingIcons";
+import type { TrackingIcon } from "./trackingIcons";
+
+const ROW_HEIGHT = 56;
+const LIST_HEIGHT = 240;
 
 const icon = defineModel<string>({ required: true });
+
+const { xs } = useDisplay();
+const query = ref<string | null>("");
+const catalog = ref<TrackingIcon[]>([]);
+const loading = ref(true);
+const loadFailed = ref(false);
+const columns = computed(() => (xs.value ? 5 : 8));
+const searching = computed(() => Boolean(query.value?.trim()));
+const results = computed(() => filterIcons(loadFailed.value ? TRACKING_ICONS : catalog.value, query.value ?? ""));
+const rows = computed(() => toRows(results.value, columns.value));
+const selectedLabel = computed(() => toIconCatalog([icon.value])[0]!.label);
+
+onMounted(async () => {
+  try {
+    catalog.value = await loadIconCatalog();
+  } catch {
+    loadFailed.value = true;
+  } finally {
+    loading.value = false;
+  }
+});
 </script>
 
 <template>
-  <fieldset class="tracking-icon-picker">
+  <fieldset
+    class="tracking-icon-picker"
+    :style="{ '--icon-columns': columns }"
+  >
     <legend class="aco-title-row">
       Icono
     </legend>
-    <div class="tracking-icon-picker__grid">
-      <button
-        v-for="option in TRACKING_ICONS"
-        :key="option.icon"
-        type="button"
-        class="tracking-icon-picker__option"
-        :class="{ 'is-selected': icon === option.icon }"
-        :aria-label="option.label"
-        :aria-pressed="icon === option.icon"
-        @click="icon = option.icon"
-      >
-        <AcoIconTile
-          :icon="option.icon"
-          size="sm"
-          :tone="icon === option.icon ? 'solid' : 'primary'"
-        />
-        <v-icon
-          v-if="icon === option.icon"
-          class="tracking-icon-picker__check"
-          icon="mdi-check-circle"
-          size="16"
-          color="success-ink"
-        />
-        <v-tooltip
-          activator="parent"
-          location="top"
-        >
-          {{ option.label }}
-        </v-tooltip>
-      </button>
+    <div class="tracking-icon-picker__current">
+      <AcoIconTile
+        :icon="icon"
+        size="sm"
+        tone="solid"
+      />
+      <span class="aco-body">{{ selectedLabel }}</span>
     </div>
+    <v-text-field
+      v-model="query"
+      label="Buscar icono"
+      placeholder="Busca en inglés, por ejemplo truck o ship"
+      prepend-inner-icon="mdi-magnify"
+      clearable
+      hide-details
+      density="compact"
+    />
+
+    <template v-if="!searching">
+      <p class="aco-caption tracking-icon-picker__heading">
+        Sugeridos
+      </p>
+      <div class="tracking-icon-picker__grid">
+        <TrackingIconOption
+          v-for="option in TRACKING_ICONS"
+          :key="option.icon"
+          :option="option"
+          :selected="icon === option.icon"
+          @select="icon = option.icon"
+        />
+      </div>
+      <p
+        v-if="!loadFailed"
+        class="aco-caption tracking-icon-picker__heading"
+      >
+        Todos los iconos
+      </p>
+    </template>
+
+    <p
+      v-if="loading"
+      class="aco-caption"
+    >
+      Cargando iconos…
+    </p>
+    <p
+      v-else-if="loadFailed && !searching"
+      class="aco-caption"
+    >
+      No pudimos cargar todos los iconos. Elige uno de los sugeridos o vuelve a abrir el formulario.
+    </p>
+    <p
+      v-else-if="!results.length"
+      class="aco-caption"
+    >
+      No encontramos iconos con ese nombre. Prueba en inglés, por ejemplo truck.
+    </p>
+    <v-virtual-scroll
+      v-else
+      :items="rows"
+      :height="LIST_HEIGHT"
+      :item-height="ROW_HEIGHT"
+      class="tracking-icon-picker__all"
+    >
+      <template #default="{ item: row }">
+        <div class="tracking-icon-picker__grid tracking-icon-picker__row">
+          <TrackingIconOption
+            v-for="option in row"
+            :key="option.icon"
+            :option="option"
+            :selected="icon === option.icon"
+            @select="icon = option.icon"
+          />
+        </div>
+      </template>
+    </v-virtual-scroll>
   </fieldset>
 </template>
 
@@ -55,36 +132,30 @@ const icon = defineModel<string>({ required: true });
   margin-bottom: var(--aco-space-2);
 }
 
+.tracking-icon-picker__current {
+  display: flex;
+  align-items: center;
+  gap: var(--aco-space-3);
+  margin-bottom: var(--aco-space-3);
+}
+
+.tracking-icon-picker__heading {
+  margin: var(--aco-space-4) 0 var(--aco-space-2);
+}
+
 .tracking-icon-picker__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  grid-template-columns: repeat(var(--icon-columns), minmax(0, 1fr));
   gap: var(--aco-space-2);
 }
 
-.tracking-icon-picker__option {
-  position: relative;
-  display: inline-flex;
+.tracking-icon-picker__row {
+  height: 56px;
   align-items: center;
-  justify-content: center;
-  min-width: 48px;
-  min-height: 48px;
-  border: 2px solid transparent;
+}
+
+.tracking-icon-picker__all {
+  border: 1px solid rgb(var(--v-theme-border));
   border-radius: var(--aco-radius-control);
-  background: none;
-  cursor: pointer;
-  transition: border-color var(--aco-transition);
-}
-
-.tracking-icon-picker__option:hover,
-.tracking-icon-picker__option.is-selected {
-  border-color: rgb(var(--v-theme-primary));
-}
-
-.tracking-icon-picker__check {
-  position: absolute;
-  top: 0;
-  right: 0;
-  border-radius: 50%;
-  background: rgb(var(--v-theme-surface));
 }
 </style>
