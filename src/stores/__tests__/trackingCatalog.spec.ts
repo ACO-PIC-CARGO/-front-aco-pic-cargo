@@ -208,6 +208,22 @@ describe("trackingCatalog store", () => {
     expect(store.busy).toBe(false);
   });
 
+  test("a move or visibility change requested while another change runs is ignored", async () => {
+    let release!: () => void;
+    httpMock.mockImplementation(async (config) => {
+      if (config.url === "tracking_steps/5/move") await new Promise<void>((resolve) => (release = resolve));
+      return { data: accepted([phase()]) };
+    });
+    const store = useTrackingCatalogStore();
+    const first = store.moveStep(5, "up");
+    await store.moveStep(5, "up");
+    await store.movePhase(7, "down");
+    await store.setStepVisibility(7, step(), false);
+    release();
+    await first;
+    expect(sent()).toEqual(["put tracking_steps/5/move", "get tracking_catalog"]);
+  });
+
   test("stepRangeLabel names the step numbers a phase covers", () => {
     expect(stepRangeLabel(phase({ first_step_number: 3, last_step_number: 6 }))).toBe("Pasos 3–6");
     expect(stepRangeLabel(phase({ first_step_number: 12, last_step_number: 12 }))).toBe("Paso 12");

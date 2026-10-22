@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { MoveDirection } from "@/types/trackingCatalog";
 
-defineProps<{ label: string; isFirst: boolean; isLast: boolean; disabled: boolean }>();
+defineProps<{ label: string; isFirst: boolean; isLast: boolean }>();
 const emit = defineEmits<{ move: [direction: MoveDirection] }>();
 </script>
 
@@ -10,7 +10,7 @@ const emit = defineEmits<{ move: [direction: MoveDirection] }>();
     <v-btn
       icon
       variant="text"
-      :disabled="disabled || isFirst"
+      :disabled="isFirst"
       :aria-label="`Subir ${label}`"
       @click="emit('move', 'up')"
     >
@@ -25,7 +25,7 @@ const emit = defineEmits<{ move: [direction: MoveDirection] }>();
     <v-btn
       icon
       variant="text"
-      :disabled="disabled || isLast"
+      :disabled="isLast"
       :aria-label="`Bajar ${label}`"
       @click="emit('move', 'down')"
     >

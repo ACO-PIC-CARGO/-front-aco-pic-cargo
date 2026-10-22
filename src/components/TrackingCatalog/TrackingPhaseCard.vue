@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { storeToRefs } from "pinia";
 import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import TrackingMoveButtons from "./TrackingMoveButtons.vue";
@@ -11,7 +10,6 @@ const props = defineProps<{ phase: TrackingPhase; isFirst: boolean; isLast: bool
 const emit = defineEmits<{ "edit-phase": []; "add-step": []; "edit-step": [step: TrackingStep] }>();
 
 const store = useTrackingCatalogStore();
-const { busy } = storeToRefs(store);
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
 const rangeLabel = computed(() => stepRangeLabel(props.phase));
 </script>
@@ -47,7 +45,6 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
           :label="`fase ${phase.name}`"
           :is-first="isFirst"
           :is-last="isLast"
-          :disabled="busy"
           @move="(direction) => store.movePhase(phase.id, direction)"
         />
         <v-btn
@@ -96,7 +93,6 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
           hide-details
           density="compact"
           class="tracking-step__visibility"
-          :disabled="busy"
           @update:model-value="(visible) => store.setStepVisibility(phase.id, step, Boolean(visible))"
         />
         <div class="tracking-step__actions">
@@ -104,7 +100,6 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
             :label="`paso ${step.name}`"
             :is-first="index === 0"
             :is-last="index === phase.steps.length - 1"
-            :disabled="busy"
             @move="(direction) => store.moveStep(step.id, direction)"
           />
           <v-btn

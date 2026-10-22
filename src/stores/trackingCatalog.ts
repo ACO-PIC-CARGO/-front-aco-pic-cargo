@@ -58,18 +58,22 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
     return null;
   }
 
-  async function move(url: string, id: number, direction: MoveDirection): Promise<void> {
-    const response = await mutate({ method: "put", url: `${url}/${id}/move`, data: { direction } });
+  async function changeInline(config: AxiosRequestConfig): Promise<void> {
+    if (busy.value) return;
+    const response = await mutate(config);
     if (!response.estadoflag) warn(response);
   }
+
+  const move = (url: string, id: number, direction: MoveDirection) =>
+    changeInline({ method: "put", url: `${url}/${id}/move`, data: { direction } });
 
   const savePhase = (draft: TrackingPhaseDraft) => save(PHASES_URL, draft);
   const saveStep = (draft: TrackingStepDraft) => save(STEPS_URL, draft);
   const movePhase = (id: number, direction: MoveDirection) => move(PHASES_URL, id, direction);
   const moveStep = (id: number, direction: MoveDirection) => move(STEPS_URL, id, direction);
 
-  async function setStepVisibility(phaseId: number, step: TrackingStep, visible: boolean): Promise<void> {
-    const response = await mutate(
+  const setStepVisibility = (phaseId: number, step: TrackingStep, visible: boolean) =>
+    changeInline(
       saveConfig(STEPS_URL, {
         id: step.id,
         phase_id: phaseId,
@@ -79,8 +83,6 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
         active: step.active,
       }),
     );
-    if (!response.estadoflag) warn(response);
-  }
 
   return { phases, loading, busy, loadCatalog, savePhase, saveStep, movePhase, moveStep, setStepVisibility };
 });
