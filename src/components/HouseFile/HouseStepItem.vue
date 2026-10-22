@@ -58,36 +58,38 @@ const switchLabel = computed(() => (props.step.state === "confirmed" ? "Confirma
           </v-btn>
         </span>
       </div>
-      <div class="house-step__confirm">
-        <v-switch
-          :model-value="step.state === 'confirmed'"
-          :label="switchLabel"
-          color="success"
-          inset
-          hide-details
-          density="compact"
-          :readonly="step.state === 'confirmed'"
-          :disabled="step.state === 'blocked'"
-          @update:model-value="emit('confirm')"
-        />
-        <v-tooltip
-          v-if="blockedBy"
-          activator="parent"
-          location="top"
+      <div class="house-step__actions">
+        <div>
+          <v-switch
+            :model-value="step.state === 'confirmed'"
+            :label="switchLabel"
+            color="success"
+            inset
+            hide-details
+            density="compact"
+            :readonly="step.state === 'confirmed'"
+            :disabled="step.state === 'blocked'"
+            @update:model-value="emit('confirm')"
+          />
+          <v-tooltip
+            v-if="blockedBy"
+            activator="parent"
+            location="top"
+          >
+            Primero confirma «{{ blockedBy }}»
+          </v-tooltip>
+        </div>
+        <v-btn
+          icon
+          variant="text"
+          :aria-expanded="expanded"
+          :aria-controls="commentsId"
+          :aria-label="`${expanded ? 'Ocultar' : 'Ver'} comentarios de ${step.name}`"
+          @click="expanded = !expanded"
         >
-          Primero confirma «{{ blockedBy }}»
-        </v-tooltip>
+          <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+        </v-btn>
       </div>
-      <v-btn
-        icon
-        variant="text"
-        :aria-expanded="expanded"
-        :aria-controls="commentsId"
-        :aria-label="`${expanded ? 'Ocultar' : 'Ver'} comentarios de ${step.name}`"
-        @click="expanded = !expanded"
-      >
-        <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
-      </v-btn>
     </div>
     <div
       v-if="lastComment && !expanded"
@@ -126,6 +128,12 @@ const switchLabel = computed(() => (props.step.state === "confirmed" ? "Confirma
   display: grid;
   flex: 1 1 200px;
   min-width: 0;
+}
+
+.house-step__actions {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
 }
 
 .house-step__date {

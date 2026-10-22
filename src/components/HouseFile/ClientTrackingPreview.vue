@@ -128,7 +128,7 @@ const toggle = (id: number) => {
 
 .client-preview__step {
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: var(--aco-space-3);
 }
 
@@ -175,6 +175,7 @@ const toggle = (id: number) => {
   display: grid;
   gap: var(--aco-space-2);
   margin-top: var(--aco-space-3);
+  overflow-wrap: anywhere;
 }
 
 .client-preview__empty {

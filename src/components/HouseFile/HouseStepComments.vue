@@ -29,7 +29,10 @@ async function add() {
 </script>
 
 <template>
-  <div class="house-step-comments">
+  <v-form
+    class="house-step-comments"
+    @submit.prevent="add"
+  >
     <ul
       v-if="step.comments.length"
       class="house-step-comments__list"
@@ -89,7 +92,7 @@ async function add() {
       variant="tonal"
       :text="serverError"
     />
-  </div>
+  </v-form>
 </template>
 
 <style scoped>
