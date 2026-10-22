@@ -1,13 +1,18 @@
 <script setup lang="ts">
-import { v4 as uuidv4 } from "uuid";
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
-import Bitacora from "@/components/folderHouse/BitacoraHouseVer.vue";
-import services from "@/components/folderHouse/ServicesHouseVer.vue";
+import "@/styles/aco-ui.css";
+import HouseFileHeader from "@/components/HouseFile/HouseFileHeader.vue";
+import HousePhaseProgress from "@/components/HouseFile/HousePhaseProgress.vue";
+import HouseStepList from "@/components/HouseFile/HouseStepList.vue";
+import ClientTrackingPreview from "@/components/HouseFile/ClientTrackingPreview.vue";
+import HouseCustomsCard from "@/components/HouseFile/HouseCustomsCard.vue";
+import { useHouseTrackingStore } from "@/stores/houseTracking";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { usePricingStore } from "@/stores/pricing";
@@ -24,7 +29,15 @@ const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
+const houseTrackingStore = useHouseTrackingStore();
+const branchTimeZoneStore = useBranchTimeZoneStore();
+const houseId = computed(() => Number(route.params.id));
+const trackingError = ref("");
 const itemsShipment = computed(() => appStore.itemsShipment);
+
+async function loadTracking() {
+  trackingError.value = (await houseTrackingStore.load(houseId.value)) ?? "";
+}
 
 const selected = ref<CuentaBancariaPic[]>([]);
 const errorCuentas = ref("");
@@ -55,7 +68,6 @@ const loadingBotonNotificaciones = ref(false);
 const loadingBotonGuardarHouse = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const fab = ref(false);
-const loadingBotonTracking = ref(false);
 const openMenuNotificaciones = ref(false);
 const dialogFormato = ref(false);
 const formatoflag = ref(true);
@@ -146,74 +158,6 @@ async function exportarFormatoHBL() {
     });
   }
   dialogFormato.value = false;
-}
-async function _generateTrackingToken() {
-  const token = uuidv4();
-
-  loadingBotonTracking.value = true;
-  await _setTrackingToken(token);
-  loadingBotonTracking.value = false;
-}
-async function _setTrackingToken(token: string) {
-  const data = {
-    id_house: route.params.id,
-    token: token,
-    fecha: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
-      .toISOString()
-      .substr(0, 10),
-  };
-
-  const config = {
-    method: "put",
-    url: import.meta.env.VITE_URL_MAIN + `setTrackingToken`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  await axios(config)
-    .then(function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      if (response.data.estadoflag) {
-        housesStore.house_enlace_tracking =
-          "https://aco.agentedecargaonline.com/tracking/" +
-          response.data.data[0].token;
-
-        Swal.fire({
-          icon: "success",
-          title: "Éxito",
-          text: "Enlace de tracking generado correctamente",
-        });
-      } else {
-        Swal.fire({
-          icon: response.data.status == "401" ? "error" : "info",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        });
-      }
-    })
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Error",
-        text: "No se pudo generar el enlace de tracking",
-      });
-    });
-}
-async function _copyEnlaceTracking(texto: string) {
-  await navigator.clipboard.writeText(texto);
-  Swal.fire({
-    icon: "success",
-    title: "Copiado",
-    text: "Enlace copiado al portapapeles",
-    timer: 1500,
-    showConfirmButton: false,
-  });
 }
 function openNotificaciones() {
   validarMenuNotificaciones();
@@ -785,6 +729,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 onMounted(async () => {
   appStore.spiner = true;
   await housesStore.verHouse(route.params);
+  await Promise.all([loadTracking(), branchTimeZoneStore.load()]);
   await pricingStore.getCargarEjecutivo();
   if (route.name == "controlHouseVer") {
     formControlHouseReadonly.value = true;
@@ -812,317 +757,261 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-form
-    ref="formControlHouse"
-    :readonly="formControlHouseReadonly"
+  <v-theme-provider
+    theme="aco"
+    with-background
+    class="aco-ui house-file"
   >
-    <v-container fluid>
-      <v-row>
-        <v-col
-          cols="12"
-          md="4"
-        >
-          <v-card>
-            <v-card-text>
+    <v-form
+      ref="formControlHouse"
+      :readonly="formControlHouseReadonly"
+    >
+      <v-container fluid>
+        <div class="house-file__top">
+          <HouseFileHeader :house-id="houseId" />
+          <HousePhaseProgress />
+        </div>
+        <v-row class="mt-1">
+          <v-col
+            cols="12"
+            md="7"
+            lg="8"
+          >
+            <HouseStepList
+              :house-id="houseId"
+              :load-error="trackingError"
+              @retry="loadTracking"
+            />
+          </v-col>
+          <v-col
+            cols="12"
+            md="5"
+            lg="4"
+          >
+            <ClientTrackingPreview />
+          </v-col>
+          <v-col
+            cols="12"
+            md="4"
+          >
+            <section class="aco-card house-file__section">
               <dataGen />
-            </v-card-text>
-          </v-card>
-          <v-card class="mt-5">
-            <v-card-text>
+            </section>
+          </v-col>
+          <v-col
+            cols="12"
+            md="4"
+          >
+            <section class="aco-card house-file__section">
               <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
-            </v-card-text>
-          </v-card>
+            </section>
+          </v-col>
+          <v-col
+            cols="12"
+            md="4"
+          >
+            <HouseCustomsCard />
 
-          <v-row class="mt-2">
-            <template v-if="$route.name != 'controlHouseVer'">
-              <v-col
-                cols="4"
-                md="4"
-              >
-                <v-btn
-                  color="success"
-                  @click="_setHouseEdit()"
-                  block
-                  size="small"
-                  :loading="loadingBotonGuardarHouse"
+            <v-row class="mt-2">
+              <template v-if="$route.name != 'controlHouseVer'">
+                <v-col
+                  cols="4"
+                  md="4"
                 >
-                  GUARDAR CAMBIOS
-                </v-btn>
-              </v-col>
-              <v-col
-                cols="4"
-                md="4"
-              >
-                <v-btn
-                  color="red"
-                  @click="eliminarHouse()"
-                  block
-                  size="small"
-                  :loading="loadingBotonEliminarHouse"
+                  <v-btn
+                    color="success"
+                    @click="_setHouseEdit()"
+                    block
+                    size="small"
+                    :loading="loadingBotonGuardarHouse"
+                  >
+                    GUARDAR CAMBIOS
+                  </v-btn>
+                </v-col>
+                <v-col
+                  cols="4"
+                  md="4"
                 >
-                  ELIMINAR
-                </v-btn>
-              </v-col>
+                  <v-btn
+                    color="red"
+                    @click="eliminarHouse()"
+                    block
+                    size="small"
+                    :loading="loadingBotonEliminarHouse"
+                  >
+                    ELIMINAR
+                  </v-btn>
+                </v-col>
+              </template>
+            </v-row>
+          </v-col>
+        </v-row>
+        <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
+          <v-speed-dial
+            v-model="fab"
+            location="top end"
+            transition="slide-y-reverse-transition"
+            content-class="acciones-dial"
+          >
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                color="info"
+                icon
+              >
+                <v-icon v-if="fab">
+                  mdi-close
+                </v-icon>
+                <v-icon v-else>
+                  mdi-tools
+                </v-icon>
+              </v-btn>
             </template>
-            <template
-              v-if="
-                $route.name == 'controlHouseEditar' ||
-                  $route.name == 'controlHouseVer'
-              "
+
+            <v-btn
+              key="eliminar"
+              color="red"
+              :loading="loadingBotonEliminarHouse"
+              @click="eliminarHouse()"
             >
-              <v-col
-                cols="4"
-                md="4"
+              <v-icon start>
+                mdi-delete
+              </v-icon>
+              Eliminar
+            </v-btn>
+            <v-btn
+              key="imprimir"
+              :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
+              @click="abrirModalFormato()"
+            >
+              <v-icon
+                start
+                style="color: white"
               >
-                <!-- <v-btn color="orange" @click="atras()" block dark small>
-                  REGRESAR
-                </v-btn> -->
-              </v-col>
-            </template>
-            <!-- <v-col cols="6" md="6">
-                <v-btn color="orange" block class="mr-2" dark>Limpiar </v-btn>
-              </v-col> -->
-          </v-row>
-        </v-col>
+                mdi-printer
+              </v-icon>
+              Imprimir
+            </v-btn>
 
-        <v-col
-          cols="12"
-          md="4"
-        >
-          <v-card>
-            <v-card-text>
-              <services
-                :is-form-actions-disabled="formControlHouseReadonly"
-                :items-notificaciones="getItemsNotificaciones()"
-                @send-notificacion="sendNotificacion"
-                @ir-editar="irAVerMaster"
-              />
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col
-          cols="12"
-          md="4"
-        >
-          <v-card>
-            <v-card-text>
-              <Bitacora :is-form-actions-disabled="formControlHouseReadonly" />
-            </v-card-text>
-          </v-card>
-        </v-col>
-      </v-row>
-      <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
-        <v-speed-dial
-          v-model="fab"
-          location="top end"
-          transition="slide-y-reverse-transition"
-          content-class="acciones-dial"
+            <v-btn
+              key="notificaciones"
+              color="deep-purple"
+              @click="openNotificaciones"
+            >
+              <v-icon
+                start
+                style="transform: rotate(-45deg)"
+              >
+                mdi-send
+              </v-icon>
+              Notificaciones
+            </v-btn>
+            <v-btn
+              key="editar"
+              color="light-green-lighten-1"
+              @click="irAVerMaster()"
+            >
+              <v-icon start>
+                mdi-pencil
+              </v-icon>
+              Editar
+            </v-btn>
+          </v-speed-dial>
+        </div>
+        <!-- Menú de notificaciones -->
+        <v-menu
+          v-model="openMenuNotificaciones"
+          location="top"
+          content-class="elevation-0"
         >
           <template #activator="{ props }">
-            <v-btn
-              v-bind="props"
-              color="info"
-              icon
-            >
-              <v-icon v-if="fab">
-                mdi-close
-              </v-icon>
-              <v-icon v-else>
-                mdi-tools
-              </v-icon>
-            </v-btn>
+            <span v-bind="props" />
           </template>
-
-          <v-btn
-            key="eliminar"
-            color="red"
-            :loading="loadingBotonEliminarHouse"
-            @click="eliminarHouse()"
+          <v-list
+            color="transparent"
+            v-show="displayMenuNotificaciones"
           >
-            <v-icon start>
-              mdi-delete
-            </v-icon>
-            Eliminar
-          </v-btn>
-          <v-btn
-            key="tracking"
-            color="orange-darken-2"
-            :loading="loadingBotonTracking"
-            @click="_generateTrackingToken"
-          >
-            <v-icon start>
-              mdi-link-variant
-            </v-icon>
-            Tracking
-          </v-btn>
-          <v-btn
-            key="imprimir"
-            :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
-            @click="abrirModalFormato()"
-          >
-            <v-icon
-              start
-              style="color: white"
+            <v-list-item
+              v-for="(item, index) in getItemsNotificaciones()"
+              :key="index"
+              class="px-0"
             >
-              mdi-printer
-            </v-icon>
-            Imprimir
-          </v-btn>
-
-          <v-btn
-            key="notificaciones"
-            color="deep-purple"
-            @click="openNotificaciones"
-          >
-            <v-icon
-              start
-              style="transform: rotate(-45deg)"
-            >
-              mdi-send
-            </v-icon>
-            Notificaciones
-          </v-btn>
-          <v-btn
-            key="editar"
-            color="light-green-lighten-1"
-            @click="irAVerMaster()"
-          >
-            <v-icon start>
-              mdi-pencil
-            </v-icon>
-            Editar
-          </v-btn>
-        </v-speed-dial>
-      </div>
-      <div
-        v-if="housesStore.house_enlace_tracking"
-        style="
-          position: fixed;
-          right: 88px;
-          bottom: 16px;
-          z-index: 3500;
-          max-width: 420px;
-          width: calc(100vw - 120px);
-        "
-      >
-        <v-text-field
-          v-model="housesStore.house_enlace_tracking"
-          label="Enlace de Tracking"
-          readonly
-          variant="outlined"
-          density="compact"
-          hide-details
+              <v-list-item-title>
+                <v-btn
+                  variant="flat"
+                  block
+                  size="small"
+                  color="primary"
+                  @click="sendNotificacion(item)"
+                >
+                  {{ item.title }}
+                </v-btn>
+              </v-list-item-title>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+        <!-- Modal para seleccionar formato de impresión -->
+        <v-dialog
+          v-model="dialogFormato"
+          max-width="400px"
         >
-          <template #append-inner>
-            <v-btn
-              variant="text"
-              icon
-              size="small"
-              color="primary"
-              @click="_copyEnlaceTracking(housesStore.house_enlace_tracking)"
+          <v-card>
+            <v-card-title
+              primary-title
+              class="bg-light-blue-darken-2 text-white"
             >
-              <v-icon size="small">
-                mdi-content-copy
-              </v-icon>
-            </v-btn>
-          </template>
-        </v-text-field>
-      </div>
-      <!-- Menú de notificaciones -->
-      <v-menu
-        v-model="openMenuNotificaciones"
-        location="top"
-        content-class="elevation-0"
-      >
-        <template #activator="{ props }">
-          <span v-bind="props" />
-        </template>
-        <v-list
-          color="transparent"
-          v-show="displayMenuNotificaciones"
-        >
-          <v-list-item
-            v-for="(item, index) in getItemsNotificaciones()"
-            :key="index"
-            class="px-0"
-          >
-            <v-list-item-title>
+              Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
+            </v-card-title>
+            <v-card-text class="pt-4">
+              <p class="text-body-large mb-2">
+                ¿Imprimir con fondo?
+              </p>
+              <v-radio-group v-model="formatoflag">
+                <v-radio
+                  label="Sí"
+                  :value="true"
+                />
+                <v-radio
+                  label="No"
+                  :value="false"
+                />
+              </v-radio-group>
+            </v-card-text>
+            <v-card-actions>
+              <v-spacer />
               <v-btn
-                variant="flat"
-                block
-                size="small"
-                color="primary"
-                @click="sendNotificacion(item)"
+                color="success"
+                v-if="isAereo()"
+                @click="exportarFormatoAWB()"
               >
-                {{ item.title }}
+                <v-icon start>
+                  mdi-printer
+                </v-icon>
+                Imprimir Guía Aérea
               </v-btn>
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-      <!-- Modal para seleccionar formato de impresión -->
-      <v-dialog
-        v-model="dialogFormato"
-        max-width="400px"
-      >
-        <v-card>
-          <v-card-title
-            primary-title
-            class="bg-light-blue-darken-2 text-white"
-          >
-            Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
-          </v-card-title>
-          <v-card-text class="pt-4">
-            <p class="text-body-large mb-2">
-              ¿Imprimir con fondo?
-            </p>
-            <v-radio-group v-model="formatoflag">
-              <v-radio
-                label="Sí"
-                :value="true"
-              />
-              <v-radio
-                label="No"
-                :value="false"
-              />
-            </v-radio-group>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="success"
-              v-if="isAereo()"
-              @click="exportarFormatoAWB()"
-            >
-              <v-icon start>
-                mdi-printer
-              </v-icon>
-              Imprimir Guía Aérea
-            </v-btn>
-            <v-btn
-              color="success"
-              v-else
-              @click="exportarFormatoHBL()"
-            >
-              <v-icon start>
-                mdi-printer
-              </v-icon>
-              Imprimir BL
-            </v-btn>
-            <v-btn
-              color="grey"
-              variant="text"
-              @click="dialogFormato = false"
-            >
-              Cancelar
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-container>
+              <v-btn
+                color="success"
+                v-else
+                @click="exportarFormatoHBL()"
+              >
+                <v-icon start>
+                  mdi-printer
+                </v-icon>
+                Imprimir BL
+              </v-btn>
+              <v-btn
+                color="grey"
+                variant="text"
+                @click="dialogFormato = false"
+              >
+                Cancelar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-container>
 
-    <!-- <v-footer app color="white" elevation="5" height="72" inset>
+      <!-- <v-footer app color="white" elevation="5" height="72" inset>
         <router-link class="div__button_bottom" to="">
           <img width="30" :src="$store.state.imgFolder" alt="" />
           <p class="title_button_bottom">Abrir carpeta</p>
@@ -1132,53 +1021,64 @@ onMounted(async () => {
           <p class="title_button_bottom">Linea de correos</p>
         </router-link>
       </v-footer> -->
-    <v-dialog
-      v-model="abrirModalCuentasNotificacion"
-      persistent
-      width="70%"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          Seleccione las cuentas a utilizar
-        </v-card-title>
-        <v-card-text>
-          <p class="text-red">
-            {{ errorCuentas }}
-          </p>
-          <v-data-table
-            v-model="selected"
-            :headers="headers"
-            :items="appStore.cuentas_pic"
-            item-value="id"
-            return-object
-            show-select
-            class="elevation-1"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="success"
-            :loading="loadingBotonNotificaciones"
-            @click="enviarNotificacion(notificacion)"
-          >
-            Enviar Notificación
-          </v-btn>
-          <v-btn
-            color="danger"
-            @click="
-              abrirModalCuentasNotificacion = !abrirModalCuentasNotificacion
-            "
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-  </v-form>
+      <v-dialog
+        v-model="abrirModalCuentasNotificacion"
+        persistent
+        width="70%"
+      >
+        <v-card>
+          <v-card-title primary-title>
+            Seleccione las cuentas a utilizar
+          </v-card-title>
+          <v-card-text>
+            <p class="text-red">
+              {{ errorCuentas }}
+            </p>
+            <v-data-table
+              v-model="selected"
+              :headers="headers"
+              :items="appStore.cuentas_pic"
+              item-value="id"
+              return-object
+              show-select
+              class="elevation-1"
+            />
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer />
+            <v-btn
+              color="success"
+              :loading="loadingBotonNotificaciones"
+              @click="enviarNotificacion(notificacion)"
+            >
+              Enviar Notificación
+            </v-btn>
+            <v-btn
+              color="danger"
+              @click="
+                abrirModalCuentasNotificacion = !abrirModalCuentasNotificacion
+              "
+            >
+              Cancelar
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-form>
+  </v-theme-provider>
 </template>
 
 <style lang="scss" scoped>
+.house-file__top {
+  display: grid;
+  gap: var(--aco-space-4);
+}
+
+.house-file__section {
+  height: 100%;
+  padding: var(--aco-space-4);
+}
+
 ._content__bitacora {
   height: 90vh;
   overflow-y: scroll;
