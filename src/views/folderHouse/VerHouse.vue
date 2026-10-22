@@ -767,21 +767,21 @@ onMounted(async () => {
       :readonly="formControlHouseReadonly"
     >
       <v-container fluid>
-        <div class="house-file__top">
-          <HouseFileHeader :house-id="houseId" />
-          <HousePhaseProgress />
-        </div>
-        <v-row class="mt-1">
+        <v-row density="compact">
           <v-col
             cols="12"
             md="8"
             lg="9"
           >
-            <HouseStepList
-              :house-id="houseId"
-              :load-error="trackingError"
-              @retry="loadTracking"
-            />
+            <div class="house-file__main">
+              <HouseFileHeader :house-id="houseId" />
+              <HousePhaseProgress />
+              <HouseStepList
+                :house-id="houseId"
+                :load-error="trackingError"
+                @retry="loadTracking"
+              />
+            </div>
           </v-col>
           <v-col
             cols="12"
@@ -1069,14 +1069,14 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-.house-file__top {
+.house-file__main {
   display: grid;
-  gap: var(--aco-space-4);
+  gap: var(--aco-space-3);
 }
 
 .house-file__section {
   height: 100%;
-  padding: var(--aco-space-4);
+  padding: var(--aco-space-3);
 }
 
 ._content__bitacora {

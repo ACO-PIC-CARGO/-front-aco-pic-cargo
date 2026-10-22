@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
+import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { clientSteps, dayMonth, stepDateTimeLabel } from "./houseTrackingFormat";
@@ -55,7 +56,11 @@ const toggle = (id: number) => {
         class="client-preview__step"
       >
         <div class="client-preview__when">
-          <span class="client-preview__number">{{ step.number }}</span>
+          <AcoStepNumber
+            :number="step.number"
+            :muted="!step.confirmed_at"
+            size="sm"
+          />
           <template v-if="step.confirmed_at">
             <span class="aco-title-row">{{ dayMonth(step.confirmed_at, timeZone).day }}</span>
             <span class="aco-caption">{{ dayMonth(step.confirmed_at, timeZone).month }}</span>
@@ -65,8 +70,8 @@ const toggle = (id: number) => {
           <div class="client-preview__row">
             <v-icon
               :icon="step.icon"
-              color="primary"
-              size="28"
+              :color="step.confirmed_at ? 'primary' : 'neutral'"
+              size="22"
             />
             <div class="client-preview__body">
               <span class="aco-title-row">{{ step.name }}</span>
@@ -109,18 +114,18 @@ const toggle = (id: number) => {
 
 <style scoped>
 .client-preview {
-  padding: var(--aco-space-5);
+  padding: var(--aco-space-3) var(--aco-space-4);
 }
 
 .client-preview__header {
   display: flex;
   gap: var(--aco-space-3);
-  margin-bottom: var(--aco-space-4);
+  margin-bottom: var(--aco-space-3);
 }
 
 .client-preview__list {
   display: grid;
-  gap: var(--aco-space-3);
+  gap: var(--aco-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -139,19 +144,6 @@ const toggle = (id: number) => {
   gap: 2px;
 }
 
-.client-preview__number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  font-size: 13px;
-  border-radius: 50%;
-  background: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
-  font-weight: 700;
-}
-
 .client-preview__card {
   padding: var(--aco-space-2) var(--aco-space-3);
   border: 1px solid rgb(var(--v-theme-border));
@@ -161,13 +153,13 @@ const toggle = (id: number) => {
 .client-preview__row {
   display: flex;
   align-items: center;
-  gap: var(--aco-space-3);
+  gap: var(--aco-space-2);
 }
 
 .client-preview__body {
   display: grid;
   flex: 1;
-  gap: var(--aco-space-1);
+  gap: 2px;
   justify-items: start;
   min-width: 0;
 }

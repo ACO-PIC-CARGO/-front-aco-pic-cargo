@@ -36,7 +36,6 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
         <span class="house-phase-progress__tile">
           <AcoIconTile
             :icon="phase.icon"
-            size="lg"
             :tone="STATUS[phase.status].tile"
           />
           <v-icon
@@ -44,16 +43,19 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
             class="house-phase-progress__check"
             icon="mdi-check-circle"
             color="primary"
-            size="22"
+            size="18"
           />
         </span>
-        <p class="aco-caption">
-          {{ dateLabel(phase.completed_at, timeZone) }}
-        </p>
-        <AcoStatusChip
-          :tone="STATUS[phase.status].tone"
-          :label="STATUS[phase.status].label"
-        />
+        <span class="house-phase-progress__status">
+          <AcoStatusChip
+            :tone="STATUS[phase.status].tone"
+            :label="STATUS[phase.status].label"
+          />
+          <span
+            v-if="phase.completed_at"
+            class="aco-caption"
+          >{{ dateLabel(phase.completed_at, timeZone) }}</span>
+        </span>
       </li>
     </ol>
   </section>
@@ -61,12 +63,12 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 
 <style scoped>
 .house-phase-progress {
-  padding: var(--aco-space-5);
+  padding: var(--aco-space-3) var(--aco-space-4);
 }
 
 .house-phase-progress__list {
   display: grid;
-  grid-auto-columns: minmax(140px, 1fr);
+  grid-auto-columns: minmax(130px, 1fr);
   grid-auto-flow: column;
   margin: 0;
   padding: 0;
@@ -78,17 +80,22 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
   position: relative;
   display: grid;
   justify-items: center;
-  gap: var(--aco-space-2);
+  gap: var(--aco-space-1);
   text-align: center;
+}
+
+.house-phase-progress__phase p {
+  margin: 0;
+  line-height: 18px;
 }
 
 .house-phase-progress__phase:not(:last-child)::after {
   content: "";
   position: absolute;
-  top: 62px;
-  left: calc(50% + 40px);
-  width: calc(100% - 80px);
-  border-top: 3px dashed rgb(var(--v-theme-border));
+  top: 46px;
+  left: calc(50% + 32px);
+  width: calc(100% - 64px);
+  border-top: 2px dashed rgb(var(--v-theme-border));
 }
 
 .house-phase-progress__phase.is-completed:not(:last-child)::after {
@@ -108,10 +115,18 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
   background: rgb(var(--v-theme-surface));
 }
 
+.house-phase-progress__status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--aco-space-2);
+}
+
 @media (max-width: 600px) {
   .house-phase-progress__list {
     grid-auto-flow: row;
-    gap: var(--aco-space-4);
+    gap: var(--aco-space-3);
   }
 
   .house-phase-progress__phase::after {

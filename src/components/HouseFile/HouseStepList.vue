@@ -89,7 +89,7 @@ function openConfirm(step: HouseTrackingStep) {
         <span>Servicio</span>
         <span>Fecha</span>
         <span>Estado</span>
-        <span class="house-step-list__head-center">Enviar a Tracking</span>
+        <span class="house-step-list__head-center">Confirmar</span>
         <span />
       </div>
       <ol class="house-step-list__steps">
@@ -115,15 +115,15 @@ function openConfirm(step: HouseTrackingStep) {
 .house-step-list {
   --house-step-columns: 28px minmax(0, 1fr) 136px 112px 92px 32px;
 
-  padding: var(--aco-space-5);
+  padding: var(--aco-space-3) var(--aco-space-4);
 }
 
 .house-step-list__toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--aco-space-3) var(--aco-space-4);
-  margin: var(--aco-space-4) 0;
+  gap: var(--aco-space-2) var(--aco-space-4);
+  margin: var(--aco-space-2) 0;
 }
 
 .house-step-list__incoterm {
@@ -134,7 +134,7 @@ function openConfirm(step: HouseTrackingStep) {
 
 .house-step-list__incoterm-value {
   min-width: 120px;
-  padding: var(--aco-space-2) var(--aco-space-3);
+  padding: var(--aco-space-1) var(--aco-space-3);
   border: 1px solid rgb(var(--v-theme-border));
   border-radius: var(--aco-radius-control);
   font-size: 13px;
@@ -147,7 +147,7 @@ function openConfirm(step: HouseTrackingStep) {
   align-items: center;
   gap: var(--aco-space-2);
   margin: 0;
-  padding: var(--aco-space-2) var(--aco-space-3);
+  padding: var(--aco-space-1) var(--aco-space-3);
   border-radius: var(--aco-radius-control);
   background: rgba(var(--v-theme-primary-soft), 0.6);
   font-size: 13px;
@@ -158,7 +158,7 @@ function openConfirm(step: HouseTrackingStep) {
   display: grid;
   grid-template-columns: var(--house-step-columns);
   gap: var(--aco-space-3);
-  padding: var(--aco-space-2) 0;
+  padding: var(--aco-space-1) 0;
   font-size: 13px;
   font-weight: 600;
   color: rgb(var(--v-theme-text-muted));

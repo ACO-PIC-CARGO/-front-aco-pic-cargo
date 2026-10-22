@@ -34,15 +34,15 @@ const confirmedAtLabel = computed(() =>
     <div class="house-step__row">
       <AcoStepNumber
         :number="step.number"
-        :muted="step.state === 'blocked'"
+        :muted="!confirmed"
         size="sm"
         class="house-step__number"
       />
       <div class="house-step__service">
         <v-icon
           :icon="step.icon"
-          color="primary"
-          size="26"
+          :color="confirmed ? 'primary' : 'neutral'"
+          size="22"
         />
         <span class="aco-title-row">{{ step.name }}</span>
       </div>
@@ -125,15 +125,15 @@ const confirmedAtLabel = computed(() =>
 <style scoped>
 .house-step {
   position: relative;
-  padding: var(--aco-space-2) 0;
+  padding: var(--aco-space-1) 0;
   border-top: 1px solid rgb(var(--v-theme-border));
 }
 
 .house-step:not(:last-child)::before {
   content: "";
   position: absolute;
-  top: 36px;
-  bottom: -8px;
+  top: 32px;
+  bottom: -4px;
   left: 13px;
   width: 2px;
   background: rgb(var(--v-theme-primary-soft));
@@ -162,8 +162,8 @@ const confirmedAtLabel = computed(() =>
   display: inline-flex;
   align-items: center;
   gap: var(--aco-space-2);
-  min-height: 36px;
-  padding: 0 var(--aco-space-3);
+  min-height: 30px;
+  padding: 0 var(--aco-space-2);
   border: 1px solid rgb(var(--v-theme-border));
   border-radius: var(--aco-radius-control);
   background: rgb(var(--v-theme-surface));
@@ -190,8 +190,14 @@ const confirmedAtLabel = computed(() =>
   justify-content: center;
 }
 
+.house-step__switch :deep(.v-selection-control) {
+  --v-selection-control-size: 30px;
+
+  min-height: 30px;
+}
+
 .house-step__comments {
-  margin: var(--aco-space-2) 0 var(--aco-space-1) calc(28px + var(--aco-space-3));
+  margin: var(--aco-space-1) 0 var(--aco-space-1) calc(28px + var(--aco-space-3));
 }
 
 @media (max-width: 760px) {
