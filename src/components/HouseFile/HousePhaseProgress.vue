@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import { dateLabel } from "./houseTrackingFormat";
+import { dateLabel, phaseProgress } from "./houseTrackingFormat";
 import type { HouseTrackingPhase } from "@/types/houseTracking";
 
 const STATUS_LABELS = { completed: "Completado", in_progress: "En curso", pending: "Pendiente" } as const;
@@ -33,11 +33,16 @@ const subtitle = (phase: HouseTrackingPhase) =>
         v-for="(phase, index) in phases"
         :key="phase.id"
       >
-        <v-divider
+        <v-progress-linear
           v-if="index"
-          :thickness="2"
-          :color="phases[index - 1]!.status === 'completed' ? 'primary' : undefined"
-          :class="{ 'border-opacity-100': phases[index - 1]!.status === 'completed' }"
+          :model-value="phaseProgress(phases[index - 1]!)"
+          :aria-label="`Avance de ${phases[index - 1]!.name}`"
+          color="primary"
+          bg-color="border"
+          :bg-opacity="1"
+          height="4"
+          rounded
+          class="phase-connector"
         />
         <v-stepper-item
           :value="index"
@@ -52,3 +57,11 @@ const subtitle = (phase: HouseTrackingPhase) =>
     </v-stepper-header>
   </v-stepper>
 </template>
+
+<style scoped>
+.phase-connector {
+  flex: 1 1 0;
+  align-self: flex-start;
+  margin: 34px -67px 0;
+}
+</style>

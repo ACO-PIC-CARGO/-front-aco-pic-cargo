@@ -4,6 +4,7 @@ import {
   dayMonth,
   fromDateAndTime,
   latestComment,
+  phaseProgress,
   dateLabel,
   stepDateTimeLabel,
   toDateAndTime,
@@ -69,4 +70,27 @@ test("latestComment is the newest comment or nothing", () => {
 
 test("trackingLink points to the public tracking page of the current site", () => {
   expect(trackingLink("abc-123", "https://aco.example.com")).toBe("https://aco.example.com/tracking/abc-123");
+});
+
+const phase = (status: HouseTrackingPhase["status"], steps: HouseTrackingStep[]): HouseTrackingPhase => ({
+  id: 1,
+  name: "Fábrica",
+  icon: "mdi-factory",
+  sort_order: 1,
+  status,
+  completed_at: null,
+  steps,
+});
+const confirmed = step({ state: "confirmed", confirmed_at: "2026-10-01T15:00:00Z" });
+
+test("a phase fills by the share of its confirmed steps", () => {
+  expect(phaseProgress(phase("in_progress", [step(), step()]))).toBe(0);
+  expect(phaseProgress(phase("in_progress", [confirmed, step()]))).toBe(50);
+  expect(phaseProgress(phase("in_progress", [confirmed, confirmed, step()]))).toBeCloseTo(66.67, 1);
+  expect(phaseProgress(phase("completed", [confirmed, confirmed]))).toBe(100);
+});
+
+test("a phase without steps is full only once it is completed", () => {
+  expect(phaseProgress(phase("pending", []))).toBe(0);
+  expect(phaseProgress(phase("completed", []))).toBe(100);
 });

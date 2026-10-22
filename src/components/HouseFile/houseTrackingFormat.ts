@@ -31,6 +31,12 @@ export const clientSteps = (phases: HouseTrackingPhase[]): HouseTrackingStep[] =
     .filter((step) => step.visible_to_client)
     .map((step) => ({ ...step, comments: step.comments.filter((comment) => comment.is_public) }));
 
-export const latestComment = (step: HouseTrackingStep): HouseTrackingComment | null => step.comments[0] ?? null;
+export const phaseProgress = (phase: HouseTrackingPhase): number => {
+  if (!phase.steps.length) return phase.status === "completed" ? 100 : 0;
+  const confirmed = phase.steps.filter((step) => step.state === "confirmed").length;
+  return (confirmed / phase.steps.length) * 100;
+};
+
+export const latestComment =(step: HouseTrackingStep): HouseTrackingComment | null => step.comments[0] ?? null;
 
 export const trackingLink = (token: string, origin = window.location.origin): string => `${origin}/tracking/${token}`;
