@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import moment from "moment";
 import type { ValidationRule } from "vuetify";
+import { shortDate } from "@/utils/dates";
 
 withDefaults(
   defineProps<{
@@ -34,22 +35,7 @@ const menuDesde = ref(false);
 
 const labelFormateada = computed(() => {
   if (!model.value) return "";
-  const [year, month, day] = model.value.split("-");
-  const meses = [
-    "ENE",
-    "FEB",
-    "MAR",
-    "ABR",
-    "MAY",
-    "JUN",
-    "JUL",
-    "AGO",
-    "SEP",
-    "OCT",
-    "NOV",
-    "DIC",
-  ];
-  return `${day}/${meses[parseInt(month!) - 1]}/${year}`;
+  return shortDate(model.value);
 });
 
 function selectDate(date: moment.MomentInput) {
