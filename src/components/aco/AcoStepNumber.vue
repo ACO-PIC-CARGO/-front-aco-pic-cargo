@@ -1,11 +1,11 @@
 <script setup lang="ts">
-defineProps<{ number: number | null }>();
+defineProps<{ number: number | null; muted?: boolean }>();
 </script>
 
 <template>
   <span
     class="aco-step-number"
-    :class="{ 'aco-step-number--off': number === null }"
+    :class="{ 'aco-step-number--off': number === null || muted }"
   >
     {{ number ?? "—" }}
   </span>

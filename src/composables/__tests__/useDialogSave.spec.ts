@@ -1,6 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { ref } from "vue";
-import { useDialogSave } from "@/components/TrackingCatalog/useDialogSave";
+import { useDialogSave } from "@/composables/useDialogSave";
 
 const validForm = (valid = true) => ref({ validate: async () => ({ valid }) });
 

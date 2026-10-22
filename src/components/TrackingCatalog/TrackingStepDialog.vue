@@ -2,7 +2,7 @@
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { storeToRefs } from "pinia";
 import TrackingIconPicker from "./TrackingIconPicker.vue";
-import { useDialogSave } from "./useDialogSave";
+import { useDialogSave } from "@/composables/useDialogSave";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingStep, TrackingStepDraft } from "@/types/trackingCatalog";
 

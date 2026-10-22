@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
 import TrackingIconPicker from "./TrackingIconPicker.vue";
-import { useDialogSave } from "./useDialogSave";
+import { useDialogSave } from "@/composables/useDialogSave";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingPhase, TrackingPhaseDraft } from "@/types/trackingCatalog";
 
