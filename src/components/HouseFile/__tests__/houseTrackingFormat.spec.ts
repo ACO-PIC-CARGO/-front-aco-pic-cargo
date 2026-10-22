@@ -6,6 +6,7 @@ import {
   latestComment,
   phaseProgress,
   dateLabel,
+  displayValue,
   stepDateTimeLabel,
   toDateAndTime,
   trackingLink,
@@ -93,4 +94,11 @@ test("a phase fills by the share of its confirmed steps", () => {
 test("a phase without steps is full only once it is completed", () => {
   expect(phaseProgress(phase("pending", []))).toBe(0);
   expect(phaseProgress(phase("completed", []))).toBe(100);
+});
+
+test("displayValue shows a dash for missing values and keeps zero", () => {
+  expect(displayValue(null)).toBe("—");
+  expect(displayValue("")).toBe("—");
+  expect(displayValue(0, " kg")).toBe("0 kg");
+  expect(displayValue(1250, " kg")).toBe("1250 kg");
 });

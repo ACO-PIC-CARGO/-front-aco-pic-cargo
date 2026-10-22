@@ -31,7 +31,10 @@ export const clientSteps = (phases: HouseTrackingPhase[]): HouseTrackingStep[] =
     .filter((step) => step.visible_to_client)
     .map((step) => ({ ...step, comments: step.comments.filter((comment) => comment.is_public) }));
 
-export const phaseProgress = (phase: HouseTrackingPhase): number => {
+export const displayValue = (value: unknown, unit = ""): string =>
+  value || value === 0 ? `${value}${unit}` : "—";
+
+export const phaseProgress =(phase: HouseTrackingPhase): number => {
   if (!phase.steps.length) return phase.status === "completed" ? 100 : 0;
   const confirmed = phase.steps.filter((step) => step.state === "confirmed").length;
   return (confirmed / phase.steps.length) * 100;

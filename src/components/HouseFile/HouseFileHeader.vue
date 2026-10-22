@@ -2,17 +2,17 @@
 import { computed } from "vue";
 import { useHousesStore } from "@/stores/houses";
 import TrackingLinkButton from "./TrackingLinkButton.vue";
+import { displayValue } from "./houseTrackingFormat";
 
 defineProps<{ houseId: number }>();
 
 const housesStore = useHousesStore();
-const shown = (value: unknown, unit = "") => (value || value === 0 ? `${value}${unit}` : "—");
 const items = computed(() => [
-  { icon: "mdi-account-outline", label: "Cliente", value: shown(housesStore.house.consigner) },
-  { icon: "mdi-office-building-outline", label: "Proveedor", value: shown(housesStore.house.proveedor) },
-  { icon: "mdi-weight", label: "Peso", value: shown(housesStore.house.peso, " kg") },
-  { icon: "mdi-cube-outline", label: "Volumen", value: shown(housesStore.house.volumen, " m³") },
-  { icon: "mdi-anchor", label: "Incoterm", value: shown(housesStore.house.incoterms) },
+  { icon: "mdi-account-outline", label: "Cliente", value: displayValue(housesStore.house.consigner) },
+  { icon: "mdi-office-building-outline", label: "Proveedor", value: displayValue(housesStore.house.proveedor) },
+  { icon: "mdi-weight", label: "Peso", value: displayValue(housesStore.house.peso, " kg") },
+  { icon: "mdi-cube-outline", label: "Volumen", value: displayValue(housesStore.house.volumen, " m³") },
+  { icon: "mdi-anchor", label: "Incoterm", value: displayValue(housesStore.house.incoterms) },
 ]);
 </script>
 
@@ -35,7 +35,7 @@ const items = computed(() => [
           Expediente
         </div>
         <div class="d-flex align-center ga-2 text-body-medium font-weight-bold">
-          {{ shown(housesStore.house.code_house) }}
+          {{ displayValue(housesStore.house.code_house) }}
           <v-chip
             v-if="housesStore.house.incoterms"
             size="x-small"
