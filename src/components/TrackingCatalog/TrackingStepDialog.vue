@@ -2,6 +2,7 @@
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { storeToRefs } from "pinia";
 import TrackingIconPicker from "./TrackingIconPicker.vue";
+import { useDialogSave } from "./useDialogSave";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingStep, TrackingStepDraft } from "@/types/trackingCatalog";
 
@@ -15,8 +16,7 @@ const store = useTrackingCatalogStore();
 const { phases } = storeToRefs(store);
 const form = useTemplateRef("form");
 const draft = ref<TrackingStepDraft>(toDraft(null, null));
-const serverError = ref("");
-const saving = ref(false);
+const { saving, serverError, save } = useDialogSave(open, form, () => store.saveStep(draft.value));
 const isEditing = computed(() => draft.value.id !== null);
 const changesPhase = computed(() => isEditing.value && draft.value.phase_id !== props.phaseId);
 const nameRules = [(value: string) => (value.trim().length > 0 && value.trim().length <= NAME_MAX) || NAME_MESSAGE];
@@ -41,14 +41,6 @@ watch(open, (isOpen) => {
   draft.value = toDraft(props.step, props.phaseId);
   serverError.value = "";
 });
-
-async function save() {
-  if (!(await form.value!.validate()).valid) return;
-  saving.value = true;
-  serverError.value = (await store.saveStep(draft.value)) ?? "";
-  saving.value = false;
-  if (!serverError.value) open.value = false;
-}
 </script>
 
 <template>

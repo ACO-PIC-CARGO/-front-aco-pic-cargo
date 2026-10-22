@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
 import TrackingIconPicker from "./TrackingIconPicker.vue";
+import { useDialogSave } from "./useDialogSave";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingPhase, TrackingPhaseDraft } from "@/types/trackingCatalog";
 
@@ -13,8 +14,7 @@ const open = defineModel<boolean>({ default: false });
 const store = useTrackingCatalogStore();
 const form = useTemplateRef("form");
 const draft = ref<TrackingPhaseDraft>(toDraft(null));
-const serverError = ref("");
-const saving = ref(false);
+const { saving, serverError, save } = useDialogSave(open, form, () => store.savePhase(draft.value));
 const isEditing = computed(() => draft.value.id !== null);
 const nameRules = [(value: string) => (value.trim().length > 0 && value.trim().length <= NAME_MAX) || NAME_MESSAGE];
 
@@ -28,14 +28,6 @@ watch(open, (isOpen) => {
   draft.value = toDraft(props.phase);
   serverError.value = "";
 });
-
-async function save() {
-  if (!(await form.value!.validate()).valid) return;
-  saving.value = true;
-  serverError.value = (await store.savePhase(draft.value)) ?? "";
-  saving.value = false;
-  if (!serverError.value) open.value = false;
-}
 </script>
 
 <template>
