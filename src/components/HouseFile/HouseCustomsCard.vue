@@ -15,7 +15,7 @@ const housesStore = useHousesStore();
   >
     <h2
       id="house-customs-title"
-      class="text-title-medium font-weight-bold mb-2"
+      class="text-title-small font-weight-bold mt-0 mb-2"
     >
       Datos de Aduana
     </h2>

@@ -33,6 +33,10 @@ const houseTrackingStore = useHouseTrackingStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
 const houseId = computed(() => Number(route.params.id));
 const trackingError = ref("");
+const COMPACT_FIELDS = {
+  VTextField: { density: "compact", hideDetails: "auto" },
+  VAutocomplete: { density: "compact", hideDetails: "auto" },
+};
 const itemsShipment = computed(() => appStore.itemsShipment);
 
 async function loadTracking() {
@@ -779,35 +783,27 @@ onMounted(async () => {
               <v-row density="compact">
                 <v-col
                   cols="12"
-                  lg="6"
+                  lg="5"
+                  class="house-data d-flex flex-column ga-3"
                 >
-                  <HouseStepList
-                    :house-id="houseId"
-                    :load-error="trackingError"
-                    @retry="loadTracking"
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  lg="6"
-                  class="d-flex flex-column ga-3"
-                >
-                  <v-card
-                    variant="flat"
-                    border
-                    rounded="lg"
-                    class="pa-3"
-                  >
-                    <dataGen />
-                  </v-card>
-                  <v-card
-                    variant="flat"
-                    border
-                    rounded="lg"
-                    class="pa-3"
-                  >
-                    <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
-                  </v-card>
+                  <v-defaults-provider :defaults="COMPACT_FIELDS">
+                    <v-card
+                      variant="flat"
+                      border
+                      rounded="lg"
+                      class="pa-3"
+                    >
+                      <dataGen />
+                    </v-card>
+                    <v-card
+                      variant="flat"
+                      border
+                      rounded="lg"
+                      class="pa-3"
+                    >
+                      <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
+                    </v-card>
+                  </v-defaults-provider>
                   <HouseCustomsCard />
                   <v-row
                     v-if="$route.name != 'controlHouseVer'"
@@ -842,6 +838,16 @@ onMounted(async () => {
                       </v-btn>
                     </v-col>
                   </v-row>
+                </v-col>
+                <v-col
+                  cols="12"
+                  lg="7"
+                >
+                  <HouseStepList
+                    :house-id="houseId"
+                    :load-error="trackingError"
+                    @retry="loadTracking"
+                  />
                 </v-col>
               </v-row>
             </div>
@@ -1111,5 +1117,15 @@ onMounted(async () => {
 .acciones-dial .v-btn .v-icon {
   font-size: 22px !important;
   margin-right: 8px;
+}
+
+.house-data :deep(h3) {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+.house-data :deep(.v-field__input),
+.house-data :deep(.v-label:not(.v-field-label--floating)) {
+  font-size: 13px;
 }
 </style>

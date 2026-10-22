@@ -35,7 +35,7 @@ function openConfirm(step: HouseTrackingStep) {
   >
     <h2
       id="house-step-list-title"
-      class="text-title-medium font-weight-bold"
+      class="text-title-medium font-weight-bold ma-0"
     >
       Servicios a Realizar
     </h2>

@@ -37,7 +37,7 @@ const shortDay = (iso: string) => {
       <div>
         <h2
           id="client-preview-title"
-          class="text-title-medium font-weight-bold"
+          class="text-title-medium font-weight-bold ma-0"
         >
           Vista de Tracking (Cliente)
         </h2>
