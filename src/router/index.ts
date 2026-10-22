@@ -715,7 +715,7 @@ const routes = [
       {
         path: "ficheros/listado_status_house",
         name: "lstEstadoBitaco",
-        component: () => import("../views/StatusHouse/ListStatusHouse.vue"),
+        component: () => import("../views/TrackingCatalog/TrackingCatalog.vue"),
       },
       {
         path: "lstEnterpriseRegister",
