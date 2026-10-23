@@ -24,7 +24,7 @@
           <v-table density="compact" class="egreso-summary-table">
             <thead>
               <tr>
-                <th width="20%">Proveedor</th>
+                <th width="14%">Proveedor</th>
                 <th width="9%" style="background: #d6f4ff">Total Pricing</th>
                 <th width="9%" style="background: #ffd6d6">
                   Total Operaciones
@@ -40,7 +40,7 @@
                 <th v-if="editable" width="9%" class="text-left">
                   Solicitar a Administración
                 </th>
-                <th v-if="editable" width="10%" class="text-left">
+                <th v-if="editable" width="16%" class="text-left">
                   Más Acciones
                 </th>
                 <!-- <th width="10%">Acciones</th> -->
@@ -51,7 +51,8 @@
               <tr>
                 <td>
                   {{ egreso.nombre_proveedor }}
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     color="success"
                     v-if="egreso.code_tipo_proveedor === '01'"
@@ -101,7 +102,8 @@
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     icon
                     size="small"
                     :loading="loading"
@@ -113,7 +115,8 @@
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     size="small"
                     color="white"
                     icon
@@ -125,7 +128,8 @@
                 </td>
 
                 <td v-if="editable">
-                  <v-btn variant="text"
+                  <v-btn
+                    variant="text"
                     size="small"
                     :color="egreso.solicitudes > 0 ? 'blue' : 'grey'"
                     icon
@@ -136,15 +140,17 @@
                     <v-icon :color="'blue'">mdi-email-arrow-right</v-icon>
                   </v-btn>
                 </td>
-                <!-- <td v-if="editable">
+                <td v-if="editable">
                   <v-btn
                     color="indigo"
-                    small
-                    dark
-                    @click="abrirModalCambiarExp(egreso)"
-                    >CAMBIAR EXPEDIENTE</v-btn
+                    size="small"
+                    class="mb-1 text-no-wrap"
+                    v-if="mostrarBotonCambiarExpAsociado(egreso)"
+                    @click="abrirModalCambiarExpediente(egreso)"
                   >
-                </td> -->
+                    Cambiar expediente
+                  </v-btn>
+                </td>
               </tr>
             </tbody>
           </v-table>
@@ -331,11 +337,10 @@
                     </td>
                     <td v-if="editable">
                       <v-btn variant="text" icon color="orange" size="small">
-                        <v-icon @click="_editEgreso(item)">
-                          mdi-pencil
-                        </v-icon>
+                        <v-icon @click="_editEgreso(item)"> mdi-pencil </v-icon>
                       </v-btn>
-                      <v-btn variant="text"
+                      <v-btn
+                        variant="text"
                         icon
                         color="red"
                         size="small"
@@ -358,7 +363,10 @@
     <!-- --------------------- -->
     <v-dialog id="mydiv" v-model="dialog" width="70%" persistent>
       <v-card>
-        <v-card-title id="mydivheader" class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          id="mydivheader"
+          class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           {{ getNameModalNuevoEditar }}
 
           <v-spacer></v-spacer>
@@ -737,7 +745,11 @@
             }}
           </v-btn>
 
-          <v-btn variant="outlined" color="red" @click="dialogInvoice = !dialogInvoice">
+          <v-btn
+            variant="outlined"
+            color="red"
+            @click="dialogInvoice = !dialogInvoice"
+          >
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -804,7 +816,9 @@
               >
 
               <v-btn color="primary" @click="e1 = 2"> Continuar </v-btn>
-              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false">
+                Cerrar
+              </v-btn>
             </v-stepper-window-item>
 
             <v-stepper-window-item :value="2">
@@ -841,7 +855,9 @@
                 Continuar
               </v-btn>
               <v-btn variant="text" @click="e1 = 1"> Volver</v-btn>
-              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false">
+                Cerrar
+              </v-btn>
             </v-stepper-window-item>
 
             <v-stepper-window-item :value="3">
@@ -864,7 +880,9 @@
               </v-card>
 
               <v-btn variant="text" @click="e1 = 2"> Volver </v-btn>
-              <v-btn variant="text" @click="dialogSolicitud = false"> Cerrar </v-btn>
+              <v-btn variant="text" @click="dialogSolicitud = false">
+                Cerrar
+              </v-btn>
             </v-stepper-window-item>
           </v-stepper-window>
         </v-stepper>
@@ -878,7 +896,10 @@
         <v-card-text>
           <v-row density="compact">
             <v-col md="6" cols="12">
-              <v-text-field density="compact" v-model="codigo_pago" label="CODIGO DE PAGO"
+              <v-text-field
+                density="compact"
+                v-model="codigo_pago"
+                label="CODIGO DE PAGO"
                 >CODIGO DE PAGO</v-text-field
               >
             </v-col>
@@ -1330,6 +1351,56 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-model="dialogCambiarExpediente" max-width="500">
+      <v-card>
+        <v-card-title
+          class="text-h5 bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
+          Cambiar expediente
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="dialogCambiarExpediente = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-autocomplete
+            :items="
+              $store.state.itemsMasterList.filter(
+                (v) => v.id != $route.params.id,
+              )
+            "
+            v-model="selectedNuevoExpediente"
+            item-value="id"
+            item-title="code_master"
+            label="Seleccione nuevo expediente"
+            variant="outlined"
+            class="my-5"
+          ></v-autocomplete>
+          <!-- <p class="text-caption mb-0">Actual: {{ house.code_house }}</p> -->
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="outlined"
+            color="red"
+            @click="dialogCambiarExpediente = false"
+            >Cancelar</v-btn
+          >
+          <v-btn
+            color="primary"
+            :disabled="!selectedNuevoExpediente"
+            @click="aplicarCambioExpediente"
+            >Guardar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -1370,6 +1441,8 @@ export default {
   },
   data: () => {
     return {
+      dialogCambiarExpediente: false,
+      selectedNuevoExpediente: null,
       dialogCambiarExp: false,
       egreso: {},
       id_masterdestino: null,
@@ -1565,6 +1638,26 @@ export default {
       this.$store.state.enterprises.impuesto.mostrarimpuesto;
   },
   methods: {
+    mostrarBotonCambiarExpAsociado(item) {
+      let val = item.detalle.some((v) => !!v.consigner);
+      return !val;
+    },
+    abrirModalCambiarExpediente(item) {
+      this.egreso = item;
+      this.dialogCambiarExpediente = true;
+    },
+    aplicarCambioExpediente(){
+      this.CambiarExpedienteAsociadoAMaster({
+        id_master: this.egreso.id_master,
+        id_expediente: this.id_expediente ,
+        id_proveedor: this.egreso.id_proveedor,
+        id_correlativo: this.egreso.id_correlativo,
+        id_nuevo_master: this.selectedNuevoExpediente
+      })
+      this.dialogCambiarExpediente = false;
+      this.$emit('recargarDatos')
+
+    },
     mostrarColumnaMonedaDiferenteDolar(item) {
       if (item.detalle.some((v) => v.acronym !== "USD")) {
         return true;
@@ -2158,7 +2251,9 @@ export default {
       var config = {
         method: "post",
         url:
-          import.meta.env.VUE_APP_URL_MAIN + "getAccountsNumber/" + vm.proveedorId,
+          import.meta.env.VUE_APP_URL_MAIN +
+          "getAccountsNumber/" +
+          vm.proveedorId,
         headers: {
           "Content-Type": "application/json",
         },
@@ -3016,6 +3111,7 @@ export default {
       }
     },
     ...mapActions([
+      "CambiarExpedienteAsociadoAMaster",
       "validarUsuarioAdmin",
       "getListControlGastosMaster",
       "setEgresos",

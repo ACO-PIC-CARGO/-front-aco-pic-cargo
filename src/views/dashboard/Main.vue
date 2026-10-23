@@ -1185,9 +1185,13 @@ export default {
     },
     validarExistTransporte() {
       let { servicios, id_town } = this.$store.state.pricing.datosPrincipales;
+      const hayDistritos =
+        Array.isArray(this.$store.state.town.lstTown) &&
+        this.$store.state.town.lstTown.length > 0;
 
       if (
         servicios.some((v) => v.code_service == "14" && v.status == 1) &&
+        hayDistritos &&
         !id_town
       ) {
         this.dialogSeleccionDistrito = true;

@@ -134,6 +134,30 @@ const actions = {
         console.error(e);
       });
   },
+  async CambiarExpedienteAsociadoAMaster({},data){
+    let config = {
+      method: "put",
+      url: import.meta.env.VUE_APP_URL_MAIN + `cambiar_expediente_asociado_a_master`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios(config)
+      .then(async (response) => {
+        let res = response.data;
+        if (res.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            text: res.mensaje,
+          });
+        }
+        
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
 };
 
 export default {
