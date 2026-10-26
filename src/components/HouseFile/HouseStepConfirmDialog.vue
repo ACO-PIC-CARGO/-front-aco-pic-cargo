@@ -44,6 +44,12 @@ watch(open, (isOpen) => {
         {{ preset?.title }}
       </v-card-title>
       <v-card-text class="px-6">
+        <p
+          v-if="mode === 'date'"
+          class="aco-caption mb-3"
+        >
+          Si este es el próximo paso para tu cliente, verá esta fecha como «Próximo movimiento estimado».
+        </p>
         <v-form
           ref="form"
           @submit.prevent="save"

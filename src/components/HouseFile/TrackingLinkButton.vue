@@ -57,7 +57,7 @@ async function copy() {
       </v-card-title>
       <v-card-text class="px-6">
         <p class="aco-caption mb-3">
-          Comparte este enlace con tu cliente. Verá los pasos y comentarios que envíes al tracking.
+          Comparte este enlace con tu cliente. Verá los pasos y comentarios que envíes al tracking, y el próximo paso con su fecha.
         </p>
         <v-text-field
           :model-value="link"

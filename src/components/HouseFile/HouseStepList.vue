@@ -60,7 +60,7 @@ function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
         color="primary"
         icon="mdi-information-outline"
         class="flex-grow-1 text-body-small"
-        text="Confirma cada paso en orden y usa «Enviar a tracking» para que tu cliente lo vea."
+        text="Confirma cada paso en orden y usa «Enviar a tracking» para que tu cliente lo vea. Tu cliente también ve el próximo paso con su fecha."
       />
     </div>
     <v-alert
