@@ -87,22 +87,23 @@ describe("houseTracking store", () => {
   test("a rejected confirmation or comment returns the reason without reloading", async () => {
     respond({
       "put house_tracking/2830/steps/6/confirmation": rejected("Primero confirma «ETD»."),
-      "post house_tracking/2830/steps/6/comments": rejected("Escribe un comentario (hasta 1000 caracteres)."),
+      "post house_tracking/2830/steps/6/comments": rejected("Elige uno de los comentarios predefinidos del paso."),
     });
     const store = useHouseTrackingStore();
     expect(await store.confirm(2830, 6, "2026-10-01T21:40:00.000Z")).toBe("Primero confirma «ETD».");
-    expect(await store.addComment(2830, 6, " ", false)).toBe("Escribe un comentario (hasta 1000 caracteres).");
+    expect(await store.addComment(2830, 6, 99, false)).toBe("Elige uno de los comentarios predefinidos del paso.");
     expect(sent()).toEqual(["put house_tracking/2830/steps/6/confirmation", "post house_tracking/2830/steps/6/comments"]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("addComment sends the text and visibility and reloads", async () => {
+  test("addComment sends the chosen predefined comment and visibility and reloads", async () => {
     respond({
       "post house_tracking/2830/steps/5/comments": accepted([{ id: 3 }], "Guardamos el comentario."),
       "get house_tracking/2830": accepted([phase]),
     });
-    expect(await useHouseTrackingStore().addComment(2830, 5, "Listo para coordinar.", true)).toBeNull();
-    expect(httpMock.mock.calls[0]![0].data).toEqual({ comment: "Listo para coordinar.", is_public: true });
+    expect(await useHouseTrackingStore().addComment(2830, 5, 41, true)).toBeNull();
+    expect(httpMock.mock.calls[0]![0].data).toEqual({ step_comment_id: 41, is_public: true });
+    expect(sent()).toEqual(["post house_tracking/2830/steps/5/comments", "get house_tracking/2830"]);
   });
 
   test("requestTrackingToken creates a token for the house and returns it", async () => {

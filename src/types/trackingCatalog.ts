@@ -21,6 +21,11 @@ export interface TrackingPhase {
   steps: TrackingStep[];
 }
 
+export interface TrackingStepComment {
+  id: number;
+  comment: string;
+}
+
 export interface TrackingPhaseDraft {
   id: number | null;
   name: string;

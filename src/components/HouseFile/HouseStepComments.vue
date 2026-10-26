@@ -1,34 +1,44 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
+import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
 import { stepDateTimeLabel } from "./houseTrackingFormat";
 import type { HouseTrackingStep } from "@/types/houseTracking";
-
-const COMMENT_MAX = 1000;
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep }>();
 
 const store = useHouseTrackingStore();
+const stepComments = useTrackingStepCommentsStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const adding = ref(false);
-const comment = ref("");
+const loadingOptions = ref(false);
+const stepCommentId = ref<number | null>(null);
 const isPublic = ref(false);
 const saving = ref(false);
 const serverError = ref("");
+const options = computed(() => stepComments.commentsOf(props.step.id));
+const hasNoOptions = computed(() => !loadingOptions.value && !serverError.value && !options.value.length);
+
+async function open() {
+  adding.value = true;
+  loadingOptions.value = true;
+  serverError.value = (await stepComments.load(props.step.id)) ?? "";
+  loadingOptions.value = false;
+}
 
 function close() {
   adding.value = false;
-  comment.value = "";
+  stepCommentId.value = null;
   isPublic.value = false;
   serverError.value = "";
 }
 
 async function add() {
-  if (saving.value) return;
+  if (saving.value || stepCommentId.value === null) return;
   saving.value = true;
-  serverError.value = (await store.addComment(props.houseId, props.step.id, comment.value, isPublic.value)) ?? "";
+  serverError.value = (await store.addComment(props.houseId, props.step.id, stepCommentId.value, isPublic.value)) ?? "";
   saving.value = false;
   if (!serverError.value) close();
 }
@@ -83,22 +93,30 @@ async function add() {
           size="small"
           prepend-icon="mdi-plus-circle-outline"
           class="text-none"
-          @click="adding = true"
+          @click="open"
         >
           Agregar comentario
         </v-btn>
       </div>
       <template v-else>
-        <v-textarea
-          v-model="comment"
+        <v-select
+          v-model="stepCommentId"
           label="Comentario"
-          :counter="COMMENT_MAX"
-          rows="2"
-          auto-grow
+          :items="options"
+          item-title="comment"
+          item-value="id"
+          :loading="loadingOptions"
           density="compact"
           bg-color="surface"
           hide-details="auto"
           autofocus
+        />
+        <v-alert
+          v-if="hasNoOptions"
+          type="info"
+          variant="tonal"
+          density="compact"
+          text="Este paso no tiene comentarios predefinidos. Agrégalos en Listado status house."
         />
         <div class="d-flex flex-wrap align-center ga-2">
           <v-switch
@@ -125,6 +143,7 @@ async function add() {
             type="submit"
             class="text-none"
             :loading="saving"
+            :disabled="stepCommentId === null"
           >
             Guardar
           </v-btn>
