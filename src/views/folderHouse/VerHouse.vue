@@ -6,8 +6,6 @@ import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
 import "@/styles/aco-ui.css";
-import HouseFileHeader from "@/components/HouseFile/HouseFileHeader.vue";
-import HousePhaseProgress from "@/components/HouseFile/HousePhaseProgress.vue";
 import HouseStepList from "@/components/HouseFile/HouseStepList.vue";
 import ClientTrackingPreview from "@/components/HouseFile/ClientTrackingPreview.vue";
 import HouseCustomsCard from "@/components/HouseFile/HouseCustomsCard.vue";
@@ -778,8 +776,6 @@ onMounted(async () => {
             lg="9"
           >
             <div class="d-flex flex-column ga-3">
-              <HouseFileHeader :house-id="houseId" />
-              <HousePhaseProgress />
               <v-row density="compact">
                 <v-col
                   cols="12"

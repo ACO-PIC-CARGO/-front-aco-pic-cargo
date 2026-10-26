@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import HouseStepItem from "./HouseStepItem.vue";
 import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
+import TrackingLinkButton from "./TrackingLinkButton.vue";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
@@ -35,12 +36,15 @@ function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
     class="pa-3"
     aria-labelledby="house-step-list-title"
   >
-    <h2
-      id="house-step-list-title"
-      class="text-title-medium font-weight-bold ma-0"
-    >
-      Servicios a Realizar
-    </h2>
+    <div class="d-flex flex-wrap align-center justify-space-between ga-2">
+      <h2
+        id="house-step-list-title"
+        class="text-title-medium font-weight-bold ma-0"
+      >
+        Servicios a Realizar
+      </h2>
+      <TrackingLinkButton :house-id="props.houseId" />
+    </div>
     <div class="d-flex flex-wrap align-center ga-2 my-2">
       <v-chip
         prepend-icon="mdi-web"
