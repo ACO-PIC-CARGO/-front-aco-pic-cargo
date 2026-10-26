@@ -28,7 +28,7 @@ export const todayIn = (timeZone: string): string => moment.tz(timeZone).format(
 export const clientSteps = (phases: HouseTrackingPhase[]): HouseTrackingStep[] =>
   phases
     .flatMap((phase) => phase.steps)
-    .filter((step) => step.visible_to_client)
+    .filter((step) => step.visible_to_client && step.sent_at)
     .map((step) => ({ ...step, comments: step.comments.filter((comment) => comment.sent_at) }));
 
 export const displayValue = (value: unknown, unit = ""): string =>

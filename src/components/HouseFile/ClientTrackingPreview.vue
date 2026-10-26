@@ -42,7 +42,7 @@ const shortDay = (iso: string) => {
           Vista de Tracking (Cliente)
         </h2>
         <p class="text-body-small text-medium-emphasis">
-          Así se verán los servicios seleccionados en el tracking del cliente.
+          Así ve tu cliente lo que le enviaste.
         </p>
       </div>
     </div>
@@ -50,7 +50,7 @@ const shortDay = (iso: string) => {
       v-if="!steps.length"
       class="text-body-medium text-medium-emphasis"
     >
-      Ningún paso está marcado como visible para el cliente.
+      Aún no envías nada al tracking del cliente. Confirma un paso y usa «Enviar a tracking».
     </p>
     <v-timeline
       v-else

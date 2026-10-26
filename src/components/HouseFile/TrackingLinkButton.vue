@@ -44,7 +44,7 @@ async function copy() {
     :loading="loading"
     @click="open"
   >
-    Enviar tracking
+    Enviar link
   </v-btn>
   <v-dialog
     v-model="dialog"
@@ -57,7 +57,7 @@ async function copy() {
       </v-card-title>
       <v-card-text class="px-6">
         <p class="aco-caption mb-3">
-          Comparte este enlace con tu cliente. Verá los pasos visibles al cliente y sus comentarios públicos.
+          Comparte este enlace con tu cliente. Verá los pasos y comentarios que envíes al tracking.
         </p>
         <v-text-field
           :model-value="link"

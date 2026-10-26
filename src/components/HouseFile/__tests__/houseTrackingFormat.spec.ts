@@ -49,9 +49,10 @@ test("a date and time typed in the company's zone survive the trip to ISO and ba
   expect(toDateAndTime("2026-01-05T12:03:00Z", LIMA)).toEqual({ date: "2026-01-05", time: "07:03" });
 });
 
-test("the client view keeps only client-visible steps and their sent comments", () => {
+test("the client view keeps only the sent steps the client can see, with their sent comments", () => {
   const internal = { id: 1, comment: "Interno", sent_at: null, author: "Ana", created_at: "2026-10-01T15:00:00Z" };
-  const shared = { id: 2, comment: "Público", sent_at: "2026-10-02T16:00:00Z", author: "Ana", created_at: "2026-10-02T15:00:00Z" };
+  const shared = { id: 2, comment: "Enviado", sent_at: "2026-10-02T16:00:00Z", author: "Ana", created_at: "2026-10-02T15:00:00Z" };
+  const sentStep = step({ state: "confirmed", sent_at: "2026-10-02T14:00:00Z", comments: [shared, internal] });
   const phases = [
     {
       id: 1,
@@ -60,10 +61,14 @@ test("the client view keeps only client-visible steps and their sent comments", 
       sort_order: 1,
       status: "in_progress",
       completed_at: null,
-      steps: [step({ comments: [shared, internal] }), step({ id: 2, visible_to_client: false })],
+      steps: [
+        sentStep,
+        step({ id: 2, state: "confirmed" }),
+        step({ id: 3, visible_to_client: false, sent_at: "2026-10-02T14:00:00Z" }),
+      ],
     },
   ] as HouseTrackingPhase[];
-  expect(clientSteps(phases)).toEqual([step({ comments: [shared] })]);
+  expect(clientSteps(phases)).toEqual([{ ...sentStep, comments: [shared] }]);
 });
 
 test("latestComment is the newest comment or nothing", () => {
