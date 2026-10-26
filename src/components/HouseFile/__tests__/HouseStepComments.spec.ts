@@ -37,6 +37,7 @@ const step: HouseTrackingStep = {
   visible_to_client: true,
   confirmed_at: null,
   confirmed_by: null,
+  sent_at: null,
   state: "next",
   comments: [],
 };

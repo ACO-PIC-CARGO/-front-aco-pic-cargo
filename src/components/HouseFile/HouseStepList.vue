@@ -103,6 +103,9 @@ function openConfirm(step: HouseTrackingStep) {
           <th class="px-1 text-center">
             Confirmar
           </th>
+          <th class="px-1">
+            Tracking
+          </th>
           <th class="px-0">
             <span class="d-sr-only">Comentarios</span>
           </th>

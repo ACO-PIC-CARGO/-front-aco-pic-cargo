@@ -3,13 +3,16 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import HouseStepComments from "./HouseStepComments.vue";
+import SendToTrackingButton from "./SendToTrackingButton.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
-import { dateLabel, stepDateTimeLabel } from "./houseTrackingFormat";
+import { useHouseTrackingStore } from "@/stores/houseTracking";
+import { dateLabel, stepDateTimeLabel, stepSendState } from "./houseTrackingFormat";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
 const emit = defineEmits<{ confirm: [] }>();
 
+const store = useHouseTrackingStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const expanded = ref(props.step.comments.length > 0);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
@@ -94,6 +97,15 @@ const switchLabel = computed(() => {
         </v-tooltip>
       </div>
     </td>
+    <td class="px-1">
+      <SendToTrackingButton
+        :state="stepSendState(step)"
+        :sent-at="step.sent_at"
+        blocked-hint="Confirma el paso para enviarlo."
+        :confirm-text="`¿Enviar «${step.name}» al tracking del cliente?`"
+        :send="() => store.sendStep(houseId, step.id)"
+      />
+    </td>
     <td class="px-0">
       <v-btn
         icon
@@ -111,7 +123,7 @@ const switchLabel = computed(() => {
   <tr v-if="expanded">
     <td
       :id="commentsId"
-      colspan="6"
+      colspan="7"
       class="pb-2"
     >
       <HouseStepComments

@@ -17,6 +17,7 @@ export interface HouseTrackingStep {
   visible_to_client: boolean;
   confirmed_at: string | null;
   confirmed_by: string | null;
+  sent_at: string | null;
   state: StepState;
   comments: HouseTrackingComment[];
 }

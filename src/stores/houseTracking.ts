@@ -44,6 +44,9 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
       data: { step_comment_id: stepCommentId, is_public: isPublic },
     });
 
+  const sendStep = (houseId: number, stepId: number) =>
+    mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/send` });
+
   async function requestTrackingToken(houseId: number): Promise<string | null> {
     const response = await request<{ token: string }>({
       method: "put",
@@ -55,5 +58,5 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
-  return { phases, loading, load, confirm, addComment, requestTrackingToken };
+  return { phases, loading, load, confirm, addComment, sendStep, requestTrackingToken };
 });

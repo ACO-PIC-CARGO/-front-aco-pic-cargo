@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { SHORT_MONTHS, inTimeZone, shortDate } from "@/utils/dates";
-import type { HouseTrackingComment, HouseTrackingPhase, HouseTrackingStep } from "@/types/houseTracking";
+import type { HouseTrackingComment, HouseTrackingPhase, HouseTrackingStep, SendState } from "@/types/houseTracking";
 
 export const dayMonth = (iso: string, timeZone: string) => {
   const date = inTimeZone(iso, timeZone);
@@ -43,3 +43,9 @@ export const phaseProgress =(phase: HouseTrackingPhase): number => {
 export const latestComment =(step: HouseTrackingStep): HouseTrackingComment | null => step.comments[0] ?? null;
 
 export const trackingLink = (token: string, origin = window.location.origin): string => `${origin}/tracking/${token}`;
+
+export const stepSendState = (step: HouseTrackingStep): SendState => {
+  if (!step.visible_to_client) return "internal";
+  if (step.sent_at) return "sent";
+  return step.state === "confirmed" ? "ready" : "blocked";
+};

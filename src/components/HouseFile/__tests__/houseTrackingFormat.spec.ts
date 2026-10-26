@@ -8,6 +8,7 @@ import {
   dateLabel,
   displayValue,
   stepDateTimeLabel,
+  stepSendState,
   toDateAndTime,
   trackingLink,
 } from "@/components/HouseFile/houseTrackingFormat";
@@ -24,6 +25,7 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   visible_to_client: true,
   confirmed_at: null,
   confirmed_by: null,
+  sent_at: null,
   state: "next",
   comments: [],
   ...over,
@@ -101,4 +103,13 @@ test("displayValue shows a dash for missing values and keeps zero", () => {
   expect(displayValue("")).toBe("—");
   expect(displayValue(0, " kg")).toBe("0 kg");
   expect(displayValue(1250, " kg")).toBe("1250 kg");
+});
+
+test("a step can be sent to the client tracking once confirmed, only if the client sees that step", () => {
+  expect(stepSendState(step({ state: "next" }))).toBe("blocked");
+  expect(stepSendState(step({ state: "confirmed", confirmed_at: "2026-10-01T15:00:00Z" }))).toBe("ready");
+  expect(stepSendState(step({ state: "confirmed", sent_at: "2026-10-01T16:00:00Z" }))).toBe("sent");
+  expect(stepSendState(step({ visible_to_client: false, state: "confirmed", sent_at: "2026-10-01T16:00:00Z" }))).toBe(
+    "internal",
+  );
 });

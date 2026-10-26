@@ -106,6 +106,16 @@ describe("houseTracking store", () => {
     expect(sent()).toEqual(["post house_tracking/2830/steps/5/comments", "get house_tracking/2830"]);
   });
 
+  test("sendStep sends the step of the house and reloads", async () => {
+    respond({
+      "put house_tracking/2830/steps/5/send": accepted([], "Enviamos «ETD» al tracking del cliente."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    expect(await useHouseTrackingStore().sendStep(2830, 5)).toBeNull();
+    expect(sent()).toEqual(["put house_tracking/2830/steps/5/send", "get house_tracking/2830"]);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", title: "Enviamos «ETD» al tracking del cliente." });
+  });
+
   test("requestTrackingToken creates a token for the house and returns it", async () => {
     respond({ "put setTrackingToken": accepted([{ token: "tok-1" }]) });
     expect(await useHouseTrackingStore().requestTrackingToken(2830)).toBe("tok-1");
