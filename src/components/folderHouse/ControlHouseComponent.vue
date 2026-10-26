@@ -820,8 +820,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
           ? housesStore.copy_house.nro_hbl
           : ""
       } EXPEDIENTE: ${
-        // @ts-expect-error this is undefined inside this function
-        this.$store.state.house_master_expediente
+        housesStore.house_master_expediente
       }`;
       // 4. ABRIR EL MAIL: Solo ocurre DESPUÉS de cerrar el alert
       const body = encodeURIComponent("CONTROL + V (PEGA LA TABLA AQUÍ)");
