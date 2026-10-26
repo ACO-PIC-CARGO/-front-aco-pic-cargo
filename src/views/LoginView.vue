@@ -4,7 +4,8 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import { useSecuritysStore } from "@/stores/securitys";
-import type { SucursalSesion, UsuarioLogin } from "@/types/sesion";
+import { chooseSessionBranch } from "@/utils/sesion";
+import type { SucursalSesion } from "@/types/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -43,20 +44,10 @@ async function iraHome() {
   }
   loading.value = true;
   // --------------------------------------------
-  const dataBranch = securitysStore.lstSucursal.filter(
+  const [chosenBranch] = securitysStore.lstSucursal.filter(
     (v) => v.id == securitysStore.frmLogin.id_sucursal
   );
-  sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-  localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-  // --------------------------------------------
-  const datos: UsuarioLogin[] = JSON.parse(sessionStorage.getItem("dataUser") as string);
-  datos[0]!.id_branch = securitysStore.frmLogin.id_sucursal;
-
-  sessionStorage.setItem("dataUser", JSON.stringify(datos));
-  sessionStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
-  sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-  localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
- 
+  chooseSessionBranch(chosenBranch!);
   //-------------------------------------
   await securitysStore._getMenuItem();
   appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);

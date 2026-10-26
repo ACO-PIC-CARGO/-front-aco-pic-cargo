@@ -1,5 +1,12 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import { sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+import {
+  chooseSessionBranch,
+  sessionIsoPais,
+  sessionSucursal,
+  sessionUser,
+  sessionUserIdOrEmpty,
+} from "@/utils/sesion";
+import type { SucursalSesion } from "@/types/sesion";
 
 describe("session readers", () => {
   beforeEach(() => sessionStorage.clear());
@@ -20,5 +27,27 @@ describe("session readers", () => {
     expect(() => sessionSucursal()).toThrow(TypeError);
     expect(sessionUserIdOrEmpty()).toBe("");
     expect(sessionIsoPais()).toBeNull();
+  });
+});
+
+describe("choosing the sucursal at login", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+  });
+
+  test("a new tab, which copies the session from localStorage, works on the chosen sucursal", () => {
+    const signedIn = JSON.stringify([{ id: 4, id_branch: 1, nombrecompleto: "ANA" }]);
+    sessionStorage.setItem("dataUser", signedIn);
+    localStorage.setItem("dataUser", signedIn);
+    const chosen = { id: 18, trade_name: "INTERCONTINENTAL KARGO SA", iso_pais: "9589" } as SucursalSesion;
+
+    chooseSessionBranch(chosen);
+
+    for (const storage of [sessionStorage, localStorage]) {
+      expect(JSON.parse(storage.getItem("dataUser")!)).toEqual([{ id: 4, id_branch: 18, nombrecompleto: "ANA" }]);
+      expect(JSON.parse(storage.getItem("dataBranch")!)).toEqual([chosen]);
+      expect(storage.getItem("iso_pais")).toBe("9589");
+    }
   });
 });
