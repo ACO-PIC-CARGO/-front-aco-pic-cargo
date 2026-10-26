@@ -128,3 +128,8 @@ test("a comment can be sent once its step was sent, only if the client sees that
   expect(commentSendState(sentStep, { ...unsent, sent_at: "2026-10-03T17:00:00Z" })).toBe("sent");
   expect(commentSendState(step({ visible_to_client: false, sent_at: "2026-10-03T16:00:00Z" }), unsent)).toBe("internal");
 });
+
+test("a comment marked sent shows as sent only once the client sees its step", () => {
+  const backfilled = { id: 4, comment: "Público", sent_at: "2026-10-03T17:00:00Z", author: null, created_at: "2026-10-03T15:00:00Z" };
+  expect(commentSendState(step({ state: "next" }), backfilled)).toBe("blocked");
+});
