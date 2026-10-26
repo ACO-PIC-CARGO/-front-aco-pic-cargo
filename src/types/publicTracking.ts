@@ -24,6 +24,12 @@ export interface PublicTrackingPhase {
   steps: PublicTrackingStep[];
 }
 
+export interface PublicNextStep {
+  name: string;
+  icon: string;
+  date: string | null;
+}
+
 export interface PublicTracking {
   house_code: string | null;
   client: string | null;
@@ -31,9 +37,7 @@ export interface PublicTracking {
   incoterm: string | null;
   weight: number | null;
   volume: number | null;
-  shipment: string | null;
-  destination_port: string | null;
-  eta: string | null;
   time_zone: string;
   phases: PublicTrackingPhase[];
+  next_step: PublicNextStep | null;
 }

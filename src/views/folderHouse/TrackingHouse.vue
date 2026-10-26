@@ -5,9 +5,9 @@ import { storeToRefs } from "pinia";
 import "@/styles/aco-ui.css";
 import PublicTrackingHeader from "@/components/PublicTracking/PublicTrackingHeader.vue";
 import PublicPhaseTrack from "@/components/PublicTracking/PublicPhaseTrack.vue";
-import NextArrivalCard from "@/components/PublicTracking/NextArrivalCard.vue";
+import NextStepCard from "@/components/PublicTracking/NextStepCard.vue";
 import TrackingUpdatesCard from "@/components/PublicTracking/TrackingUpdatesCard.vue";
-import { nextArrival, trackingUpdates } from "@/components/PublicTracking/publicTrackingFormat";
+import { trackingUpdates } from "@/components/PublicTracking/publicTrackingFormat";
 import { usePublicTrackingStore } from "@/stores/publicTracking";
 import type { TrackingLoadError } from "@/stores/publicTracking";
 
@@ -15,7 +15,6 @@ const route = useRoute();
 const store = usePublicTrackingStore();
 const { tracking, loading } = storeToRefs(store);
 const loadError = ref<TrackingLoadError | null>(null);
-const arrival = computed(() => (tracking.value ? nextArrival(tracking.value) : null));
 const updates = computed(() => (tracking.value ? trackingUpdates(tracking.value.phases) : []));
 
 async function load() {
@@ -66,11 +65,10 @@ onMounted(load);
           v-if="tracking.phases.length"
           :phases="tracking.phases"
         />
-        <NextArrivalCard
-          v-if="arrival"
-          :port="arrival.port"
-          :eta="arrival.eta"
-          :shipment="tracking.shipment"
+        <NextStepCard
+          v-if="tracking.next_step"
+          :step="tracking.next_step"
+          :time-zone="tracking.time_zone"
         />
         <TrackingUpdatesCard
           :updates="updates"

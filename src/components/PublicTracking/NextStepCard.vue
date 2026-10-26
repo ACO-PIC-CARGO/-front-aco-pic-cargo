@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { calendarDateLabel, transportIcon } from "./publicTrackingFormat";
+import { computed } from "vue";
+import { nextStepDateLabel } from "./publicTrackingFormat";
+import type { PublicNextStep } from "@/types/publicTracking";
 
-defineProps<{ port: string; eta: string; shipment: string | null }>();
+const props = defineProps<{ step: PublicNextStep; timeZone: string }>();
+const dateLabel = computed(() => nextStepDateLabel(props.step.date, props.timeZone));
 </script>
 
 <template>
@@ -12,10 +15,10 @@ defineProps<{ port: string; eta: string; shipment: string | null }>();
     rounded="lg"
     color="primary-soft"
     class="pa-4"
-    aria-labelledby="next-arrival-title"
+    aria-labelledby="next-step-title"
   >
     <h2
-      id="next-arrival-title"
+      id="next-step-title"
       class="text-title-medium font-weight-bold ma-0 mb-3"
     >
       Próximo movimiento estimado
@@ -31,20 +34,25 @@ defineProps<{ port: string; eta: string; shipment: string | null }>();
         color="primary-soft"
       >
         <v-icon
-          :icon="transportIcon(shipment)"
+          :icon="step.icon"
           color="primary"
           size="28"
         />
       </v-avatar>
       <div>
         <div class="text-title-large font-weight-bold">
-          Llegada a {{ port }}
+          {{ step.name }}
         </div>
         <div class="text-body-large text-medium-emphasis">
-          Estimado para <strong class="text-high-emphasis">{{ calendarDateLabel(eta) }}</strong>
+          <template v-if="step.date">
+            Estimado para <strong class="text-high-emphasis">{{ dateLabel }}</strong>
+          </template>
+          <template v-else>
+            {{ dateLabel }}
+          </template>
         </div>
         <div class="text-body-small text-medium-emphasis">
-          Fecha estimada sujeta a actualización según naviera.
+          Fecha estimada; puede cambiar.
         </div>
       </div>
     </v-card>

@@ -1,6 +1,5 @@
-import moment from "moment-timezone";
-import { shortDate } from "@/utils/dates";
-import type { PublicTracking, PublicTrackingPhase } from "@/types/publicTracking";
+import { inTimeZone, shortDate } from "@/utils/dates";
+import type { PublicTrackingPhase } from "@/types/publicTracking";
 
 export interface TrackingUpdate {
   key: string;
@@ -23,12 +22,5 @@ export const trackingUpdates = (phases: PublicTrackingPhase[]): TrackingUpdate[]
     ])
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at) || b.key.localeCompare(a.key));
 
-export const nextArrival = (tracking: PublicTracking): { port: string; eta: string } | null => {
-  const delivered = tracking.phases.length > 0 && tracking.phases.every((phase) => phase.status === "completed");
-  if (!tracking.eta || delivered) return null;
-  return { port: tracking.destination_port || "destino", eta: tracking.eta };
-};
-
-export const transportIcon = (shipment: string | null): string => (shipment === "Aéreo" ? "mdi-airplane" : "mdi-ferry");
-
-export const calendarDateLabel = (date: string): string => shortDate(moment(date, "YYYY-MM-DD"));
+export const nextStepDateLabel = (date: string | null, timeZone: string): string =>
+  date ? shortDate(inTimeZone(date, timeZone)) : "Fecha por definir";

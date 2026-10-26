@@ -1,11 +1,6 @@
 import { expect, test } from "vitest";
-import {
-  calendarDateLabel,
-  nextArrival,
-  trackingUpdates,
-  transportIcon,
-} from "@/components/PublicTracking/publicTrackingFormat";
-import type { PublicTracking, PublicTrackingPhase, PublicTrackingStep } from "@/types/publicTracking";
+import { nextStepDateLabel, trackingUpdates } from "@/components/PublicTracking/publicTrackingFormat";
+import type { PublicTrackingPhase, PublicTrackingStep } from "@/types/publicTracking";
 
 const step = (over: Partial<PublicTrackingStep> = {}): PublicTrackingStep => ({
   id: 1,
@@ -23,20 +18,6 @@ const phase = (status: PublicTrackingPhase["status"], steps: PublicTrackingStep[
   completed_at: null,
   progress: 0,
   steps,
-});
-const tracking = (over: Partial<PublicTracking> = {}): PublicTracking => ({
-  house_code: "2024HBL001734",
-  client: "Cliente",
-  supplier: null,
-  incoterm: "EXW",
-  weight: null,
-  volume: null,
-  shipment: "FCL",
-  destination_port: "CALLAO",
-  eta: "2026-11-05",
-  time_zone: "America/Lima",
-  phases: [phase("in_progress")],
-  ...over,
 });
 
 test("confirmed steps and public comments become updates, newest first by time", () => {
@@ -66,20 +47,8 @@ test("updates with the same time keep a stable order", () => {
   expect(trackingUpdates(phases).map((update) => update.key)).toEqual(["step-1", "comment-4"]);
 });
 
-test("the arrival card needs an ETA and a shipment still on its way", () => {
-  expect(nextArrival(tracking())).toEqual({ port: "CALLAO", eta: "2026-11-05" });
-  expect(nextArrival(tracking({ destination_port: null }))).toEqual({ port: "destino", eta: "2026-11-05" });
-  expect(nextArrival(tracking({ eta: null }))).toBeNull();
-  expect(nextArrival(tracking({ phases: [phase("completed"), phase("completed")] }))).toBeNull();
-  expect(nextArrival(tracking({ phases: [] }))).toEqual({ port: "CALLAO", eta: "2026-11-05" });
-});
-
-test("air shipments travel by plane, everything else by ship", () => {
-  expect(transportIcon("Aéreo")).toBe("mdi-airplane");
-  expect(transportIcon("FCL")).toBe("mdi-ferry");
-  expect(transportIcon(null)).toBe("mdi-ferry");
-});
-
-test("a calendar date keeps its day whatever the browser zone", () => {
-  expect(calendarDateLabel("2026-11-05")).toBe("05/NOV/2026");
+test("the next move shows its date in the company's zone or that it is still to be set", () => {
+  expect(nextStepDateLabel("2026-11-04T03:00:00Z", "America/Lima")).toBe("03/NOV/2026");
+  expect(nextStepDateLabel("2026-11-04T03:00:00Z", "Europe/Madrid")).toBe("04/NOV/2026");
+  expect(nextStepDateLabel(null, "America/Lima")).toBe("Fecha por definir");
 });
