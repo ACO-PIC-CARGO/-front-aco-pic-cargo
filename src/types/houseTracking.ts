@@ -30,3 +30,5 @@ export interface HouseTrackingPhase {
   completed_at: string | null;
   steps: HouseTrackingStep[];
 }
+
+export type SendState = "internal" | "blocked" | "ready" | "sent";
