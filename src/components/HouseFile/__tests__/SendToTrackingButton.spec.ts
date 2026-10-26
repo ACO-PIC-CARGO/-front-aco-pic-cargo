@@ -54,7 +54,7 @@ test("the confirmation shows the step name as plain text, never as HTML", async 
   vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as never);
   await mountReady(vi.fn(async () => null)).trigger("click");
   await flushPromises();
-  const options = vi.mocked(Swal.fire).mock.calls[0]![0] as Record<string, unknown>;
+  const options = vi.mocked(Swal.fire).mock.calls[0]![0] as unknown as Record<string, unknown>;
   expect(options.titleText).toBe("¿Enviar «ETD» al tracking del cliente?");
   expect(options).not.toHaveProperty("title");
 });
