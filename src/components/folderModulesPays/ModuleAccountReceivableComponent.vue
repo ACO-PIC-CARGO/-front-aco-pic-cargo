@@ -142,13 +142,6 @@ function toGoPage() {
 function toPageAdd() {
   router.push({ name: "addAccountPays" });
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function uploadPayment(id: string | number) {
-  // @ts-expect-error id_pro is a read-only prop
-  // eslint-disable-next-line vue/no-mutating-props
-  props.id_pro = id;
-  dialogPayment.value = true;
-}
 function eyePro(id: number) {
   // window.open(id, "_blank");
   router.push({ name: "viewAccountPaysCxC", params: { id: id } });

@@ -837,43 +837,6 @@ async function procesarAereo(rows: Row[]) {
 
   procesando.value = false;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function change() {
-  if (tipoSelected.value != props.type) {
-    Swal.fire({
-      icon: "info",
-      title: "Advertencia",
-      showDenyButton: true,
-      denyButtonText: `Regresar`,
-      text: `Va a cambiar de ${
-        tipoSelected.value == "LCL"
-          ? "LCL"
-          : tipoSelected.value == "FCL"
-          ? "FLC"
-          : "AÉRO"
-      } a ${
-        props.type == "LCL" ? "LCL" : props.type == "FCL" ? "FLC" : "AÉRO"
-      }. Perderá todos los datos procesados. ¿Desea seguro continuar.?`,
-      confirmButtonText: "Continuar",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        tipoSelected.value = props.type;
-        procesarflag.value = false;
-        subir.value = false;
-        itemsLCL.value = [];
-        itemsFCL.value = [];
-        itemsAereo.value = [];
-        excel.value = null;
-      }
-      if (result.isDenied) {
-        /* eslint-disable vue/no-mutating-props */
-        // @ts-expect-error writes the read-only type prop
-        props.type = tipoSelected.value;
-        /* eslint-enable vue/no-mutating-props */
-      }
-    });
-  }
-}
 async function validarCabecerasExcel(data: File) {
   let count = 0;
   let validacion = true as boolean;
