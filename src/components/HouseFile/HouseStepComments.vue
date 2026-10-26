@@ -100,6 +100,7 @@ async function add() {
       </div>
       <template v-else>
         <v-select
+          v-if="!hasNoOptions"
           v-model="stepCommentId"
           label="Comentario"
           :items="options"
@@ -112,7 +113,7 @@ async function add() {
           autofocus
         />
         <v-alert
-          v-if="hasNoOptions"
+          v-else
           type="info"
           variant="tonal"
           density="compact"

@@ -101,6 +101,11 @@
   outline-offset: 2px;
 }
 
+/* Vuetify fields already show focus on the whole field; a ring on the inner input would not match its shape. */
+.aco-ui .v-field :focus-visible {
+  outline: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .aco-ui *,
   .aco-ui *::before,
