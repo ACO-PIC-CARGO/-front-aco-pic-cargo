@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import { nextTick } from "vue";
 import { mount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
@@ -41,5 +42,38 @@ test("a blocked step tells keyboard and screen reader users which step comes fir
   expect(wrapper.find('input[type="checkbox"]').attributes("aria-label")).toContain(
     "Primero confirma «Pago al proveedor»",
   );
+  wrapper.unmount();
+});
+
+// jsdom toggles a checkbox on click but never fires "input"; a browser fires it unless the click was cancelled.
+async function clickLikeABrowser(input: HTMLInputElement) {
+  const notCancelled = input.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  if (notCancelled) input.dispatchEvent(new Event("input", { bubbles: true }));
+  await nextTick();
+}
+
+function mountStep(step: HouseTrackingStep) {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  return mount(HouseStepItem, {
+    props: { houseId: 1, step, blockedBy: null },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+  });
+}
+
+test("every click on the switch of the next step asks to confirm it, even after cancelling", async () => {
+  const wrapper = mountStep({ ...blockedStep, state: "next" });
+  const toggle = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
+  await clickLikeABrowser(toggle);
+  await clickLikeABrowser(toggle);
+  expect(wrapper.emitted("confirm")).toHaveLength(2);
+  expect(toggle.checked).toBe(false);
+  wrapper.unmount();
+});
+
+test("the switch of a confirmed step does not ask to confirm it again", async () => {
+  const wrapper = mountStep({ ...blockedStep, state: "confirmed", confirmed_at: "2026-10-26T15:00:00Z" });
+  await clickLikeABrowser(wrapper.find('input[type="checkbox"]').element as HTMLInputElement);
+  expect(wrapper.emitted("confirm")).toBeUndefined();
   wrapper.unmount();
 });

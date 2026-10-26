@@ -18,6 +18,10 @@ const expanded = ref(props.step.comments.length > 0);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
 const tone = computed(() => (confirmed.value ? "primary" : "neutral"));
+// The switch only asks to confirm; cancelling the click keeps its checked state equal to the confirmation.
+function requestConfirm() {
+  if (!confirmed.value) emit("confirm");
+}
 const switchLabel = computed(() => {
   if (confirmed.value) return `${props.step.name} confirmado`;
   if (props.blockedBy) return `Confirmar ${props.step.name}. Primero confirma «${props.blockedBy}»`;
@@ -101,7 +105,7 @@ const switchLabel = computed(() => {
           density="compact"
           :readonly="confirmed"
           :disabled="step.state === 'blocked'"
-          @update:model-value="emit('confirm')"
+          @click.prevent="requestConfirm"
         />
         <v-tooltip
           v-if="blockedBy"
