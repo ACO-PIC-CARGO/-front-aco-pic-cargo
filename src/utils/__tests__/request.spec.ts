@@ -42,13 +42,13 @@ describe("request helper", () => {
     expect(hasFailed({ estadoflag: false, mensaje: "", tipomensaje: "TMSGERR", data: [] })).toBe(true);
   });
 
-  test("shows a success toast", () => {
+  test("shows a success toast whose message is plain text, never HTML", () => {
     notifySuccess("Guardado");
     expect(Swal.fire).toHaveBeenCalledWith({
       toast: true,
       position: "top-end",
       icon: "success",
-      title: "Guardado",
+      titleText: "Guardado",
       showConfirmButton: false,
       timer: 3000,
     });

@@ -81,7 +81,7 @@ describe("houseTracking store", () => {
     expect(await store.confirm(2830, 5, "2026-10-01T21:40:00.000Z")).toBeNull();
     expect(httpMock.mock.calls[0]![0].data).toEqual({ confirmed_at: "2026-10-01T21:40:00.000Z" });
     expect(sent()).toEqual(["put house_tracking/2830/steps/5/confirmation", "get house_tracking/2830"]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", title: "Confirmamos «ETD»." });
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Confirmamos «ETD»." });
   });
 
   test("a rejected confirmation or comment returns the reason without reloading", async () => {
@@ -122,7 +122,7 @@ describe("houseTracking store", () => {
     });
     expect(await useHouseTrackingStore().sendStep(2830, 5)).toBeNull();
     expect(sent()).toEqual(["put house_tracking/2830/steps/5/send", "get house_tracking/2830"]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", title: "Enviamos «ETD» al tracking del cliente." });
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Enviamos «ETD» al tracking del cliente." });
   });
 
   test("requestTrackingToken creates a token for the house and returns it", async () => {

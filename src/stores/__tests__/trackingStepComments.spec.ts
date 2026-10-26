@@ -76,7 +76,7 @@ describe("trackingStepComments store", () => {
     expect(store.commentsOf(5)).toEqual([received]);
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({
       icon: "success",
-      title: "Guardamos el comentario predefinido.",
+      titleText: "Guardamos el comentario predefinido.",
     });
   });
 

@@ -149,7 +149,7 @@ describe("legalPages store", () => {
       toast: true,
       position: "top-end",
       icon: "success",
-      title: "Página guardada",
+      titleText: "Página guardada",
       showConfirmButton: false,
       timer: 3000,
     });

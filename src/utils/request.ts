@@ -37,7 +37,7 @@ export const notifySuccess = (message: string): Promise<SweetAlertResult> =>
     toast: true,
     position: "top-end",
     icon: "success",
-    title: message,
+    titleText: message,
     showConfirmButton: false,
     timer: 3000,
   });

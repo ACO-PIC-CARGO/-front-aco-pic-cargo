@@ -40,11 +40,11 @@ const accepted = (data: unknown[] = [], mensaje = "ok") => ({ estadoflag: true, 
 const failed = (mensaje = "falló", tipomensaje = "TMSGERR") => ({ estadoflag: false, mensaje, tipomensaje, data: [] });
 const empty = () => ({ estadoflag: false, mensaje: "No se encontraron registros", tipomensaje: "TMSGINF", data: [] });
 
-const toast = (title: string) => ({
+const toast = (titleText: string) => ({
   toast: true,
   position: "top-end",
   icon: "success",
-  title,
+  titleText,
   showConfirmButton: false,
   timer: 3000,
 });

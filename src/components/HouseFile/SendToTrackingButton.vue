@@ -21,7 +21,7 @@ const sentLabel = computed(() => (props.sentAt ? `Enviado el ${stepDateTimeLabel
 async function confirmAndSend() {
   const { isConfirmed } = await Swal.fire({
     icon: "question",
-    title: props.confirmText,
+    titleText: props.confirmText,
     text: "No se puede deshacer.",
     showCancelButton: true,
     confirmButtonText: "Enviar",

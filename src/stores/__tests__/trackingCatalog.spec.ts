@@ -109,7 +109,7 @@ describe("trackingCatalog store", () => {
       data: { name: "Fábrica", icon: "mdi-factory", active: true },
     });
     expect(sent()).toEqual(["post tracking_phases", "get tracking_catalog"]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", title: "Guardamos la fase." });
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Guardamos la fase." });
     expect(store.phases).toEqual([phase()]);
   });
 
