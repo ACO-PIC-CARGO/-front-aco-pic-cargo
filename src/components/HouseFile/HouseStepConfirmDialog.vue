@@ -5,10 +5,10 @@ import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useDialogSave } from "@/composables/useDialogSave";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import { fromDateAndTime, toDateAndTime } from "./houseTrackingFormat";
-import type { HouseTrackingStep } from "@/types/houseTracking";
+import { fromDateAndTime, stepDialogPreset, toDateAndTime } from "./houseTrackingFormat";
+import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
 
-const props = defineProps<{ houseId: number; step: HouseTrackingStep | null }>();
+const props = defineProps<{ houseId: number; step: HouseTrackingStep | null; mode: StepDialogMode }>();
 const open = defineModel<boolean>({ default: false });
 
 const store = useHouseTrackingStore();
@@ -16,19 +16,19 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const form = useTemplateRef("form");
 const date = ref<string | null>(null);
 const time = ref("");
-const { saving, serverError, save } = useDialogSave(open, form, () =>
-  store.confirm(props.houseId, props.step!.id, fromDateAndTime(date.value!, time.value, timeZone.value)),
-);
-const isCorrection = computed(() => Boolean(props.step?.confirmed_at));
-const title = computed(() =>
-  isCorrection.value ? `Corregir fecha de «${props.step?.name}»` : `Confirmar «${props.step?.name}»`,
-);
-const dateRules = [(input: string | null) => Boolean(input) || "Elige la fecha de la confirmación."];
-const timeRules = [(input: string) => Boolean(input) || "Elige la hora de la confirmación."];
+const preset = computed(() => (props.step ? stepDialogPreset(props.step, props.mode) : null));
+const { saving, serverError, save } = useDialogSave(open, form, () => {
+  const at = fromDateAndTime(date.value!, time.value, timeZone.value);
+  return props.mode === "date"
+    ? store.setStepDate(props.houseId, props.step!.id, at)
+    : store.confirm(props.houseId, props.step!.id, at);
+});
+const dateRules = [(input: string | null) => Boolean(input) || "Elige la fecha."];
+const timeRules = [(input: string) => Boolean(input) || "Elige la hora."];
 
 watch(open, (isOpen) => {
   if (!isOpen) return;
-  ({ date: date.value, time: time.value } = toDateAndTime(props.step?.confirmed_at ?? new Date(), timeZone.value));
+  ({ date: date.value, time: time.value } = toDateAndTime(preset.value?.initial ?? new Date(), timeZone.value));
   serverError.value = "";
 });
 </script>
@@ -41,7 +41,7 @@ watch(open, (isOpen) => {
   >
     <v-card class="aco-card">
       <v-card-title class="aco-title-card pt-5 px-6">
-        {{ title }}
+        {{ preset?.title }}
       </v-card-title>
       <v-card-text class="px-6">
         <v-form
@@ -85,7 +85,7 @@ watch(open, (isOpen) => {
           :loading="saving"
           @click="save"
         >
-          {{ isCorrection ? "Guardar fecha" : "Confirmar" }}
+          {{ preset?.action }}
         </v-btn>
       </v-card-actions>
     </v-card>

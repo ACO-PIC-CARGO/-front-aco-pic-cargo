@@ -18,6 +18,7 @@ export interface HouseTrackingStep {
   confirmed_at: string | null;
   confirmed_by: string | null;
   sent_at: string | null;
+  scheduled_at: string | null;
   state: StepState;
   comments: HouseTrackingComment[];
 }
@@ -33,3 +34,5 @@ export interface HouseTrackingPhase {
 }
 
 export type SendState = "internal" | "blocked" | "ready" | "sent";
+
+export type StepDialogMode = "date" | "confirm";

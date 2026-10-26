@@ -26,6 +26,7 @@ const blockedStep: HouseTrackingStep = {
   confirmed_at: null,
   confirmed_by: null,
   sent_at: null,
+  scheduled_at: null,
   state: "blocked",
   comments: [],
 };

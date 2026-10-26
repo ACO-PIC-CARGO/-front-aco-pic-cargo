@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
 import { SHORT_MONTHS, inTimeZone, shortDate } from "@/utils/dates";
-import type { HouseTrackingComment, HouseTrackingPhase, HouseTrackingStep, SendState } from "@/types/houseTracking";
+import type { HouseTrackingComment, HouseTrackingPhase, HouseTrackingStep, SendState, StepDialogMode } from "@/types/houseTracking";
 
 export const dayMonth = (iso: string, timeZone: string) => {
   const date = inTimeZone(iso, timeZone);
@@ -54,4 +54,12 @@ export const commentSendState = (step: HouseTrackingStep, comment: HouseTracking
   if (!step.visible_to_client) return "internal";
   if (!step.sent_at) return "blocked";
   return comment.sent_at ? "sent" : "ready";
+};
+
+export const stepDialogPreset = (step: HouseTrackingStep, mode: StepDialogMode) => {
+  if (mode === "date") return { title: `Fecha de «${step.name}»`, action: "Guardar fecha", initial: step.scheduled_at };
+  if (step.confirmed_at) {
+    return { title: `Corregir fecha de «${step.name}»`, action: "Guardar fecha", initial: step.confirmed_at };
+  }
+  return { title: `Confirmar «${step.name}»`, action: "Confirmar", initial: step.scheduled_at };
 };

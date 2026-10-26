@@ -125,6 +125,16 @@ describe("houseTracking store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Enviamos «ETD» al tracking del cliente." });
   });
 
+  test("setStepDate saves the estimated date of the step and reloads", async () => {
+    respond({
+      "put house_tracking/2830/steps/5/date": accepted([], "Guardamos la fecha de «ETD»."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    expect(await useHouseTrackingStore().setStepDate(2830, 5, "2026-11-03T15:00:00.000Z")).toBeNull();
+    expect(httpMock.mock.calls[0]![0].data).toStrictEqual({ scheduled_at: "2026-11-03T15:00:00.000Z" });
+    expect(sent()).toEqual(["put house_tracking/2830/steps/5/date", "get house_tracking/2830"]);
+  });
+
   test("requestTrackingToken creates a token for the house and returns it", async () => {
     respond({ "put setTrackingToken": accepted([{ token: "tok-1" }]) });
     expect(await useHouseTrackingStore().requestTrackingToken(2830)).toBe("tok-1");

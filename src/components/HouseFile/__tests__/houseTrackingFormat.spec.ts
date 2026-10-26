@@ -9,6 +9,7 @@ import {
   dateLabel,
   displayValue,
   stepDateTimeLabel,
+  stepDialogPreset,
   stepSendState,
   toDateAndTime,
   trackingLink,
@@ -27,6 +28,7 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   confirmed_at: null,
   confirmed_by: null,
   sent_at: null,
+  scheduled_at: null,
   state: "next",
   comments: [],
   ...over,
@@ -132,4 +134,25 @@ test("a comment can be sent once its step was sent, only if the client sees that
 test("a comment marked sent shows as sent only once the client sees its step", () => {
   const backfilled = { id: 4, comment: "Público", sent_at: "2026-10-03T17:00:00Z", author: null, created_at: "2026-10-03T15:00:00Z" };
   expect(commentSendState(step({ state: "next" }), backfilled)).toBe("blocked");
+});
+
+test("the step dialog saves an estimate, confirms starting from it, or corrects a confirmed date", () => {
+  const planned = step({ scheduled_at: "2026-11-03T15:00:00Z" });
+  expect(stepDialogPreset(planned, "date")).toEqual({
+    title: "Fecha de «Pago al proveedor»",
+    action: "Guardar fecha",
+    initial: "2026-11-03T15:00:00Z",
+  });
+  expect(stepDialogPreset(planned, "confirm")).toEqual({
+    title: "Confirmar «Pago al proveedor»",
+    action: "Confirmar",
+    initial: "2026-11-03T15:00:00Z",
+  });
+  expect(stepDialogPreset(step(), "confirm").initial).toBeNull();
+  expect(
+    stepDialogPreset(
+      step({ state: "confirmed", confirmed_at: "2026-11-01T12:00:00Z", scheduled_at: "2026-11-03T15:00:00Z" }),
+      "confirm",
+    ),
+  ).toEqual({ title: "Corregir fecha de «Pago al proveedor»", action: "Guardar fecha", initial: "2026-11-01T12:00:00Z" });
 });

@@ -5,7 +5,7 @@ import HouseStepItem from "./HouseStepItem.vue";
 import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import type { HouseTrackingStep } from "@/types/houseTracking";
+import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; loadError: string }>();
 const emit = defineEmits<{ retry: [] }>();
@@ -15,11 +15,13 @@ const store = useHouseTrackingStore();
 const { phases, loading } = storeToRefs(store);
 const dialog = ref(false);
 const selected = ref<HouseTrackingStep | null>(null);
+const dialogMode = ref<StepDialogMode>("confirm");
 const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
 
-function openConfirm(step: HouseTrackingStep) {
+function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
   selected.value = step;
+  dialogMode.value = mode;
   dialog.value = true;
 }
 </script>
@@ -118,7 +120,8 @@ function openConfirm(step: HouseTrackingStep) {
           :house-id="props.houseId"
           :step="step"
           :blocked-by="step.state === 'blocked' ? nextStepName : null"
-          @confirm="openConfirm(step)"
+          @confirm="openDialog(step, 'confirm')"
+          @edit-date="openDialog(step, 'date')"
         />
       </tbody>
     </v-table>
@@ -126,6 +129,7 @@ function openConfirm(step: HouseTrackingStep) {
       v-model="dialog"
       :house-id="props.houseId"
       :step="selected"
+      :mode="dialogMode"
     />
   </v-card>
 </template>

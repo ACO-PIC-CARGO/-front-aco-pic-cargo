@@ -10,7 +10,7 @@ import { dateLabel, stepDateTimeLabel, stepSendState } from "./houseTrackingForm
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
-const emit = defineEmits<{ confirm: [] }>();
+const emit = defineEmits<{ confirm: []; "edit-date": [] }>();
 
 const store = useHouseTrackingStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
@@ -64,10 +64,25 @@ const switchLabel = computed(() => {
           Confirmado el {{ stepDateTimeLabel(step.confirmed_at, timeZone) }}. Haz clic para corregir.
         </v-tooltip>
       </v-btn>
-      <span
+      <v-btn
         v-else
-        class="text-medium-emphasis px-1"
-      >—</span>
+        variant="text"
+        size="small"
+        :color="step.scheduled_at ? undefined : 'primary'"
+        :class="['text-none px-1', { 'text-medium-emphasis': step.scheduled_at }]"
+        :prepend-icon="step.scheduled_at ? undefined : 'mdi-calendar-plus'"
+        :aria-label="step.scheduled_at ? `Cambiar fecha estimada de ${step.name}` : `Poner fecha a ${step.name}`"
+        @click="emit('edit-date')"
+      >
+        {{ step.scheduled_at ? dateLabel(step.scheduled_at, timeZone) : "Poner fecha" }}
+        <v-tooltip
+          v-if="step.scheduled_at"
+          activator="parent"
+          location="top"
+        >
+          Fecha estimada. Haz clic para cambiarla.
+        </v-tooltip>
+      </v-btn>
     </td>
     <td class="px-1">
       <AcoStatusChip

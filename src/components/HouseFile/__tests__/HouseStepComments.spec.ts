@@ -38,6 +38,7 @@ const step: HouseTrackingStep = {
   confirmed_at: null,
   confirmed_by: null,
   sent_at: null,
+  scheduled_at: null,
   state: "next",
   comments: [],
 };
