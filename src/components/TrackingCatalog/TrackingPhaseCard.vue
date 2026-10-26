@@ -7,7 +7,12 @@ import { stepRangeLabel, useTrackingCatalogStore } from "@/stores/trackingCatalo
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
 
 const props = defineProps<{ phase: TrackingPhase; isFirst: boolean; isLast: boolean }>();
-const emit = defineEmits<{ "edit-phase": []; "add-step": []; "edit-step": [step: TrackingStep] }>();
+const emit = defineEmits<{
+  "edit-phase": [];
+  "add-step": [];
+  "edit-step": [step: TrackingStep];
+  "edit-step-comments": [step: TrackingStep];
+}>();
 
 const store = useTrackingCatalogStore();
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
@@ -102,6 +107,20 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
             :is-last="index === phase.steps.length - 1"
             @move="(direction) => store.moveStep(step.id, direction)"
           />
+          <v-btn
+            icon
+            variant="text"
+            :aria-label="`Comentarios predefinidos del paso ${step.name}`"
+            @click="emit('edit-step-comments', step)"
+          >
+            <v-icon icon="mdi-comment-text-multiple-outline" />
+            <v-tooltip
+              activator="parent"
+              location="top"
+            >
+              Comentarios predefinidos
+            </v-tooltip>
+          </v-btn>
           <v-btn
             icon
             variant="text"
