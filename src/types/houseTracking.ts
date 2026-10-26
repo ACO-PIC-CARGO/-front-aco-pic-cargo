@@ -4,7 +4,7 @@ export type StepState = "confirmed" | "next" | "blocked";
 export interface HouseTrackingComment {
   id: number;
   comment: string;
-  is_public: boolean;
+  sent_at: string | null;
   author: string | null;
   created_at: string;
 }

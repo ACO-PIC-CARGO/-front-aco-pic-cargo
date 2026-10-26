@@ -1,6 +1,7 @@
 import { expect, test } from "vitest";
 import {
   clientSteps,
+  commentSendState,
   dayMonth,
   fromDateAndTime,
   latestComment,
@@ -48,9 +49,9 @@ test("a date and time typed in the company's zone survive the trip to ISO and ba
   expect(toDateAndTime("2026-01-05T12:03:00Z", LIMA)).toEqual({ date: "2026-01-05", time: "07:03" });
 });
 
-test("the client view keeps only client-visible steps and their public comments", () => {
-  const internal = { id: 1, comment: "Interno", is_public: false, author: "Ana", created_at: "2026-10-01T15:00:00Z" };
-  const shared = { id: 2, comment: "Público", is_public: true, author: "Ana", created_at: "2026-10-02T15:00:00Z" };
+test("the client view keeps only client-visible steps and their sent comments", () => {
+  const internal = { id: 1, comment: "Interno", sent_at: null, author: "Ana", created_at: "2026-10-01T15:00:00Z" };
+  const shared = { id: 2, comment: "Público", sent_at: "2026-10-02T16:00:00Z", author: "Ana", created_at: "2026-10-02T15:00:00Z" };
   const phases = [
     {
       id: 1,
@@ -66,7 +67,7 @@ test("the client view keeps only client-visible steps and their public comments"
 });
 
 test("latestComment is the newest comment or nothing", () => {
-  const newest = { id: 2, comment: "B", is_public: true, author: null, created_at: "2026-10-02T15:00:00Z" };
+  const newest = { id: 2, comment: "B", sent_at: "2026-10-02T16:00:00Z", author: null, created_at: "2026-10-02T15:00:00Z" };
   expect(latestComment(step({ comments: [newest] }))).toBe(newest);
   expect(latestComment(step())).toBeNull();
 });
@@ -112,4 +113,13 @@ test("a step can be sent to the client tracking once confirmed, only if the clie
   expect(stepSendState(step({ visible_to_client: false, state: "confirmed", sent_at: "2026-10-01T16:00:00Z" }))).toBe(
     "internal",
   );
+});
+
+test("a comment can be sent once its step was sent, only if the client sees that step", () => {
+  const unsent = { id: 3, comment: "Listo", sent_at: null, author: null, created_at: "2026-10-03T15:00:00Z" };
+  const sentStep = step({ state: "confirmed", sent_at: "2026-10-03T16:00:00Z" });
+  expect(commentSendState(step({ state: "confirmed" }), unsent)).toBe("blocked");
+  expect(commentSendState(sentStep, unsent)).toBe("ready");
+  expect(commentSendState(sentStep, { ...unsent, sent_at: "2026-10-03T17:00:00Z" })).toBe("sent");
+  expect(commentSendState(step({ visible_to_client: false, sent_at: "2026-10-03T16:00:00Z" }), unsent)).toBe("internal");
 });

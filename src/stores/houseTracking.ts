@@ -37,12 +37,15 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
   const confirm = (houseId: number, stepId: number, confirmedAt: string) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/confirmation`, data: { confirmed_at: confirmedAt } });
 
-  const addComment = (houseId: number, stepId: number, stepCommentId: number, isPublic: boolean) =>
+  const addComment = (houseId: number, stepId: number, stepCommentId: number) =>
     mutate(houseId, {
       method: "post",
       url: `${stepUrl(houseId, stepId)}/comments`,
-      data: { step_comment_id: stepCommentId, is_public: isPublic },
+      data: { step_comment_id: stepCommentId },
     });
+
+  const sendComment = (houseId: number, commentId: number) =>
+    mutate(houseId, { method: "put", url: `${houseUrl(houseId)}/comments/${commentId}/send` });
 
   const sendStep = (houseId: number, stepId: number) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/send` });
@@ -58,5 +61,5 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
-  return { phases, loading, load, confirm, addComment, sendStep, requestTrackingToken };
+  return { phases, loading, load, confirm, addComment, sendStep, sendComment, requestTrackingToken };
 });

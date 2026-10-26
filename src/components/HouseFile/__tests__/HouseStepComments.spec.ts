@@ -69,7 +69,6 @@ async function openCommentForm() {
 test("comments stay writable inside the read-only house form", async () => {
   const wrapper = await openCommentForm();
   expect(wrapper.findComponent(VSelect).classes()).not.toContain("v-input--readonly");
-  expect(wrapper.find('input[type="checkbox"]').attributes("readonly")).toBeUndefined();
   wrapper.unmount();
 });
 
@@ -79,6 +78,7 @@ test("saving sends the predefined comment chosen for the step", async () => {
   await wrapper.findAll("button").find((button) => button.text().includes("Guardar"))!.trigger("submit");
   await flushPromises();
   const posted = httpMock.mock.calls.map(([config]) => config).find((config) => config.method === "post");
-  expect(posted).toMatchObject({ url: "house_tracking/1/steps/1/comments", data: { step_comment_id: 41, is_public: false } });
+  expect(posted).toMatchObject({ url: "house_tracking/1/steps/1/comments" });
+  expect(posted!.data).toStrictEqual({ step_comment_id: 41 });
   wrapper.unmount();
 });

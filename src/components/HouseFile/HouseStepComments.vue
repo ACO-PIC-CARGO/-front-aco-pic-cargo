@@ -4,7 +4,8 @@ import { storeToRefs } from "pinia";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
-import { stepDateTimeLabel } from "./houseTrackingFormat";
+import SendToTrackingButton from "./SendToTrackingButton.vue";
+import { commentSendState, stepDateTimeLabel } from "./houseTrackingFormat";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep }>();
@@ -15,7 +16,6 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const adding = ref(false);
 const loadingOptions = ref(false);
 const stepCommentId = ref<number | null>(null);
-const isPublic = ref(false);
 const saving = ref(false);
 const serverError = ref("");
 const options = computed(() => stepComments.commentsOf(props.step.id));
@@ -31,14 +31,13 @@ async function open() {
 function close() {
   adding.value = false;
   stepCommentId.value = null;
-  isPublic.value = false;
   serverError.value = "";
 }
 
 async function add() {
   if (saving.value || stepCommentId.value === null) return;
   saving.value = true;
-  serverError.value = (await store.addComment(props.houseId, props.step.id, stepCommentId.value, isPublic.value)) ?? "";
+  serverError.value = (await store.addComment(props.houseId, props.step.id, stepCommentId.value)) ?? "";
   saving.value = false;
   if (!serverError.value) close();
 }
@@ -64,13 +63,13 @@ async function add() {
         <div class="flex-grow-1">
           <div class="d-flex flex-wrap align-center ga-2 text-body-small text-medium-emphasis">
             {{ stepDateTimeLabel(item.created_at, timeZone) }} · {{ item.author ?? "Usuario" }}
-            <v-chip
-              size="x-small"
-              variant="tonal"
-              :color="item.is_public ? 'success-ink' : 'neutral-ink'"
-            >
-              {{ item.is_public ? "Público" : "Interno" }}
-            </v-chip>
+            <SendToTrackingButton
+              :state="commentSendState(step, item)"
+              :sent-at="item.sent_at"
+              blocked-hint="Primero envía el paso al tracking."
+              confirm-text="¿Enviar este comentario al tracking del cliente?"
+              :send="() => store.sendComment(houseId, item.id)"
+            />
           </div>
           <div class="text-body-medium text-break">
             {{ item.comment }}
@@ -120,14 +119,6 @@ async function add() {
           text="Este paso no tiene comentarios predefinidos. Agrégalos en Listado status house."
         />
         <div class="d-flex flex-wrap align-center ga-2">
-          <v-switch
-            v-model="isPublic"
-            label="Visible para el cliente"
-            color="primary"
-            inset
-            hide-details
-            density="compact"
-          />
           <v-spacer />
           <v-btn
             variant="text"

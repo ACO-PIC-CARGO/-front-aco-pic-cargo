@@ -29,7 +29,7 @@ export const clientSteps = (phases: HouseTrackingPhase[]): HouseTrackingStep[] =
   phases
     .flatMap((phase) => phase.steps)
     .filter((step) => step.visible_to_client)
-    .map((step) => ({ ...step, comments: step.comments.filter((comment) => comment.is_public) }));
+    .map((step) => ({ ...step, comments: step.comments.filter((comment) => comment.sent_at) }));
 
 export const displayValue = (value: unknown, unit = ""): string =>
   value || value === 0 ? `${value}${unit}` : "—";
@@ -48,4 +48,10 @@ export const stepSendState = (step: HouseTrackingStep): SendState => {
   if (!step.visible_to_client) return "internal";
   if (step.sent_at) return "sent";
   return step.state === "confirmed" ? "ready" : "blocked";
+};
+
+export const commentSendState = (step: HouseTrackingStep, comment: HouseTrackingComment): SendState => {
+  if (!step.visible_to_client) return "internal";
+  if (comment.sent_at) return "sent";
+  return step.sent_at ? "ready" : "blocked";
 };
