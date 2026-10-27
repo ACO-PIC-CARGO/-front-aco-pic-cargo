@@ -5,7 +5,6 @@ import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
-import { isSelectedPortTitle } from "@/utils/ports";
 import { sessionIsoPais } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type {
@@ -179,7 +178,6 @@ async function abrirModalContenedorSombreadoWatcher() {
 }
 
 async function recargarPuertoOrigen(textoBuscar: string) {
-  if (isSelectedPortTitle(aduanaStore.listPortBegin, aduanaStore.datosPrincipales.idorigen, textoBuscar)) return;
   const idtipocarga =
     typeof aduanaStore.datosPrincipales.idtipocarga ===
     "object"
@@ -197,7 +195,6 @@ async function recargarPuertoOrigen(textoBuscar: string) {
   });
 }
 async function recargarPuertoDestino(textoBuscar: string) {
-  if (isSelectedPortTitle(aduanaStore.listPortEnd, aduanaStore.datosPrincipales.iddestino, textoBuscar)) return;
   const idtipocarga =
     typeof aduanaStore.datosPrincipales.idtipocarga ===
     "object"

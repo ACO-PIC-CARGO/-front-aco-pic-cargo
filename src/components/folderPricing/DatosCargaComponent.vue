@@ -8,7 +8,6 @@ import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
-import { isSelectedPortTitle } from "@/utils/ports";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type {
@@ -585,7 +584,7 @@ function obtenerPrecioUnitarioGrupal(item: Costo, monto: Numerico) {
 }
 function recargarPuertoOrigen(textoBuscar: string) {
   clearTimeout(puertoOrigenDebounce.value!);
-  if (!textoBuscar || isSelectedPortTitle(pricingStore.listPortBegin, pricingStore.datosPrincipales.idorigen, textoBuscar)) return;
+  if (!textoBuscar) return;
 
   puertoOrigenDebounce.value = setTimeout(() => {
     buscarPuertoOrigen(textoBuscar);
@@ -610,7 +609,7 @@ async function buscarPuertoOrigen(textoBuscar: string) {
 
 function recargarPuertoDestino(textoBuscar: string) {
   clearTimeout(puertoDestinoDebounce.value!);
-  if (!textoBuscar || isSelectedPortTitle(pricingStore.listPortEnd, pricingStore.datosPrincipales.iddestino, textoBuscar)) return;
+  if (!textoBuscar) return;
 
   puertoDestinoDebounce.value = setTimeout(() => {
     buscarPuertoDestino(textoBuscar);
