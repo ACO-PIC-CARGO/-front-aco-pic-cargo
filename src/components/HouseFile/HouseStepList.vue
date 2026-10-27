@@ -74,7 +74,6 @@ function continueAfterWeightCheck(check: WeightCheck) {
       <v-chip
         prepend-icon="mdi-web"
         variant="outlined"
-        size="small"
         label
       >
         Incoterm <strong class="ms-1">{{ housesStore.house.incoterms || "—" }}</strong>

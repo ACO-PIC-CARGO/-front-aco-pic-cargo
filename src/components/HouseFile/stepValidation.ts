@@ -64,5 +64,7 @@ export const quoteValidityBadge = (steps: HouseTrackingStep[], today: string): {
   const validity = steps.find((step) => step.quote_validity && today > step.quote_validity.valid_until)?.quote_validity;
   if (!validity) return null;
   const label = `Cotización vencida el ${validUntilLabel(validity.valid_until)}`;
-  return validity.kept_at ? { label: `${label} · Tarifa mantenida`, warning: false } : { label, warning: true };
+  return validity.kept_at
+    ? { label: `${label} · Tarifa mantenida`, warning: false }
+    : { label: label.toUpperCase(), warning: true };
 };

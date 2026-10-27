@@ -90,9 +90,9 @@ test("the lines follow the validation that saved the result, not the step's curr
 test("the services header flags the quote whenever today is past its validity, and says when the rate was kept", () => {
   const kept = { quote_id: 7092, valid_until: "2025-11-14", kept_by: "Carlos Ramírez", kept_at: "2026-10-26T15:45:00Z" };
   expect(quoteValidityBadge([step()], "2025-11-14")).toBeNull();
-  expect(quoteValidityBadge([step()], "2025-11-15")).toEqual({ label: "Cotización vencida el 14/NOV/2025", warning: true });
+  expect(quoteValidityBadge([step()], "2025-11-15")).toEqual({ label: "COTIZACIÓN VENCIDA EL 14/NOV/2025", warning: true });
   expect(quoteValidityBadge([step({ confirmed_at: "2025-11-10T15:00:00Z", state: "confirmed" })], "2026-10-27")).toEqual({
-    label: "Cotización vencida el 14/NOV/2025",
+    label: "COTIZACIÓN VENCIDA EL 14/NOV/2025",
     warning: true,
   });
   expect(quoteValidityBadge([step({ quote_validity: kept })], "2026-10-27")).toEqual({
