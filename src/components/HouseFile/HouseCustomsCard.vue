@@ -24,25 +24,37 @@ const { form } = storeToRefs(useHouseEditStore());
     >
       Datos de Aduana
     </h2>
-    <div
+    <v-row
       v-if="editing"
-      class="d-flex flex-wrap ga-3"
+      density="compact"
     >
-      <v-text-field
-        v-model="form.nro_declaracion_aduana"
-        label="N° de declaración"
-        :counter="255"
-        :readonly="false"
-        density="compact"
-      />
-      <v-text-field
-        v-model="form.canal_aduana"
-        label="Canal"
-        :counter="50"
-        :readonly="false"
-        density="compact"
-      />
-    </div>
+      <v-col
+        cols="12"
+        md="7"
+      >
+        <v-text-field
+          v-model="form.nro_declaracion_aduana"
+          label="N° de declaración"
+          maxlength="255"
+          density="compact"
+          hide-details="auto"
+          :readonly="false"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        md="5"
+      >
+        <v-text-field
+          v-model="form.canal_aduana"
+          label="Canal"
+          maxlength="50"
+          density="compact"
+          hide-details="auto"
+          :readonly="false"
+        />
+      </v-col>
+    </v-row>
     <div
       v-else
       class="d-flex flex-wrap gc-8 gr-2"
