@@ -273,21 +273,19 @@ onMounted(() => {
                   </v-tabs-window-item>
                   <v-tabs-window-item value="pdfflag">
                     <p
-                      class="py-0 mt-5"
+                      class="py-0 mt-5 text-center"
                       style="font-size: 1.2em; color: red"
                     >
-                      <center>
-                        <v-icon
-                          color="warning"
-                          class="mx-2"
-                        >
-                          mdi-alert
-                        </v-icon>
-                        <i>
-                          Este mensaje solo se verá reflejado, si está dentro de
-                          las 24h
-                        </i>
-                      </center>
+                      <v-icon
+                        color="warning"
+                        class="mx-2"
+                      >
+                        mdi-alert
+                      </v-icon>
+                      <i>
+                        Este mensaje solo se verá reflejado, si está dentro de
+                        las 24h
+                      </i>
                     </p>
                     <v-textarea
                       v-model="localTextoPdf"

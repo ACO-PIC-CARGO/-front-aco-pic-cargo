@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
+import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 
@@ -11,6 +12,7 @@ const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const errorFiltroFecha = ref("");
+const loadingReporte = ref(false);
 
 function validarFiltroFechas() {
   errorFiltroFecha.value = "";
@@ -112,6 +114,269 @@ async function limpiar() {
   pricingStore.filtrarQuoteFlag = false;
   pricingStore.filtro.estado = true;
   appStore.spiner = false;
+}
+function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
+  const fechaInicio = moment(inicio);
+  const fechaFin = moment(fin);
+  return (
+    fechaInicio.isValid() &&
+    fechaFin.isValid() &&
+    fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+  );
+}
+async function reporteMarketing() {
+  const f = pricingStore.filtro;
+  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+    f.fechainicio,
+    f.fechafin,
+  );
+  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+    f.fechaemisiondesde,
+    f.fechaemisionhasta,
+  );
+
+  if (rangoCreacionExcedido || rangoEmisionExcedido) {
+    const rangoExcedido =
+      rangoCreacionExcedido && rangoEmisionExcedido
+        ? "Los rangos de creación y emisión"
+        : rangoCreacionExcedido
+          ? "El rango de creación"
+          : "El rango de emisión";
+    await Swal.fire({
+      icon: "warning",
+      title: "No se puede generar el reporte",
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      confirmButtonText: "Revisar fechas",
+    });
+    return;
+  }
+
+  loadingReporte.value = true;
+  const filtroSeleccionado: Record<string, string | undefined> = {};
+  const store = pricingStore;
+
+  if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+  if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+  if (f.fechaemisiondesde)
+    filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+  if (f.fechaemisionhasta)
+    filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+  if (f.id_marketing) {
+    filtroSeleccionado.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroSeleccionado.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+
+  const filtroCabecera: Record<string, string | undefined> = {};
+
+  if (f.id_marketing) {
+    filtroCabecera.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroCabecera.Pricing = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroCabecera.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroCabecera.Shipment = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroCabecera.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+  if (f.id_cliente) {
+    filtroCabecera.Cliente = appStore.clientes.find(
+      (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
+    )?.namelong;
+  }
+
+  await pricingStore.imprimiReporteListadoMarketing({
+    filtroSeleccionado: filtroSeleccionado,
+    filtroCabecera: filtroCabecera,
+  }).catch((e) => {
+    console.error(e);
+  });
+  loadingReporte.value = false;
+}
+async function reporteListado() {
+  const f = pricingStore.filtro;
+  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+    f.fechainicio,
+    f.fechafin,
+  );
+  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+    f.fechaemisiondesde,
+    f.fechaemisionhasta,
+  );
+
+  if (rangoCreacionExcedido || rangoEmisionExcedido) {
+    const rangoExcedido =
+      rangoCreacionExcedido && rangoEmisionExcedido
+        ? "Los rangos de creación y emisión"
+        : rangoCreacionExcedido
+          ? "El rango de creación"
+          : "El rango de emisión";
+    await Swal.fire({
+      icon: "warning",
+      title: "No se puede generar el reporte",
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      confirmButtonText: "Revisar fechas",
+    });
+    return;
+  }
+
+  loadingReporte.value = true;
+  const filtroSeleccionado: Record<string, string | undefined> = {};
+  const store = pricingStore;
+
+  if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+  if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+  if (f.fechaemisiondesde)
+    filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+  if (f.fechaemisionhasta)
+    filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+  if (f.id_marketing) {
+    filtroSeleccionado.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
+    filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroSeleccionado.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroSeleccionado.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+
+  const filtroCabecera: Record<string, string | undefined> = {};
+
+  if (f.id_marketing) {
+    filtroCabecera.Marketing = store.listMarketing.find(
+      (v) => v.id == f.id_marketing,
+    )?.name;
+  }
+  if (f.id_status) {
+    filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+      (v) => v.id == f.id_status,
+    )?.name;
+  }
+  if (f.id_pricing) {
+    filtroCabecera.Pricing = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_pricing,
+    )?.name;
+  }
+  if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == '2')) {
+    filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+      (v) => v.id_entitie == f.id_entities,
+    )?.name;
+  }
+  if (f.id_modality) {
+    filtroCabecera.Modalidad = store.listModality.find(
+      (v) => v.id == f.id_modality,
+    )?.name;
+  }
+  if (f.id_shipment) {
+    filtroCabecera.Shipment = store.listShipment.find(
+      (v) => v.id == f.id_shipment,
+    )?.embarque;
+  }
+  if (f.id_incoterm) {
+    filtroCabecera.Incoterms = store.listIncoterms.find(
+      (v) => v.id == f.id_incoterm,
+    )?.name;
+  }
+  if (f.id_cliente) {
+    filtroCabecera.Cliente = appStore.clientes.find(
+      (v: { id: number | string; namelong: string }) => v.id == f.id_cliente,
+    )?.namelong;
+  }
+
+  await pricingStore.imprimiReporteListado({
+    filtroSeleccionado: filtroSeleccionado,
+    filtroCabecera: filtroCabecera,
+  }).catch((e) => {
+    console.error(e);
+  });
+  loadingReporte.value = false;
+}
+function imprimir() {
+  if (pricingStore.filtro.tipopdf === 3) return reporteMarketing();
+  return reporteListado();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getTextoPorId(
@@ -418,6 +683,11 @@ onMounted(async () => {
                   color="green"
                   :value="2"
                 />
+                <v-radio
+                  label="Reporte por Marketing"
+                  color="green"
+                  :value="3"
+                />
               </v-radio-group>
             </v-col>
           </v-row>
@@ -426,6 +696,15 @@ onMounted(async () => {
     </v-card-text>
     <v-card-actions>
       <v-spacer />
+      <v-btn
+        class="mx-1"
+        color="red"
+        :loading="loadingReporte"
+        :disabled="loadingReporte"
+        @click="imprimir()"
+      >
+        <v-icon>mdi-file-pdf-box</v-icon> REPORTE
+      </v-btn>
       <v-btn
         class="mx-1"
         color="success"

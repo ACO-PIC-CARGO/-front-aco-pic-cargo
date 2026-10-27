@@ -58,6 +58,7 @@ const componentProps = withDefaults(
 const emit = defineEmits<{
   recalcularProfit: [];
   statusBtn: [status: number];
+  recargarDatos: [];
 }>();
 
 const appStore = useAppStore();
@@ -81,6 +82,8 @@ const frmCuentaBancaria = useTemplateRef("frmCuentaBancaria");
 const frmCopiar = useTemplateRef("frmCopiar");
 
 const dialogCambiarExp = ref(false);
+const dialogCambiarExpediente = ref(false);
+const selectedNuevoExpediente = ref<number | null>(null);
 const egreso = ref({} as EgresoProveedor);
 const id_masterdestino = ref<number | null>(null);
 const dialogCopiar = ref(false);
@@ -323,6 +326,25 @@ const nombreCodigoPago = computed(() => {
   return codigoPago;
 });
 
+function mostrarBotonCambiarExpAsociado(item: EgresoProveedor) {
+  return !item.detalle.some((v) => !!v.consigner);
+}
+function abrirModalCambiarExpediente(item: EgresoProveedor) {
+  egreso.value = item;
+  dialogCambiarExpediente.value = true;
+}
+async function aplicarCambioExpediente() {
+  loading.value = true;
+  await mastersStore.CambiarExpedienteAsociadoAMaster({
+    id_master: egreso.value.id_master,
+    id_proveedor: egreso.value.id_proveedor,
+    id_correlativo: egreso.value.id_correlativo,
+    id_nuevo_master: selectedNuevoExpediente.value,
+  });
+  loading.value = false;
+  dialogCambiarExpediente.value = false;
+  emit("recargarDatos");
+}
 function mostrarColumnaMonedaDiferenteDolar(item: EgresoProveedor) {
   if (item.detalle.some((v) => v.acronym !== "USD")) {
     return true;
@@ -1964,7 +1986,7 @@ onMounted(async () => {
           >
             <thead>
               <tr>
-                <th width="20%">
+                <th width="14%">
                   Proveedor
                 </th>
                 <th
@@ -2012,7 +2034,7 @@ onMounted(async () => {
                 </th>
                 <th
                   v-if="editable"
-                  width="10%"
+                  width="16%"
                   class="text-left"
                 >
                   Más Acciones
@@ -2122,15 +2144,17 @@ onMounted(async () => {
                     </v-icon>
                   </v-btn>
                 </td>
-                <!-- <td v-if="editable">
+                <td v-if="editable">
                   <v-btn
                     color="indigo"
-                    small
-                    dark
-                    @click="abrirModalCambiarExp(egreso)"
-                    >CAMBIAR EXPEDIENTE</v-btn
+                    size="small"
+                    class="mb-1 text-no-wrap"
+                    v-if="mostrarBotonCambiarExpAsociado(egresoProveedor)"
+                    @click="abrirModalCambiarExpediente(egresoProveedor)"
                   >
-                </td> -->
+                    Cambiar expediente
+                  </v-btn>
+                </td>
               </tr>
             </tbody>
           </v-table>
@@ -3623,6 +3647,58 @@ onMounted(async () => {
             @click="functionMoverCostos"
           >
             Mover Costo
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-model="dialogCambiarExpediente"
+      max-width="500"
+    >
+      <v-card>
+        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+          Cambiar expediente
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon
+            color="default"
+            @click="dialogCambiarExpediente = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        <v-card-text>
+          <v-autocomplete
+            :items="
+              appStore.itemsMasterList.filter(
+                (v: ExpedienteItem) => String(v.id) !== route.params.id,
+              )
+            "
+            v-model="selectedNuevoExpediente"
+            item-value="id"
+            item-title="code_master"
+            label="Seleccione nuevo expediente"
+            variant="outlined"
+            class="my-5"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            color="red"
+            @click="dialogCambiarExpediente = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            :loading="loading"
+            :disabled="!selectedNuevoExpediente"
+            @click="aplicarCambioExpediente"
+          >
+            Guardar
           </v-btn>
         </v-card-actions>
       </v-card>

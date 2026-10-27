@@ -144,6 +144,29 @@ export const useMastersStore = defineStore("masters", () => {
         console.error(e);
       });
   }
+  async function CambiarExpedienteAsociadoAMaster(data: Record<string, unknown>): Promise<void> {
+    const config = {
+      method: "put",
+      url: import.meta.env.VITE_URL_MAIN + `cambiar_expediente_asociado_a_master`,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    await axios<ApiResponse>(config)
+      .then(async (response) => {
+        const res = response.data;
+        if (res.estadoflag) {
+          Swal.fire({
+            icon: "success",
+            text: res.mensaje,
+          });
+        }
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
 
   const salidaflag = ref(false);
   const llegadaflag = ref(false);
@@ -455,6 +478,7 @@ export const useMastersStore = defineStore("masters", () => {
     actualizarURLEnElMaster,
     moverCostos,
     controlGastosReactivar,
+    CambiarExpedienteAsociadoAMaster,
     salidaflag,
     llegadaflag,
     disponibilidadflag,

@@ -666,9 +666,11 @@ function abrirModalCopiarCotizacion() {
 }
 function validarExistTransporte() {
   const { servicios, id_town } = pricingStore.datosPrincipales;
+  const hayDistritos = townStore.lstTown.length > 0;
 
   if (
     servicios!.some((v: Servicio) => v.code_service == "14" && v.status == 1) &&
+    hayDistritos &&
     !id_town
   ) {
     dialogSeleccionDistrito.value = true;
