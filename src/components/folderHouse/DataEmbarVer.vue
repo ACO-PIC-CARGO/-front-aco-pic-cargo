@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
+import { storeToRefs } from "pinia";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
 import { usePricingStore } from "@/stores/pricing";
+import { useHouseEditStore } from "@/stores/houseEdit";
 
-defineProps<{ isFormActionsDisabled?: boolean }>();
+const props = defineProps<{ editing?: boolean }>();
 
 const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
 const itemsContainers = computed(() => appStore.itemsContainers);
+const { form } = storeToRefs(useHouseEditStore());
+const isFCL = computed(() => {
+  const selected = (appStore.itemsShipment ?? []).find((item: { id: number }) => item.id == form.value.id_shipment) as
+    | { code?: string }
+    | undefined;
+  const shipment = props.editing ? selected?.code ?? housesStore.house?.shipment : housesStore.house?.shipment;
+  return String(shipment ?? "").toUpperCase() === "FCL";
+});
 
 function cleanData() {
   housesStore.house_cantidad = "";
@@ -32,7 +42,7 @@ function _deleteContainers(id: number) {
   axios(config)
     .then(function (response) {
       if (response.data.status == 200) {
-        housesStore._getHouseContainers();
+        housesStore._getHouseContainers({ id: route.params.id });
       }
     })
     .catch(function (error) {
@@ -66,7 +76,7 @@ function _setHouseContainers(
     .then(function (response) {
       if (response.data.status == 200) {
         //vm.$store.state.modalServices = false;
-        housesStore._getHouseContainers();
+        housesStore._getHouseContainers({ id: route.params.id });
         cleanData();
       }
     })
@@ -122,7 +132,7 @@ async function _validaData() {
     //   .catch(function (error) {
     //     console.error(error);
     //   });
-    await housesStore._getHouseContainers();
+    await housesStore._getHouseContainers({ id: route.params.id });
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,29 +164,9 @@ function _setDataContainers(id: number, name: string, cantidad: number) {
 function _delContainers(index: number) {
   appStore.master_itemsContainers.splice(index, 1);
 }
-function limpiarData() {
-  housesStore.house_id_agente = "";
-  appStore.house_id_consigner = "";
-  housesStore.house_id_notify = "";
-  housesStore.house_id_airlines = "";
-  housesStore.house_id_coloader = "";
-  housesStore.house_id_agente = "";
-  housesStore.house_id_naviera = "";
-  housesStore.house_blmaster = "";
-  housesStore.house_id_motonave = "";
-  housesStore.house_viaje = "";
-  housesStore.house_bultos = "";
-  housesStore.house_peso = "";
-  housesStore.house_volumen = "";
-  housesStore.house_id_condicion = "";
-  housesStore.house_id_coins = "";
-  housesStore.house_monto = "";
-  housesStore.house_id = "";
-}
-
 onMounted(async () => {
-  limpiarData();
   await Promise.all([
+    housesStore._getHouseContainers({ id: route.params.id }),
     appStore._getProveedor(),
     appStore.cargarClientes(),
     appStore._getProveedorRolShipper(),
@@ -199,17 +189,62 @@ onMounted(async () => {
         md="12"
       >
         <!--  v-if="$store.state.house_id_trasnport.id != 3" -->
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_proveedor"
+          :items="appStore.itemsProveedorRolShipper"
+          item-title="namelong"
+          item-value="id"
+          label="Proveedor"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Proveedor"
           v-model="housesStore.house.proveedor"
           readonly
         />
       </v-col>
       <v-col
+        v-if="editing"
+        cols="12"
+        md="6"
+      >
+        <v-autocomplete
+          v-model="form.id_consigner"
+          :items="appStore.clientes"
+          item-title="namelong"
+          item-value="id"
+          label="Cliente HBL"
+          :readonly="false"
+        />
+      </v-col>
+      <v-col
+        v-if="editing"
         cols="12"
         md="6"
       >
         <v-text-field
+          v-model="form.nro_hbl"
+          label="N° BL House"
+          :readonly="false"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        md="6"
+      >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_consigner_real"
+          :items="appStore.clientes"
+          item-title="namelong"
+          item-value="id"
+          label="Consigne HBL"
+          :readonly="false"
+        />
+        <v-text-field
+          v-else
           label="Consigne HBL"
           v-model="housesStore.house.consigner_real"
           readonly
@@ -219,7 +254,17 @@ onMounted(async () => {
         cols="12"
         md="6"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_notify"
+          :items="appStore.clientes"
+          item-title="namelong"
+          item-value="id"
+          label="Notify HBL"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Notify HBL"
           v-model="housesStore.house.notify"
           readonly
@@ -233,6 +278,7 @@ onMounted(async () => {
           item-value="id"
           label="Vendedor"
           v-model="housesStore.house.id_vendedor"
+          readonly
         />
       </v-col>
       <v-col cols="12">
@@ -242,6 +288,7 @@ onMounted(async () => {
           item-value="id"
           label="Pricing"
           v-model="housesStore.house.id_pricing"
+          readonly
         />
       </v-col>
 
@@ -250,7 +297,17 @@ onMounted(async () => {
         cols="12"
         md="6"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_motonave"
+          :items="appStore.itemsMotonave"
+          item-title="name"
+          item-value="id"
+          label="Motonave"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           v-model="housesStore.house.motonave"
           label="Motonave"
           readonly
@@ -261,6 +318,13 @@ onMounted(async () => {
         md="6"
       >
         <v-text-field
+          v-if="editing"
+          v-model="form.nro_viaje"
+          label="Viaje"
+          :readonly="false"
+        />
+        <v-text-field
+          v-else
           v-model="housesStore.house.nro_viaje"
           label="Viaje"
           readonly
@@ -273,7 +337,17 @@ onMounted(async () => {
         lg="4"
         xl="4"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_conditions"
+          :items="appStore.itemsFleteCon"
+          item-title="name"
+          item-value="id"
+          label="Condición"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Condición"
           v-model="housesStore.house.conditions"
           readonly
@@ -286,6 +360,14 @@ onMounted(async () => {
         xl="4"
       >
         <v-text-field
+          v-if="editing"
+          v-model.number="form.monto"
+          type="number"
+          label="Monto"
+          :readonly="false"
+        />
+        <v-text-field
+          v-else
           label="Monto"
           suffix="USD"
           v-model="housesStore.house.monto"
@@ -298,7 +380,17 @@ onMounted(async () => {
         lg="4"
         xl="4"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_moneda"
+          :items="appStore.itemsCoinsList"
+          item-title="symbol"
+          item-value="id"
+          label="Moneda"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Moneda"
           v-model="housesStore.house.moneda"
           readonly
@@ -310,7 +402,7 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="appStore.master_id_trasnport.id == 2"
+        v-if="isFCL && editing"
       >
         <v-autocomplete
           :items="itemsContainers"
@@ -326,7 +418,7 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="appStore.master_id_trasnport.id == 2"
+        v-if="isFCL && editing"
       >
         <v-text-field
           label="N°. Contenedor"
@@ -338,7 +430,7 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="appStore.master_id_trasnport.id == 2"
+        v-if="isFCL && editing"
       >
         <v-text-field
           label="N°. Precinto"
@@ -350,7 +442,7 @@ onMounted(async () => {
         md="3"
         lg="3"
         xl="3"
-        v-if="appStore.master_id_trasnport.id == 2"
+        v-if="isFCL && editing"
       >
         <v-text-field
           v-model="housesStore.house_cantidad"
@@ -378,7 +470,7 @@ onMounted(async () => {
 
       <v-col
         cols="12"
-        v-if="appStore.master_id_trasnport.id == 2"
+        v-if="isFCL"
       >
         <v-table
           fixed-header
@@ -416,6 +508,7 @@ onMounted(async () => {
 
                 <td>
                   <v-icon
+                    v-if="editing"
                     class="btn__add"
                     size="small"
                     color="red"
