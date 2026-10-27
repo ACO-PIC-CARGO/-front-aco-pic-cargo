@@ -60,16 +60,17 @@ function continueAfterWeightCheck(check: WeightCheck) {
       >
         Servicios a Realizar
       </h2>
+      <v-alert
+        v-if="quoteBadge?.warning"
+        color="warning-strong"
+        variant="flat"
+        density="compact"
+        icon="mdi-alert"
+        class="flex-grow-1 text-body-large font-weight-bold"
+        :text="quoteBadge.label"
+      />
       <TrackingLinkButton :house-id="props.houseId" />
     </div>
-    <v-alert
-      v-if="quoteBadge?.warning"
-      color="warning-strong"
-      variant="flat"
-      icon="mdi-alert"
-      class="mt-2 text-body-large font-weight-bold"
-      :text="quoteBadge.label"
-    />
     <div class="d-flex flex-wrap align-center ga-2 my-2">
       <v-chip
         prepend-icon="mdi-web"
