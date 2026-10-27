@@ -51,7 +51,7 @@ test("under the step: a warning past validity, who kept the rate once kept, and 
     {
       label: "La fecha de salida supera la vigencia de la cotización (vence 14/NOV/2025).",
       warning: true,
-      icon: "mdi-file-alert-outline",
+      icon: "mdi-alert",
     },
   ]);
   expect(stepValidationLines(step({ scheduled_at: "2025-11-14T15:00:00Z" }), LIMA)).toEqual([]);

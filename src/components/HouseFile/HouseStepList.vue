@@ -62,6 +62,14 @@ function continueAfterWeightCheck(check: WeightCheck) {
       </h2>
       <TrackingLinkButton :house-id="props.houseId" />
     </div>
+    <v-alert
+      v-if="quoteBadge?.warning"
+      color="warning-strong"
+      variant="flat"
+      icon="mdi-alert"
+      class="mt-2 text-body-large font-weight-bold"
+      :text="quoteBadge.label"
+    />
     <div class="d-flex flex-wrap align-center ga-2 my-2">
       <v-chip
         prepend-icon="mdi-web"
@@ -72,9 +80,8 @@ function continueAfterWeightCheck(check: WeightCheck) {
         Incoterm <strong class="ms-1">{{ housesStore.house.incoterms || "—" }}</strong>
       </v-chip>
       <v-chip
-        v-if="quoteBadge"
-        :prepend-icon="quoteBadge.warning ? 'mdi-file-alert-outline' : 'mdi-file-check-outline'"
-        :color="quoteBadge.warning ? 'warning' : undefined"
+        v-if="quoteBadge && !quoteBadge.warning"
+        prepend-icon="mdi-file-check-outline"
         variant="tonal"
         size="small"
         label
@@ -87,7 +94,7 @@ function continueAfterWeightCheck(check: WeightCheck) {
         color="primary"
         icon="mdi-information-outline"
         class="flex-grow-1 text-body-small"
-        :class="{ 'house-step-list__notice--own-line': quoteBadge }"
+        :class="{ 'house-step-list__notice--own-line': quoteBadge && !quoteBadge.warning }"
         text="Confirma cada paso en orden y usa «Enviar a tracking» para que tu cliente lo vea. Tu cliente también ve el próximo paso con su fecha."
       />
     </div>

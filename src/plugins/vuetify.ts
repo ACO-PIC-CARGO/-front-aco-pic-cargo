@@ -41,6 +41,7 @@ export default createVuetify({
           border: "#DCE3EC",
           error: "#C5221F",
           warning: "#A35200",
+          "warning-strong": "#E8710A",
           info: "#1967D2",
         },
         variables: {

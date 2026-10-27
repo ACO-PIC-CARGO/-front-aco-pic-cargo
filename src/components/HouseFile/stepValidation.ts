@@ -44,7 +44,7 @@ const quoteLine = (step: HouseTrackingStep, timeZone: string): StepValidationLin
   return {
     label: `La fecha de salida supera la vigencia de la cotización (vence ${validUntilLabel(validity.valid_until)}).`,
     warning: true,
-    icon: "mdi-file-alert-outline",
+    icon: "mdi-alert",
   };
 };
 

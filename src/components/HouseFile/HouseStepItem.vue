@@ -154,11 +154,11 @@ const switchLabel = computed(() => {
           v-for="line in validationLines"
           :key="line.label"
           class="d-inline-flex align-center ga-1"
-          :class="line.warning ? 'text-warning' : 'text-medium-emphasis'"
+          :class="line.warning ? 'text-warning-strong text-body-medium font-weight-bold' : 'text-medium-emphasis'"
         >
           <v-icon
             :icon="line.icon"
-            size="16"
+            :size="line.warning ? 20 : 16"
           />
           {{ line.label }}
         </span>
