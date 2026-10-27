@@ -60,6 +60,6 @@ test("the customs quote of a house that already has one is never editable", asyn
   });
   await flushPromises();
   const quote = wrapper.findAll(".v-autocomplete").find((field) => field.text().includes("Quote aduana"))!;
-  expect(quote.find("input").attributes("readonly")).toBeDefined();
+  expect(quote.classes()).toContain("v-input--readonly");
   wrapper.unmount();
 });
