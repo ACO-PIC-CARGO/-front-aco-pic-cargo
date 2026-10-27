@@ -2,10 +2,12 @@
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { storeToRefs } from "pinia";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
+import QuoteValidityDialog from "./QuoteValidityDialog.vue";
 import { useDialogSave } from "@/composables/useDialogSave";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { fromDateAndTime, stepDialogPreset, toDateAndTime } from "./houseTrackingFormat";
+import { quoteExpiredOn, skipStillSaves } from "./stepValidation";
 import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
 const props = defineProps<{
@@ -21,9 +23,11 @@ const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const form = useTemplateRef("form");
 const date = ref<string | null>(null);
 const time = ref("");
+const quoteDialog = ref(false);
 const preset = computed(() => (props.step ? stepDialogPreset(props.step, props.mode) : null));
+const currentAt = () => fromDateAndTime(date.value!, time.value, timeZone.value);
 const { saving, serverError, save } = useDialogSave(open, form, () => {
-  const at = fromDateAndTime(date.value!, time.value, timeZone.value);
+  const at = currentAt();
   return props.mode === "date"
     ? store.setStepDate(props.houseId, props.step!.id, at)
     : store.confirm(props.houseId, props.step!.id, at, props.validation ?? undefined);
@@ -36,6 +40,20 @@ watch(open, (isOpen) => {
   ({ date: date.value, time: time.value } = toDateAndTime(preset.value?.initial ?? new Date(), timeZone.value));
   serverError.value = "";
 });
+
+async function submit() {
+  if (!(await form.value!.validate()).valid) return;
+  if (quoteExpiredOn(props.step!, currentAt(), timeZone.value)) {
+    quoteDialog.value = true;
+    return;
+  }
+  await save();
+}
+
+function afterSkip() {
+  if (skipStillSaves(props.step!, props.mode)) save();
+  else open.value = false;
+}
 </script>
 
 <template>
@@ -57,7 +75,7 @@ watch(open, (isOpen) => {
         </p>
         <v-form
           ref="form"
-          @submit.prevent="save"
+          @submit.prevent="submit"
         >
           <FormatFecha
             v-model="date"
@@ -94,11 +112,18 @@ watch(open, (isOpen) => {
           color="primary"
           variant="flat"
           :loading="saving"
-          @click="save"
+          @click="submit"
         >
           {{ preset?.action }}
         </v-btn>
       </v-card-actions>
     </v-card>
+    <QuoteValidityDialog
+      v-model="quoteDialog"
+      :house-id="houseId"
+      :step="step"
+      @skip="afterSkip"
+      @kept="save"
+    />
   </v-dialog>
 </template>
