@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
@@ -7,6 +8,7 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
+import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionHouse, ServicioCotizadoHouse } from "@/types/cotizacion";
 import type { ServicioHouse } from "@/types/operaciones";
@@ -20,6 +22,15 @@ const router = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const props = defineProps<{ editing?: boolean }>();
+const { form } = storeToRefs(useHouseEditStore());
+const shipmentName = computed(() => {
+  if (!props.editing) return String(housesStore.house?.shipment ?? "");
+  const selected = (appStore.itemsShipment ?? []).find((item: { id: number }) => item.id == form.value.id_shipment) as
+    | { code?: string; embarque?: string }
+    | undefined;
+  return String(selected?.code ?? selected?.embarque ?? housesStore.house?.shipment ?? "");
+});
 
 const searchHouseCotizacion = ref("");
 const house_service_id_begend = ref<number | string>("");
@@ -28,27 +39,18 @@ const id_transport = ref<number | null>(null);
 const formNewService = useTemplateRef("formNewService");
 
 const esAereo = computed(() => {
-  const s =
-    (housesStore.house &&
-      housesStore.house.shipment) ||
-    "";
+  const s = shipmentName.value;
   return (
     String(s).toLowerCase().includes("aéreo") ||
     String(s).toLowerCase().includes("aereo")
   );
 });
 const esFCL = computed(() => {
-  const s =
-    (housesStore.house &&
-      housesStore.house.shipment) ||
-    "";
+  const s = shipmentName.value;
   return String(s).toUpperCase() === "FCL";
 });
 const esLCL = computed(() => {
-  const s =
-    (housesStore.house &&
-      housesStore.house.shipment) ||
-    "";
+  const s = shipmentName.value;
   return String(s).toUpperCase() === "LCL";
 });
 const dataQuoteAsignada = computed(() => pricingStore.dataQuote as CotizacionHouse);
@@ -466,7 +468,17 @@ onMounted(async () => {
         cols="12"
         md="4"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_modality"
+          :items="appStore.itemsModality"
+          item-title="name"
+          item-value="id"
+          label="Sentido"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Sentido"
           v-model="housesStore.house.modality"
           readonly
@@ -477,18 +489,37 @@ onMounted(async () => {
         cols="12"
         md="4"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_shipment"
+          :items="appStore.itemsShipment"
+          item-title="embarque"
+          item-value="id"
+          label="Tipo de Embarque"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           readonly
           v-model="housesStore.house.shipment"
           label="Tipo de Embarque"
-          return-object
         />
       </v-col>
       <v-col
         cols="12"
         md="4"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_incoterms"
+          :items="appStore.itemsIncoterms"
+          item-title="name"
+          item-value="id"
+          label="Incoterms"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Incoterms"
           readonly
           v-model="housesStore.house.incoterms"
@@ -546,7 +577,17 @@ onMounted(async () => {
         md="4"
         v-else-if="esLCL"
       >
+        <v-autocomplete
+          v-if="editing"
+          v-model="form.id_coloader"
+          :items="housesStore.itemsColoaders"
+          item-title="namelong"
+          item-value="id"
+          label="Coloader"
+          :readonly="false"
+        />
         <v-text-field
+          v-else
           label="Coloader"
           :model-value="housesStore.house.coloader"
           readonly
@@ -561,6 +602,14 @@ onMounted(async () => {
           md="4"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.bultos"
+            type="number"
+            label="Bultos"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Bultos"
             :model-value="housesStore.house.bultos"
             readonly
@@ -571,6 +620,15 @@ onMounted(async () => {
           md="4"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.peso"
+            type="number"
+            suffix="kg"
+            label="Peso"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Peso"
             suffix="kg"
             :model-value="housesStore.house.peso"
@@ -582,6 +640,15 @@ onMounted(async () => {
           md="4"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.volumen"
+            type="number"
+            suffix="m3"
+            label="Volumen"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Volumen"
             suffix="m3"
             :model-value="housesStore.house.volumen"
@@ -595,6 +662,14 @@ onMounted(async () => {
           md="4"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.bultos"
+            type="number"
+            label="Bultos"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Bultos"
             :model-value="housesStore.house.bultos"
             readonly
@@ -605,6 +680,15 @@ onMounted(async () => {
           md="4"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.peso"
+            type="number"
+            suffix="kg"
+            label="Peso"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Peso"
             suffix="kg"
             :model-value="housesStore.house.peso"
@@ -664,6 +748,15 @@ onMounted(async () => {
           md="3"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.peso"
+            type="number"
+            suffix="kg"
+            label="Peso"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Peso"
             suffix="kg"
             :model-value="housesStore.house.peso"
@@ -675,6 +768,15 @@ onMounted(async () => {
           md="3"
         >
           <v-text-field
+            v-if="editing"
+            v-model.number="form.volumen"
+            type="number"
+            suffix="m3"
+            label="Volumen"
+            :readonly="false"
+          />
+          <v-text-field
+            v-else
             label="Volumen"
             suffix="m3"
             :model-value="housesStore.house.volumen"
