@@ -17,7 +17,7 @@ import { notifySuccess } from "@/utils/request";
 import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
-import type { CuentaBancariaPic, ItemNotificacion } from "@/types/operaciones";
+import type { CuentaBancariaPic, HouseDetalle, ItemNotificacion } from "@/types/operaciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
 
@@ -454,7 +454,7 @@ async function validarMenuNotificaciones() {
     });
   }
 }
-async function _getHouseById() {
+async function houseRowForMail(): Promise<HouseDetalle | undefined> {
   const data = {
     id: route.params.id,
     id_branch: sessionBranchId(),
@@ -469,16 +469,14 @@ async function _getHouseById() {
     data: data,
   };
 
-  await axios(config)
-    .then(function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      housesStore.house =
-        response.data.data && response.data.data[0];
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  try {
+    const response = await axios(config);
+    sessionStorage.setItem("auth-token", response.data.token);
+    return response.data.data && response.data.data[0];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
 }
 function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
   selected.value = [];
@@ -494,11 +492,11 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 
   loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
 
-  await _getHouseById();
+  const houseForMail = (await houseRowForMail()) ?? housesStore.house;
   const data = {
-    id: housesStore.house_id,
+    id: houseId.value,
     notificacion: notificacion,
-    house: housesStore.house,
+    house: houseForMail,
     user: sessionUser(),
     sentido: getSentidoHouse(),
     tipoEmbarque: getTipoEmbarqueHouse(),

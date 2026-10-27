@@ -58,6 +58,32 @@ describe("houseEdit store", () => {
     expect(httpMock).not.toHaveBeenCalled();
   });
 
+  test("a house loaded without its services, or another house, is never sent", async () => {
+    const store = useHouseEditStore();
+    store.form = editFormFromHouse(house);
+    const withoutServices = { ...house, services: undefined } as unknown as HouseDetalle;
+    const otherHouse = { ...house, id: 9999 } as unknown as HouseDetalle;
+    expect(await store.save(withoutServices)).toBe(
+      "No pudimos cargar todos los datos del house. Recarga la página e intenta de nuevo.",
+    );
+    expect(await store.save(otherHouse)).toBe(
+      "No pudimos cargar todos los datos del house. Recarga la página e intenta de nuevo.",
+    );
+    expect(httpMock).not.toHaveBeenCalled();
+  });
+
+  test("a second save while one is in progress sends nothing", async () => {
+    let finish: (value: { data: unknown }) => void = () => {};
+    httpMock.mockReturnValueOnce(new Promise((resolve) => (finish = resolve)));
+    const store = useHouseEditStore();
+    store.form = editFormFromHouse(house);
+    const first = store.save(house);
+    expect(await store.save(house)).toBeNull();
+    finish({ data: { status: 200, statusBol: true } });
+    expect(await first).toBeNull();
+    expect(httpMock).toHaveBeenCalledTimes(1);
+  });
+
   test("a saved house of sucursal 1 without a folder gets its OneDrive folder", async () => {
     sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1 }]));
     httpMock.mockResolvedValue({ data: { status: 200, statusBol: true } });
