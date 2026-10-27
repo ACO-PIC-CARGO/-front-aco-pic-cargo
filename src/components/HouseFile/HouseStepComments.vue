@@ -155,7 +155,7 @@ async function remove(item: HouseTrackingComment) {
               v-for="option in options"
               :key="option.id"
               size="small"
-              variant="outlined"
+              variant="flat"
               color="primary"
               prepend-icon="mdi-plus"
               @click="appendPredefined(option.comment)"
