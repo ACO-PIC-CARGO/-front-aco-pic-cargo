@@ -6,10 +6,14 @@ import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseEditStore } from "@/stores/houseEdit";
+import { editFormFromHouse } from "./houseEditForm";
 import type { AprobacionCotizacion, CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse } from "@/types/operaciones";
 
 type QuoteKind = "pricing" | "aduana";
+
+const ASSOCIATION_ERROR = "No pudimos asociar la cotización. Intenta de nuevo.";
+const PAYMENTS_ERROR = "No pudimos validar los pagos del master. Intenta de nuevo.";
 
 const COST_OPTIONS = [
   { id: "0", text: "No hacer ninguna acción" },
@@ -27,11 +31,24 @@ const option = ref("");
 const paymentWarning = ref("");
 const blocked = ref(false);
 const associating = ref(false);
+const associationError = ref("");
+
+function resetSelection() {
+  const loaded = editFormFromHouse(housesStore.house);
+  form.value.id_cot = loaded.id_cot;
+  form.value.id_quoteaduana = loaded.id_quoteaduana;
+}
+
+function cancel() {
+  dialog.value = false;
+  resetSelection();
+}
 
 onMounted(() => Promise.all([pricingStore.ListarMontosFinalesQuoteMONGODB(), aduanaStore.ListarMontosFinalesAduanaMONGODB()]));
 
 function openCosts(selected: QuoteKind, value: unknown) {
   if (!value) return;
+  associationError.value = "";
   kind.value = selected;
   option.value = "";
   paymentWarning.value = "";
@@ -44,13 +61,19 @@ async function checkPayments() {
   blocked.value = false;
   if (kind.value !== "pricing" || option.value !== "1") return;
   blocked.value = true;
-  const { data } = await axios({ method: "get", url: "validar_existe_pago_master", params: { id: form.value.id_cot } });
-  blocked.value = Boolean(data.estadoflag);
-  paymentWarning.value = data.estadoflag ? data.mensaje : "";
+  try {
+    const { data } = await axios({ method: "get", url: "validar_existe_pago_master", params: { id: form.value.id_cot } });
+    blocked.value = Boolean(data.estadoflag);
+    paymentWarning.value = data.estadoflag ? data.mensaje : "";
+  } catch (error) {
+    console.error(error);
+    paymentWarning.value = PAYMENTS_ERROR;
+  }
 }
 
 function approvalData(selected: CotizacionAsociableHouse, quoteId: number | null): AprobacionCotizacion {
-  const total = selected.listIngresosInstructivo.find((item) => item.descripcion === "TOTAL")!;
+  const total = selected?.listIngresosInstructivo?.find((item) => item.descripcion === "TOTAL");
+  if (!total) throw new Error("quote without a TOTAL line");
   return {
     id_quote: quoteId,
     nuevoexpediente: false,
@@ -76,10 +99,14 @@ async function associate() {
       const selected = aduanaStore.listQuotes2.find((item) => item.id == form.value.id_quoteaduana) as CotizacionAsociableHouse;
       await aduanaStore.aprobarCotizacionAduana(approvalData(selected, form.value.id_quoteaduana));
     }
-    dialog.value = false;
     await housesStore.verHouse({ id: housesStore.house.id });
+  } catch (error) {
+    console.error(error);
+    associationError.value = ASSOCIATION_ERROR;
   } finally {
     associating.value = false;
+    dialog.value = false;
+    resetSelection();
   }
 }
 </script>
@@ -106,6 +133,13 @@ async function associate() {
       :readonly="false"
       :item-props="(item: CotizacionListado) => ({ disabled: Boolean(item.aprobadoflag) })"
       @update:model-value="(value) => openCosts('aduana', value)"
+    />
+    <v-alert
+      v-if="associationError"
+      type="warning"
+      variant="tonal"
+      density="compact"
+      :text="associationError"
     />
     <v-dialog
       v-model="dialog"
@@ -138,7 +172,7 @@ async function associate() {
           <v-spacer />
           <v-btn
             variant="text"
-            @click="dialog = false"
+            @click="cancel"
           >
             Cancelar
           </v-btn>
