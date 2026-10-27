@@ -87,20 +87,17 @@ test("the lines follow the validation that saved the result, not the step's curr
   expect(stepValidationLines(quoteResultUnderWeightCheck, LIMA)).toEqual([]);
 });
 
-test("the services header flags the quote once the ETD date passes its validity, and says when the rate was kept", () => {
+test("the services header flags the quote whenever today is past its validity, and says when the rate was kept", () => {
   const kept = { quote_id: 7092, valid_until: "2025-11-14", kept_by: "Carlos Ramírez", kept_at: "2026-10-26T15:45:00Z" };
-  expect(quoteValidityBadge([step()], LIMA)).toBeNull();
-  expect(quoteValidityBadge([step({ scheduled_at: "2025-11-15T04:59:00Z" })], LIMA)).toBeNull();
-  expect(quoteValidityBadge([step({ scheduled_at: "2025-11-15T05:30:00Z" })], LIMA)).toEqual({
+  expect(quoteValidityBadge([step()], "2025-11-14")).toBeNull();
+  expect(quoteValidityBadge([step()], "2025-11-15")).toEqual({ label: "Cotización vencida el 14/NOV/2025", warning: true });
+  expect(quoteValidityBadge([step({ confirmed_at: "2025-11-10T15:00:00Z", state: "confirmed" })], "2026-10-27")).toEqual({
     label: "Cotización vencida el 14/NOV/2025",
     warning: true,
   });
-  expect(
-    quoteValidityBadge([step({ confirmed_at: "2025-11-10T15:00:00Z", scheduled_at: "2025-12-01T15:00:00Z", state: "confirmed" })], LIMA),
-  ).toBeNull();
-  expect(quoteValidityBadge([step({ confirmed_at: "2025-12-01T15:00:00Z", state: "confirmed", quote_validity: kept })], LIMA)).toEqual({
+  expect(quoteValidityBadge([step({ quote_validity: kept })], "2026-10-27")).toEqual({
     label: "Cotización vencida el 14/NOV/2025 · Tarifa mantenida",
     warning: false,
   });
-  expect(quoteValidityBadge([step({ quote_validity: null, scheduled_at: "2025-12-01T15:00:00Z" })], LIMA)).toBeNull();
+  expect(quoteValidityBadge([step({ quote_validity: null })], "2026-10-27")).toBeNull();
 });

@@ -10,6 +10,7 @@ import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { needsWeightCheck, quotedValue } from "./weightCheck";
 import { quoteValidityBadge } from "./stepValidation";
+import { todayIn } from "./houseTrackingFormat";
 import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; loadError: string }>();
@@ -25,7 +26,7 @@ const weightDialog = ref(false);
 const weightCheck = ref<WeightCheck | null>(null);
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
-const quoteBadge = computed(() => quoteValidityBadge(allSteps.value, timeZone.value));
+const quoteBadge = computed(() => quoteValidityBadge(allSteps.value, todayIn(timeZone.value)));
 const selected = computed(() => allSteps.value.find((step) => step.id === selectedId.value) ?? null);
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
 

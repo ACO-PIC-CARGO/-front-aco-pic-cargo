@@ -60,12 +60,9 @@ export const stepValidationLines = (step: HouseTrackingStep, timeZone: string): 
   return line ? [line] : [];
 };
 
-export const quoteValidityBadge = (steps: HouseTrackingStep[], timeZone: string): { label: string; warning: boolean } | null => {
-  const expired = steps.find((step) => {
-    const stepDate = stepDateOf(step);
-    return stepDate !== null && pastValidity(step, stepDate, timeZone);
-  });
-  if (!expired) return null;
-  const label = `Cotización vencida el ${validUntilLabel(expired.quote_validity!.valid_until)}`;
-  return expired.quote_validity!.kept_at ? { label: `${label} · Tarifa mantenida`, warning: false } : { label, warning: true };
+export const quoteValidityBadge = (steps: HouseTrackingStep[], today: string): { label: string; warning: boolean } | null => {
+  const validity = steps.find((step) => step.quote_validity && today > step.quote_validity.valid_until)?.quote_validity;
+  if (!validity) return null;
+  const label = `Cotización vencida el ${validUntilLabel(validity.valid_until)}`;
+  return validity.kept_at ? { label: `${label} · Tarifa mantenida`, warning: false } : { label, warning: true };
 };
