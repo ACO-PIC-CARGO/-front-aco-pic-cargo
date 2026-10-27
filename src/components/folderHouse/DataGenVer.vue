@@ -467,8 +467,8 @@ onMounted(async () => {
             :items="aduanaStore.listQuotes2"
             item-title="quote"
             item-value="id"
-            v-model="housesStore.house_cotizacionaduana"
-            clearable
+            :model-value="housesStore.house.id_quoteaduana"
+            readonly
           />
         </v-col>
       </template>
