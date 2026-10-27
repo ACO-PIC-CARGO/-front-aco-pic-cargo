@@ -9,6 +9,7 @@ import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseEditStore } from "@/stores/houseEdit";
+import HouseQuoteAssociation from "@/components/HouseFile/HouseQuoteAssociation.vue";
 import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionHouse, ServicioCotizadoHouse } from "@/types/cotizacion";
 import type { ServicioHouse } from "@/types/operaciones";
@@ -24,6 +25,7 @@ const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const props = defineProps<{ editing?: boolean }>();
 const { form } = storeToRefs(useHouseEditStore());
+const hasQuote = computed(() => Boolean(housesStore.house.id_cot || housesStore.house.id_quoteaduana));
 const shipmentName = computed(() => {
   if (!props.editing) return String(housesStore.house?.shipment ?? "");
   const selected = (appStore.itemsShipment ?? []).find((item: { id: number }) => item.id == form.value.id_shipment) as
@@ -435,32 +437,41 @@ onMounted(async () => {
         ></v-text-field>
       </v-col> -->
       <v-col
+        v-if="editing && !hasQuote"
         cols="12"
-        md="4"
+        md="8"
       >
-        <v-text-field
-          label="Cot Nro"
-          :model-value="quoteCodeDisplay"
-          readonly
-          @click="verCotizacion"
-          :style="quoteCodeDisplay ? 'cursor: pointer;' : ''"
-          :append-inner-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
-        />
+        <HouseQuoteAssociation />
       </v-col>
+      <template v-else>
+        <v-col
+          cols="12"
+          md="4"
+        >
+          <v-text-field
+            label="Cot Nro"
+            :model-value="quoteCodeDisplay"
+            readonly
+            @click="verCotizacion"
+            :style="quoteCodeDisplay ? 'cursor: pointer;' : ''"
+            :append-inner-icon="quoteCodeDisplay ? 'mdi-eye' : ''"
+          />
+        </v-col>
 
-      <v-col
-        cols="12"
-        md="4"
-      >
-        <v-autocomplete
-          label="Quote aduana"
-          :items="aduanaStore.listQuotes2"
-          item-title="quote"
-          item-value="id"
-          v-model="housesStore.house_cotizacionaduana"
-          clearable
-        />
-      </v-col>
+        <v-col
+          cols="12"
+          md="4"
+        >
+          <v-autocomplete
+            label="Quote aduana"
+            :items="aduanaStore.listQuotes2"
+            item-title="quote"
+            item-value="id"
+            v-model="housesStore.house_cotizacionaduana"
+            clearable
+          />
+        </v-col>
+      </template>
     </v-row>
 
     <v-row density="compact">
