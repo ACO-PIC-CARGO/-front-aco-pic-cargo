@@ -3,10 +3,12 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import HouseStepItem from "./HouseStepItem.vue";
 import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
+import HouseStepWeightCheckDialog from "./HouseStepWeightCheckDialog.vue";
 import TrackingLinkButton from "./TrackingLinkButton.vue";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
+import { needsWeightCheck, quotedValue } from "./weightCheck";
+import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; loadError: string }>();
 const emit = defineEmits<{ retry: [] }>();
@@ -17,12 +19,21 @@ const { phases, loading } = storeToRefs(store);
 const dialog = ref(false);
 const selected = ref<HouseTrackingStep | null>(null);
 const dialogMode = ref<StepDialogMode>("confirm");
+const weightDialog = ref(false);
+const weightCheck = ref<WeightCheck | null>(null);
 const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
 
 function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
   selected.value = step;
   dialogMode.value = mode;
+  weightCheck.value = null;
+  if (needsWeightCheck(step, mode)) weightDialog.value = true;
+  else dialog.value = true;
+}
+
+function continueAfterWeightCheck(check: WeightCheck) {
+  weightCheck.value = check;
   dialog.value = true;
 }
 </script>
@@ -134,6 +145,13 @@ function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
       :house-id="props.houseId"
       :step="selected"
       :mode="dialogMode"
+      :validation="weightCheck"
+    />
+    <HouseStepWeightCheckDialog
+      v-model="weightDialog"
+      :quoted-weight="quotedValue(housesStore.house.peso)"
+      :quoted-volume="quotedValue(housesStore.house.volumen)"
+      @confirmed="continueAfterWeightCheck"
     />
   </v-card>
 </template>

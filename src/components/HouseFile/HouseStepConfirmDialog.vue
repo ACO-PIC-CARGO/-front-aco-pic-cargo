@@ -6,9 +6,14 @@ import { useDialogSave } from "@/composables/useDialogSave";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { fromDateAndTime, stepDialogPreset, toDateAndTime } from "./houseTrackingFormat";
-import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
+import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
-const props = defineProps<{ houseId: number; step: HouseTrackingStep | null; mode: StepDialogMode }>();
+const props = defineProps<{
+  houseId: number;
+  step: HouseTrackingStep | null;
+  mode: StepDialogMode;
+  validation?: WeightCheck | null;
+}>();
 const open = defineModel<boolean>({ default: false });
 
 const store = useHouseTrackingStore();
@@ -21,7 +26,7 @@ const { saving, serverError, save } = useDialogSave(open, form, () => {
   const at = fromDateAndTime(date.value!, time.value, timeZone.value);
   return props.mode === "date"
     ? store.setStepDate(props.houseId, props.step!.id, at)
-    : store.confirm(props.houseId, props.step!.id, at);
+    : store.confirm(props.houseId, props.step!.id, at, props.validation ?? undefined);
 });
 const dateRules = [(input: string | null) => Boolean(input) || "Elige la fecha."];
 const timeRules = [(input: string) => Boolean(input) || "Elige la hora."];
