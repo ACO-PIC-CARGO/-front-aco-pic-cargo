@@ -372,11 +372,9 @@ async function recargarPuertoDestino(textoBuscar: string) {
   });
 }
 function verCotizacion() {
-  const quoteId =
-    housesStore.house_cotizacion ||
-    housesStore.house.id_cot;
+  const quoteId = housesStore.house.id_cot;
   if (quoteId) {
-    router.push(`/home/folderPricing/verQuote/${quoteId}`);
+    window.open(router.resolve(`/home/folderPricing/verQuote/${quoteId}`).href, "_blank", "noopener");
   }
 }
 

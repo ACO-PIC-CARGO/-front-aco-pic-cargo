@@ -10,7 +10,11 @@ import { useHouseEditStore } from "@/stores/houseEdit";
 
 vi.mock("@/api/http", () => ({ default: vi.fn().mockResolvedValue({ data: { data: [] } }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
-vi.mock("vue-router", () => ({ useRoute: () => ({ params: { id: "2892" } }), useRouter: () => ({ push: vi.fn() }) }));
+const routerPush = vi.fn();
+vi.mock("vue-router", () => ({
+  useRoute: () => ({ params: { id: "2892" } }),
+  useRouter: () => ({ push: routerPush, resolve: (path: string) => ({ href: `/#${path}` }) }),
+}));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 globalThis.ResizeObserver ??= class {
   observe() {}
@@ -62,4 +66,24 @@ test("the customs quote of a house that already has one is never editable", asyn
   const quote = wrapper.findAll(".v-autocomplete").find((field) => field.text().includes("Quote aduana"))!;
   expect(quote.classes()).toContain("v-input--readonly");
   wrapper.unmount();
+});
+
+test("the linked quote opens in another tab, from the loaded house", async () => {
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 22 }]));
+  const houses = useHousesStore();
+  houses.house = { shipment: "LCL", id_cot: 9, quote: "Q-9" } as never;
+  houses.house_cotizacion = 4 as never;
+  const wrapper = mount(DataGenVer, {
+    props: { editing: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+  });
+  await flushPromises();
+  await wrapper.findAll(".v-text-field").find((field) => field.text().includes("Cot Nro"))!.find("input").trigger("click");
+  expect(open).toHaveBeenCalledWith("/#/home/folderPricing/verQuote/9", "_blank", "noopener");
+  expect(routerPush).not.toHaveBeenCalled();
+  wrapper.unmount();
+  open.mockRestore();
 });
