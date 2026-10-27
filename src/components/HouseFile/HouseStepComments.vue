@@ -116,7 +116,7 @@ async function add() {
           type="info"
           variant="tonal"
           density="compact"
-          text="Este paso no tiene comentarios predefinidos. Agrégalos en Listado status house."
+          text="Este paso no tiene comentarios predefinidos. Agrégalos en «Estatus del tracking»."
         />
         <div class="d-flex flex-wrap align-center ga-2">
           <v-spacer />
