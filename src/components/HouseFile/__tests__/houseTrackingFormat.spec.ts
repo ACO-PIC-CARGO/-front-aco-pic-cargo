@@ -102,10 +102,11 @@ test("a step can be sent to the client tracking once confirmed, only if the clie
   );
 });
 
-test("a comment can be sent once its step was sent, only if the client sees that step", () => {
+test("a comment can be sent once its step is confirmed, sent or not, only if the client sees that step", () => {
   const unsent = { id: 3, comment: "Listo", sent_at: null, author: null, created_at: "2026-10-03T15:00:00Z" };
   const sentStep = step({ state: "confirmed", sent_at: "2026-10-03T16:00:00Z" });
-  expect(commentSendState(step({ state: "confirmed" }), unsent)).toBe("blocked");
+  expect(commentSendState(step({ state: "next" }), unsent)).toBe("blocked");
+  expect(commentSendState(step({ state: "confirmed" }), unsent)).toBe("ready");
   expect(commentSendState(sentStep, unsent)).toBe("ready");
   expect(commentSendState(sentStep, { ...unsent, sent_at: "2026-10-03T17:00:00Z" })).toBe("sent");
   expect(commentSendState(step({ visible_to_client: false, sent_at: "2026-10-03T16:00:00Z" }), unsent)).toBe("internal");

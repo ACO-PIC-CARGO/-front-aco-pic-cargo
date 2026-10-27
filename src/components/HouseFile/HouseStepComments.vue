@@ -90,7 +90,7 @@ async function remove(item: HouseTrackingComment) {
             <SendToTrackingButton
               :state="commentSendState(step, item)"
               :sent-at="item.sent_at"
-              blocked-hint="Primero envía el paso al tracking."
+              blocked-hint="Confirma el paso para enviar el comentario."
               confirm-text="¿Enviar este comentario al tracking del cliente?"
               :send="() => store.sendComment(houseId, item.id)"
               withdraw-confirm-text="¿Retirar este comentario del tracking del cliente?"

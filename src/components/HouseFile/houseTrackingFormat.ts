@@ -46,8 +46,8 @@ export const stepSendState = (step: HouseTrackingStep): SendState => {
 
 export const commentSendState = (step: HouseTrackingStep, comment: HouseTrackingComment): SendState => {
   if (!step.visible_to_client) return "internal";
-  if (!step.sent_at) return "blocked";
-  return comment.sent_at ? "sent" : "ready";
+  if (step.state !== "confirmed") return "blocked";
+  return comment.sent_at && step.sent_at ? "sent" : "ready";
 };
 
 export const stepDialogPreset = (step: HouseTrackingStep, mode: StepDialogMode) => {
