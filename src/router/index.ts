@@ -179,7 +179,7 @@ const routes = [
       {
         path: "folderHouse/control/editar/:id/:activar?",
         name: "controlHouseEditar",
-        component: () => import("../views/folderHouse/ControlHouse.vue"),
+        component: () => import("../views/folderHouse/VerHouse.vue"),
       },
       {
         path: "folderHouse/control/ver/:id",

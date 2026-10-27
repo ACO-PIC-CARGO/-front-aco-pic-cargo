@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
@@ -13,9 +13,11 @@ import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { notifySuccess } from "@/utils/request";
+import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
-import type { CuentaBancariaPic, ItemNotificacion, ServicioHouse } from "@/types/operaciones";
+import type { CuentaBancariaPic, ItemNotificacion } from "@/types/operaciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
 
@@ -30,6 +32,40 @@ const pricingStore = usePricingStore();
 const houseTrackingStore = useHouseTrackingStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
 const houseId = computed(() => Number(route.params.id));
+const houseEdit = useHouseEditStore();
+const isEditing = computed(() => route.name === "controlHouseEditar");
+
+function showTitle() {
+  appStore.mainTitle = `N° BL House ${housesStore.house?.nro_hbl || ""} - ${housesStore.house?.consigner || ""} [${isEditing.value ? "EDITAR" : "VER"}]`;
+}
+
+async function reloadHouse() {
+  await housesStore.verHouse({ id: houseId.value });
+}
+
+function startEditing() {
+  appRouter.replace({ name: "controlHouseEditar", params: { id: houseId.value } });
+}
+
+async function finishEditing() {
+  await reloadHouse();
+  await appRouter.replace({ name: "controlHouseVer", params: { id: houseId.value } });
+}
+
+async function saveChanges() {
+  const reason = await houseEdit.save(housesStore.house);
+  if (reason) {
+    Swal.fire({ icon: "warning", text: reason });
+    return;
+  }
+  notifySuccess("Guardamos los cambios del house.");
+  await finishEditing();
+}
+
+watch(isEditing, (editing) => {
+  showTitle();
+  if (editing) houseEdit.start(housesStore.house);
+});
 const trackingError = ref("");
 const COMPACT_FIELDS = {
   VTextField: { density: "compact", hideDetails: "auto" },
@@ -51,8 +87,6 @@ const headers = [
 ];
 const notificacion = ref<ItemNotificacion>(null as unknown as ItemNotificacion);
 const abrirModalCuentasNotificacion = ref(false);
-const statusData = ref(false);
-const formControlHouseReadonly = ref(false);
 const itemsNotificacionesImport: ItemNotificacion[] = [
   { title: "Aviso de Salida", value: 1 },
   { title: "Actualización de Salida", value: 2 },
@@ -67,21 +101,12 @@ const itemsNotificacionesExport: ItemNotificacion[] = [
 ];
 const displayMenuNotificaciones = ref(false);
 const loadingBotonNotificaciones = ref(false);
-const loadingBotonGuardarHouse = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const fab = ref(false);
 const openMenuNotificaciones = ref(false);
 const dialogFormato = ref(false);
 const formatoflag = ref(true);
 
-async function irAVerMaster() {
-  await appRouter.push({
-    name: "controlHouseEditar",
-    // @ts-expect-error id is not a property of a route location
-    id: route.params.id,
-  });
-  window.location.reload();
-}
 function abrirModalFormato() {
   dialogFormato.value = true;
 }
@@ -185,156 +210,6 @@ function _setMasterContainer(id_master: number, id_containers: number, quantity:
 
   axios(config)
     .then(function () {})
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error as string,
-      });
-    });
-}
-async function _setHouseEdit() {
-  loadingBotonGuardarHouse.value = !loadingBotonGuardarHouse.value;
-
-  //vm._getnroMaster();
-  const data = JSON.stringify({
-    id_modality: housesStore.house_sentido
-      ? housesStore.house_sentido
-      : "",
-    id_shipment: housesStore.house_id_trasnport
-      ? housesStore.house_id_trasnport
-      : "",
-    id_consigner_real: housesStore.house_id_consigner_real
-      ? housesStore.house_id_consigner_real
-      : "",
-    id_port_begin: housesStore.house_origen
-      ? housesStore.house_origen
-      : "",
-    id_port_end: housesStore.house_destino
-      ? housesStore.house_destino
-      : "",
-    id_proveedor: housesStore.house_id_agente
-      ? housesStore.house_id_agente
-      : "",
-    id_consigner: appStore.house_id_consigner
-      ? appStore.house_id_consigner
-      : "",
-    id_notify: housesStore.house_id_notify
-      ? housesStore.house_id_notify
-      : "",
-    id_aerolinea: housesStore.house_id_airlines
-      ? housesStore.house_id_airlines
-      : "",
-    id_coloader: housesStore.house_id_coloader
-      ? housesStore.house_id_coloader
-      : "",
-    id_naviera: housesStore.house_id_naviera
-      ? housesStore.house_id_naviera
-      : "",
-    id_incoterms: housesStore.house_incoterms
-      ? housesStore.house_incoterms
-      : "",
-    nro_hbl: housesStore.house_blmaster
-      ? housesStore.house_blmaster
-      : "",
-    id_motonave: housesStore.house_id_motonave
-      ? housesStore.house_id_motonave
-      : "",
-    nro_viaje: housesStore.house_viaje
-      ? housesStore.house_viaje
-      : "",
-    bultos: housesStore.house_bultos
-      ? housesStore.house_bultos
-      : "",
-    peso: housesStore.house_peso ? housesStore.house_peso : "",
-    volumen: housesStore.house_volumen
-      ? housesStore.house_volumen
-      : "",
-    id_conditions: housesStore.house_id_condicion
-      ? housesStore.house_id_condicion
-      : "",
-    id_moneda: housesStore.house_id_coins
-      ? housesStore.house_id_coins
-      : "",
-    monto: housesStore.house_monto ? housesStore.house_monto : "",
-    id_branch: sessionBranchId(),
-    id_cot: housesStore.house_cotizacion
-      ? housesStore.house_cotizacion
-      : "",
-    lstservices: appStore.itemsHouseServices || [],
-    id: housesStore.house_id,
-  });
-
-  const config = {
-    method: "put",
-    url: import.meta.env.VITE_URL_MAIN + "setHouseEdit",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  await axios(config)
-    .then(async function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      if (response.data.status == "401") {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            // @ts-expect-error router is not defined in this scope
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-
-      statusData.value = true;
-      await appStore._getHouseList();
-      await _getHouseById();
-      await _getHouseServices();
-
-      Swal.fire({
-        icon: "success",
-        title: "Excelente",
-        text: "House actualizado éxitosamente",
-      }).then(() => {
-        if (housesStore.house.cantidad_houses_x_master! > 1) {
-          Swal.fire({
-            icon: "question",
-            html: "<b>¿Desea actualizar los costos en el Control de Gastos ahora?</b>",
-            showConfirmButton: true,
-            confirmButtonText: "Sí",
-            confirmButtonColor: "#4CAF50",
-            showDenyButton: true,
-            denyButtonText: "No, en otro momento",
-            allowOutsideClick: false,
-          }).then(({ isConfirmed }) => {
-            if (isConfirmed) {
-              // vm.$router.push("/home/folderBilling/editControlGastos/view/" + vm.$store.state.houses.house.id_master);
-              appRouter.push({
-                name: "editControlGasto",
-                params: {
-                  code_master: housesStore.house.code_master,
-                  id_branch: sessionBranchId(),
-                },
-              });
-            }
-          });
-        }
-      });
-
-      loadingBotonGuardarHouse.value = !loadingBotonGuardarHouse.value;
-      // vm.$router.go(-1);
-    })
     .catch(function (error) {
       console.error(error);
       Swal.fire({
@@ -605,51 +480,6 @@ async function _getHouseById() {
       console.error(error);
     });
 }
-async function _getHouseServices() {
-  if (route.params.id) {
-    const data = {
-      id: route.params.id,
-      id_branch: sessionBranchId(),
-    };
-
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getHouseServices",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    await axios(config)
-      .then(function (response) {
-        sessionStorage.setItem("auth-token", response.data.token);
-
-        if (response.data.estadoflag) {
-          const lstServices: ServicioHouse[] = [];
-          let itemImpuestos = null as ServicioHouse | null;
-          response.data.data.map((item: ServicioHouse) => {
-            if (item.nameservice!.toUpperCase() == "IMPUESTOS") {
-              itemImpuestos = item;
-            } else {
-              lstServices.push(item);
-            }
-          });
-
-          if (itemImpuestos !== null) {
-            lstServices.push(itemImpuestos);
-          }
-
-          appStore.itemsHouseServices = lstServices;
-        } else {
-          appStore.itemsHouseServices = [];
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-}
 function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
   selected.value = [];
   notificacion.value = notificacionSeleccionada;
@@ -733,20 +563,8 @@ onMounted(async () => {
   await housesStore.verHouse(route.params);
   await Promise.all([loadTracking(), branchTimeZoneStore.load()]);
   await pricingStore.getCargarEjecutivo();
-  if (route.name == "controlHouseVer") {
-    formControlHouseReadonly.value = true;
-  }
-  const actionLabel =
-    route.name == "controlHouseEditar" ? "EDITAR" : "VER";
-  appStore.mainTitle = `N° BL House ${
-    (housesStore.house &&
-      housesStore.house.nro_hbl) ||
-    ""
-  } - ${
-    (housesStore.house &&
-      housesStore.house.consigner) ||
-    ""
-  } [${actionLabel}]`;
+  showTitle();
+  if (isEditing.value) await houseEdit.start(housesStore.house);
   appStore.spiner = false;
   await bankStore.fetchDataBank({
     code: "",
@@ -766,7 +584,7 @@ onMounted(async () => {
   >
     <v-form
       ref="formControlHouse"
-      :readonly="formControlHouseReadonly"
+      :readonly="!isEditing"
     >
       <v-container fluid>
         <v-row density="compact">
@@ -789,7 +607,7 @@ onMounted(async () => {
                       rounded="lg"
                       class="pa-3"
                     >
-                      <dataGen />
+                      <dataGen :editing="isEditing" />
                     </v-card>
                     <v-card
                       variant="flat"
@@ -797,43 +615,42 @@ onMounted(async () => {
                       rounded="lg"
                       class="pa-3"
                     >
-                      <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
+                      <dataEmbar :editing="isEditing" />
                     </v-card>
                   </v-defaults-provider>
-                  <HouseCustomsCard />
-                  <v-row
-                    v-if="$route.name != 'controlHouseVer'"
-                    class="mt-2"
+                  <HouseCustomsCard :editing="isEditing" />
+                  <div
+                    v-if="isEditing"
+                    class="d-flex flex-wrap ga-2"
                   >
-                    <v-col
-                      cols="4"
-                      md="4"
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      prepend-icon="mdi-content-save-outline"
+                      :loading="houseEdit.saving"
+                      :disabled="houseEdit.loadingLists"
+                      @click="saveChanges"
                     >
-                      <v-btn
-                        color="success"
-                        @click="_setHouseEdit()"
-                        block
-                        size="small"
-                        :loading="loadingBotonGuardarHouse"
-                      >
-                        GUARDAR CAMBIOS
-                      </v-btn>
-                    </v-col>
-                    <v-col
-                      cols="4"
-                      md="4"
+                      Guardar cambios
+                    </v-btn>
+                    <v-btn
+                      variant="text"
+                      :disabled="houseEdit.saving"
+                      @click="finishEditing"
                     >
-                      <v-btn
-                        color="red"
-                        @click="eliminarHouse()"
-                        block
-                        size="small"
-                        :loading="loadingBotonEliminarHouse"
-                      >
-                        ELIMINAR
-                      </v-btn>
-                    </v-col>
-                  </v-row>
+                      Cancelar
+                    </v-btn>
+                    <v-spacer />
+                    <v-btn
+                      color="error"
+                      variant="text"
+                      prepend-icon="mdi-delete-outline"
+                      :loading="loadingBotonEliminarHouse"
+                      @click="eliminarHouse()"
+                    >
+                      Eliminar
+                    </v-btn>
+                  </div>
                 </v-col>
                 <v-col
                   cols="12"
@@ -917,9 +734,10 @@ onMounted(async () => {
               Notificaciones
             </v-btn>
             <v-btn
+              v-if="!isEditing"
               key="editar"
               color="light-green-lighten-1"
-              @click="irAVerMaster()"
+              @click="startEditing"
             >
               <v-icon start>
                 mdi-pencil
