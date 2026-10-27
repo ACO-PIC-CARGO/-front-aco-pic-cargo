@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import TrackingMoveButtons from "./TrackingMoveButtons.vue";
+import TrackingStepComments from "./TrackingStepComments.vue";
 import { stepRangeLabel, useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
 
@@ -12,7 +13,6 @@ const emit = defineEmits<{
   "edit-phase": [];
   "add-step": [];
   "edit-step": [step: TrackingStep];
-  "edit-step-comments": [step: TrackingStep];
 }>();
 
 const store = useTrackingCatalogStore();
@@ -20,6 +20,17 @@ const { validations } = storeToRefs(store);
 const validationName = (id: number | null) => validations.value.find((item) => item.id === id)?.name;
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
 const rangeLabel = computed(() => stepRangeLabel(props.phase));
+const openCommentStepIds = ref(new Set<number>());
+const commentsId = (step: TrackingStep) => `tracking-step-${step.id}-comments`;
+const isFromControl = (event: MouseEvent) => (event.target as Element).closest("button, input, label, a") !== null;
+
+function toggleComments(step: TrackingStep) {
+  if (!openCommentStepIds.value.delete(step.id)) openCommentStepIds.value.add(step.id);
+}
+
+function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
+  if (!isFromControl(event)) toggleComments(step);
+}
 </script>
 
 <template>
@@ -80,69 +91,76 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
         v-for="(step, index) in phase.steps"
         :key="step.id"
         class="tracking-step"
+        :class="{ 'tracking-step--open': openCommentStepIds.has(step.id) }"
       >
-        <AcoStepNumber :number="step.number" />
-        <AcoIconTile
-          :icon="step.icon"
-          :tone="step.active ? 'primary' : 'neutral'"
-        />
-        <div class="tracking-step__body">
-          <span class="aco-title-row">{{ step.name }}</span>
-          <span
-            v-if="!step.active"
-            class="aco-chip aco-chip--neutral"
-          >Inactivo</span>
-          <span
-            v-if="validationName(step.validation_id)"
-            class="aco-chip aco-chip--neutral"
-          >Valida: {{ validationName(step.validation_id) }}</span>
-        </div>
-        <v-switch
-          :model-value="step.visible_to_client"
-          label="Visible al cliente"
-          color="success"
-          inset
-          hide-details
-          density="compact"
-          class="tracking-step__visibility"
-          @update:model-value="(visible) => store.setStepVisibility(phase.id, step, Boolean(visible))"
-        />
-        <div class="tracking-step__actions">
-          <TrackingMoveButtons
-            :label="`paso ${step.name}`"
-            :is-first="index === 0"
-            :is-last="index === phase.steps.length - 1"
-            @move="(direction) => store.moveStep(step.id, direction)"
+        <div
+          class="tracking-step__row"
+          @click="toggleCommentsFromRow(step, $event)"
+        >
+          <AcoStepNumber :number="step.number" />
+          <AcoIconTile
+            :icon="step.icon"
+            :tone="step.active ? 'primary' : 'neutral'"
           />
-          <v-btn
-            icon
-            variant="text"
-            :aria-label="`Comentarios predefinidos del paso ${step.name}`"
-            @click="emit('edit-step-comments', step)"
-          >
-            <v-icon icon="mdi-comment-text-multiple-outline" />
-            <v-tooltip
-              activator="parent"
-              location="top"
+          <div class="tracking-step__body">
+            <span class="aco-title-row">{{ step.name }}</span>
+            <span
+              v-if="!step.active"
+              class="aco-chip aco-chip--neutral"
+            >Inactivo</span>
+            <span
+              v-if="validationName(step.validation_id)"
+              class="aco-chip aco-chip--neutral"
+            >Valida: {{ validationName(step.validation_id) }}</span>
+          </div>
+          <v-switch
+            :model-value="step.visible_to_client"
+            label="Visible al cliente"
+            color="success"
+            inset
+            hide-details
+            density="compact"
+            class="tracking-step__visibility"
+            @update:model-value="(visible) => store.setStepVisibility(phase.id, step, Boolean(visible))"
+          />
+          <div class="tracking-step__actions">
+            <TrackingMoveButtons
+              :label="`paso ${step.name}`"
+              :is-first="index === 0"
+              :is-last="index === phase.steps.length - 1"
+              @move="(direction) => store.moveStep(step.id, direction)"
+            />
+            <v-btn
+              icon
+              variant="text"
+              :aria-label="`Editar paso ${step.name}`"
+              @click="emit('edit-step', step)"
             >
-              Comentarios predefinidos
-            </v-tooltip>
-          </v-btn>
-          <v-btn
-            icon
-            variant="text"
-            :aria-label="`Editar paso ${step.name}`"
-            @click="emit('edit-step', step)"
-          >
-            <v-icon icon="mdi-pencil-outline" />
-            <v-tooltip
-              activator="parent"
-              location="top"
+              <v-icon icon="mdi-pencil-outline" />
+              <v-tooltip
+                activator="parent"
+                location="top"
+              >
+                Editar paso
+              </v-tooltip>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              :aria-expanded="openCommentStepIds.has(step.id)"
+              :aria-controls="commentsId(step)"
+              :aria-label="`${openCommentStepIds.has(step.id) ? 'Ocultar' : 'Ver'} comentarios predefinidos de ${step.name}`"
+              @click="toggleComments(step)"
             >
-              Editar paso
-            </v-tooltip>
-          </v-btn>
+              <v-icon :icon="openCommentStepIds.has(step.id) ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
+            </v-btn>
+          </div>
         </div>
+        <TrackingStepComments
+          v-if="openCommentStepIds.has(step.id)"
+          :id="commentsId(step)"
+          :step="step"
+        />
       </li>
     </ol>
     <p
@@ -195,16 +213,20 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
 }
 
 .tracking-step {
+  border-top: 1px solid rgb(var(--v-theme-border));
+}
+
+.tracking-step__row {
   position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--aco-space-3) var(--aco-space-4);
   padding: var(--aco-space-3) 0;
-  border-top: 1px solid rgb(var(--v-theme-border));
+  cursor: pointer;
 }
 
-.tracking-step:not(:last-child)::before {
+.tracking-step:not(:last-child, .tracking-step--open) .tracking-step__row::before {
   content: "";
   position: absolute;
   top: calc(50% + 18px);

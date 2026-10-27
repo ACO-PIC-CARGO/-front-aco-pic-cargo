@@ -6,7 +6,6 @@ import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import TrackingPhaseCard from "@/components/TrackingCatalog/TrackingPhaseCard.vue";
 import TrackingPhaseDialog from "@/components/TrackingCatalog/TrackingPhaseDialog.vue";
 import TrackingStepDialog from "@/components/TrackingCatalog/TrackingStepDialog.vue";
-import TrackingStepCommentsDialog from "@/components/TrackingCatalog/TrackingStepCommentsDialog.vue";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
 
@@ -19,8 +18,6 @@ const editingPhase = ref<TrackingPhase | null>(null);
 const stepDialog = ref(false);
 const editingStep = ref<TrackingStep | null>(null);
 const stepPhaseId = ref<number | null>(null);
-const commentsDialog = ref(false);
-const commentsStep = ref<TrackingStep | null>(null);
 
 async function load() {
   loadError.value = (await store.loadCatalog()) ?? "";
@@ -35,11 +32,6 @@ function openStep(phaseId: number, step: TrackingStep | null) {
   stepPhaseId.value = phaseId;
   editingStep.value = step;
   stepDialog.value = true;
-}
-
-function openStepComments(step: TrackingStep) {
-  commentsStep.value = step;
-  commentsDialog.value = true;
 }
 
 onMounted(() => {
@@ -135,7 +127,6 @@ onMounted(() => {
         @edit-phase="openPhase(phase)"
         @add-step="openStep(phase.id, null)"
         @edit-step="(step) => openStep(phase.id, step)"
-        @edit-step-comments="openStepComments"
       />
     </div>
 
@@ -147,10 +138,6 @@ onMounted(() => {
       v-model="stepDialog"
       :step="editingStep"
       :phase-id="stepPhaseId"
-    />
-    <TrackingStepCommentsDialog
-      v-model="commentsDialog"
-      :step="commentsStep"
     />
   </v-theme-provider>
 </template>

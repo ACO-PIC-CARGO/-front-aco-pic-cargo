@@ -8,7 +8,7 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import Swal from "sweetalert2";
 import http from "@/api/http";
-import TrackingStepCommentsDialog from "@/components/TrackingCatalog/TrackingStepCommentsDialog.vue";
+import TrackingStepComments from "@/components/TrackingCatalog/TrackingStepComments.vue";
 import type { TrackingStep } from "@/types/trackingCatalog";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -67,12 +67,11 @@ async function clickDelete() {
 test("a predefined comment is deleted only after the user confirms", async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
-  wrapper = mount(TrackingStepCommentsDialog, {
-    props: { step, modelValue: false },
+  wrapper = mount(TrackingStepComments, {
+    props: { step },
     global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
-  await wrapper.setProps({ modelValue: true });
   await flushPromises();
 
   vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as never);
