@@ -44,6 +44,7 @@ const step = (over: Partial<TrackingStep> = {}): TrackingStep => ({
   number: 1,
   visible_to_client: true,
   active: true,
+  validation_id: null,
   ...over,
 });
 
@@ -128,11 +129,12 @@ describe("trackingCatalog store", () => {
       icon: "mdi-cash",
       visible_to_client: false,
       active: true,
+      validation_id: 1,
     });
     expect(httpMock.mock.calls.map(([config]) => [config.method, config.url, config.data])).toEqual([
       ["put", "tracking_phases/7", { name: "Origen", icon: "mdi-factory", active: false }],
       ["get", "tracking_catalog", undefined],
-      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true }],
+      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true, validation_id: 1 }],
       ["get", "tracking_catalog", undefined],
     ]);
   });
@@ -148,6 +150,7 @@ describe("trackingCatalog store", () => {
       icon: "mdi-currency-usd",
       visible_to_client: true,
       active: true,
+      validation_id: null,
     };
     expect(await store.saveStep(draft)).toBe("Ya existe un paso con ese nombre. Usa otro nombre.");
     expect(sent()).toEqual(["post tracking_steps"]);
@@ -185,13 +188,27 @@ describe("trackingCatalog store", () => {
 
   test("setStepVisibility saves the whole step with the new visibility", async () => {
     respond({ "put tracking_steps/5": accepted(), "get tracking_catalog": accepted([phase()]) });
-    await useTrackingCatalogStore().setStepVisibility(7, step(), false);
+    await useTrackingCatalogStore().setStepVisibility(7, step({ validation_id: 1 }), false);
     expect(httpMock.mock.calls[0]![0]).toEqual({
       method: "put",
       url: "tracking_steps/5",
-      data: { phase_id: 7, name: "Pago al proveedor", icon: "mdi-currency-usd", visible_to_client: false, active: true },
+      data: {
+        phase_id: 7,
+        name: "Pago al proveedor",
+        icon: "mdi-currency-usd",
+        visible_to_client: false,
+        active: true,
+        validation_id: 1,
+      },
     });
     expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  test("loadValidations keeps the validations a step can require", async () => {
+    respond({ "get tracking_validations": accepted([{ id: 1, code: "weight_volume", name: "Peso y volumen" }]) });
+    const store = useTrackingCatalogStore();
+    expect(await store.loadValidations()).toBeNull();
+    expect(store.validations).toEqual([{ id: 1, code: "weight_volume", name: "Peso y volumen" }]);
   });
 
   test("busy stays on until the change and the reload finish", async () => {

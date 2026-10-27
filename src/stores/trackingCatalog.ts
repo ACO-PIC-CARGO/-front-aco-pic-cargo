@@ -10,6 +10,7 @@ import type {
   TrackingPhaseDraft,
   TrackingStep,
   TrackingStepDraft,
+  TrackingValidation,
 } from "@/types/trackingCatalog";
 
 const CATALOG_URL = "tracking_catalog";
@@ -33,6 +34,7 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
   const phases = ref<TrackingPhase[]>([]);
   const loading = ref(false);
   const busy = ref(false);
+  const validations = ref<TrackingValidation[]>([]);
 
   async function loadCatalog(): Promise<string | null> {
     loading.value = true;
@@ -40,6 +42,13 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
     loading.value = false;
     if (hasFailed(response)) return response.mensaje;
     phases.value = response.data;
+    return null;
+  }
+
+  async function loadValidations(): Promise<string | null> {
+    const response = await request<TrackingValidation>({ method: "get", url: "tracking_validations" });
+    if (hasFailed(response)) return response.mensaje;
+    validations.value = response.data;
     return null;
   }
 
@@ -81,8 +90,21 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
         icon: step.icon,
         visible_to_client: visible,
         active: step.active,
+        validation_id: step.validation_id,
       }),
     );
 
-  return { phases, loading, busy, loadCatalog, savePhase, saveStep, movePhase, moveStep, setStepVisibility };
+  return {
+    phases,
+    validations,
+    loading,
+    busy,
+    loadCatalog,
+    loadValidations,
+    savePhase,
+    saveStep,
+    movePhase,
+    moveStep,
+    setStepVisibility,
+  };
 });

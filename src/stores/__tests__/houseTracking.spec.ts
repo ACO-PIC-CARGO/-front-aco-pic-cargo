@@ -84,6 +84,18 @@ describe("houseTracking store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Confirmamos «ETD»." });
   });
 
+  test("confirm sends the weight check with the time when the step asks for it", async () => {
+    respond({
+      "put house_tracking/2830/steps/5/confirmation": accepted([{ id: 1 }], "Confirmamos «Ingreso»."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    await useHouseTrackingStore().confirm(2830, 5, "2026-10-20T15:00:00.000Z", { weight: 320, volume: 2.1 });
+    expect(httpMock.mock.calls[0]![0].data).toEqual({
+      confirmed_at: "2026-10-20T15:00:00.000Z",
+      validation: { weight: 320, volume: 2.1 },
+    });
+  });
+
   test("a rejected confirmation or comment returns the reason without reloading", async () => {
     respond({
       "put house_tracking/2830/steps/6/confirmation": rejected("Primero confirma «ETD»."),

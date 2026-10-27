@@ -8,6 +8,7 @@ export interface TrackingStep {
   number: number | null;
   visible_to_client: boolean;
   active: boolean;
+  validation_id: number | null;
 }
 
 export interface TrackingPhase {
@@ -40,4 +41,11 @@ export interface TrackingStepDraft {
   icon: string;
   visible_to_client: boolean;
   active: boolean;
+  validation_id: number | null;
+}
+
+export interface TrackingValidation {
+  id: number;
+  code: string;
+  name: string;
 }

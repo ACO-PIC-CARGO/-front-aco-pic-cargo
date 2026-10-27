@@ -40,6 +40,7 @@ const step: TrackingStep = {
   number: 1,
   visible_to_client: true,
   active: true,
+  validation_id: null,
 };
 let wrapper: VueWrapper | undefined;
 

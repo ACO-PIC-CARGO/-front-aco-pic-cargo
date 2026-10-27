@@ -19,6 +19,8 @@ export interface HouseTrackingStep {
   confirmed_by: string | null;
   sent_at: string | null;
   scheduled_at: string | null;
+  validation: { code: string; name: string } | null;
+  validation_result: WeightCheckResult | null;
   state: StepState;
   comments: HouseTrackingComment[];
 }
@@ -36,3 +38,13 @@ export interface HouseTrackingPhase {
 export type SendState = "internal" | "blocked" | "ready" | "sent";
 
 export type StepDialogMode = "date" | "confirm";
+
+export interface WeightCheck {
+  weight: number;
+  volume: number;
+}
+
+export interface WeightCheckResult extends WeightCheck {
+  quoted_weight: number | null;
+  quoted_volume: number | null;
+}

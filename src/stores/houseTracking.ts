@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { v4 as uuidv4 } from "uuid";
 import { hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
-import type { HouseTrackingPhase } from "@/types/houseTracking";
+import type { HouseTrackingPhase, WeightCheck } from "@/types/houseTracking";
 import { todayIn } from "@/components/HouseFile/houseTrackingFormat";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 
@@ -34,8 +34,12 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
-  const confirm = (houseId: number, stepId: number, confirmedAt: string) =>
-    mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/confirmation`, data: { confirmed_at: confirmedAt } });
+  const confirm = (houseId: number, stepId: number, confirmedAt: string, validation?: WeightCheck) =>
+    mutate(houseId, {
+      method: "put",
+      url: `${stepUrl(houseId, stepId)}/confirmation`,
+      data: { confirmed_at: confirmedAt, validation },
+    });
 
   const addComment = (houseId: number, stepId: number, stepCommentId: number) =>
     mutate(houseId, {

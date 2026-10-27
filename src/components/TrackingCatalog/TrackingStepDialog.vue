@@ -24,7 +24,15 @@ const phaseRules = [(value: number | null) => value !== null || "Elige la fase d
 
 function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingStepDraft {
   if (!step) {
-    return { id: null, phase_id: phaseId, name: "", icon: "mdi-package-variant-closed", visible_to_client: true, active: true };
+    return {
+      id: null,
+      phase_id: phaseId,
+      name: "",
+      icon: "mdi-package-variant-closed",
+      visible_to_client: true,
+      active: true,
+      validation_id: null,
+    };
   }
   return {
     id: step.id,
@@ -33,6 +41,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
     icon: step.icon,
     visible_to_client: step.visible_to_client,
     active: step.active,
+    validation_id: step.validation_id,
   };
 }
 
