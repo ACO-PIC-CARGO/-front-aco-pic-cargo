@@ -42,7 +42,10 @@ function openStepComments(step: TrackingStep) {
   commentsDialog.value = true;
 }
 
-onMounted(load);
+onMounted(() => {
+  load();
+  store.loadValidations();
+});
 </script>
 
 <template>

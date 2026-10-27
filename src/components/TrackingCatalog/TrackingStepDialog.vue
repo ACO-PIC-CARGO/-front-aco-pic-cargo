@@ -13,7 +13,7 @@ const props = defineProps<{ step: TrackingStep | null; phaseId: number | null }>
 const open = defineModel<boolean>({ default: false });
 
 const store = useTrackingCatalogStore();
-const { phases } = storeToRefs(store);
+const { phases, validations } = storeToRefs(store);
 const form = useTemplateRef("form");
 const draft = ref<TrackingStepDraft>(toDraft(null, null));
 const { saving, serverError, save } = useDialogSave(open, form, () => store.saveStep(draft.value));
@@ -86,6 +86,18 @@ watch(open, (isOpen) => {
             persistent-hint
           />
           <TrackingIconPicker v-model="draft.icon" />
+          <v-select
+            v-model="draft.validation_id"
+            label="Validar antes de confirmar"
+            :items="validations"
+            item-title="name"
+            item-value="id"
+            placeholder="Sin validación"
+            persistent-placeholder
+            clearable
+            hint="Se pide al confirmar este paso en un house."
+            persistent-hint
+          />
           <v-switch
             v-model="draft.visible_to_client"
             label="Visible al cliente"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { storeToRefs } from "pinia";
 import AcoIconTile from "@/components/aco/AcoIconTile.vue";
 import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import TrackingMoveButtons from "./TrackingMoveButtons.vue";
@@ -15,6 +16,8 @@ const emit = defineEmits<{
 }>();
 
 const store = useTrackingCatalogStore();
+const { validations } = storeToRefs(store);
+const validationName = (id: number | null) => validations.value.find((item) => item.id === id)?.name;
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
 const rangeLabel = computed(() => stepRangeLabel(props.phase));
 </script>
@@ -89,6 +92,10 @@ const rangeLabel = computed(() => stepRangeLabel(props.phase));
             v-if="!step.active"
             class="aco-chip aco-chip--neutral"
           >Inactivo</span>
+          <span
+            v-if="validationName(step.validation_id)"
+            class="aco-chip aco-chip--neutral"
+          >Valida: {{ validationName(step.validation_id) }}</span>
         </div>
         <v-switch
           :model-value="step.visible_to_client"
