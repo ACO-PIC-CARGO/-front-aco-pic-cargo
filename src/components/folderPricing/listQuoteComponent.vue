@@ -254,7 +254,7 @@
       </v-col>
       <v-col cols="12" lg="8" xl="8">
         <div class="text-right">
-          <v-btn
+          <!-- <v-btn
             color="#0D47A1"
             @click="reporteMarketing()"
             class="mx-1 my-1"
@@ -273,7 +273,7 @@
             size="small"
           >
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
-          </v-btn>
+          </v-btn> -->
           <!-- <v-btn
             color="teal-darken-4"
             @click="excelListadoQuote()"
@@ -304,7 +304,9 @@
             size="small"
           >
             <v-icon>mdi-filter</v-icon>
-            Filtrar
+            Filtrar / 
+           <v-icon>mdi-file-pdf-box</v-icon>
+            Imprimir
           </v-btn>
 
           <v-btn

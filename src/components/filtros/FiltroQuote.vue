@@ -2,7 +2,8 @@
   <v-card elevation="1" class="clsCardFiltro">
     <v-card-title class="d-flex align-center flex-wrap" primary-title>
       Filtrar Cotización <v-spacer></v-spacer>
-      <v-btn variant="text"
+      <v-btn
+        variant="text"
         icon
         color="default"
         @click="
@@ -128,10 +129,10 @@
                         class="d-inline-block"
                         :style="{
                           backgroundColor: item.codigo,
-                      width: '14px',
-                      height: '14px',
-                      borderRadius: '50%',
-                    }"
+                          width: '14px',
+                          height: '14px',
+                          borderRadius: '50%',
+                        }"
                       ></span>
                     </template>
                   </v-list-item>
@@ -186,7 +187,10 @@
               />
             </v-col>
             <v-col cols="12" v-if="errorFiltroFecha">
-              <v-alert density="compact" style="background: #ffcdd2; color: #b71c1c">
+              <v-alert
+                density="compact"
+                style="background: #ffcdd2; color: #b71c1c"
+              >
                 <b>{{ errorFiltroFecha }}</b>
               </v-alert>
               <span> </span>
@@ -218,6 +222,11 @@
                   color="green"
                   :value="2"
                 ></v-radio>
+                <v-radio
+                  label="Reporte por Marketing"
+                  color="green"
+                  :value="3"
+                ></v-radio>
               </v-radio-group>
             </v-col>
           </v-row>
@@ -226,6 +235,9 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
+      <v-btn class="mx-1" color="red" @click="imprimir()">
+        <v-icon>mdi-file-pdf-box</v-icon> REPORTE
+      </v-btn>
       <v-btn class="mx-1" color="success" @click="filtrar()">Filtrar</v-btn>
       <v-btn class="mx-1" color="default" @click="limpiar()">Limpiar</v-btn>
     </v-card-actions>
@@ -255,7 +267,275 @@ export default {
       "getShipment",
       "getIncoterms",
       "getListQuote",
+      "imprimiReporteListadoMarketing",
+      "exportarExcelListadoQuote","imprimiReporteListado"
     ]),
+    async reporteMarketing() {
+      const f = this.$store.state.pricing.filtro;
+      const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechainicio,
+        f.fechafin,
+      );
+      const rangoEmisionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechaemisiondesde,
+        f.fechaemisionhasta,
+      );
+
+      if (rangoCreacionExcedido || rangoEmisionExcedido) {
+        const rangoExcedido =
+          rangoCreacionExcedido && rangoEmisionExcedido
+            ? "Los rangos de creación y emisión"
+            : rangoCreacionExcedido
+            ? "El rango de creación"
+            : "El rango de emisión";
+        await Swal.fire({
+          icon: "warning",
+          title: "No se puede generar el reporte",
+          html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+          confirmButtonText: "Revisar fechas",
+        });
+        return;
+      }
+
+      this.loading2 = true;
+      let filtroSeleccionado = {};
+      const store = this.$store.state.pricing;
+
+      if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+      if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+      if (f.fechaemisiondesde)
+        filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+      if (f.fechaemisionhasta)
+        filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+      if (f.id_marketing) {
+        filtroSeleccionado.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroSeleccionado.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroSeleccionado.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+
+      let filtroCabecera = {};
+
+      if (f.id_marketing) {
+        filtroCabecera.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroCabecera.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroCabecera.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroCabecera.Shipment = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroCabecera.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+      if (f.id_cliente) {
+        filtroCabecera.Cliente = this.$store.state.clientes.find(
+          (v) => v.id == f.id_cliente,
+        )?.namelong;
+      }
+
+      await this.imprimiReporteListadoMarketing({
+        filtroSeleccionado: filtroSeleccionado,
+        filtroCabecera: filtroCabecera,
+      }).catch((e) => {
+        console.error(e);
+      });
+      this.loading2 = false;
+    },
+    async reporteListado() {
+      const f = this.$store.state.pricing.filtro;
+      const rangoCreacionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechainicio,
+        f.fechafin,
+      );
+      const rangoEmisionExcedido = this.rangoFechaSuperaUnMes(
+        f.fechaemisiondesde,
+        f.fechaemisionhasta,
+      );
+
+      if (rangoCreacionExcedido || rangoEmisionExcedido) {
+        const rangoExcedido =
+          rangoCreacionExcedido && rangoEmisionExcedido
+            ? "Los rangos de creación y emisión"
+            : rangoCreacionExcedido
+            ? "El rango de creación"
+            : "El rango de emisión";
+        await Swal.fire({
+          icon: "warning",
+          title: "No se puede generar el reporte",
+          html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+          confirmButtonText: "Revisar fechas",
+        });
+        return;
+      }
+
+      this.loading2 = true;
+      let filtroSeleccionado = {};
+      const store = this.$store.state.pricing;
+
+      if (f.fechainicio) filtroSeleccionado["Creación De:"] = f.fechainicio;
+      if (f.fechafin) filtroSeleccionado["Creación Hasta:"] = f.fechafin;
+      if (f.fechaemisiondesde)
+        filtroSeleccionado["Fecha de Envío De:"] = f.fechaemisiondesde;
+      if (f.fechaemisionhasta)
+        filtroSeleccionado["Fecha de Envío Hasta:"] = f.fechaemisionhasta;
+
+      if (f.id_marketing) {
+        filtroSeleccionado.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroSeleccionado["Estado Cotización"] = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroSeleccionado.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroSeleccionado["Tipo Carga"] = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroSeleccionado.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+
+      let filtroCabecera = {};
+
+      if (f.id_marketing) {
+        filtroCabecera.Marketing = store.listMarketing.find(
+          (v) => v.id == f.id_marketing,
+        )?.name;
+      }
+      if (f.id_status) {
+        filtroCabecera.QuoteStatus = store.listQuoteStatus.find(
+          (v) => v.id == f.id_status,
+        )?.name;
+      }
+      if (f.id_pricing) {
+        filtroCabecera.Pricing = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_pricing,
+        )?.name;
+      }
+      if (f.id_entities && !(f.tipopdf === 2 || f.tipopdf == "2")) {
+        filtroCabecera.Ejecutivo = store.listEjecutivo.find(
+          (v) => v.id_entitie == f.id_entities,
+        )?.name;
+      }
+      if (f.id_modality) {
+        filtroCabecera.Modalidad = store.listModality.find(
+          (v) => v.id == f.id_modality,
+        )?.name;
+      }
+      if (f.id_shipment) {
+        filtroCabecera.Shipment = store.listShipment.find(
+          (v) => v.id == f.id_shipment,
+        )?.embarque;
+      }
+      if (f.id_incoterm) {
+        filtroCabecera.Incoterms = store.listIncoterms.find(
+          (v) => v.id == f.id_incoterm,
+        )?.name;
+      }
+      if (f.id_cliente) {
+        filtroCabecera.Cliente = this.$store.state.clientes.find(
+          (v) => v.id == f.id_cliente,
+        )?.namelong;
+      }
+
+      await this.imprimiReporteListado({
+        filtroSeleccionado: filtroSeleccionado,
+        filtroCabecera: filtroCabecera,
+      }).catch((e) => {
+        console.error(e);
+      });
+      this.loading2 = false;
+    },
+    async excelListadoQuote() {
+      this.loading3 = true;
+      await this.exportarExcelListadoQuote(this.filtro).catch((e) => {
+        console.error(e);
+      });
+      this.loading3 = false;
+    },
+    rangoFechaSuperaUnMes(inicio, fin) {
+      const fechaInicio = moment(inicio);
+      const fechaFin = moment(fin);
+      return (
+        fechaInicio.isValid() &&
+        fechaFin.isValid() &&
+        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+      );
+    },
     validarFiltroFechas() {
       this.errorFiltroFecha = "";
 
@@ -361,6 +641,21 @@ export default {
       if (!id) return "";
       const encontrado = list.find((item) => item[valueKey] === id);
       return encontrado ? encontrado[textKey] : "";
+    },
+    imprimir() {
+      switch (this.$store.state.pricing.filtro.tipopdf) {
+        case 1:
+          this.reporteListado();
+          break;
+        case 2:
+          this.reporteListado();
+          break;
+        case 3:
+          this.reporteMarketing();
+          break;
+        default:
+          console.log("Estado desconocido");
+      }
     },
   },
   async mounted() {
