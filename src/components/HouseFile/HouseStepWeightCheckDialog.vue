@@ -79,47 +79,46 @@ async function confirm() {
           ref="form"
           @submit.prevent="confirm"
         >
-          <template
+          <v-row
             v-for="(measure, key, index) in MEASURES"
             :key="key"
+            class="py-3 align-start"
+            :class="{ 'border-t': index > 0 }"
           >
-            <v-divider v-if="index > 0" />
-            <v-row class="py-3 align-start">
-              <v-col
-                cols="12"
-                sm="5"
-              >
-                <div class="aco-title-row">
-                  {{ measure.label }}
-                </div>
-                <div class="aco-caption">
-                  Cotizado: <strong>{{ measure.format(quoted[key]) }}</strong>
-                </div>
-              </v-col>
-              <v-col
-                cols="12"
-                sm="7"
-              >
-                <v-select
-                  v-if="quoted[key] !== null"
-                  v-model="entries[key].keep"
-                  :items="choices(key)"
-                  :label="measure.label"
-                  hide-details
-                />
-                <v-text-field
-                  v-if="!entries[key].keep"
-                  v-model.number="entries[key].value"
-                  type="number"
-                  min="0"
-                  :label="measure.inputLabel"
-                  :suffix="measure.suffix"
-                  :class="{ 'mt-3': quoted[key] !== null }"
-                  :rules="rules(key)"
-                />
-              </v-col>
-            </v-row>
-          </template>
+            <v-col
+              cols="12"
+              sm="5"
+            >
+              <div class="aco-title-row">
+                {{ measure.label }}
+              </div>
+              <div class="aco-caption">
+                Cotizado: <strong>{{ measure.format(quoted[key]) }}</strong>
+              </div>
+            </v-col>
+            <v-col
+              cols="12"
+              sm="7"
+            >
+              <v-select
+                v-if="quoted[key] !== null"
+                v-model="entries[key].keep"
+                :items="choices(key)"
+                :label="measure.label"
+                hide-details
+              />
+              <v-text-field
+                v-if="!entries[key].keep"
+                v-model.number="entries[key].value"
+                type="number"
+                min="0"
+                :label="measure.inputLabel"
+                :suffix="measure.suffix"
+                :class="{ 'mt-3': quoted[key] !== null }"
+                :rules="rules(key)"
+              />
+            </v-col>
+          </v-row>
         </v-form>
       </v-card-text>
       <v-card-actions class="px-6 pb-5">
