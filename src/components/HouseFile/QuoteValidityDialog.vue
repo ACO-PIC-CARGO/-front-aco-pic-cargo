@@ -105,7 +105,7 @@ async function keepRate() {
         <div class="text-center px-6">
           <v-avatar
             size="64"
-            color="surface-variant"
+            variant="tonal"
           >
             <v-icon
               icon="mdi-file-minus-outline"
@@ -139,8 +139,8 @@ async function keepRate() {
                   <div class="d-flex align-start ga-3 py-1 w-100">
                     <v-avatar
                       size="44"
-                      :color="choice === option.value ? 'primary' : 'surface-variant'"
-                      :variant="choice === option.value ? 'tonal' : 'flat'"
+                      variant="tonal"
+                      :color="choice === option.value ? 'primary' : undefined"
                     >
                       <v-icon :icon="option.icon" />
                     </v-avatar>
@@ -174,7 +174,7 @@ async function keepRate() {
         <div class="text-center px-6">
           <v-avatar
             size="64"
-            color="surface-variant"
+            variant="tonal"
           >
             <v-icon
               icon="mdi-calendar-check-outline"
@@ -193,7 +193,7 @@ async function keepRate() {
             <div class="d-flex align-center ga-4">
               <v-avatar
                 size="44"
-                color="surface"
+                variant="tonal"
               >
                 <v-icon icon="mdi-account-outline" />
               </v-avatar>
@@ -206,11 +206,11 @@ async function keepRate() {
                 </div>
               </div>
             </div>
-            <v-divider class="my-3" />
+            <div class="border-t my-3" />
             <div class="d-flex align-center ga-4">
               <v-avatar
                 size="44"
-                color="surface"
+                variant="tonal"
               >
                 <v-icon icon="mdi-clock-outline" />
               </v-avatar>
@@ -240,8 +240,7 @@ async function keepRate() {
         </v-card-text>
       </template>
 
-      <v-divider />
-      <v-card-actions class="px-6 py-4">
+      <v-card-actions class="px-6 py-4 border-t">
         <v-spacer />
         <v-btn
           variant="outlined"
