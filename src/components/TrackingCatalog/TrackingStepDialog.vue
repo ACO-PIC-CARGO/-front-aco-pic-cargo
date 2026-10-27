@@ -16,6 +16,7 @@ const store = useTrackingCatalogStore();
 const { phases, validations } = storeToRefs(store);
 const form = useTemplateRef("form");
 const draft = ref<TrackingStepDraft>(toDraft(null, null));
+const validationItems = computed(() => [{ id: null, name: "Sin validación" }, ...validations.value]);
 const { saving, serverError, save } = useDialogSave(open, form, () => store.saveStep(draft.value));
 const isEditing = computed(() => draft.value.id !== null);
 const changesPhase = computed(() => isEditing.value && draft.value.phase_id !== props.phaseId);
@@ -89,12 +90,9 @@ watch(open, (isOpen) => {
           <v-select
             v-model="draft.validation_id"
             label="Validar antes de confirmar"
-            :items="validations"
+            :items="validationItems"
             item-title="name"
             item-value="id"
-            placeholder="Sin validación"
-            persistent-placeholder
-            clearable
             hint="Se pide al confirmar este paso en un house."
             persistent-hint
           />
