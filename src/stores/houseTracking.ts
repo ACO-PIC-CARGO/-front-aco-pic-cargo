@@ -44,6 +44,9 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return message;
   }
 
+  const keepRate = (houseId: number, stepId: number) =>
+    mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/rate_keep` });
+
   const addComment = (houseId: number, stepId: number, stepCommentId: number) =>
     mutate(houseId, {
       method: "post",
@@ -71,5 +74,16 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
-  return { phases, loading, load, confirm, addComment, sendStep, sendComment, setStepDate, requestTrackingToken };
+  return {
+    phases,
+    loading,
+    load,
+    confirm,
+    keepRate,
+    addComment,
+    sendStep,
+    sendComment,
+    setStepDate,
+    requestTrackingToken,
+  };
 });

@@ -96,6 +96,15 @@ describe("houseTracking store", () => {
     });
   });
 
+  test("keepRate records the kept rate and reloads", async () => {
+    respond({
+      "put house_tracking/2830/steps/6/rate_keep": accepted([], "Mantuvimos la tarifa de flete de la cotización."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    expect(await useHouseTrackingStore().keepRate(2830, 6)).toBeNull();
+    expect(sent()).toEqual(["put house_tracking/2830/steps/6/rate_keep", "get house_tracking/2830"]);
+  });
+
   test("a rejected comment returns the reason without reloading", async () => {
     respond({
       "post house_tracking/2830/steps/6/comments": rejected("Elige uno de los comentarios predefinidos del paso."),

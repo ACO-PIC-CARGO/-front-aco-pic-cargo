@@ -1,0 +1,69 @@
+import { expect, test } from "vitest";
+import {
+  authorizationLabel,
+  quoteExpiredOn,
+  skipStillSaves,
+  stepValidationLines,
+} from "@/components/HouseFile/stepValidation";
+import type { HouseTrackingStep } from "@/types/houseTracking";
+
+const LIMA = "America/Lima";
+const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
+  id: 6,
+  name: "ETD (Salida de origen)",
+  icon: "mdi-ferry",
+  number: 6,
+  visible_to_client: true,
+  confirmed_at: null,
+  confirmed_by: null,
+  sent_at: null,
+  scheduled_at: null,
+  validation: { code: "quote_validity", name: "Vigencia de cotización" },
+  validation_result: null,
+  quote_validity: { quote_id: 7092, valid_until: "2025-11-14", kept_by: null, kept_at: null },
+  state: "next",
+  comments: [],
+  ...over,
+});
+
+test("a date is past the quote validity only from the next local day and while the rate was not kept", () => {
+  expect(quoteExpiredOn(step(), "2025-11-15T04:59:00.000Z", LIMA)).toBe(false);
+  expect(quoteExpiredOn(step(), "2025-11-15T05:30:00.000Z", LIMA)).toBe(true);
+  const kept = { quote_id: 7092, valid_until: "2025-11-14", kept_by: "Carlos Ramírez", kept_at: "2026-10-26T15:45:00Z" };
+  expect(quoteExpiredOn(step({ quote_validity: kept }), "2025-12-01T15:00:00.000Z", LIMA)).toBe(false);
+  expect(quoteExpiredOn(step({ quote_validity: null }), "2025-12-01T15:00:00.000Z", LIMA)).toBe(false);
+});
+
+test("skipping saves the date when estimating or correcting it, never when confirming", () => {
+  expect(skipStillSaves(step(), "confirm")).toBe(false);
+  expect(skipStillSaves(step(), "date")).toBe(true);
+  expect(skipStillSaves(step({ confirmed_at: "2025-11-20T15:00:00Z", state: "confirmed" }), "confirm")).toBe(true);
+});
+
+test("the authorization time reads as day, short month, year and time in the branch time zone", () => {
+  expect(authorizationLabel("2026-10-26T15:45:00Z", LIMA)).toBe("26 oct. 2026, 10:45");
+});
+
+test("under the step: a warning past validity, who kept the rate once kept, and weight lines only for the weight check", () => {
+  expect(stepValidationLines(step({ scheduled_at: "2025-12-01T15:00:00Z" }), LIMA)).toEqual([
+    {
+      label: "La fecha de salida supera la vigencia de la cotización (vence 14/NOV/2025).",
+      warning: true,
+      icon: "mdi-file-alert-outline",
+    },
+  ]);
+  expect(stepValidationLines(step({ scheduled_at: "2025-11-14T15:00:00Z" }), LIMA)).toEqual([]);
+  const kept = { quote_id: 7092, valid_until: "2025-11-14", kept_by: "Carlos Ramírez", kept_at: "2026-10-26T15:45:00Z" };
+  expect(stepValidationLines(step({ quote_validity: kept, validation_result: { quote_id: 7092 } as never }), LIMA)).toEqual([
+    { label: "Tarifa mantenida por Carlos Ramírez el 26/OCT/2026 10:45", warning: false, icon: "mdi-file-check-outline" },
+  ]);
+  const weighed = step({
+    validation: { code: "weight_volume", name: "Peso y volumen" },
+    quote_validity: null,
+    validation_result: { quoted_weight: 300, quoted_volume: 2, weight: 320, volume: 2 },
+  });
+  expect(stepValidationLines(weighed, LIMA).map((line) => line.label)).toEqual([
+    "Peso confirmado: 320 kg (cotizado: 300 kg)",
+    "Volumen confirmado: 2.00 m³ (igual al cotizado)",
+  ]);
+});

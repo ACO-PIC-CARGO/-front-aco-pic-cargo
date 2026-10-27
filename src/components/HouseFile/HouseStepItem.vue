@@ -7,7 +7,7 @@ import SendToTrackingButton from "./SendToTrackingButton.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { dateLabel, stepDateTimeLabel, stepSendState } from "./houseTrackingFormat";
-import { weightCheckSummary } from "./weightCheck";
+import { stepValidationLines } from "./stepValidation";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
@@ -19,9 +19,7 @@ const expanded = ref(props.step.comments.length > 0);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
 const tone = computed(() => (confirmed.value ? "primary" : "neutral"));
-const weightCheckLines = computed(() =>
-  props.step.validation_result ? weightCheckSummary(props.step.validation_result) : [],
-);
+const validationLines = computed(() => stepValidationLines(props.step, timeZone.value));
 // The switch only asks to confirm; cancelling the click keeps its checked state equal to the confirmation.
 function requestConfirm() {
   if (!confirmed.value) emit("confirm");
@@ -143,7 +141,7 @@ const switchLabel = computed(() => {
       </v-btn>
     </td>
   </tr>
-  <tr v-if="weightCheckLines.length">
+  <tr v-if="validationLines.length">
     <td />
     <td
       colspan="6"
@@ -151,13 +149,13 @@ const switchLabel = computed(() => {
     >
       <div class="d-flex flex-wrap align-center ga-4 text-body-small">
         <span
-          v-for="line in weightCheckLines"
+          v-for="line in validationLines"
           :key="line.label"
           class="d-inline-flex align-center ga-1"
-          :class="line.changed ? 'text-warning' : 'text-medium-emphasis'"
+          :class="line.warning ? 'text-warning' : 'text-medium-emphasis'"
         >
           <v-icon
-            icon="mdi-scale-balance"
+            :icon="line.icon"
             size="16"
           />
           {{ line.label }}

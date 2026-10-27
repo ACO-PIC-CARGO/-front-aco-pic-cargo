@@ -21,6 +21,7 @@ export interface HouseTrackingStep {
   scheduled_at: string | null;
   validation: { code: string; name: string } | null;
   validation_result: WeightCheckResult | null;
+  quote_validity: QuoteValidity | null;
   state: StepState;
   comments: HouseTrackingComment[];
 }
@@ -47,4 +48,11 @@ export interface WeightCheck {
 export interface WeightCheckResult extends WeightCheck {
   quoted_weight: number | null;
   quoted_volume: number | null;
+}
+
+export interface QuoteValidity {
+  quote_id: number;
+  valid_until: string;
+  kept_by: string | null;
+  kept_at: string | null;
 }
