@@ -30,6 +30,7 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   scheduled_at: null,
   validation: null,
   validation_result: null,
+  validation_result_code: null,
   quote_validity: null,
   state: "next",
   comments: [],

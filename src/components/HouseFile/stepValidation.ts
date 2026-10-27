@@ -46,7 +46,7 @@ const quoteLine = (step: HouseTrackingStep, timeZone: string): StepValidationLin
 };
 
 export const stepValidationLines = (step: HouseTrackingStep, timeZone: string): StepValidationLine[] => {
-  if (step.validation?.code === "weight_volume" && step.validation_result) {
+  if (step.validation_result_code === "weight_volume" && step.validation_result) {
     return weightCheckSummary(step.validation_result).map(({ label, changed }) => ({
       label,
       warning: changed,

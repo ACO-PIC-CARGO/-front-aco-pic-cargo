@@ -45,6 +45,7 @@ const etdStep: HouseTrackingStep = {
   scheduled_at: null,
   validation: { code: "quote_validity", name: "Vigencia de cotización" },
   validation_result: null,
+  validation_result_code: null,
   quote_validity: { quote_id: 7092, valid_until: "2025-11-14", kept_by: null, kept_at: null },
   state: "next",
   comments: [],
