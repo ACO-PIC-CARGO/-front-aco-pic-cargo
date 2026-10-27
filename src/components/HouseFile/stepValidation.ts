@@ -12,6 +12,9 @@ export interface StepValidationLine {
 
 type StepWithValidity = Pick<HouseTrackingStep, "quote_validity">;
 
+const validUntilLabel = (validUntil: string) => shortDate(moment(validUntil, "YYYY-MM-DD"));
+const stepDateOf = (step: Pick<HouseTrackingStep, "confirmed_at" | "scheduled_at">) => step.confirmed_at ?? step.scheduled_at;
+
 const pastValidity = (step: StepWithValidity, at: string, timeZone: string) =>
   step.quote_validity !== null && toDateAndTime(at, timeZone).date > step.quote_validity.valid_until;
 
@@ -36,10 +39,10 @@ const quoteLine = (step: HouseTrackingStep, timeZone: string): StepValidationLin
       icon: "mdi-file-check-outline",
     };
   }
-  const stepDate = step.confirmed_at ?? step.scheduled_at;
+  const stepDate = stepDateOf(step);
   if (!stepDate || !pastValidity(step, stepDate, timeZone)) return null;
   return {
-    label: `La fecha de salida supera la vigencia de la cotización (vence ${shortDate(moment(validity.valid_until, "YYYY-MM-DD"))}).`,
+    label: `La fecha de salida supera la vigencia de la cotización (vence ${validUntilLabel(validity.valid_until)}).`,
     warning: true,
     icon: "mdi-file-alert-outline",
   };
@@ -55,4 +58,14 @@ export const stepValidationLines = (step: HouseTrackingStep, timeZone: string): 
   }
   const line = quoteLine(step, timeZone);
   return line ? [line] : [];
+};
+
+export const quoteValidityBadge = (steps: HouseTrackingStep[], timeZone: string): { label: string; warning: boolean } | null => {
+  const expired = steps.find((step) => {
+    const stepDate = stepDateOf(step);
+    return stepDate !== null && pastValidity(step, stepDate, timeZone);
+  });
+  if (!expired) return null;
+  const label = `Cotización vencida el ${validUntilLabel(expired.quote_validity!.valid_until)}`;
+  return expired.quote_validity!.kept_at ? { label: `${label} · Tarifa mantenida`, warning: false } : { label, warning: true };
 };

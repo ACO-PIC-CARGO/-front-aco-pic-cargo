@@ -6,8 +6,10 @@ import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
 import HouseStepWeightCheckDialog from "./HouseStepWeightCheckDialog.vue";
 import TrackingLinkButton from "./TrackingLinkButton.vue";
 import { useHousesStore } from "@/stores/houses";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { needsWeightCheck, quotedValue } from "./weightCheck";
+import { quoteValidityBadge } from "./stepValidation";
 import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; loadError: string }>();
@@ -21,7 +23,9 @@ const selectedId = ref<number | null>(null);
 const dialogMode = ref<StepDialogMode>("confirm");
 const weightDialog = ref(false);
 const weightCheck = ref<WeightCheck | null>(null);
+const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
+const quoteBadge = computed(() => quoteValidityBadge(allSteps.value, timeZone.value));
 const selected = computed(() => allSteps.value.find((step) => step.id === selectedId.value) ?? null);
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
 
@@ -66,12 +70,23 @@ function continueAfterWeightCheck(check: WeightCheck) {
       >
         Incoterm <strong class="ms-1">{{ housesStore.house.incoterms || "—" }}</strong>
       </v-chip>
+      <v-chip
+        v-if="quoteBadge"
+        :prepend-icon="quoteBadge.warning ? 'mdi-file-alert-outline' : 'mdi-file-check-outline'"
+        :color="quoteBadge.warning ? 'warning' : undefined"
+        variant="tonal"
+        size="small"
+        label
+      >
+        {{ quoteBadge.label }}
+      </v-chip>
       <v-alert
         density="compact"
         variant="tonal"
         color="primary"
         icon="mdi-information-outline"
         class="flex-grow-1 text-body-small"
+        :class="{ 'house-step-list__notice--own-line': quoteBadge }"
         text="Confirma cada paso en orden y usa «Enviar a tracking» para que tu cliente lo vea. Tu cliente también ve el próximo paso con su fecha."
       />
     </div>
@@ -156,3 +171,9 @@ function continueAfterWeightCheck(check: WeightCheck) {
     />
   </v-card>
 </template>
+
+<style scoped>
+.house-step-list__notice--own-line {
+  flex-basis: 100%;
+}
+</style>
