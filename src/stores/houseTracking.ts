@@ -34,12 +34,15 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
-  const confirm = (houseId: number, stepId: number, confirmedAt: string, validation?: WeightCheck) =>
-    mutate(houseId, {
+  async function confirm(houseId: number, stepId: number, confirmedAt: string, validation?: WeightCheck) {
+    const message = await mutate(houseId, {
       method: "put",
       url: `${stepUrl(houseId, stepId)}/confirmation`,
       data: { confirmed_at: confirmedAt, validation },
     });
+    if (message) await load(houseId);
+    return message;
+  }
 
   const addComment = (houseId: number, stepId: number, stepCommentId: number) =>
     mutate(houseId, {

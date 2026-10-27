@@ -96,15 +96,26 @@ describe("houseTracking store", () => {
     });
   });
 
-  test("a rejected confirmation or comment returns the reason without reloading", async () => {
+  test("a rejected comment returns the reason without reloading", async () => {
     respond({
-      "put house_tracking/2830/steps/6/confirmation": rejected("Primero confirma «ETD»."),
       "post house_tracking/2830/steps/6/comments": rejected("Elige uno de los comentarios predefinidos del paso."),
     });
+    expect(await useHouseTrackingStore().addComment(2830, 6, 99)).toBe("Elige uno de los comentarios predefinidos del paso.");
+    expect(sent()).toEqual(["post house_tracking/2830/steps/6/comments"]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  test("a rejected confirmation returns the reason and reloads so the step shows what it now asks for", async () => {
+    respond({
+      "put house_tracking/2830/steps/5/confirmation": rejected("Confirma el peso y el volumen antes de confirmar este paso."),
+      "get house_tracking/2830": accepted([phase]),
+    });
     const store = useHouseTrackingStore();
-    expect(await store.confirm(2830, 6, "2026-10-01T21:40:00.000Z")).toBe("Primero confirma «ETD».");
-    expect(await store.addComment(2830, 6, 99)).toBe("Elige uno de los comentarios predefinidos del paso.");
-    expect(sent()).toEqual(["put house_tracking/2830/steps/6/confirmation", "post house_tracking/2830/steps/6/comments"]);
+    expect(await store.confirm(2830, 5, "2026-10-01T21:40:00.000Z")).toBe(
+      "Confirma el peso y el volumen antes de confirmar este paso.",
+    );
+    expect(sent()).toEqual(["put house_tracking/2830/steps/5/confirmation", "get house_tracking/2830"]);
+    expect(store.phases).toEqual([phase]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
