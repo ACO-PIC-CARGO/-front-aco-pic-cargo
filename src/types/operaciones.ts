@@ -36,6 +36,7 @@ export interface HouseDetalle {
   itemshousecontainers?: unknown[];
   nro_declaracion_aduana?: string;
   canal_aduana?: string;
+  services?: ServicioHouse[];
   token_rastreo?: string;
   code_master?: string;
   code_house?: string;
