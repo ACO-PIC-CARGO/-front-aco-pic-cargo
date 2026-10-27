@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
+import Swal from "sweetalert2";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
 import SendToTrackingButton from "./SendToTrackingButton.vue";
 import { commentSendState, stepDateTimeLabel } from "./houseTrackingFormat";
-import type { HouseTrackingStep } from "@/types/houseTracking";
+import type { HouseTrackingComment, HouseTrackingStep } from "@/types/houseTracking";
+
+const COMMENT_MAX = 1000;
+const COMMENT_MESSAGE = `Escribe el comentario (hasta ${COMMENT_MAX} caracteres).`;
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep }>();
 
@@ -15,11 +19,12 @@ const stepComments = useTrackingStepCommentsStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const adding = ref(false);
 const loadingOptions = ref(false);
-const stepCommentId = ref<number | null>(null);
+const comment = ref("");
 const saving = ref(false);
 const serverError = ref("");
 const options = computed(() => stepComments.commentsOf(props.step.id));
-const hasNoOptions = computed(() => !loadingOptions.value && !serverError.value && !options.value.length);
+const isValidComment = computed(() => comment.value.trim().length > 0 && comment.value.trim().length <= COMMENT_MAX);
+const lengthRules = [(value: string) => value.trim().length <= COMMENT_MAX || COMMENT_MESSAGE];
 
 async function open() {
   adding.value = true;
@@ -30,16 +35,35 @@ async function open() {
 
 function close() {
   adding.value = false;
-  stepCommentId.value = null;
+  comment.value = "";
   serverError.value = "";
 }
 
+function appendPredefined(text: string) {
+  const written = comment.value.trimEnd();
+  comment.value = written ? `${written} ${text}` : text;
+}
+
 async function add() {
-  if (saving.value || stepCommentId.value === null) return;
+  if (saving.value || !isValidComment.value) return;
   saving.value = true;
-  serverError.value = (await store.addComment(props.houseId, props.step.id, stepCommentId.value)) ?? "";
+  serverError.value = (await store.addComment(props.houseId, props.step.id, comment.value)) ?? "";
   saving.value = false;
   if (!serverError.value) close();
+}
+
+async function remove(item: HouseTrackingComment) {
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    titleText: "¿Eliminar este comentario?",
+    text: "Si ya estaba en el tracking, tu cliente deja de verlo.",
+    showCancelButton: true,
+    confirmButtonText: "Eliminar",
+    cancelButtonText: "Cancelar",
+  });
+  if (!isConfirmed) return;
+  const reason = await store.deleteComment(props.houseId, item.id);
+  if (reason) Swal.fire({ icon: "warning", text: reason });
 }
 </script>
 
@@ -51,7 +75,7 @@ async function add() {
       class="d-flex flex-column ga-2 pa-3"
     >
       <div
-        v-for="item in step.comments"
+        v-for="(item, index) in step.comments"
         :key="item.id"
         class="d-flex align-start ga-2"
       >
@@ -69,12 +93,29 @@ async function add() {
               blocked-hint="Primero envía el paso al tracking."
               confirm-text="¿Enviar este comentario al tracking del cliente?"
               :send="() => store.sendComment(houseId, item.id)"
+              withdraw-confirm-text="¿Retirar este comentario del tracking del cliente?"
+              :withdraw="() => store.withdrawComment(houseId, item.id)"
             />
           </div>
           <div class="text-body-medium text-break">
             {{ item.comment }}
           </div>
         </div>
+        <v-btn
+          icon
+          variant="text"
+          size="x-small"
+          :aria-label="`Eliminar comentario ${index + 1}`"
+          @click="remove(item)"
+        >
+          <v-icon icon="mdi-delete-outline" />
+          <v-tooltip
+            activator="parent"
+            location="top"
+          >
+            Eliminar comentario
+          </v-tooltip>
+        </v-btn>
       </div>
       <p
         v-if="!step.comments.length"
@@ -98,25 +139,48 @@ async function add() {
         </v-btn>
       </div>
       <template v-else>
-        <v-select
-          v-if="!hasNoOptions"
-          v-model="stepCommentId"
+        <v-progress-linear
+          v-if="loadingOptions"
+          indeterminate
+          color="primary"
+          aria-label="Cargando comentarios predefinidos"
+        />
+        <div
+          v-else-if="options.length"
+          class="d-flex flex-column ga-1"
+        >
+          <span class="text-body-small text-medium-emphasis">Toca un comentario predefinido para agregarlo al texto.</span>
+          <div class="d-flex flex-wrap ga-2">
+            <v-chip
+              v-for="option in options"
+              :key="option.id"
+              size="small"
+              variant="outlined"
+              color="primary"
+              prepend-icon="mdi-plus"
+              @click="appendPredefined(option.comment)"
+            >
+              {{ option.comment }}
+            </v-chip>
+          </div>
+        </div>
+        <p
+          v-else-if="!serverError"
+          class="text-body-small text-medium-emphasis"
+        >
+          Este paso no tiene comentarios predefinidos. Agrégalos en «Estatus del tracking».
+        </p>
+        <v-textarea
+          v-model="comment"
           label="Comentario"
-          :items="options"
-          item-title="comment"
-          item-value="id"
-          :loading="loadingOptions"
+          :counter="COMMENT_MAX"
+          :rules="lengthRules"
+          rows="2"
+          auto-grow
           density="compact"
           bg-color="surface"
           hide-details="auto"
           autofocus
-        />
-        <v-alert
-          v-else
-          type="info"
-          variant="tonal"
-          density="compact"
-          text="Este paso no tiene comentarios predefinidos. Agrégalos en «Estatus del tracking»."
         />
         <div class="d-flex flex-wrap align-center ga-2">
           <v-spacer />
@@ -135,7 +199,7 @@ async function add() {
             type="submit"
             class="text-none"
             :loading="saving"
-            :disabled="stepCommentId === null"
+            :disabled="!isValidComment"
           >
             Guardar
           </v-btn>

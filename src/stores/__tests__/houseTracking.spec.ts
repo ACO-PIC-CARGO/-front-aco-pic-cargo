@@ -107,9 +107,9 @@ describe("houseTracking store", () => {
 
   test("a rejected comment returns the reason without reloading", async () => {
     respond({
-      "post house_tracking/2830/steps/6/comments": rejected("Elige uno de los comentarios predefinidos del paso."),
+      "post house_tracking/2830/steps/6/comments": rejected("Escribe el comentario (hasta 1000 caracteres)."),
     });
-    expect(await useHouseTrackingStore().addComment(2830, 6, 99)).toBe("Elige uno de los comentarios predefinidos del paso.");
+    expect(await useHouseTrackingStore().addComment(2830, 6, "")).toBe("Escribe el comentario (hasta 1000 caracteres).");
     expect(sent()).toEqual(["post house_tracking/2830/steps/6/comments"]);
     expect(Swal.fire).not.toHaveBeenCalled();
   });
@@ -128,14 +128,40 @@ describe("houseTracking store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("addComment sends the chosen predefined comment and reloads", async () => {
+  test("addComment sends the written comment and reloads", async () => {
     respond({
       "post house_tracking/2830/steps/5/comments": accepted([{ id: 3 }], "Guardamos el comentario."),
       "get house_tracking/2830": accepted([phase]),
     });
-    expect(await useHouseTrackingStore().addComment(2830, 5, 41)).toBeNull();
-    expect(httpMock.mock.calls[0]![0].data).toStrictEqual({ step_comment_id: 41 });
+    expect(await useHouseTrackingStore().addComment(2830, 5, "Documentos recibidos.")).toBeNull();
+    expect(httpMock.mock.calls[0]![0].data).toStrictEqual({ comment: "Documentos recibidos." });
     expect(sent()).toEqual(["post house_tracking/2830/steps/5/comments", "get house_tracking/2830"]);
+  });
+
+  test("deleteComment deletes the comment of the house and reloads", async () => {
+    respond({
+      "delete house_tracking/2830/comments/9": accepted([], "Eliminamos el comentario."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    expect(await useHouseTrackingStore().deleteComment(2830, 9)).toBeNull();
+    expect(sent()).toEqual(["delete house_tracking/2830/comments/9", "get house_tracking/2830"]);
+  });
+
+  test("withdrawStep and withdrawComment take them out of the client tracking and reload", async () => {
+    respond({
+      "delete house_tracking/2830/steps/5/send": accepted([], "Retiramos «ETD» del tracking del cliente."),
+      "delete house_tracking/2830/comments/9/send": accepted([], "Retiramos el comentario del tracking del cliente."),
+      "get house_tracking/2830": accepted([phase]),
+    });
+    const store = useHouseTrackingStore();
+    expect(await store.withdrawStep(2830, 5)).toBeNull();
+    expect(await store.withdrawComment(2830, 9)).toBeNull();
+    expect(sent()).toEqual([
+      "delete house_tracking/2830/steps/5/send",
+      "get house_tracking/2830",
+      "delete house_tracking/2830/comments/9/send",
+      "get house_tracking/2830",
+    ]);
   });
 
   test("sendComment sends the comment of the house and reloads", async () => {

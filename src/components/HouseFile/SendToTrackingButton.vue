@@ -12,27 +12,31 @@ const props = defineProps<{
   blockedHint: string;
   confirmText: string;
   send: () => Promise<string | null>;
+  withdrawConfirmText: string;
+  withdraw: () => Promise<string | null>;
 }>();
 
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
-const sending = ref(false);
+const busy = ref(false);
 const sentLabel = computed(() => (props.sentAt ? `Enviado el ${stepDateTimeLabel(props.sentAt, timeZone.value)}` : ""));
 
-async function confirmAndSend() {
+async function confirmAndRun(titleText: string, confirmButtonText: string, action: () => Promise<string | null>) {
   const { isConfirmed } = await Swal.fire({
     icon: "question",
-    titleText: props.confirmText,
-    text: "No se puede deshacer.",
+    titleText,
     showCancelButton: true,
-    confirmButtonText: "Enviar",
+    confirmButtonText,
     cancelButtonText: "Cancelar",
   });
   if (!isConfirmed) return;
-  sending.value = true;
-  const reason = await props.send();
-  sending.value = false;
+  busy.value = true;
+  const reason = await action();
+  busy.value = false;
   if (reason) Swal.fire({ icon: "warning", text: reason });
 }
+
+const confirmAndSend = () => confirmAndRun(props.confirmText, "Enviar", props.send);
+const confirmAndWithdraw = () => confirmAndRun(props.withdrawConfirmText, "Retirar", props.withdraw);
 </script>
 
 <template>
@@ -50,21 +54,36 @@ async function confirmAndSend() {
       Este paso no se muestra al cliente.
     </v-tooltip>
   </v-chip>
-  <v-chip
+  <span
     v-else-if="state === 'sent'"
-    size="small"
-    variant="tonal"
-    color="success-ink"
-    prepend-icon="mdi-check"
+    class="d-inline-flex align-center ga-1"
   >
-    Enviado
-    <v-tooltip
-      activator="parent"
-      location="top"
+    <v-chip
+      size="small"
+      variant="tonal"
+      color="success-ink"
+      prepend-icon="mdi-check"
     >
-      {{ sentLabel }}
-    </v-tooltip>
-  </v-chip>
+      Enviado
+      <v-tooltip
+        activator="parent"
+        location="top"
+      >
+        {{ sentLabel }}
+      </v-tooltip>
+    </v-chip>
+    <v-btn
+      variant="text"
+      size="small"
+      color="error"
+      prepend-icon="mdi-undo-variant"
+      class="text-none"
+      :loading="busy"
+      @click="confirmAndWithdraw"
+    >
+      Retirar
+    </v-btn>
+  </span>
   <span
     v-else
     class="d-inline-block"
@@ -76,7 +95,7 @@ async function confirmAndSend() {
       prepend-icon="mdi-send-outline"
       class="text-none"
       :disabled="state === 'blocked'"
-      :loading="sending"
+      :loading="busy"
       @click="confirmAndSend"
     >
       Enviar a tracking

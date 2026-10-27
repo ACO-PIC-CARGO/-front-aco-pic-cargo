@@ -47,18 +47,23 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
   const keepRate = (houseId: number, stepId: number) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/rate_keep` });
 
-  const addComment = (houseId: number, stepId: number, stepCommentId: number) =>
-    mutate(houseId, {
-      method: "post",
-      url: `${stepUrl(houseId, stepId)}/comments`,
-      data: { step_comment_id: stepCommentId },
-    });
+  const addComment = (houseId: number, stepId: number, comment: string) =>
+    mutate(houseId, { method: "post", url: `${stepUrl(houseId, stepId)}/comments`, data: { comment } });
+
+  const deleteComment = (houseId: number, commentId: number) =>
+    mutate(houseId, { method: "delete", url: `${houseUrl(houseId)}/comments/${commentId}` });
 
   const sendComment = (houseId: number, commentId: number) =>
     mutate(houseId, { method: "put", url: `${houseUrl(houseId)}/comments/${commentId}/send` });
 
+  const withdrawComment = (houseId: number, commentId: number) =>
+    mutate(houseId, { method: "delete", url: `${houseUrl(houseId)}/comments/${commentId}/send` });
+
   const sendStep = (houseId: number, stepId: number) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/send` });
+
+  const withdrawStep = (houseId: number, stepId: number) =>
+    mutate(houseId, { method: "delete", url: `${stepUrl(houseId, stepId)}/send` });
 
   const setStepDate = (houseId: number, stepId: number, scheduledAt: string) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/date`, data: { scheduled_at: scheduledAt } });
@@ -81,8 +86,11 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     confirm,
     keepRate,
     addComment,
+    deleteComment,
     sendStep,
+    withdrawStep,
     sendComment,
+    withdrawComment,
     setStepDate,
     requestTrackingToken,
   };

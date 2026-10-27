@@ -125,6 +125,8 @@ const switchLabel = computed(() => {
         blocked-hint="Confirma el paso para enviarlo."
         :confirm-text="`¿Enviar «${step.name}» al tracking del cliente?`"
         :send="() => store.sendStep(houseId, step.id)"
+        :withdraw-confirm-text="`¿Retirar «${step.name}» del tracking del cliente? Sus comentarios también se retiran.`"
+        :withdraw="() => store.withdrawStep(houseId, step.id)"
       />
     </td>
     <td class="px-0">

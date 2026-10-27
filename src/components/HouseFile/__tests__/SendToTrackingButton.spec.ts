@@ -23,15 +23,48 @@ let wrapper: VueWrapper | undefined;
 beforeEach(() => vi.clearAllMocks());
 afterEach(() => wrapper?.unmount());
 
-function mountReady(send: () => Promise<string | null>) {
+function mountButton(
+  state: "ready" | "sent",
+  send: () => Promise<string | null>,
+  withdraw: () => Promise<string | null> = async () => null,
+) {
   const pinia = createPinia();
   setActivePinia(pinia);
   wrapper = mount(SendToTrackingButton, {
-    props: { state: "ready", sentAt: null, blockedHint: "", confirmText: "¿Enviar «ETD» al tracking del cliente?", send },
+    props: {
+      state,
+      sentAt: state === "sent" ? "2026-10-27T15:00:00.000Z" : null,
+      blockedHint: "",
+      confirmText: "¿Enviar «ETD» al tracking del cliente?",
+      send,
+      withdrawConfirmText: "¿Retirar «ETD» del tracking del cliente?",
+      withdraw,
+    },
     global: { plugins: [createVuetify({ components, directives }), pinia] },
   });
-  return wrapper.findAll("button").find((button) => button.text().includes("Enviar a tracking"))!;
 }
+
+const button = (label: string) => wrapper!.findAll("button").find((item) => item.text().includes(label))!;
+
+function mountReady(send: () => Promise<string | null>) {
+  mountButton("ready", send);
+  return button("Enviar a tracking");
+}
+
+test("a sent item is withdrawn only after the user confirms", async () => {
+  const withdraw = vi.fn(async () => null);
+  mountButton("sent", vi.fn(async () => null), withdraw);
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as never);
+  await button("Retirar").trigger("click");
+  await flushPromises();
+  expect(withdraw).not.toHaveBeenCalled();
+
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);
+  await button("Retirar").trigger("click");
+  await flushPromises();
+  expect(withdraw).toHaveBeenCalledTimes(1);
+  expect(vi.mocked(Swal.fire).mock.calls[1]![0]).toMatchObject({ titleText: "¿Retirar «ETD» del tracking del cliente?" });
+});
 
 test("nothing is sent when the user cancels the confirmation", async () => {
   const send = vi.fn(async () => null);
