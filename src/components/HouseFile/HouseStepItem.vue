@@ -8,6 +8,7 @@ import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { dateLabel, stepDateTimeLabel, stepSendState } from "./houseTrackingFormat";
 import { stepValidationLines } from "./stepValidation";
+import { isClickOnControl } from "@/utils/clickTarget";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
@@ -15,7 +16,7 @@ const emit = defineEmits<{ confirm: []; "edit-date": [] }>();
 
 const store = useHouseTrackingStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
-const expanded = ref(props.step.comments.length > 0);
+const expanded = ref(false);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
 const tone = computed(() => (confirmed.value ? "primary" : "neutral"));
@@ -29,10 +30,17 @@ const switchLabel = computed(() => {
   if (props.blockedBy) return `Confirmar ${props.step.name}. Primero confirma «${props.blockedBy}»`;
   return `Confirmar ${props.step.name}`;
 });
+
+function toggleFromRow(event: MouseEvent) {
+  if (!isClickOnControl(event)) expanded.value = !expanded.value;
+}
 </script>
 
 <template>
-  <tr>
+  <tr
+    class="cursor-pointer"
+    @click="toggleFromRow"
+  >
     <td class="px-1">
       <v-avatar
         size="24"

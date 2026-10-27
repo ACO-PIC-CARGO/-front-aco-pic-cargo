@@ -6,6 +6,7 @@ import AcoStepNumber from "@/components/aco/AcoStepNumber.vue";
 import TrackingMoveButtons from "./TrackingMoveButtons.vue";
 import TrackingStepComments from "./TrackingStepComments.vue";
 import { stepRangeLabel, useTrackingCatalogStore } from "@/stores/trackingCatalog";
+import { isClickOnControl } from "@/utils/clickTarget";
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
 
 const props = defineProps<{ phase: TrackingPhase; isFirst: boolean; isLast: boolean }>();
@@ -22,14 +23,13 @@ const titleId = computed(() => `tracking-phase-${props.phase.id}`);
 const rangeLabel = computed(() => stepRangeLabel(props.phase));
 const openCommentStepIds = ref(new Set<number>());
 const commentsId = (step: TrackingStep) => `tracking-step-${step.id}-comments`;
-const isFromControl = (event: MouseEvent) => (event.target as Element).closest("button, input, label, a") !== null;
 
 function toggleComments(step: TrackingStep) {
   if (!openCommentStepIds.value.delete(step.id)) openCommentStepIds.value.add(step.id);
 }
 
 function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
-  if (!isFromControl(event)) toggleComments(step);
+  if (!isClickOnControl(event)) toggleComments(step);
 }
 </script>
 

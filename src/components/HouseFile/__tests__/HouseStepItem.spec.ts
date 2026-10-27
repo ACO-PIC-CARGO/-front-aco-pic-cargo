@@ -81,3 +81,28 @@ test("the switch of a confirmed step does not ask to confirm it again", async ()
   expect(wrapper.emitted("confirm")).toBeUndefined();
   wrapper.unmount();
 });
+
+test("a step with comments starts collapsed and a click on its row opens and closes them", async () => {
+  const comment = { id: 7, comment: "Documentos recibidos.", sent_at: null, author: "Ana", created_at: "2026-10-27T15:00:00Z" };
+  const wrapper = mountStep({ ...blockedStep, state: "next", comments: [comment] });
+  const commentsShown = () => wrapper.text().includes("Documentos recibidos.");
+  const clickRow = async () => {
+    await wrapper.findAll("span").find((span) => span.text() === blockedStep.name)!.trigger("click");
+    await nextTick();
+  };
+  expect(commentsShown()).toBe(false);
+  await clickRow();
+  expect(commentsShown()).toBe(true);
+  await clickRow();
+  expect(commentsShown()).toBe(false);
+  wrapper.unmount();
+});
+
+test("the controls of a step row do their own action without opening its comments", async () => {
+  const wrapper = mountStep({ ...blockedStep, state: "next" });
+  await wrapper.find('button[aria-label="Poner fecha a Mercancía lista para envío"]').trigger("click");
+  await nextTick();
+  expect(wrapper.emitted("edit-date")).toHaveLength(1);
+  expect(wrapper.text()).not.toContain("Aún no hay comentarios en este paso.");
+  wrapper.unmount();
+});
