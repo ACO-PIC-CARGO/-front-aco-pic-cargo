@@ -17,15 +17,16 @@ const housesStore = useHousesStore();
 const store = useHouseTrackingStore();
 const { phases, loading } = storeToRefs(store);
 const dialog = ref(false);
-const selected = ref<HouseTrackingStep | null>(null);
+const selectedId = ref<number | null>(null);
 const dialogMode = ref<StepDialogMode>("confirm");
 const weightDialog = ref(false);
 const weightCheck = ref<WeightCheck | null>(null);
 const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
+const selected = computed(() => allSteps.value.find((step) => step.id === selectedId.value) ?? null);
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
 
 function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
-  selected.value = step;
+  selectedId.value = step.id;
   dialogMode.value = mode;
   weightCheck.value = null;
   if (needsWeightCheck(step, mode)) weightDialog.value = true;
