@@ -48,6 +48,7 @@ const mostrarAdvertencia = ref(false);
 const textValidacionCotizacionMaster = ref<string[]>([]);
 const dialogConfig = ref(false);
 const dialogCostos = ref(false);
+const dialogReplaceCosts = ref(false);
 const textValidacionPago = ref("");
 const activarBtnContinuar = ref(true);
 const loading = ref(false);
@@ -743,6 +744,18 @@ async function abrirModalAprobar() {
       });
     }
   }
+}
+function continueFromCostOption() {
+  dialogCostos.value = false;
+  if (id_opcion.value == "1") {
+    dialogReplaceCosts.value = true;
+    return;
+  }
+  buscarHouseAsociadosAMaster();
+}
+function backToCostOptions() {
+  dialogCostos.value = true;
+  dialogReplaceCosts.value = false;
 }
 function regresarSeleccionoMaster() {
   dialogCostos.value = !dialogCostos.value;
@@ -1653,7 +1666,7 @@ function getProveedor(element: OpcionCosto) {
             class="mx-1"
             size="small"
             color="success"
-            @click="buscarHouseAsociadosAMaster"
+            @click="continueFromCostOption"
             :disabled="activarBtnContinuar && activarBotonAsociarMaster"
           >
             CONITNUAR
@@ -1955,6 +1968,79 @@ function getProveedor(element: OpcionCosto) {
             @click="continuarAprobarHouses"
           >
             Confirmar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      v-model="dialogReplaceCosts"
+      max-width="628"
+      persistent
+      content-class="dialog-reemplazar-costos"
+    >
+      <v-card class="confirmacion-card">
+        <v-btn
+          icon
+          variant="text"
+          density="compact"
+          class="btn-cerrar-dialog"
+          aria-label="Cerrar"
+          @click="dialogReplaceCosts = false"
+        >
+          <v-icon size="21">
+            mdi-close
+          </v-icon>
+        </v-btn>
+
+        <v-card-text class="confirmacion-contenido">
+          <div class="confirmacion-icono">
+            <v-icon
+              size="32"
+              color="#D97706"
+            >
+              mdi-alert-outline
+            </v-icon>
+          </div>
+
+          <div class="confirmacion-textos">
+            <h2 class="confirmacion-titulo">
+              REEMPLAZAR TODOS LOS COSTOS
+            </h2>
+
+            <p class="confirmacion-descripcion">
+              Se borrarán los costos anteriores.
+            </p>
+
+            <p class="confirmacion-pregunta">
+              ¿Deseas continuar?
+            </p>
+          </div>
+        </v-card-text>
+        <v-divider />
+        <v-card-actions class="confirmacion-acciones">
+          <v-btn
+            variant="flat"
+            class="btn-volver"
+            @click="backToCostOptions"
+          >
+            VOLVER
+          </v-btn>
+
+          <v-btn
+            variant="outlined"
+            class="btn-cancelar-dialog"
+            @click="dialogReplaceCosts = false"
+          >
+            CANCELAR
+          </v-btn>
+
+          <v-btn
+            variant="flat"
+            class="btn-reemplazar"
+            @click="buscarHouseAsociadosAMaster"
+          >
+            SÍ, REEMPLAZAR
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -2284,5 +2370,152 @@ function getProveedor(element: OpcionCosto) {
 .btn-confirmar {
   background: #1769e8 !important;
   color: white !important;
+}
+
+.confirmacion-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9px !important;
+  background-color: #ffffff;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.18) !important;
+}
+
+.confirmacion-contenido {
+  display: flex;
+  align-items: center;
+  padding: 28px 30px 23px !important;
+  gap: 25px;
+}
+
+.confirmacion-icono {
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff0dc;
+}
+
+.confirmacion-textos {
+  min-width: 0;
+  padding-right: 8px;
+}
+
+.confirmacion-titulo {
+  margin: 0 0 8px;
+  color: #253142;
+  font-size: 21px;
+  line-height: 1.3;
+  font-weight: 750;
+  letter-spacing: -0.45px;
+}
+
+.confirmacion-descripcion,
+.confirmacion-pregunta {
+  margin: 0;
+  color: #4b5563;
+  font-size: 15px;
+  line-height: 1.55;
+  font-weight: 400;
+}
+
+.confirmacion-pregunta {
+  margin-top: 1px;
+}
+
+.btn-cerrar-dialog {
+  position: absolute !important;
+  z-index: 2;
+  top: 10px;
+  right: 10px;
+  width: 30px !important;
+  height: 30px !important;
+  min-height: 30px !important;
+  min-width: 30px !important;
+  color: #737373 !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.confirmacion-acciones {
+  min-height: 71px;
+  padding: 15px 21px 17px 30px !important;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.confirmacion-acciones .v-btn {
+  height: 38px !important;
+  min-height: 38px !important;
+  min-width: 0 !important;
+  padding: 0 16px;
+  border-radius: 6px;
+  font-size: 12px !important;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.confirmacion-acciones .btn-volver {
+  color: #4b5563 !important;
+  background-color: #e5e7eb !important;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.12) !important;
+}
+
+.confirmacion-acciones .btn-cancelar-dialog {
+  color: #4b5563 !important;
+  border: 1px solid #dedede !important;
+  background-color: #ffffff !important;
+}
+
+.confirmacion-acciones .btn-reemplazar {
+  color: #ffffff !important;
+  background-color: #e65359 !important;
+  box-shadow: 0 2px 5px rgba(222, 82, 82, 0.2) !important;
+}
+
+.confirmacion-acciones .btn-volver:hover,
+.confirmacion-acciones .btn-cancelar-dialog:hover,
+.confirmacion-acciones .btn-reemplazar:hover {
+  filter: brightness(0.97);
+}
+
+@media (max-width: 600px) {
+  .confirmacion-contenido {
+    align-items: flex-start;
+    padding: 30px 20px 22px !important;
+    gap: 15px;
+  }
+
+  .confirmacion-icono {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+  }
+
+  .confirmacion-titulo {
+    font-size: 17px;
+    padding-right: 8px;
+  }
+
+  .confirmacion-descripcion,
+  .confirmacion-pregunta {
+    font-size: 14px;
+  }
+
+  .confirmacion-acciones {
+    flex-wrap: wrap;
+    padding: 13px 15px !important;
+    gap: 7px;
+  }
+
+  .confirmacion-acciones .v-btn {
+    padding: 0 10px;
+    font-size: 11px;
+  }
 }
 </style>

@@ -1657,7 +1657,10 @@ onMounted(async () => {
               mdi-unfold-more-horizontal
             </v-icon>
           </template>
-          <v-table density="compact">
+          <v-table
+            class="tabla-resumen-ingresos"
+            density="compact"
+          >
             <thead>
               <tr>
                 <!-- <th width="10%">House</th> -->
@@ -3471,6 +3474,14 @@ onMounted(async () => {
   font-weight: bold;
   text-align: center;
   display: inline-block;
+}
+
+.tabla-resumen-ingresos {
+  width: 100%;
+}
+
+.tabla-resumen-ingresos :deep(table) {
+  width: 100%;
 }
 
 @keyframes blinkOnOff {

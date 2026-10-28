@@ -92,6 +92,49 @@ async function getSessionBranchId(): Promise<number | string | null> {
   return idBranch;
 }
 
+function showPdfGeneratingCountdown(): void {
+  let tiempoRestante = 5;
+  Swal.fire({
+    icon: "success",
+    title: "Generando  PDF",
+    html: `
+      <p>El reporte PDF se abrirá automáticamente en unos segundos.</p>
+      <p style="margin-bottom: 0; color: #666; font-size: 14px;">
+        Puedes continuar con tus actividades mientras se prepara el reporte.
+      </p>
+      <p id="contadorSwal" style="margin-top: 15px; font-weight: 600; color: #3085d6;">
+        Podrás continuar en ${tiempoRestante} segundos...
+      </p>
+    `,
+    confirmButtonText: "OK",
+    confirmButtonColor: "#3085d6",
+    showConfirmButton: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      const botonOk = Swal.getConfirmButton();
+      if (botonOk) botonOk.disabled = true;
+
+      const intervalo = setInterval(() => {
+        tiempoRestante--;
+        const contador = document.getElementById("contadorSwal");
+        // The "PDF Generado" alert can replace this one before the countdown ends.
+        if (!contador) {
+          clearInterval(intervalo);
+          return;
+        }
+        if (tiempoRestante > 0) {
+          contador.textContent = `Podrás continuar en ${tiempoRestante} segundos...`;
+        } else {
+          clearInterval(intervalo);
+          contador.textContent = "Ya puedes continuar.";
+          if (botonOk) botonOk.disabled = false;
+        }
+      }, 1000);
+    },
+  });
+}
+
 export const usePricingStore = defineStore("pricing", () => {
   const {
     calcularFac,
@@ -3072,23 +3115,7 @@ export const usePricingStore = defineStore("pricing", () => {
       filtroSeleccionado: filtroSeleccionado,
       filtroCabecera: filtroCabecera,
     };
-    let timerInterval;
-    Swal.fire({
-      icon: "info",
-      title: "Generando  PDF",
-      text: "El PDF se descargará automaticamente",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      timerProgressBar: true,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    }).then((res) => {
-      if (res.dismiss) {
-        clearInterval(timerInterval);
-      }
-    });
+    showPdfGeneratingCountdown();
 
     await axios
       // @ts-expect-error the headers object goes in as the request config.
@@ -3297,23 +3324,7 @@ export const usePricingStore = defineStore("pricing", () => {
       filtroSeleccionado: filtroSeleccionado,
       filtroCabecera: filtroCabecera,
     };
-    let timerInterval;
-    Swal.fire({
-      icon: "info",
-      title: "Generando  PDF",
-      text: "El PDF se descargará automaticamente",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      timerProgressBar: true,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    }).then((res) => {
-      if (res.dismiss) {
-        clearInterval(timerInterval);
-      }
-    });
+    showPdfGeneratingCountdown();
     await axios
       // @ts-expect-error the headers object goes in as the request config.
       .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data, headers)

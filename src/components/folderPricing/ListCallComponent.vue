@@ -198,7 +198,6 @@ async function imprimierCalls() {
     return;
   }
 
-  appStore.spiner = true;
   const filtroSeleccionado: Record<string, string | undefined> = {};
   const store = pricingStore;
 
