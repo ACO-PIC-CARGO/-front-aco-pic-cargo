@@ -304,8 +304,8 @@
             size="small"
           >
             <v-icon>mdi-filter</v-icon>
-            Filtrar / 
-           <v-icon>mdi-file-pdf-box</v-icon>
+            Filtrar /
+            <v-icon>mdi-file-pdf-box</v-icon>
             Imprimir
           </v-btn>
 
@@ -1221,7 +1221,7 @@ export default {
       return (
         fechaInicio.isValid() &&
         fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
+        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
       );
     },
     async reporteMarketing() {

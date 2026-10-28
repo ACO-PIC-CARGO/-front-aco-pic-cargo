@@ -269,7 +269,8 @@ export default {
       "getIncoterms",
       "getListQuote",
       "imprimiReporteListadoMarketing",
-      "exportarExcelListadoQuote","imprimiReporteListado"
+      "exportarExcelListadoQuote",
+      "imprimiReporteListado",
     ]),
     async reporteMarketing() {
       const f = this.$store.state.pricing.filtro;
@@ -534,7 +535,7 @@ export default {
       return (
         fechaInicio.isValid() &&
         fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
+        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
       );
     },
     validarFiltroFechas() {

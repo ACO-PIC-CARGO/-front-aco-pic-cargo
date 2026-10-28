@@ -36,7 +36,9 @@
         </v-card-text>
         <v-card-actions>
           <div class="flex-grow-1 text-right">
-            <v-btn variant="text" color="success" @click="guardarNota">Aceptar</v-btn>
+            <v-btn variant="text" color="success" @click="guardarNota"
+              >Aceptar</v-btn
+            >
             <v-btn
               variant="text"
               color="red"
@@ -314,7 +316,12 @@
             <v-icon>mdi-filter</v-icon>
             Filtrar
           </v-btn>
-          <v-btn color="default" class="mx-1 my-1" size="small" @click="limpiar()">
+          <v-btn
+            color="default"
+            class="mx-1 my-1"
+            size="small"
+            @click="limpiar()"
+          >
             <v-icon class="mx-1">mdi-filter-remove</v-icon>
             Limpiar
           </v-btn>
@@ -602,7 +609,7 @@ export default {
       return (
         fechaInicio.isValid() &&
         fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
+        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
       );
     },
     async imprimierCalls() {
@@ -621,8 +628,8 @@ export default {
           rangoCreacionExcedido && rangoEmisionExcedido
             ? "Los rangos de creación y emisión"
             : rangoCreacionExcedido
-              ? "El rango de creación"
-              : "El rango de emisión";
+            ? "El rango de creación"
+            : "El rango de emisión";
         await Swal.fire({
           icon: "warning",
           title: "No se puede generar el reporte",
