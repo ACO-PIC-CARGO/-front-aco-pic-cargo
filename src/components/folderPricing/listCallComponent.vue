@@ -602,7 +602,7 @@ export default {
       return (
         fechaInicio.isValid() &&
         fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+        fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
       );
     },
     async imprimierCalls() {
@@ -632,7 +632,7 @@ export default {
         return;
       }
 
-      this.$store.state.spiner = true;
+      // this.$store.state.spiner = true;
       let filtroSeleccionado = {};
       const store = this.$store.state.pricing;
 

@@ -248,6 +248,7 @@
 import { mapActions, mapState } from "vuex";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
+import Swal from "sweetalert2";
 export default {
   components: {
     FormatFecha,
@@ -533,7 +534,7 @@ export default {
       return (
         fechaInicio.isValid() &&
         fechaFin.isValid() &&
-        fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+        fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
       );
     },
     validarFiltroFechas() {
