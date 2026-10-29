@@ -147,21 +147,13 @@ describe("houseTracking store", () => {
     expect(sent()).toEqual(["delete house_tracking/2830/comments/9", "get house_tracking/2830"]);
   });
 
-  test("withdrawStep and withdrawComment take them out of the client tracking and reload", async () => {
+  test("withdrawComment takes the comment out of the client tracking and reloads", async () => {
     respond({
-      "delete house_tracking/2830/steps/5/send": accepted([], "Retiramos «ETD» del tracking del cliente."),
       "delete house_tracking/2830/comments/9/send": accepted([], "Retiramos el comentario del tracking del cliente."),
       "get house_tracking/2830": accepted([phase]),
     });
-    const store = useHouseTrackingStore();
-    expect(await store.withdrawStep(2830, 5)).toBeNull();
-    expect(await store.withdrawComment(2830, 9)).toBeNull();
-    expect(sent()).toEqual([
-      "delete house_tracking/2830/steps/5/send",
-      "get house_tracking/2830",
-      "delete house_tracking/2830/comments/9/send",
-      "get house_tracking/2830",
-    ]);
+    expect(await useHouseTrackingStore().withdrawComment(2830, 9)).toBeNull();
+    expect(sent()).toEqual(["delete house_tracking/2830/comments/9/send", "get house_tracking/2830"]);
   });
 
   test("sendComment sends the comment of the house and reloads", async () => {
@@ -171,16 +163,10 @@ describe("houseTracking store", () => {
     });
     expect(await useHouseTrackingStore().sendComment(2830, 9)).toBeNull();
     expect(sent()).toEqual(["put house_tracking/2830/comments/9/send", "get house_tracking/2830"]);
-  });
-
-  test("sendStep sends the step of the house and reloads", async () => {
-    respond({
-      "put house_tracking/2830/steps/5/send": accepted([], "Enviamos «ETD» al tracking del cliente."),
-      "get house_tracking/2830": accepted([phase]),
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({
+      icon: "success",
+      titleText: "Enviamos el comentario al tracking del cliente.",
     });
-    expect(await useHouseTrackingStore().sendStep(2830, 5)).toBeNull();
-    expect(sent()).toEqual(["put house_tracking/2830/steps/5/send", "get house_tracking/2830"]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Enviamos «ETD» al tracking del cliente." });
   });
 
   test("setStepDate saves the estimated date of the step and reloads", async () => {

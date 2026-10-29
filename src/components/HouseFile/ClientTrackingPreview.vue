@@ -50,7 +50,7 @@ const shortDay = (iso: string) => {
       v-if="!steps.length"
       class="text-body-medium text-medium-emphasis"
     >
-      Aún no envías nada al tracking del cliente. Confirma un paso y usa «Enviar a tracking».
+      Aún no envías nada al tracking del cliente. Confirma un paso y envía uno de sus comentarios con «Enviar a tracking».
     </p>
     <v-timeline
       v-else

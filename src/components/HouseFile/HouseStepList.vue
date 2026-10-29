@@ -117,7 +117,7 @@ async function unconfirmStep(step: HouseTrackingStep) {
         icon="mdi-information-outline"
         class="flex-grow-1 text-body-small"
         :class="{ 'house-step-list__notice--own-line': quoteBadge && !quoteBadge.warning }"
-        text="Confirma cada paso en orden y usa «Enviar a tracking» para que tu cliente lo vea. Tu cliente también ve el próximo paso con su fecha."
+        text="Confirma cada paso en orden. Para que tu cliente lo vea, envía uno de sus comentarios con «Enviar a tracking». Tu cliente también ve el próximo paso con su fecha."
       />
     </div>
     <v-alert
@@ -165,9 +165,6 @@ async function unconfirmStep(step: HouseTrackingStep) {
           </th>
           <th class="px-1 text-center">
             Confirmar
-          </th>
-          <th class="px-1">
-            Tracking
           </th>
           <th class="px-0">
             <span class="d-sr-only">Comentarios</span>

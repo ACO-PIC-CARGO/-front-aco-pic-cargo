@@ -3,10 +3,8 @@ import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import HouseStepComments from "./HouseStepComments.vue";
-import SendToTrackingButton from "./SendToTrackingButton.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
-import { useHouseTrackingStore } from "@/stores/houseTracking";
-import { dateLabel, stepDateTimeLabel, stepSendState } from "./houseTrackingFormat";
+import { dateLabel, stepDateTimeLabel } from "./houseTrackingFormat";
 import { stepValidationLines } from "./stepValidation";
 import { isClickOnControl } from "@/utils/clickTarget";
 import type { HouseTrackingStep } from "@/types/houseTracking";
@@ -14,7 +12,6 @@ import type { HouseTrackingStep } from "@/types/houseTracking";
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
 const emit = defineEmits<{ confirm: []; unconfirm: []; "edit-date": [] }>();
 
-const store = useHouseTrackingStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const expanded = ref(false);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
@@ -133,17 +130,6 @@ function toggleFromRow(event: MouseEvent) {
         </v-tooltip>
       </div>
     </td>
-    <td class="px-1">
-      <SendToTrackingButton
-        :state="stepSendState(step)"
-        :sent-at="step.sent_at"
-        blocked-hint="Confirma el paso para enviarlo."
-        :confirm-text="`¿Enviar «${step.name}» al tracking del cliente?`"
-        :send="() => store.sendStep(houseId, step.id)"
-        :withdraw-confirm-text="`¿Retirar «${step.name}» del tracking del cliente? Sus comentarios también se retiran.`"
-        :withdraw="() => store.withdrawStep(houseId, step.id)"
-      />
-    </td>
     <td class="px-0">
       <v-btn
         icon
@@ -161,7 +147,7 @@ function toggleFromRow(event: MouseEvent) {
   <tr v-if="validationLines.length">
     <td />
     <td
-      colspan="6"
+      colspan="5"
       class="px-1 pb-2"
     >
       <div class="d-flex flex-wrap align-center ga-4 text-body-small">
@@ -183,7 +169,7 @@ function toggleFromRow(event: MouseEvent) {
   <tr v-if="expanded">
     <td
       :id="commentsId"
-      colspan="7"
+      colspan="6"
       class="pb-2"
     >
       <HouseStepComments

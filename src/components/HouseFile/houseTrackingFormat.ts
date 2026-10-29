@@ -41,12 +41,6 @@ export const latestComment =(step: HouseTrackingStep): HouseTrackingComment | nu
 
 export const trackingLink = (token: string, origin = window.location.origin): string => `${origin}/tracking/${token}`;
 
-export const stepSendState = (step: HouseTrackingStep): SendState => {
-  if (!step.visible_to_client) return "internal";
-  if (step.sent_at) return "sent";
-  return step.state === "confirmed" ? "ready" : "blocked";
-};
-
 export const commentSendState = (step: HouseTrackingStep, comment: HouseTrackingComment): SendState => {
   if (!step.visible_to_client) return "internal";
   if (step.state !== "confirmed") return "blocked";
