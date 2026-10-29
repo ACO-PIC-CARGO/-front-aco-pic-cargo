@@ -1,5 +1,7 @@
 import { expect, test, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
+import Swal from "sweetalert2";
+import type { SweetAlertResult } from "sweetalert2";
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
@@ -41,11 +43,11 @@ const phaseWith = (step: HouseTrackingStep): HouseTrackingPhase => ({
   steps: [step],
 });
 
-test("the date modal always works on the latest tracking of the step it was opened for", async () => {
+const mountList = (step: HouseTrackingStep) => {
   const pinia = createPinia();
   setActivePinia(pinia);
   const store = useHouseTrackingStore();
-  store.phases = [phaseWith(etd(null))];
+  store.phases = [phaseWith(step)];
   const wrapper = mount(HouseStepList, {
     props: { houseId: 2830, loadError: "" },
     global: {
@@ -53,6 +55,41 @@ test("the date modal always works on the latest tracking of the step it was open
       stubs: { HouseStepItem: true, HouseStepConfirmDialog: true, HouseStepWeightCheckDialog: true, TrackingLinkButton: true },
     },
   });
+  return { store, wrapper };
+};
+
+const confirmedEtd = (sentAt: string | null): HouseTrackingStep => ({
+  ...etd(null),
+  state: "confirmed",
+  confirmed_at: "2026-10-26T15:00:00Z",
+  sent_at: sentAt,
+});
+
+test("a step is unconfirmed only after the user accepts the question", async () => {
+  const { store, wrapper } = mountList(confirmedEtd(null));
+  const unconfirm = vi.spyOn(store, "unconfirm").mockResolvedValue(null);
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false } as SweetAlertResult);
+  wrapper.findComponent(HouseStepItem).vm.$emit("unconfirm");
+  await flushPromises();
+  expect(unconfirm).not.toHaveBeenCalled();
+
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as SweetAlertResult);
+  wrapper.findComponent(HouseStepItem).vm.$emit("unconfirm");
+  await flushPromises();
+  expect(unconfirm).toHaveBeenCalledWith(2830, 6);
+});
+
+test("unconfirming a step the client already sees warns that it leaves the client tracking", async () => {
+  const { store, wrapper } = mountList(confirmedEtd("2026-10-26T16:00:00Z"));
+  vi.spyOn(store, "unconfirm").mockResolvedValue(null);
+  vi.mocked(Swal.fire).mockClear().mockResolvedValueOnce({ isConfirmed: false } as SweetAlertResult);
+  wrapper.findComponent(HouseStepItem).vm.$emit("unconfirm");
+  await flushPromises();
+  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: expect.stringContaining("tracking del cliente") });
+});
+
+test("the date modal always works on the latest tracking of the step it was opened for", async () => {
+  const { store, wrapper } = mountList(etd(null));
   wrapper.findComponent(HouseStepItem).vm.$emit("confirm");
   await flushPromises();
 

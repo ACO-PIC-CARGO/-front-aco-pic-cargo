@@ -75,10 +75,13 @@ test("every click on the switch of the next step asks to confirm it, even after 
   wrapper.unmount();
 });
 
-test("the switch of a confirmed step does not ask to confirm it again", async () => {
+test("the switch of a confirmed step asks to unconfirm it and stays on until that happens", async () => {
   const wrapper = mountStep({ ...blockedStep, state: "confirmed", confirmed_at: "2026-10-26T15:00:00Z" });
-  await clickLikeABrowser(wrapper.find('input[type="checkbox"]').element as HTMLInputElement);
+  const toggle = wrapper.find('input[type="checkbox"]').element as HTMLInputElement;
+  await clickLikeABrowser(toggle);
+  expect(wrapper.emitted("unconfirm")).toHaveLength(1);
   expect(wrapper.emitted("confirm")).toBeUndefined();
+  expect(toggle.checked).toBe(true);
   wrapper.unmount();
 });
 

@@ -44,6 +44,9 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return message;
   }
 
+  const unconfirm = (houseId: number, stepId: number) =>
+    mutate(houseId, { method: "delete", url: `${stepUrl(houseId, stepId)}/confirmation` });
+
   const keepRate = (houseId: number, stepId: number) =>
     mutate(houseId, { method: "put", url: `${stepUrl(houseId, stepId)}/rate_keep` });
 
@@ -84,6 +87,7 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     loading,
     load,
     confirm,
+    unconfirm,
     keepRate,
     addComment,
     deleteComment,

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { storeToRefs } from "pinia";
+import Swal from "sweetalert2";
 import HouseStepItem from "./HouseStepItem.vue";
 import HouseStepConfirmDialog from "./HouseStepConfirmDialog.vue";
 import HouseStepWeightCheckDialog from "./HouseStepWeightCheckDialog.vue";
@@ -41,6 +42,22 @@ function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
 function continueAfterWeightCheck(check: WeightCheck) {
   weightCheck.value = check;
   dialog.value = true;
+}
+
+async function unconfirmStep(step: HouseTrackingStep) {
+  const { isConfirmed } = await Swal.fire({
+    icon: "question",
+    titleText: `¿Desconfirmar «${step.name}»?`,
+    text: step.sent_at
+      ? "El paso vuelve a quedar pendiente y sale del tracking del cliente, con sus comentarios."
+      : "El paso vuelve a quedar pendiente.",
+    showCancelButton: true,
+    confirmButtonText: "Desconfirmar",
+    cancelButtonText: "Cancelar",
+  });
+  if (!isConfirmed) return;
+  const reason = await store.unconfirm(props.houseId, step.id);
+  if (reason) Swal.fire({ icon: "warning", text: reason });
 }
 </script>
 
@@ -160,6 +177,7 @@ function continueAfterWeightCheck(check: WeightCheck) {
           :step="step"
           :blocked-by="step.state === 'blocked' ? nextStepName : null"
           @confirm="openDialog(step, 'confirm')"
+          @unconfirm="unconfirmStep(step)"
           @edit-date="openDialog(step, 'date')"
         />
       </tbody>

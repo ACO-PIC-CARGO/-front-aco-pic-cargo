@@ -12,7 +12,7 @@ import { isClickOnControl } from "@/utils/clickTarget";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
-const emit = defineEmits<{ confirm: []; "edit-date": [] }>();
+const emit = defineEmits<{ confirm: []; unconfirm: []; "edit-date": [] }>();
 
 const store = useHouseTrackingStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
@@ -21,9 +21,10 @@ const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
 const tone = computed(() => (confirmed.value ? "primary" : "neutral"));
 const validationLines = computed(() => stepValidationLines(props.step, timeZone.value));
-// The switch only asks to confirm; cancelling the click keeps its checked state equal to the confirmation.
-function requestConfirm() {
-  if (!confirmed.value) emit("confirm");
+// The switch only asks to confirm or unconfirm; cancelling the click keeps its checked state equal to the confirmation.
+function requestToggle() {
+  if (confirmed.value) emit("unconfirm");
+  else emit("confirm");
 }
 const switchLabel = computed(() => {
   if (confirmed.value) return `${props.step.name} confirmado`;
@@ -113,9 +114,8 @@ function toggleFromRow(event: MouseEvent) {
           inset
           hide-details
           density="compact"
-          :readonly="confirmed"
           :disabled="step.state === 'blocked'"
-          @click.prevent="requestConfirm"
+          @click.prevent="requestToggle"
         />
         <v-tooltip
           v-if="blockedBy"
@@ -123,6 +123,13 @@ function toggleFromRow(event: MouseEvent) {
           location="top"
         >
           Primero confirma «{{ blockedBy }}»
+        </v-tooltip>
+        <v-tooltip
+          v-else-if="confirmed"
+          activator="parent"
+          location="top"
+        >
+          Haz clic para desconfirmar este paso.
         </v-tooltip>
       </div>
     </td>
