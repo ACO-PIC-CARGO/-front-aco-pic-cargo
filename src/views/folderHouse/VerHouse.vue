@@ -9,6 +9,7 @@ import "@/styles/aco-ui.css";
 import HouseStepList from "@/components/HouseFile/HouseStepList.vue";
 import ClientTrackingPreview from "@/components/HouseFile/ClientTrackingPreview.vue";
 import HouseCustomsCard from "@/components/HouseFile/HouseCustomsCard.vue";
+import HouseMasterDates from "@/components/HouseFile/HouseMasterDates.vue";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import Swal from "sweetalert2";
@@ -606,6 +607,14 @@ onMounted(async () => {
                       class="pa-3"
                     >
                       <dataGen :editing="isEditing" />
+                    </v-card>
+                    <v-card
+                      variant="flat"
+                      border
+                      rounded="lg"
+                      class="pa-3"
+                    >
+                      <HouseMasterDates :master-id="housesStore.house.id_master" />
                     </v-card>
                     <v-card
                       variant="flat"
