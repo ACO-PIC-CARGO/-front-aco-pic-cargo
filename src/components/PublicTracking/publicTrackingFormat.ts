@@ -32,7 +32,7 @@ export const trackingUpdates = (phases: PublicTrackingPhase[]): TrackingUpdate[]
 
 export const updatesByStep = (updates: TrackingUpdate[]): TrackingStepUpdates[] =>
   updates.reduce<TrackingStepUpdates[]>((groups, update) => {
-    const current = groups.at(-1);
+    const current = groups[groups.length - 1];
     if (current?.stepId === update.stepId) current.updates.push(update);
     else groups.push({ key: update.key, stepId: update.stepId, stepName: update.stepName, icon: update.icon, updates: [update] });
     return groups;
