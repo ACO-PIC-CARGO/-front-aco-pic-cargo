@@ -8,6 +8,7 @@ import type { ApiResponse } from "@/types/api";
 import type { HouseTrackingPhase, WeightCheck } from "@/types/houseTracking";
 import { todayIn } from "@/components/HouseFile/houseTrackingFormat";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
+import { useHousesStore } from "@/stores/houses";
 
 const TOKEN_ERROR_MESSAGE = "No pudimos generar el enlace de tracking. Intenta de nuevo.";
 const houseUrl = (houseId: number) => `house_tracking/${houseId}`;
@@ -76,6 +77,14 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     return null;
   }
 
+  async function trackingToken(houseId: number): Promise<string | null> {
+    const housesStore = useHousesStore();
+    if (housesStore.house.token_rastreo) return housesStore.house.token_rastreo;
+    const token = await requestTrackingToken(houseId);
+    if (token) housesStore.house.token_rastreo = token;
+    return token;
+  }
+
   return {
     phases,
     loading,
@@ -89,5 +98,6 @@ export const useHouseTrackingStore = defineStore("houseTracking", () => {
     withdrawComment,
     setStepDate,
     requestTrackingToken,
+    trackingToken,
   };
 });

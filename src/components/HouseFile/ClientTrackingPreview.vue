@@ -4,9 +4,20 @@ import { storeToRefs } from "pinia";
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
-import { clientSteps, dayMonth, stepDateTimeLabel } from "./houseTrackingFormat";
+import { clientSteps, dayMonth, stepDateTimeLabel, trackingLink } from "./houseTrackingFormat";
 
-const { phases } = storeToRefs(useHouseTrackingStore());
+const props = defineProps<{ houseId: number }>();
+
+const store = useHouseTrackingStore();
+const { phases } = storeToRefs(store);
+const opening = ref(false);
+
+async function openTracking() {
+  opening.value = true;
+  const token = await store.trackingToken(props.houseId);
+  opening.value = false;
+  if (token) window.open(trackingLink(token), "_blank", "noopener");
+}
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const steps = computed(() => clientSteps(phases.value));
 const expanded = ref<number[]>([]);
@@ -45,6 +56,18 @@ const shortDay = (iso: string) => {
           Así ve tu cliente lo que le enviaste.
         </p>
       </div>
+      <v-btn
+        color="primary"
+        variant="outlined"
+        size="small"
+        prepend-icon="mdi-open-in-new"
+        class="text-none ms-auto"
+        aria-label="Ver el tracking del cliente en una ventana nueva"
+        :loading="opening"
+        @click="openTracking"
+      >
+        Ver
+      </v-btn>
     </div>
     <p
       v-if="!steps.length"

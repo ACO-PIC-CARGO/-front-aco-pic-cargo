@@ -677,7 +677,7 @@ onMounted(async () => {
             md="4"
             lg="3"
           >
-            <ClientTrackingPreview />
+            <ClientTrackingPreview :house-id="houseId" />
           </v-col>
         </v-row>
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
