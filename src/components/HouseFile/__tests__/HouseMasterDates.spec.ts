@@ -34,8 +34,8 @@ test("the master's three dates and their confirmations show read-only, even whil
   });
   const wrapper = await mountDates(2714);
   expect(vi.mocked(axios)).toHaveBeenCalledWith(expect.objectContaining({ url: "getMasterId/2714" }));
-  const dates = wrapper.findAll('input[type="date"]').map((input) => (input.element as HTMLInputElement).value);
-  expect(dates).toEqual(["2026-10-19", "2026-11-18", ""]);
+  const dates = wrapper.findAll('input[type="text"]').map((input) => (input.element as HTMLInputElement).value);
+  expect(dates).toEqual(["19/OCT/2026", "18/NOV/2026", "—"]);
   const confirmations = wrapper.findAll('input[type="checkbox"]').map((input) => (input.element as HTMLInputElement).checked);
   expect(confirmations).toEqual([true, false, false]);
   expect(wrapper.findAll(".v-input").every((field) => field.classes().includes("v-input--readonly"))).toBe(true);

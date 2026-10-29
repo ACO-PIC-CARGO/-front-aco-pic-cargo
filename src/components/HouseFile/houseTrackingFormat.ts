@@ -10,6 +10,9 @@ export const dayMonth = (iso: string, timeZone: string) => {
 export const dateLabel = (iso: string | null, timeZone: string): string =>
   iso ? shortDate(inTimeZone(iso, timeZone)) : "–";
 
+export const calendarDateLabel = (day: string | null | undefined): string =>
+  day ? shortDate(moment(day, "YYYY-MM-DD")) : "—";
+
 export const stepDateTimeLabel = (iso: string, timeZone: string): string => {
   const date = inTimeZone(iso, timeZone);
   return `${shortDate(date)} ${date.format("HH:mm")}`;

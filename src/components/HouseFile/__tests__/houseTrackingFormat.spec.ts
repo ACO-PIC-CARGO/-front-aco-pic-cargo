@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import {
+  calendarDateLabel,
   clientSteps,
   commentSendState,
   dayMonth,
@@ -136,4 +137,10 @@ test("the step dialog saves an estimate, confirms starting from it, or corrects 
       "confirm",
     ),
   ).toEqual({ title: "Corregir fecha de «Pago al proveedor»", action: "Guardar fecha", initial: "2026-11-01T12:00:00Z" });
+});
+
+test("a calendar date shows its day with the month's first three letters and the year, and a missing one a dash", () => {
+  expect(calendarDateLabel("2026-10-19")).toBe("19/OCT/2026");
+  expect(calendarDateLabel("2026-01-01")).toBe("01/ENE/2026");
+  expect(calendarDateLabel(null)).toBe("—");
 });

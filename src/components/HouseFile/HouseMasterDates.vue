@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, watch } from "vue";
 import { request } from "@/utils/request";
+import { calendarDateLabel } from "./houseTrackingFormat";
 
 interface MasterDates {
   fecha_etd: string | null;
@@ -31,11 +32,21 @@ watch(
 );
 
 const dates = computed(() => [
-  { label: "Salida (ETD)", date: master.value?.fecha_etd, confirmedLabel: "Salida Confirmada", confirmed: master.value?.salidaflag },
-  { label: "Llegada (ETA)", date: master.value?.fecha_eta, confirmedLabel: "Llegada Confirmada", confirmed: master.value?.llegadaflag },
+  {
+    label: "Salida (ETD)",
+    date: calendarDateLabel(master.value?.fecha_etd),
+    confirmedLabel: "Salida Confirmada",
+    confirmed: master.value?.salidaflag,
+  },
+  {
+    label: "Llegada (ETA)",
+    date: calendarDateLabel(master.value?.fecha_eta),
+    confirmedLabel: "Llegada Confirmada",
+    confirmed: master.value?.llegadaflag,
+  },
   {
     label: "Fecha de Disponibilidad",
-    date: master.value?.fecha_disponibilidad,
+    date: calendarDateLabel(master.value?.fecha_disponibilidad),
     confirmedLabel: "Confirmación Disponibilidad",
     confirmed: master.value?.disponibilidadflag,
   },
@@ -65,8 +76,7 @@ const dates = computed(() => [
           md="6"
         >
           <v-text-field
-            :model-value="item.date ?? ''"
-            type="date"
+            :model-value="item.date"
             :label="item.label"
             readonly
           />

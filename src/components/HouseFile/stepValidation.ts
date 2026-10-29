@@ -1,6 +1,6 @@
 import moment from "moment-timezone";
-import { SHORT_MONTHS, shortDate } from "@/utils/dates";
-import { stepDateTimeLabel, toDateAndTime } from "./houseTrackingFormat";
+import { SHORT_MONTHS } from "@/utils/dates";
+import { calendarDateLabel, stepDateTimeLabel, toDateAndTime } from "./houseTrackingFormat";
 import { weightCheckSummary } from "./weightCheck";
 import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
 
@@ -12,7 +12,6 @@ export interface StepValidationLine {
 
 type StepWithValidity = Pick<HouseTrackingStep, "quote_validity">;
 
-const validUntilLabel = (validUntil: string) => shortDate(moment(validUntil, "YYYY-MM-DD"));
 const stepDateOf = (step: Pick<HouseTrackingStep, "confirmed_at" | "scheduled_at">) => step.confirmed_at ?? step.scheduled_at;
 
 const pastValidity = (step: StepWithValidity, at: string, timeZone: string) =>
@@ -42,7 +41,7 @@ const quoteLine = (step: HouseTrackingStep, timeZone: string): StepValidationLin
   const stepDate = stepDateOf(step);
   if (!stepDate || !pastValidity(step, stepDate, timeZone)) return null;
   return {
-    label: `La fecha de salida supera la vigencia de la cotización (vence ${validUntilLabel(validity.valid_until)}).`,
+    label: `La fecha de salida supera la vigencia de la cotización (vence ${calendarDateLabel(validity.valid_until)}).`,
     warning: true,
     icon: "mdi-alert",
   };
@@ -63,7 +62,7 @@ export const stepValidationLines = (step: HouseTrackingStep, timeZone: string): 
 export const quoteValidityBadge = (steps: HouseTrackingStep[], today: string): { label: string; warning: boolean } | null => {
   const validity = steps.find((step) => step.quote_validity && today > step.quote_validity.valid_until)?.quote_validity;
   if (!validity) return null;
-  const label = `Cotización vencida el ${validUntilLabel(validity.valid_until)}`;
+  const label = `Cotización vencida el ${calendarDateLabel(validity.valid_until)}`;
   return validity.kept_at
     ? { label: `${label} · Tarifa mantenida`, warning: false }
     : { label: label.toUpperCase(), warning: true };
