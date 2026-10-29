@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { stepDateTimeLabel } from "@/components/HouseFile/houseTrackingFormat";
+import { updatesByStep } from "./publicTrackingFormat";
 import type { TrackingUpdate } from "./publicTrackingFormat";
 
 const LATEST_COUNT = 3;
 
 const props = defineProps<{ updates: TrackingUpdate[]; timeZone: string }>();
 const showAll = ref(false);
-const shown = computed(() => (showAll.value ? props.updates : props.updates.slice(0, LATEST_COUNT)));
+const shownSteps = computed(() => updatesByStep(showAll.value ? props.updates : props.updates.slice(0, LATEST_COUNT)));
 </script>
 
 <template>
@@ -37,8 +38,8 @@ const shown = computed(() => (showAll.value ? props.updates : props.updates.slic
       class="pa-0"
     >
       <template
-        v-for="(update, index) in shown"
-        :key="update.key"
+        v-for="(step, index) in shownSteps"
+        :key="step.key"
       >
         <v-divider
           v-if="index"
@@ -53,13 +54,20 @@ const shown = computed(() => (showAll.value ? props.updates : props.updates.slic
               class="me-3"
             >
               <v-icon
-                :icon="update.icon"
+                :icon="step.icon"
                 color="primary"
                 size="20"
               />
             </v-avatar>
           </template>
-          <div class="d-flex flex-wrap align-center gc-4 gr-1">
+          <div class="text-body-medium font-weight-bold">
+            {{ step.stepName }}
+          </div>
+          <div
+            v-for="update in step.updates"
+            :key="update.key"
+            class="d-flex flex-wrap align-center gc-4 gr-1"
+          >
             <span class="text-body-medium text-medium-emphasis text-no-wrap">
               {{ stepDateTimeLabel(update.at, timeZone) }}
             </span>
