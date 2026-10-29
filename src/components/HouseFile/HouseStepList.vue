@@ -30,6 +30,7 @@ const allSteps = computed(() => phases.value.flatMap((phase) => phase.steps));
 const quoteBadge = computed(() => quoteValidityBadge(allSteps.value, todayIn(timeZone.value)));
 const selected = computed(() => allSteps.value.find((step) => step.id === selectedId.value) ?? null);
 const nextStepName = computed(() => allSteps.value.find((step) => step.state === "next")?.name ?? null);
+const lastConfirmed = computed(() => allSteps.value.filter((step) => step.state === "confirmed").pop() ?? null);
 
 function openDialog(step: HouseTrackingStep, mode: StepDialogMode) {
   selectedId.value = step.id;
@@ -45,6 +46,10 @@ function continueAfterWeightCheck(check: WeightCheck) {
 }
 
 async function unconfirmStep(step: HouseTrackingStep) {
+  if (lastConfirmed.value && lastConfirmed.value.id !== step.id) {
+    Swal.fire({ icon: "warning", text: `Primero desconfirma «${lastConfirmed.value.name}».` });
+    return;
+  }
   const { isConfirmed } = await Swal.fire({
     icon: "question",
     titleText: `¿Desconfirmar «${step.name}»?`,

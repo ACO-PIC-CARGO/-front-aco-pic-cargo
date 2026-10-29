@@ -43,11 +43,11 @@ const phaseWith = (step: HouseTrackingStep): HouseTrackingPhase => ({
   steps: [step],
 });
 
-const mountList = (step: HouseTrackingStep) => {
+const mountList = (...steps: HouseTrackingStep[]) => {
   const pinia = createPinia();
   setActivePinia(pinia);
   const store = useHouseTrackingStore();
-  store.phases = [phaseWith(step)];
+  store.phases = [{ ...phaseWith(steps[0]!), steps }];
   const wrapper = mount(HouseStepList, {
     props: { houseId: 2830, loadError: "" },
     global: {
@@ -86,6 +86,19 @@ test("unconfirming a step the client already sees warns that it leaves the clien
   wrapper.findComponent(HouseStepItem).vm.$emit("unconfirm");
   await flushPromises();
   expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: expect.stringContaining("tracking del cliente") });
+});
+
+test("a step confirmed before the last one says which step to unconfirm first, without asking", async () => {
+  const later = { ...confirmedEtd(null), id: 7, name: "Liberación de documentos (Telex Release)", number: 7 };
+  const { store, wrapper } = mountList(confirmedEtd(null), later);
+  const unconfirm = vi.spyOn(store, "unconfirm").mockResolvedValue(null);
+  vi.mocked(Swal.fire).mockClear();
+  wrapper.findAllComponents(HouseStepItem)[0]!.vm.$emit("unconfirm");
+  await flushPromises();
+  expect(vi.mocked(Swal.fire).mock.calls).toEqual([
+    [{ icon: "warning", text: "Primero desconfirma «Liberación de documentos (Telex Release)»." }],
+  ]);
+  expect(unconfirm).not.toHaveBeenCalled();
 });
 
 test("the date modal always works on the latest tracking of the step it was opened for", async () => {
