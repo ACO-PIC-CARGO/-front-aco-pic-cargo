@@ -9,6 +9,7 @@ export interface TrackingStep {
   visible_to_client: boolean;
   active: boolean;
   validation_id: number | null;
+  date_default_id: number | null;
 }
 
 export interface TrackingPhase {
@@ -42,9 +43,16 @@ export interface TrackingStepDraft {
   visible_to_client: boolean;
   active: boolean;
   validation_id: number | null;
+  date_default_id: number | null;
 }
 
 export interface TrackingValidation {
+  id: number;
+  code: string;
+  name: string;
+}
+
+export interface TrackingDateDefault {
   id: number;
   code: string;
   name: string;

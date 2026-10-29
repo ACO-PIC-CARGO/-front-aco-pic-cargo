@@ -38,6 +38,7 @@ const phase: TrackingPhase = {
       visible_to_client: true,
       active: true,
       validation_id: null,
+      date_default_id: null,
     },
   ],
 };

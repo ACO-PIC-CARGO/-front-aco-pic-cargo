@@ -13,10 +13,11 @@ const props = defineProps<{ step: TrackingStep | null; phaseId: number | null }>
 const open = defineModel<boolean>({ default: false });
 
 const store = useTrackingCatalogStore();
-const { phases, validations } = storeToRefs(store);
+const { phases, validations, dateDefaults } = storeToRefs(store);
 const form = useTemplateRef("form");
 const draft = ref<TrackingStepDraft>(toDraft(null, null));
 const validationItems = computed(() => [{ id: null, name: "Sin validación" }, ...validations.value]);
+const dateDefaultItems = computed(() => [{ id: null, name: "Sin fecha por defecto" }, ...dateDefaults.value]);
 const { saving, serverError, save } = useDialogSave(open, form, () => store.saveStep(draft.value));
 const isEditing = computed(() => draft.value.id !== null);
 const changesPhase = computed(() => isEditing.value && draft.value.phase_id !== props.phaseId);
@@ -33,6 +34,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
       visible_to_client: true,
       active: true,
       validation_id: null,
+      date_default_id: null,
     };
   }
   return {
@@ -43,6 +45,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
     visible_to_client: step.visible_to_client,
     active: step.active,
     validation_id: step.validation_id,
+    date_default_id: step.date_default_id,
   };
 }
 
@@ -94,6 +97,15 @@ watch(open, (isOpen) => {
             item-title="name"
             item-value="id"
             hint="Se pide al confirmar este paso en un house."
+            persistent-hint
+          />
+          <v-select
+            v-model="draft.date_default_id"
+            label="Fecha por defecto"
+            :items="dateDefaultItems"
+            item-title="name"
+            item-value="id"
+            hint="Es la fecha estimada del paso en cada house hasta que le pongas otra."
             persistent-hint
           />
           <v-switch

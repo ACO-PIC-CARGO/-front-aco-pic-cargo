@@ -42,6 +42,7 @@ const step: TrackingStep = {
   visible_to_client: true,
   active: true,
   validation_id: 1,
+  date_default_id: null,
 };
 const phase: TrackingPhase = {
   id: 7,
@@ -95,4 +96,32 @@ test("choosing «Sin validación» removes the step's validation when saving", a
 
   const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
   expect(saved.data).toMatchObject({ validation_id: null });
+});
+
+test("choosing a default date saves it with the step", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const store = useTrackingCatalogStore();
+  store.phases = [phase];
+  store.dateDefaults = [{ id: 2, code: "master_availability_date", name: "Fecha de disponibilidad del máster" }];
+  wrapper = mount(TrackingStepDialog, {
+    props: { step, phaseId: 7, modelValue: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
+  await wrapper.setProps({ modelValue: true });
+  await flushPromises();
+
+  const field = [...document.body.querySelectorAll(".v-select")].find((element) =>
+    element.textContent?.includes("Fecha por defecto"),
+  )!;
+  field.querySelector(".v-field")!.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+  await flushPromises();
+  buttonNamed("Fecha de disponibilidad del máster").click();
+  await flushPromises();
+  buttonNamed("Guardar cambios").click();
+  await flushPromises();
+
+  const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
+  expect(saved.data).toMatchObject({ date_default_id: 2 });
 });

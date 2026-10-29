@@ -45,6 +45,7 @@ const step = (over: Partial<TrackingStep> = {}): TrackingStep => ({
   visible_to_client: true,
   active: true,
   validation_id: null,
+  date_default_id: null,
   ...over,
 });
 
@@ -130,11 +131,12 @@ describe("trackingCatalog store", () => {
       visible_to_client: false,
       active: true,
       validation_id: 1,
+      date_default_id: 2,
     });
     expect(httpMock.mock.calls.map(([config]) => [config.method, config.url, config.data])).toEqual([
       ["put", "tracking_phases/7", { name: "Origen", icon: "mdi-factory", active: false }],
       ["get", "tracking_catalog", undefined],
-      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true, validation_id: 1 }],
+      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true, validation_id: 1, date_default_id: 2 }],
       ["get", "tracking_catalog", undefined],
     ]);
   });
@@ -151,6 +153,7 @@ describe("trackingCatalog store", () => {
       visible_to_client: true,
       active: true,
       validation_id: null,
+      date_default_id: null,
     };
     expect(await store.saveStep(draft)).toBe("Ya existe un paso con ese nombre. Usa otro nombre.");
     expect(sent()).toEqual(["post tracking_steps"]);
@@ -186,9 +189,9 @@ describe("trackingCatalog store", () => {
     });
   });
 
-  test("setStepVisibility saves the whole step with the new visibility", async () => {
+  test("setStepVisibility saves the whole step with the new visibility, keeping its validation and default date", async () => {
     respond({ "put tracking_steps/5": accepted(), "get tracking_catalog": accepted([phase()]) });
-    await useTrackingCatalogStore().setStepVisibility(7, step({ validation_id: 1 }), false);
+    await useTrackingCatalogStore().setStepVisibility(7, step({ validation_id: 1, date_default_id: 2 }), false);
     expect(httpMock.mock.calls[0]![0]).toEqual({
       method: "put",
       url: "tracking_steps/5",
@@ -199,6 +202,7 @@ describe("trackingCatalog store", () => {
         visible_to_client: false,
         active: true,
         validation_id: 1,
+        date_default_id: 2,
       },
     });
     expect(Swal.fire).not.toHaveBeenCalled();
@@ -209,6 +213,13 @@ describe("trackingCatalog store", () => {
     const store = useTrackingCatalogStore();
     expect(await store.loadValidations()).toBeNull();
     expect(store.validations).toEqual([{ id: 1, code: "weight_volume", name: "Peso y volumen" }]);
+  });
+
+  test("loadDateDefaults keeps the default dates a step can take", async () => {
+    respond({ "get tracking_date_defaults": accepted([{ id: 2, code: "master_availability_date", name: "Fecha de disponibilidad del máster" }]) });
+    const store = useTrackingCatalogStore();
+    expect(await store.loadDateDefaults()).toBeNull();
+    expect(store.dateDefaults).toEqual([{ id: 2, code: "master_availability_date", name: "Fecha de disponibilidad del máster" }]);
   });
 
   test("busy stays on until the change and the reload finish", async () => {

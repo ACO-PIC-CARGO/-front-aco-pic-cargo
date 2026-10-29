@@ -17,8 +17,9 @@ const emit = defineEmits<{
 }>();
 
 const store = useTrackingCatalogStore();
-const { validations } = storeToRefs(store);
+const { validations, dateDefaults } = storeToRefs(store);
 const validationName = (id: number | null) => validations.value.find((item) => item.id === id)?.name;
+const dateDefaultName = (id: number | null) => dateDefaults.value.find((item) => item.id === id)?.name;
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
 const rangeLabel = computed(() => stepRangeLabel(props.phase));
 const openCommentStepIds = ref(new Set<number>());
@@ -112,6 +113,10 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
               v-if="validationName(step.validation_id)"
               class="aco-chip aco-chip--neutral"
             >Valida: {{ validationName(step.validation_id) }}</span>
+            <span
+              v-if="dateDefaultName(step.date_default_id)"
+              class="aco-chip aco-chip--neutral"
+            >Fecha: {{ dateDefaultName(step.date_default_id) }}</span>
           </div>
           <v-switch
             :model-value="step.visible_to_client"

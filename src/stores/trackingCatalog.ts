@@ -6,6 +6,7 @@ import { hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
 import type {
   MoveDirection,
+  TrackingDateDefault,
   TrackingPhase,
   TrackingPhaseDraft,
   TrackingStep,
@@ -35,6 +36,7 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
   const loading = ref(false);
   const busy = ref(false);
   const validations = ref<TrackingValidation[]>([]);
+  const dateDefaults = ref<TrackingDateDefault[]>([]);
 
   async function loadCatalog(): Promise<string | null> {
     loading.value = true;
@@ -49,6 +51,13 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
     const response = await request<TrackingValidation>({ method: "get", url: "tracking_validations" });
     if (hasFailed(response)) return response.mensaje;
     validations.value = response.data;
+    return null;
+  }
+
+  async function loadDateDefaults(): Promise<string | null> {
+    const response = await request<TrackingDateDefault>({ method: "get", url: "tracking_date_defaults" });
+    if (hasFailed(response)) return response.mensaje;
+    dateDefaults.value = response.data;
     return null;
   }
 
@@ -91,16 +100,19 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
         visible_to_client: visible,
         active: step.active,
         validation_id: step.validation_id,
+        date_default_id: step.date_default_id,
       }),
     );
 
   return {
     phases,
     validations,
+    dateDefaults,
     loading,
     busy,
     loadCatalog,
     loadValidations,
+    loadDateDefaults,
     savePhase,
     saveStep,
     movePhase,

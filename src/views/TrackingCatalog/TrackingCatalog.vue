@@ -37,6 +37,7 @@ function openStep(phaseId: number, step: TrackingStep | null) {
 onMounted(() => {
   load();
   store.loadValidations();
+  store.loadDateDefaults();
 });
 </script>
 
