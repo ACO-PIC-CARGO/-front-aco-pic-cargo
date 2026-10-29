@@ -371,6 +371,13 @@ async function recargarPuertoDestino(textoBuscar: string) {
     search: textoBuscar,
   });
 }
+function verMaster() {
+  const masterId = housesStore.house.id_master;
+  if (masterId) {
+    window.open(router.resolve(`/home/folderMaster/control/ver/${masterId}`).href, "_blank", "noopener");
+  }
+}
+
 function verCotizacion() {
   const quoteId = housesStore.house.id_cot;
   if (quoteId) {
@@ -425,6 +432,9 @@ onMounted(async () => {
           readonly
           v-model="housesStore.house.code_master"
           label="N° de Expedientes Master"
+          @click="verMaster"
+          :style="housesStore.house.id_master ? 'cursor: pointer;' : ''"
+          :append-inner-icon="housesStore.house.id_master ? 'mdi-eye' : ''"
         />
       </v-col>
       <!-- <v-col cols="12" md="4">

@@ -68,6 +68,24 @@ test("the customs quote of a house that already has one is never editable", asyn
   wrapper.unmount();
 });
 
+test("the house's master opens in another tab", async () => {
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 22 }]));
+  useHousesStore().house = { shipment: "LCL", id_master: 2714, code_master: "2026MBL01739" } as never;
+  const wrapper = mount(DataGenVer, {
+    props: { editing: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+  });
+  await flushPromises();
+  const master = wrapper.findAll(".v-text-field").find((field) => field.text().includes("N° de Expedientes Master"))!;
+  await master.find("input").trigger("click");
+  expect(open).toHaveBeenCalledWith("/#/home/folderMaster/control/ver/2714", "_blank", "noopener");
+  wrapper.unmount();
+  open.mockRestore();
+});
+
 test("the linked quote opens in another tab, from the loaded house", async () => {
   const open = vi.spyOn(window, "open").mockReturnValue(null);
   const pinia = createPinia();
