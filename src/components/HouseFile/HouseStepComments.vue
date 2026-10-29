@@ -96,6 +96,7 @@ async function remove(item: HouseTrackingComment) {
               withdraw-confirm-text="¿Retirar este comentario del tracking del cliente?"
               :withdraw="() => store.withdrawComment(houseId, item.id)"
             />
+            <span v-if="commentSendState(step, item) === 'blocked'">Primero debes confirmar</span>
           </div>
           <div class="text-body-medium text-break">
             {{ item.comment }}
