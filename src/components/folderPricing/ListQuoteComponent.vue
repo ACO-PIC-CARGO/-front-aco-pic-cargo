@@ -62,13 +62,13 @@ const headersHouses = [
   { title: "Acciones", key: "actions", sortable: false },
 ] as const;
 const cabCotizaciones = [
-  // {
-  //   value: "acciones",
-  //   text: "",
-  //   align: "center",
-  //   groupable: true,
-  //   estado: true,
-  // },
+  {
+    key: "acciones",
+    title: "",
+    align: "center",
+    groupable: true,
+    estado: true,
+  },
   {
     key: "created",
     title: "FECHA CREACIÓN",
