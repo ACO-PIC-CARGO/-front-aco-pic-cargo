@@ -105,7 +105,7 @@ watch(open, (isOpen) => {
             :items="dateDefaultItems"
             item-title="name"
             item-value="id"
-            hint="Es la fecha estimada del paso en cada house hasta que le pongas otra."
+            hint="Se copia como fecha estimada del paso al crear cada house."
             persistent-hint
           />
           <v-switch
