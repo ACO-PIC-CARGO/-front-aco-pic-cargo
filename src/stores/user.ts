@@ -15,7 +15,7 @@ import type {
   UsuarioSucursal,
 } from "@/types/seguridad";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useUserStore = defineStore("user", () => {
   const tipo = ref("filter");
@@ -62,18 +62,16 @@ export const useUserStore = defineStore("user", () => {
   async function GetListUsers(): Promise<void> {
     const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_usuarios?&id_branch=${sessionBranchId()}&users=${
-          filtros.value.users ? filtros.value.users : ""
-        }&nombrecompleto=${filtros.value.nombrecompleto ? filtros.value.nombrecompleto : ""}&id_document=${
-          filtros.value.id_document ? filtros.value.id_document : ""
-        }&document=${filtros.value.document ? filtros.value.document : ""}&phone=${
-          filtros.value.phone ? filtros.value.phone : ""
-        }&email=${filtros.value.email ? filtros.value.email : ""}&status=${
-          filtros.value.status === "null" ? "" : filtros.value.status
-        }`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_usuarios",
+      params: {
+        users: filtros.value.users || "",
+        nombrecompleto: filtros.value.nombrecompleto || "",
+        id_document: filtros.value.id_document || "",
+        document: filtros.value.document || "",
+        phone: filtros.value.phone || "",
+        email: filtros.value.email || "",
+        status: filtros.value.status === "null" ? "" : filtros.value.status,
+      },
       headers: { "Content-Type": "application/json" },
     };
 
@@ -96,8 +94,8 @@ export const useUserStore = defineStore("user", () => {
   async function GetVerUsers(): Promise<void> {
     const config = {
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `ver_usuario?&id_branch=${sessionBranchId()}&id=${model.value.id}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "ver_usuario",
+      params: { id: model.value.id },
       headers: { "Content-Type": "application/json" },
     };
     try {
@@ -160,8 +158,8 @@ export const useUserStore = defineStore("user", () => {
   async function validateEmailUsuario(): Promise<ApiResponse | undefined> {
     const config = {
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `validate_email_usuarios?email=${model.value.email}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "validate_email_usuarios",
+      params: { email: model.value.email },
       headers: { "Content-Type": "application/json" },
     };
     try {
@@ -175,12 +173,8 @@ export const useUserStore = defineStore("user", () => {
   async function validateDocumentUsuario(): Promise<ApiResponse<UsuarioExistente[]> | undefined> {
     const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `validate_document_usuarios?id_branch=${sessionBranchId()}&id_document=${model.value.id_document}&document=${
-          model.value.document
-        }`,
-
+      url: import.meta.env.VITE_URL_MAIN + "validate_document_usuarios",
+      params: { id_document: model.value.id_document, document: model.value.document },
       headers: { "Content-Type": "application/json" },
     };
     try {
@@ -191,101 +185,39 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
-  async function setUsers(): Promise<void> {
-    const datos = model.value;
-    datos.id_branch = sessionBranchId();
-    datos.positions = positions.value;
-    datos.sucursales = sucursales.value;
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_usuario`,
+  async function saveAndShow(method: string, path: string, data: unknown): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
-      data: datos,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-            allowEnterKey: false,
-            allowEscapeKey: false,
-            allowOutsideClick: false,
-          }).then((res) => {
-            if (res.isConfirmed) {
-              router.push({ name: "listUser" });
-            }
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+      data,
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      allowEnterKey: false,
+      allowEscapeKey: false,
+      allowOutsideClick: false,
+    });
+    return response.estadoflag;
   }
 
-  async function ActualizarUsers(): Promise<void> {
-    const datos = model.value;
-    datos.id_branch = sessionBranchId();
-    datos.positions = positions.value;
-    datos.sucursales = sucursales.value;
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_usuario`,
-      headers: { "Content-Type": "application/json" },
-      data: datos,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-            allowEnterKey: false,
-            allowEscapeKey: false,
-            allowOutsideClick: false,
-          }).then((res) => {
-            if (res.isConfirmed) {
-              router.push({ name: "listUser" });
-            }
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+  async function saveUserAndReturnToList(method: string, path: string): Promise<boolean> {
+    const saved = await saveAndShow(method, path, {
+      ...model.value,
+      positions: positions.value,
+      sucursales: sucursales.value,
+    });
+    if (saved) router.push({ name: "listUser" });
+    return saved;
   }
 
-  async function cambiarEstadoUsers(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `cambiar_estado_usuario`,
-      headers: { "Content-Type": "application/json" },
-      data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config).then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          allowEnterKey: false,
-          allowEscapeKey: false,
-          allowOutsideClick: false,
-        });
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const setUsers = (): Promise<boolean> => saveUserAndReturnToList("post", "insertar_usuario");
+
+  const ActualizarUsers = (): Promise<boolean> => saveUserAndReturnToList("put", "actualizar_usuario");
+
+  const cambiarEstadoUsers = (id: number, status: number): Promise<boolean> =>
+    saveAndShow("put", "cambiar_estado_usuario", { id, status });
 
   return {
     tipo,

@@ -3,13 +3,14 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useUserStore } from "@/stores/user";
-import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { JSON_HEADERS, URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const row = { id: 4, nombrecompleto: "Ana Pérez", users: "ana", phone: "999", status: 1 };
+const LOCKED_ALERT = { allowEnterKey: false, allowEscapeKey: false, allowOutsideClick: false };
 
 describe("user store", () => {
   beforeEach(() => {
@@ -21,24 +22,30 @@ describe("user store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("GetListUsers reads the current filters, sends 'Todos' as empty and keeps the rows", async () => {
+  test("GetListUsers sends the current filters as parameters, 'Todos' as empty, and keeps the rows", async () => {
     respond({ listar_usuarios: accepted([row]) });
     const store = useUserStore();
 
     await store.GetListUsers();
-    store.filtros = { ...store.filtros, users: "an", nombrecompleto: "Ana", id_document: 2, document: "123", phone: "9", email: "a@b.c", status: "null" };
+    store.filtros = { ...store.filtros, users: "an", nombrecompleto: "Ana", id_document: 2, document: "123", phone: "9", email: "a&b@c.c", status: "null" };
     await store.GetListUsers();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_usuarios?&id_branch=7&users=&nombrecompleto=&id_document=&document=&phone=&email=&status=1",
+      url: URL_MAIN + "listar_usuarios",
+      params: { users: "", nombrecompleto: "", id_document: "", document: "", phone: "", email: "", status: "1" },
       headers: JSON_HEADERS,
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(
-      URL_MAIN + "listar_usuarios?&id_branch=7&users=an&nombrecompleto=Ana&id_document=2&document=123&phone=9&email=a@b.c&status=",
-    );
+    expect(httpMock.mock.calls[1]![0].params).toEqual({
+      users: "an",
+      nombrecompleto: "Ana",
+      id_document: 2,
+      document: "123",
+      phone: "9",
+      email: "a&b@c.c",
+      status: "",
+    });
     expect(store.lstUsers).toEqual([row]);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
 
   test("GetListUsers empties the list and tells the user when the backend rejects", async () => {
@@ -60,34 +67,33 @@ describe("user store", () => {
 
     await store.GetVerUsers();
 
-    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "ver_usuario?&id_branch=7&id=4", headers: JSON_HEADERS });
+    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "ver_usuario", params: { id: 4 }, headers: JSON_HEADERS });
     expect(store.model).toEqual(detail);
     expect(store.positions).toEqual(detail.positions);
     expect(store.sucursales).toEqual(detail.sucursales);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
 
     respond({ ver_usuario: rejected("Usuario inexistente") });
     await store.GetVerUsers();
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", title: "Aviso", text: "Usuario inexistente" });
   });
 
-  test("the validators ask about the model and return the answer, or nothing on failure", async () => {
+  test("the validators ask about the model with encoded parameters and return the answer, or nothing on failure", async () => {
     respond({
       validate_user_usuarios: rejected("Libre"),
       validate_email_usuarios: rejected("Libre"),
       validate_document_usuarios: rejected("Libre"),
     });
     const store = useUserStore();
-    store.model = { users: "ana", email: "a@b.c", id_document: 2, document: "123" };
+    store.model = { users: "ana", email: "a+b@c.c", id_document: 2, document: "123" };
 
     expect(await store.validateUserUsuario()).toEqual(rejected("Libre"));
     expect(await store.validateEmailUsuario()).toEqual(rejected("Libre"));
     expect(await store.validateDocumentUsuario()).toEqual(rejected("Libre"));
 
-    expect(httpMock.mock.calls.map(([config]) => config.url)).toEqual([
-      URL_MAIN + "validate_user_usuarios?users=ana",
-      URL_MAIN + "validate_email_usuarios?email=a@b.c",
-      URL_MAIN + "validate_document_usuarios?id_branch=7&id_document=2&document=123",
+    expect(httpMock.mock.calls.map(([config]) => [config.url, config.params])).toEqual([
+      [URL_MAIN + "validate_user_usuarios?users=ana", undefined],
+      [URL_MAIN + "validate_email_usuarios", { email: "a+b@c.c" }],
+      [URL_MAIN + "validate_document_usuarios", { id_document: 2, document: "123" }],
     ]);
 
     vi.spyOn(console, "error").mockImplementation(() => {});
@@ -95,41 +101,50 @@ describe("user store", () => {
     expect(await store.validateUserUsuario()).toBeUndefined();
   });
 
-  test("setUsers and ActualizarUsers send the model with branch, positions and branches, then go back to the list", async () => {
-    respond({ insertar_usuario: accepted([]), actualizar_usuario: rejected("Duplicado") });
+  test("setUsers and ActualizarUsers send the model with its positions and branches, then go back to the list", async () => {
+    respond({ insertar_usuario: accepted([]), actualizar_usuario: accepted([]) });
     const store = useUserStore();
     store.model = { users: "ana" };
     store.positions = [{ id: 1, name: "ADM" }];
     store.sucursales = [{ id: 2, trade_name: "PIC" }];
-    const body = { users: "ana", id_branch: 7, positions: store.positions, sucursales: store.sucursales };
+    const body = { users: "ana", positions: store.positions, sucursales: store.sucursales };
 
-    await store.setUsers();
-    await store.ActualizarUsers();
-    await flushPromises();
+    expect(await store.setUsers()).toBe(true);
+    expect(await store.ActualizarUsers()).toBe(true);
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_usuario", headers: JSON_HEADERS, data: body });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_usuario", headers: JSON_HEADERS, data: body });
-    expect(Swal.fire).toHaveBeenNthCalledWith(1, {
-      icon: "success",
-      text: "ok",
-      allowEnterKey: false,
-      allowEscapeKey: false,
-      allowOutsideClick: false,
-    });
-    expect(vi.mocked(Swal.fire).mock.calls[1]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", ...LOCKED_ALERT });
     expect(router.push).toHaveBeenCalledTimes(2);
     expect(router.push).toHaveBeenCalledWith({ name: "listUser" });
   });
 
-  test("cambiarEstadoUsers sends the model and shows the answer without going anywhere", async () => {
+  test("a refused or failed save shows why and keeps the form open", async () => {
+    respond({ insertar_usuario: rejected("La clave debe tener al menos 8 caracteres."), actualizar_usuario: new Error("network") });
+    const store = useUserStore();
+
+    expect(await store.setUsers()).toBe(false);
+    expect(await store.ActualizarUsers()).toBe(false);
+
+    expect(Swal.fire).toHaveBeenNthCalledWith(1, { icon: "error", text: "La clave debe tener al menos 8 caracteres.", ...LOCKED_ALERT });
+    expect(vi.mocked(Swal.fire).mock.calls[1]![0]).toMatchObject({ icon: "error", text: expect.stringContaining("conexión") });
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  test("cambiarEstadoUsers sends the user and the status it must end with, and says whether it worked", async () => {
     respond({ cambiar_estado_usuario: accepted([]) });
     const store = useUserStore();
-    store.model = { id: 4, status: 0 };
+    store.model = { id: 9, status: 1 };
 
-    await store.cambiarEstadoUsers();
+    expect(await store.cambiarEstadoUsers(4, 0)).toBe(true);
 
-    expect(httpMock).toHaveBeenCalledWith({ method: "put", url: URL_MAIN + "cambiar_estado_usuario", headers: JSON_HEADERS, data: { id: 4, status: 0 } });
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", allowEnterKey: false, allowEscapeKey: false, allowOutsideClick: false });
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "put",
+      url: URL_MAIN + "cambiar_estado_usuario",
+      headers: JSON_HEADERS,
+      data: { id: 4, status: 0 },
+    });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", ...LOCKED_ALERT });
     expect(router.push).not.toHaveBeenCalled();
   });
 });

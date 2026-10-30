@@ -78,10 +78,8 @@ async function eliminar(item: UsuarioListado) {
     showCancelButton: true,
   }).then(async (res) => {
     if (res.isConfirmed) {
-      item.status = 0;
-      userStore.model = item;
       loading.value = true;
-      await userStore.cambiarEstadoUsers();
+      await userStore.cambiarEstadoUsers(item.id, 0);
       await userStore.GetListUsers();
       loading.value = false;
     }
@@ -133,13 +131,6 @@ onMounted(async () => {
             @click="filtrar()"
           >
             FILTRAR
-          </v-btn>
-          <v-btn
-            size="small"
-            class="mx-1"
-            color="#004D40"
-          >
-            EXPORTAR
           </v-btn>
         </v-col>
         <v-col cols="12">
