@@ -5,7 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroSubIngreso, SubIngreso } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useSubingresoStore = defineStore("subingreso", () => {
   const tipo = ref("filter");
@@ -35,20 +35,15 @@ export const useSubingresoStore = defineStore("subingreso", () => {
   async function GetListSubIngreso(): Promise<void> {
     const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_subingreso?&id_branch=${sessionBranchId()}&id_ingreso=${
-          filtros.value.id_ingreso ? filtros.value.id_ingreso : ""
-        }&code=${filtros.value.code ? filtros.value.code : ""}&description=${
-          filtros.value.description ? filtros.value.description : ""
-        }&status=${
-          filtros.value.status == "null" ? "" : filtros.value.status
-        }&calculoflag=${
-          filtros.value.calculoflag == "null" ? "" : filtros.value.calculoflag
-        }&mostrarflag=${
-          filtros.value.mostrarflag == "null" ? "" : filtros.value.mostrarflag
-        }`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_subingreso",
+      params: {
+        id_ingreso: filtros.value.id_ingreso || "",
+        code: filtros.value.code || "",
+        description: filtros.value.description || "",
+        status: filtros.value.status == "null" ? "" : filtros.value.status,
+        calculoflag: filtros.value.calculoflag == "null" ? "" : filtros.value.calculoflag,
+        mostrarflag: filtros.value.mostrarflag == "null" ? "" : filtros.value.mostrarflag,
+      },
       headers: { "Content-Type": "application/json" },
     };
     try {
@@ -72,69 +67,41 @@ export const useSubingresoStore = defineStore("subingreso", () => {
     }
   }
 
-  async function getValidateCodeSubIngreso(): Promise<ApiResponse | undefined> {
-    const config = {
+  function getValidateCodeSubIngreso(): Promise<ApiResponse> {
+    return request({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `validate_code_subingreso?id_branch=${sessionBranchId()}&code=${model.value.code}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "validate_code_subingreso",
+      params: { code: model.value.code },
       headers: { "Content-Type": "application/json" },
-    };
-    try {
-      const res = await axios<ApiResponse>(config);
-      return res.data;
-    } catch (error) {
-      console.error(error);
-    }
+    });
   }
 
-  async function setSubIngreso(): Promise<void> {
-    const config = {
+  async function setSubIngreso(): Promise<boolean> {
+    const response = await request({
       method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_subingreso`,
+      url: import.meta.env.VITE_URL_MAIN + "insertar_subingreso",
       headers: { "Content-Type": "application/json" },
       data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
 
-  async function ActualizarSubIngreso(): Promise<void> {
-    const config = {
+  async function ActualizarSubIngreso(): Promise<boolean> {
+    const response = await request({
       method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_subingreso`,
+      url: import.meta.env.VITE_URL_MAIN + "actualizar_subingreso",
       headers: { "Content-Type": "application/json" },
       data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
 
   return { tipo, drawer, lstSubIngreso, filtros, model, GetListSubIngreso, getValidateCodeSubIngreso, setSubIngreso, ActualizarSubIngreso };

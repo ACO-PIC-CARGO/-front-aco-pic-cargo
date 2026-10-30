@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import { useSubgastoStore } from "@/stores/subgasto";
 import { JSON_HEADERS, URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -25,17 +26,23 @@ describe("subgasto store", () => {
     const store = useSubgastoStore();
 
     await store.GetListSubGasto();
-    store.filtros = { ...store.filtros, id_gasto: 4, code: "CX", description: "CUENTA", status: "null", calculoflag: false, mostrarflag: true };
+    store.filtros = { ...store.filtros, id_gasto: 4, code: "C&X", description: "50% CUENTA", status: "null", calculoflag: false, mostrarflag: true };
     await store.GetListSubGasto();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_subgasto?&id_branch=7&id_gasto=&code=&description=&status=true&calculoflag=&mostrarflag=",
+      url: URL_MAIN + "listar_subgasto",
+      params: { id_gasto: "", code: "", description: "", status: true, calculoflag: "", mostrarflag: "" },
       headers: JSON_HEADERS,
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(
-      URL_MAIN + "listar_subgasto?&id_branch=7&id_gasto=4&code=CX&description=CUENTA&status=&calculoflag=false&mostrarflag=true",
-    );
+    expect(httpMock.mock.calls[1]![0].params).toEqual({
+      id_gasto: 4,
+      code: "C&X",
+      description: "50% CUENTA",
+      status: "",
+      calculoflag: false,
+      mostrarflag: true,
+    });
     expect(store.lstSubGasto).toEqual([row]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
@@ -51,7 +58,7 @@ describe("subgasto store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "info", text: "No se encontraron registros" });
   });
 
-  test("getValidateCodeSubGasto asks about the model code and returns the answer, or nothing on failure", async () => {
+  test("getValidateCodeSubGasto asks about the model code and returns the answer, or a failed one when the server cannot be reached", async () => {
     respond({ validate_code_subgasto: rejected("Código disponible") });
     const store = useSubgastoStore();
     store.model = { ...store.model, code: "NEW" };
@@ -60,14 +67,14 @@ describe("subgasto store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url: URL_MAIN + "validate_code_subgasto?id_branch=7&code=NEW",
+      url: URL_MAIN + "validate_code_subgasto",
+      params: { code: "NEW" },
       headers: JSON_HEADERS,
     });
     expect(answer).toEqual(rejected("Código disponible"));
 
-    vi.spyOn(console, "error").mockImplementation(() => {});
     respond({ validate_code_subgasto: new Error("network") });
-    expect(await store.getValidateCodeSubGasto()).toBeUndefined();
+    expect(await store.getValidateCodeSubGasto()).toMatchObject({ estadoflag: false, mensaje: CONNECTION_ERROR_MESSAGE });
   });
 
   test("setSubGasto posts and ActualizarSubGasto puts the current model, each showing the answer", async () => {
@@ -75,8 +82,8 @@ describe("subgasto store", () => {
     const store = useSubgastoStore();
     store.model = row;
 
-    await store.setSubGasto();
-    await store.ActualizarSubGasto();
+    expect(await store.setSubGasto()).toBe(true);
+    expect(await store.ActualizarSubGasto()).toBe(false);
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_subgasto", headers: JSON_HEADERS, data: row });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_subgasto", headers: JSON_HEADERS, data: row });

@@ -59,28 +59,31 @@ async function Limpiar() {
 }
 async function validateCodigo() {
   err.value = "";
-  if (subgastoStore.tipo == "nuevo") {
-    const val = await subgastoStore.getValidateCodeSubGasto();
-    err.value = val!.mensaje;
-    if (val!.estadoflag) {
+  if (subgastoStore.tipo == "nuevo" && subgastoStore.model.code) {
+    const answer = await subgastoStore.getValidateCodeSubGasto();
+    if (!answer.estadoflag) {
+      err.value = answer.mensaje;
       subgastoStore.model.code = "";
     }
   }
 }
+async function closeAndReload() {
+  subgastoStore.drawer = false;
+  await subgastoStore.GetListSubGasto();
+}
 async function Aceptar() {
   if (subgastoStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await subgastoStore.setSubGasto();
-      await subgastoStore.GetListSubGasto();
-      loading.value = false;
+    loading.value = true;
+    await validateCodigo();
+    if (!err.value && (await frmDML.value!.validate()).valid && (await subgastoStore.setSubGasto())) {
+      await closeAndReload();
     }
+    loading.value = false;
   }
   if (subgastoStore.tipo == "editar") {
     loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await subgastoStore.ActualizarSubGasto();
-      await subgastoStore.GetListSubGasto();
+    if ((await frmDML.value!.validate()).valid && (await subgastoStore.ActualizarSubGasto())) {
+      await closeAndReload();
     }
     loading.value = false;
   }
@@ -239,7 +242,7 @@ async function Aceptar() {
             item-title="description"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :readonly="subgastoStore.tipo == 'ver'"
+            :readonly="subgastoStore.tipo != 'nuevo'"
             :item-props="(item) => ({ disabled: !item.status })"
           />
         </v-col>

@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import { useSubingresoStore } from "@/stores/subingreso";
 import { JSON_HEADERS, URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -25,17 +26,23 @@ describe("subingreso store", () => {
     const store = useSubingresoStore();
 
     await store.GetListSubIngreso();
-    store.filtros = { ...store.filtros, id_ingreso: 4, code: "CX", description: "CUENTA", status: "null", calculoflag: false, mostrarflag: true };
+    store.filtros = { ...store.filtros, id_ingreso: 4, code: "C&X", description: "50% CUENTA", status: "null", calculoflag: false, mostrarflag: true };
     await store.GetListSubIngreso();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_subingreso?&id_branch=7&id_ingreso=&code=&description=&status=true&calculoflag=&mostrarflag=",
+      url: URL_MAIN + "listar_subingreso",
+      params: { id_ingreso: "", code: "", description: "", status: true, calculoflag: "", mostrarflag: "" },
       headers: JSON_HEADERS,
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(
-      URL_MAIN + "listar_subingreso?&id_branch=7&id_ingreso=4&code=CX&description=CUENTA&status=&calculoflag=false&mostrarflag=true",
-    );
+    expect(httpMock.mock.calls[1]![0].params).toEqual({
+      id_ingreso: 4,
+      code: "C&X",
+      description: "50% CUENTA",
+      status: "",
+      calculoflag: false,
+      mostrarflag: true,
+    });
     expect(store.lstSubIngreso).toEqual([row]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
@@ -51,7 +58,7 @@ describe("subingreso store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "info", text: "No se encontraron registros" });
   });
 
-  test("getValidateCodeSubIngreso asks about the model code and returns the answer, or nothing on failure", async () => {
+  test("getValidateCodeSubIngreso asks about the model code and returns the answer, or a failed one when the server cannot be reached", async () => {
     respond({ validate_code_subingreso: rejected("Código disponible") });
     const store = useSubingresoStore();
     store.model = { ...store.model, code: "NEW" };
@@ -60,14 +67,14 @@ describe("subingreso store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url: URL_MAIN + "validate_code_subingreso?id_branch=7&code=NEW",
+      url: URL_MAIN + "validate_code_subingreso",
+      params: { code: "NEW" },
       headers: JSON_HEADERS,
     });
     expect(answer).toEqual(rejected("Código disponible"));
 
-    vi.spyOn(console, "error").mockImplementation(() => {});
     respond({ validate_code_subingreso: new Error("network") });
-    expect(await store.getValidateCodeSubIngreso()).toBeUndefined();
+    expect(await store.getValidateCodeSubIngreso()).toMatchObject({ estadoflag: false, mensaje: CONNECTION_ERROR_MESSAGE });
   });
 
   test("setSubIngreso posts and ActualizarSubIngreso puts the current model, each showing the answer", async () => {
@@ -75,8 +82,8 @@ describe("subingreso store", () => {
     const store = useSubingresoStore();
     store.model = row;
 
-    await store.setSubIngreso();
-    await store.ActualizarSubIngreso();
+    expect(await store.setSubIngreso()).toBe(true);
+    expect(await store.ActualizarSubIngreso()).toBe(false);
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_subingreso", headers: JSON_HEADERS, data: row });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_subingreso", headers: JSON_HEADERS, data: row });

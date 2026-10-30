@@ -59,28 +59,31 @@ async function Limpiar() {
 }
 async function validateCodigo() {
   err.value = "";
-  if (subingresoStore.tipo == "nuevo") {
-    const val = await subingresoStore.getValidateCodeSubIngreso();
-    err.value = val!.mensaje;
-    if (val!.estadoflag) {
+  if (subingresoStore.tipo == "nuevo" && subingresoStore.model.code) {
+    const answer = await subingresoStore.getValidateCodeSubIngreso();
+    if (!answer.estadoflag) {
+      err.value = answer.mensaje;
       subingresoStore.model.code = "";
     }
   }
 }
+async function closeAndReload() {
+  subingresoStore.drawer = false;
+  await subingresoStore.GetListSubIngreso();
+}
 async function Aceptar() {
   if (subingresoStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await subingresoStore.setSubIngreso();
-      await subingresoStore.GetListSubIngreso();
-      loading.value = false;
+    loading.value = true;
+    await validateCodigo();
+    if (!err.value && (await frmDML.value!.validate()).valid && (await subingresoStore.setSubIngreso())) {
+      await closeAndReload();
     }
+    loading.value = false;
   }
   if (subingresoStore.tipo == "editar") {
     loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await subingresoStore.ActualizarSubIngreso();
-      await subingresoStore.GetListSubIngreso();
+    if ((await frmDML.value!.validate()).valid && (await subingresoStore.ActualizarSubIngreso())) {
+      await closeAndReload();
     }
     loading.value = false;
   }
@@ -246,7 +249,7 @@ async function Aceptar() {
             item-title="descripcion"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            :readonly="subingresoStore.tipo == 'ver'"
+            :readonly="subingresoStore.tipo != 'nuevo'"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
         </v-col>
@@ -263,7 +266,7 @@ async function Aceptar() {
             :rules="[
               (v) => !!v || 'Dato Requerido',
               (v) =>
-                (!!v && v.length) < 5 ||
+                (!!v && v.length <= 5) ||
                 'El codigo no puede exceder los 5 caracteres.',
             ]"
           />
