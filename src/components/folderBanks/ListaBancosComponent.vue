@@ -9,7 +9,6 @@ import type {
   CuentaBancoDetalle,
   RegistroBancoEditable,
 } from "@/types/banksProveedor";
-import { sessionBranchId } from "@/utils/sesion";
 
 const appStore = useAppStore();
 const bankStore = useBankStore();
@@ -49,15 +48,14 @@ const records = ref<FiltroBancos>({
   description: "",
   status: 1,
 });
-const record = ref<RegistroBancoEditable>({
-  id_branch: sessionBranchId(),
+const emptyRecord = (): RegistroBancoEditable => ({
   acronym: "",
   name: "",
-  code: "",
   description: "",
   status: 1,
 });
-const originalRecord = ref<RegistroBancoEditable>({});
+const record = ref<RegistroBancoEditable>(emptyRecord());
+const saving = ref(false);
 const originalRecords = ref<FiltroBancos>({} as FiltroBancos);
 const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
@@ -121,24 +119,28 @@ async function guardarCuenta() {
   }
 }
 async function insert() {
-  if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
-    await bankStore.insertBank(record.value);
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if ((await formNew.value!.validate()).valid) {
+      resetRecord("filter");
+      if (await bankStore.insertBank(record.value)) showFilterDrawerNew.value = false;
+    }
+  } finally {
+    saving.value = false;
   }
 }
 async function EliminarCuenta(item: CuentaBancoDetalle) {
+  const active = item.status == 1;
   Swal.fire({
     icon: "question",
     title: ``,
-    text: `Desea ${item.status == 1 ? "Activar " : "Eliminar"} la cuenta ${
-      item.nrocuenta
-    } `,
+    text: `¿Quieres ${active ? "eliminar" : "activar"} la cuenta ${item.nrocuenta}?`,
     showDenyButton: true,
     denyButtonText: "Cancelar",
   }).then(async (res) => {
     if (res.isConfirmed) {
-      item.status = item.status == 1 ? 1 : 0;
-      await bankStore.eliminarCuentaDetalle(item);
+      await bankStore.eliminarCuentaDetalle({ ...item, status: active ? 0 : 1 });
     }
     if (res.isDenied) {
       await bankStore.fetchDataBank(records.value);
@@ -156,7 +158,7 @@ async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
   } else {
-    record.value = { ...originalRecord.value };
+    record.value = emptyRecord();
   }
   // await this.fetchDataBank(this.records);
   showFilterDrawer.value = false;
@@ -269,7 +271,6 @@ watch(() => bankStore.loading, (newList) => {
   loading.value = newList == true ? false : true;
 }, { immediate: true });
 
-originalRecord.value = { ...record.value };
 originalRecords.value = { ...records.value };
 onMounted(async () => {
   await bankStore.fetchDataBank(records.value);
@@ -327,14 +328,7 @@ onMounted(async () => {
           color="#2962FF"
           @click="open_filter()"
         >
-          Fitrar
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
+          Filtrar
         </v-btn>
       </v-card-title>
 
@@ -474,6 +468,7 @@ onMounted(async () => {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="insert()"
           >
             Aceptar

@@ -12,6 +12,7 @@ import type {
   FiltroBancos,
 } from "@/types/finanzas";
 import { sessionBranchId, sessionSucursal } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useBankStore = defineStore("bank", () => {
   const list = ref<BancoFila[]>([]);
@@ -69,39 +70,21 @@ export const useBankStore = defineStore("bank", () => {
         console.log("Error al obtener los datos:", error);
       });
   }
-  async function insertBank(data: Record<string, unknown>): Promise<void> {
-    const config = {
+  async function insertBank(data: Record<string, unknown>): Promise<boolean> {
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_bank",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       data: data,
-    };
-
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          const data = {
-            name: "",
-            code: "",
-            acronym: "",
-            description: "",
-            status: 1,
-          };
-          fetchDataBank(data);
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataBank({ name: "", code: "", acronym: "", description: "", status: 1 });
+    return response.estadoflag;
   }
   async function readBank(id: number | string): Promise<void> {
     const config = {
