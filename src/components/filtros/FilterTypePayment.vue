@@ -58,16 +58,18 @@ async function Aceptar() {
   if (typepaymentStore.tipo == "nuevo") {
     if ((await frmDML.value!.validate()).valid) {
       loading.value = true;
-      await typepaymentStore.setTypePayment();
+      const saved = await typepaymentStore.setTypePayment();
       await typepaymentStore.GetListTypePayment();
       loading.value = false;
+      if (saved) typepaymentStore.drawer = false;
     }
   }
   if (typepaymentStore.tipo == "editar") {
     loading.value = true;
     if ((await frmDML.value!.validate()).valid) {
-      await typepaymentStore.ActualizarTypePayment();
+      const saved = await typepaymentStore.ActualizarTypePayment();
       await typepaymentStore.GetListTypePayment();
+      if (saved) typepaymentStore.drawer = false;
     }
     loading.value = false;
   }

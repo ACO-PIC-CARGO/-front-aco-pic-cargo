@@ -20,20 +20,21 @@ describe("typepayment store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("GetListTypePayment reads the current filters, sends empty ones as empty and keeps the rows", async () => {
+  test("GetListTypePayment sends the current filters as query parameters, so a # cannot drop the status", async () => {
     respond({ listar_type_payments: accepted([cash]) });
     const store = useTypepaymentStore();
 
     await store.GetListTypePayment();
-    store.filtros = { ...store.filtros, code: "CO", name: "Con", description: "d", status: "" };
+    store.filtros = { ...store.filtros, code: "CO", name: "Con #1", description: "d", status: false };
     await store.GetListTypePayment();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_type_payments?&id_branch=7&code=&name=&description=&status=true",
+      url: URL_MAIN + "listar_type_payments",
+      params: { code: "", name: "", description: "", status: true },
       headers: JSON_HEADERS,
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + "listar_type_payments?&id_branch=7&code=CO&name=Con&description=d&status=");
+    expect(httpMock.mock.calls[1]![0].params).toEqual({ code: "CO", name: "Con #1", description: "d", status: false });
     expect(store.lstTypePayment).toEqual([cash]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
@@ -61,13 +62,13 @@ describe("typepayment store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("setTypePayment posts and ActualizarTypePayment puts the current model, each showing the answer", async () => {
+  test("setTypePayment posts and ActualizarTypePayment puts the current model, each showing the answer and whether it saved", async () => {
     respond({ insertar_type_payments: accepted([]), actualizar_type_payments: rejected("Duplicado") });
     const store = useTypepaymentStore();
     store.model = cash;
 
-    await store.setTypePayment();
-    await store.ActualizarTypePayment();
+    expect(await store.setTypePayment()).toBe(true);
+    expect(await store.ActualizarTypePayment()).toBe(false);
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_type_payments", headers: JSON_HEADERS, data: cash });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_type_payments", headers: JSON_HEADERS, data: cash });

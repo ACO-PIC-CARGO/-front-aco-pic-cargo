@@ -3,7 +3,6 @@ import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useTypepaymentStore } from "@/stores/typepayment";
 import type { TipoPago } from "@/types/catalogos";
-import { sessionBranchId } from "@/utils/sesion";
 
 const typepaymentStore = useTypepaymentStore();
 
@@ -47,7 +46,6 @@ function nuevo() {
     status_calls_all: "",
     description: "",
     status: 1,
-    id_branch: sessionBranchId(),
   };
   typepaymentStore.drawer = !typepaymentStore.drawer;
 }
@@ -114,13 +112,6 @@ async function eliminar(item: TipoPago) {
           "
         >
           FILTRAR
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          EXPORTAR
         </v-btn>
       </v-col>
       <v-col cols="12">
