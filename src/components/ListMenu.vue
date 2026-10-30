@@ -7,6 +7,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
+import { clearSession } from "@/utils/sesion";
 
 const route = useRoute();
 const router = useRouter();
@@ -101,10 +102,7 @@ function _nextView(name: string, id_role: number | string, namemodule: string) {
   router.push({ name: name, params: { id_role } });
 }
 function cerrarSesion() {
-  sessionStorage.removeItem("auth-token");
-  localStorage.removeItem("auth-token");
-  sessionStorage.removeItem("dataUser");
-  sessionStorage.removeItem("dataBranch");
+  clearSession();
   securitysStore.MostrarLogin = true;
   securitysStore.MostrarSucursal = false;
   router.push({ name: "Login" });

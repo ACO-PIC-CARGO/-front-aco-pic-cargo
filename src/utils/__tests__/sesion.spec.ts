@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "vitest";
 import {
   chooseSessionBranch,
+  clearSession,
   sessionIsoPais,
   sessionSucursal,
   sessionUser,
@@ -48,6 +49,24 @@ describe("choosing the sucursal at login", () => {
       expect(JSON.parse(storage.getItem("dataUser")!)).toEqual([{ id: 4, id_branch: 18, nombrecompleto: "ANA" }]);
       expect(JSON.parse(storage.getItem("dataBranch")!)).toEqual([chosen]);
       expect(storage.getItem("iso_pais")).toBe("9589");
+    }
+  });
+});
+
+describe("signing out", () => {
+  const sessionKeys = ["security", "auth-token", "dataUser", "dataBranch", "iso_pais", "menu", "ConfigEmpresa"];
+
+  test("leaves no session data in either storage, so a new tab cannot restore it", () => {
+    for (const storage of [sessionStorage, localStorage]) {
+      for (const key of sessionKeys) storage.setItem(key, "x");
+      storage.setItem("version", "2.64");
+    }
+
+    clearSession();
+
+    for (const storage of [sessionStorage, localStorage]) {
+      for (const key of sessionKeys) expect(storage.getItem(key)).toBeNull();
+      expect(storage.getItem("version")).toBe("2.64");
     }
   });
 });
