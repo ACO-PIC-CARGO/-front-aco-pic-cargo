@@ -63,7 +63,7 @@ function eliminar(item: EntidadListado) {
     if (res.isConfirmed) {
       const data = { id: item.id };
       await entitiesStore.eliminarPersona(data);
-      // await this.getListProveedor();
+      await entitiesStore.getListProveedor();
     }
   });
 }

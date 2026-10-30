@@ -367,23 +367,26 @@ describe("entities store", () => {
     expect(router.push).toHaveBeenCalledWith({ name: "listProveedor" });
   });
 
-  test("eliminarPersona shows the result and reloads the supplier list", async () => {
-    respond({ eliminar_proveedor: accepted([]), listado_proveedor: accepted([{ id: 3 }]) });
+  test("eliminarPersona removes a provider, shows the result and leaves the list to the caller", async () => {
+    respond({ eliminar_proveedor: accepted([]) });
     const entities = useEntitiesStore();
+    entities.lstProveedor = [{ id: 7 }];
 
     await entities.eliminarPersona({ id: 3 });
     await flushPromises();
 
+    expect(sentUrls()).toEqual(["eliminar_proveedor"]);
     expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "put", data: { id: 3 } });
-    expect(Swal.fire).toHaveBeenCalledWith({
-      icon: "success",
-      title: "Aviso",
-      text: "ok",
-      allowOutsideClick: false,
-      confirmButtonText: "Aceptar",
-    });
-    expect(sentUrls()[1]).toMatch(/^listado_proveedor\?/);
-    expect(entities.lstProveedor).toEqual([{ id: 3 }]);
+    expect(swalCall()).toMatchObject({ icon: "success", text: "ok" });
+    expect(entities.lstProveedor).toEqual([{ id: 7 }]);
+  });
+
+  test("eliminarPersona removes a client through the client route", async () => {
+    respond({ eliminar_cliente: accepted([]) });
+
+    await useEntitiesStore().eliminarPersona({ id: 3 }, true);
+
+    expect(sentUrls()).toEqual(["eliminar_cliente"]);
   });
 
   test("telConctactoProveedor turns the phone types into strings and blanks the missing ones", async () => {

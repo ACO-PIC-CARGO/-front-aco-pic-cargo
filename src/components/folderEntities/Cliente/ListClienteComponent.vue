@@ -83,7 +83,7 @@ async function eliminar(item: EntidadListado) {
   }).then(async (res) => {
     if (res.isConfirmed) {
       const data = { id: item.id };
-      await entitiesStore.eliminarPersona(data);
+      await entitiesStore.eliminarPersona(data, true);
       await entitiesStore.getListClientes();
     }
   });

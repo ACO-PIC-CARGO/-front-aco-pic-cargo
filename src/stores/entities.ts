@@ -543,10 +543,10 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function eliminarPersona(data: { id: number }): Promise<void> {
+  async function eliminarPersona(data: { id: number }, asClient = false): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `eliminar_proveedor`,
+      url: import.meta.env.VITE_URL_MAIN + (asClient ? "eliminar_cliente" : "eliminar_proveedor"),
       headers: {
         "Content-Type": "application/json",
       },
@@ -566,7 +566,6 @@ export const useEntitiesStore = defineStore("entities", () => {
       .catch(function (error) {
         console.error(error);
       });
-    getListProveedor();
   }
 
   async function telConctactoProveedor(data: { id: number }): Promise<void> {
