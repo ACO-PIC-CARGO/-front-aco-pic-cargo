@@ -175,7 +175,7 @@ describe("entities store", () => {
     expect(entities.cliente.contactoActual).toEqual({ nombre: "", id_tipotelefono: "", telefono: "" });
   });
 
-  test("verCliente sends the user back to the supplier list when the client does not exist", async () => {
+  test("verCliente sends the user back to the client list when the client does not exist", async () => {
     respond({ ver_cliente: rejected("No existe") });
     const entities = useEntitiesStore();
     entities.lstProveedor = [{ id: 1 }];
@@ -191,7 +191,7 @@ describe("entities store", () => {
       confirmButtonText: "Ir al listado",
     });
     expect(entities.lstProveedor).toEqual([]);
-    expect(router.push).toHaveBeenCalledWith({ name: "listProveedor" });
+    expect(router.push).toHaveBeenCalledWith({ name: "listClientes" });
   });
 
   test("verCliente sends the user to Login when the session expired", async () => {

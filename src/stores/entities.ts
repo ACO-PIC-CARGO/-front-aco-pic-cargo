@@ -933,7 +933,7 @@ export const useEntitiesStore = defineStore("entities", () => {
               if (res.isConfirmed) {
                 lstProveedor.value = [];
                 router.push({
-                  name: "listProveedor",
+                  name: "listClientes",
                 });
               }
             });
