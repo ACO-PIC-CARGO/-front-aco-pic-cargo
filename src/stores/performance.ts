@@ -5,17 +5,21 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroPerformance, FormPerformance, Performance } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
+
+type PerformanceRow = Performance & { editableflag?: boolean };
 
 export const usePerformanceStore = defineStore("performance", () => {
   const list = ref<Performance[]>([]);
   const response = ref<unknown[]>([]);
   const record = ref<Partial<Performance>>({});
   const loading = ref(false);
+  const editable = ref(false);
 
   async function fetchDataPerformance(data: FiltroPerformance): Promise<void> {
     loading.value = false;
-    await axios<ApiResponse<Performance[]>>({
+    await axios<ApiResponse<PerformanceRow[]>>({
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
@@ -30,6 +34,7 @@ export const usePerformanceStore = defineStore("performance", () => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
         list.value = data.estadoflag ? data.data : [];
+        if (data.estadoflag) editable.value = Boolean(data.data[0]!.editableflag);
         loading.value = true;
 
         if (!data.estadoflag) {
@@ -41,29 +46,25 @@ export const usePerformanceStore = defineStore("performance", () => {
       });
   }
 
-  async function insertPerformance(data: FormPerformance): Promise<void> {
-    await axios<ApiResponse>({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "insertar_performance",
+  async function savePerformance(method: "post" | "put", endpoint: string, data: FormPerformance): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + endpoint,
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataPerformance({ code: "", description: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataPerformance({ code: "", description: "", status: 1 });
+    return response.estadoflag;
   }
+
+  const insertPerformance = (data: FormPerformance) => savePerformance("post", "insertar_performance", data);
+  const updatePerformance = (data: FormPerformance) => savePerformance("put", "actualizar_performance", data);
 
   async function readPerformance(id: Performance["id"]): Promise<void> {
     await axios<ApiResponse<Performance[]>>({
@@ -88,29 +89,5 @@ export const usePerformanceStore = defineStore("performance", () => {
       });
   }
 
-  async function updatePerformance(data: FormPerformance): Promise<void> {
-    await axios<ApiResponse>({
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "actualizar_performance",
-      headers: { "Content-Type": "application/json" },
-      data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataPerformance({ code: "", description: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
-
-  return { list, response, record, loading, fetchDataPerformance, insertPerformance, readPerformance, updatePerformance };
+  return { list, response, record, loading, editable, fetchDataPerformance, insertPerformance, readPerformance, updatePerformance };
 });

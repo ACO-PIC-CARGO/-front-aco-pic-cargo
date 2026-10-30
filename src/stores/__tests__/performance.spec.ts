@@ -49,6 +49,22 @@ describe("performance store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
+  test("fetchDataPerformance remembers whether the user may edit the catalog, and keeps it when nothing matches", async () => {
+    const performance = usePerformanceStore();
+
+    respond({ listar_performance: accepted([{ ...row, editableflag: true }]) });
+    await performance.fetchDataPerformance(filters);
+    expect(performance.editable).toBe(true);
+
+    respond({ listar_performance: rejected() });
+    await performance.fetchDataPerformance(filters);
+    expect(performance.editable).toBe(true);
+
+    respond({ listar_performance: accepted([{ ...row, editableflag: false }]) });
+    await performance.fetchDataPerformance(filters);
+    expect(performance.editable).toBe(false);
+  });
+
   test("fetchDataPerformance empties the list and tells the user when the backend rejects", async () => {
     respond({ listar_performance: rejected() });
     const performance = usePerformanceStore();

@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { usePerformanceStore } from "@/stores/performance";
 import type { FiltroPerformance, FormPerformance, Performance } from "@/types/catalogos";
-import { sessionBranchId } from "@/utils/sesion";
 
 const performanceStore = usePerformanceStore();
 const appStore = useAppStore();
@@ -26,12 +25,12 @@ const records = ref<FiltroPerformance>({
   description: "",
   status: 1,
 });
-const record = ref<FormPerformance>({
-  id_branch: sessionBranchId(),
-  code: "",
+const emptyRecord = (): FormPerformance => ({
   description: "",
   status: 1,
 });
+const record = ref<FormPerformance>(emptyRecord());
+const saving = ref(false);
 const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
 const showFilterDrawerUpdate = ref(false);
@@ -59,7 +58,6 @@ watch(
   { immediate: true },
 );
 
-const originalRecord = ref<FormPerformance>({ ...record.value });
 const originalRecords = ref<FiltroPerformance>({ ...records.value });
 
 onMounted(async () => {
@@ -71,16 +69,22 @@ function updateStatus(newValue: unknown) {
   record.value.status = newValue ? 1 : 0;
 }
 async function submit_insert() {
-  if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
-    await performanceStore.insertPerformance(record.value);
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if ((await formNew.value!.validate()).valid) {
+      resetRecord("filter");
+      if (await performanceStore.insertPerformance(record.value)) showFilterDrawerNew.value = false;
+    }
+  } finally {
+    saving.value = false;
   }
 }
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
   } else {
-    record.value = { ...originalRecord.value };
+    record.value = emptyRecord();
   }
   await performanceStore.fetchDataPerformance(records.value);
   showFilterDrawer.value = false;
@@ -128,7 +132,7 @@ async function btnUpdate() {
       status: record.value.status,
     };
     resetRecord("filter");
-    await performanceStore.updatePerformance(data);
+    if (await performanceStore.updatePerformance(data)) showFilterDrawerUpdate.value = false;
   }
 }
 
@@ -153,7 +157,7 @@ async function filter() {
   showFilterDrawer.value = false;
 }
 function validateDescription(v: string | null | undefined) {
-  if (!v) {
+  if (!v?.trim()) {
     return "La descripción es requerida";
   } else if (v.length > 100) {
     return "La descripción permite hasta 100 caracteres";
@@ -208,6 +212,7 @@ function resetForms() {
         />
         <v-spacer />
         <v-btn
+          v-if="performanceStore.editable"
           size="small"
           color="success"
           @click="open_new()"
@@ -220,14 +225,7 @@ function resetForms() {
           color="#2962FF"
           @click="open_filter()"
         >
-          Fitrar
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
+          Filtrar
         </v-btn>
       </v-card-title>
 
@@ -255,6 +253,7 @@ function resetForms() {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="performanceStore.editable"
             variant="text"
             icon
           >
@@ -270,7 +269,7 @@ function resetForms() {
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="performanceStore.editable && item.status"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>
@@ -326,6 +325,7 @@ function resetForms() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="submit_insert()"
           >
             Aceptar
