@@ -125,7 +125,7 @@ describe("Departamento", () => {
     rowIcon("mdi-delete").click();
     await settle();
 
-    expect(requestsTo("listar_state").at(-1)!.params).toMatchObject({ name: "Ama" });
+    expect(requestsTo("listar_state").slice(-1)[0]!.params).toMatchObject({ name: "Ama" });
   });
 });
 
