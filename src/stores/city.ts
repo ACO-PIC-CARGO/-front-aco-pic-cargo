@@ -1,16 +1,18 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
-import axios from "@/api/http";
-import type { ApiResponse } from "@/types/api";
 import type { Ciudad, FiltroCiudad } from "@/types/catalogos";
+import { filledParams } from "@/utils/queryParams";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
+
+type CiudadRow = Ciudad & { editableflag?: boolean };
 
 export const useCityStore = defineStore("city", () => {
   const tipo = ref("filter");
   const drawer = ref(false);
   const lstCity = ref<Ciudad[]>([]);
+  const editable = ref(false);
   const filtros = ref<FiltroCiudad>({
     id: "",
     id_pais: "",
@@ -31,88 +33,34 @@ export const useCityStore = defineStore("city", () => {
   });
 
   async function GetListCity(): Promise<void> {
-    const config = {
+    const { id_pais, id_state, code, name, description, status } = filtros.value;
+    const response = await request<CiudadRow>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_city?&id_branch=${sessionBranchId()}&name=${filtros.value.name ? filtros.value.name : ""}&description=${
-          filtros.value.description ? filtros.value.description : ""
-        }&id_pais=${filtros.value.id_pais ? filtros.value.id_pais : ""}&id_state=${
-          filtros.value.id_state ? filtros.value.id_state : ""
-        }&status=${filtros.value.status !== "null" ? filtros.value.status : ""}&code=${filtros.value.code ? filtros.value.code : ""}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_city",
       headers: { "Content-Type": "application/json" },
-    };
-    try {
-      await axios<ApiResponse<Ciudad[]>>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-
-          if (data.estadoflag == true) {
-            lstCity.value = data.data;
-          } else {
-            lstCity.value = [];
-            showRejectedResponse(data);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+      params: filledParams({ id_pais, id_state, code, name, description, status }),
+    });
+    lstCity.value = response.estadoflag ? response.data : [];
+    if (response.estadoflag) editable.value = Boolean(response.data[0]!.editableflag);
+    else showRejectedResponse(response);
   }
 
-  async function setCity(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_city`,
+  async function saveCity(method: "post" | "put", endpoint: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + endpoint,
       headers: { "Content-Type": "application/json" },
       data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
 
-  async function ActualizarCity(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_city`,
-      headers: { "Content-Type": "application/json" },
-      data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const setCity = () => saveCity("post", "insertar_city");
+  const ActualizarCity = () => saveCity("put", "actualizar_city");
 
-  return { tipo, drawer, lstCity, filtros, model, GetListCity, setCity, ActualizarCity };
+  return { tipo, drawer, lstCity, editable, filtros, model, GetListCity, setCity, ActualizarCity };
 });

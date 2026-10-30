@@ -8,7 +8,10 @@ import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { VAutocomplete } from "vuetify/components";
+import ListCity from "@/views/City/ListCity.vue";
 import ListState from "@/views/State/ListState.vue";
+import { useCityStore } from "@/stores/city";
 import { useStatesStore } from "@/stores/states";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 import type { HttpConfig } from "@/stores/__tests__/catalogHttp";
@@ -36,6 +39,12 @@ const buttonNamed = (name: string, within: ParentNode = document.body) =>
   [...within.querySelectorAll<HTMLElement>("button")].find((element) => element.textContent?.trim() === name)!;
 const openDrawer = () => document.body.querySelector<HTMLElement>(".v-navigation-drawer--active");
 const rowIcon = (icon: string) => document.body.querySelector<HTMLElement>(`tbody .${icon}`)!;
+
+const pickInFilter = async (label: string, value: unknown) => {
+  const field = wrapper!.findAllComponents(VAutocomplete).find((autocomplete) => autocomplete.props("label") === label)!;
+  field.vm.$emit("update:modelValue", value);
+  await settle();
+};
 
 const typeInto = async (label: string, value: string) => {
   const field = [...openDrawer()!.querySelectorAll(".v-text-field")].find(
@@ -113,5 +122,57 @@ describe("Departamento", () => {
     await settle();
 
     expect(requestsTo("listar_state").at(-1)!.params).toMatchObject({ name: "Ama" });
+  });
+});
+
+describe("Ciudades", () => {
+  const chachapoyas = { id: 1, id_pais: 139, id_state: 1, code: 1, name: "Chachapoyas", description: null, status: 1, editableflag: true };
+
+  beforeEach(() => {
+    listRows = [chachapoyas];
+  });
+
+  test("choosing a country in the filter clears the filter's department and leaves the form alone", { timeout: 15_000 }, async () => {
+    await mountScreen(ListCity);
+    buttonNamed("FILTRAR").click();
+    await settle();
+    const cityStore = useCityStore();
+    cityStore.filtros.id_state = 5;
+    cityStore.model.id_state = 9;
+
+    await pickInFilter("Pais", 139);
+
+    expect(cityStore.filtros.id_state).toBe("");
+    expect(cityStore.model.id_state).toBe(9);
+  });
+
+  test("editing a city without description saves it and closes the panel", { timeout: 15_000 }, async () => {
+    await mountScreen(ListCity);
+    rowIcon("mdi-pencil").click();
+    await settle();
+
+    buttonNamed("Aceptar", openDrawer()!).click();
+    await settle();
+
+    expect(requestsTo("actualizar_city").map((config) => config.data)).toEqual([
+      expect.objectContaining({ id: 1, description: null }),
+    ]);
+    expect(openDrawer()).toBeNull();
+  });
+
+  test("a double click on Aceptar saves the new city once and closes the panel", { timeout: 15_000 }, async () => {
+    await mountScreen(ListCity);
+    buttonNamed("NUEVO").click();
+    await settle();
+    Object.assign(useCityStore().model, { id_pais: 139, id_state: 1 });
+    await typeInto("Nombre (*)", "QA Ciudad");
+
+    const accept = buttonNamed("Aceptar", openDrawer()!);
+    accept.click();
+    accept.click();
+    await settle();
+
+    expect(requestsTo("insertar_city")).toHaveLength(1);
+    expect(openDrawer()).toBeNull();
   });
 });

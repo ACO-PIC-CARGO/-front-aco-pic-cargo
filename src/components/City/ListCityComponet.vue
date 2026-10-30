@@ -119,6 +119,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="cityStore.editable"
             size="small"
             color="success"
             @click="nuevo()"
@@ -132,13 +133,6 @@ onMounted(async () => {
             @click="filtrar()"
           >
             FILTRAR
-          </v-btn>
-          <v-btn
-            size="small"
-            class="mx-1"
-            color="#004D40"
-          >
-            EXPORTAR
           </v-btn>
         </v-col>
         <v-col cols="12">
@@ -196,7 +190,10 @@ onMounted(async () => {
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip location="bottom">
+              <v-tooltip
+                location="bottom"
+                v-if="cityStore.editable"
+              >
                 <template #activator="{ props }">
                   <v-icon
                     color="warning"
@@ -211,7 +208,7 @@ onMounted(async () => {
               </v-tooltip>
               <v-tooltip
                 location="bottom"
-                v-if="item.status == 1"
+                v-if="cityStore.editable && item.status == 1"
               >
                 <template #activator="{ props }">
                   <v-icon

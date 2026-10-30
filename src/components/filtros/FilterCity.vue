@@ -17,7 +17,7 @@ const drawer = computed(() => cityStore.drawer);
 watch(drawer, () => {
   model.value = { ...cityStore.model };
 
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
@@ -34,10 +34,10 @@ function getName() {
     return "Filtrar Registros";
   }
 }
-async function ObtenerEstados(id_state?: number | string | null) {
+async function ObtenerEstados(target: { id_pais?: number | string | null; id_state?: number | string | null }) {
   loadingEstado.value = true;
-  await appStore._getState(id_state);
-  cityStore.model.id_state = "";
+  await appStore._getState(target.id_pais);
+  target.id_state = "";
   loadingEstado.value = false;
 }
 async function Filtrar() {
@@ -63,25 +63,16 @@ async function Limpiar() {
   cityStore.drawer = !cityStore.drawer;
 }
 async function Aceptar() {
-  if (cityStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await cityStore.setCity();
-      await cityStore.GetListCity();
-      loading.value = false;
-    }
-  }
-  if (cityStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await cityStore.ActualizarCity();
+  if (loading.value) return;
+  loading.value = true;
+  if ((await frmDML.value!.validate()).valid) {
+    const saved = cityStore.tipo == "nuevo" ? await cityStore.setCity() : await cityStore.ActualizarCity();
+    if (saved) {
+      cityStore.drawer = false;
       await cityStore.GetListCity();
     }
-    loading.value = false;
   }
-  if (cityStore.tipo == "ver") {
-    cityStore.drawer = !cityStore.drawer;
-  }
+  loading.value = false;
 }
 </script>
 
@@ -115,7 +106,7 @@ async function Aceptar() {
           item-title="name"
           item-value="id"
           :clearable="cityStore.tipo != 'ver'"
-          @update:model-value="ObtenerEstados(cityStore.filtros.id_pais)"
+          @update:model-value="ObtenerEstados(cityStore.filtros)"
         />
       </v-col>
       <v-col
@@ -210,7 +201,7 @@ async function Aceptar() {
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            @update:model-value="ObtenerEstados(cityStore.model.id_pais)"
+            @update:model-value="ObtenerEstados(cityStore.model)"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
         </v-col>
@@ -253,7 +244,7 @@ async function Aceptar() {
             label="Nombre (*)"
             :rules="[
               (v) =>
-                v.length < 255 ||
+                !v || v.length < 255 ||
                 'El nombre no puede exceder los 255 caracteres.',
               (v) => !!v || 'Dato Requerido',
             ]"
@@ -270,7 +261,7 @@ async function Aceptar() {
             :clearable="cityStore.tipo != 'ver'"
             :rules="[
               (v) =>
-                v.length < 255 ||
+                !v || v.length < 255 ||
                 'La descripción no puede exceder los 255 caracteres.',
             ]"
           />

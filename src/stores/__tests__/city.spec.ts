@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useCityStore } from "@/stores/city";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -24,24 +25,35 @@ describe("city store", () => {
     vi.restoreAllMocks();
   });
 
-  test("GetListCity reads the current filters, sends Todos as empty and keeps the rows", async () => {
+  test("GetListCity sends only the filters the user filled and keeps the rows", async () => {
     respond({ listar_city: accepted([lima]) });
     const store = useCityStore();
 
     await store.GetListCity();
-    store.filtros = { ...store.filtros, id_pais: 1, id_state: 2, code: "LI", name: "Lim", description: "d", status: "null" };
+    store.filtros = { ...store.filtros, id_pais: 1, id_state: null, code: "LI", name: "Lim", description: "", status: "null" };
     await store.GetListCity();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_city?&id_branch=7&name=&description=&id_pais=&id_state=&status=1&code=",
+      url: URL_MAIN + "listar_city",
       headers: JSON_HEADERS,
+      params: { status: "1" },
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(
-      URL_MAIN + "listar_city?&id_branch=7&name=Lim&description=d&id_pais=1&id_state=2&status=&code=LI",
-    );
+    expect(httpMock.mock.calls[1]![0].params).toEqual({ id_pais: 1, code: "LI", name: "Lim" });
     expect(store.lstCity).toEqual([lima]);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
+  });
+
+  test("GetListCity tells whether the user may edit cities", async () => {
+    const store = useCityStore();
+
+    respond({ listar_city: accepted([{ ...lima, editableflag: true }]) });
+    await store.GetListCity();
+    const acoAdmin = store.editable;
+    respond({ listar_city: accepted([{ ...lima, editableflag: false }]) });
+    await store.GetListCity();
+
+    expect(acoAdmin).toBe(true);
+    expect(store.editable).toBe(false);
   });
 
   test("GetListCity empties the list and tells the user when the backend rejects", async () => {
@@ -67,29 +79,27 @@ describe("city store", () => {
     expect(router.push).toHaveBeenCalledWith({ name: "Login" });
   });
 
-  test("GetListCity keeps the list when the request fails", async () => {
+  test("GetListCity tells the user when the server cannot be reached", async () => {
     respond({ listar_city: new Error("network") });
-    vi.spyOn(console, "error").mockImplementation(() => {});
     const store = useCityStore();
-    store.lstCity = [lima];
 
     await store.GetListCity();
 
-    expect(store.lstCity).toEqual([lima]);
-    expect(Swal.fire).not.toHaveBeenCalled();
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: CONNECTION_ERROR_MESSAGE });
   });
 
-  test("setCity posts and ActualizarCity puts the current model, each showing the answer", async () => {
+  test("setCity posts and ActualizarCity puts the current model, each showing the answer and telling whether it saved", async () => {
     respond({ insertar_city: accepted([]), actualizar_city: rejected("Duplicado") });
     const store = useCityStore();
     store.model = lima;
 
-    await store.setCity();
-    await store.ActualizarCity();
+    const created = await store.setCity();
+    const updated = await store.ActualizarCity();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_city", headers: JSON_HEADERS, data: lima });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_city", headers: JSON_HEADERS, data: lima });
     expect(Swal.fire).toHaveBeenNthCalledWith(1, { icon: "success", text: "ok" });
     expect(Swal.fire).toHaveBeenNthCalledWith(2, { icon: "error", text: "Duplicado" });
+    expect([created, updated]).toEqual([true, false]);
   });
 });
