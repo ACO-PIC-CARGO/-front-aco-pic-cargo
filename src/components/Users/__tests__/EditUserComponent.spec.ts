@@ -81,6 +81,22 @@ test("removing a role removes that role, even when an earlier role is hidden", a
   wrapper.unmount();
 });
 
+test("a role added and removed before saving is not sent at all", async () => {
+  const wrapper = await mountEditor(userDetail());
+  await wrapper.findAll(".v-tab").find((tab) => tab.text().includes("Módulos a Usar"))!.trigger("click");
+  await flushPromises();
+  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Posición")!;
+  picker.vm.$emit("update:modelValue", { id: 5, code: "05", name: "MASTER SISTEMA", estado: true });
+  await flushPromises();
+  await clickButton(wrapper, "Agregar");
+
+  const row = wrapper.findAll("tr").find((tableRow) => tableRow.text().includes("MASTER SISTEMA"))!;
+  await row.find("button").trigger("click");
+
+  expect(useUserStore().positions.map((role) => role.code)).toEqual(["02", "03", "04"]);
+  wrapper.unmount();
+});
+
 test("the Activo switch sends the numbers the API stores, so a user can be switched off and back on", async () => {
   const wrapper = await mountEditor(userDetail());
   const statusSwitch = wrapper.findComponent(VSwitch).find("input");
@@ -97,7 +113,7 @@ test("the Activo switch sends the numbers the API stores, so a user can be switc
   wrapper.unmount();
 });
 
-test("a branch added in Editar is sent with its branch id and can be removed again", async () => {
+test("a branch added in Editar is sent with its branch id, and removing it before saving drops it", async () => {
   const wrapper = await mountEditor(userDetail({ sucursales: [] }));
   await clickButton(wrapper, "Guardar");
 
@@ -111,6 +127,6 @@ test("a branch added in Editar is sent with its branch id and can be removed aga
 
   const row = wrapper.findAll("tr").find((tableRow) => tableRow.text().includes("PIC LOGISTICA SAC"))!;
   await row.find("button").trigger("click");
-  expect(store.sucursales).toEqual([expect.objectContaining({ id_branch: 7, status: false })]);
+  expect(store.sucursales).toEqual([]);
   wrapper.unmount();
 });

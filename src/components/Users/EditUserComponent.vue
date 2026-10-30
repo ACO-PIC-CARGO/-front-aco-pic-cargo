@@ -45,11 +45,15 @@ const espassword = ref(true);
 const frmDatos = useTemplateRef("frmDatos");
 const frmPosicion = useTemplateRef("frmPosicion");
 const frmSucursal = useTemplateRef("frmSucursal");
+let savedRoleIds = new Set<number | undefined>();
+let savedBranchIds = new Set<number | undefined>();
 
 onMounted(async () => {
   userStore.model.id = route.params.id as string;
   appStore.spiner = true;
   await userStore.GetVerUsers();
+  savedRoleIds = new Set(userStore.positions.map((role) => role.id_position));
+  savedBranchIds = new Set(userStore.sucursales.map((sucursal) => sucursal.id_branch));
   await appStore._getDocumentsPais();
   await appStore._getPais();
   await appStore._getSex();
@@ -198,13 +202,19 @@ async function ObtenerDistrito(id_city: number | string | undefined) {
   loadingDistrito.value = false;
 }
 
+// The API saves a role or branch the user never had as active whatever status it gets, so an unsaved one is dropped.
+function removeUnsavedOrSwitchOff<Row extends { status?: number | boolean }>(rows: Row[], row: Row, saved: boolean) {
+  if (saved) row.status = false;
+  else rows.splice(rows.indexOf(row), 1);
+}
+
 function eliminarPosition(position: UsuarioPosicion) {
-  position.status = false;
+  removeUnsavedOrSwitchOff(userStore.positions, position, savedRoleIds.has(position.id_position));
   mostrarposicionesflag.value = false;
   mostrarposicionesflag.value = true;
 }
 function eliminarbranch(sucursal: UsuarioSucursal) {
-  sucursal.status = false;
+  removeUnsavedOrSwitchOff(userStore.sucursales, sucursal, savedBranchIds.has(sucursal.id_branch));
   mostrarsucursal.value = false;
   mostrarsucursal.value = true;
 }
