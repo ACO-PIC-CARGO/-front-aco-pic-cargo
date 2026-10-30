@@ -6,8 +6,9 @@ import Swal from "sweetalert2";
 import { usePositionStore } from "@/stores/position";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
-import type { PosicionListado } from "@/types/seguridad";
+import type { PosicionListado, UsuarioPosicion, UsuarioSucursal } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
+import { matchesPassword, passwordRules } from "./passwordRules";
 
 const route = useRoute();
 const appStore = useAppStore();
@@ -27,7 +28,6 @@ const headersSucursal = [
   { title: "Nombre", key: "trade_name" },
   { title: "Acción", key: "action" },
 ] as const;
-const errorClave = ref("");
 const itemPositon = ref<PosicionListado | "">("");
 const errPosition = ref("");
 const errUsers = ref("");
@@ -154,7 +154,7 @@ async function agregarSucursal() {
         errSucursal.value = "La sucursal ya se encuentra asignada.";
       }
     } else {
-      userStore.sucursales.push(selected);
+      userStore.sucursales.push({ ...selected, id_branch: selected.id, status: true });
     }
     mostrarsucursal.value = false;
     mostrarsucursal.value = true;
@@ -198,20 +198,18 @@ async function ObtenerDistrito(id_city: number | string | undefined) {
   loadingDistrito.value = false;
 }
 
-function eliminarPosition(index: number) {
-  userStore.positions[index]!.status = false;
+function eliminarPosition(position: UsuarioPosicion) {
+  position.status = false;
   mostrarposicionesflag.value = false;
   mostrarposicionesflag.value = true;
 }
-function eliminarbranch(index: number) {
-  // @ts-expect-error the user store has no lstSucursal, so this call always throws.
-  userStore.lstSucursal[index].status = false;
+function eliminarbranch(sucursal: UsuarioSucursal) {
+  sucursal.status = false;
   mostrarsucursal.value = false;
   mostrarsucursal.value = true;
 }
 
 async function guardarUsuario() {
-  console.log(appStore.itemsDocumentsPais);
   if ((await frmDatos.value!.validate()).valid) {
     if (userStore.positions.filter((v) => !!v.status).length == 0) {
       errPosition.value = "Es necesario asignar al menos una Position, al usuario";
@@ -224,10 +222,6 @@ async function guardarUsuario() {
       return false;
     }
 
-    if (userStore.model.clave != userStore.model.confirmclave) {
-      errorClave.value = "Las claves no coinciden";
-      return false;
-    }
     await userStore.ActualizarUsers();
   } else {
     tab.value = "datos";
@@ -442,8 +436,7 @@ async function guardarUsuario() {
                 v-model="userStore.model.clave"
                 :append-inner-icon="!espassword ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="espassword = !espassword"
-                :rules="[(v) => !!v || 'Dato Requerido']"
-                :error-messages="errorClave"
+                :rules="passwordRules"
               />
             </v-col>
             <v-col
@@ -455,8 +448,7 @@ async function guardarUsuario() {
                 :append-inner-icon="!espassword ? 'mdi-eye' : 'mdi-eye-off'"
                 v-model="userStore.model.confirmclave"
                 @click:append-inner="espassword = !espassword"
-                :rules="[(v) => !!v || 'Dato Requerido']"
-                :error-messages="errorClave"
+                :rules="[matchesPassword(() => userStore.model.clave)]"
               />
             </v-col>
 
@@ -471,7 +463,8 @@ async function guardarUsuario() {
                   userStore.model.status == 1 ? 'Activo' : 'Inactivo'
                 "
                 v-model="userStore.model.status"
-                :value-comparator="(value, checked) => Boolean(value) === checked"
+                :true-value="1"
+                :false-value="0"
               />
             </v-col>
           </v-row>
@@ -525,12 +518,12 @@ async function guardarUsuario() {
               :items="userStore.positions.filter((v) => !!v.status)"
               item-value="id"
             >
-              <template #[`item.action`]="{ index }">
+              <template #[`item.action`]="{ item }">
                 <v-btn
                   variant="text"
                   icon
                   color="red"
-                  @click="eliminarPosition(index)"
+                  @click="eliminarPosition(item)"
                 >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
@@ -624,12 +617,12 @@ async function guardarUsuario() {
               :items="userStore.sucursales.filter((v) => !!v.status)"
               item-value="id"
             >
-              <template #[`item.action`]="{ index }">
+              <template #[`item.action`]="{ item }">
                 <v-btn
                   variant="text"
                   icon
                   color="red"
-                  @click="eliminarbranch(index)"
+                  @click="eliminarbranch(item)"
                 >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>

@@ -7,6 +7,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
 import type { PosicionListado } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
+import { matchesPassword, passwordRules } from "./passwordRules";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -201,37 +202,8 @@ function eliminarPosicion(index: number) {
 function eliminarSucursal(index: number) {
   userStore.sucursales.splice(index, 1);
 }
-async function continuar(): Promise<boolean | undefined> {
-  if (userStore.model.clave && userStore.model.confirmclave && userStore.model.clave != userStore.model.confirmclave) {
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "Las claves no coinciden",
-    });
-    return false;
-  }
-  if ((await frmDatos.value!.validate()).valid) {
-    if (userStore.positions.length == 0) {
-      errPosition.value = "Es necesario asignar al menos una Position, al usuario";
-      tab.value = "posicion";
-      return false;
-    }
-    if (userStore.sucursales.length == 0) {
-      errSucursal.value = "Es necesario asignar al menos una Sucursal, al usuario";
-      tab.value = "sucursal";
-      return false;
-    }
-    if (tab.value == "datos") {
-      tab.value = "posicion";
-      return true;
-    }
-    if (tab.value == "posicion") {
-      tab.value = "sucursal";
-      return true;
-    }
-  } else {
-    tab.value = "datos";
-  }
+async function continuar() {
+  tab.value = (await frmDatos.value!.validate()).valid ? "posicion" : "datos";
 }
 async function guardarUsuario() {
   if ((await frmDatos.value!.validate()).valid) {
@@ -416,6 +388,7 @@ const vNoSpaces = (el: HTMLElement) => {
                 v-model="userStore.model.clave"
                 :append-inner-icon="!verClave ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="verClave = !verClave"
+                :rules="passwordRules"
               />
             </v-col>
             <v-col cols="4">
@@ -425,6 +398,7 @@ const vNoSpaces = (el: HTMLElement) => {
                 v-model="userStore.model.confirmclave"
                 :append-inner-icon="!confirverClave ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="confirverClave = !confirverClave"
+                :rules="[matchesPassword(() => userStore.model.clave)]"
               />
             </v-col>
           </v-row>
