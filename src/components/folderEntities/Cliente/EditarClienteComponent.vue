@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import SeccionCliente from "./SeccionCliente.vue";
 import SeccionTelefonos from "./SeccionTelefonos.vue";
@@ -14,6 +15,8 @@ import { useBankStore } from "@/stores/bank";
 
 const props = withDefaults(defineProps<{ houseIdConsigner?: number | null }>(), { houseIdConsigner: null });
 
+const route = useRoute();
+const router = useRouter();
 const appStore = useAppStore();
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
@@ -24,6 +27,7 @@ entitiesStore.lstProveedores_x_nombre = [];
 entitiesStore.lstProveedores_x_documento = [];
 
 onMounted(async () => {
+  entitiesStore.isReadonly = true;
   appStore.spiner = true;
   //this.$refs.formProveedor.reset();
   await Promise.all([
@@ -46,6 +50,12 @@ onMounted(async () => {
   await appStore._getCity(entitiesStore.informacionEntrega.id_departamento);
   await appStore._getTown(entitiesStore.informacionEntrega.id_provincia);
   appStore.spiner = false;
+
+  const clientId = Number(route.params.id);
+  if (!props.houseIdConsigner && !(await entitiesStore.approveClientEdit(clientId))) {
+    router.replace({ name: "verCliente", params: { id: clientId } });
+    return;
+  }
 
   entitiesStore.stepper = 1;
   entitiesStore.isEdit = true;

@@ -189,6 +189,7 @@ async function validarFormulario() {
 async function modificarCliente() {
   // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
   if (isFormReadonly.value) {
+    if (!(await entitiesStore.approveClientEdit(entitiesStore.cliente.id!))) return;
     entitiesStore.isReadonly = false;
     entitiesStore.isEdit = true;
     Swal.fire({

@@ -7,11 +7,12 @@ import http from "@/api/http";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere", params: {} } } } }));
-vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showValidationMessage: vi.fn() } }));
 
 const postMock = (http as unknown as { post: Mock }).post;
 const currentRoute = router.currentRoute as unknown as { value: { name: string; params: Record<string, unknown> } };
@@ -491,15 +492,70 @@ describe("entities store", () => {
     expect(entities.lstDatosTarifas).toEqual([]);
   });
 
-  test("validarClienteTieneMovimientos returns the check, or an empty answer when the request fails", async () => {
-    respond({ "entities/validar_eliminar_cliente": accepted({ estadoflag: false, mensaje: "Tiene casas" }) });
+  test("validarClienteTieneMovimientos returns the check, or a connection failure when the request fails", async () => {
+    respond({ "entities/validar_eliminar_cliente": { ...rejected("Tiene casas"), tipomensaje: "warning" } });
     const entities = useEntitiesStore();
 
-    expect(await entities.validarClienteTieneMovimientos({ id: 4 })).toEqual({ estadoflag: false, mensaje: "Tiene casas" });
+    expect(await entities.validarClienteTieneMovimientos({ id: 4 })).toMatchObject({ estadoflag: false, mensaje: "Tiene casas" });
     expect(httpMock.mock.calls[0]![0]).toMatchObject({ params: { id: 4 } });
 
     respond({ "entities/validar_eliminar_cliente": new Error("network") });
-    expect(await entities.validarClienteTieneMovimientos({ id: 4 })).toEqual({});
+    expect(await entities.validarClienteTieneMovimientos({ id: 4 })).toMatchObject({
+      estadoflag: false,
+      mensaje: CONNECTION_ERROR_MESSAGE,
+    });
+  });
+
+  describe("approveClientEdit", () => {
+    const hasMovements = { ...rejected("TIENE MOVIMIENTO AFILIADOS"), tipomensaje: "warning" };
+    const answerAdminDialog = (usuario: string, clave: string) =>
+      vi.mocked(Swal.fire).mockImplementation((async (options: SweetAlertOptions) => {
+        document.body.innerHTML = String(options.html);
+        (document.getElementById("swal-admin-user") as HTMLInputElement).value = usuario;
+        (document.getElementById("swal-admin-password") as HTMLInputElement).value = clave;
+        return { isConfirmed: Boolean(await options.preConfirm!(undefined)) };
+      }) as never);
+
+    test("approves a client without movements without asking anyone", async () => {
+      respond({ "entities/validar_eliminar_cliente": accepted([]) });
+
+      expect(await useEntitiesStore().approveClientEdit(4)).toBe(true);
+      expect(Swal.fire).not.toHaveBeenCalled();
+    });
+
+    test("approves a client with movements once any administrator confirms, without signing in as that administrator", async () => {
+      respond({ "entities/validar_eliminar_cliente": hasMovements, validar_usuario_admin: accepted([{ id: 1 }]) });
+      answerAdminDialog("jefa@empresa.com", "clave-admin");
+
+      expect(await useEntitiesStore().approveClientEdit(4)).toBe(true);
+      expect(sentUrls()).toEqual(["entities/validar_eliminar_cliente", "validar_usuario_admin"]);
+      expect(httpMock.mock.calls[1]![0].data).toEqual({ usuario: "jefa@empresa.com", clave: "clave-admin" });
+    });
+
+    test("keeps asking with the reason when the administrator credentials are wrong", async () => {
+      respond({
+        "entities/validar_eliminar_cliente": hasMovements,
+        validar_usuario_admin: rejected("Usuario o contraseña incorrectos"),
+      });
+      answerAdminDialog("jefa@empresa.com", "mala");
+
+      expect(await useEntitiesStore().approveClientEdit(4)).toBe(false);
+      expect(Swal.showValidationMessage).toHaveBeenCalledWith("Usuario o contraseña incorrectos");
+    });
+
+    test("does not ask for an administrator when the client cannot be checked", async () => {
+      respond({ "entities/validar_eliminar_cliente": new Error("network") });
+
+      expect(await useEntitiesStore().approveClientEdit(4)).toBe(false);
+      expect(swalCall()).toMatchObject({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+    });
+
+    test("denies the edit when the dialog is cancelled", async () => {
+      respond({ "entities/validar_eliminar_cliente": hasMovements });
+      vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+
+      expect(await useEntitiesStore().approveClientEdit(4)).toBe(false);
+    });
   });
 
   test.each([

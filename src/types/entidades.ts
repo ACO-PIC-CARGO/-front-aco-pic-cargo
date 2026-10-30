@@ -131,6 +131,7 @@ interface EntidadComercial {
 }
 
 export interface Cliente extends EntidadComercial {
+  id?: number;
   names: string;
   surname: string;
   second_surname: string;

@@ -50,6 +50,7 @@ function obtenerFlag() {
 }
 async function modificarCliente() {
   if (isFormReadonly.value) {
+    if (!(await entitiesStore.approveClientEdit(entitiesStore.cliente.id!))) return;
     entitiesStore.isReadonly = false;
     entitiesStore.isEdit = true;
     Swal.fire({
