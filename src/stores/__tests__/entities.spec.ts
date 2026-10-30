@@ -230,6 +230,53 @@ describe("entities store", () => {
     expect(entities.proveedor.contactoActual).toBe(entities.lstContactos[0]);
   });
 
+  test("getVerProveedor loads a provider whose phones or contacts have no type", async () => {
+    respond({
+      ver_proveedor: accepted([
+        {
+          id: 64,
+          ...detailLists,
+          lsttelefonos: [{ id: 1, id_tipotelefono: null, telefono: "999" }],
+          lstcontactos: [{ id: 2, nombre: "Luis", id_tipotelefono: null, telefono: "888" }],
+        },
+      ]),
+    });
+    const entities = useEntitiesStore();
+
+    await entities.getVerProveedor();
+
+    expect(entities.lstTelefonos).toEqual([{ id: 1, id_tipotelefono: "", telefono: "999" }]);
+    expect(entities.lstContactos).toEqual([{ id: 2, nombre: "Luis", id_tipotelefono: "", telefono: "888" }]);
+  });
+
+  test("a provider that fails to load leaves no stale rows and cannot be saved", async () => {
+    respond({ ver_proveedor: new Error("network"), actualizar_proveedor: accepted([]) });
+    const entities = useEntitiesStore();
+    Object.assign(entities, {
+      lstTelefonos: [{ id: 1, id_tipotelefono: "2", telefono: "999" }],
+      lstContactos: [{ id: 2, nombre: "Luis", id_tipotelefono: "3", telefono: "888" }],
+      lstConvenios: [{ id: 3, dias_credito: 5 }],
+      lstTarifas: [{ id: 4, codigo: "T00001" }],
+      lstInformacionBancaria: [{ id: 5, nro_cuenta: "1" }],
+      lstEmails: [{ id: 6, description: "a", email: "a@b.co", estado: true }],
+    });
+
+    await entities.getVerProveedor();
+    const saved = await entities.actualizarProveedor();
+
+    expect(entities).toMatchObject({
+      lstTelefonos: [],
+      lstContactos: [],
+      lstConvenios: [],
+      lstTarifas: [],
+      lstInformacionBancaria: [],
+      lstEmails: [],
+    });
+    expect(saved).toBe(false);
+    expect(sentUrls()).not.toContain("actualizar_proveedor");
+    expect(swalCall()).toMatchObject({ icon: "error" });
+  });
+
   test("getVerProveedor sends the user back to the supplier list when the supplier does not exist", async () => {
     respond({ ver_proveedor: rejected("No existe") });
     const entities = useEntitiesStore();

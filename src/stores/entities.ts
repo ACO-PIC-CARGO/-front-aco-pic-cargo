@@ -40,6 +40,8 @@ const CLIENT_HAS_MOVEMENTS = "warning";
 const ADMIN_USER_INPUT = "swal-admin-user";
 const ADMIN_PASSWORD_INPUT = "swal-admin-password";
 
+const phoneTypeText = (phoneType: unknown) => (phoneType == null ? "" : String(phoneType));
+
 const emailsToSave = (emails: EmailEntidad[]) =>
   emails.filter((email) => email.id || (email.estado !== false && email.email && email.email.trim()));
 
@@ -161,6 +163,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   const lstProveedores_x_documento = ref<EntidadCoincidencia[]>([]);
   // Starts undefined until telConctactoProveedor first fills it.
   const lstTelefono = ref<TelefonoEntidad[]>();
+  const providerLoadFailed = ref(false);
 
   function _setEntitie(dataEntitie: { status?: number }): void {
     if (dataEntitie.status == 200) {
@@ -327,6 +330,13 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   async function getVerProveedor(): Promise<void> {
+    providerLoadFailed.value = true;
+    lstTelefonos.value = [];
+    lstContactos.value = [];
+    lstConvenios.value = [];
+    lstTarifas.value = [];
+    lstInformacionBancaria.value = [];
+    lstEmails.value = [];
     await axios<ApiResponse<ProveedorDetalle[]>>({
       method: "get",
       url:
@@ -361,13 +371,13 @@ export const useEntitiesStore = defineStore("entities", () => {
           lstTelefonos.value = res.lsttelefonos.map((item) => {
             return {
               ...item,
-              id_tipotelefono: item.id_tipotelefono!.toString(),
+              id_tipotelefono: phoneTypeText(item.id_tipotelefono),
             };
           });
           lstContactos.value = res.lstcontactos.map((item) => {
             return {
               ...item,
-              id_tipotelefono: item.id_tipotelefono!.toString(),
+              id_tipotelefono: phoneTypeText(item.id_tipotelefono),
             };
           });
           lstConvenios.value = res.lstconvenios;
@@ -386,6 +396,7 @@ export const useEntitiesStore = defineStore("entities", () => {
           if (lstContactos.value[0]) {
             proveedor.value.contactoActual = lstContactos.value[0];
           }
+          providerLoadFailed.value = false;
         } else {
           if (data.status == "401") {
             showRejectedResponse(data);
@@ -481,7 +492,15 @@ export const useEntitiesStore = defineStore("entities", () => {
     return res;
   }
 
-  async function actualizarProveedor(): Promise<void> {
+  async function actualizarProveedor(): Promise<boolean> {
+    if (providerLoadFailed.value) {
+      Swal.fire({
+        icon: "error",
+        title: "Aviso",
+        text: "No pudimos cargar los datos de este proveedor, así que no los guardamos. Recarga la página e intenta de nuevo.",
+      });
+      return false;
+    }
     proveedor.value.id_branch = sessionBranchId();
     proveedor.value.lstTelefonos = lstTelefonos.value;
     proveedor.value.lstContactos = lstContactos.value;
@@ -490,6 +509,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     proveedor.value.lstInformacionBancaria = lstInformacionBancaria.value;
     proveedor.value.lstEmails = emailsToSave(lstEmails.value);
 
+    let saved = false;
     await axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `actualizar_proveedor`,
@@ -501,6 +521,7 @@ export const useEntitiesStore = defineStore("entities", () => {
       .then(function (response) {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
+        saved = data.estadoflag === true;
 
         if (data.status == "401") {
           showRejectedResponse(data);
@@ -524,6 +545,7 @@ export const useEntitiesStore = defineStore("entities", () => {
       .catch(function (error) {
         console.error(error);
       });
+    return saved;
   }
 
   async function eliminarPersona(data: { id: number }, asClient = false): Promise<void> {
