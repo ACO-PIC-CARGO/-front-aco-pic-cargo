@@ -470,57 +470,67 @@ describe("entities store", () => {
     expect(swalCall()).toMatchObject({ icon: "success", confirmButtonText: "Ok" });
   });
 
-  test("exportListClientes posts the filter with blank fallbacks and downloads the sheet", async () => {
+  test("exportListClientes posts the client filter and downloads the workbook it receives", async () => {
     URL.createObjectURL = vi.fn(() => "blob:sheet");
+    URL.revokeObjectURL = vi.fn();
     const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    postMock.mockResolvedValue({ data: new ArrayBuffer(1) });
+    postMock.mockResolvedValue({ data: new Blob(["xlsx"]) });
     const entities = useEntitiesStore();
-    Object.assign(entities.filtro, { correlativo: null, names: "Ana", status: 3 });
+    Object.assign(entities.filtro, { correlativo: null, nombrecompleto: "Ana", status: 3, id_tipoproveedor: 4 });
 
     await entities.exportListClientes();
 
     const [url, body, config] = postMock.mock.calls[0]!;
     expect(url).toBe(URL_MAIN + "export_list_cliente");
     expect(body).toEqual({
-      id_branch: 7,
       correlativo: "",
-      names: "Ana",
-      surname: "",
-      second_surname: "",
+      nombrecompleto: "Ana",
       id_document: "",
+      nro_documento: "",
       id_pais: "",
       id_state: "",
       status: "",
-      id_tipoproveedor: "",
     });
-    expect(config).toMatchObject({ responseType: "arraybuffer" });
+    expect(config).toMatchObject({ responseType: "blob" });
     expect(click).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(Swal.fire).mock.calls.map(([options]) => (options as SweetAlertOptions).text)).toEqual([
-      "El documento se descargará automaticamente",
-      "Documento Descargado",
-    ]);
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("exportListProveedor posts the raw filter", async () => {
+  test("exportListProveedor posts the provider filter with document and product", async () => {
     URL.createObjectURL = vi.fn(() => "blob:sheet");
+    URL.revokeObjectURL = vi.fn();
     vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    postMock.mockResolvedValue({ data: new ArrayBuffer(1) });
+    postMock.mockResolvedValue({ data: new Blob(["xlsx"]) });
     const entities = useEntitiesStore();
-    Object.assign(entities.filtro, { correlativo: null, bussiness_name: "ACME" });
+    Object.assign(entities.filtro, { bussiness_name: "ACME", nro_documento: "2055", producto: "Café", id_tipoproveedor: 4 });
 
     await entities.exportListProveedor();
 
     expect(postMock.mock.calls[0]![0]).toBe(URL_MAIN + "export_list_proveedor");
     expect(postMock.mock.calls[0]![1]).toEqual({
-      id_branch: 7,
-      correlativo: null,
+      correlativo: "",
       bussiness_name: "ACME",
       id_document: "",
+      nro_documento: "2055",
+      id_tipoproveedor: 4,
+      producto: "Café",
       id_pais: "",
       id_state: "",
       status: "1",
-      id_tipoproveedor: "",
     });
+  });
+
+  test.each([
+    ["the reason the server gives", { response: { data: new Blob([JSON.stringify({ mensaje: "Revisa el correlativo" })]) } }, "Revisa el correlativo"],
+    ["the connection message when there is no answer", new Error("network"), CONNECTION_ERROR_MESSAGE],
+  ])("a failed export shows %s", async (_, failure, message) => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    postMock.mockRejectedValue(failure);
+
+    await useEntitiesStore().exportListClientes();
+
+    expect(click).not.toHaveBeenCalled();
+    expect(swalCall()).toMatchObject({ icon: "error", text: message });
   });
 
   test("cargarDatosTatifasEntite keeps the tariff contacts of the first row, or none when rejected", async () => {

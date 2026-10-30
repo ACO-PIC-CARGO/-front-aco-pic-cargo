@@ -611,63 +611,59 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function exportListProveedor(): Promise<void> {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-      Accept: "aplication/json",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length",
-      responseType: "arraybuffer" as const,
-    };
-    const data = {
-      id_branch: sessionBranchId(),
-      correlativo: filtro.value.correlativo,
-      bussiness_name: filtro.value.bussiness_name,
-      id_document: filtro.value.id_document,
-      id_pais: filtro.value.id_pais,
-      id_state: filtro.value.id_state,
-      status: filtro.value.status,
-      id_tipoproveedor: filtro.value.id_tipoproveedor,
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Aviso",
-      text: "El documento se descargará automaticamente",
-      showConfirmButton: false,
-      showCloseButton: false,
-      showDenyButton: false,
-      allowOutsideClick: false,
-    });
-    await axios
-      .post<ArrayBuffer>(
-        import.meta.env.VITE_URL_MAIN + `export_list_proveedor`,
-        data,
-        headers,
-      )
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        // let name = this.uuidv4();
-        link.setAttribute(
-          "download",
-          `Listo Proveedor ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
-        );
-        document.body.appendChild(link);
-        link.click();
-      });
-    Swal.fire({
-      icon: "info",
-      title: "Aviso",
-      text: "Documento Descargado",
-      confirmButtonText: "Ok",
-      showConfirmButton: true,
-      showCloseButton: false,
-      showDenyButton: false,
-      allowOutsideClick: false,
-    });
+  const statusFilter = () =>
+    filtro.value.status == 1 || filtro.value.status == 0 ? filtro.value.status : "";
+
+  const clientFilters = () => ({
+    correlativo: filtro.value.correlativo || "",
+    nombrecompleto: filtro.value.nombrecompleto || "",
+    id_document: filtro.value.id_document || "",
+    nro_documento: filtro.value.nro_documento || "",
+    id_pais: filtro.value.id_pais || "",
+    id_state: filtro.value.id_state || "",
+    status: statusFilter(),
+  });
+
+  const providerFilters = () => ({
+    correlativo: filtro.value.correlativo || "",
+    bussiness_name: filtro.value.bussiness_name || "",
+    id_document: filtro.value.id_document || "",
+    nro_documento: filtro.value.nro_documento || "",
+    id_tipoproveedor: filtro.value.id_tipoproveedor || "",
+    producto: filtro.value.producto || "",
+    id_pais: filtro.value.id_pais || "",
+    id_state: filtro.value.id_state || "",
+    status: statusFilter(),
+  });
+
+  async function exportFailureMessage(error: unknown): Promise<string> {
+    const { response } = error as { response?: { data?: unknown } };
+    if (!(response && response.data instanceof Blob)) return CONNECTION_ERROR_MESSAGE;
+    try {
+      return (JSON.parse(await response.data.text()) as ApiResponse).mensaje || CONNECTION_ERROR_MESSAGE;
+    } catch {
+      return CONNECTION_ERROR_MESSAGE;
+    }
+  }
+
+  async function downloadEntityList(path: string, filters: object, fileName: string): Promise<void> {
+    try {
+      const { data } = await axios.post<Blob>(import.meta.env.VITE_URL_MAIN + path, filters, { responseType: "blob" });
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${fileName} ${moment().format("DD-MM-YYYY HH-mm-ss")}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      Swal.fire({ icon: "error", title: "Aviso", text: await exportFailureMessage(error) });
+    }
+  }
+
+  function exportListProveedor(): Promise<void> {
+    return downloadEntityList("export_list_proveedor", providerFilters(), "Listado Proveedor");
   }
 
   async function validarNombreProveedor(): Promise<void> {
@@ -971,68 +967,8 @@ export const useEntitiesStore = defineStore("entities", () => {
     return true;
   }
 
-  async function exportListClientes(): Promise<void> {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-      Accept: "aplication/json",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length",
-      responseType: "arraybuffer" as const,
-    };
-    const data = {
-      id_branch: sessionBranchId(),
-      correlativo: filtro.value.correlativo ? filtro.value.correlativo : "",
-      names: filtro.value.names ? filtro.value.names : "",
-      surname: filtro.value.surname ? filtro.value.surname : "",
-      second_surname: filtro.value.second_surname
-        ? filtro.value.second_surname
-        : "",
-      id_document: filtro.value.id_document ? filtro.value.id_document : "",
-      id_pais: filtro.value.id_pais ? filtro.value.id_pais : "",
-      id_state: filtro.value.id_state ? filtro.value.id_state : "",
-      status:
-        filtro.value.status == 1 || filtro.value.status == 0
-          ? filtro.value.status
-          : "",
-      id_tipoproveedor: filtro.value.id_tipoproveedor
-        ? filtro.value.id_tipoproveedor
-        : "",
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Aviso",
-      text: "El documento se descargará automaticamente",
-      showConfirmButton: false,
-      showCloseButton: false,
-      showDenyButton: false,
-      allowOutsideClick: false,
-    });
-    await axios
-      .post<ArrayBuffer>(import.meta.env.VITE_URL_MAIN + `export_list_cliente`, data, headers)
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        // let name = this.uuidv4();
-        link.setAttribute(
-          "download",
-          `Listo Proveedor ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
-        );
-        document.body.appendChild(link);
-        link.click();
-      });
-    Swal.fire({
-      icon: "info",
-      title: "Aviso",
-      text: "Documento Descargado",
-      confirmButtonText: "Ok",
-      showConfirmButton: true,
-      showCloseButton: false,
-      showDenyButton: false,
-      allowOutsideClick: false,
-    });
+  function exportListClientes(): Promise<void> {
+    return downloadEntityList("export_list_cliente", clientFilters(), "Listado Cliente");
   }
 
   async function validarNombreCliente(): Promise<void> {
