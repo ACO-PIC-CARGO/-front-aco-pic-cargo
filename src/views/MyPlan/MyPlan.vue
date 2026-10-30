@@ -10,6 +10,7 @@ import ModuleSelectDialog from "@/components/SubscriptionPackages/ModuleSelectDi
 import { stopCheckoutEvents } from "@/plugins/paddle";
 import type { PaddleCheckoutEvent } from "@/plugins/paddle";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import type {
   Billing,
   CardAction,
@@ -45,6 +46,7 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
+const branchTimeZoneStore = useBranchTimeZoneStore();
 const {
   plan,
   publicPackages: packages,
@@ -131,11 +133,12 @@ function startPendingChoice(choice: PlanChoice) {
 }
 async function loadPage() {
   loadState.value = "loading";
-  const errors = await Promise.all([
+  const [planError, packagesError] = await Promise.all([
     subscriptionsStore.loadCompanyPlan(),
     subscriptionsStore.loadPublicPackages(),
+    branchTimeZoneStore.load(),
   ]);
-  const error = errors.find(Boolean);
+  const error = planError || packagesError;
   if (error) {
     errorMessage.value = error;
     loadState.value = "error";

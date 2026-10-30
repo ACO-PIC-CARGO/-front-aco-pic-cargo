@@ -3,10 +3,10 @@ import { computed, ref } from "vue";
 import type { RouteRecordNameGeneric } from "vue-router";
 import Swal from "sweetalert2";
 import type { SweetAlertIcon, SweetAlertResult } from "sweetalert2";
-import moment from "moment";
 import { hasFailed, notifySuccess, request } from "@/utils/request";
 import router from "@/router";
 import { openPaddleCheckout } from "@/plugins/paddle";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import type { PaddleCheckoutListener } from "@/plugins/paddle";
 import type { ApiResponse } from "@/types/api";
 import type { ItemMenu } from "@/types/sesion";
@@ -66,6 +66,8 @@ const notifyProblem = (response: ApiResponse): Promise<SweetAlertResult> =>
     icon: ICON_BY_MESSAGE_TYPE[response.tipomensaje] || "error",
     text: response.mensaje,
   });
+const notifyOutcome = (response: ApiResponse): Promise<SweetAlertResult> =>
+  response.tipomensaje === "TMSGADV" ? notifyProblem(response) : notifySuccess(response.mensaje);
 
 const countLabel = (count: number, singular: string, plural: string) =>
   `${count} ${count === 1 ? singular : plural}`;
@@ -82,8 +84,20 @@ const formatPrice = (value: number | string): string => {
   return `US$${formatted}`;
 };
 
-const formatDate = (value: string | null | undefined): string =>
-  value ? moment.utc(value).locale("es").format("D [de] MMMM [de] YYYY") : "";
+const formatMoney = (amount: number, currency: string): string =>
+  currency === "USD"
+    ? formatPrice(amount)
+    : new Intl.NumberFormat("es", { style: "currency", currency }).format(amount);
+
+const minorUnitDigits = (currency: string) =>
+  new Intl.NumberFormat("es", { style: "currency", currency }).resolvedOptions().maximumFractionDigits ?? 2;
+
+type DateFormatter = (value: string | null | undefined) => string;
+
+const formatDateIn = (value: string | null | undefined, timeZone: string): string =>
+  value
+    ? new Intl.DateTimeFormat("es", { day: "numeric", month: "long", year: "numeric", timeZone }).format(new Date(value))
+    : "";
 
 const annualSavings = (pkg: PlanSource) =>
   Math.max(
@@ -446,7 +460,7 @@ const statusView = (plan: CompanyPlan | null): PlanStatusView => {
   return PLAN_STATUS_VIEW[plan.status] || { label: plan.status, tone: "muted" };
 };
 
-const planDateLineOf = (plan: CompanyPlan) => {
+const planDateLineOf = (plan: CompanyPlan, formatDate: DateFormatter) => {
   if (plan.status === "canceled")
     return `Cancelado el ${formatDate(plan.canceled_at)}.`;
   if (plan.scheduled_change_action === "cancel") {
@@ -541,17 +555,14 @@ const purchaseActionOf = (
   return cardActionOf(pkg, plan, billing, currentPackage);
 };
 
-const changeSummary = (preview: PlanChangePreview): string => {
-  const recurring = `${formatPrice(preview.recurring_amount)} ${
+const changeSummaryOf = (preview: PlanChangePreview, formatDate: DateFormatter): string => {
+  const money = (amount: number) => formatMoney(amount, preview.currency_code);
+  const recurring = `${money(preview.recurring_amount)} ${
     PERIOD_BY_BILLING[preview.billing]
   } desde el ${formatDate(preview.next_billed_at)}`;
   const today = {
-    charge: `Hoy se cobrarán ${formatPrice(
-      preview.amount
-    )} a tu método de pago. Después pagarás ${recurring}.`,
-    credit: `Te quedará un crédito de ${formatPrice(
-      preview.amount
-    )} para tus siguientes pagos. Después pagarás ${recurring}.`,
+    charge: `Hoy se cobrarán ${money(preview.amount)} a tu método de pago. Después pagarás ${recurring}.`,
+    credit: `Te quedará un crédito de ${money(preview.amount)} para tus siguientes pagos. Después pagarás ${recurring}.`,
     none: `No se te cobrará nada hoy. Pagarás ${recurring}.`,
   }[preview.action];
   return preview.removes_cancel
@@ -739,14 +750,8 @@ const conceptOf = (entry: BillingEntry) => {
   return entry.billing ? `${name} · ${BILLING_LABELS[entry.billing]}` : name;
 };
 
-const amountOf = (entry: BillingEntry) => {
-  const amount = Number(entry.total) / 100;
-  if (entry.currency_code === "USD") return formatPrice(amount);
-  return new Intl.NumberFormat("es", {
-    style: "currency",
-    currency: entry.currency_code,
-  }).format(amount);
-};
+const amountOf = (entry: BillingEntry) =>
+  formatMoney(Number(entry.total) / 10 ** minorUnitDigits(entry.currency_code), entry.currency_code);
 
 const statusOf = (entry: BillingEntry) => {
   const total = Number(entry.total);
@@ -756,7 +761,7 @@ const statusOf = (entry: BillingEntry) => {
   return adjusted > 0 ? PARTLY_REFUNDED : REFUNDED;
 };
 
-const billingRowsOf = (entries: BillingEntry[]): BillingRow[] =>
+const billingRowsOf = (entries: BillingEntry[], formatDate: DateFormatter): BillingRow[] =>
   entries.map((entry) => {
     const status = statusOf(entry)!;
     return {
@@ -779,6 +784,8 @@ const cardLabel = (paymentMethod: PaymentCard | null) => {
 
 export const useSubscriptionsStore = defineStore("subscriptions", () => {
   let pendingAccess: Promise<PlanAccess | null> | null = null;
+  const branchTimeZone = useBranchTimeZoneStore();
+  const formatDate = (value: string | null | undefined) => formatDateIn(value, branchTimeZone.timeZone);
 
   const packages = ref<SubscriptionPackage[]>([]);
   const publicPackages = ref<SubscriptionPackage[]>([]);
@@ -819,7 +826,7 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
   const hasLivePlan = computed(() => isLivePlan(plan.value));
   const livePlan = computed(() => (isLivePlan(plan.value) ? plan.value : null));
   const planStatus = computed(() => statusView(plan.value));
-  const planDateLine = computed(() => (plan.value ? planDateLineOf(plan.value) : ""));
+  const planDateLine = computed(() => (plan.value ? planDateLineOf(plan.value, formatDate) : ""));
   const canChangePlan = computed(() => canChangePlanOf(plan.value));
   const currentPackage = computed(() => currentPackageOf(plan.value, publicPackages.value));
   const hasUpgrade = computed(() => hasUpgradeOf(plan.value, publicPackages.value));
@@ -829,7 +836,7 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
   );
   const canAddUsers = computed(() => canAddUsersOf(access.value));
   const userLimitNotice = computed(() => userLimitNoticeOf(access.value!));
-  const billingRows = computed(() => billingRowsOf(billingHistory.value.transactions));
+  const billingRows = computed(() => billingRowsOf(billingHistory.value.transactions, formatDate));
   const paymentCard = computed(() => cardLabel(billingHistory.value.payment_method));
 
   function packagesWithStatus(status: string): SubscriptionPackage[] {
@@ -861,6 +868,10 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
       branchId,
       now,
     });
+  }
+
+  function changeSummary(preview: PlanChangePreview): string {
+    return changeSummaryOf(preview, formatDate);
   }
 
   function lockedModuleForRoute(
@@ -962,7 +973,7 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
       url: id ? `subscription_packages/${id}` : "subscription_packages",
       data: packageDraftPayload.value,
     });
-    if (response.estadoflag) notifySuccess(response.mensaje);
+    if (response.estadoflag) notifyOutcome(response);
     return response;
   }
 
@@ -1142,7 +1153,7 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
       return false;
     }
     plan.value = response.data[0]!;
-    notifySuccess(response.mensaje);
+    notifyOutcome(response);
     return true;
   }
 
@@ -1183,7 +1194,8 @@ export const useSubscriptionsStore = defineStore("subscriptions", () => {
     const row = firstRow(response);
     if (!isLivePlan(row)) return false;
     plan.value = row;
-    notifySuccess(`Tu plan ACO ${row.package_name} ya está activo.`);
+    if (response.tipomensaje === "TMSGADV") notifyProblem(response);
+    else notifySuccess(`Tu plan ACO ${row.package_name} ya está activo.`);
     return true;
   }
 

@@ -208,6 +208,7 @@ export interface PlanChangePreview {
   action: "charge" | "credit" | "none";
   amount: number;
   recurring_amount: number;
+  currency_code: string;
   billing: Billing;
   next_billed_at: string | null;
   removes_cancel: boolean;

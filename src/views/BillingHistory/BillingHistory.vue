@@ -7,6 +7,7 @@ import { notifySuccess } from "@/utils/request";
 import { stopCheckoutEvents } from "@/plugins/paddle";
 import type { PaddleCheckoutEvent } from "@/plugins/paddle";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import type { BillingRow } from "@/types/suscripciones";
 
 const EMPTY_MESSAGE =
@@ -21,6 +22,7 @@ const HEADERS = [
 
 const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
+const branchTimeZoneStore = useBranchTimeZoneStore();
 const { billingRows: rows, paymentCard } = storeToRefs(subscriptionsStore);
 
 const loadState = ref("loading");
@@ -45,7 +47,7 @@ onBeforeUnmount(() => {
 
 async function loadHistory() {
   loadState.value = "loading";
-  const error = await subscriptionsStore.loadBillingHistory();
+  const [error] = await Promise.all([subscriptionsStore.loadBillingHistory(), branchTimeZoneStore.load()]);
   errorMessage.value = error || "";
   loadState.value = error ? "error" : "ready";
 }

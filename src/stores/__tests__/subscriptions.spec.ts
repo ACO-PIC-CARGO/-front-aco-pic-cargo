@@ -7,6 +7,7 @@ import http from "@/api/http";
 import router from "@/router";
 import { openPaddleCheckout } from "@/plugins/paddle";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -93,7 +94,7 @@ const livePlan = (over: Record<string, unknown> = {}) => ({
   package_name: "START",
   billing: "monthly",
   status: "active",
-  next_billed_at: "2026-11-05T00:00:00Z",
+  next_billed_at: "2026-11-05T12:00:00Z",
   scheduled_change_action: null,
   scheduled_change_at: null,
   canceled_at: null,
@@ -341,6 +342,15 @@ describe("subscriptions store", () => {
       expect(Swal.fire).toHaveBeenCalledWith(toast("Paquete creado"));
     });
 
+    test("warns instead of toasting when the package saved but Paddle did not update", async () => {
+      respond({ "put subscription_packages/1": { ...accepted([{ id: 1 }], "Guardamos el paquete, pero no pudimos actualizarlo en Paddle."), tipomensaje: "TMSGADV" } });
+      const store = useSubscriptionsStore();
+      store.openPackageDraft(startPackage() as never);
+      const response = await store.savePackageDraft();
+      expect(response.estadoflag).toBe(true);
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "Guardamos el paquete, pero no pudimos actualizarlo en Paddle." });
+    });
+
     test("updates an existing package and does not toast a rejection", async () => {
       respond({ "put subscription_packages/1": failed("Nombre repetido") });
       const store = useSubscriptionsStore();
@@ -580,7 +590,7 @@ describe("subscriptions store", () => {
       store.plan = livePlan() as never;
       expect(store.planStatus).toEqual({ label: "Activo", tone: "ok" });
       expect(store.planDateLine).toBe("Próxima renovación: 5 de noviembre de 2026.");
-      store.plan = livePlan({ scheduled_change_action: "cancel", scheduled_change_at: "2026-12-01T00:00:00Z" }) as never;
+      store.plan = livePlan({ scheduled_change_action: "cancel", scheduled_change_at: "2026-12-01T12:00:00Z" }) as never;
       expect(store.planStatus).toEqual({ label: "Cancelación programada", tone: "warning" });
       expect(store.planDateLine).toBe("Tu plan termina el 1 de diciembre de 2026. No se harán más cobros.");
       store.plan = livePlan({ status: "trialing" }) as never;
@@ -590,7 +600,7 @@ describe("subscriptions store", () => {
       expect(store.paymentUpdateNeeded).toBe(true);
       store.plan = livePlan({ status: "paused" }) as never;
       expect(store.planDateLine).toBe("Tu plan está pausado; no se harán cobros mientras siga así.");
-      store.plan = livePlan({ status: "canceled", canceled_at: "2026-10-02T00:00:00Z" }) as never;
+      store.plan = livePlan({ status: "canceled", canceled_at: "2026-10-02T12:00:00Z" }) as never;
       expect(store.planDateLine).toBe("Cancelado el 2 de octubre de 2026.");
       expect(store.hasLivePlan).toBe(false);
       expect(store.livePlan).toBeNull();
@@ -646,8 +656,9 @@ describe("subscriptions store", () => {
         amount: 12.5,
         recurring_amount: 79,
         billing: "monthly",
-        next_billed_at: "2026-11-05T00:00:00Z",
+        next_billed_at: "2026-11-05T12:00:00Z",
         removes_cancel: true,
+        currency_code: "USD",
       };
       expect(store.changeSummary(preview as never)).toBe(
         "Hoy se cobrarán US$12.50 a tu método de pago. Después pagarás US$79 al mes desde el 5 de noviembre de 2026. Tu cancelación programada se quitará.",
@@ -655,6 +666,21 @@ describe("subscriptions store", () => {
       expect(store.changeSummary({ ...preview, action: "none", billing: "annual", removes_cancel: false } as never)).toBe(
         "No se te cobrará nada hoy. Pagarás US$79 al año desde el 5 de noviembre de 2026.",
       );
+      const yen = (amount: number) => new Intl.NumberFormat("es", { style: "currency", currency: "JPY" }).format(amount);
+      expect(store.changeSummary({ ...preview, currency_code: "JPY", amount: 1500, recurring_amount: 9800 } as never)).toBe(
+        `Hoy se cobrarán ${yen(1500)} a tu método de pago. Después pagarás ${yen(9800)} al mes desde el 5 de noviembre de 2026. Tu cancelación programada se quitará.`,
+      );
+    });
+
+    test("writes plan dates in the company's time zone", () => {
+      const store = useSubscriptionsStore();
+      const branchTimeZone = useBranchTimeZoneStore();
+      store.plan = livePlan({ next_billed_at: "2026-11-05T02:00:00Z" }) as never;
+      branchTimeZone.timeZone = "America/Lima";
+      expect(store.planDateLine).toBe("Próxima renovación: 4 de noviembre de 2026.");
+      branchTimeZone.timeZone = "Asia/Tokyo";
+      expect(store.planDateLine).toBe("Próxima renovación: 5 de noviembre de 2026.");
+      expect(store.formatDate("2026-11-05T20:00:00Z")).toBe("6 de noviembre de 2026");
     });
 
     test("builds the trial notice", () => {
@@ -893,7 +919,7 @@ describe("subscriptions store", () => {
     });
 
     test("confirms a plan change after the preview", async () => {
-      const preview = { action: "none", amount: 0, recurring_amount: 79, billing: "monthly", next_billed_at: "2026-11-05T00:00:00Z", removes_cancel: false };
+      const preview = { action: "none", amount: 0, recurring_amount: 79, billing: "monthly", next_billed_at: "2026-11-05T12:00:00Z", removes_cancel: false, currency_code: "USD" };
       respond({
         "post branch_subscription/change/preview": accepted([preview]),
         "post branch_subscription/change": accepted([livePlan({ package_id: 2 })], "Plan cambiado"),
@@ -914,13 +940,25 @@ describe("subscriptions store", () => {
       expect(store.plan).toEqual(livePlan({ package_id: 2 }));
     });
 
+    test("warns when the plan changed but its scheduled cancellation is still pending", async () => {
+      const preview = { action: "none", amount: 0, recurring_amount: 79, billing: "monthly", next_billed_at: null, removes_cancel: true, currency_code: "USD" };
+      respond({
+        "post branch_subscription/change/preview": accepted([preview]),
+        "post branch_subscription/change": { ...accepted([livePlan({ package_id: 2 })], "Tu plan ahora es ACO PRO, pero tu cancelación programada sigue activa"), tipomensaje: "TMSGADV" },
+      });
+      const store = useSubscriptionsStore();
+      expect(await store.confirmPlanChange({ packageName: "PRO", payload: payload as never })).toBe(true);
+      expect(Swal.fire).toHaveBeenLastCalledWith({ icon: "warning", text: "Tu plan ahora es ACO PRO, pero tu cancelación programada sigue activa" });
+      expect(store.plan).toEqual(livePlan({ package_id: 2 }));
+    });
+
     test("stops a plan change on a rejected preview, a cancel or a rejected change", async () => {
       const store = useSubscriptionsStore();
       respond({ "post branch_subscription/change/preview": failed("Sin cambios") });
       expect(await store.confirmPlanChange({ packageName: "PRO", payload: payload as never })).toBe(false);
       expect(Swal.fire).toHaveBeenLastCalledWith({ icon: "error", text: "Sin cambios" });
 
-      const preview = { action: "none", amount: 0, recurring_amount: 79, billing: "monthly", next_billed_at: null, removes_cancel: false };
+      const preview = { action: "none", amount: 0, recurring_amount: 79, billing: "monthly", next_billed_at: null, removes_cancel: false, currency_code: "USD" };
       respond({ "post branch_subscription/change/preview": accepted([preview]) });
       vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
       expect(await store.confirmPlanChange({ packageName: "PRO", payload: payload as never })).toBe(false);
@@ -965,6 +1003,14 @@ describe("subscriptions store", () => {
       expect(Swal.fire).toHaveBeenCalledWith(toast("Tu plan ACO PRO ya está activo."));
     });
 
+    test("shows why a confirmed payment did not become a second plan", async () => {
+      respond({ "post branch_subscription/confirm": { ...accepted([livePlan()], "Tu empresa ya tiene otro plan activo"), tipomensaje: "TMSGADV" } });
+      const store = useSubscriptionsStore();
+      expect(await store.confirmCompanyPlan("txn_9")).toBe(true);
+      expect(store.plan).toEqual(livePlan());
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "Tu empresa ya tiene otro plan activo" });
+    });
+
     test("checks the current plan without a transaction and waits while it is not live", async () => {
       respond({ "get branch_subscription": accepted([livePlan({ status: "canceled" })]) });
       const store = useSubscriptionsStore();
@@ -977,7 +1023,7 @@ describe("subscriptions store", () => {
   describe("billing history", () => {
     const entry = (over: Record<string, unknown> = {}) => ({
       id: "txn_1",
-      billed_at: "2026-10-05T00:00:00Z",
+      billed_at: "2026-10-05T12:00:00Z",
       origin: "subscription_recurring",
       product_name: "ACO PRO",
       billing: "monthly",
@@ -1024,6 +1070,12 @@ describe("subscriptions store", () => {
         },
         { id: "txn_4", date: "5 de octubre de 2026", concept: "Renovación ACO PRO · Mensual", amount: "US$79", statusLabel: "Facturado", statusTone: "info", hasInvoice: true },
       ]);
+    });
+
+    test("reads each payment in the minor units of its own currency", () => {
+      const store = useSubscriptionsStore();
+      store.billingHistory.transactions = [entry({ currency_code: "JPY", total: "1500", adjusted_total: "1500" })] as never;
+      expect(store.billingRows[0]!.amount).toBe(new Intl.NumberFormat("es", { style: "currency", currency: "JPY" }).format(1500));
     });
 
     test("labels the payment card", () => {
