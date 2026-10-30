@@ -376,7 +376,7 @@ onMounted(async () => {
             <template #[`item.gasto`]="{ item }">
               <v-select
                 :items="
-                  balancesStore.tipogastos.filter((v) => v.id != 0)
+                  balancesStore.tipogastos.filter((v) => v.id != 0 && v.status)
                 "
                 placeholder="Tipo de Gasto"
                 v-model="item.id_gasto"
@@ -390,7 +390,7 @@ onMounted(async () => {
               <v-select
                 :items="
                   balancesStore.tiposubgastos.filter(
-                    (subgasto) => subgasto.id_gasto === item.id_gasto
+                    (subgasto) => subgasto.id_gasto === item.id_gasto && subgasto.status
                   )
                 "
                 v-model="item.id_tiposubgasto"
