@@ -2,12 +2,14 @@
 import { useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
+import { wholeCorrelativo } from "./correlativoRule";
 
 const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const frmFiltro = useTemplateRef("frmFiltro");
 
 async function filtrar() {
+  if (!(await frmFiltro.value!.validate()).valid) return;
   appStore.spiner = true;
   await entitiesStore.getListProveedor();
   entitiesStore.filtrarProveedor =
@@ -33,11 +35,7 @@ async function limpiar() {
         <v-text-field
           label="Correlativo"
           placeholder="Correlativo..."
-          :rules="[
-            (v) =>
-              /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
-              'Debe ser un número real entero positivo',
-          ]"
+          :rules="[wholeCorrelativo]"
           prefix="PROV-"
           clearable
           v-model="entitiesStore.filtro.correlativo"
