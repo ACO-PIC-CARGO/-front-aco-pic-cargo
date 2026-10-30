@@ -255,32 +255,8 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function getListProveedor(): Promise<void> {
     await axios<ApiResponse<EntidadListado[]>>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listado_proveedor?id_branch=${sessionBranchId()}&correlativo=${
-          filtro.value.correlativo ? filtro.value.correlativo : ""
-        }&bussiness_name=${
-          filtro.value.bussiness_name ? filtro.value.bussiness_name : ""
-        }&id_document=${
-          filtro.value.id_document ? filtro.value.id_document : ""
-        }&nro_documento=${
-          filtro.value.nro_documento ? filtro.value.nro_documento : ""
-        }&id_tipoproveedor=${
-          filtro.value.id_tipoproveedor ? filtro.value.id_tipoproveedor : ""
-        }&producto=${
-          filtro.value.producto ? filtro.value.producto : ""
-        }&id_pais=${
-          filtro.value.id_pais ? filtro.value.id_pais : ""
-        }&id_state=${
-          filtro.value.id_state ? filtro.value.id_state : ""
-        }&status=${
-          filtro.value.status == 1 || filtro.value.status == 0
-            ? filtro.value.status
-            : ""
-        }`,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      url: import.meta.env.VITE_URL_MAIN + "listado_proveedor",
+      params: providerFilters(),
     })
       .then(function (response) {
         const data = response.data;
@@ -669,15 +645,8 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function validarNombreProveedor(): Promise<void> {
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `validar_nombre_proveedor?id_branch=${sessionBranchId()}&nombre=${
-          proveedor.value.nombrecompleto ? proveedor.value.nombrecompleto : ""
-        }`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {},
+      url: import.meta.env.VITE_URL_MAIN + "validar_nombre_proveedor",
+      params: { nombre: proveedor.value.nombrecompleto || "" },
     })
       .then(function (response) {
         const { data } = response;
@@ -696,19 +665,11 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function validarDocumentoProveedor(): Promise<void> {
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `validar_documento_proveedor?id_branch=${sessionBranchId()}&id_tipodocumento=${
-          proveedor.value.id_tipodocumento
-            ? proveedor.value.id_tipodocumento
-            : ""
-        }&nro_documento=${
-          proveedor.value.nro_documento ? proveedor.value.nro_documento : ""
-        }`,
-      headers: {
-        "Content-Type": "application/json",
+      url: import.meta.env.VITE_URL_MAIN + "validar_documento_proveedor",
+      params: {
+        id_tipodocumento: proveedor.value.id_tipodocumento || "",
+        nro_documento: proveedor.value.nro_documento || "",
       },
-      data: {},
     })
       .then(function (response) {
         const { data } = response;
@@ -728,28 +689,8 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function getListClientes(): Promise<void> {
     await axios<ApiResponse<EntidadListado[]>>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listado_clientes?id_branch=${sessionBranchId()}&correlativo=${
-          filtro.value.correlativo ? filtro.value.correlativo : ""
-        }&nombrecompleto=${
-          filtro.value.nombrecompleto ? filtro.value.nombrecompleto : ""
-        }&id_document=${
-          filtro.value.id_document ? filtro.value.id_document : ""
-        }&nro_documento=${
-          filtro.value.nro_documento ? filtro.value.nro_documento : ""
-        }&id_pais=${
-          filtro.value.id_pais ? filtro.value.id_pais : ""
-        }&id_state=${
-          filtro.value.id_state ? filtro.value.id_state : ""
-        }&status=${
-          filtro.value.status == 1 || filtro.value.status == 0
-            ? filtro.value.status
-            : ""
-        }`,
-      headers: {
-        "Content-Type": "application/json",
-      },
+      url: import.meta.env.VITE_URL_MAIN + "listado_clientes",
+      params: clientFilters(),
     })
       .then(function (response) {
         const data = response.data;
@@ -1001,17 +942,11 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function validarDocumentoCliente(): Promise<void> {
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `validar_documento_cliente?id_branch=${sessionBranchId()}&id_tipodocumento=${
-          cliente.value.id_tipodocumento ? cliente.value.id_tipodocumento : ""
-        }&nro_documento=${
-          cliente.value.nro_documento ? cliente.value.nro_documento : ""
-        }`,
-      headers: {
-        "Content-Type": "application/json",
+      url: import.meta.env.VITE_URL_MAIN + "validar_documento_cliente",
+      params: {
+        id_tipodocumento: cliente.value.id_tipodocumento || "",
+        nro_documento: cliente.value.nro_documento || "",
       },
-      data: {},
     })
       .then(function (response) {
         const { data } = response;

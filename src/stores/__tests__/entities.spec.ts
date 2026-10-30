@@ -67,10 +67,16 @@ describe("entities store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url:
-        URL_MAIN +
-        "listado_clientes?id_branch=7&correlativo=12&nombrecompleto=Ana&id_document=3&nro_documento=&id_pais=9&id_state=&status=0",
-      headers: JSON_HEADERS,
+      url: URL_MAIN + "listado_clientes",
+      params: {
+        correlativo: "12",
+        nombrecompleto: "Ana",
+        id_document: 3,
+        nro_documento: "",
+        id_pais: 9,
+        id_state: "",
+        status: "0",
+      },
     });
     expect(entities.lstProveedor).toEqual([{ id: 1, nombrecompleto: "Ana" }]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
@@ -83,7 +89,7 @@ describe("entities store", () => {
 
     await entities.getListClientes();
 
-    expect(sentUrls()[0]).toMatch(/&status=$/);
+    expect(httpMock.mock.calls[0]![0].params).toMatchObject({ status: "" });
   });
 
   test("getListClientes empties the list and tells the user when the backend rejects", async () => {
@@ -124,9 +130,10 @@ describe("entities store", () => {
 
     await entities.getListProveedor();
 
-    expect(sentUrls()).toEqual([
-      "listado_proveedor?id_branch=7&correlativo=&bussiness_name=ACME&id_document=&nro_documento=&id_tipoproveedor=4&producto=Café&id_pais=&id_state=&status=1",
-    ]);
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({
+      url: URL_MAIN + "listado_proveedor",
+      params: { bussiness_name: "ACME", id_tipoproveedor: 4, producto: "Café", status: 1 },
+    });
     expect(entities.lstProveedor).toEqual([{ id: 9 }]);
     expect(console.error).toHaveBeenCalledWith(expect.any(Error));
   });
@@ -614,23 +621,37 @@ describe("entities store", () => {
     });
   });
 
-  test.each([
-    ["validarNombreCliente", "validar_nombre_cliente?id_branch=7&nombre=Ana", "lstProveedores_x_nombre"],
-    ["validarDocumentoCliente", "validar_documento_cliente?id_branch=7&id_tipodocumento=1&nro_documento=", "lstProveedores_x_documento"],
-    ["validarNombreProveedor", "validar_nombre_proveedor?id_branch=7&nombre=", "lstProveedores_x_nombre"],
-    ["validarDocumentoProveedor", "validar_documento_proveedor?id_branch=7&id_tipodocumento=&nro_documento=55", "lstProveedores_x_documento"],
-  ] as const)("%s looks up the matches and keeps them, or none when rejected", async (action, url, list) => {
-    respond({ [url.split("?")[0]!]: accepted([{ id: 1, nombrecompleto: "Ana" }]) });
+  test("validarNombreCliente looks up the matches and keeps them, or none when rejected", async () => {
+    respond({ validar_nombre_cliente: accepted([{ id: 1, nombrecompleto: "Ana" }]) });
     const entities = useEntitiesStore();
-    Object.assign(entities.cliente, { nombrecompleto: "Ana", id_tipodocumento: 1, nro_documento: "" });
-    Object.assign(entities.proveedor, { nombrecompleto: "", id_tipodocumento: 0, nro_documento: "55" });
+    entities.cliente.nombrecompleto = "Ana";
+
+    await entities.validarNombreCliente();
+
+    expect(sentUrls()).toEqual(["validar_nombre_cliente?id_branch=7&nombre=Ana"]);
+    expect(entities.lstProveedores_x_nombre).toEqual([{ id: 1, nombrecompleto: "Ana" }]);
+
+    respond({ validar_nombre_cliente: rejected() });
+    await entities.validarNombreCliente();
+    expect(entities.lstProveedores_x_nombre).toEqual([]);
+  });
+
+  test.each([
+    ["validarDocumentoCliente", "validar_documento_cliente", { id_tipodocumento: 1, nro_documento: "R&D #7" }, "lstProveedores_x_documento"],
+    ["validarNombreProveedor", "validar_nombre_proveedor", { nombre: "Ana & Hijos #2" }, "lstProveedores_x_nombre"],
+    ["validarDocumentoProveedor", "validar_documento_proveedor", { id_tipodocumento: 3, nro_documento: "55&x=1" }, "lstProveedores_x_documento"],
+  ] as const)("%s sends what was typed intact and keeps the matches, or none when rejected", async (action, path, params, list) => {
+    respond({ [path]: accepted([{ id: 1, nombrecompleto: "Ana" }]) });
+    const entities = useEntitiesStore();
+    Object.assign(entities.cliente, { id_tipodocumento: 1, nro_documento: "R&D #7" });
+    Object.assign(entities.proveedor, { nombrecompleto: "Ana & Hijos #2", id_tipodocumento: 3, nro_documento: "55&x=1" });
 
     await entities[action]();
 
-    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + url, headers: JSON_HEADERS, data: {} });
+    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + path, params });
     expect(entities[list]).toEqual([{ id: 1, nombrecompleto: "Ana" }]);
 
-    respond({ [url.split("?")[0]!]: rejected() });
+    respond({ [path]: rejected() });
     await entities[action]();
     expect(entities[list]).toEqual([]);
   });
