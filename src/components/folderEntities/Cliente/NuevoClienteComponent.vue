@@ -134,6 +134,7 @@ onMounted(async () => {
   entitiesStore.lstTarifas = [];
   entitiesStore.lstInformacionBancaria = [];
   entitiesStore.lstShippers = [];
+  entitiesStore.lstEmails = [];
   entitiesStore.informacionEntrega = { status: true };
 
   const tipoPersona = getIDTipoPersona("PERSONA NATURAL");
