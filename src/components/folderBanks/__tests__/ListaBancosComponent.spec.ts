@@ -170,3 +170,17 @@ test.each([
   expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: expect.stringContaining(`${question} la cuenta 193-555`) });
   expect(requestsTo("eliminar_cuenta").map((config) => config.data)).toEqual([expect.objectContaining({ id: 5, status: sent })]);
 });
+
+test("cancelling a bank's inactivation keeps it active and saves nothing", { timeout: 15_000 }, async () => {
+  answerWith([bankWithAccount(1)]);
+  await mountScreen();
+  vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+
+  document.body.querySelector<HTMLElement>(".mdi-delete")!.closest("button")!.click();
+  await flushPromises();
+
+  expect(requestsTo("actualizar_bank")).toEqual([]);
+  expect(document.body.querySelector(".mdi-delete")).not.toBeNull();
+  const [{ status }] = useBankStore().list as { status: unknown }[];
+  expect(status).toBe(1);
+});

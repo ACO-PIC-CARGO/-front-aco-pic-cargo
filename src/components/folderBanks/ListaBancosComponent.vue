@@ -174,12 +174,9 @@ async function switch_status(item: BancoFila) {
     cancelButtonColor: "orange",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
-    item.status = 0;
     if (result.isConfirmed) {
       resetRecord("filter");
-      await bankStore.updateBank(item);
-    } else {
-      item.status = !status;
+      await bankStore.updateBank({ ...item, status: 0 });
     }
   });
 }
