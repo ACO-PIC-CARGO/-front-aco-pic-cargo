@@ -128,7 +128,7 @@ test("Nuevo refuses a container another multiplier already uses", async () => {
   await clickDrawerButton("Nuevo");
 
   expect(sent("nuevo_multiplicador")).toEqual([]);
-  expect(vi.mocked(Swal.fire).mock.calls.at(-1)![0]).toMatchObject({ icon: "error" });
+  expect(vi.mocked(Swal.fire).mock.lastCall![0]).toMatchObject({ icon: "error" });
 });
 
 test("editing saves the new cargo type and container", async () => {

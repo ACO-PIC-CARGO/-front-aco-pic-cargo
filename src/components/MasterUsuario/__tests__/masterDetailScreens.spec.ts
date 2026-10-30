@@ -3,6 +3,7 @@ import type { Component } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
+import type { Pinia } from "pinia";
 import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
@@ -25,20 +26,22 @@ globalThis.ResizeObserver ??= class {
 };
 
 let wrapper: VueWrapper | undefined;
+let pinia: Pinia;
 
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 7 }]));
   localStorage.setItem("dataBranch", JSON.stringify([{ id: 7 }]));
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
-  setActivePinia(createPinia());
+  pinia = createPinia();
+  setActivePinia(pinia);
 });
 
 afterEach(() => wrapper?.unmount());
 
 const mountWithStore = async (component: Component) => {
   wrapper = mount(component, {
-    global: { plugins: [createVuetify({ components, directives }), useMasterusuariosStore().$pinia] },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
   await flushPromises();
