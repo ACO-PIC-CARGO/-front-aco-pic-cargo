@@ -41,7 +41,7 @@ export const useContainersStore = defineStore("containers", () => {
       });
   }
 
-  async function insertContainers(data: FormContenedor): Promise<void> {
+  async function insertContainers(data: FormContenedor): Promise<boolean> {
     const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_containers",
@@ -55,6 +55,7 @@ export const useContainersStore = defineStore("containers", () => {
       confirmButtonText: "Ok",
     });
     fetchDataContainers({ code: "", description: "", name: "", status: 1 });
+    return response.estadoflag;
   }
 
   async function readContainers(id: number): Promise<void> {
@@ -80,7 +81,7 @@ export const useContainersStore = defineStore("containers", () => {
       });
   }
 
-  async function updateContainers(data: FormContenedor): Promise<void> {
+  async function updateContainers(data: FormContenedor): Promise<boolean> {
     const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_containers",
@@ -94,6 +95,7 @@ export const useContainersStore = defineStore("containers", () => {
       confirmButtonText: "Ok",
     });
     fetchDataContainers({ code: "", description: "", name: "", status: 1 });
+    return response.estadoflag;
   }
 
   return { list, response, record, loading, fetchDataContainers, insertContainers, readContainers, updateContainers };

@@ -85,3 +85,20 @@ test("Nuevo starts an empty, active container even after viewing another one", {
   const saved = httpMock.mock.calls.find(([config]) => config.method === "post")![0];
   expect(saved.data).toMatchObject({ name: "Flat rack", status: 1 });
 });
+
+test("a saved container closes the Nuevo panel, so it cannot be submitted twice", { timeout: 15_000 }, async () => {
+  await mountScreen();
+
+  buttonNamed("Nuevo").click();
+  await flushPromises();
+  await typeInto("Nombre (*)", "Flat rack");
+  for (const label of ["Largo (*)", "Ancho (*)", "Altura (*)", "Peso Máximo (*)", "Volumen Máximo (*)"]) {
+    await typeInto(label, "1");
+  }
+  [...document.body.querySelectorAll<HTMLElement>(".v-navigation-drawer--active button")]
+    .find((element) => element.textContent?.trim() === "Aceptar")!
+    .click();
+  await flushPromises();
+
+  expect(document.body.querySelectorAll(".v-navigation-drawer--active")).toHaveLength(0);
+});

@@ -145,13 +145,13 @@ async function btnNuevo() {
   }
   if ((await form.value!.validate()).valid) {
     resetRecord("filter");
-    await multiplicadorStore.nuevoMultiplicador(multiplicadorStore.record);
+    if (await multiplicadorStore.nuevoMultiplicador(multiplicadorStore.record)) showFilterDrawerUpdate.value = false;
   }
 }
 async function btnUpdate() {
   if ((await form.value!.validate()).valid) {
     resetRecord("filter");
-    await multiplicadorStore.updateMultiplicador(multiplicadorStore.record);
+    if (await multiplicadorStore.updateMultiplicador(multiplicadorStore.record)) showFilterDrawerUpdate.value = false;
   }
 }
 function open_filter() {
@@ -250,7 +250,7 @@ function validateNumber(value: string | number | null | undefined) {
           color="info"
           @click="open_filter()"
         >
-          Fitrar
+          Filtrar
         </v-btn>
       </v-card-title>
 

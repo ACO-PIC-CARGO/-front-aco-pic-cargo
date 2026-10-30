@@ -160,7 +160,7 @@ async function open_update(itemId: number) {
 async function submit_insert() {
   if ((await formNew.value!.validate()).valid) {
     resetRecord("filter");
-    await containersStore.insertContainers(record.value);
+    if (await containersStore.insertContainers(record.value)) showFilterDrawerNew.value = false;
   }
 }
 async function submit_update() {
@@ -177,7 +177,7 @@ async function submit_update() {
       status: record.value.status,
     };
     resetRecord("filter");
-    await containersStore.updateContainers(data);
+    if (await containersStore.updateContainers(data)) showFilterDrawerUpdate.value = false;
   }
 }
 async function submit_filter() {
@@ -266,7 +266,7 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
         color="#2962FF"
         @click="open_filter()"
       >
-        Fitrar
+        Filtrar
       </v-btn>
     </v-card-title>
 

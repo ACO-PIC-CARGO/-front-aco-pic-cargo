@@ -153,3 +153,15 @@ test("turning Estado off while editing saves status 0 and keeps the name", async
 
   expect(sent("actualizar_multiplicador")).toEqual([expect.objectContaining({ id: lclMultiplier.id, name: "LCL", status: 0 })]);
 });
+
+test("a saved multiplier closes the Nuevo panel, so it cannot be submitted twice", async () => {
+  await mountScreen([lclMultiplier]);
+
+  await clickButton("Nuevo");
+  await choose("Tipo de Carga (*)", LCL);
+  await typeInto("Nombre (*)", "LCL Lima");
+  await typeInto("Valor (*)", "0.35");
+  await clickDrawerButton("Nuevo");
+
+  expect(inDrawer("button")).toEqual([]);
+});

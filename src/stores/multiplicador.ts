@@ -93,7 +93,7 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
       });
   }
 
-  async function updateMultiplicador(data: Multiplicador): Promise<void> {
+  async function updateMultiplicador(data: Multiplicador): Promise<boolean> {
     const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_multiplicador",
@@ -107,9 +107,10 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
       confirmButtonText: "Ok",
     });
     fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
+    return response.estadoflag;
   }
 
-  async function nuevoMultiplicador(data: Multiplicador): Promise<void> {
+  async function nuevoMultiplicador(data: Multiplicador): Promise<boolean> {
     const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "nuevo_multiplicador",
@@ -123,6 +124,7 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
       confirmButtonText: "Ok",
     });
     fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
+    return response.estadoflag;
   }
 
   return {

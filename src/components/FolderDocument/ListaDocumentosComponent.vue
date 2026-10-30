@@ -234,7 +234,7 @@ function resetForms() {
           color="#2962FF"
           @click="open_filter()"
         >
-          Fitrar
+          Filtrar
         </v-btn>
       </v-card-title>
 
