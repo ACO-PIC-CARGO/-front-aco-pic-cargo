@@ -106,5 +106,6 @@ test("Filtrar can list the inactive currencies so they can be switched back on",
   buttonNamed("Aceptar", filter).click();
   await flushPromises();
 
-  expect(requestsTo("listar_coins").at(-1)!.url).toContain("status=0");
+  const listings = requestsTo("listar_coins");
+  expect(listings[listings.length - 1]!.url).toContain("status=0");
 });
