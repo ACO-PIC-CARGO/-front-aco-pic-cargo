@@ -5,7 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useDocumentStore = defineStore("document", () => {
   const list = ref<TipoDocumento[]>([]);
@@ -23,8 +23,7 @@ export const useDocumentStore = defineStore("document", () => {
         `code=${encodeURIComponent(String(data.code))}` +
         `&name=${encodeURIComponent(String(data.name))}` +
         `&description=${encodeURIComponent(String(data.description))}` +
-        `&status=${data.status}` +
-        `&id_branch=${sessionBranchId()}`,
+        `&status=${data.status}`,
       headers: { "Content-Type": "application/json" },
     })
       .then((response) => {
@@ -42,28 +41,21 @@ export const useDocumentStore = defineStore("document", () => {
       });
   }
 
-  async function insertDocument(data: FormDocumento): Promise<void> {
-    await axios<ApiResponse>({
+  async function insertDocument(data: FormDocumento): Promise<boolean> {
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_documents",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataDocument({ name: "", description: "", code: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataDocument({ name: "", description: "", code: "", status: 1 });
+    return response.estadoflag;
   }
 
   async function readDocument(id: number): Promise<void> {
@@ -89,30 +81,21 @@ export const useDocumentStore = defineStore("document", () => {
       });
   }
 
-  async function updateDocument(data: FormDocumento): Promise<void> {
-    await axios<ApiResponse>({
+  async function updateDocument(data: FormDocumento): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_documents",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-            showCancelButton: false,
-            confirmButtonText: "Ok",
-          }).then(() => {
-            fetchDataDocument({ name: "", description: "", code: "", status: 1 });
-          });
-        }
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataDocument({ name: "", description: "", code: "", status: 1 });
+    return response.estadoflag;
   }
 
   return { list, response, record, loading, fetchDataDocument, insertDocument, readDocument, updateDocument };

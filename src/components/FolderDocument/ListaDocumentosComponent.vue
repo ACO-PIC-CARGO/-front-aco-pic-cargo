@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useDocumentStore } from "@/stores/document";
 import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
-import { sessionBranchId } from "@/utils/sesion";
 
 const documentStore = useDocumentStore();
 const appStore = useAppStore();
@@ -28,13 +27,14 @@ const documents = ref<FiltroCatalogo>({
   description: "",
   status: 1,
 });
-const document = ref<FormDocumento>({
-  id_branch: sessionBranchId(),
+const emptyDocument = (): FormDocumento => ({
   code: "",
   name: "",
   description: "",
   status: 1,
 });
+const document = ref<FormDocumento>(emptyDocument());
+const saving = ref(false);
 const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
 const showFilterDrawerUpdate = ref(false);
@@ -62,7 +62,6 @@ watch(
   { immediate: true },
 );
 
-const originalDocument = ref<FormDocumento>({ ...document.value });
 const originalDocuments = ref<FiltroCatalogo>({ ...documents.value });
 
 onMounted(async () => {
@@ -74,7 +73,7 @@ async function clear(option?: string) {
   if (option == "filter") {
     documents.value = { ...originalDocuments.value };
   } else {
-    document.value = { ...originalDocument.value };
+    document.value = emptyDocument();
   }
   await documentStore.fetchDataDocument(documents.value);
   showFilterDrawer.value = false;
@@ -86,10 +85,13 @@ function updateStatus(newValue: unknown) {
   document.value.status = newValue ? 1 : 0;
 }
 async function insert() {
+  if (saving.value) return;
+  saving.value = true;
   if ((await formNew.value!.validate()).valid) {
     clear("filter");
-    await documentStore.insertDocument(document.value);
+    if (await documentStore.insertDocument(document.value)) showFilterDrawerNew.value = false;
   }
+  saving.value = false;
 }
 async function switch_status(item: TipoDocumento) {
   Swal.fire({
@@ -130,6 +132,8 @@ async function open_update(itemId: number) {
   id.value = itemId;
 }
 async function update() {
+  if (saving.value) return;
+  saving.value = true;
   if ((await form.value!.validate()).valid) {
     const data = {
       id: id.value as number,
@@ -138,8 +142,9 @@ async function update() {
       status: document.value.status,
     };
     clear("filter");
-    await documentStore.updateDocument(data);
+    if (await documentStore.updateDocument(data)) showFilterDrawerUpdate.value = false;
   }
+  saving.value = false;
 }
 async function filter() {
   const data = { ...documents.value };
@@ -230,13 +235,6 @@ function resetForms() {
           @click="open_filter()"
         >
           Fitrar
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
         </v-btn>
       </v-card-title>
 
@@ -342,6 +340,7 @@ function resetForms() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="insert()"
           >
             Aceptar
@@ -499,6 +498,7 @@ function resetForms() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="update"
           >
             Aceptar

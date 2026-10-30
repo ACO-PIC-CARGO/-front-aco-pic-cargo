@@ -9,7 +9,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const dni = { id: 1, code: "01", name: "DNI", description: "Documento nacional", status: 1 };
-const defaultList = URL_MAIN + "listar_documents?code=&name=&description=&status=1&id_branch=7";
+const defaultList = URL_MAIN + "listar_documents?code=&name=&description=&status=1";
 
 describe("document store", () => {
   beforeEach(() => {
@@ -21,7 +21,7 @@ describe("document store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("fetchDataDocument lists with the encoded filters and the branch last, keeps the rows and marks the list loaded", async () => {
+  test("fetchDataDocument lists with the encoded filters, keeps the rows and marks the list loaded", async () => {
     const store = useDocumentStore();
     let loadingDuringRequest: boolean | undefined;
     httpMock.mockImplementation(async () => {
@@ -34,7 +34,7 @@ describe("document store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url: URL_MAIN + "listar_documents?code=0%201&name=D%2FNI&description=&status=0&id_branch=7",
+      url: URL_MAIN + "listar_documents?code=0%201&name=D%2FNI&description=&status=0",
       headers: JSON_HEADERS,
     });
     expect(loadingDuringRequest).toBe(false);
@@ -76,7 +76,7 @@ describe("document store", () => {
     expect(httpMock.mock.calls[1]![0].url).toBe(defaultList);
   });
 
-  test("updateDocument reloads the list only when the backend accepts, and says nothing otherwise", async () => {
+  test("updateDocument shows the answer and reloads the list, also when the backend refuses", async () => {
     respond({ actualizar_documents: accepted([]), listar_documents: accepted([dni]) });
     const store = useDocumentStore();
 
@@ -96,9 +96,29 @@ describe("document store", () => {
     respond({ actualizar_documents: rejected("Duplicado") });
     await store.updateDocument({ id: 1, name: "DNI" });
     await flushPromises();
-    expect(Swal.fire).not.toHaveBeenCalled();
-    expect(httpMock).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
   });
+
+  test("insertDocument and updateDocument report whether the save worked", async () => {
+    respond({ insertar_documents: accepted([]), actualizar_documents: rejected("Duplicado"), listar_documents: accepted([]) });
+    const store = useDocumentStore();
+
+    expect(await store.insertDocument({ name: "CE", status: 1 })).toBe(true);
+    expect(await store.updateDocument({ id: 1, name: "DNI" })).toBe(false);
+  });
+
+  test.each(["insertDocument", "updateDocument"] as const)(
+    "%s tells the user what the server answered when saving fails",
+    async (action) => {
+      const mensaje = "No pudimos completar la operación. Intenta de nuevo en unos minutos.";
+      const failure = Object.assign(new Error("500"), { response: { data: { mensaje } } });
+      respond({ insertar_documents: failure, actualizar_documents: failure, listar_documents: accepted([]) });
+
+      await useDocumentStore()[action]({ id: 1, name: "DNI" });
+
+      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: mensaje });
+    },
+  );
 
   test("readDocument keeps the first row as the record, or shows the backend message", async () => {
     respond({ ver_documents: accepted([dni]) });
