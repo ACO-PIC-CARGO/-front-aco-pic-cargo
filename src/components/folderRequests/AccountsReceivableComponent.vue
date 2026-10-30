@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
 import { useIngresosStore } from "@/stores/ingresos";
-import { useSubingresoStore } from "@/stores/subingreso";
+import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionBranchId } from "@/utils/sesion";
@@ -23,7 +23,7 @@ import type {
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
-const subingresoStore = useSubingresoStore();
+const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
 const clientes = computed(() => appStore.clientes);
 const frmComentario = useTemplateRef("frmComentario");
@@ -748,7 +748,7 @@ onMounted(async () => {
   appStore.drawer = false;
   await appStore.cargarClientes();
   await ingresosStore.cargarIngreso();
-  await subingresoStore.GetListSubIngreso();
+  await balancesStore.getCargarTipoSubIngreso();
 });
 </script>
 
@@ -1202,7 +1202,7 @@ onMounted(async () => {
                 clearable
                 v-model="subingreso"
                 label="Sub Ingresos"
-                :items="subingresoStore.lstSubIngreso"
+                :items="balancesStore.tiposubingreso.filter((v) => v.id != 0)"
                 item-title="description"
                 item-value="id"
                 multiple

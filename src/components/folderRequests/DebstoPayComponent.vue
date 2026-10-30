@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
 import { useGastosStore } from "@/stores/gastos";
-import { useSubgastoStore } from "@/stores/subgasto";
+import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useProgramacionesStore } from "@/stores/programaciones";
@@ -27,7 +27,7 @@ const appStore = useAppStore();
 const programacionesStore = useProgramacionesStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
-const subgastoStore = useSubgastoStore();
+const balancesStore = useBalancesStore();
 const gastosStore = useGastosStore();
 const provedores = computed(() => appStore.provedores);
 const frmComentario = useTemplateRef("frmComentario");
@@ -883,7 +883,7 @@ onMounted(async () => {
     appStore.cargarProveedores(),
     gastosStore.cargarGasto(),
     enterprisesStore.obtenerImpuestoXEmpresa(),
-    subgastoStore.GetListSubGasto(),
+    balancesStore.getCargarTipoSubGastos(),
   ]);
 
   appStore.spiner = false;
@@ -1445,7 +1445,7 @@ onMounted(async () => {
                 clearable
                 v-model="subgasto"
                 label="Sub Gasto"
-                :items="subgastoStore.lstSubGasto"
+                :items="balancesStore.tiposubgastos.filter((v) => v.id != 0)"
                 item-title="description"
                 item-value="id"
                 multiple
