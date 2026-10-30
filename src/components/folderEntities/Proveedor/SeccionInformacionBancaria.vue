@@ -99,8 +99,9 @@ async function modificarProveedor() {
   }
 
   appStore.spiner = true;
-  await entitiesStore.actualizarProveedor();
+  const saved = await entitiesStore.actualizarProveedor();
   appStore.spiner = false;
+  if (!saved) return;
 
   entitiesStore.isReadonly = true;
   entitiesStore.isEdit = false;

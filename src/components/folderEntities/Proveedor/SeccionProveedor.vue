@@ -237,17 +237,6 @@ async function validarFormulario() {
     entitiesStore.stepper = 2;
   }
 }
-function isProveedorInternacional() {
-  const val = masterusuariosStore.lstTipoTransaccion.some(
-    (v) => {
-      return (
-        v.codigo == "02" &&
-        v.id == entitiesStore.proveedor.id_tipotransaccion
-      );
-    },
-  );
-  return val;
-}
 async function modificarProveedor() {
   // Si está en modo solo lectura, pasar a modo edición y no guardar todavía
   if (isFormReadonly.value) {
@@ -260,155 +249,14 @@ async function modificarProveedor() {
     return;
   }
 
-  entitiesStore.isStep1Valid = true;
-  entitiesStore.isStep2Valid = true;
-  entitiesStore.isStep3Valid = true;
-  entitiesStore.isStep4Valid = true;
+  appStore.spiner = true;
+  const saved = await entitiesStore.actualizarProveedor();
+  appStore.spiner = false;
+  if (!saved) return;
 
-  let okStep1 = true;
-  if (entitiesStore.proveedor) {
-    if (!entitiesStore.proveedor.nombrecompleto) {
-      okStep1 = false;
-    }
-    if (!entitiesStore.proveedor.id_tipoproveedor) {
-      okStep1 = false;
-    }
-    if (!entitiesStore.proveedor.id_tipotransaccion) {
-      okStep1 = false;
-    }
-    if (!entitiesStore.proveedor.id_pais) {
-      okStep1 = false;
-    }
-    if (
-      entitiesStore.proveedor.emailaddress &&
-      !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-        entitiesStore.proveedor.emailaddress,
-      )
-    ) {
-      okStep1 = false;
-    }
-  }
-
-  let okStep2_1 = true;
-  if (entitiesStore.lstTelefonos.length > 0) {
-    entitiesStore.lstTelefonos.map((v) => {
-      if (!v.id_tipotelefono) {
-        okStep2_1 = false;
-      }
-      if (!v.telefono) {
-        okStep2_1 = false;
-      }
-    });
-  }
-
-  let okStep2_2 = true;
-  if (entitiesStore.lstContactos.length > 0) {
-    entitiesStore.lstContactos.map((v) => {
-      if (!v.nombre) {
-        okStep2_2 = false;
-      }
-      if (!v.id_tipotelefono) {
-        okStep2_2 = false;
-      }
-      if (!v.telefono) {
-        okStep2_2 = false;
-      }
-    });
-  }
-
-  let okStep3_1 = true;
-  if (entitiesStore.lstConvenios.length > 0) {
-    entitiesStore.lstConvenios.map((v) => {
-      if (!v.fecha) {
-        okStep3_1 = false;
-      }
-      if (v.dias_credito < 0) {
-        okStep3_1 = false;
-      }
-      if (
-        v.email_soporte &&
-        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-          v.email_soporte,
-        )
-      ) {
-        okStep3_1 = false;
-      }
-    });
-  }
-
-  let okStep3_2 = true;
-  if (entitiesStore.lstTarifas.length > 0) {
-    entitiesStore.lstTarifas.map((v) => {
-      if (!v.fecha) {
-        okStep3_2 = false;
-      }
-      if (!v.codigo) {
-        okStep3_2 = false;
-      }
-      if (
-        v.email_soporte &&
-        !/^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
-          v.email_soporte,
-        )
-      ) {
-        okStep3_2 = false;
-      }
-      if (v.tarifa < 0) {
-        okStep3_2 = false;
-      }
-    });
-  }
-
-  let okStep4 = true;
-  if (entitiesStore.lstInformacionBancaria.length > 0) {
-    entitiesStore.lstInformacionBancaria.map((v) => {
-      if (!v.nro_cuenta) {
-        okStep4 = false;
-      }
-      if (!v.cci) {
-        okStep4 = false;
-      }
-      if (!v.id_banco) {
-        okStep4 = false;
-      }
-      if (!v.id_coins) {
-        okStep4 = false;
-      }
-      if (isProveedorInternacional()) {
-        if (!v.nro_swift) {
-          okStep4 = false;
-        }
-        if (!v.id_intermediario) {
-          okStep4 = false;
-        }
-        if (!v.nro_cuenta_intermediario) {
-          okStep4 = false;
-        }
-      }
-    });
-  }
-
-  if (!okStep1) {
-    entitiesStore.isStep1Valid =
-      !entitiesStore.isStep1Valid;
-  } else if (!okStep2_1 || !okStep2_2) {
-    entitiesStore.isStep2Valid =
-      !entitiesStore.isStep2Valid;
-  } else if (!okStep3_1 || !okStep3_2) {
-    entitiesStore.isStep3Valid =
-      !entitiesStore.isStep3Valid;
-  } else if (!okStep4) {
-    entitiesStore.isStep4Valid =
-      !entitiesStore.isStep4Valid;
-  } else {
-    appStore.spiner = true;
-    await entitiesStore.actualizarProveedor();
-    appStore.spiner = false;
-
-    // Volver a modo solo lectura después de guardar correctamente
-    entitiesStore.isReadonly = true;
-    entitiesStore.isEdit = false;
-  }
+  // Volver a modo solo lectura después de guardar correctamente
+  entitiesStore.isReadonly = true;
+  entitiesStore.isEdit = false;
 }
 
 onMounted(async () => {

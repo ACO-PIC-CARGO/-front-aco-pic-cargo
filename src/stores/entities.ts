@@ -29,6 +29,7 @@ import type {
   TelefonosContactosEntidad,
 } from "@/types/entidades";
 import type { PersonaRol } from "@/types/seguridad";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useSecuritysStore } from "@/stores/securitys";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
@@ -39,6 +40,16 @@ import { sessionBranchId } from "@/utils/sesion";
 const CLIENT_HAS_MOVEMENTS = "warning";
 const ADMIN_USER_INPUT = "swal-admin-user";
 const ADMIN_PASSWORD_INPUT = "swal-admin-password";
+
+const EMAIL_PATTERN =
+  /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const isInvalidEmail = (email: string | null | undefined) => Boolean(email) && !EMAIL_PATTERN.test(email!);
+const INVALID_PROVIDER_STEP_MESSAGES: Record<number, string> = {
+  1: "Completa el nombre, el tipo de proveedor, si es nacional o extranjero y el país del proveedor, y revisa su correo antes de guardar.",
+  2: "Completa el tipo y el número de cada teléfono, y el nombre, el tipo y el número de cada contacto antes de guardar.",
+  3: "Completa la fecha de cada convenio y la fecha y el código de cada tarifa, y revisa sus correos de soporte antes de guardar.",
+  4: "Completa la cuenta, el CCI, el banco y la moneda de cada cuenta bancaria; si el proveedor es extranjero, también el SWIFT y el intermediario.",
+};
 
 const phoneTypeText = (phoneType: unknown) => (phoneType == null ? "" : String(phoneType));
 
@@ -492,6 +503,57 @@ export const useEntitiesStore = defineStore("entities", () => {
     return res;
   }
 
+  function firstInvalidProviderStep(): number {
+    const provider = proveedor.value;
+    const isInternational = useMasterusuariosStore().lstTipoTransaccion.some(
+      (v) => v.codigo == "02" && v.id == provider.id_tipotransaccion,
+    );
+    if (
+      !(provider.nombrecompleto && provider.nombrecompleto.trim()) ||
+      !provider.id_tipoproveedor ||
+      !provider.id_tipotransaccion ||
+      !provider.id_pais ||
+      isInvalidEmail(provider.emailaddress)
+    ) {
+      return 1;
+    }
+    if (
+      lstTelefonos.value.some((v) => !v.id_tipotelefono || !v.telefono) ||
+      lstContactos.value.some((v) => !v.nombre || !v.id_tipotelefono || !v.telefono)
+    ) {
+      return 2;
+    }
+    if (
+      lstConvenios.value.some((v) => !v.fecha || v.dias_credito < 0 || isInvalidEmail(v.email_soporte)) ||
+      lstTarifas.value.some((v) => !v.fecha || !v.codigo || v.tarifa < 0 || isInvalidEmail(v.email_soporte))
+    ) {
+      return 3;
+    }
+    if (
+      lstInformacionBancaria.value.some(
+        (v) =>
+          !v.nro_cuenta ||
+          !v.cci ||
+          !v.id_banco ||
+          !v.id_coins ||
+          (isInternational && (!v.nro_swift || !v.id_intermediario || !v.nro_cuenta_intermediario)),
+      )
+    ) {
+      return 4;
+    }
+    return 0;
+  }
+
+  function rejectInvalidProvider(): boolean {
+    const step = firstInvalidProviderStep();
+    isStep1Valid.value = step !== 1;
+    isStep2Valid.value = step !== 2;
+    isStep3Valid.value = step !== 3;
+    isStep4Valid.value = step !== 4;
+    if (step) Swal.fire({ icon: "warning", title: "Aviso", text: INVALID_PROVIDER_STEP_MESSAGES[step] });
+    return step !== 0;
+  }
+
   async function actualizarProveedor(): Promise<boolean> {
     if (providerLoadFailed.value) {
       Swal.fire({
@@ -501,6 +563,7 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
       return false;
     }
+    if (rejectInvalidProvider()) return false;
     proveedor.value.id_branch = sessionBranchId();
     proveedor.value.lstTelefonos = lstTelefonos.value;
     proveedor.value.lstContactos = lstContactos.value;

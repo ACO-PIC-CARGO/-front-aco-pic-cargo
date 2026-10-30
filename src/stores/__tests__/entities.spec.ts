@@ -7,6 +7,7 @@ import http from "@/api/http";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
@@ -23,6 +24,7 @@ const swalCall = (n = 0) => vi.mocked(Swal.fire).mock.calls[n]![0];
 const phone = { id_tipotelefono: 2, telefono: "999" };
 const contact = { nombre: "Luis", id_tipotelefono: 3, telefono: "888" };
 const agreement = { id: 1, fecha: "2026-01-01", dias_credito: 30, email_soporte: "" };
+const completeProvider = { nombrecompleto: "ACME", id_tipoproveedor: 4, id_tipotransaccion: 56, id_pais: 9, emailaddress: "" };
 const detailLists = {
   lsttelefonos: [phone],
   lstcontactos: [contact],
@@ -433,6 +435,7 @@ describe("entities store", () => {
   test("actualizarProveedor puts the supplier and opens the supplier list", async () => {
     respond({ actualizar_proveedor: rejected("Error") });
     const entities = useEntitiesStore();
+    Object.assign(entities.proveedor, completeProvider);
     entities.lstEmails = [{ id: 1, description: "a", email: "a@b.co", estado: true }];
 
     await entities.actualizarProveedor();
@@ -441,6 +444,29 @@ describe("entities store", () => {
     expect(httpMock.mock.calls[0]![0].data).toMatchObject({ id_branch: 7, lstEmails: [{ id: 1 }] });
     expect(swalCall()).toMatchObject({ icon: "error", text: "Error", confirmButtonText: "Ir al listado" });
     expect(router.push).toHaveBeenCalledWith({ name: "listProveedor" });
+  });
+
+  test.each([
+    ["a provider without a name", { proveedor: { nombrecompleto: " " } }, "isStep1Valid"],
+    ["a phone without a number", { lstTelefonos: [{ id_tipotelefono: "2", telefono: "" }] }, "isStep2Valid"],
+    ["a rate without a code", { lstTarifas: [{ fecha: "2026-10-01", codigo: "", tarifa: 1 }] }, "isStep3Valid"],
+    [
+      "a foreign provider's account without SWIFT",
+      { proveedor: { id_tipotransaccion: 57 }, lstInformacionBancaria: [{ nro_cuenta: "1", cci: "2", id_banco: 3, id_coins: 4 }] },
+      "isStep4Valid",
+    ],
+  ] as const)("actualizarProveedor does not save %s and marks its step", async (_, changes, step) => {
+    respond({ actualizar_proveedor: accepted([]) });
+    const entities = useEntitiesStore();
+    useMasterusuariosStore().lstTipoTransaccion = [{ id: 57, codigo: "02", descripcion: "Extranjero" }] as never;
+    Object.assign(entities.proveedor, completeProvider, "proveedor" in changes ? changes.proveedor : {});
+    Object.assign(entities, { ...changes, proveedor: entities.proveedor });
+
+    expect(await entities.actualizarProveedor()).toBe(false);
+
+    expect(httpMock).not.toHaveBeenCalled();
+    expect(entities[step]).toBe(false);
+    expect(swalCall()).toMatchObject({ icon: "warning" });
   });
 
   test("eliminarPersona removes a provider, shows the result and leaves the list to the caller", async () => {
@@ -473,6 +499,7 @@ describe("entities store", () => {
   ] as const)("%s sends saved emails and new ones that are kept and filled in", async (action, path) => {
     respond({ [path]: accepted([{ id_entitie: 1 }]), ver_cliente: rejected() });
     const entities = useEntitiesStore();
+    Object.assign(entities.proveedor, completeProvider);
     entities.lstEmails = [
       { id: 4, description: "Quitado guardado", email: "viejo@x.com", estado: false },
       { id: null, description: "Nuevo", email: "nuevo@x.com", estado: true },

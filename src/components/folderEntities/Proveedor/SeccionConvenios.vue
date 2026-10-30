@@ -216,8 +216,9 @@ async function modificarProveedor() {
     });
   } else {
     appStore.spiner = true;
-    await entitiesStore.actualizarProveedor();
+    const saved = await entitiesStore.actualizarProveedor();
     appStore.spiner = false;
+    if (!saved) return;
 
     // Volver a modo solo lectura después de guardar correctamente
     entitiesStore.isReadonly = true;
