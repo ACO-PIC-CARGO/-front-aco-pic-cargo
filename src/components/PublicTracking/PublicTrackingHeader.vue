@@ -5,7 +5,7 @@ import type { PublicTracking } from "@/types/publicTracking";
 
 const props = defineProps<{ tracking: PublicTracking }>();
 const items = computed(() => [
-  { label: "Expediente", value: displayValue(props.tracking.house_code) },
+  { label: "Expediente", value: displayValue(props.tracking.master_code) },
   { label: "Cliente", value: displayValue(props.tracking.client) },
   { label: "Proveedor", value: displayValue(props.tracking.supplier) },
   { label: "Incoterm", value: displayValue(props.tracking.incoterm) },

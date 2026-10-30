@@ -31,7 +31,7 @@ export interface PublicNextStep {
 }
 
 export interface PublicTracking {
-  house_code: string | null;
+  master_code: string | null;
   client: string | null;
   supplier: string | null;
   incoterm: string | null;

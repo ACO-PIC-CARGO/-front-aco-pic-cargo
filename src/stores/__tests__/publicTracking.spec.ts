@@ -16,7 +16,7 @@ beforeEach(() => {
 });
 
 test("a found tracking is kept and asked for by its token", async () => {
-  const row = { house_code: "H1", phases: [] };
+  const row = { master_code: "M1", phases: [] };
   httpMock.mockResolvedValue({ data: { estadoflag: true, mensaje: null, tipomensaje: null, data: [row] } });
   const store = usePublicTrackingStore();
   expect(await store.load("a b")).toBeNull();
