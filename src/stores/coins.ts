@@ -5,6 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMonedas, FormMoneda, Moneda } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useCoinsStore = defineStore("coins", () => {
@@ -92,28 +93,21 @@ export const useCoinsStore = defineStore("coins", () => {
       });
   }
 
-  async function updateCoins(data: FormMoneda): Promise<void> {
-    await axios<ApiResponse>({
+  async function updateCoins(data: FormMoneda): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_coins",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataCoins({ code: "", symbol: "", acronym: "", name: "", description: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataCoins({ code: "", symbol: "", acronym: "", name: "", description: "", status: 1 });
+    return response.estadoflag;
   }
 
   async function getCoinsListCargar(): Promise<void> {

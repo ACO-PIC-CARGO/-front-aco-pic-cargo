@@ -122,7 +122,6 @@ function open_new() {
   resetForms();
   showFilterDrawerNew.value = !showFilterDrawerNew.value;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function open_filter() {
   showFilterDrawer.value = !showFilterDrawer.value;
 }
@@ -156,7 +155,7 @@ async function submit_update() {
       status: record.value.status,
     };
     resetRecord("filter");
-    await coinsStore.updateCoins(data);
+    if (await coinsStore.updateCoins(data)) showFilterDrawerUpdate.value = false;
   }
 }
 async function submit_filter() {
@@ -172,7 +171,7 @@ async function submit_filter() {
   showFilterDrawer.value = false;
 }
 function validateSymbol(v: string | null) {
-  if (!v) {
+  if (!v?.trim()) {
     return "El símbolo es requerido";
   }
   if (v.length > 255) {
@@ -181,7 +180,7 @@ function validateSymbol(v: string | null) {
   return true;
 }
 function validateAcronym(v: string | null) {
-  if (!v) {
+  if (!v?.trim()) {
     return "El acrónimo es requerido";
   }
   if (v.length > 255) {
@@ -190,7 +189,7 @@ function validateAcronym(v: string | null) {
   return true;
 }
 function validateName(v: string | null) {
-  if (!v) {
+  if (!v?.trim()) {
     return "El nombre es requerido";
   }
   if (v.length > 255) {
@@ -250,10 +249,14 @@ function validateDescription(v: string | null) {
         />
         <v-spacer />
         <!-- <v-btn small color="success" @click="open_new()"> Nuevo </v-btn> -->
-        <!-- <v-btn small class="mx-1" color="#2962FF" @click="open_filter()">
-          Fitrar
+        <v-btn
+          size="small"
+          class="mx-1"
+          color="#2962FF"
+          @click="open_filter()"
+        >
+          Filtrar
         </v-btn>
-        <v-btn small class="mx-1" color="#004D40"> Exportar </v-btn> -->
       </v-card-title>
 
       <v-data-table
@@ -524,19 +527,17 @@ function validateDescription(v: string | null) {
             <v-row>
               <v-text-field
                 type="text"
-                label="Símbolo (*)"
+                label="Símbolo"
                 v-model="record.symbol"
-                :rules="[(v) => validateSymbol(v)]"
-                clearable
+                readonly
               />
             </v-row>
             <v-row>
               <v-text-field
                 type="text"
-                label="Acrónimo (*)"
+                label="Acrónimo"
                 v-model="record.acronym"
-                :rules="[(v) => validateAcronym(v)]"
-                clearable
+                readonly
               />
             </v-row>
             <v-row>
