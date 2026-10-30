@@ -6,6 +6,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useUserStore } from "@/stores/user";
 import type { ApiResponse } from "@/types/api";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere" } } } }));
@@ -67,20 +68,6 @@ describe("enterprises store", () => {
     expect(loadingDuringRequest).toBe(false);
     expect(enterprises.list).toEqual([acme]);
     expect(enterprises.loading).toBe(true);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
-  });
-
-  test("fetchDataEnterprise returns before the backend answers", async () => {
-    let answer: (value: { data: unknown }) => void = () => {};
-    httpMock.mockImplementation(() => new Promise((resolve) => (answer = resolve)));
-    const enterprises = useEnterprisesStore();
-
-    await enterprises.fetchDataEnterprise({});
-
-    expect(enterprises.loading).toBe(false);
-    answer({ data: accepted([acme]) });
-    await flushPromises();
-    expect(enterprises.list).toEqual([acme]);
   });
 
   test("fetchDataEnterprise empties the list and tells the user when the backend rejects", async () => {
@@ -114,17 +101,15 @@ describe("enterprises store", () => {
     expect(router.push).toHaveBeenCalledWith({ name: "Login" });
   });
 
-  test("fetchDataEnterprise keeps the list and the loading flag when the request fails", async () => {
+  test("fetchDataEnterprise stops loading and tells the user when the server cannot be reached", async () => {
     respond({ listar_enterprise: new Error("network") });
     const enterprises = useEnterprisesStore();
-    enterprises.list = [{ id: 1 }];
 
     await enterprises.fetchDataEnterprise({});
     await flushPromises();
 
-    expect(enterprises.list).toEqual([{ id: 1 }]);
-    expect(enterprises.loading).toBe(false);
-    expect(console.log).toHaveBeenCalledWith("Error al obtener los datos:", expect.any(Error));
+    expect(enterprises.loading).toBe(true);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("readEnterprise keeps the first row as the record", async () => {
@@ -176,20 +161,20 @@ describe("enterprises store", () => {
     expect(router.push).toHaveBeenCalledWith("listado");
   });
 
-  test("updateEnterprise puts the record and opens the list when the user is on another screen", async () => {
+  test("updateEnterprise puts the record, reports it saved and opens the list when the user is on another screen", async () => {
     respond({ actualizar_enterprise: accepted([]) });
 
-    await useEnterprisesStore().updateEnterprise({ id: 4, trade_name: "X" });
+    const saved = await useEnterprisesStore().updateEnterprise({ id: 4, trade_name: "X" });
     await flushPromises();
 
-    expect(httpMock).toHaveBeenCalledWith({
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({
       method: "put",
       url: URL_MAIN + "actualizar_enterprise",
-      headers: JSON_HEADERS,
       data: { id: 4, trade_name: "X" },
     });
+    expect(saved).toBe(true);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", text: "ok" });
     expect(router.push).toHaveBeenCalledWith({ name: "listEnterprise" });
-    expect(sentUrls()).toEqual(["actualizar_enterprise"]);
   });
 
   test("updateEnterprise reloads the active list in the order the backend filter expects when the user is already on it", async () => {
@@ -207,29 +192,19 @@ describe("enterprises store", () => {
     expect(enterprises.list).toEqual([acme]);
   });
 
-  test("eliminarBranch deletes the branch, shows the backend error and reloads the active list", async () => {
-    currentRoute.value.name = "listEnterprise";
-    respond({ eliminar_sucursal: rejected("No se puede"), listar_enterprise: accepted([]) });
+  test("updateEnterprise keeps the user on the form and shows why when the save is refused", async () => {
+    respond({ actualizar_enterprise: { ...rejected("Escribe un porcentaje de impuesto entre 0 y 100."), tipomensaje: "TMSGADV" } });
 
-    await useEnterprisesStore().eliminarBranch({ id: 4, status: 0 });
+    const saved = await useEnterprisesStore().updateEnterprise({ id: 4, impuesto: 500 });
     await flushPromises();
 
-    expect(httpMock.mock.calls[0]![0]).toMatchObject({
-      method: "delete",
-      url: URL_MAIN + "eliminar_sucursal",
-      data: { id: 4, status: 0 },
+    expect(saved).toBe(false);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({
+      icon: "error",
+      text: "Escribe un porcentaje de impuesto entre 0 y 100.",
     });
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "No se puede" });
-    expect(sentUrls()).toEqual(["eliminar_sucursal", "listar_enterprise"]);
-  });
-
-  test("eliminarBranch opens the list when the user is on another screen", async () => {
-    respond({ eliminar_sucursal: accepted([]) });
-
-    await useEnterprisesStore().eliminarBranch({ id: 4 });
-    await flushPromises();
-
-    expect(router.push).toHaveBeenCalledWith({ name: "listEnterprise" });
+    expect(router.push).not.toHaveBeenCalled();
+    expect(sentUrls()).toEqual(["actualizar_enterprise"]);
   });
 
   test("RegistroNuevaEmpresa signs the new admin in on both storages and reports success", async () => {
@@ -327,31 +302,80 @@ describe("enterprises store", () => {
     expect(error).toHaveBeenCalled();
   });
 
-  test("listarCuentaEmpresa lists the accounts of the session branch", async () => {
+  test("obtenerImpuestoXEmpresa leaves an empty tax, not a missing one, when the company has none", async () => {
+    respond({ obtener_impuestos_branch: rejected() });
+    const enterprises = useEnterprisesStore();
+    enterprises.impuesto = { nombre_impuesto: "IGV" };
+
+    await enterprises.obtenerImpuestoXEmpresa();
+
+    expect(enterprises.impuesto).toEqual({});
+  });
+
+  test("listarCuentaEmpresa lists the accounts of the company being edited", async () => {
     respond({ listado_cuentas_empresa: accepted([{ nrocuenta: "1", esprincipalflag: true }]) });
     const enterprises = useEnterprisesStore();
 
-    await enterprises.listarCuentaEmpresa();
+    await enterprises.listarCuentaEmpresa(40);
 
-    expect(sentUrls()).toEqual(["listado_cuentas_empresa?id_branch=7"]);
+    expect(sentUrls()).toEqual(["listado_cuentas_empresa?id_branch=40"]);
     expect(enterprises.lstCuentas).toEqual([{ nrocuenta: "1", esprincipalflag: true }]);
   });
 
-  test("registrarCuentaEmpresa stamps the session branch, shows the answer and reloads the accounts", async () => {
+  test("listarCuentaEmpresa empties the accounts when the company has none", async () => {
+    respond({ listado_cuentas_empresa: rejected() });
+    const enterprises = useEnterprisesStore();
+    enterprises.lstCuentas = [{ nrocuenta: "1", esprincipalflag: true }];
+
+    await enterprises.listarCuentaEmpresa(40);
+
+    expect(enterprises.lstCuentas).toEqual([]);
+  });
+
+  test("listarOpcionesCuenta keeps the edited company's banks and currencies", async () => {
+    const banks = [{ id: 2, name: "BCP", acronym: "BCP" }];
+    const coins = [{ id: 9, name: "SOLES", acronym: "PEN" }];
+    respond({ opciones_cuenta_empresa: accepted([{ banks, coins }]) });
+    const enterprises = useEnterprisesStore();
+
+    await enterprises.listarOpcionesCuenta(40);
+
+    expect(sentUrls()).toEqual(["opciones_cuenta_empresa?id_branch=40"]);
+    expect(enterprises.opcionesCuenta).toEqual({ banks, coins });
+  });
+
+  const account = {
+    id_banco: 0,
+    id_coins: 1,
+    numerocuenta: "9",
+    cci: "2",
+    esprincipalflag: false,
+    acronymbanco: "A",
+    nombrebanco: "B",
+    id_branch: 40,
+  };
+
+  test("registrarCuentaEmpresa saves the account for the edited company, says so and reloads its accounts", async () => {
     respond({ banco_registrar: accepted([]), listado_cuentas_empresa: accepted([{ nrocuenta: "9", esprincipalflag: false }]) });
     const enterprises = useEnterprisesStore();
-    const account = { id_banco: 0, id_coins: 1, numerocuenta: "9", cci: "2", esprincipalflag: false, acronymbanco: "A", nombrebanco: "B" };
 
-    await enterprises.registrarCuentaEmpresa(account);
-    await flushPromises();
+    const saved = await enterprises.registrarCuentaEmpresa(account);
 
-    expect(httpMock.mock.calls[0]![0]).toMatchObject({
-      method: "post",
-      url: URL_MAIN + "banco_registrar",
-      data: { ...account, id_branch: 7 },
-    });
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", showCancelButton: false, confirmButtonText: "Ok" });
-    expect(sentUrls()).toEqual(["banco_registrar", "listado_cuentas_empresa?id_branch=7"]);
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "post", url: URL_MAIN + "banco_registrar", data: account });
+    expect(saved).toBe(true);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", text: "ok" });
+    expect(sentUrls()).toEqual(["banco_registrar", "listado_cuentas_empresa?id_branch=40"]);
     expect(enterprises.lstCuentas).toEqual([{ nrocuenta: "9", esprincipalflag: false }]);
+  });
+
+  test("registrarCuentaEmpresa reports a refused account and keeps the list", async () => {
+    respond({ banco_registrar: { ...rejected("Elige una moneda de la lista."), tipomensaje: "TMSGADV" } });
+    const enterprises = useEnterprisesStore();
+
+    const saved = await enterprises.registrarCuentaEmpresa(account);
+
+    expect(saved).toBe(false);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Elige una moneda de la lista." });
+    expect(sentUrls()).toEqual(["banco_registrar"]);
   });
 });

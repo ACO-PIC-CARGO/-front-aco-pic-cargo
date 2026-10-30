@@ -2,18 +2,14 @@
 import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import Swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
-import { useSecuritysStore } from "@/stores/securitys";
-import type { EmpresaListado, FiltroEmpresa } from "@/types/empresas";
+import type { FiltroEmpresa } from "@/types/empresas";
 import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
 const enterprisesStore = useEnterprisesStore();
-const securitysStore = useSecuritysStore();
 
-const idPrincipales = ["1", "2", 1, 2];
 const headers = [
   // { text: "Código", align: "start", value: "code" },
   { title: "Tipo de Documento", key: "td_name" },
@@ -86,8 +82,8 @@ async function _callState() {
     await appStore._getState(id_pais.value);
   }
 }
-function volver() {
-  router.go(-1);
+function closeFilter() {
+  showFilterDrawer.value = false;
 }
 async function filtar() {
   enterprise.value.status = enterprise.value.status == "null" ? "" : enterprise.value.status;
@@ -116,83 +112,6 @@ function clear() {
 }
 async function reset_records() {
   clear();
-}
-async function switch_status(item: EmpresaListado) {
-  let val = true;
-  let msg = "";
-
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-        msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    // @ts-expect-error swal is not defined here, so this call always throws a ReferenceError.
-    await swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-  await eliminar(item);
-}
-
-async function eliminar(item: EmpresaListado) {
-  Swal.fire({
-    title: "¿Estás seguro?",
-    text: `La eliminación será definitiva, y no se podrá recupear la sucursal`,
-    confirmButtonColor: "red",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Sí, inactivar",
-    cancelButtonColor: "orange",
-    cancelButtonText: "Cancelar",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      item.status = 0;
-      clear();
-      await enterprisesStore.eliminarBranch(item);
-    }
-  });
 }
 function open_filter() {
   showFilterDrawer.value = !showFilterDrawer.value;
@@ -253,13 +172,6 @@ function open_filter() {
         >
           Filtrar
         </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
-        </v-btn>
       </v-card-title>
 
       <v-data-table
@@ -296,15 +208,6 @@ function open_filter() {
             >
               mdi-eye
             </v-icon>
-          </v-btn>
-          <v-btn
-            variant="text"
-            icon
-            color="red"
-            @click="switch_status(item)"
-            v-if="item.status && !idPrincipales.includes(item.id)"
-          >
-            <v-icon>mdi-delete</v-icon>
           </v-btn>
         </template>
       </v-data-table>
@@ -451,7 +354,7 @@ function open_filter() {
         <v-btn
           class="mx-1"
           color="warning"
-          @click="volver()"
+          @click="closeFilter()"
         >
           Cerrar
         </v-btn>

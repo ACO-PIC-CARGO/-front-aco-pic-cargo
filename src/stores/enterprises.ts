@@ -14,13 +14,24 @@ import type {
   FormCuentaEmpresa,
   FormEmpresa,
   ImpuestoEmpresa,
+  OpcionesCuentaEmpresa,
   RegistroNuevaEmpresaRow,
 } from "@/types/empresas";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
+
+const showAnswer = (data: ApiResponse) =>
+  Swal.fire({
+    icon: data.estadoflag ? "success" : "error",
+    text: data.mensaje,
+    showCancelButton: false,
+    confirmButtonText: "Ok",
+  });
 
 export const useEnterprisesStore = defineStore("enterprises", () => {
   const lstCuentas = ref<CuentaEmpresa[]>([]);
+  const opcionesCuenta = ref<OpcionesCuentaEmpresa>({ banks: [], coins: [] });
   const list = ref<EmpresaListado[]>([]);
   const response = ref<unknown[]>([]);
   const record = ref<EmpresaDetalle>({});
@@ -79,24 +90,17 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
   async function fetchDataEnterprise(filter: Partial<FiltroEmpresa>): Promise<void> {
     filter.id_branch = sessionBranchId();
     loading.value = false;
-    axios<ApiResponse<EmpresaListado[]>>({
+    const data = await request<EmpresaListado>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `listar_enterprise`,
       params: filter,
       headers: { "Content-Type": "application/json" },
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        list.value = data.estadoflag ? data.data : [];
-        loading.value = true;
-        if (!data.estadoflag) {
-          showRejectedResponse(data);
-        }
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    list.value = data.estadoflag ? data.data : [];
+    loading.value = true;
+    if (!data.estadoflag) {
+      showRejectedResponse(data);
+    }
   }
 
   async function insertEnterprise(): Promise<void> {
@@ -163,48 +167,18 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     }
   }
 
-  async function updateEnterprise(body: unknown): Promise<void> {
-    axios<ApiResponse>({
+  async function updateEnterprise(body: unknown): Promise<boolean> {
+    const data = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_enterprise",
       headers: { "Content-Type": "application/json" },
       data: body,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(refreshListOrOpenIt);
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
-
-  async function eliminarBranch(body: unknown): Promise<void> {
-    axios<ApiResponse>({
-      method: "delete",
-      url: import.meta.env.VITE_URL_MAIN + "eliminar_sucursal",
-      headers: { "Content-Type": "application/json" },
-      data: body,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(refreshListOrOpenIt);
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await showAnswer(data);
+    if (data.estadoflag) {
+      refreshListOrOpenIt();
+    }
+    return data.estadoflag;
   }
 
   async function RegistroNuevaEmpresa(): Promise<boolean> {
@@ -291,53 +265,48 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
       headers: { "Content-Type": "application/json" },
     })
       .then(function (response) {
-        impuesto.value = response.data.data[0]!;
+        impuesto.value = response.data.data[0] ?? {};
       })
       .catch(function (error) {
         console.error(error);
       });
   }
 
-  async function listarCuentaEmpresa(): Promise<void> {
-    const branch = sessionBranchId();
-    await axios<ApiResponse<CuentaEmpresa[]>>({
+  async function listarCuentaEmpresa(id_branch: number | string): Promise<void> {
+    const data = await request<CuentaEmpresa>({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "listado_cuentas_empresa?id_branch=" + branch,
+      url: import.meta.env.VITE_URL_MAIN + "listado_cuentas_empresa?id_branch=" + id_branch,
       headers: { "Content-Type": "application/json" },
-    })
-      .then(function (response) {
-        lstCuentas.value = response.data.data;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    lstCuentas.value = data.estadoflag ? data.data : [];
   }
 
-  async function registrarCuentaEmpresa(account: FormCuentaEmpresa): Promise<void> {
-    account.id_branch = sessionBranchId();
-    await axios<ApiResponse>({
+  async function listarOpcionesCuenta(id_branch: number | string): Promise<void> {
+    const data = await request<OpcionesCuentaEmpresa>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "opciones_cuenta_empresa?id_branch=" + id_branch,
+      headers: { "Content-Type": "application/json" },
+    });
+    opcionesCuenta.value = data.data[0] ?? { banks: [], coins: [] };
+  }
+
+  async function registrarCuentaEmpresa(account: FormCuentaEmpresa): Promise<boolean> {
+    const data = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "banco_registrar",
       headers: { "Content-Type": "application/json" },
       data: account,
-    })
-      .then(function (response) {
-        const data = response.data;
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        });
-        listarCuentaEmpresa();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    await showAnswer(data);
+    if (data.estadoflag) {
+      await listarCuentaEmpresa(account.id_branch!);
+    }
+    return data.estadoflag;
   }
 
   return {
     lstCuentas,
+    opcionesCuenta,
     list,
     response,
     record,
@@ -356,13 +325,13 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     insertEnterprise,
     readEnterprise,
     updateEnterprise,
-    eliminarBranch,
     RegistroNuevaEmpresa,
     enviarCorreoValidacion,
     validarCodigoVerificacion,
     validarCorreoRegistro,
     obtenerImpuestoXEmpresa,
     listarCuentaEmpresa,
+    listarOpcionesCuenta,
     registrarCuentaEmpresa,
   };
 });

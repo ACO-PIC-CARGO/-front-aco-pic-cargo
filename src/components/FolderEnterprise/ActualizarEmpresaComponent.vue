@@ -3,29 +3,27 @@ import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
-import { useCoinsStore } from "@/stores/coins";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
 import type { FormEnterpriseUpdate } from "@/types/empresas";
 import { validateLength } from "@/utils/cotizacion";
-import { sessionBranchId } from "@/utils/sesion";
 import { useFilesStore } from "@/stores/files";
-import { useBankStore } from "@/stores/bank";
+import { taxPercent } from "./taxPercentRule";
 
 const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
-const bankStore = useBankStore();
 const filesStore = useFilesStore();
-const coinsStore = useCoinsStore();
 const enterprisesStore = useEnterprisesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
+const companyId = Number(route.params.id);
+const NEW_BANK = { id: 0, name: "Crear Nuevo Banco" };
 const dialogNuevaCuenta = ref(false);
 const enterprise = ref<FormEnterpriseUpdate>({
-  id_branch: sessionBranchId(),
-  id: route.params.id as string,
+  id_branch: companyId,
+  id: companyId,
   id_logo: "",
   document: "",
   trade_name: "",
@@ -73,6 +71,7 @@ const form = useTemplateRef("form");
 const frmNuevaCuenta = useTemplateRef("frmNuevaCuenta");
 
 const bloquearEsPrincipal = computed(() => enterprisesStore.lstCuentas.some((v) => v.esprincipalflag));
+const bankOptions = computed(() => [NEW_BANK, ...enterprisesStore.opcionesCuenta.banks]);
 
 watch(
   () => enterprisesStore.record,
@@ -120,7 +119,6 @@ watch(
       enterprise.value.id_logo = newRecord;
     }
   },
-  { immediate: true },
 );
 
 onMounted(async () => {
@@ -129,20 +127,9 @@ onMounted(async () => {
     masterusuariosStore.cargarImpuestoRenta(),
     appStore._getDocumentsPais(),
     appStore._getPais(),
-    enterprisesStore.listarCuentaEmpresa(),
-    bankStore.fetchDataBank({
-      code: "",
-      name: "",
-      acronym: "",
-      description: "",
-      status: "",
-    }),
-    coinsStore.getCoinsListCargar(),
+    enterprisesStore.listarCuentaEmpresa(companyId),
+    enterprisesStore.listarOpcionesCuenta(companyId),
   ]);
-  bankStore.list.unshift({
-    id: 0,
-    name: "Crear Nuevo Banco",
-  });
   appStore.mainTitle = `ACTUALIZAR EMPRESA`;
 });
 
@@ -197,9 +184,9 @@ async function validateDocument() {
     url:
       import.meta.env.VITE_URL_MAIN +
       `validar_editar_documento_enterprise?` +
-      `id=${enterprise.value.id}` +
+      `id=${enterprisesStore.record.id_enterprise}` +
       `&id_document=${enterprise.value.id_document}` +
-      `&id_branch=${enterprise.value.id_branch}` +
+      `&id_branch=${companyId}` +
       `&document=${encodeURIComponent(enterprise.value.document)}`,
     headers: {
       "Content-Type": "application/json",
@@ -227,14 +214,10 @@ async function uploadFile() {
       loadingFile.value = false;
       errfile.value = "El archivo es demasiado grande. El tamaño máximo es 2 MB.";
     } else {
-      await filesStore._uploadFile(payfile.value);
+      errfile.value = await filesStore._uploadFile(payfile.value);
       loadingFile.value = false;
-      if (filesStore.payPath) {
+      if (!errfile.value) {
         msgfile.value = "Archivo cargado";
-      } else {
-        errfile.value = "Comuniquese con el admistrador";
-      }
-      if (filesStore.payPath) {
         enterprise.value.name_file = "";
       }
     }
@@ -242,7 +225,8 @@ async function uploadFile() {
 }
 async function guardarCuenta() {
   if ((await frmNuevaCuenta.value!.validate()).valid) {
-    await enterprisesStore.registrarCuentaEmpresa({
+    const saved = await enterprisesStore.registrarCuentaEmpresa({
+      id_branch: companyId,
       id_banco: id_bank.value,
       id_coins: id_coins.value,
       numerocuenta: nro_cuenta.value,
@@ -251,14 +235,9 @@ async function guardarCuenta() {
       acronymbanco: acronymbanco.value,
       nombrebanco: nombrebanco.value,
     });
+    if (!saved) return;
     dialogNuevaCuenta.value = false;
-    await bankStore.fetchDataBank({
-      code: "",
-      name: "",
-      acronym: "",
-      description: "",
-      status: "",
-    });
+    await enterprisesStore.listarOpcionesCuenta(companyId);
   }
 }
 </script>
@@ -550,7 +529,7 @@ async function guardarCuenta() {
                         step="0.1"
                         suffix="%"
                         density="compact"
-                        hide-details
+                        :rules="[taxPercent]"
                         v-model="enterprise.impuesto"
                       />
                     </v-col>
@@ -628,7 +607,7 @@ async function guardarCuenta() {
         <v-card-text>
           <v-form ref="frmNuevaCuenta">
             <v-autocomplete
-              :items="bankStore.list"
+              :items="bankOptions"
               item-title="name"
               item-value="id"
               label="Banco"
@@ -647,7 +626,7 @@ async function guardarCuenta() {
               v-model="nombrebanco"
             />
             <v-autocomplete
-              :items="coinsStore.itemsCoinsList"
+              :items="enterprisesStore.opcionesCuenta.coins"
               item-title="name"
               item-value="id"
               label="Moneda"
