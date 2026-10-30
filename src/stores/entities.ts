@@ -40,6 +40,9 @@ const CLIENT_HAS_MOVEMENTS = "warning";
 const ADMIN_USER_INPUT = "swal-admin-user";
 const ADMIN_PASSWORD_INPUT = "swal-admin-password";
 
+const emailsToSave = (emails: EmailEntidad[]) =>
+  emails.filter((email) => email.id || (email.estado !== false && email.email && email.email.trim()));
+
 export const useEntitiesStore = defineStore("entities", () => {
   const dataEntitiePost = ref<unknown[]>([]);
   const persona = ref<Persona[]>([]);
@@ -441,7 +444,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     proveedor.value.lstConvenios = lstConvenios.value;
     proveedor.value.lstTarifas = lstTarifas.value;
     proveedor.value.lstInformacionBancaria = lstInformacionBancaria.value;
-    proveedor.value.lstEmails = lstEmails.value;
+    proveedor.value.lstEmails = emailsToSave(lstEmails.value);
     proveedor.value.datosTarifa = [
       ...itemsImportacion.value,
       ...itemsExportacion.value,
@@ -509,7 +512,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     proveedor.value.lstConvenios = lstConvenios.value;
     proveedor.value.lstTarifas = lstTarifas.value;
     proveedor.value.lstInformacionBancaria = lstInformacionBancaria.value;
-    proveedor.value.lstEmails = lstEmails.value;
+    proveedor.value.lstEmails = emailsToSave(lstEmails.value);
 
     await axios<ApiResponse>({
       method: "put",
@@ -805,7 +808,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     cliente.value.lstInformacionBancaria = lstInformacionBancaria.value;
     cliente.value.lstShippers = lstShippers.value;
     cliente.value.informacionEntrega = informacionEntrega.value;
-    cliente.value.lstEmails = lstEmails.value;
+    cliente.value.lstEmails = emailsToSave(lstEmails.value);
 
     await axios<ApiResponse<EntidadRegistrada[]>>({
       method: "post",
@@ -953,7 +956,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     cliente.value.lstInformacionBancaria = lstInformacionBancaria.value;
     cliente.value.lstShippers = lstShippers.value;
     cliente.value.informacionEntrega = informacionEntrega.value;
-    cliente.value.lstEmails = lstEmails.value;
+    cliente.value.lstEmails = emailsToSave(lstEmails.value);
 
     const response = await request({
       method: "put",

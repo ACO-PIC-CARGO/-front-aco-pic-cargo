@@ -411,6 +411,31 @@ describe("entities store", () => {
     expect(sentUrls()).toEqual(["eliminar_cliente"]);
   });
 
+  test.each([
+    ["guardarCliente", "registrar_cliente"],
+    ["actualizarCliente", "actualizar_cliente"],
+    ["guardarProveedor", "registrar_proveedor"],
+    ["actualizarProveedor", "actualizar_proveedor"],
+  ] as const)("%s sends saved emails and new ones that are kept and filled in", async (action, path) => {
+    respond({ [path]: accepted([{ id_entitie: 1 }]), ver_cliente: rejected() });
+    const entities = useEntitiesStore();
+    entities.lstEmails = [
+      { id: 4, description: "Quitado guardado", email: "viejo@x.com", estado: false },
+      { id: null, description: "Nuevo", email: "nuevo@x.com", estado: true },
+      { id: null, description: "Quitado nuevo", email: "quitado@x.com", estado: false },
+      { id: null, description: "Vacio", email: "  ", estado: true },
+    ];
+
+    await entities[action]();
+
+    expect(httpMock.mock.calls[0]![0].data).toMatchObject({
+      lstEmails: [
+        { id: 4, email: "viejo@x.com", estado: false },
+        { id: null, email: "nuevo@x.com", estado: true },
+      ],
+    });
+  });
+
   test("telConctactoProveedor turns the phone types into strings and blanks the missing ones", async () => {
     respond({
       tel_contacto_proveedor: accepted([
