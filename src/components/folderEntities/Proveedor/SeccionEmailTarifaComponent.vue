@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { nextTick, onMounted } from "vue";
 import { useRoute } from "vue-router";
-import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
-import type { ApiResponse } from "@/types/api";
+import { request } from "@/utils/request";
 
 const stepProps = withDefaults(
   defineProps<{
@@ -87,32 +86,21 @@ async function guardarContactos() {
     ...entitiesStore.itemsExportacion,
   ];
 
-  const config = {
+  const response = await request({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "entitie/guardar_datos_tarifas",
-    headers: {
-
-      "Content-Type": "application/json",
-    },
     data: {
       id: route.params.id,
       datos: datos,
       proveedorprincipalflag:
         entitiesStore.proveedor.proveedorprincipalflag,
     },
-  };
-
-  await axios<ApiResponse>(config).then((res) => {
-    const data = res.data;
-    if (data.estadoflag) {
-      Swal.fire({
-        icon: "success",
-        text: data.mensaje,
-      });
-    }
   });
-  Swal.close();
-  cargarDatos();
+  await Swal.fire({
+    icon: response.estadoflag ? "success" : "error",
+    text: response.mensaje,
+  });
+  await cargarDatos();
   console.log("Contactos guardados:", datos);
 }
 
