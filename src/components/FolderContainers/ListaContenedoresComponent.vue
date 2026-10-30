@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useContainersStore } from "@/stores/containers";
 import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
-import { sessionBranchId } from "@/utils/sesion";
 
 const containersStore = useContainersStore();
 const appStore = useAppStore();
@@ -33,8 +32,7 @@ const records = ref<FiltroCatalogo>({
   description: "",
   status: 1,
 });
-const record = ref<FormContenedor>({
-  id_branch: sessionBranchId(),
+const emptyRecord = (): FormContenedor => ({
   name: "",
   description: "",
   long: null,
@@ -44,6 +42,7 @@ const record = ref<FormContenedor>({
   maximunvolumen: null,
   status: 1,
 });
+const record = ref<FormContenedor>(emptyRecord());
 const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
 const showFilterDrawerUpdate = ref(false);
@@ -89,7 +88,6 @@ watch(
   { immediate: true },
 );
 
-const originalRecord = ref<FormContenedor>({ ...record.value });
 const originalRecords = ref<FiltroCatalogo>({ ...records.value });
 
 onMounted(async () => {
@@ -106,7 +104,7 @@ async function resetRecord(option?: string) {
     await containersStore.fetchDataContainers(records.value);
     showFilterDrawer.value = false;
   } else {
-    record.value = { ...originalRecord.value };
+    record.value = emptyRecord();
   }
   await containersStore.fetchDataContainers(records.value);
   showFilterDrawer.value = false;
@@ -269,13 +267,6 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
         @click="open_filter()"
       >
         Fitrar
-      </v-btn>
-      <v-btn
-        size="small"
-        class="mx-1"
-        color="#004D40"
-      >
-        Exportar
       </v-btn>
     </v-card-title>
 

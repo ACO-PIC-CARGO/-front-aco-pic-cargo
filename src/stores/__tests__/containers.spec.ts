@@ -9,7 +9,7 @@ vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const box = { id: 1, code: "20S", name: "20 Standard", description: null, long: 5.89, width: 2.35, height: 2.38, maximumweight: 26, maximunvolumen: 33, status: 1 };
-const defaultList = URL_MAIN + "listar_containers?id_branch=7&code=&name=&description=&status=1";
+const defaultList = URL_MAIN + "listar_containers?code=&name=&description=&status=1";
 
 describe("containers store", () => {
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe("containers store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url: URL_MAIN + "listar_containers?id_branch=7&code=20%20S&name=20%2F40&description=a%26b&status=",
+      url: URL_MAIN + "listar_containers?code=20%20S&name=20%2F40&description=a%26b&status=",
       headers: JSON_HEADERS,
     });
     expect(loadingDuringRequest).toBe(false);
@@ -89,6 +89,22 @@ describe("containers store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
     expect(httpMock.mock.calls[1]![0].url).toBe(defaultList);
   });
+
+  test.each(["insertContainers", "updateContainers"] as const)(
+    "%s tells the user what the server answered when saving fails",
+    async (action) => {
+      const mensaje = "No pudimos completar la operación. Intenta de nuevo en unos minutos.";
+      respond({
+        insertar_containers: Object.assign(new Error("500"), { response: { data: { mensaje } } }),
+        actualizar_containers: Object.assign(new Error("500"), { response: { data: { mensaje } } }),
+        listar_containers: accepted([]),
+      });
+
+      await useContainersStore()[action]({ id: 1, name: "20 Standard" });
+
+      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: mensaje });
+    },
+  );
 
   test("readContainers keeps the first row as the record, or shows the backend message", async () => {
     respond({ ver_containers: accepted([box]) });

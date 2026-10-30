@@ -5,7 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useContainersStore = defineStore("containers", () => {
   const list = ref<TipoContenedor[]>([]);
@@ -21,8 +21,7 @@ export const useContainersStore = defineStore("containers", () => {
       url:
         import.meta.env.VITE_URL_MAIN +
         `listar_containers?` +
-        `id_branch=${sessionBranchId()}` +
-        `&code=${encodeURIComponent(String(data.code))}` +
+        `code=${encodeURIComponent(String(data.code))}` +
         `&name=${encodeURIComponent(String(data.name))}` +
         `&description=${encodeURIComponent(String(data.description))}` +
         `&status=${data.status}`,
@@ -43,27 +42,19 @@ export const useContainersStore = defineStore("containers", () => {
   }
 
   async function insertContainers(data: FormContenedor): Promise<void> {
-    await axios<ApiResponse>({
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_containers",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataContainers({ code: "", description: "", name: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataContainers({ code: "", description: "", name: "", status: 1 });
   }
 
   async function readContainers(id: number): Promise<void> {
@@ -90,27 +81,19 @@ export const useContainersStore = defineStore("containers", () => {
   }
 
   async function updateContainers(data: FormContenedor): Promise<void> {
-    await axios<ApiResponse>({
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_containers",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataContainers({ code: "", description: "", name: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataContainers({ code: "", description: "", name: "", status: 1 });
   }
 
   return { list, response, record, loading, fetchDataContainers, insertContainers, readContainers, updateContainers };
