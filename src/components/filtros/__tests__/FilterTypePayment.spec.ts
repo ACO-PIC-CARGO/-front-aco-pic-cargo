@@ -22,6 +22,7 @@ globalThis.ResizeObserver ??= class {
 };
 
 let wrapper: VueWrapper | undefined;
+const Screen = defineComponent({ components: { FilterTypePayment }, template: "<v-app><FilterTypePayment /></v-app>" });
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -38,10 +39,10 @@ const saveNewTypeAnswered = async (saveAnswer: unknown) => {
   const store = useTypepaymentStore();
   store.tipo = "nuevo";
   store.model = { id: "", code: "", name: "Transferencia QA", description: "", status: true };
-  wrapper = mount(
-    defineComponent({ components: { FilterTypePayment }, template: "<v-app><FilterTypePayment /></v-app>" }),
-    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
-  );
+  wrapper = mount(Screen, {
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
   store.drawer = true;
   await flushPromises();
 
@@ -60,4 +61,22 @@ test("a refused payment type keeps the panel open", { timeout: 15_000 }, async (
   const store = await saveNewTypeAnswered(rejected("No pudimos guardar el tipo de pago.", undefined));
 
   expect(store.drawer).toBe(true);
+});
+
+test("opening the panel to filter, where there is no form, does not fail", { timeout: 15_000 }, async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const errors: unknown[] = [];
+  wrapper = mount(Screen, {
+    global: {
+      plugins: [createVuetify({ components, directives }), pinia],
+      config: { errorHandler: (error) => errors.push(error) },
+    },
+    attachTo: document.body,
+  });
+
+  useTypepaymentStore().drawer = true;
+  await flushPromises();
+
+  expect(errors).toEqual([]);
 });

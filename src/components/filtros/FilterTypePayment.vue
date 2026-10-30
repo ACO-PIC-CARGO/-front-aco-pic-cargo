@@ -14,7 +14,7 @@ const drawer = computed(() => typepaymentStore.drawer);
 
 watch(drawer, () => {
   model.value = { ...typepaymentStore.model };
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
