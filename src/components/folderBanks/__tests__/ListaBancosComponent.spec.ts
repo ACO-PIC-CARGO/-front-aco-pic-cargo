@@ -181,6 +181,5 @@ test("cancelling a bank's inactivation keeps it active and saves nothing", { tim
 
   expect(requestsTo("actualizar_bank")).toEqual([]);
   expect(document.body.querySelector(".mdi-delete")).not.toBeNull();
-  const [{ status }] = useBankStore().list as { status: unknown }[];
-  expect(status).toBe(1);
+  expect((useBankStore().list as { status: unknown }[])[0]?.status).toBe(1);
 });
