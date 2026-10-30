@@ -118,6 +118,7 @@ onMounted(async () => {
   entitiesStore.proveedor.dias_sobreestadia = 0;
   entitiesStore.proveedor.dias_almacenaje = 0;
   entitiesStore.proveedor.notas = "";
+  entitiesStore.proveedor.proveedorprincipalflag = false;
   entitiesStore.proveedor.convenioActual = {
     dias_credito: 0,
     fecha: "",
@@ -140,6 +141,7 @@ onMounted(async () => {
   entitiesStore.lstTarifas = [];
   entitiesStore.lstInformacionBancaria = [];
   entitiesStore.lstShippers = [];
+  entitiesStore.lstEmails = [];
   entitiesStore.informacionEntrega = { status: true };
 
   const tipoDocumento = getIDTipoDocumento("RUC");
@@ -266,7 +268,10 @@ onMounted(async () => {
           :value="5"
           eager
         >
-          <SeccionEmailTarifa :guardar-flag="false" />
+          <SeccionEmailTarifa
+            :guardar-flag="false"
+            is-new
+          />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>

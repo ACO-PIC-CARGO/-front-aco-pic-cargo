@@ -6,12 +6,13 @@ import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 
-withDefaults(
+const stepProps = withDefaults(
   defineProps<{
     editable?: boolean;
     guardarFlag?: boolean;
+    isNew?: boolean;
   }>(),
-  { editable: true, guardarFlag: true },
+  { editable: true, guardarFlag: true, isNew: false },
 );
 
 const route = useRoute();
@@ -32,7 +33,9 @@ const headers = [
 ] as const;
 
 async function cargarDatos() {
-  if (!route.params.id) {
+  if (stepProps.isNew || !route.params.id) {
+    entitiesStore.itemsImportacion = [];
+    entitiesStore.itemsExportacion = [];
     return;
   }
   await entitiesStore.cargarDatosTatifasEntite({ id: route.params.id });

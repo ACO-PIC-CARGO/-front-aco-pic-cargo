@@ -4,7 +4,10 @@ import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import http from "@/api/http";
 import NuevoClienteComponent from "@/components/folderEntities/Cliente/NuevoClienteComponent.vue";
+import NuevoProveedorComponent from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
+import SeccionEmailTarifaComponent from "@/components/folderEntities/Proveedor/SeccionEmailTarifaComponent.vue";
 import { useEntitiesStore } from "@/stores/entities";
 
 vi.mock("@/api/http", () => ({ default: vi.fn().mockResolvedValue({ data: { estadoflag: true, data: [] } }) }));
@@ -33,6 +36,7 @@ const mountWithStore = async (form: unknown, prepare: () => void, stubs: Record<
 };
 
 beforeEach(() => {
+  vi.mocked(http).mockClear();
   sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 7 }]));
   route.params = {};
 });
@@ -54,4 +58,47 @@ test("a new client starts without the emails of the last client viewed", async (
   );
 
   expect(entities.lstEmails).toEqual([]);
+});
+
+const previousRateContacts = [{ id: 3, code: "I", contacto: "Luis", email: "luis@anterior.com", telefono: "" }];
+
+test("a new provider starts without the last viewed provider's emails and main flag", async () => {
+  const entities = await mountWithStore(
+    NuevoProveedorComponent,
+    () => {
+      useEntitiesStore().lstEmails = [...previousEmails];
+      useEntitiesStore().proveedor.proveedorprincipalflag = true;
+    },
+    {
+      SeccionProveedor: true,
+      SeccionTelefonos: true,
+      SeccionConvenios: true,
+      SeccionInformacionBancaria: true,
+      SeccionEmailTarifaComponent: true,
+    },
+  );
+
+  expect(entities.lstEmails).toEqual([]);
+  expect(entities.proveedor.proveedorprincipalflag).toBe(false);
+});
+
+test("the rate-contact step of a new provider starts empty and loads nothing, even inside a quote", async () => {
+  route.params = { id: "77" };
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  Object.assign(useEntitiesStore(), {
+    itemsImportacion: [...previousRateContacts],
+    itemsExportacion: [{ ...previousRateContacts[0], code: "E" }],
+  });
+
+  const wrapper = mount(SeccionEmailTarifaComponent, {
+    props: { isNew: true, guardarFlag: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+  });
+  await flushPromises();
+
+  expect(useEntitiesStore().itemsImportacion).toEqual([]);
+  expect(useEntitiesStore().itemsExportacion).toEqual([]);
+  expect(vi.mocked(http)).not.toHaveBeenCalled();
+  wrapper.unmount();
 });
