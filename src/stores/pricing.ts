@@ -255,6 +255,7 @@ export const usePricingStore = defineStore("pricing", () => {
     datosInstructivoManual: null,
     esindividualflag: true,
     esgrupalflag: false,
+    tienefleteflag:true
   });
   const opcionCostos = ref<OpcionCosto[]>([
     {
@@ -1485,6 +1486,7 @@ export const usePricingStore = defineStore("pricing", () => {
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       ventascasillerodetalles: [],
       opcionCostos: opciones,
+      tienefleteflag: datosPrincipales.value.tienefleteflag,
       id_branch: sessionBranchId(),
     };
     //  console.log(data.costocotizacion);
