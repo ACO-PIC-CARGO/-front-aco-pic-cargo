@@ -18,7 +18,7 @@ const drawer = computed(() => townStore.drawer);
 watch(drawer, () => {
   model.value = { ...townStore.model };
 
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
@@ -35,17 +35,19 @@ function getName() {
     return "Filtrar Registros";
   }
 }
-async function ObtenerEstados(id_pais?: number | string | null) {
+type Cascade = { id_pais?: number | string | null; id_state?: number | string | null; id_city?: number | string | null };
+
+async function ObtenerEstados(target: Cascade) {
   loadingEstado.value = true;
-  await appStore._getState(id_pais);
-  townStore.model.id_state = "";
-  townStore.model.id_city = "";
+  await appStore._getState(target.id_pais);
+  target.id_state = "";
+  target.id_city = "";
   loadingEstado.value = false;
 }
-async function ObtenerCity(id_state?: number | string | null) {
+async function ObtenerCity(target: Cascade) {
   loadingCity.value = true;
-  await appStore._getCity(id_state);
-  townStore.model.id_city = "";
+  await appStore._getCity(target.id_state);
+  target.id_city = "";
   loadingCity.value = false;
 }
 async function Filtrar() {
@@ -71,25 +73,16 @@ async function Limpiar() {
   townStore.drawer = !townStore.drawer;
 }
 async function Aceptar() {
-  if (townStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await townStore.setTown();
-      await townStore.GetListTown();
-      loading.value = false;
-    }
-  }
-  if (townStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await townStore.ActualizarTown();
+  if (loading.value) return;
+  loading.value = true;
+  if ((await frmDML.value!.validate()).valid) {
+    const saved = townStore.tipo == "nuevo" ? await townStore.setTown() : await townStore.ActualizarTown();
+    if (saved) {
+      townStore.drawer = false;
       await townStore.GetListTown();
     }
-    loading.value = false;
   }
-  if (townStore.tipo == "ver") {
-    townStore.drawer = !townStore.drawer;
-  }
+  loading.value = false;
 }
 </script>
 
@@ -123,7 +116,7 @@ async function Aceptar() {
           item-title="name"
           item-value="id"
           :clearable="townStore.tipo != 'ver'"
-          @update:model-value="ObtenerEstados(townStore.filtros.id_pais)"
+          @update:model-value="ObtenerEstados(townStore.filtros)"
         />
       </v-col>
       <v-col
@@ -139,7 +132,7 @@ async function Aceptar() {
           item-value="id"
           :clearable="townStore.tipo != 'ver'"
           :loading="loadingEstado"
-          @update:model-value="ObtenerCity(townStore.filtros.id_state)"
+          @update:model-value="ObtenerCity(townStore.filtros)"
         />
       </v-col>
       <v-col
@@ -234,7 +227,7 @@ async function Aceptar() {
             item-title="name"
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
-            @update:model-value="ObtenerEstados(townStore.model.id_pais)"
+            @update:model-value="ObtenerEstados(townStore.model)"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
         </v-col>
@@ -252,7 +245,7 @@ async function Aceptar() {
             item-value="id"
             :rules="[(v) => !!v || 'Dato Requerido']"
             :loading="loadingEstado"
-            @update:model-value="ObtenerCity(townStore.model.id_state)"
+            @update:model-value="ObtenerCity(townStore.model)"
             :item-props="(item) => ({ disabled: item.status != 1 })"
           />
         </v-col>

@@ -307,7 +307,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
               "
             >
               <v-autocomplete
-                :items="townStore.lstTown"
+                :items="townStore.lstTownPricing"
                 item-title="nombrecompleto"
                 item-value="id"
                 density="compact"

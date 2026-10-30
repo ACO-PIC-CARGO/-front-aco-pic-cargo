@@ -11,8 +11,10 @@ import * as directives from "vuetify/directives";
 import { VAutocomplete } from "vuetify/components";
 import ListCity from "@/views/City/ListCity.vue";
 import ListState from "@/views/State/ListState.vue";
+import ListTown from "@/views/Town/ListTown.vue";
 import { useCityStore } from "@/stores/city";
 import { useStatesStore } from "@/stores/states";
+import { useTownStore } from "@/stores/town";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 import type { HttpConfig } from "@/stores/__tests__/catalogHttp";
 
@@ -173,6 +175,50 @@ describe("Ciudades", () => {
     await settle();
 
     expect(requestsTo("insertar_city")).toHaveLength(1);
+    expect(openDrawer()).toBeNull();
+  });
+});
+
+describe("Distritos", () => {
+  const chachapoyas = { id: 1, id_pais: 139, id_state: 1, id_city: 1, code: 1, name: "Chachapoyas", description: "QA", status: 1, editableflag: true };
+
+  beforeEach(() => {
+    listRows = [chachapoyas];
+  });
+
+  test("choosing a country or a department in the filter clears the filter's lower levels and leaves the form alone", { timeout: 15_000 }, async () => {
+    await mountScreen(ListTown);
+    buttonNamed("FILTRAR").click();
+    await settle();
+    const townStore = useTownStore();
+    Object.assign(townStore.filtros, { id_state: 5, id_city: 6 });
+    Object.assign(townStore.model, { id_state: 9, id_city: 10 });
+
+    await pickInFilter("Pais", 139);
+    const afterCountry = { id_state: townStore.filtros.id_state, id_city: townStore.filtros.id_city };
+    townStore.filtros.id_city = 6;
+    await pickInFilter("Estado (Región)", 1);
+
+    expect(afterCountry).toEqual({ id_state: "", id_city: "" });
+    expect(townStore.filtros.id_city).toBe("");
+    expect(townStore.model).toMatchObject({ id_state: 9, id_city: 10 });
+  });
+
+  test("a double click on Aceptar saves the new district once and closes the panel", { timeout: 15_000 }, async () => {
+    await mountScreen(ListTown);
+    buttonNamed("NUEVO").click();
+    await settle();
+    Object.assign(useTownStore().model, { id_pais: 139, id_state: 1, id_city: 1 });
+    await settle();
+    await typeInto("Nombre (*)", "QA Distrito");
+    await typeInto("Descripción (*)", "QA");
+
+    const accept = buttonNamed("Aceptar", openDrawer()!);
+    accept.click();
+    accept.click();
+    await settle();
+
+    expect(requestsTo("insertar_town")).toHaveLength(1);
     expect(openDrawer()).toBeNull();
   });
 });

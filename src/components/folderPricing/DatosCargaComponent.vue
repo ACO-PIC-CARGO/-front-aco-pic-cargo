@@ -636,7 +636,7 @@ async function buscarTownPorDestino(idDestino: number | string | undefined) {
 
   pricingStore.datosPrincipales.id_town = null;
   idTownSeleccionado.value = null;
-  townStore.lstTown = [];
+  townStore.lstTownPricing = [];
 
   if (!puertoDestino) return;
 
@@ -1223,7 +1223,7 @@ function cerrarDialogCambiarPercepcionAduana() {
       return;
     }
     idTownSeleccionado.value = null;
-    const lstTown = townStore.lstTown;
+    const lstTown = townStore.lstTownPricing;
     if (!Array.isArray(lstTown) || lstTown.length === 0) {
       pricingStore.datosPrincipales.id_town = null;
       finalizarSeleccionDistrito();
@@ -1992,7 +1992,7 @@ function finalizarSeleccionDistrito() {
           <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
           <v-autocomplete
             v-model="idTownSeleccionado"
-            :items="townStore.lstTown"
+            :items="townStore.lstTownPricing"
             item-title="nombrecompleto"
             item-value="id"
             density="compact"

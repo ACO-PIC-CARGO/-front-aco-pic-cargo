@@ -4,13 +4,18 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { Distrito, FiltroDistrito } from "@/types/catalogos";
+import { filledParams } from "@/utils/queryParams";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
+
+type DistritoRow = Distrito & { editableflag?: boolean };
 
 export const useTownStore = defineStore("town", () => {
   const tipo = ref("filter");
   const drawer = ref(false);
   const lstTown = ref<Distrito[]>([]);
+  const lstTownPricing = ref<Distrito[]>([]);
+  const editable = ref(false);
   const filtros = ref<FiltroDistrito>({
     id: "",
     id_pais: "",
@@ -35,39 +40,16 @@ export const useTownStore = defineStore("town", () => {
   });
 
   async function GetListTown(): Promise<void> {
-    const config = {
+    const { id_pais, id_state, id_city, code, name, description, status } = filtros.value;
+    const response = await request<DistritoRow>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_town?&id_branch=${sessionBranchId()}&id_pais=${filtros.value.id_pais ? filtros.value.id_pais : ""}&id_city=${
-          filtros.value.id_city ? filtros.value.id_city : ""
-        }&id_state=${filtros.value.id_state ? filtros.value.id_state : ""}&id_town=${
-          filtros.value.id_town ? filtros.value.id_town : ""
-        }&code=${filtros.value.code ? filtros.value.code : ""}&name=${filtros.value.name ? filtros.value.name : ""}&description=${
-          filtros.value.description ? filtros.value.description : ""
-        }&status=${filtros.value.status ? filtros.value.status : ""}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_town",
       headers: { "Content-Type": "application/json" },
-    };
-    try {
-      await axios<ApiResponse<Distrito[]>>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-
-          if (data.estadoflag == true) {
-            lstTown.value = data.data;
-          } else {
-            lstTown.value = [];
-            showRejectedResponse(data);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+      params: filledParams({ id_pais, id_state, id_city, code, name, description, status }),
+    });
+    lstTown.value = response.estadoflag ? response.data : [];
+    if (response.estadoflag) editable.value = Boolean(response.data[0]!.editableflag);
+    else showRejectedResponse(response);
   }
 
   async function cargarTownParaPricing(params: { id_pais: number | string }): Promise<void> {
@@ -82,9 +64,9 @@ export const useTownStore = defineStore("town", () => {
         .then(function (response) {
           const data = response.data;
           if (data.estadoflag == true) {
-            lstTown.value = data.data;
+            lstTownPricing.value = data.data;
           } else {
-            lstTown.value = [];
+            lstTownPricing.value = [];
           }
         })
         .catch(function (error) {
@@ -95,55 +77,34 @@ export const useTownStore = defineStore("town", () => {
     }
   }
 
-  async function setTown(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_town`,
+  async function saveTown(method: "post" | "put", endpoint: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + endpoint,
       headers: { "Content-Type": "application/json" },
       data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
 
-  async function ActualizarTown(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_town`,
-      headers: { "Content-Type": "application/json" },
-      data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const setTown = () => saveTown("post", "insertar_town");
+  const ActualizarTown = () => saveTown("put", "actualizar_town");
 
-  return { tipo, drawer, lstTown, filtros, model, GetListTown, cargarTownParaPricing, setTown, ActualizarTown };
+  return {
+    tipo,
+    drawer,
+    lstTown,
+    lstTownPricing,
+    editable,
+    filtros,
+    model,
+    GetListTown,
+    cargarTownParaPricing,
+    setTown,
+    ActualizarTown,
+  };
 });

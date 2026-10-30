@@ -189,7 +189,7 @@ function continuarLlenadoCostos() {
     if (
       validarTown &&
       !pricingStore.datosPrincipales.id_town &&
-      townStore.lstTown.length > 0
+      townStore.lstTownPricing.length > 0
     ) {
       errorIdTown.value = "Datos Requeridos";
       val = false;
@@ -376,11 +376,11 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
                 service.code_service == 14 &&
                   service.status == 1 &&
                   isEmpresaPermitida &&
-                  townStore.lstTown.length > 0
+                  townStore.lstTownPricing.length > 0
               "
             >
               <v-autocomplete
-                :items="townStore.lstTown"
+                :items="townStore.lstTownPricing"
                 item-title="nombrecompleto"
                 item-value="id"
                 density="compact"

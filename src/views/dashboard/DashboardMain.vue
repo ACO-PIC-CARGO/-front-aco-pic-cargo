@@ -666,7 +666,7 @@ function abrirModalCopiarCotizacion() {
 }
 function validarExistTransporte() {
   const { servicios, id_town } = pricingStore.datosPrincipales;
-  const hayDistritos = townStore.lstTown.length > 0;
+  const hayDistritos = townStore.lstTownPricing.length > 0;
 
   if (
     servicios!.some((v: Servicio) => v.code_service == "14" && v.status == 1) &&
@@ -2194,7 +2194,7 @@ watch(idRole, async () => {
           <p>Selecciona el distrito para calcular la tarifa de transporte.</p>
           <v-autocomplete
             v-model="pricingStore.datosPrincipales.id_town"
-            :items="townStore.lstTown"
+            :items="townStore.lstTownPricing"
             item-title="nombrecompleto"
             item-value="id"
             density="compact"
