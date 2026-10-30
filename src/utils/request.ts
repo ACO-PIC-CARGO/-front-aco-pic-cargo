@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 import type { SweetAlertResult } from "sweetalert2";
 import type { ApiResponse } from "@/types/api";
 
-const CONNECTION_ERROR_MESSAGE =
+export const CONNECTION_ERROR_MESSAGE =
   "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.";
 
 interface FailedRequest {

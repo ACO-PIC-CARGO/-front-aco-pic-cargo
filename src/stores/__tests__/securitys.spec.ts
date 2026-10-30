@@ -7,7 +7,8 @@ import http from "@/api/http";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import { useControlGastosStore } from "@/stores/controlGastos";
-import { useSecuritysStore } from "@/stores/securitys";
+import { RECOVERY_NEEDS_EMAIL, useSecuritysStore } from "@/stores/securitys";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -61,14 +62,17 @@ describe("securitys store", () => {
     vi.restoreAllMocks();
   });
 
-  test("singin posts the login form and stores the session of a user with one branch", async () => {
-    vi.useFakeTimers();
+  test("singin posts the login form, stores the session and loads the menu and settings before opening Main", async () => {
     const setItemsMenu = vi.spyOn(useAppStore(), "_setItemsMenu").mockImplementation(() => {});
     respond({
       singin: { estadoflag: true, mensaje: "", token: "tok", data: [{ ...loginRow }] },
       "CargarBranch/7": { data: [branch] },
       getMenuModules: { data: menu },
       obtener_existe_datos_config: { estadoflag: true, data: [config] },
+    });
+    let menuWhenOpeningMain: unknown;
+    vi.mocked(router.push).mockImplementation(async () => {
+      menuWhenOpeningMain = structuredClone(toRaw(useAppStore().lstMenu));
     });
     const { securitys } = setup();
     securitys.frmLogin.user = "ana";
@@ -88,22 +92,6 @@ describe("securitys store", () => {
       url: URL_MAIN + "CargarBranch/7",
       headers: JSON_HEADERS,
     });
-    expect(res.estadoflag).toBe(true);
-    expect(securitys.errorClave).toBe("");
-    expect(securitys.lstSucursal).toEqual([branch]);
-    const dataUser = JSON.stringify([{ ...loginRow, id_user: 7, id: 3, id_branch: 5 }]);
-    for (const read of [sessionOf, localOf]) {
-      expect(read("security")).toBe("2");
-      expect(read("auth-token")).toBe("tok");
-      expect(read("dataUser")).toBe(dataUser);
-      expect(read("dataBranch")).toBe(JSON.stringify([branch]));
-      expect(read("iso_pais")).toBe("PE");
-    }
-    expect(vi.mocked(router.push).mock.calls[0]![0]).toEqual({ name: "Main" });
-    expect(httpMock).toHaveBeenCalledTimes(2);
-
-    await vi.advanceTimersByTimeAsync(1000);
-
     expect(httpMock).toHaveBeenNthCalledWith(3, {
       method: "post",
       url: URL_MAIN + "getMenuModules",
@@ -116,18 +104,31 @@ describe("securitys store", () => {
       params: { id_branch: 5 },
       headers: JSON_HEADERS,
     });
+    expect(res.estadoflag).toBe(true);
+    expect(securitys.errorClave).toBe("");
+    expect(securitys.lstSucursal).toEqual([branch]);
+    const dataUser = JSON.stringify([{ ...loginRow, id_user: 7, id: 3, id_branch: 5 }]);
+    for (const read of [sessionOf, localOf]) {
+      expect(read("security")).toBe("2");
+      expect(read("auth-token")).toBe("tok");
+      expect(read("dataUser")).toBe(dataUser);
+      expect(read("dataBranch")).toBe(JSON.stringify([branch]));
+      expect(read("iso_pais")).toBe("PE");
+    }
+    expect(vi.mocked(router.push).mock.calls[0]![0]).toEqual({ name: "Main" });
+    expect(menuWhenOpeningMain).toEqual(menu);
     expect(setItemsMenu).toHaveBeenCalledWith(menu);
     expect(useSecuritysStore().dataMenu).toBe(false);
-    expect(useAppStore().lstMenu).toEqual(menu);
     expect(sessionOf("menu")).toBe(JSON.stringify(menu));
     expect(localOf("ConfigEmpresa")).toBe(JSON.stringify(config));
   });
 
   test("singin sends a new company with one branch to the initial configuration", async () => {
-    vi.useFakeTimers();
     respond({
       singin: { estadoflag: true, mensaje: "", token: "tok", data: [{ ...loginRow }] },
       "CargarBranch/7": { data: [{ ...branch, esnuevoflag: true }] },
+      getMenuModules: { data: menu },
+      obtener_existe_datos_config: { estadoflag: true, data: [config] },
     });
     const { securitys } = setup();
 
@@ -165,13 +166,25 @@ describe("securitys store", () => {
     expect(httpMock).toHaveBeenCalledTimes(1);
   });
 
-  test("singin rejects with the error message cleared when the request fails", async () => {
+  test("singin explains a failed request instead of leaving the login waiting", async () => {
     respond({ singin: new Error("Network Error") });
     const { securitys } = setup();
-    securitys.errorClave = "previo";
 
-    await expect(securitys.singin()).rejects.toThrow("Network Error");
-    expect(securitys.errorClave).toBe("");
+    const res = await securitys.singin();
+
+    expect(res.estadoflag).toBe(false);
+    expect(securitys.errorClave).toBe(CONNECTION_ERROR_MESSAGE);
+    expect(sessionOf("auth-token")).toBeNull();
+  });
+
+  test("singin shows the server's answer when it refuses more attempts", async () => {
+    const tooManyAttempts = "Hiciste demasiados intentos. Espera 15 minutos e inténtalo de nuevo.";
+    respond({ singin: Object.assign(new Error("429"), { response: { status: 429, data: { mensaje: tooManyAttempts } } }) });
+    const { securitys } = setup();
+
+    await securitys.singin();
+
+    expect(securitys.errorClave).toBe(tooManyAttempts);
   });
 
   test("CargarBranch keeps the branches when the request fails", async () => {
@@ -206,10 +219,31 @@ describe("securitys store", () => {
   test("ReEstablecerContrasenia shows an error icon when the backend rejects", async () => {
     respond({ recuperar_clave: { estadoflag: false, mensaje: "Correo no registrado" } });
     const { securitys } = setup();
+    securitys.frmLogin.user = "ana@aco.pe";
 
     await securitys.ReEstablecerContrasenia();
 
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", html: "Correo no registrado" });
+  });
+
+  test("ReEstablecerContrasenia asks for the e-mail before sending anything", async () => {
+    const { securitys } = setup();
+    securitys.frmLogin.user = "  ";
+
+    await securitys.ReEstablecerContrasenia();
+
+    expect(httpMock).not.toHaveBeenCalled();
+    expect(securitys.errorClave).toBe(RECOVERY_NEEDS_EMAIL);
+  });
+
+  test("ReEstablecerContrasenia tells the user when the request fails", async () => {
+    respond({ recuperar_clave: new Error("Network Error") });
+    const { securitys } = setup();
+    securitys.frmLogin.user = "ana@aco.pe";
+
+    await securitys.ReEstablecerContrasenia();
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", html: CONNECTION_ERROR_MESSAGE });
   });
 
   test("ValidarToken returns the backend answer", async () => {

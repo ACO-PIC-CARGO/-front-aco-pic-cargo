@@ -6,9 +6,13 @@ import axios from "@/api/http";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
+import { request } from "@/utils/request";
 import type { ItemMenu, SucursalSesion, UsuarioLogin } from "@/types/sesion";
 
 const readDataUser = (): UsuarioLogin[] => JSON.parse(sessionStorage.getItem("dataUser") as string);
+
+export const RECOVERY_NEEDS_EMAIL =
+  "Escribe el correo de tu cuenta en «Usuario o Email» y vuelve a pulsar «Olvidé contraseña».";
 
 export const useSecuritysStore = defineStore("securitys", () => {
   const response = ref({ estadoflag: true });
@@ -57,13 +61,12 @@ export const useSecuritysStore = defineStore("securitys", () => {
 
   async function singin(): Promise<{ estadoflag: boolean }> {
     errorClave.value = "";
-    await axios<ApiResponse<UsuarioLogin[]>>({
+    await request<UsuarioLogin>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "singin",
       headers: { "Content-Type": "application/json" },
       data: frmLogin.value,
-    }).then(async (res_) => {
-      const res = res_.data;
+    }).then(async (res) => {
       response.value.estadoflag = res.estadoflag;
 
       if (res.estadoflag) {
@@ -93,13 +96,9 @@ export const useSecuritysStore = defineStore("securitys", () => {
           localStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
           sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
           localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
-          // Awaiting the timer id only yields one tick.
-          await setTimeout(async () => {
-            await _getMenuItem();
-            await ObtenerDatosConfig();
-            useAppStore().lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
-          }, 1000);
-          // await this.ListProgrammedPayment();
+          await _getMenuItem();
+          await ObtenerDatosConfig();
+          useAppStore().lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
 
           if (dataBranch[0]!.esnuevoflag) {
             router.push({ name: "ConfiguracionInicial" });
@@ -137,25 +136,20 @@ export const useSecuritysStore = defineStore("securitys", () => {
   }
 
   async function ReEstablecerContrasenia() {
-    // response.data.data[0].id
-    // let id_usuario = JSON.parse(sessionStorage.getItem("dataUser"))[0].id_user;
-    await axios<ApiResponse>({
+    if (!frmLogin.value.user.trim()) {
+      errorClave.value = RECOVERY_NEEDS_EMAIL;
+      return;
+    }
+    const res = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "recuperar_clave",
       headers: { "Content-Type": "application/json" },
       data: { email: frmLogin.value.user },
-    })
-      .then(function (response) {
-        const res = response.data;
-
-        Swal.fire({
-          icon: res.estadoflag ? "success" : "error",
-          html: res.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    Swal.fire({
+      icon: res.estadoflag ? "success" : "error",
+      html: res.mensaje,
+    });
   }
 
   // async ListProgrammedPayment() {
