@@ -4,7 +4,6 @@ import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { TipoTransaccion } from "@/types/entidades";
 import type { MasterDetalle } from "@/types/seguridad";
-import { sessionBranchId } from "@/utils/sesion";
 
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -68,7 +67,6 @@ async function nuevo() {
     description: "",
     status: true,
     escomunflag: "",
-    id_branch: sessionBranchId(),
   };
   masterusuariosStore.drawer = !masterusuariosStore.drawer;
 }
@@ -102,6 +100,7 @@ async function eliminar(row: MasterDetalle | TipoTransaccion) {
 
 onMounted(async () => {
   loading.value = !loading.value;
+  masterusuariosStore.resetFiltros();
   await masterusuariosStore.GetListTipoTelefono();
   loading.value = !loading.value;
 });
@@ -145,13 +144,6 @@ onMounted(async () => {
             @click="filtrar()"
           >
             FILTRAR
-          </v-btn>
-          <v-btn
-            size="small"
-            class="mx-1"
-            color="#004D40"
-          >
-            EXPORTAR
           </v-btn>
         </v-col>
         <v-col cols="12">

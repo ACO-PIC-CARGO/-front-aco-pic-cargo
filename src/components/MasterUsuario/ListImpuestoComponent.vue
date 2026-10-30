@@ -102,6 +102,7 @@ async function eliminar(item: MasterDetalle) {
 
 onMounted(async () => {
   loading.value = !loading.value;
+  masterusuariosStore.resetFiltros();
   await masterusuariosStore.GetListImpuestos();
   loading.value = !loading.value;
 });

@@ -6,6 +6,7 @@ import type { ApiResponse } from "@/types/api";
 import type { TipoTransaccion } from "@/types/entidades";
 import type { FiltroMasterDetalle, FormMasterDetalle, MasterDetalle } from "@/types/seguridad";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useMasterusuariosStore = defineStore("masterusuarios", () => {
@@ -21,7 +22,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
   const lstTipoPersona = ref<TipoTransaccion[]>([]);
   const lstImpRenta = ref<TipoTransaccion[]>([]);
   const lstTemperatura = ref<TipoTransaccion[]>();
-  const filtros = ref<FiltroMasterDetalle>({
+  const defaultFiltros = (): FiltroMasterDetalle => ({
     id: "",
     id_master: "",
     valorcodigo: "",
@@ -34,6 +35,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     grupalflag: true,
     orden: null,
   });
+  const filtros = ref<FiltroMasterDetalle>(defaultFiltros());
   const model = ref<FormMasterDetalle>({
     id: "",
     id_master: "",
@@ -49,29 +51,23 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     orden: null,
   });
 
-  async function ActualizarMasterDetalle(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_master_detalle`,
+  function resetFiltros(): void {
+    filtros.value = defaultFiltros();
+  }
+
+  async function saveAndTell(method: string, path: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
       data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
+  }
+
+  function ActualizarMasterDetalle(): Promise<boolean> {
+    return saveAndTell("put", "actualizar_master_detalle");
   }
 
   async function GetListImpuestos(): Promise<void> {
@@ -147,39 +143,15 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
   }
 
   async function GetListTipoTelefono(): Promise<void> {
-    const config = {
+    const { valorcodigo, description, status } = filtros.value;
+    const data = await request<MasterDetalle>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_master_detalle_tipotelefono?&id_branch=${sessionBranchId()}&id_master=${filtros.value.id_master}&valorcodigo=${
-          filtros.value.valorcodigo == "" || filtros.value.valorcodigo == null ? "" : filtros.value.valorcodigo
-        }&codigo01=${
-          filtros.value.codigo01 == "" || filtros.value.codigo01 == null ? "" : filtros.value.codigo01
-        }&codigo02=${filtros.value.codigo02}&description=${
-          filtros.value.description == "" || filtros.value.description == null ? "" : filtros.value.description
-        }&status=${filtros.value.status}&escomunflag=${filtros.value.escomunflag}`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_master_detalle_tipotelefono",
       headers: { "Content-Type": "application/json" },
-    };
-    try {
-      await axios<ApiResponse<MasterDetalle[]>>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-
-          if (data.estadoflag == true) {
-            lstTipoTelefono.value = data.data;
-          } else {
-            lstTipoTelefono.value = [];
-            showRejectedResponse(data);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+      params: { valorcodigo, description, status },
+    });
+    lstTipoTelefono.value = data.estadoflag ? data.data : [];
+    if (!data.estadoflag) showRejectedResponse(data);
   }
 
   async function cargarMasterDetalleCanal(): Promise<void> {
@@ -272,29 +244,8 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     });
   }
 
-  async function RegistrarMasterDetalleTipoTelefono(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_master_detalle_tipotelefono`,
-      headers: { "Content-Type": "application/json" },
-      data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+  function RegistrarMasterDetalleTipoTelefono(): Promise<boolean> {
+    return saveAndTell("post", "insertar_master_detalle_tipotelefono");
   }
 
   async function RegistrarMasterDetalleNotasCotizacion(): Promise<void> {
@@ -388,6 +339,7 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     lstTemperatura,
     filtros,
     model,
+    resetFiltros,
     ActualizarMasterDetalle,
     GetListImpuestos,
     GetListNotasCotizacion,

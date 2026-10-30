@@ -37,7 +37,7 @@ describe("masterusuarios store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test.each(lists)("$action reads the current filters and keeps the rows", async ({ action, path, key }) => {
+  test.each(lists.slice(0, 2))("$action reads the current filters and keeps the rows", async ({ action, path, key }) => {
     respond({ [path]: accepted([row]) });
     const store = useMasterusuariosStore();
 
@@ -63,6 +63,32 @@ describe("masterusuarios store", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "info", text: "No se encontraron registros" });
   });
 
+  test("GetListTipoTelefono sends the filters as query params, so any text reaches the backend intact", async () => {
+    respond({ listar_master_detalle_tipotelefono: accepted([row]) });
+    const store = useMasterusuariosStore();
+    store.filtros = { ...store.filtros, valorcodigo: "0&1", description: "Móvil #2", status: false };
+
+    await store.GetListTipoTelefono();
+
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "get",
+      url: URL_MAIN + "listar_master_detalle_tipotelefono",
+      headers: JSON_HEADERS,
+      params: { valorcodigo: "0&1", description: "Móvil #2", status: false },
+    });
+    expect(store.lstTipoTelefono).toEqual([row]);
+  });
+
+  test("resetFiltros brings back the default filters", () => {
+    const store = useMasterusuariosStore();
+    const defaults = { ...store.filtros };
+    store.filtros = { ...store.filtros, valorcodigo: "01", description: "IGV", status: false };
+
+    store.resetFiltros();
+
+    expect(store.filtros).toEqual(defaults);
+  });
+
   test("the list actions send an empty or cleared filter as the text the backend expects", async () => {
     respond({
       listar_master_detalle_impuesto: accepted([]),
@@ -74,12 +100,10 @@ describe("masterusuarios store", () => {
 
     await store.GetListImpuestos();
     await store.GetListNotasCotizacion();
-    await store.GetListTipoTelefono();
 
     expect(httpMock.mock.calls.map(([config]) => config.url.slice(URL_MAIN.length))).toEqual([
       "listar_master_detalle_impuesto?&id_branch=7&id_master=3&valorcodigo=&codigo01=&codigo02=null&description=&status=null&escomunflag=true",
       "listar_master_detalle_notas_cotizacion?&id_branch=7&id_master=3&valorcodigo=&codigo01=null&codigo02=&description=&status=&escomunflag=true",
-      "listar_master_detalle_tipotelefono?&id_branch=7&id_master=3&valorcodigo=&codigo01=&codigo02=null&description=&status=null&escomunflag=true",
     ]);
   });
 
@@ -155,4 +179,24 @@ describe("masterusuarios store", () => {
     expect(Swal.fire).toHaveBeenNthCalledWith(2, { icon: "error", text: "Duplicado" });
     expect(Swal.fire).toHaveBeenNthCalledWith(3, { icon: "success", text: "ok" });
   });
+
+  test("ActualizarMasterDetalle and RegistrarMasterDetalleTipoTelefono report whether the save worked", async () => {
+    respond({ actualizar_master_detalle: accepted([]), insertar_master_detalle_tipotelefono: rejected("Duplicado") });
+    const store = useMasterusuariosStore();
+
+    expect(await store.ActualizarMasterDetalle()).toBe(true);
+    expect(await store.RegistrarMasterDetalleTipoTelefono()).toBe(false);
+  });
+
+  test.each(["ActualizarMasterDetalle", "RegistrarMasterDetalleTipoTelefono"] as const)(
+    "%s tells the user what the server answered when saving fails",
+    async (action) => {
+      const mensaje = "No pudimos completar la operación. Intenta de nuevo en unos minutos.";
+      const failure = Object.assign(new Error("500"), { response: { data: { mensaje } } });
+      respond({ actualizar_master_detalle: failure, insertar_master_detalle_tipotelefono: failure });
+
+      expect(await useMasterusuariosStore()[action]()).toBe(false);
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: mensaje });
+    },
+  );
 });

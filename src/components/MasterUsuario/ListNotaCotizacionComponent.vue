@@ -142,6 +142,7 @@ async function eliminar(item: MasterDetalle) {
 
 onMounted(async () => {
   loading.value = !loading.value;
+  masterusuariosStore.resetFiltros();
   await masterusuariosStore.GetListNotasCotizacion();
   loading.value = !loading.value;
 });

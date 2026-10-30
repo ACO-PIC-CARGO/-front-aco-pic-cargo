@@ -55,16 +55,18 @@ async function Aceptar() {
   if (masterusuariosStore.tipo == "nuevo") {
     if ((await frmDML.value!.validate()).valid) {
       loading.value = true;
-      await masterusuariosStore.RegistrarMasterDetalleTipoTelefono();
+      const saved = await masterusuariosStore.RegistrarMasterDetalleTipoTelefono();
       await masterusuariosStore.GetListTipoTelefono();
       loading.value = false;
+      if (saved) masterusuariosStore.drawer = false;
     }
   }
   if (masterusuariosStore.tipo == "editar") {
     loading.value = true;
     if ((await frmDML.value!.validate()).valid) {
-      await masterusuariosStore.ActualizarMasterDetalle();
+      const saved = await masterusuariosStore.ActualizarMasterDetalle();
       await masterusuariosStore.GetListTipoTelefono();
+      if (saved) masterusuariosStore.drawer = false;
     }
     loading.value = false;
   }
