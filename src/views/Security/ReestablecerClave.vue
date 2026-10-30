@@ -2,8 +2,8 @@
 import { onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
-import axios from '@/api/http';
-import type { ApiResponse } from "@/types/api";
+import { request } from "@/utils/request";
+import { passwordResetProblem } from "@/utils/passwordReset";
 
 const route = useRoute();
 const router = useRouter();
@@ -13,75 +13,52 @@ const email = ref("");
 const clave = ref("");
 const confirmaclave = ref("");
 
+const irAlLogin = () => router.push("/");
+
+const avisarError = (text: string) =>
+  Swal.fire({
+    icon: "error",
+    title: "No pudimos cambiar tu contraseña",
+    text,
+    allowEnterKey: false,
+    allowOutsideClick: false,
+  });
+
 onMounted(async () => {
-    
-  await axios<ApiResponse>({
+  const res = await request({
     method: "get",
-    url: `${import.meta.env.VITE_URL_MAIN}validar_token_recuperar_clave?token=${route.params.token}`,
-  })
-    .then((response) => {
-      if (!response.data.estadoflag) {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: response.data.mensaje,
-          allowEnterKey: false,
-          allowOutsideClick: false,
-        }).then((rs) => {
-          if (rs.isConfirmed) {
-            router.push("/");
-          }
-        });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+    url: `${import.meta.env.VITE_URL_MAIN}validar_token_recuperar_clave`,
+    params: { token: route.params.token },
+  });
+  if (!res.estadoflag) {
+    const rs = await avisarError(res.mensaje);
+    if (rs.isConfirmed) irAlLogin();
+  }
 });
 
-function reestablecerClave() {
-  if (clave.value != confirmaclave.value) {
-    Swal.fire({
-      icon: "error",
-      title: "Oops...",
-      text: "Las claves no coinciden",
-      allowEnterKey: false,
-      allowOutsideClick: false,
-    });
+async function reestablecerClave() {
+  const problema = passwordResetProblem({ email: email.value, clave: clave.value, confirmaclave: confirmaclave.value });
+  if (problema) {
+    avisarError(problema);
     return;
   }
-  axios
-    .put<ApiResponse>(`${import.meta.env.VITE_URL_MAIN}reestablecer_clave`, {
-      email: email.value,
-      clave: clave.value,
-      token: route.params.token,
-    })
-    .then((response) => {
-      if (response.data.estadoflag) {
-        Swal.fire({
-          icon: "success",
-          title: "Exito",
-          text: response.data.mensaje,
-          allowEnterKey: false,
-          allowOutsideClick: false,
-        }).then((rs) => {
-          if (rs.isConfirmed) {
-            router.push("/");
-          }
-        });
-      } else {
-        Swal.fire({
-          icon: "error",
-          title: "Oops...",
-          text: response.data.mensaje,
-          allowEnterKey: false,
-          allowOutsideClick: false,
-        });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  const res = await request({
+    method: "put",
+    url: `${import.meta.env.VITE_URL_MAIN}reestablecer_clave`,
+    data: { email: email.value, clave: clave.value, token: route.params.token },
+  });
+  if (!res.estadoflag) {
+    avisarError(res.mensaje);
+    return;
+  }
+  const rs = await Swal.fire({
+    icon: "success",
+    title: "Contraseña actualizada",
+    text: "Ya puedes iniciar sesión con tu nueva contraseña.",
+    allowEnterKey: false,
+    allowOutsideClick: false,
+  });
+  if (rs.isConfirmed) irAlLogin();
 }
 </script>
 
@@ -159,6 +136,7 @@ function reestablecerClave() {
                   color="error"
                   size="x-small"
                   class="mx-1"
+                  @click="irAlLogin()"
                 >
                   Ir al Login
                 </v-btn>
