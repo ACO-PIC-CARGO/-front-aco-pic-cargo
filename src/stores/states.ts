@@ -1,16 +1,18 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
-import axios from "@/api/http";
-import type { ApiResponse } from "@/types/api";
 import type { EstadoRegion, FiltroEstadoRegion } from "@/types/catalogos";
+import { filledParams } from "@/utils/queryParams";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
+
+type EstadoRegionRow = EstadoRegion & { editableflag?: boolean };
 
 export const useStatesStore = defineStore("states", () => {
   const tipo = ref("filter");
   const drawer = ref(false);
   const lstState = ref<EstadoRegion[]>([]);
+  const editable = ref(false);
   const StateFilter = ref<FiltroEstadoRegion>({
     id: "",
     id_pais: "",
@@ -29,88 +31,34 @@ export const useStatesStore = defineStore("states", () => {
   });
 
   async function GetListState(): Promise<void> {
-    const config = {
+    const { id_pais, code, name, description, status } = StateFilter.value;
+    const response = await request<EstadoRegionRow>({
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_state?&id_branch=${sessionBranchId()}&name=${StateFilter.value.name}&description=${
-          StateFilter.value.description ? StateFilter.value.description : ""
-        }&id_pais=${StateFilter.value.id_pais ? StateFilter.value.id_pais : ""}&status=${StateFilter.value.status}&code=${
-          StateFilter.value.code ? StateFilter.value.code : ""
-        }`,
-
+      url: import.meta.env.VITE_URL_MAIN + "listar_state",
       headers: { "Content-Type": "application/json" },
-    };
-    try {
-      await axios<ApiResponse<EstadoRegion[]>>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-
-          if (data.estadoflag == true) {
-            lstState.value = data.data;
-          } else {
-            lstState.value = [];
-            showRejectedResponse(data);
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+      params: filledParams({ id_pais, code, name, description, status }),
+    });
+    lstState.value = response.estadoflag ? response.data : [];
+    if (response.estadoflag) editable.value = Boolean(response.data[0]!.editableflag);
+    else showRejectedResponse(response);
   }
 
-  async function setState(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_state`,
+  async function saveState(method: "post" | "put", endpoint: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + endpoint,
       headers: { "Content-Type": "application/json" },
       data: StateModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
 
-  async function ActualizarState(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_state`,
-      headers: { "Content-Type": "application/json" },
-      data: StateModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const setState = () => saveState("post", "insertar_state");
+  const ActualizarState = () => saveState("put", "actualizar_state");
 
-  return { tipo, drawer, lstState, StateFilter, StateModel, GetListState, setState, ActualizarState };
+  return { tipo, drawer, lstState, editable, StateFilter, StateModel, GetListState, setState, ActualizarState };
 });

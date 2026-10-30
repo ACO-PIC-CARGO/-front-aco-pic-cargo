@@ -64,14 +64,6 @@ async function eliminar(item: EstadoRegion) {
     if (res.isConfirmed) {
       item.status = 0;
       statesStore.StateModel = item;
-      statesStore.StateFilter = {
-        id: "",
-        id_pais: "",
-        code: "",
-        name: "",
-        description: "",
-        status: "1",
-      };
       loading.value = true;
       await statesStore.ActualizarState();
       await statesStore.GetListState();
@@ -110,6 +102,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="statesStore.editable"
             size="small"
             color="success"
             @click="nuevo()"
@@ -126,13 +119,6 @@ onMounted(async () => {
             "
           >
             FILTRAR
-          </v-btn>
-          <v-btn
-            size="small"
-            class="mx-1"
-            color="#004D40"
-          >
-            EXPORTAR
           </v-btn>
         </v-col>
         <v-col cols="12">
@@ -190,7 +176,10 @@ onMounted(async () => {
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip location="bottom">
+              <v-tooltip
+                location="bottom"
+                v-if="statesStore.editable"
+              >
                 <template #activator="{ props }">
                   <v-icon
                     color="warning"
@@ -205,7 +194,7 @@ onMounted(async () => {
               </v-tooltip>
               <v-tooltip
                 location="bottom"
-                v-if="item.status == 1"
+                v-if="statesStore.editable && item.status == 1"
               >
                 <template #activator="{ props }">
                   <v-icon

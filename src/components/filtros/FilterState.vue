@@ -52,25 +52,16 @@ async function Limpiar() {
   statesStore.drawer = !statesStore.drawer;
 }
 async function Aceptar() {
-  if (statesStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await statesStore.setState();
-      await statesStore.GetListState();
-      loading.value = false;
-    }
-  }
-  if (statesStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await statesStore.ActualizarState();
+  if (loading.value) return;
+  loading.value = true;
+  if ((await frmDML.value!.validate()).valid) {
+    const saved = statesStore.tipo == "nuevo" ? await statesStore.setState() : await statesStore.ActualizarState();
+    if (saved) {
+      statesStore.drawer = false;
       await statesStore.GetListState();
     }
-    loading.value = false;
   }
-  if (statesStore.tipo == "ver") {
-    statesStore.drawer = !statesStore.drawer;
-  }
+  loading.value = false;
 }
 </script>
 
@@ -208,7 +199,7 @@ async function Aceptar() {
             label="Nombre (*)"
             :rules="[
               (v) =>
-                v.length < 50 ||
+                !v || v.length < 50 ||
                 'El nombre no puede exceder los 50 caracteres.',
               (v) => !!v || 'Dato Requerido',
             ]"
@@ -225,7 +216,7 @@ async function Aceptar() {
             :clearable="statesStore.tipo != 'ver'"
             :rules="[
               (v) =>
-                v.length < 50 ||
+                !v || v.length < 50 ||
                 'La descripción no puede exceder los 50 caracteres.',
             ]"
           />
