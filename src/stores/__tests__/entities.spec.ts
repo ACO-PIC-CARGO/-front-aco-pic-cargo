@@ -339,20 +339,41 @@ describe("entities store", () => {
     expect(await useEntitiesStore().guardarProveedor()).toEqual({});
   });
 
-  test("actualizarCliente sends the client with the route name and the session user", async () => {
-    respond({ actualizar_cliente: accepted([]) });
+  test("actualizarCliente saves the client and reloads it so new rows carry their ids", async () => {
+    const empty = { lstcontactos: [], lstconvenios: [], lsttarifas: [], lstcuentas: [], lstemails: [], lstshippers: [] };
+    respond({
+      actualizar_cliente: accepted([]),
+      ver_cliente: accepted([{ id: 5, ...empty, lsttelefonos: [{ id: 9, id_tipotelefono: 2, telefono: "999" }], informacionentrega: [] }]),
+    });
     currentRoute.value.name = "editarCliente";
     const entities = useEntitiesStore();
-    entities.lstConvenios = [{ dias_credito: 5 }];
+    entities.cliente.id = 5;
+    entities.lstTelefonos = [{ id_tipotelefono: "2", telefono: "999" }];
 
-    await entities.actualizarCliente();
-    await flushPromises();
+    expect(await entities.actualizarCliente()).toBe(true);
 
-    const sent = httpMock.mock.calls[0]![0];
-    expect(sent).toMatchObject({ method: "put", url: URL_MAIN + "actualizar_cliente" });
-    expect(sent.data).toMatchObject({ rute: "editarCliente", usuario: "ana", id_branch: 7, lstConvenios: [{ dias_credito: 5 }] });
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", title: "Aviso", text: "ok", allowOutsideClick: false });
-    expect(router.push).not.toHaveBeenCalled();
+    expect(sentUrls()).toEqual(["actualizar_cliente", "ver_cliente?id=5"]);
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({
+      method: "put",
+      data: { rute: "editarCliente", lstTelefonos: [{ id_tipotelefono: "2", telefono: "999" }] },
+    });
+    expect(entities.lstTelefonos).toEqual([{ id: 9, id_tipotelefono: "2", telefono: "999" }]);
+    expect(swalCall()).toMatchObject({ icon: "success", text: "ok" });
+  });
+
+  test.each([
+    ["a refused save", rejected("No encontramos ese cliente"), "No encontramos ese cliente"],
+    ["a connection failure", new Error("network"), CONNECTION_ERROR_MESSAGE],
+  ])("actualizarCliente reports %s and keeps the edited lists", async (_, answer, message) => {
+    respond({ actualizar_cliente: answer });
+    const entities = useEntitiesStore();
+    entities.lstTelefonos = [{ id_tipotelefono: "2", telefono: "999" }];
+
+    expect(await entities.actualizarCliente()).toBe(false);
+
+    expect(sentUrls()).toEqual(["actualizar_cliente"]);
+    expect(swalCall()).toMatchObject({ icon: "error", text: message });
+    expect(entities.lstTelefonos).toEqual([{ id_tipotelefono: "2", telefono: "999" }]);
   });
 
   test("actualizarProveedor puts the supplier and opens the supplier list", async () => {

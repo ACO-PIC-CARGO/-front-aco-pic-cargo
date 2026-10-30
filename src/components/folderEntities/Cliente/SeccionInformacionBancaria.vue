@@ -106,8 +106,9 @@ async function modificarCliente() {
   }
 
   appStore.spiner = true;
-  await entitiesStore.actualizarCliente();
+  const saved = await entitiesStore.actualizarCliente();
   appStore.spiner = false;
+  if (!saved) return;
   appStore.recargarClienteFlag =
     !appStore.recargarClienteFlag;
   appStore.modalEntitie = false;

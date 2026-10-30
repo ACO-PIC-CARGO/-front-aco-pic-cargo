@@ -29,7 +29,6 @@ import type {
   TelefonosContactosEntidad,
 } from "@/types/entidades";
 import type { PersonaRol } from "@/types/seguridad";
-import type { UsuarioSesion } from "@/types/sesion";
 import { useSecuritysStore } from "@/stores/securitys";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
@@ -945,12 +944,8 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function actualizarCliente(): Promise<void> {
+  async function actualizarCliente(): Promise<boolean> {
     const nombreRuta = router.currentRoute.value.name;
-    cliente.value.id_branch = sessionBranchId();
-    cliente.value.usuario = (
-      JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[]
-    )[0]!.usuario;
     cliente.value.lstTelefonos = lstTelefonos.value;
     cliente.value.lstContactos = lstContactos.value;
     cliente.value.lstConvenios = lstConvenios.value;
@@ -960,41 +955,19 @@ export const useEntitiesStore = defineStore("entities", () => {
     cliente.value.informacionEntrega = informacionEntrega.value;
     cliente.value.lstEmails = lstEmails.value;
 
-    await axios<ApiResponse>({
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `actualizar_cliente`,
-      headers: {
-        "Content-Type": "application/json",
-      },
       data: { ...cliente.value, rute: nombreRuta },
-    })
-      .then(function (response) {
-        // console.log(response)
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+    });
+    if (!response.estadoflag) {
+      Swal.fire({ icon: "error", title: "Aviso", text: response.mensaje, allowOutsideClick: false });
+      return false;
+    }
 
-        if (data.status == "401") {
-          showRejectedResponse(data);
-        } else {
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            title: "Aviso",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            // confirmButtonText: "Ir al listado",
-          }).then(() => {
-            // if (res.isConfirmed) {
-            //   state.lstProveedor = [];
-            //   router.push({
-            //     name: "listClientes",
-            //   });
-            // }
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    await verCliente(cliente.value.id);
+    Swal.fire({ icon: "success", title: "Aviso", text: response.mensaje, allowOutsideClick: false });
+    return true;
   }
 
   async function exportListClientes(): Promise<void> {
