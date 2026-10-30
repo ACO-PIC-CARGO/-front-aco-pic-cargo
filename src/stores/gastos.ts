@@ -5,6 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroGastoIngreso, FormGasto, TipoGasto } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useGastosStore = defineStore("gastos", () => {
@@ -62,28 +63,21 @@ export const useGastosStore = defineStore("gastos", () => {
       });
   }
 
-  async function insertGasto(data: FormGasto): Promise<void> {
-    await axios<ApiResponse>({
+  async function insertGasto(data: FormGasto): Promise<boolean> {
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_gasto",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataGasto({ code: "", description: "", calculoflag: "", status: true });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataGasto({ code: "", description: "", calculoflag: "", status: true });
+    return response.estadoflag;
   }
 
   async function readGasto(id: number): Promise<void> {
@@ -109,28 +103,21 @@ export const useGastosStore = defineStore("gastos", () => {
       });
   }
 
-  async function updateGasto(data: FormGasto): Promise<void> {
-    await axios<ApiResponse>({
+  async function updateGasto(data: FormGasto): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_gasto",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataGasto({ code: "", description: "", calculoflag: "", status: true });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataGasto({ code: "", description: "", calculoflag: "", status: true });
+    return response.estadoflag;
   }
 
   return { list, response, record, loading, cargarGasto, fetchDataGasto, insertGasto, readGasto, updateGasto };

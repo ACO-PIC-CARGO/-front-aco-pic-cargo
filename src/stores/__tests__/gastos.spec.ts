@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import { useGastosStore } from "@/stores/gastos";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -75,7 +76,7 @@ describe("gastos store", () => {
     respond({ insertar_gasto: accepted([]), listar_gasto: accepted([extra]) });
     const store = useGastosStore();
 
-    await store.insertGasto({ code: "GEXTR", description: "GASTOS EXTRAS" });
+    expect(await store.insertGasto({ code: "GEXTR", description: "GASTOS EXTRAS" })).toBe(true);
     await flushPromises();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
@@ -92,7 +93,7 @@ describe("gastos store", () => {
     respond({ actualizar_gasto: rejected("Duplicado"), listar_gasto: accepted([]) });
     const store = useGastosStore();
 
-    await store.updateGasto({ id: 4, description: "X" });
+    expect(await store.updateGasto({ id: 4, description: "X" })).toBe(false);
     await flushPromises();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
@@ -103,6 +104,14 @@ describe("gastos store", () => {
     });
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
     expect(httpMock.mock.calls[1]![0].url).toBe(defaultList);
+  });
+
+  test("insertGasto tells the user and answers false when the server cannot be reached", async () => {
+    respond({ insertar_gasto: new Error("network"), listar_gasto: accepted([]) });
+    const store = useGastosStore();
+
+    expect(await store.insertGasto({ code: "GEXTR", description: "GASTOS EXTRAS" })).toBe(false);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("readGasto keeps the first row as the record, or shows the backend message", async () => {

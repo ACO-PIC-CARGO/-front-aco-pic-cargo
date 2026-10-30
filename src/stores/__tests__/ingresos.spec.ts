@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import { useIngresosStore } from "@/stores/ingresos";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -76,7 +77,7 @@ describe("ingresos store", () => {
     respond({ insertar_ingreso: accepted([]), listar_ingreso: accepted([venta]) });
     const store = useIngresosStore();
 
-    await store.insertIngreso({ code: "VMO" });
+    expect(await store.insertIngreso({ code: "VMO" })).toBe(true);
     await flushPromises();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
@@ -93,7 +94,7 @@ describe("ingresos store", () => {
     respond({ actualizar_ingreso: rejected("Duplicado"), listar_ingreso: accepted([]) });
     const store = useIngresosStore();
 
-    await store.updateIngreso({ id: 1, description: "X" });
+    expect(await store.updateIngreso({ id: 1, description: "X" })).toBe(false);
     await flushPromises();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
@@ -104,6 +105,14 @@ describe("ingresos store", () => {
     });
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
     expect(httpMock.mock.calls[1]![0].url).toBe(defaultList);
+  });
+
+  test("insertIngreso tells the user and answers false when the server cannot be reached", async () => {
+    respond({ insertar_ingreso: new Error("network"), listar_ingreso: accepted([]) });
+    const store = useIngresosStore();
+
+    expect(await store.insertIngreso({ code: "VMO" })).toBe(false);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("readIngreso keeps the first row as the record, or shows the backend message", async () => {

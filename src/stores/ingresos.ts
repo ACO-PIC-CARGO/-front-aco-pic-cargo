@@ -5,6 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroGastoIngreso, FormIngreso, TipoIngreso } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useIngresosStore = defineStore("ingresos", () => {
@@ -63,28 +64,21 @@ export const useIngresosStore = defineStore("ingresos", () => {
       });
   }
 
-  async function insertIngreso(data: FormIngreso): Promise<void> {
-    await axios<ApiResponse>({
+  async function insertIngreso(data: FormIngreso): Promise<boolean> {
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertar_ingreso",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataIngreso({ code: "", description: "", calculoflag: "", status: true });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataIngreso({ code: "", description: "", calculoflag: "", status: true });
+    return response.estadoflag;
   }
 
   async function readIngreso(id: number): Promise<void> {
@@ -110,28 +104,21 @@ export const useIngresosStore = defineStore("ingresos", () => {
       });
   }
 
-  async function updateIngreso(data: FormIngreso): Promise<void> {
-    await axios<ApiResponse>({
+  async function updateIngreso(data: FormIngreso): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_ingreso",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataIngreso({ code: "", description: "", calculoflag: "", status: true });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataIngreso({ code: "", description: "", calculoflag: "", status: true });
+    return response.estadoflag;
   }
 
   async function ActualizarCXC(data: unknown): Promise<void> {

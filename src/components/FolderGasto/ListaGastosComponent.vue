@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
-import axios from "@/api/http";
 import { useGastosStore } from "@/stores/gastos";
-import type { ApiResponse } from "@/types/api";
 import type { FiltroGastoIngreso, FormGasto, TipoGasto } from "@/types/catalogos";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 const gastosStore = useGastosStore();
 const appStore = useAppStore();
@@ -30,13 +28,14 @@ const records = ref<FiltroGastoIngreso>({
   calculoflag: "",
   status: true,
 });
-const record = ref<FormGasto>({
-  id_branch: sessionBranchId(),
+const emptyRecord = (): FormGasto => ({
   code: "",
   description: "",
-  calculoflag: "",
+  calculoflag: true,
   status: true,
 });
+const record = ref<FormGasto>(emptyRecord());
+const saving = ref(false);
 const showFilterDrawerNew = ref(false);
 const showFilterDrawerRead = ref(false);
 const showFilterDrawerUpdate = ref(false);
@@ -65,7 +64,6 @@ watch(
   { immediate: true },
 );
 
-const originalRecord = ref<FormGasto>({ ...record.value });
 const originalRecords = ref<FiltroGastoIngreso>({ ...records.value });
 
 onMounted(async () => {
@@ -81,7 +79,7 @@ async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
   } else {
-    record.value = { ...originalRecord.value };
+    record.value = emptyRecord();
   }
   await gastosStore.fetchDataGasto(records.value);
   showFilterDrawer.value = false;
@@ -113,12 +111,9 @@ function resetForms() {
   if (form.value) form.value.reset();
 }
 function open_new() {
-  resetRecord();
   resetForms();
+  resetRecord();
   showFilterDrawerNew.value = !showFilterDrawerNew.value;
-  nextTick(() => {
-    record.value.calculoflag = true;
-  });
 }
 function open_filter() {
   showFilterDrawer.value = !showFilterDrawer.value;
@@ -137,11 +132,13 @@ async function open_update(itemId: number) {
   id.value = itemId;
 }
 async function submit_insert() {
-  validate_nuevo_code();
+  saving.value = true;
+  await validate_nuevo_code();
   if ((await formNew.value!.validate()).valid && errorCode.value == null) {
     resetRecord("filter");
-    await gastosStore.insertGasto(record.value);
+    if (await gastosStore.insertGasto(record.value)) showFilterDrawerNew.value = false;
   }
+  saving.value = false;
 }
 async function submit_update() {
   if ((await form.value!.validate()).valid && errorCode.value == null) {
@@ -152,7 +149,7 @@ async function submit_update() {
       status: record.value.status,
     };
     resetRecord("filter");
-    await gastosStore.updateGasto(data);
+    if (await gastosStore.updateGasto(data)) showFilterDrawerUpdate.value = false;
   }
 }
 async function submit_filter() {
@@ -183,28 +180,16 @@ function validateDescription(v: string | null) {
 }
 async function validate_nuevo_code() {
   errorCode.value = null;
+  if (!record.value.code) return;
 
-  const config = {
+  const response = await request({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `validar_nuevo_codigo_gasto?` +
-      `id_branch=${record.value.id_branch}` +
-      `&code=${encodeURIComponent(String(record.value.code))}`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-
-  await axios<ApiResponse>(config)
-    .then((response) => {
-      const data = response.data;
-      errorCode.value = data.estadoflag ? null : data.mensaje;
-      if (!data.estadoflag) record.value.code = "";
-    })
-    .catch((error) => {
-      console.log("Error al obtener los datos:", error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "validar_nuevo_codigo_gasto",
+    params: { code: record.value.code },
+    headers: { "Content-Type": "application/json" },
+  });
+  errorCode.value = response.estadoflag ? null : response.mensaje;
+  if (!response.estadoflag) record.value.code = "";
 }
 </script>
 
@@ -261,14 +246,7 @@ async function validate_nuevo_code() {
           color="#2962FF"
           @click="open_filter()"
         >
-          Fitrar
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
+          Filtrar
         </v-btn>
       </v-card-title>
 
@@ -387,6 +365,7 @@ async function validate_nuevo_code() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="submit_insert()"
           >
             Aceptar
