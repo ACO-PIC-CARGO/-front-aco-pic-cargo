@@ -17,7 +17,7 @@ const drawer = computed(() => puertoStore.drawer);
 
 watch(drawer, () => {
   PortModel.value = { ...puertoStore.PortModel };
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
@@ -56,25 +56,16 @@ async function Limpiar() {
   puertoStore.drawer = !puertoStore.drawer;
 }
 async function Aceptar() {
-  if (puertoStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await puertoStore.setPuerto();
-      await puertoStore.GetListPort();
-      loading.value = false;
-    }
-  }
-  if (puertoStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await puertoStore.ActualizarPuerto();
+  if (loading.value) return;
+  loading.value = true;
+  if ((await frmDML.value!.validate()).valid) {
+    const saved = puertoStore.tipo == "nuevo" ? await puertoStore.setPuerto() : await puertoStore.ActualizarPuerto();
+    if (saved) {
+      puertoStore.drawer = false;
       await puertoStore.GetListPort();
     }
-    loading.value = false;
   }
-  if (puertoStore.tipo == "ver") {
-    puertoStore.drawer = !puertoStore.drawer;
-  }
+  loading.value = false;
 }
 </script>
 
@@ -254,17 +245,21 @@ async function Aceptar() {
             ]"
           ></v-text-field>
         </div> -->
-        <!-- <div class="col-12 py-1">
+        <v-col
+          cols="12"
+          class="py-1"
+        >
           <span> Estado</span>
           <v-switch
-            :readonly="$store.state.puerto.tipo == 'ver'"
+            :readonly="puertoStore.tipo == 'ver'"
             :label="`Estado: ${
-              !!$store.state.puerto.PortModel.status ? 'Activo' : 'Inactivo'
+              !!puertoStore.PortModel.status ? 'Activo' : 'Inactivo'
             }`"
             color="success"
-            v-model="$store.state.puerto.PortModel.status"
-          ></v-switch>
-        </div> -->
+            v-model="puertoStore.PortModel.status"
+            :value-comparator="(value, checked) => Boolean(value) === checked"
+          />
+        </v-col>
       </v-form>
     </v-card-text>
 

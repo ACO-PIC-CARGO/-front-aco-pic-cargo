@@ -10,9 +10,11 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { VAutocomplete } from "vuetify/components";
 import ListCity from "@/views/City/ListCity.vue";
+import ListPort from "@/views/Port/ListPort.vue";
 import ListState from "@/views/State/ListState.vue";
 import ListTown from "@/views/Town/ListTown.vue";
 import { useCityStore } from "@/stores/city";
+import { usePuertoStore } from "@/stores/puerto";
 import { useStatesStore } from "@/stores/states";
 import { useTownStore } from "@/stores/town";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
@@ -219,6 +221,46 @@ describe("Distritos", () => {
     await settle();
 
     expect(requestsTo("insertar_town")).toHaveLength(1);
+    expect(openDrawer()).toBeNull();
+  });
+});
+
+describe("Puertos", () => {
+  const inactiveCallao = { id: 3, id_pais: 139, id_transporte: 1, code: null, name: "CALLAO", description: null, status: 0 };
+
+  beforeEach(() => {
+    listRows = [inactiveCallao];
+  });
+
+  test("an inactive port can be switched back on from Editar", { timeout: 15_000 }, async () => {
+    await mountScreen(ListPort);
+    rowIcon("mdi-pencil").click();
+    await settle();
+
+    openDrawer()!.querySelector<HTMLInputElement>("input[type=checkbox]")!.click();
+    await settle();
+    buttonNamed("Aceptar", openDrawer()!).click();
+    await settle();
+
+    expect(requestsTo("actualizar_puerto").map((config) => config.data)).toEqual([
+      expect.objectContaining({ id: 3, status: true }),
+    ]);
+    expect(openDrawer()).toBeNull();
+  });
+
+  test("a double click on Aceptar saves the new port once and closes the panel", { timeout: 15_000 }, async () => {
+    await mountScreen(ListPort);
+    buttonNamed("NUEVO").click();
+    await settle();
+    Object.assign(usePuertoStore().PortModel, { id_transporte: 1, id_pais: 139 });
+    await typeInto("Nombre (*)", "QA Puerto");
+
+    const accept = buttonNamed("Aceptar", openDrawer()!);
+    accept.click();
+    accept.click();
+    await settle();
+
+    expect(requestsTo("insertar_puerto")).toHaveLength(1);
     expect(openDrawer()).toBeNull();
   });
 });

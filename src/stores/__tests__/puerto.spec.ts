@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { usePuertoStore } from "@/stores/puerto";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -24,24 +25,22 @@ describe("puerto store", () => {
     vi.restoreAllMocks();
   });
 
-  test("GetListPort reads the current filters as typed and keeps the rows", async () => {
+  test("GetListPort sends only the filters the user filled, never the text null, and keeps the rows", async () => {
     respond({ listar_puerto: accepted([callao]) });
     const store = usePuertoStore();
 
     await store.GetListPort();
-    store.PortFilter = { ...store.PortFilter, id_pais: 1, code: "PE", name: "Cal", description: "d", id_transporte: 2, status: "0" };
+    store.PortFilter = { ...store.PortFilter, id_pais: null, code: "", name: null, description: "d", id_transporte: 2, status: "null" };
     await store.GetListPort();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_puerto?&id_branch=7&name=&description=&id_pais=&status=1&id_transporte=&code=",
+      url: URL_MAIN + "listar_puerto",
       headers: JSON_HEADERS,
+      params: { status: "1" },
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(
-      URL_MAIN + "listar_puerto?&id_branch=7&name=Cal&description=d&id_pais=1&status=0&id_transporte=2&code=PE",
-    );
+    expect(httpMock.mock.calls[1]![0].params).toEqual({ description: "d", id_transporte: 2 });
     expect(store.lstPort).toEqual([callao]);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
 
   test("GetListPort empties the list and tells the user when the backend rejects", async () => {
@@ -67,30 +66,28 @@ describe("puerto store", () => {
     expect(router.push).toHaveBeenCalledWith({ name: "Login" });
   });
 
-  test("GetListPort keeps the list when the request fails", async () => {
+  test("GetListPort tells the user when the server cannot be reached", async () => {
     respond({ listar_puerto: new Error("network") });
-    vi.spyOn(console, "error").mockImplementation(() => {});
     const store = usePuertoStore();
-    store.lstPort = [callao];
 
     await store.GetListPort();
 
-    expect(store.lstPort).toEqual([callao]);
-    expect(Swal.fire).not.toHaveBeenCalled();
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: CONNECTION_ERROR_MESSAGE });
   });
 
-  test("setPuerto posts and ActualizarPuerto puts the current model, each showing the answer", async () => {
+  test("setPuerto posts and ActualizarPuerto puts the current model, each showing the answer and telling whether it saved", async () => {
     respond({ insertar_puerto: accepted([]), actualizar_puerto: rejected("Duplicado") });
     const store = usePuertoStore();
     store.PortModel = callao;
 
-    await store.setPuerto();
-    await store.ActualizarPuerto();
+    const created = await store.setPuerto();
+    const updated = await store.ActualizarPuerto();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "post", url: URL_MAIN + "insertar_puerto", headers: JSON_HEADERS, data: callao });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "put", url: URL_MAIN + "actualizar_puerto", headers: JSON_HEADERS, data: callao });
     expect(Swal.fire).toHaveBeenNthCalledWith(1, { icon: "success", text: "ok" });
     expect(Swal.fire).toHaveBeenNthCalledWith(2, { icon: "error", text: "Duplicado" });
+    expect([created, updated]).toEqual([true, false]);
   });
 
   test("verPuerto returns the first row, undefined when empty, null when the request fails", async () => {
