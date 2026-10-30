@@ -43,6 +43,7 @@ export interface EmpresaDetalle {
   status?: number | string | boolean;
   tipoimpuesto?: number | string;
   impuesto?: number | string;
+  id_enterprise?: number;
 }
 
 export interface FiltroEmpresa {
@@ -119,6 +120,17 @@ export interface CuentaEmpresa {
   esprincipalflag: boolean;
   moneda?: string;
   monedacronym?: string;
+}
+
+export interface OpcionCuenta {
+  id: number;
+  name: string;
+  acronym?: string;
+}
+
+export interface OpcionesCuentaEmpresa {
+  banks: OpcionCuenta[];
+  coins: OpcionCuenta[];
 }
 
 export interface FormCuentaEmpresa {
