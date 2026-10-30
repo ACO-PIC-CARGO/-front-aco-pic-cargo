@@ -42,7 +42,7 @@ async function fillContainer(drawer, name) {
 async function saveNewContainerAndFindIt(page, drawer, name) {
   await drawer.getByRole("button", { name: "Aceptar" }).click();
   await acknowledge(page, /registro correcto/i);
-  await drawer.getByRole("button", { name: "Cerrar" }).click();
+  await expect(drawer).toBeHidden();
   await searchList(page, name);
   await expect(rowWith(page, name)).toContainText("Activo");
 }
@@ -55,7 +55,7 @@ async function createMultiplicador(page, name) {
   await drawer.getByLabel("Valor (*)", { exact: true }).fill("0.35");
   await drawer.getByRole("button", { name: "Nuevo" }).click();
   await acknowledge(page, /registro correcto/i);
-  await drawer.getByRole("button", { name: "Cerrar" }).click();
+  await expect(drawer).toBeHidden();
   await searchList(page, name);
 }
 
@@ -123,6 +123,7 @@ test.describe("Multiplicadores", () => {
     await drawer.getByRole("button", { name: "Actualizar" }).click();
 
     await acknowledge(page, /actualización correcta/i);
+    await expect(drawer).toBeHidden();
     await expect(rowWith(page, name)).toHaveCount(0);
   });
 });
