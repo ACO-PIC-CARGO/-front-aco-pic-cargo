@@ -6,6 +6,7 @@ import moment from "moment";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ConvenioEntidad, TarifaEntidad } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
+import { removeRow } from "../removeRow";
 
 const appStore = useAppStore();
 const filesStore = useFilesStore();
@@ -81,8 +82,8 @@ function agregarConvenio() {
     email_soporte: "",
   });
 }
-function eliminarConvenio(index: number) {
-  entitiesStore.lstConvenios.splice(index, 1);
+function eliminarConvenio(row: ConvenioEntidad) {
+  removeRow(entitiesStore.lstConvenios, row);
 }
 function generarCodigoTarifa() {
   let codigoMaximo = 0;
@@ -108,8 +109,8 @@ function agregarTarifa() {
     tarifa: 0,
   });
 }
-function eliminarTarifa(index: number) {
-  entitiesStore.lstTarifas.splice(index, 1);
+function eliminarTarifa(row: TarifaEntidad) {
+  removeRow(entitiesStore.lstTarifas, row);
 }
 async function subirArchivoConvenio(item: Partial<ConvenioEntidad> = {}) {
   if (fileinput.value) {
@@ -327,14 +328,14 @@ async function modificarProveedor() {
                 </template>
 
                 <template
-                  #[`item.action`]="{ index }"
+                  #[`item.action`]="{ item }"
                   v-if="showFormActions"
                 >
                   <v-btn
                     variant="text"
                     icon
                     color="red"
-                    @click="eliminarConvenio(index)"
+                    @click="eliminarConvenio(item)"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
@@ -412,14 +413,14 @@ async function modificarProveedor() {
                 </template>
 
                 <template
-                  #[`item.action`]="{ index }"
+                  #[`item.action`]="{ item }"
                   v-if="showFormActions"
                 >
                   <v-btn
                     variant="text"
                     icon
                     color="red"
-                    @click="eliminarTarifa(index)"
+                    @click="eliminarTarifa(item)"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>

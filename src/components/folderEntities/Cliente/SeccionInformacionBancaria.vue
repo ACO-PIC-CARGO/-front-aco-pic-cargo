@@ -6,6 +6,8 @@ import { useCoinsStore } from "@/stores/coins";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useBankStore } from "@/stores/bank";
+import type { InformacionBancaria } from "@/types/entidades";
+import { removeRow } from "../removeRow";
 
 const appStore = useAppStore();
 const bankStore = useBankStore();
@@ -78,8 +80,8 @@ function agregarCuentaBancaria() {
     nro_cuenta_intermediario: "",
   });
 }
-function eliminarInformacionBancaria(index: number) {
-  entitiesStore.lstInformacionBancaria.splice(index, 1);
+function eliminarInformacionBancaria(row: InformacionBancaria) {
+  removeRow(entitiesStore.lstInformacionBancaria, row);
 }
 async function validarFormulario() {
   let ok = true;
@@ -231,14 +233,14 @@ async function modificarCliente() {
                   />
                 </template>
                 <template
-                  #[`item.action`]="{ index }"
+                  #[`item.action`]="{ item }"
                   v-if="showFormActions"
                 >
                   <v-btn
                     variant="text"
                     color="red"
                     icon
-                    @click="eliminarInformacionBancaria(index)"
+                    @click="eliminarInformacionBancaria(item)"
                   >
                     <v-icon> mdi-delete</v-icon>
                   </v-btn>

@@ -5,7 +5,8 @@ import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { Pais } from "@/types/catalogos";
-import type { EmailEntidad } from "@/types/entidades";
+import type { ContactoEntidad, EmailEntidad, TelefonoEntidad } from "@/types/entidades";
+import { removeRow } from "../removeRow";
 
 const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
@@ -98,8 +99,8 @@ function obtenerFlag() {
   }
   return flag;
 }
-function eliminarTelefono(index: number) {
-  entitiesStore.lstTelefonos.splice(index, 1);
+function eliminarTelefono(row: TelefonoEntidad) {
+  removeRow(entitiesStore.lstTelefonos, row);
 }
 function agregarContacto() {
   entitiesStore.lstContactos.push({
@@ -108,8 +109,8 @@ function agregarContacto() {
     telefono: "",
   });
 }
-function eliminarContacto(index: number) {
-  entitiesStore.lstContactos.splice(index, 1);
+function eliminarContacto(row: ContactoEntidad) {
+  removeRow(entitiesStore.lstContactos, row);
 }
 async function validarFormulario() {
   let ok = true;
@@ -284,14 +285,14 @@ async function modificarCliente() {
                   />
                 </template>
                 <template
-                  #[`item.action`]="{ index }"
+                  #[`item.action`]="{ item }"
                   v-if="showFormActions"
                 >
                   <v-btn
                     variant="text"
                     icon
                     color="red"
-                    @click="eliminarTelefono(index)"
+                    @click="eliminarTelefono(item)"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>
@@ -368,14 +369,14 @@ async function modificarCliente() {
                   />
                 </template>
                 <template
-                  #[`item.action`]="{ index }"
+                  #[`item.action`]="{ item }"
                   v-if="showFormActions"
                 >
                   <v-btn
                     variant="text"
                     icon
                     color="red"
-                    @click="eliminarContacto(index)"
+                    @click="eliminarContacto(item)"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>

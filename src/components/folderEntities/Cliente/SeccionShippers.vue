@@ -3,7 +3,8 @@ import { computed, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
-import type { ProveedorShipper } from "@/types/entidades";
+import type { ProveedorShipper, ShipperCliente } from "@/types/entidades";
+import { removeRow } from "../removeRow";
 
 const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
@@ -49,8 +50,8 @@ async function mostrarDialogShippers() {
   await appStore._getProveedorRolShipper();
   loading.value = false;
 }
-function eliminarShipper(index: number) {
-  entitiesStore.lstShippers.splice(index, 1);
+function eliminarShipper(row: ShipperCliente) {
+  removeRow(entitiesStore.lstShippers, row);
 }
 function aceptar() {
   if (lstSelectedShippers.value.length) {
@@ -170,14 +171,14 @@ async function modificarCliente() {
                     PR-{{ item.correlativo }}
                   </template>
                   <template
-                    #[`item.action`]="{ index }"
+                    #[`item.action`]="{ item }"
                     v-if="showFormActions"
                   >
                     <v-btn
                       variant="text"
                       icon
                       color="red"
-                      @click="eliminarShipper(index)"
+                      @click="eliminarShipper(item)"
                     >
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
