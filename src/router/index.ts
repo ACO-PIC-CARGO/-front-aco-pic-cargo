@@ -77,18 +77,21 @@ const routes = [
       {
         path: "folderEntities/nuevo-proveedor",
         name: "nuevoProveedor",
+        meta: { menuRoute: "listProveedor" },
         component: () =>
           import("@/views/folderEntities/Proveedor/NuevoProveedor.vue"),
       },
       {
         path: "folderEntities/ver-proveedor/:id",
         name: "verProveedor",
+        meta: { menuRoute: "listProveedor" },
         component: () =>
           import("@/views/folderEntities/Proveedor/VerProveedor.vue"),
       },
       {
         path: "folderEntities/editar-proveedor/:id",
         name: "editarProveedor",
+        meta: { menuRoute: "listProveedor" },
         component: () =>
           import("@/views/folderEntities/Proveedor/EditarProveedor.vue"),
       },
@@ -101,18 +104,21 @@ const routes = [
       {
         path: "folderEntities/nuevo-cliente",
         name: "nuevoClientes",
+        meta: { menuRoute: "listClientes" },
         component: () =>
           import("../views/folderEntities/Cliente/NuevoCliente.vue"),
       },
       {
         path: "folderEntities/ver-cliente/:id",
         name: "verCliente",
+        meta: { menuRoute: "listClientes" },
         component: () =>
           import("../views/folderEntities/Cliente/VerCliente.vue"),
       },
       {
         path: "folderEntities/editar-cliente/:id",
         name: "editarCliente",
+        meta: { menuRoute: "listClientes" },
         component: () =>
           import("../views/folderEntities/Cliente/EditarCliente.vue"),
       },
@@ -139,26 +145,31 @@ const routes = [
       {
         path: "folderMaster/control",
         name: "controlMaster",
+        meta: { menuRoute: "listMaster" },
         component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/editar/:id",
         name: "controlMasterEditar",
+        meta: { menuRoute: "listMaster" },
         component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/ver/:id",
         name: "controlMasterVer",
+        meta: { menuRoute: "listMaster" },
         component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id",
         name: "controlMasterId",
+        meta: { menuRoute: "listMaster" },
         component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
         path: "folderMaster/control/:id/:params",
         name: "controlMasterParams",
+        meta: { menuRoute: "listMaster" },
         component: () => import("../views/folderMaster/ControlMaster.vue"),
       },
       {
@@ -169,6 +180,7 @@ const routes = [
       {
         path: "folderHouse/control",
         name: "controlHouse",
+        meta: { menuRoute: "listHouse" },
         component: () => import("../views/folderHouse/ControlHouse.vue"),
       },
       {
@@ -179,16 +191,19 @@ const routes = [
       {
         path: "folderHouse/control/editar/:id/:activar?",
         name: "controlHouseEditar",
+        meta: { menuRoute: "listHouse" },
         component: () => import("../views/folderHouse/VerHouse.vue"),
       },
       {
         path: "folderHouse/control/ver/:id",
         name: "controlHouseVer",
+        meta: { menuRoute: "listHouse" },
         component: () => import("../views/folderHouse/VerHouse.vue"),
       },
       {
         path: "folderHouse/control/:id",
         name: "controlHouseId",
+        meta: { menuRoute: "listHouse" },
         component: () => import("../views/folderHouse/ControlHouse.vue"),
       },
       {
@@ -204,11 +219,13 @@ const routes = [
       {
         path: "folderBilling/billControlGastos/:id_house",
         name: "billControlGastos",
+        meta: { menuRoute: "listControlGastos" },
         component: () => import("../views/folderBilling/BillControlGastos.vue"),
       },
       {
         path: "folderBilling/billControlGastos/view/:id_house/:id_control/:id_orders/:code",
         name: "billControlGastosControl",
+        meta: { menuRoute: "listControlGastos" },
         component: () => import("../views/folderBilling/BillControlGastos.vue"),
       },
       {
@@ -224,11 +241,13 @@ const routes = [
       {
         path: "folderBilling/editControlGastos/view/:id/:id_branch",
         name: "editControlGasto",
+        meta: { menuRoute: "listControlGastos" },
         component: () => import("../views/folderBilling/FrmControlGastos.vue"),
       },
       {
         path: "folderBilling/verControlGastos/view/:id/:id_branch",
         name: "verControlGasto",
+        meta: { menuRoute: "listControlGastos" },
         component: () => import("../views/folderBilling/FrmControlGastosVer.vue"),
       },
       {
@@ -269,6 +288,7 @@ const routes = [
       {
         path: "folderModulesPays/addmodulesAccountPays",
         name: "addAccountPays",
+        meta: { menuRoute: "controlAccountPays" },
         component: () => import("../views/folderModulesPays/ControlAccountPaysNewView.vue"),
       },
 
@@ -285,11 +305,13 @@ const routes = [
       {
         path: "folderModulesPays/viewAccountPays/:id",
         name: "viewAccountPays",
+        meta: { menuRoute: "controlAccountPays" },
         component: () => import("../views/folderModulesPays/ControlAccountPaysDetailView.vue"),
       },
       {
         path: "folderModulesPays/EditAccountPays/:id",
         name: "EditAccountPays",
+        meta: { menuRoute: "controlAccountPays" },
         component: () => import("../views/folderModulesPays/ControlAccountPaysEditView.vue"),
       },
       {
@@ -301,33 +323,39 @@ const routes = [
       {
         path: "folderModulesPays/nuevaProyeccion",
         name: "nuevaProyeccionCXP",
+        meta: { menuRoute: "lstProyeccionCXP" },
         component: () =>
           import("../views/folderProyeccion/NuevaProyeccionCXPView.vue"),
       },
       {
         path: "folderModulesPays/verProyeccion/:id",
         name: "verProyeccion",
+        meta: { menuRoute: "lstProyeccionCXP" },
         component: () => import("../views/folderProyeccion/VerProyeccionView.vue"),
       },
       {
         path: "folderModulesPays/editarProyeccion/:id",
         name: "editarProyeccion",
+        meta: { menuRoute: "lstProyeccionCXP" },
         component: () => import("../views/folderProyeccion/EditarProyeccionView.vue"),
       },
 
       {
         path: "viewAccountPaysCxC/controlAccountReceivable",
         name: "controlAccountReceivable",
+        meta: { menuRoute: "moduleAccountReceivable" },
         component: () => import("../views/folderModulesPays/ControlAccountReceivableView.vue"),
       },
       {
         path: "viewAccountPaysCxC/:id",
         name: "viewAccountPaysCxC",
+        meta: { menuRoute: "moduleAccountReceivable" },
         component: () => import("../views/folderModulesPays/ControlAccountPaysCxCDetailView.vue"),
       },
       {
         path: "EditviewAccountPaysCxC/:id",
         name: "EditAccountPaysCxC",
+        meta: { menuRoute: "moduleAccountReceivable" },
         component: () => import("../views/folderModulesPays/ControlAccountPaysCxCEditView.vue"),
       },
       {
@@ -343,16 +371,19 @@ const routes = [
       {
         path: "FolderBanks/verPagosPorProveedor/:id",
         name: "verPagosPorProveedor",
+        meta: { menuRoute: "listBankCxP" },
         component: () => import("../views/FolderBanks/VerPagosPorProveedorView.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorProveedor/:id",
         name: "editarPagosPorProveedor",
+        meta: { menuRoute: "listBankCxP" },
         component: () => import("../views/FolderBanks/EditarPagosPorProveedorView.vue"),
       },
       {
         path: "FolderBanks/editarPagosPorCliente/:id",
         name: "editarPagosPorCliente",
+        meta: { menuRoute: "listBankCxC" },
         component: () => import("../views/FolderBanks/EditarPagosPorClienteView.vue"),
       },
       {
@@ -368,6 +399,7 @@ const routes = [
       {
         path: "FolderBanks/verPagosPorCliente/:id",
         name: "verPagosPorCliente",
+        meta: { menuRoute: "listBankCxC" },
         component: () => import("../views/FolderBanks/VerPagosPorClienteView.vue"),
       },
       {
@@ -415,11 +447,13 @@ const routes = [
       {
         path: "folderPricing/verQuote/:id/:step?",
         name: "verQuote",
+        meta: { menuRoute: "lstQuote" },
         component: () => import("../views/folderPricing/VerPricing.vue"),
       },
       {
         path: "folderPricing/editQuote/:id",
         name: "editQuote",
+        meta: { menuRoute: "lstQuote" },
         component: () => import("../views/folderPricing/EditarPricing.vue"),
       },
       {
@@ -447,16 +481,19 @@ const routes = [
       {
         path: "enterprise/nuevo",
         name: "newEnterprise",
+        meta: { menuRoute: "listEnterprise" },
         component: () => import("../views/FolderEnterprise/NuevaEmpresa.vue"),
       },
       {
         path: "enterprise/read/:id",
         name: "readEnterprise",
+        meta: { menuRoute: "listEnterprise" },
         component: () => import("../views/FolderEnterprise/VerEmpresa.vue"),
       },
       {
         path: "enterprise/update/:id",
         name: "updateEnterprise",
+        meta: { menuRoute: "listEnterprise" },
         component: () => import("../views/FolderEnterprise/ActualizarEmpresa.vue"),
       },
       {
@@ -629,16 +666,19 @@ const routes = [
       {
         path: "usuarios/nuevo",
         name: "registroUser",
+        meta: { menuRoute: "listUser" },
         component: () => import("../views/Users/NuevoUsuaurio.vue"),
       },
       {
         path: "usuarios/editar/:id",
         name: "editarUser",
+        meta: { menuRoute: "listUser" },
         component: () => import("../views/Users/EditarUsuario.vue"),
       },
       {
         path: "usuarios/ver/:id",
         name: "verUser",
+        meta: { menuRoute: "listUser" },
         component: () => import("../views/Users/VerUsuario.vue"),
       },
       {
@@ -649,11 +689,13 @@ const routes = [
       {
         path: "posicion/editar/:id",
         name: "editarPosicion",
+        meta: { menuRoute: "lstPosition" },
         component: () => import("../views/Posicion/EditarPosicion.vue"),
       },
       {
         path: "posicion/ver/:id",
         name: "verPosicion",
+        meta: { menuRoute: "lstPosition" },
         component: () => import("../views/Posicion/VerPosicion.vue"),
       },
       // {
@@ -704,12 +746,14 @@ const routes = [
       {
         path: "folderFolderBanks/editar_salida/:nro_operacion",
         name: "EditarSalida",
+        meta: { menuRoute: "listBankCxP" },
         component: () =>
           import("../views/FolderBanks/EditarPagoPorProveedor.vue"),
       },
       {
         path: "folderFolderBanks/editar_ingreso/:nro_operacion",
         name: "EditarCobroCliente",
+        meta: { menuRoute: "listBankCxC" },
         component: () => import("../views/FolderBanks/EditarCobroCliente.vue"),
       },
       {
@@ -740,11 +784,13 @@ const routes = [
       {
         path: "EditarAduana/:id",
         name: "EditarAduana",
+        meta: { menuRoute: "lstQuoteAduanaAduana" },
         component: () => import("../views/Aduana/EditarAduana.vue"),
       },
       {
         path: "VerAduana/:id/:step?",
         name: "VerAduana",
+        meta: { menuRoute: "lstQuoteAduanaAduana" },
         component: () => import("../views/Aduana/VerAduana.vue"),
       },
       {
@@ -773,6 +819,7 @@ const routes = [
       {
         path: "folterCalculadora/cotizacion/:id",
         name: "UserCalculadoraVer",
+        meta: { menuRoute: "listUserCalc" },
         component: () => import("../views/Calculadora/UserCalculadoraVer.vue"),
         // @ts-expect-error duplicate keys: the later path, name and component win, so UserCalculadoraVer is unreachable
         path: "folderPlantillas/servicios_tarifas",
@@ -796,6 +843,7 @@ const routes = [
       {
         path: "pricing/profit",
         name: "listPricingProfit",
+        meta: { menuRoute: "RegistroProfitPricing" },
         component: () =>
           import("../views/PricingProfit/ListadoProfitPricing.vue"),
       },
@@ -826,6 +874,7 @@ const routes = [
       {
         path: "calculadora/ver_cotizacion",
         name: "VerCotizacionCalculadora",
+        meta: { menuRoute: "listUserCalc" },
         component: () =>
           import("../views/Calculadora/VerCotizacionCalculadora.vue"),
       },

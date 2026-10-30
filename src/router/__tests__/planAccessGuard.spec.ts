@@ -12,7 +12,7 @@ const subscriptionsStore = {
 
 vi.mock("@/stores/subscriptions", () => ({ useSubscriptionsStore: () => subscriptionsStore }));
 
-const route = (name?: string) => ({ name }) as RouteLocationNormalized;
+const route = (name?: string, meta = {}) => ({ name, meta }) as RouteLocationNormalized;
 
 describe("planAccessGuard", () => {
   beforeEach(() => {
@@ -66,6 +66,24 @@ describe("planAccessGuard", () => {
     finishLoading();
     await result;
     expect(subscriptionsStore.lockedModuleForRoute).toHaveBeenCalledWith([], "pricing");
+  });
+
+  test("checks a detail route against the plan of the menu route that owns it", async () => {
+    subscriptionsStore.lockedModuleForRoute.mockReturnValue({ name: "Cotizaciones" });
+    const detail = route("verQuote", { menuRoute: "lstQuote" });
+
+    expect(await planAccessGuard(detail, route())).toEqual({ name: "miPlan" });
+    expect(subscriptionsStore.modulesForRoute).toHaveBeenCalledWith([], "lstQuote");
+    expect(subscriptionsStore.lockedModuleForRoute).toHaveBeenCalledWith([], "lstQuote");
+    expect(subscriptionsStore.promptPlanUpgrade).toHaveBeenCalledWith({ text: "locked" });
+  });
+
+  test("lets a detail route open as today when its menu route is not in the user's menu", async () => {
+    subscriptionsStore.modulesForRoute.mockReturnValue([]);
+
+    expect(await planAccessGuard(route("editarPosicion", { menuRoute: "lstPosition" }), route())).toBeUndefined();
+    expect(subscriptionsStore.loadPlanAccess).not.toHaveBeenCalled();
+    expect(subscriptionsStore.promptPlanUpgrade).not.toHaveBeenCalled();
   });
 
   test("reads the stored menu and treats corrupt JSON as an empty menu", async () => {
