@@ -13,6 +13,7 @@ const configEmpresaStore = useConfigEmpresaStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const errorImp = ref("");
+const logoError = ref("");
 const fileInput = useTemplateRef("fileInput");
 
 watch(
@@ -42,7 +43,8 @@ function abrirSelector() {
   (fileInput.value!.$el as HTMLElement).querySelector<HTMLInputElement>('input[type="file"]')!.click();
 }
 async function cargarLogo() {
-  await filesStore._uploadFile(configEmpresaStore.datoEmpresa.img as File);
+  logoError.value = await filesStore._uploadFile(configEmpresaStore.datoEmpresa.img as File);
+  if (logoError.value) return;
   configEmpresaStore.datoEmpresa.id_logo = filesStore.datosPath!.insertid;
   configEmpresaStore.datoEmpresa.logo = filesStore.datosPath!.ruta;
   // console.log(this.$store.state.configEmpresa.datoEmpresa);
@@ -83,7 +85,8 @@ function mostrarImpOtro() {
         accept="image/png, image/jpeg, image/bmp"
         placeholder="Subir tu logo te ayudará a personalizar tus documentos"
         append-inner-icon="mdi-camera"
-        hide-details
+        :error-messages="logoError"
+        :hide-details="!logoError"
         prepend-icon=""
         density="compact"
         v-model="configEmpresaStore.datoEmpresa.img"

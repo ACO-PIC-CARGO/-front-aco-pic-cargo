@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { useFilesStore } from "@/stores/files";
 import { JSON_HEADERS, URL_MAIN, httpMock, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 
@@ -14,11 +15,11 @@ describe("files store", () => {
 
   test("_uploadFile sends the file named without its extension and keeps the path it answers", async () => {
     const row = { insertid: 31, ruta: "https://files/foto.final.png", name: "foto.final" };
-    respond({ uploadAllPath: { data: [row] } });
+    respond({ uploadAllPath: { estadoflag: true, data: [row] } });
     const files = useFilesStore();
     const file = new File(["x"], "foto.final.png");
 
-    await files._uploadFile(file);
+    const failure = await files._uploadFile(file);
 
     const config = httpMock.mock.calls[0]![0];
     expect(config).toMatchObject({ method: "post", url: URL_MAIN + "uploadAllPath", headers: JSON_HEADERS });
@@ -27,22 +28,23 @@ describe("files store", () => {
     expect(body.get("file")).toBe(file);
     expect(files.payPath).toBe(31);
     expect(files.datosPath).toEqual(row);
+    expect(failure).toBe("");
   });
 
-  test("_uploadFile keeps the previous path when the answer has no rows or the request fails", async () => {
-    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+  test.each([
+    [{ estadoflag: false, mensaje: "No aceptamos archivos HTML", data: [] }, "No aceptamos archivos HTML"],
+    [new Error("network"), CONNECTION_ERROR_MESSAGE],
+  ])("_uploadFile forgets the previous file and gives back why the upload failed", async (answer, reason) => {
     const files = useFilesStore();
     files.payPath = 5;
     files.datosPath = { insertid: 5, ruta: "https://files/a.pdf" };
+    respond({ uploadAllPath: answer });
 
-    respond({ uploadAllPath: { data: [] } });
-    await files._uploadFile(new File(["x"], "a.pdf"));
-    respond({ uploadAllPath: new Error("network") });
-    await files._uploadFile(new File(["x"], "a.pdf"));
+    const failure = await files._uploadFile(new File(["x"], "a.html"));
 
-    expect(files.payPath).toBe(5);
-    expect(files.datosPath).toEqual({ insertid: 5, ruta: "https://files/a.pdf" });
-    expect(log).toHaveBeenCalledTimes(2);
+    expect(failure).toBe(reason);
+    expect(files.payPath).toBeNull();
+    expect(files.datosPath).toBeNull();
   });
 
   test("the OneDrive moves send the data with a PUT", async () => {
