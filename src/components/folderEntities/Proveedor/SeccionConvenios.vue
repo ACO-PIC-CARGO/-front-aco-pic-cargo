@@ -124,13 +124,7 @@ async function subirArchivoConvenio(item: Partial<ConvenioEntidad> = {}) {
         text: "Archivo cargado",
       });
 
-      entitiesStore.lstConvenios.map((itemConvenio) => {
-        if (itemConvenio.id == item.id) {
-          itemConvenio["id_path"] = filesStore.payPath;
-        }
-
-        return itemConvenio;
-      });
+      item.id_path = filesStore.payPath;
     } else {
       Swal.fire({
         icon: "error",
@@ -151,13 +145,7 @@ async function subirArchivoTarifa(item: Partial<TarifaEntidad> = {}) {
         text: "Archivo cargado",
       });
 
-      entitiesStore.lstTarifas.map((itemTarifa) => {
-        if (itemTarifa.id == item.id) {
-          itemTarifa["id_path"] = filesStore.payPath;
-        }
-
-        return itemTarifa;
-      });
+      item.id_path = filesStore.payPath;
     } else {
       Swal.fire({
         icon: "error",

@@ -219,15 +219,7 @@ async function subirArchivoConvenio() {
         text: "Archivo cargado",
       });
 
-      entitiesStore.lstConvenios.map((item) => {
-        if (
-          item.id == entitiesStore.proveedor.convenioActual.id
-        ) {
-          item["id_path"] = filesStore.payPath;
-        }
-
-        return item;
-      });
+      entitiesStore.proveedor.convenioActual.id_path = filesStore.payPath;
     } else {
       Swal.fire({
         icon: "error",
