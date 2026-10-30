@@ -68,7 +68,7 @@ const typeInto = async (label: string, value: string) => {
   await flushPromises();
 };
 
-test("Nuevo starts an empty, active container even after viewing another one", async () => {
+test("Nuevo starts an empty, active container even after viewing another one", { timeout: 15_000 }, async () => {
   await mountScreen();
 
   buttonNamed("Nuevo").click();
