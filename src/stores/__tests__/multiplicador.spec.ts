@@ -14,7 +14,7 @@ vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const lcl = { id: 3, name: "LCL", description: "", id_shipment: 2, valor: "0.5", status: 1 };
 const filters = { code: "L C", name: "L & más", description: "a/b", id_shipment: 2, status: 1 };
-const defaultFilters = "listar_multiplicador?id_branch=7&code=&name=&description=&id_shipment=&status=1";
+const defaultFilters = "listar_multiplicador?code=&name=&description=&id_shipment=&status=1";
 const aduanaCopy = () => toRaw(useAduanaStore().listShipment);
 
 describe("multiplicador store", () => {
@@ -67,7 +67,7 @@ describe("multiplicador store", () => {
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "get",
-      url: URL_MAIN + "listar_multiplicador?id_branch=7&code=L%20C&name=L%20%26%20m%C3%A1s&description=a%2Fb&id_shipment=2&status=1",
+      url: URL_MAIN + "listar_multiplicador?code=L%20C&name=L%20%26%20m%C3%A1s&description=a%2Fb&id_shipment=2&status=1",
       headers: JSON_HEADERS,
     });
     expect(loadingDuringRequest).toBe(false);
@@ -137,7 +137,7 @@ describe("multiplicador store", () => {
     expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + defaultFilters);
   });
 
-  test("nuevoMultiplicador posts the record with the branch and reloads the unfiltered list once the user closes the message", async () => {
+  test("nuevoMultiplicador posts the record and reloads the unfiltered list once the user closes the message", async () => {
     respond({ nuevo_multiplicador: accepted([]), listar_multiplicador: accepted([lcl]) });
 
     await useMultiplicadorStore().nuevoMultiplicador({ name: "LCL", valor: "0.5" });
@@ -147,11 +147,24 @@ describe("multiplicador store", () => {
       method: "post",
       url: URL_MAIN + "nuevo_multiplicador",
       headers: JSON_HEADERS,
-      data: { name: "LCL", valor: "0.5", id_branch: 7 },
+      data: { name: "LCL", valor: "0.5" },
     });
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", showCancelButton: false, confirmButtonText: "Ok" });
     expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + defaultFilters);
   });
+
+  test.each(["nuevoMultiplicador", "updateMultiplicador"] as const)(
+    "%s tells the user what the server answered when saving fails",
+    async (action) => {
+      const mensaje = "No pudimos completar la operación. Intenta de nuevo en unos minutos.";
+      const failure = Object.assign(new Error("500"), { response: { data: { mensaje } } });
+      respond({ nuevo_multiplicador: failure, actualizar_multiplicador: failure, listar_multiplicador: accepted([]) });
+
+      await useMultiplicadorStore()[action]({ id: 3, valor: "0.7" });
+
+      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: mensaje });
+    },
+  );
 
   test("readMultiplicador keeps the first row as the record, or shows the backend message", async () => {
     respond({ ver_multiplicador: accepted([lcl]) });

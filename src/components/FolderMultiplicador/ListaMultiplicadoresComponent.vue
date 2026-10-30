@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
@@ -56,17 +56,14 @@ watch(
   },
   { immediate: true },
 );
-watch(
-  () => multiplicadorStore.record.id_containers,
-  (newRecord) => {
-    if (newRecord) {
-      const container = appStore.itemsContainers.find((v: TipoContenedor) => v.id == newRecord)!;
-      multiplicadorStore.record.name = container.name;
-    } else {
-      multiplicadorStore.record.name = "";
-    }
-  },
+const isFcl = computed(
+  () => multiplicadorStore.shipments.find((shipment) => shipment.id === multiplicadorStore.record.id_shipment)?.name === "FCL",
 );
+
+function nameAfterContainer(containerId: unknown) {
+  const container = appStore.itemsContainers.find((v: TipoContenedor) => v.id == containerId);
+  multiplicadorStore.record.name = container ? container.name : "";
+}
 watch(
   () => multiplicadorStore.loading,
   (newList) => {
@@ -87,9 +84,6 @@ onMounted(async () => {
   appStore.mainTitle = `Multiplicadores`;
 });
 
-function updateStatus(newValue: unknown) {
-  record.value.status = newValue ? 1 : 0;
-}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
@@ -123,7 +117,7 @@ async function switch_status(item: Multiplicador) {
 async function open_new() {
   showFilterDrawerUpdate.value = !showFilterDrawerUpdate.value;
   loading_as.value = false;
-  multiplicadorStore.record = {};
+  multiplicadorStore.record = { status: 1 };
   setTimeout(() => {
     form.value!.reset();
   }, 100);
@@ -140,13 +134,8 @@ async function open_update(item: Multiplicador) {
   id.value = item.id;
 }
 async function btnNuevo() {
-  const containers = multiplicadorStore.list.map((v) => {
-    if (v.id_containers) {
-      return v.id_containers;
-    }
-  });
-  // The store has no id_containers, so this checks whether any row lacks one.
-  if (containers.includes(undefined)) {
+  const { id_containers } = multiplicadorStore.record;
+  if (multiplicadorStore.list.some((v) => v.id_containers && v.id_containers === id_containers)) {
     Swal.fire({
       icon: "error",
       title: "Contenedor",
@@ -262,13 +251,6 @@ function validateNumber(value: string | number | null | undefined) {
           @click="open_filter()"
         >
           Fitrar
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          Exportar
         </v-btn>
       </v-card-title>
 
@@ -440,27 +422,28 @@ function validateNumber(value: string | number | null | undefined) {
         <v-spacer />
 
         <v-card-text>
-          <v-row>
-            <v-autocomplete
-              label="Tipo de Carga (*)"
-              v-model="multiplicadorStore.record.type_carga"
-              :items="multiplicadorStore.shipments"
-              item-title="name"
-              item-value="name"
-              :rules="[(v) => !!v || 'Dato requerido']"
-            />
-          </v-row>
-          <v-row v-if="multiplicadorStore.record.type_carga == 'FCL'">
-            <v-autocomplete
-              label="Contenedor Asociado"
-              clearable
-              v-model="multiplicadorStore.record.id_containers"
-              :items="appStore.itemsContainers"
-              item-title="name"
-              item-value="id"
-            />
-          </v-row>
           <v-form ref="form">
+            <v-row>
+              <v-autocomplete
+                label="Tipo de Carga (*)"
+                v-model="multiplicadorStore.record.id_shipment"
+                :items="multiplicadorStore.shipments"
+                item-title="name"
+                item-value="id"
+                :rules="[(v) => !!v || 'Dato requerido']"
+              />
+            </v-row>
+            <v-row v-if="isFcl">
+              <v-autocomplete
+                label="Contenedor Asociado"
+                clearable
+                v-model="multiplicadorStore.record.id_containers"
+                :items="appStore.itemsContainers"
+                item-title="name"
+                item-value="id"
+                @update:model-value="nameAfterContainer"
+              />
+            </v-row>
             <v-row>
               <v-text-field
                 type="text"
@@ -498,9 +481,9 @@ function validateNumber(value: string | number | null | undefined) {
                 multiplicadorStore.record.status ? 'Activo' : 'Inactivo'
               }`"
               v-model="multiplicadorStore.record.status"
-              :value-comparator="(value, checked) => Boolean(value) === checked"
+              :true-value="1"
+              :false-value="0"
               color="success"
-              @update:model-value="updateStatus"
             />
           </v-row>
         </v-card-text>

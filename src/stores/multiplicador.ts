@@ -8,6 +8,7 @@ import type { ApiResponse } from "@/types/api";
 import type { FiltroMultiplicador } from "@/types/catalogos";
 import type { Multiplicador, TipoCarga } from "@/types/cotizacion";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useMultiplicadorStore = defineStore("multiplicador", () => {
@@ -45,8 +46,7 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
       url:
         import.meta.env.VITE_URL_MAIN +
         `listar_multiplicador?` +
-        `id_branch=${sessionBranchId()}` +
-        `&code=${encodeURIComponent(String(data.code))}` +
+        `code=${encodeURIComponent(String(data.code))}` +
         `&name=${encodeURIComponent(String(data.name))}` +
         `&description=${encodeURIComponent(String(data.description))}` +
         `&id_shipment=${data.id_shipment}` +
@@ -94,54 +94,35 @@ export const useMultiplicadorStore = defineStore("multiplicador", () => {
   }
 
   async function updateMultiplicador(data: Multiplicador): Promise<void> {
-    await axios<ApiResponse>({
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "actualizar_multiplicador",
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
   }
 
   async function nuevoMultiplicador(data: Multiplicador): Promise<void> {
-    await axios<ApiResponse>({
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "nuevo_multiplicador",
       headers: { "Content-Type": "application/json" },
-      data: {
-        ...data,
-        id_branch: sessionBranchId(),
-      },
-    })
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+      data: data,
+    });
+    await Swal.fire({
+      icon: response.estadoflag ? "success" : "error",
+      text: response.mensaje,
+      showCancelButton: false,
+      confirmButtonText: "Ok",
+    });
+    fetchDataMultiplicador({ code: "", name: "", description: "", id_shipment: "", status: 1 });
   }
 
   return {
