@@ -196,16 +196,22 @@ async function open_update(idBanco: BancoFila["id"]) {
   id.value = idBanco!;
 }
 async function submit_update() {
-  if ((await form.value!.validate()).valid) {
-    const data = {
-      id: id.value,
-      acronym: record.value.acronym,
-      name: record.value.name,
-      description: record.value.description,
-      status: record.value.status,
-    };
-    resetRecord("filter");
-    await bankStore.updateBank(data);
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if ((await form.value!.validate()).valid) {
+      const data = {
+        id: id.value,
+        acronym: record.value.acronym,
+        name: record.value.name,
+        description: record.value.description,
+        status: record.value.status,
+      };
+      resetRecord("filter");
+      if (await bankStore.updateBank(data)) showFilterDrawerUpdate.value = false;
+    }
+  } finally {
+    saving.value = false;
   }
 }
 function open_new() {
@@ -647,6 +653,7 @@ onMounted(async () => {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="submit_update"
           >
             Aceptar

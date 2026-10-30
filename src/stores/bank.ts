@@ -70,10 +70,12 @@ export const useBankStore = defineStore("bank", () => {
         console.log("Error al obtener los datos:", error);
       });
   }
-  async function insertBank(data: Record<string, unknown>): Promise<boolean> {
+  const insertBank = (data: Record<string, unknown>) => saveBank("post", "insertar_bank", data);
+  const updateBank = (data: Record<string, unknown>) => saveBank("put", "actualizar_bank", data);
+  async function saveBank(method: "post" | "put", path: string, data: Record<string, unknown>): Promise<boolean> {
     const response = await request({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "insertar_bank",
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
       data: data,
     });
@@ -122,42 +124,6 @@ export const useBankStore = defineStore("bank", () => {
         console.log("Error al obtener los datos:", error);
       });
   }
-  async function updateBank(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "actualizar_bank",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          const data = {
-            name: "",
-            code: "",
-            acronym: "",
-            description: "",
-            position: "",
-            status: 1,
-          };
-          fetchDataBank(data);
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
-
   async function getBanksListCargar(): Promise<void> {
     const config = {
       method: "post",

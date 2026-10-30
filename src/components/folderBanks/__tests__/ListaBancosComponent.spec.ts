@@ -40,7 +40,7 @@ let wrapper: VueWrapper | undefined;
 
 const answerWith = (banks: unknown[], saveAnswer = accepted([])) =>
   httpMock.mockImplementation(async (config) => ({
-    data: config.url.includes("listar_bank") ? accepted(banks) : config.method === "get" ? accepted([]) : saveAnswer,
+    data: /(listar|ver)_bank/.test(config.url) ? accepted(banks) : config.method === "get" ? accepted([]) : saveAnswer,
   }));
 const requestsTo = (endpoint: string) => httpMock.mock.calls.map(([config]) => config).filter((config) => config.url.endsWith(endpoint));
 
@@ -119,6 +119,39 @@ test("a refused bank keeps the Nuevo panel open with the reason", { timeout: 15_
   await flushPromises();
 
   expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: "Ya existe un banco llamado Banco nuevo." }));
+  expect(openDrawer()).not.toBeNull();
+});
+
+const openEditPanel = async () => {
+  document.body.querySelector<HTMLElement>(".mdi-pencil")!.click();
+  await flushPromises();
+};
+
+test("a double click on Aceptar in Modificar saves the bank once and closes the panel", { timeout: 15_000 }, async () => {
+  answerWith([bankWithAccount(1)]);
+  await mountScreen();
+  await openEditPanel();
+
+  const accept = buttonNamed("Aceptar", openDrawer());
+  accept.click();
+  accept.click();
+  await flushPromises();
+
+  expect(requestsTo("actualizar_bank").map((config) => config.data)).toEqual([
+    { id: 2, acronym: "BCP", name: "Banco de Crédito", description: "", status: 1 },
+  ]);
+  expect(document.body.querySelectorAll(".v-navigation-drawer--active")).toHaveLength(0);
+});
+
+test("a refused edit keeps the Modificar panel open with the reason", { timeout: 15_000 }, async () => {
+  answerWith([bankWithAccount(1)], rejected("Ya existe un banco llamado Banco de Crédito.", undefined));
+  await mountScreen();
+  await openEditPanel();
+
+  buttonNamed("Aceptar", openDrawer()).click();
+  await flushPromises();
+
+  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: "Ya existe un banco llamado Banco de Crédito." }));
   expect(openDrawer()).not.toBeNull();
 });
 
