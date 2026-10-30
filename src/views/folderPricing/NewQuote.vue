@@ -232,16 +232,14 @@ async function activarLlenadoCostos() {
   );
 
   if (existeTransporteDestino && !val) {
-    val = calculadorasStore.lstTransporte.some(
-      (v) => v.id_distrito == id_town,
-    );
+    val = calculadorasStore.lstTransporte.some((v) => v.id_distrito == id_town);
     if (!val) {
       dialogDistrito.value = true;
-
+      pricingStore.datosPrincipales.tienefleteflag = false;
       return;
     } else {
       dialogPesoVolumen.value = true;
-
+      pricingStore.datosPrincipales.tienefleteflag = false;
       return;
     }
   }
@@ -398,9 +396,10 @@ async function activarLlenadoCostosGrupal(
     ...costo,
     nro_propuesta,
   }));
-  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map(
-    (impuesto) => ({ ...impuesto, nro_propuesta }),
-  );
+  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map((impuesto) => ({
+    ...impuesto,
+    nro_propuesta,
+  }));
   opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
     .filter((v) => v.grupalflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
@@ -549,9 +548,10 @@ async function activarLlenadoCostosIndividual(
     ...costo,
     nro_propuesta,
   }));
-  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map(
-    (impuesto) => ({ ...impuesto, nro_propuesta }),
-  );
+  opcionCostos[indiceOpcion]!.listImpuestos = listImpuestos.map((impuesto) => ({
+    ...impuesto,
+    nro_propuesta,
+  }));
   opcionCostos[indiceOpcion]!.listNotasQuote = listNotasQuote
     .filter((v) => v.individualflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
@@ -583,7 +583,11 @@ async function activarLlenadoCostosIndividual(
   }
 }
 function obtenerFleteOpcionGrupal(item: Costo) {
-  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  const datoFlete: FleteOpcionCosto = {
+    monto: 0,
+    tienefleteflag: false,
+    fechavigencia: null,
+  };
   if (item.code_cost == 4) {
     const val = !!calculadorasStore.fletePricing.monto_flete_grupal;
     datoFlete.monto = val
@@ -600,7 +604,11 @@ function obtenerFleteOpcionGrupal(item: Costo) {
   return datoFlete;
 }
 function obtenerFleteOpcionVentaGrupal(item: Costo) {
-  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  const datoFlete: FleteOpcionCosto = {
+    monto: 0,
+    tienefleteflag: false,
+    fechavigencia: null,
+  };
   if (item.code_cost == 7) {
     const tieneFleteVenta =
       !!calculadorasStore.fletePricing.monto_flete_grupal_venta;
@@ -608,10 +616,12 @@ function obtenerFleteOpcionVentaGrupal(item: Costo) {
       ? obtenerPrecioUnitarioGrupal(
           item,
           parseFloat(
-            (calculadorasStore.fletePricing.monto_flete_grupal_venta || 0) as string,
+            (calculadorasStore.fletePricing.monto_flete_grupal_venta ||
+              0) as string,
           ) -
             parseFloat(
-              (calculadorasStore.fletePricing.monto_flete_grupal || 0) as string,
+              (calculadorasStore.fletePricing.monto_flete_grupal ||
+                0) as string,
             ),
         )
       : 0;
@@ -621,8 +631,7 @@ function obtenerFleteOpcionVentaGrupal(item: Costo) {
       : null;
   }
   if (item.code_cost == 4) {
-    const tieneFleteVenta =
-      !!calculadorasStore.fletePricing.monto_flete_grupal;
+    const tieneFleteVenta = !!calculadorasStore.fletePricing.monto_flete_grupal;
     datoFlete.monto = tieneFleteVenta
       ? obtenerPrecioUnitarioGrupal(
           item,
@@ -648,9 +657,7 @@ function obtenerPrecioUnitarioGrupal(item: Costo, monto: Numerico) {
   ) {
     factor = 1;
   }
-  return factor > 0
-    ? parseFloat((monto || 0) as string) / factor
-    : 0;
+  return factor > 0 ? parseFloat((monto || 0) as string) / factor : 0;
 }
 function obtenerTransporteGrupal(item: Costo) {
   let monto = 0;
@@ -674,7 +681,11 @@ function obtenerTransporteGrupal(item: Costo) {
   return monto;
 }
 function obtenerFleteOpcionIndividual(item: Costo) {
-  const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
+  const datoFlete: FleteOpcionCosto = {
+    monto: 0,
+    tienefleteflag: false,
+    fechavigencia: null,
+  };
   if (item.code_cost == 4) {
     const val = !!calculadorasStore.fletePricing.monto_flete;
     datoFlete.monto = val ? calculadorasStore.fletePricing.monto_flete : 0;
@@ -913,7 +924,9 @@ function triggerExcel() {
   if (excelInput.value) excelInput.value.click();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function onExcelSelected(e: { target: { files: FileList | null; value: string | null } }) {
+async function onExcelSelected(e: {
+  target: { files: FileList | null; value: string | null };
+}) {
   const file = e.target.files && e.target.files[0];
   if (!file) return;
   appStore.spiner = true;
@@ -942,7 +955,8 @@ async function onExcelSelected(e: { target: { files: FileList | null; value: str
 }
 function cargarDesdeExcelDatosPrincipales(rows: Row[]) {
   if (!Array.isArray(rows) || rows.length < 2) return { actualizados: 0 };
-  const norm = (v: unknown) => (v == null ? "" : String(v).trim().toLowerCase());
+  const norm = (v: unknown) =>
+    v == null ? "" : String(v).trim().toLowerCase();
   const headers = rows[0]!.map((h) => norm(h));
   const findIdx = (...names: string[]) => {
     const targets = names.map((n) => norm(n));
@@ -978,20 +992,12 @@ function cargarDesdeExcelDatosPrincipales(rows: Row[]) {
   const idxShipment = findIdx("tipo de embarque", "embarque", "shipment");
   const idxIncoterms = findIdx("incoterms", "incoterm");
   const idxProveedor = findIdx("proveedor", "nombre proveedor");
-  const idxTelProveedor = findIdx(
-    "telefono proveedor",
-    "teléfono proveedor",
-  );
-  const idxDirProveedor = findIdx(
-    "direccion proveedor",
-    "dirección proveedor",
-  );
+  const idxTelProveedor = findIdx("telefono proveedor", "teléfono proveedor");
+  const idxDirProveedor = findIdx("direccion proveedor", "dirección proveedor");
 
   if (idxMarketing > -1) {
     const val = norm(row[idxMarketing]);
-    const it = (sp.listMarketing || []).find(
-      (x) => x && norm(x.name) === val,
-    );
+    const it = (sp.listMarketing || []).find((x) => x && norm(x.name) === val);
     if (it) {
       sp.datosPrincipales.id_marketing = it.id;
       cambios++;
@@ -1104,8 +1110,7 @@ async function ensurePreliminarStatus() {
   const estados = pricingStore.listQuoteStatus || [];
   const existe = estados.some(
     (e) =>
-      typeof e.name === "string" &&
-      e.name.toLowerCase().includes("preliminar"),
+      typeof e.name === "string" && e.name.toLowerCase().includes("preliminar"),
   );
   if (existe) return;
   // await this.createPreliminarStatus();
@@ -1197,14 +1202,8 @@ function formatearCostoTotal(valor: Costo) {
 </script>
 
 <template>
-  <v-container
-    fluid
-    class="pt-0 px-0"
-  >
-    <v-stepper
-      v-model="step"
-      class="pt-0"
-    >
+  <v-container fluid class="pt-0 px-0">
+    <v-stepper v-model="step" class="pt-0">
       <v-stepper-header>
         <v-stepper-item
           :complete="step > 1"
@@ -1230,29 +1229,16 @@ function formatearCostoTotal(valor: Costo) {
           :editable="editableStep3"
         />
         <v-divider />
-        <v-stepper-item
-          :value="4"
-          title="Notas de Costos"
-        />
+        <v-stepper-item :value="4" title="Notas de Costos" />
       </v-stepper-header>
 
       <v-stepper-window>
-        <v-stepper-window-item
-          :value="1"
-          eager
-        >
+        <v-stepper-window-item :value="1" eager>
           <v-row class="my-1">
             <!-- <v-col cols="12" md="6" class="pt-0"> -->
-            <v-col
-              cols="12"
-              md="6"
-              class="pt-0"
-            >
+            <v-col cols="12" md="6" class="pt-0">
               <v-row>
-                <v-col
-                  cols="12"
-                  class="my-0 py-0"
-                >
+                <v-col cols="12" class="my-0 py-0">
                   <DatosPrincipales
                     @recargar-servicios-costos="recargar"
                     @activar-datos-carga="activarDatosCarga"
@@ -1261,12 +1247,7 @@ function formatearCostoTotal(valor: Costo) {
                 </v-col>
               </v-row>
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-              class="my-0 py-0"
-              id="DatosCargaComponent"
-            >
+            <v-col cols="12" md="6" class="my-0 py-0" id="DatosCargaComponent">
               <DatosCargaComponent
                 v-if="DatosCargaComponentFlag"
                 @activar-servicios="activarServicios()"
@@ -1274,10 +1255,7 @@ function formatearCostoTotal(valor: Costo) {
                 :services-component-flag="ServicesComponentFlag"
               />
             </v-col>
-            <v-col
-              cols="12"
-              id="ServicesComponent"
-            >
+            <v-col cols="12" id="ServicesComponent">
               <ServicesComponent
                 v-if="ServicesComponentFlag"
                 @activar-llenado-costos="activarLlenadoCostos()"
@@ -1291,10 +1269,7 @@ function formatearCostoTotal(valor: Costo) {
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="2"
-          eager
-        >
+        <v-stepper-window-item :value="2" eager>
           <DatosCostosComponent
             :key="indexCostos"
             @anadir-nueva-opcion="anadirNuevaOpcion"
@@ -1304,47 +1279,26 @@ function formatearCostoTotal(valor: Costo) {
           />
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="3"
-          eager
-        >
+        <v-stepper-window-item :value="3" eager>
           <ComparativaComponent @ir-venta-cliente="irVentaCliente" />
         </v-stepper-window-item>
-        <v-stepper-window-item
-          :value="4"
-          eager
-        >
+        <v-stepper-window-item :value="4" eager>
           <NotasComponent :editable="editableStep4" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
-    <v-dialog
-      v-model="dialogPesoVolumen"
-      max-width="30%"
-      persistent
-    >
-      <v-card
-        class="alert-card text-center"
-        elevation="0"
-      >
+    <v-dialog v-model="dialogPesoVolumen" max-width="30%" persistent>
+      <v-card class="alert-card text-center" elevation="0">
         <div class="alert-illustration">
-          <v-img
-            src="/img/jpg/transporte.jpg"
-            max-width="250"
-            height="225"
-          />
+          <v-img src="/img/jpg/transporte.jpg" max-width="250" height="225" />
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title">
-            NO EXISTE TARIFA DE
-          </div>
+          <div class="alert-title">NO EXISTE TARIFA DE</div>
 
-          <div class="alert-banner">
-            TRANSPORTE
-          </div>
+          <div class="alert-banner">TRANSPORTE</div>
         </div>
 
         <div class="alert-description">
@@ -1368,31 +1322,16 @@ function formatearCostoTotal(valor: Costo) {
     </v-dialog>
 
     <!-- DIÁLOGO: DISTRITO SIN TARIFA -->
-    <v-dialog
-      v-model="dialogDistrito"
-      max-width="30%"
-      persistent
-    >
-      <v-card
-        class="alert-card text-center"
-        elevation="0"
-      >
+    <v-dialog v-model="dialogDistrito" max-width="30%" persistent>
+      <v-card class="alert-card text-center" elevation="0">
         <div class="alert-illustration">
-          <v-img
-            src="/img/jpg/map.jpg"
-            max-width="250"
-            height="225"
-          />
+          <v-img src="/img/jpg/map.jpg" max-width="250" height="225" />
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title alert-title-single">
-            DISTRITO
-          </div>
+          <div class="alert-title alert-title-single">DISTRITO</div>
 
-          <div class="alert-banner">
-            SIN TARIFA
-          </div>
+          <div class="alert-banner">SIN TARIFA</div>
         </div>
 
         <div class="alert-description">

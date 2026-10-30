@@ -79,6 +79,7 @@ export interface DatosPrincipales {
   opcioncostos?: unknown;
   servicios?: Servicio[];
   estadocotizacion?: number | string;
+  tienefleteflag?: boolean;
 }
 
 export interface Multiplicador {
