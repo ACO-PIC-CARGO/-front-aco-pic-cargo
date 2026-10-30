@@ -60,7 +60,7 @@ describe("entities store", () => {
       id_pais: 9,
       id_state: null,
       status: "0",
-      id_tipoproveedor: "",
+      id_tipoproveedor: 4,
     });
 
     await entities.getListClientes();
@@ -69,7 +69,7 @@ describe("entities store", () => {
       method: "get",
       url:
         URL_MAIN +
-        "listado_clientes?id_branch=7&correlativo=12&nombrecompleto=Ana&id_document=3&nro_documento=&id_pais=9&id_state=&status=0&id_tipoproveedor=",
+        "listado_clientes?id_branch=7&correlativo=12&nombrecompleto=Ana&id_document=3&nro_documento=&id_pais=9&id_state=&status=0",
       headers: JSON_HEADERS,
     });
     expect(entities.lstProveedor).toEqual([{ id: 1, nombrecompleto: "Ana" }]);
@@ -83,7 +83,7 @@ describe("entities store", () => {
 
     await entities.getListClientes();
 
-    expect(sentUrls()[0]).toMatch(/&status=&id_tipoproveedor=$/);
+    expect(sentUrls()[0]).toMatch(/&status=$/);
   });
 
   test("getListClientes empties the list and tells the user when the backend rejects", async () => {

@@ -750,8 +750,6 @@ export const useEntitiesStore = defineStore("entities", () => {
           filtro.value.status == 1 || filtro.value.status == 0
             ? filtro.value.status
             : ""
-        }&id_tipoproveedor=${
-          filtro.value.id_tipoproveedor ? filtro.value.id_tipoproveedor : ""
         }`,
       headers: {
         "Content-Type": "application/json",
