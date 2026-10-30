@@ -23,22 +23,31 @@ onMounted(() => {
   branchStore.ListadoSucursal();
 });
 
-function inactivar(id: number) {
-  Swal.fire({
+async function confirmThen(text: string, confirmButtonText: string, change: () => Promise<boolean>) {
+  const { isConfirmed } = await Swal.fire({
     icon: "warning",
-    text: "¿Desea Inactivar el registro?",
+    text,
     showCancelButton: true,
-    confirmButtonText: "Si eliminar",
+    confirmButtonText,
     cancelButtonText: "Cancelar",
-    allowEnterKey: true,
-    allowOutsideClick: true,
-  }).then(async (respuesta) => {
-    if (respuesta.isConfirmed) {
-      await branchStore.inactivarSucursal(id);
-      await branchStore.ListadoSucursal();
-    }
   });
+  if (isConfirmed && (await change())) {
+    await branchStore.ListadoSucursal();
+  }
 }
+
+const inactivar = (id: number) =>
+  confirmThen(
+    "¿Inactivar esta empresa? Sus usuarios no podrán iniciar sesión hasta que la reactives.",
+    "Sí, inactivar",
+    () => branchStore.inactivarSucursal(id),
+  );
+const reactivar = (id: number) =>
+  confirmThen(
+    "¿Reactivar esta empresa? Sus usuarios podrán volver a iniciar sesión.",
+    "Sí, reactivar",
+    () => branchStore.reactivarSucursal(id),
+  );
 </script>
 
 <template>
@@ -77,14 +86,22 @@ function inactivar(id: number) {
             </template>
 
             <template #[`item.action`]="{ item }">
-              <v-icon
-                style="cursor: pointer"
+              <v-btn
                 v-if="item.status == 1"
+                variant="text"
+                icon="mdi-cancel"
                 color="red"
+                aria-label="Inactivar empresa"
                 @click="inactivar(item.id)"
-              >
-                mdi-delete
-              </v-icon>
+              />
+              <v-btn
+                v-else
+                variant="text"
+                icon="mdi-restore"
+                color="green"
+                aria-label="Reactivar empresa"
+                @click="reactivar(item.id)"
+              />
             </template>
           </v-data-table>
         </v-col>
