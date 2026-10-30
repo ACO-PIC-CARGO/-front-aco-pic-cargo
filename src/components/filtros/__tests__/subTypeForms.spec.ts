@@ -92,6 +92,22 @@ describe.each(FORMS)("$form", ({ component, kind, parentKey, useStore, useParent
     expect(store.drawer).toBe(false);
   });
 
+  test("opening the filter panel before any form raises no error", { timeout: 15_000 }, async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const errorHandler = vi.fn();
+    wrapper = mount(defineComponent({ components: { component }, template: "<v-app><component /></v-app>" }), {
+      global: { plugins: [createVuetify({ components, directives }), pinia], config: { errorHandler } },
+      attachTo: document.body,
+    });
+    await flushPromises();
+
+    useStore().drawer = true;
+    await flushPromises();
+
+    expect(errorHandler).not.toHaveBeenCalled();
+  });
+
   test("a code of exactly 5 characters is accepted", { timeout: 15_000 }, async () => {
     answerCodeCheck(accepted([]));
     await openNewSubType("ABCDE");

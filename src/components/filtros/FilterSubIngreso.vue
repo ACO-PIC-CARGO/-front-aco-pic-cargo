@@ -16,7 +16,7 @@ const drawer = computed(() => subingresoStore.drawer);
 
 watch(drawer, () => {
   model.value = { ...subingresoStore.model };
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {

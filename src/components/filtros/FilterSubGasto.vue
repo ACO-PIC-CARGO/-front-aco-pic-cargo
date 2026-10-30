@@ -16,7 +16,7 @@ const drawer = computed(() => subgastoStore.drawer);
 
 watch(drawer, () => {
   model.value = { ...subgastoStore.model };
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
