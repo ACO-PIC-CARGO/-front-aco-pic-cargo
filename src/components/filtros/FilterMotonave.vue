@@ -6,6 +6,7 @@ import type { Motonave } from "@/types/catalogos";
 const motonaveStore = useMotonaveStore();
 
 const loading = ref(false);
+const saving = ref(false);
 const MotonaveModel = ref<Partial<Motonave>>({});
 const frmDML = useTemplateRef("frmDML");
 
@@ -26,7 +27,7 @@ function getName() {
     return `Modificar Motonave: ${MotonaveModel.value.name}`;
   }
   if (motonaveStore.tipo == "filter") {
-    return "Filtrar Regitros";
+    return "Filtrar Registros";
   }
 }
 async function Filtrar() {
@@ -51,24 +52,20 @@ async function Limpiar() {
   motonaveStore.drawer = !motonaveStore.drawer;
 }
 async function Aceptar() {
-  if (motonaveStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await motonaveStore.setMotonave();
-      await motonaveStore.GetListMotonave();
-      loading.value = false;
-    }
-  }
-  if (motonaveStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await motonaveStore.ActualizarMotonave();
-      await motonaveStore.GetListMotonave();
-    }
-    loading.value = false;
-  }
   if (motonaveStore.tipo == "ver") {
-    motonaveStore.drawer = !motonaveStore.drawer;
+    motonaveStore.drawer = false;
+    return;
+  }
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if (!(await frmDML.value!.validate()).valid) return;
+    const saved = motonaveStore.tipo == "nuevo" ? await motonaveStore.setMotonave() : await motonaveStore.ActualizarMotonave();
+    if (!saved) return;
+    await motonaveStore.GetListMotonave();
+    motonaveStore.drawer = false;
+  } finally {
+    saving.value = false;
   }
 }
 </script>
@@ -221,7 +218,7 @@ async function Aceptar() {
         color="success"
         v-if="motonaveStore.tipo != 'filter' && motonaveStore.tipo != 'ver'"
         @click="Aceptar()"
-        :loading="loading"
+        :loading="saving"
       >
         Aceptar
       </v-btn>

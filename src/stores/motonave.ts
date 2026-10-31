@@ -5,7 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMotonave, Motonave } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { sessionBranchId } from "@/utils/sesion";
+import { request } from "@/utils/request";
 
 export const useMotonaveStore = defineStore("motonave", () => {
   const tipo = ref("filter");
@@ -33,11 +33,12 @@ export const useMotonaveStore = defineStore("motonave", () => {
   async function GetListMotonave(): Promise<void> {
     const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `listar_motonave?&id_branch=${sessionBranchId()}&name=${MotonaveFilter.value.name}&description=${
-          MotonaveFilter.value.description
-        }&status=${MotonaveFilter.value.status == "null" ? "" : MotonaveFilter.value.status}`,
+      url: import.meta.env.VITE_URL_MAIN + "listar_motonave",
+      params: {
+        name: MotonaveFilter.value.name || null,
+        description: MotonaveFilter.value.description || null,
+        status: MotonaveFilter.value.status == "null" ? null : MotonaveFilter.value.status,
+      },
       headers: { "Content-Type": "application/json" },
     };
     try {
@@ -60,55 +61,19 @@ export const useMotonaveStore = defineStore("motonave", () => {
     }
   }
 
-  async function setMotonave(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_motonave`,
+  async function saveMotonave(method: "post" | "put", path: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
       data: MotonaveModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
 
-  async function ActualizarMotonave(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_motonave`,
-      headers: { "Content-Type": "application/json" },
-      data: MotonaveModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const setMotonave = () => saveMotonave("post", "insertar_motonave");
+  const ActualizarMotonave = () => saveMotonave("put", "actualizar_motonave");
 
   return { tipo, drawer, lstMotonave, MotonaveFilter, MotonaveModel, GetListMotonave, setMotonave, ActualizarMotonave };
 });

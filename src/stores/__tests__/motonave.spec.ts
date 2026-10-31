@@ -24,20 +24,21 @@ describe("motonave store", () => {
     vi.restoreAllMocks();
   });
 
-  test("GetListMotonave reads the current filters, sends Todos as empty and keeps the rows", async () => {
+  test("GetListMotonave sends the filters as params, leaving out cleared fields and Todos, and keeps the rows", async () => {
     respond({ listar_motonave: accepted([ship]) });
     const store = useMotonaveStore();
 
     await store.GetListMotonave();
-    store.MotonaveFilter = { ...store.MotonaveFilter, name: "MSC", description: "d", status: "null" };
+    store.MotonaveFilter = { ...store.MotonaveFilter, name: "MSC", description: null as unknown as string, status: "null" };
     await store.GetListMotonave();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, {
       method: "get",
-      url: URL_MAIN + "listar_motonave?&id_branch=7&name=&description=&status=1",
+      url: URL_MAIN + "listar_motonave",
+      params: { name: null, description: null, status: "1" },
       headers: JSON_HEADERS,
     });
-    expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + "listar_motonave?&id_branch=7&name=MSC&description=d&status=");
+    expect(httpMock.mock.calls[1]![0].params).toEqual({ name: "MSC", description: null, status: null });
     expect(store.lstMotonave).toEqual([ship]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });

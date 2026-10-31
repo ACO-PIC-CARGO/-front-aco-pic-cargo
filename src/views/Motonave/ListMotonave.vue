@@ -10,7 +10,7 @@ const motonaveStore = useMotonaveStore();
 const appStore = useAppStore();
 
 onMounted(() => {
-  appStore.mainTitle = `LISTADO DE ESTADOS DE MOTO NAVES`;
+  appStore.mainTitle = `LISTADO DE MOTONAVES`;
 });
 </script>
 
