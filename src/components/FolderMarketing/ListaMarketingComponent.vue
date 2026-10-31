@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef, watch } from "vue";
+import type { Ref } from "vue";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
@@ -43,6 +44,7 @@ const marketing = ref<FormMarketing>({
 });
 const loading = ref(true);
 const loading_as = ref(true);
+const saving = ref(false);
 const errorPosition = ref<string | null>(null);
 const formNew = useTemplateRef("formNew");
 const form = useTemplateRef("form");
@@ -109,14 +111,19 @@ function open_insert() {
   marketingStore.lastPositionMarketing();
   showFilterDrawerNew.value = !showFilterDrawerNew.value;
 }
+async function save(form: typeof formNew.value, saveRecord: (data: FormMarketing) => Promise<boolean>, drawer: Ref<boolean>) {
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if (!(await form!.validate()).valid || !(await saveRecord(marketing.value))) return;
+    drawer.value = false;
+    await clear("filter");
+  } finally {
+    saving.value = false;
+  }
+}
 function submit_insert() {
-  validateNuevoPositionAPI();
-  setTimeout(async () => {
-    if ((await formNew.value!.validate()).valid && errorPosition.value == null) {
-      clear("filter");
-      await marketingStore.insertMarketing(marketing.value);
-    }
-  }, 500);
+  return save(formNew.value, marketingStore.insertMarketing, showFilterDrawerNew);
 }
 async function open_read(id: number) {
   loading_as.value = true;
@@ -141,13 +148,7 @@ async function open_update(id: number) {
   marketing.value.id = id;
 }
 function submit_update() {
-  validateEditarPositionAPI();
-  setTimeout(async () => {
-    if ((await form.value!.validate()).valid && errorPosition.value == null) {
-      clear("filter");
-      await marketingStore.updateMarketing(marketing.value);
-    }
-  }, 500);
+  return save(form.value, marketingStore.updateMarketing, showFilterDrawerUpdate);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -170,9 +171,8 @@ async function switch_status(item: Marketing) {
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      item.status = 0;
-      clear("filter");
-      await marketingStore.updateMarketing(item);
+      await marketingStore.updateMarketing({ ...item, status: 0 });
+      await clear("filter");
     }
   });
 }
@@ -458,6 +458,7 @@ async function reset_records() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="submit_update()"
           >
             Aceptar
@@ -744,6 +745,7 @@ async function reset_records() {
           <v-btn
             class="mx-1"
             color="success"
+            :loading="saving"
             @click="submit_insert()"
           >
             Aceptar

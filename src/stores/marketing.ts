@@ -3,9 +3,9 @@ import { ref } from "vue";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
-import { usePricingStore } from "@/stores/pricing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMarketing, FormMarketing, Marketing, UltimaPosicionMarketing } from "@/types/catalogos";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useMarketingStore = defineStore("marketing", () => {
@@ -17,8 +17,6 @@ export const useMarketingStore = defineStore("marketing", () => {
 
   function setListMarketing(data: Marketing[]) {
     list.value = data;
-    // pricing keeps its own copy of the marketing list.
-    usePricingStore().SET_LIST_MARKETING(data);
   }
 
   async function fetchDataMarketing(data: FiltroMarketing): Promise<void> {
@@ -39,28 +37,19 @@ export const useMarketingStore = defineStore("marketing", () => {
       });
   }
 
-  async function insertMarketing(data: FormMarketing): Promise<void> {
-    await axios<ApiResponse>({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "insertar_marketing",
+  async function saveMarketing(method: "post" | "put", path: string, data: FormMarketing): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
       data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataMarketing({ name: "", description: "", position: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    });
+    await Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
+
+  const insertMarketing = (data: FormMarketing) => saveMarketing("post", "insertar_marketing", data);
+  const updateMarketing = (data: FormMarketing) => saveMarketing("put", "actualizar_marketing", data);
 
   async function readMarketing(id: Marketing["id"]): Promise<void> {
     await axios<ApiResponse<Marketing[]>>({
@@ -84,29 +73,6 @@ export const useMarketingStore = defineStore("marketing", () => {
       });
   }
 
-  async function updateMarketing(data: FormMarketing): Promise<void> {
-    await axios<ApiResponse>({
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "actualizar_marketing",
-      headers: { "Content-Type": "application/json" },
-      data: data,
-    })
-      .then((response) => {
-        const data = response.data;
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          fetchDataMarketing({ name: "", description: "", position: "", status: 1 });
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
-
   async function lastPositionMarketing(): Promise<void> {
     await axios<ApiResponse<UltimaPosicionMarketing[]>>({
       method: "get",
@@ -124,25 +90,29 @@ export const useMarketingStore = defineStore("marketing", () => {
       });
   }
 
-  async function ExportMarketing(data: FiltroMarketing): Promise<void> {
-    await axios<Blob>({
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `exportar_list_marketing`,
-      params: data,
-      responseType: "blob",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then(function (response) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `Reporte Listado Marketing ${moment().format("DD_MM_YYYY_h_mm_ss")} .xlsx`);
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch(function (error) {
-        console.error(error);
+  async function ExportMarketing(filter: FiltroMarketing): Promise<void> {
+    try {
+      const { data } = await axios<Blob>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + `exportar_list_marketing`,
+        params: { ...filter, status: filter.status == "null" ? null : filter.status },
+        responseType: "blob",
+        headers: { "Content-Type": "application/json" },
       });
+      if (data.type.includes("json")) {
+        const answer = JSON.parse(await data.text()) as ApiResponse;
+        Swal.fire({ icon: "info", text: answer.mensaje });
+        return;
+      }
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Reporte Listado Marketing ${moment().format("DD_MM_YYYY_h_mm_ss")} .xlsx`);
+      document.body.appendChild(link);
+      link.click();
+    } catch {
+      Swal.fire({ icon: "error", text: "No pudimos generar el Excel. Revisa tu conexión e intenta de nuevo." });
+    }
   }
 
   return {
