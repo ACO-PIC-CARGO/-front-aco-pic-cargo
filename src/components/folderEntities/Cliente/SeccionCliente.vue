@@ -10,6 +10,7 @@ import { usePricingStore } from "@/stores/pricing";
 import type { DocumentoPais, Pais } from "@/types/catalogos";
 import type { TipoTransaccion } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 
@@ -187,14 +188,17 @@ async function handleNombre(val: string) {
     isNombreLoading.value = false;
   }
 }
-async function handleDocumento(val: string) {
-  entitiesStore.lstProveedores_x_documento = [];
-  entitiesStore.cliente.nro_documento = val;
+const validarDocumento = useDebouncedSearch(async () => {
   if (entitiesStore.cliente.nro_documento) {
     isDocumentoLoading.value = true;
     await entitiesStore.validarDocumentoCliente();
     isDocumentoLoading.value = false;
   }
+});
+function handleDocumento(val: string) {
+  entitiesStore.lstProveedores_x_documento = [];
+  entitiesStore.cliente.nro_documento = val;
+  validarDocumento();
 }
 async function handleEditarCliente(val: number) {
   if (val) {

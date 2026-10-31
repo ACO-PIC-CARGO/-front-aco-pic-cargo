@@ -729,14 +729,16 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   async function validarNombreProveedor(): Promise<void> {
+    const nombre = proveedor.value.nombrecompleto || "";
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "validar_nombre_proveedor",
-      params: { nombre: proveedor.value.nombrecompleto || "" },
+      params: { nombre },
     })
       .then(function (response) {
         const { data } = response;
         sessionStorage.setItem("auth-token", data.token!);
+        if ((proveedor.value.nombrecompleto || "") !== nombre) return;
         if (data.estadoflag == true) {
           lstProveedores_x_nombre.value = data.data;
         } else {
@@ -749,17 +751,19 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   async function validarDocumentoProveedor(): Promise<void> {
+    const nroDocumento = proveedor.value.nro_documento || "";
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "validar_documento_proveedor",
       params: {
         id_tipodocumento: proveedor.value.id_tipodocumento || "",
-        nro_documento: proveedor.value.nro_documento || "",
+        nro_documento: nroDocumento,
       },
     })
       .then(function (response) {
         const { data } = response;
         sessionStorage.setItem("auth-token", data.token!);
+        if ((proveedor.value.nro_documento || "") !== nroDocumento) return;
         if (data.estadoflag == true) {
           lstProveedores_x_documento.value = data.data;
         } else {
@@ -1023,17 +1027,19 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   async function validarDocumentoCliente(): Promise<void> {
+    const nroDocumento = cliente.value.nro_documento || "";
     await axios<ApiResponse<EntidadCoincidencia[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "validar_documento_cliente",
       params: {
         id_tipodocumento: cliente.value.id_tipodocumento || "",
-        nro_documento: cliente.value.nro_documento || "",
+        nro_documento: nroDocumento,
       },
     })
       .then(function (response) {
         const { data } = response;
         sessionStorage.setItem("auth-token", data.token!);
+        if ((cliente.value.nro_documento || "") !== nroDocumento) return;
         if (data.estadoflag == true) {
           lstProveedores_x_documento.value = data.data;
         } else {

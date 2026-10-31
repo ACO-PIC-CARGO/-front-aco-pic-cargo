@@ -8,6 +8,7 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { RolProveedor } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 const emit = defineEmits<{ ObtenerProveedor: [id: number] }>();
@@ -96,23 +97,29 @@ function isAlmacen() {
 
   return val;
 }
-async function handleNombre(val: string) {
-  entitiesStore.lstProveedores_x_nombre = [];
-  entitiesStore.proveedor.nombrecompleto = val;
+const validarNombre = useDebouncedSearch(async () => {
   if (entitiesStore.proveedor.nombrecompleto) {
     isNombreLoading.value = true;
     await entitiesStore.validarNombreProveedor();
     isNombreLoading.value = false;
   }
-}
-async function handleDocumento(val: string) {
-  entitiesStore.lstProveedores_x_documento = [];
-  entitiesStore.proveedor.nro_documento = val;
+});
+const validarDocumento = useDebouncedSearch(async () => {
   if (entitiesStore.proveedor.nro_documento) {
     isDocumentoLoading.value = true;
     await entitiesStore.validarDocumentoProveedor();
     isDocumentoLoading.value = false;
   }
+});
+function handleNombre(val: string) {
+  entitiesStore.lstProveedores_x_nombre = [];
+  entitiesStore.proveedor.nombrecompleto = val;
+  validarNombre();
+}
+function handleDocumento(val: string) {
+  entitiesStore.lstProveedores_x_documento = [];
+  entitiesStore.proveedor.nro_documento = val;
+  validarDocumento();
 }
 async function handleEditarProveedor(val: number) {
   if (val) {
