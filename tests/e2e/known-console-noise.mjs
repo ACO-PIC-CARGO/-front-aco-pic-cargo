@@ -124,6 +124,11 @@ export const KNOWN_CONSOLE_NOISE = [
     reason: "pre-existing on Vue 2 (same binding at 5b31ae9): ConfiguracionDatosEmpresaComponent passes datoEmpresa.id_pais \"\" to CboPais's Number prop newId; the baseline smoke never opened step 1; the CboPais conversion changed the message text from \"Expected Number with value 0\" to \"Expected Number | Null\"",
     routes: ["ConfiguracionInicial"],
   },
+  {
+    pattern: /^\[Vue warn\]: (Vuetify error: Multiple nodes with the same ID(\n|$)|Duplicate keys found during update: \d+ Make sure keys are unique\.)/,
+    reason: "pre-existing: function_proveedor_pricing UNIONs the providers already used with the search results but returns psearch in one half, so a searched provider comes back twice in the Proveedor list",
+    routes: ["CostosPricing"],
+  },
 ];
 
 export const isKnownNoise = (text, routeName) =>
