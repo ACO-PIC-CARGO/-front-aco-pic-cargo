@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useReportesStore } from "@/stores/reportes";
 import type { TotalesMasterAgrupadoReporte, TotalMasterMesReporte } from "@/types/reportes";
+import { recentYears, yearMonths } from "@/utils/operationalReports";
 
 const appStore = useAppStore();
 const appRouter = useRouter();
@@ -15,7 +16,7 @@ const fechaGeneracion = new Date().toLocaleDateString("es-ES", {
   month: "long",
   year: "numeric",
 });
-const listaAnios = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i);
+const listaAnios = recentYears();
 
 onMounted(() => {
   cargarReporte();
@@ -37,8 +38,8 @@ const totalMasterAgrupado = computed(
     }) as unknown as TotalesMasterAgrupadoReporte,
 );
 
-const totalMasterPorMes = computed(
-  () => (reportesStore.totalMasterPorMes || []) as unknown as TotalMasterMesReporte[],
+const totalMasterPorMes = computed(() =>
+  yearMonths((reportesStore.totalMasterPorMes || []) as unknown as TotalMasterMesReporte[]),
 );
 
 // =========================================================
@@ -199,6 +200,9 @@ async function imprimir(): Promise<void> {
             Las fechas que caen dentro de marzo se consideran en el mes de
             marzo.
           </li>
+          <li>
+            Los montos están en dólares (USD) e incluyen IGV.
+          </li>
         </ul>
       </div>
     </v-card>
@@ -211,7 +215,7 @@ async function imprimir(): Promise<void> {
         </div>
 
         <div class="resumen-label">
-          INGRESOS SEGÚN<br>
+          GANANCIA SEGÚN<br>
           PRICING
         </div>
 
@@ -227,7 +231,7 @@ async function imprimir(): Promise<void> {
         </div>
 
         <div class="resumen-label">
-          INGRESOS SEGÚN<br>
+          GANANCIA SEGÚN<br>
           OPERACIONES
         </div>
 
@@ -275,7 +279,7 @@ async function imprimir(): Promise<void> {
       <div class="resumen-clientes">
         <div class="grupo-titulo">
           <i class="fas fa-user-friends" />
-          <span>CANTIDAD DE CLIENTES</span>
+          <span>CANTIDAD DE HOUSES</span>
         </div>
 
         <div class="grupo-columnas">
@@ -316,9 +320,8 @@ async function imprimir(): Promise<void> {
       <!-- TOTAL CLIENTES -->
       <div class="total-clientes-card">
         <div class="total-clientes-label">
-          TOTAL CLIENTES<br>
-          MANEJADOS<br>
-          EN EL MES
+          TOTAL HOUSES<br>
+          DEL AÑO
         </div>
 
         <div class="total-clientes-value">
@@ -346,7 +349,7 @@ async function imprimir(): Promise<void> {
               rowspan="2"
               class="header-azul"
             >
-              INGRESOS<br>
+              GANANCIA<br>
               SEGÚN PRICING
             </th>
 
@@ -354,7 +357,7 @@ async function imprimir(): Promise<void> {
               rowspan="2"
               class="header-azul"
             >
-              INGRESOS<br>
+              GANANCIA<br>
               SEGÚN OPERACIONES
             </th>
 
@@ -377,16 +380,15 @@ async function imprimir(): Promise<void> {
               colspan="2"
               class="header-azul"
             >
-              CANTIDAD DE CLIENTES
+              CANTIDAD DE HOUSES
             </th>
 
             <th
               rowspan="2"
               class="header-naranja"
             >
-              TOTAL CLIENTES<br>
-              MANEJADOS<br>
-              EN EL MES
+              TOTAL<br>
+              HOUSES
             </th>
           </tr>
 

@@ -7,16 +7,17 @@ import type {
   DetalleExpedienteMes,
   TotalesMasterGeneralAgrupadoReporte,
 } from "@/types/reportes";
+import { recentYears } from "@/utils/operationalReports";
 
 const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
 
-const year = ref(2026);
+const year = ref(new Date().getFullYear());
 const page = ref(1);
 const itemsPerPage = ref(10);
-const anios = [2024, 2025, 2026];
+const anios = recentYears();
 
 const elementPorPage = [
   { value: 10, label: "10" },
@@ -228,10 +229,6 @@ function aplicarMeses(): void {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function aplicarFiltros(): void {
   recargarFiltro();
-}
-
-function compararAnos(): void {
-  console.log("Comparar años anteriores");
 }
 
 function imprimirPDF(): void {
@@ -458,29 +455,6 @@ function shipmentClass(tipo: string): string {
             </v-menu>
           </v-col>
 
-          <!-- COMPARAR -->
-          <v-col
-            cols="12 mt-4 ml-5"
-            sm="3"
-            md="2"
-            class="filter-col compare-col"
-          >
-            <v-btn
-              variant="outlined"
-              class="compare-btn"
-              @click="compararAnos"
-            >
-              <v-icon
-                size="small"
-                start
-              >
-                mdi-calendar-sync
-              </v-icon>
-
-              Comparar con años anteriores
-            </v-btn>
-          </v-col>
-
           <v-spacer />
 
           <!-- IMPRIMIR -->
@@ -591,7 +565,7 @@ function shipmentClass(tipo: string): string {
               <div class="kpi-label">
                 TOTAL
                 <br>
-                CLIENTES
+                HOUSES
               </div>
 
               <div class="kpi-value orange-text">
@@ -710,7 +684,7 @@ function shipmentClass(tipo: string): string {
         <div class="showing-text">
           Mostrando
           <strong>
-            {{ itemsPerPage < 0 ? "Todos" : itemsPerPage * page }}
+            {{ itemsPerPage < 0 ? "Todos" : Math.min(itemsPerPage * page, totalMasterPorMes.length) }}
           </strong>
           de
           <strong>{{ totalMasterPorMes.length }}</strong>
@@ -762,7 +736,7 @@ function shipmentClass(tipo: string): string {
           </div>
 
           <div class="note-text">
-            Los datos mostrados corresponden al periodo y filtros seleccionados.
+            Los datos mostrados corresponden al periodo y filtros seleccionados. Los montos están en dólares (USD) e incluyen IGV.
           </div>
         </div>
       </div>
@@ -875,20 +849,6 @@ function shipmentClass(tipo: string): string {
   justify-content: space-between;
   border-color: #cfdbe7 !important;
   color: #274b76 !important;
-  font-size: 14px;
-  text-transform: none;
-}
-
-.compare-col {
-  display: flex;
-  align-items: flex-end;
-}
-
-.compare-btn {
-  max-width: none;
-  min-height: 34px !important;
-  border-color: #d3dfe9 !important;
-  color: #234773 !important;
   font-size: 14px;
   text-transform: none;
 }
