@@ -470,6 +470,17 @@ describe("aduana store", () => {
       ]);
     });
 
+    test("getQuoteCallAduana leaves the calls empty without blocking the screen when the aduana has no calls", async () => {
+      respond({ list_calls_aduana: rejected() });
+      usePricingStore().listCall = [{ id: 1 }];
+
+      await useAduanaStore().getQuoteCallAduana({});
+      await flushPromises();
+
+      expect(usePricingStore().listCall).toEqual([]);
+      expect(Swal.fire).not.toHaveBeenCalled();
+    });
+
     test("getQuoteCallAduana empties pricing's calls on a rejection and sends an expired session to Login", async () => {
       vi.useFakeTimers();
       respond({ list_calls_aduana: rejected("Sesión expirada", "401") });

@@ -2703,6 +2703,7 @@ export const useAduanaStore = defineStore("aduana", () => {
           usePricingStore().SET_LIST_CALLS(data.data);
         } else {
           usePricingStore().SET_LIST_CALLS([]);
+          if (data.tipomensaje === "TMSGINF" && data.status != "401") return;
           Swal.fire({
             icon: "error",
             text: data.mensaje,
