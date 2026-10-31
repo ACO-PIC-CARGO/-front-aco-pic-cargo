@@ -204,7 +204,6 @@ onMounted(async () => {
         density="compact"
         :headers="headers"
         :items="pricingStore.listCall"
-        no-data-text="Esta aduana aún no tiene llamadas registradas. Registra una desde el listado de aduanas."
         :items-per-page="5"
         class="elevation-1 contenido"
         :search="search"
