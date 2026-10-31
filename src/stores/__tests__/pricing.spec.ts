@@ -1809,7 +1809,7 @@ describe("pricing store", () => {
       expect(sentConfig("quote_preview_instructivo_manual")).toEqual({
         method: "put",
         url: URL_MAIN + "quote_preview_instructivo_manual",
-        data: { id: 77, guardarFlag },
+        data: { id_quote: "", id: 77, guardarFlag },
         headers: JSON_HEADERS,
       });
       expect(window.open).toHaveBeenCalledTimes(opened);

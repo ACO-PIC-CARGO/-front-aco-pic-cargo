@@ -1011,6 +1011,7 @@ exports[`pricing store > instructivo > imprimirInstructivoQuote posts the instru
   "direccion": "CALLE 1",
   "expediente": "EXP1",
   "fiscal": "F",
+  "id_quote": "",
   "incoterms": "FOB",
   "listCostosInstructivo": [
     {

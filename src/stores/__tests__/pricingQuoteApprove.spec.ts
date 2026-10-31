@@ -46,3 +46,31 @@ test("an approval the server accepts reports it succeeded", async () => {
 
   expect(await usePricingStore().aprobarCotizacion({ IdempotencyKey: "k3", nuevoexpediente: true })).toBe(true);
 });
+
+test("the instructivo PDF names its quote so the server files it in the quote's folder", async () => {
+  vi.spyOn(window, "open").mockImplementation(() => null);
+  sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 1, trade_name: "PIC LOGISTICA SAC" }]));
+  const post = vi.mocked((await import("@/api/http")).default.post as unknown as (...args: unknown[]) => Promise<unknown>);
+  post.mockResolvedValue({ data: { estadoflag: true, path: "files/x/instructivo.pdf" } });
+  const pricing = usePricingStore();
+  pricing.id = 77;
+  pricing.aprobadoflag = true;
+  pricing.listInstructivo = [{ notas: [] }];
+  pricing.listIngresosInstructivo = [{ nro_propuesta: 1, opcion: [] }];
+  pricing.listCostosInstructivo = [{ nro_propuesta: 1, opcion: [] }];
+  pricing.listImpuestosInstructivo = [{ nro_propuesta: 1, opcion: [] }];
+
+  await pricing.imprimirInstructivoQuote({ nro_propuesta: 1 });
+
+  expect(post.mock.calls[0]![1]).toMatchObject({ id_quote: 77 });
+});
+
+test("the manual instructivo PDF names its quote so the server files it in the quote's folder", async () => {
+  respond({ quote_preview_instructivo_manual: { estadoflag: true, path: "files/x/manual.pdf" } });
+  const pricing = usePricingStore();
+  pricing.id = 77;
+
+  await pricing.quotePreviewInstructivoManual({ guardarFlag: true });
+
+  expect(httpMock.mock.calls[0]![0].data).toMatchObject({ id_quote: 77, guardarFlag: true });
+});

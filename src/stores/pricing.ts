@@ -650,7 +650,7 @@ export const usePricingStore = defineStore("pricing", () => {
     const config = {
       method: "put",
       url: `${import.meta.env.VITE_URL_MAIN}quote_preview_instructivo_manual`,
-      data: datos,
+      data: { id_quote: id.value, ...datos },
       headers: {
         "Content-Type": "application/json",
       },
@@ -5311,6 +5311,7 @@ export const usePricingStore = defineStore("pricing", () => {
     const notas = listInstructivo.value[0]!.notas;
 
     const data = {
+      id_quote: id.value,
       nro_propuesta: dataQuote.nro_propuesta,
       url_folderonedrive: datosPrincipales.value.url_folderonedrive,
       url_folderonedriveexp: datosPrincipales.value.url_folderonedriveexp,
