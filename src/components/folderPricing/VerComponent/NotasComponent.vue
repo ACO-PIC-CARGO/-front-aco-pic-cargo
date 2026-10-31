@@ -48,23 +48,22 @@ const frmReporte = useTemplateRef("frmReporte");
 const opcionesSeleccionadas = computed(() =>
   pricingStore.opcionCostos.filter((v) => !!v.selected),
 );
+const opcionActual = computed(
+  () => opcionesSeleccionadas.value[pricingStore.page - 1] ?? opcionesSeleccionadas.value[0]!,
+);
 const actualizarNotas = computed(() => pricingStore.actualizarNotas);
 const lstSeIncluye = computed(() => {
   const val: FilaServicioNota[] = pricingStore.listServices.filter(
     (v) => v.status == 1,
   );
 
-  const opcion = opcionesSeleccionadas.value[
-    pricingStore.page - 1
-  ]!.listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
+  const opcion = opcionActual.value.listNotasQuote.filter((v) => v.estado == 1 && v.statusincluye == 1);
   const opcionConServicio = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
   const final = [...val, ...opcionConServicio] as FilaServicioNota[];
 
   // Agregar al final: Fecha de Vigencia y Tiempo de Tránsito (si existen)
-  const opt =
-    opcionesSeleccionadas.value[pricingStore.page - 1] ||
-    ({} as Partial<OpcionCosto>);
+  const opt = opcionActual.value || ({} as Partial<OpcionCosto>);
   const fechaVigencia =
     opt.date_end || pricingStore.datosPrincipales.fecha_fin;
   const ttransito =
@@ -87,9 +86,7 @@ const lstNoIncluye = computed(() => {
     (v) => v.status == 0,
   );
 
-  const opcion = opcionesSeleccionadas.value[
-    pricingStore.page - 1
-  ]!.listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
+  const opcion = opcionActual.value.listNotasQuote.filter((v) => v.estado == 1 && v.statusnoincluye == 1);
   const opcionConServicio = opcion.map((v) => ({ ...v, service: v.descripcion }));
 
   const final = [...val, ...opcionConServicio] as FilaServicioNota[];
@@ -155,9 +152,7 @@ function abrirDialog({ statusincluye: incluye = 0, statusnoincluye: noIncluye = 
 }
 async function anidarNota() {
   if ((await frmNota.value!.validate()).valid) {
-    opcionesSeleccionadas.value[
-      pricingStore.page - 1
-    ]!.listNotasQuote.push({
+    opcionActual.value.listNotasQuote.push({
       descripcion: descripcion.value,
       estado: 1,
       statusincluye: statusincluye.value,
@@ -336,8 +331,7 @@ onMounted(() => {
           primary-title
         >
           Registro de nueva nota - Opción
-          {{ opcionesSeleccionadas[pricingStore.page - 1]!.nro_propuesta
-          }}<v-spacer />
+          {{ opcionActual.nro_propuesta }}<v-spacer />
           <v-btn
             variant="text"
             icon
@@ -371,7 +365,7 @@ onMounted(() => {
     <v-row>
       <v-col cols="12">
         Añadir nueva Nota: Opción
-        {{ opcionesSeleccionadas[pricingStore.page - 1]!.nro_propuesta }}
+        {{ opcionActual.nro_propuesta }}
         <v-btn
           variant="text"
           icon
@@ -403,9 +397,7 @@ onMounted(() => {
               <v-data-table
                 :headers="headers"
                 :items="
-                  opcionesSeleccionadas[
-                    pricingStore.page - 1
-                  ]!.listNotasQuote.filter(
+                  opcionActual.listNotasQuote.filter(
                     (v) =>
                       v.estado == 1 && !v.statusincluye && !v.statusnoincluye,
                   )

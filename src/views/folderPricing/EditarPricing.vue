@@ -3,6 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
+import moment from "moment";
 import DatosPrincipales from "../../components/folderPricing/DatosPrincipales.vue";
 import DatosCargaComponent from "../../components/folderPricing/DatosCargaComponent.vue";
 import ServicesComponent from "../../components/folderPricing/ServicesComponent.vue";
@@ -16,6 +17,8 @@ import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import { APPROVED_QUOTE_MESSAGE, isApprovedQuote } from "@/utils/quoteApproval";
+import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
@@ -56,16 +59,28 @@ onMounted(async () => {
 
   pricingStore.SET_RESET();
   appStore.spiner = true;
-  await Promise.all([
-    pricingStore.getQuote({ id: route.params.id as string }),
-    pricingStore.getShipment(),
-  ]);
+  let quoteProblem: string | null = null;
+  try {
+    [quoteProblem] = await Promise.all([
+      pricingStore.getQuote({ id: route.params.id as string }),
+      pricingStore.getShipment(),
+    ]);
+  } finally {
+    appStore.spiner = false;
+  }
+  if (!quoteProblem && isApprovedQuote({ aprobadoflag: pricingStore.aprobadoflag })) {
+    quoteProblem = APPROVED_QUOTE_MESSAGE;
+  }
+  if (quoteProblem) {
+    await returnToQuoteList(quoteProblem);
+    return;
+  }
 
   appStore.mainTitle = `EDITAR  COTIZACIÓN - ${pricingStore.nro_quote}`;
 
-  const idTransport = pricingStore.listShipment.filter(
+  const idTransport = pricingStore.listShipment.find(
     (v) => v.id == pricingStore.datosPrincipales.idtipocarga,
-  )[0]!.id_transport;
+  )?.id_transport;
   //
   const opciones = [...pricingStore.opcionCostos];
   const IdProveedor: (number | string | null | undefined)[] = [];
@@ -76,7 +91,6 @@ onMounted(async () => {
     });
   });
 
-  appStore.spiner = false;
   mostrar.value = true;
 
   // obtenerProveedorPricing
@@ -120,20 +134,20 @@ onMounted(async () => {
     pricingStore.getServices(),
     pricingStore.obtenerCostosPricing(),
     calculadorasStore.obtenerFleteCalculadora({
-      shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
-        .code,
+      shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)
+        ?.code,
       puerto_origen: pricingStore.listPortBegin.find(
         (v) => v.id_port == pricingStore.datosPrincipales.idorigen,
-      )!.puerto!,
+      )?.puerto ?? undefined,
       puerto_destino: pricingStore.listPortEnd.find(
         (v) => v.id_port == pricingStore.datosPrincipales.iddestino,
-      )!.puerto!,
+      )?.puerto ?? undefined,
       volumen: pricingStore.datosPrincipales.volumen,
       peso: pricingStore.datosPrincipales.peso,
     }),
     calculadorasStore.getTransporte({
-      shimpent: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
-        .code,
+      shimpent: pricingStore.listShipment.find((v) => v.id == idTipoCarga)
+        ?.code,
       id_modality: pricingStore.datosPrincipales.idsentido as number,
       id_pais: sessionUser().id_pais,
       id_branch: sessionBranchId(),
@@ -361,8 +375,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   });
   const newPropuesta = {
     nro_propuesta: nro_propuesta,
-    // @ts-expect-error moment is not imported in this view, so this call throws
-    date_end: moment().add(7, 'days').format("YYYY-MM-DD"),
+    date_end: moment().add(7, "days").format("YYYY-MM-DD"),
     tiempo_transito: 35,
     listCostos: cDuplicado,
     listImpuestos: pricingStore.listImpuestos,

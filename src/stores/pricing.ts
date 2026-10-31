@@ -78,6 +78,7 @@ import {
 import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { filledParams } from "@/utils/queryParams";
 import { hasFailed, notifySuccess, request } from "@/utils/request";
+import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -353,6 +354,7 @@ export const usePricingStore = defineStore("pricing", () => {
     // };
     ventaflag.value = false;
     dataQuote.value = null;
+    listadoFilesDrive.value = [];
     filtrarQuoteFlag.value = false;
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     (filtrarCallsFlag.value = false),
@@ -1664,67 +1666,67 @@ export const usePricingStore = defineStore("pricing", () => {
       return response.data.data;
     });
   }
-  async function getQuote({ id: idQuote }: { id: number | string }): Promise<void> {
-    const config = {
+  async function getQuote({ id: idQuote }: { id: number | string }): Promise<string | null> {
+    const response = await request<CotizacionDetalle>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `getQuoteId?id=${idQuote}`,
       headers: {
         "Content-Type": "application/json",
       },
-    };
-    await axios<ApiResponse<CotizacionDetalle[]>>(config).then(async (response) => {
-      const res = response.data.data[0]!;
-      copy_quote.value = res;
-      id.value = res.id;
-      dataCliente.value = res.cliente[0]!;
-      nro_quote.value = res.quote;
-      id_master.value = res.id_master;
-      datosPrincipales.value = {
-        ...res,
-        nameStatusQuote: res.namestatusquote,
-        descripcioncarga: res.descripcionmercancia,
-        id_status: res.statusquote,
-        amount: res.monto,
-      };
-      nro_exp.value = res.nro_exp;
-      listServices.value = res.servicios;
-      copylistServices.value = res.servicios;
-
-      // --------------------------------------------------------------
-      opcionCostos.value = [];
-      res.opcioncostos.forEach((element) => {
-        opcionCostos.value.push({
-          id: element.id,
-          nro_propuesta: element.nro_propuesta,
-          date_end: element.date_end,
-          tiempo_transito: element.tiempo_transito,
-          listCostos: element.listcostos,
-          listImpuestos: element.listimpuestos,
-          listNotasQuote: element.listnotasquote,
-          selected: element.selected,
-        });
-      });
-
-      // --------------------------------------------------------------
-
-      aprobadoflag.value = res.aprobadoflag;
-      fullflag.value = res.fullflag;
-      tiporeporte.value = res.tiporeporte;
-
-      mostrarBtnActualizarFlag.value = !(res.statusmain == 0 || res.aprobadoflag == true);
-      Promise.all([
-        GetArchivos(res.url_folderonedrive),
-        getTextoWhatsapp({
-          id_shipment: res.idtipocarga,
-          id_quote: res.id,
-          id_containers: res.containers!
-            .map((v) => {
-              return v.id_containers;
-            })
-            .join(","),
-        }),
-      ]);
     });
+    const res = response.data[0];
+    if (!response.estadoflag || !res) return hasFailed(response) ? response.mensaje : QUOTE_NOT_FOUND_MESSAGE;
+    copy_quote.value = res;
+    id.value = res.id;
+    dataCliente.value = res.cliente[0]!;
+    nro_quote.value = res.quote;
+    id_master.value = res.id_master;
+    datosPrincipales.value = {
+      ...res,
+      nameStatusQuote: res.namestatusquote,
+      descripcioncarga: res.descripcionmercancia,
+      id_status: res.statusquote,
+      amount: res.monto,
+    };
+    nro_exp.value = res.nro_exp;
+    listServices.value = res.servicios;
+    copylistServices.value = res.servicios;
+
+    // --------------------------------------------------------------
+    opcionCostos.value = [];
+    res.opcioncostos.forEach((element) => {
+      opcionCostos.value.push({
+        id: element.id,
+        nro_propuesta: element.nro_propuesta,
+        date_end: element.date_end,
+        tiempo_transito: element.tiempo_transito,
+        listCostos: element.listcostos,
+        listImpuestos: element.listimpuestos,
+        listNotasQuote: element.listnotasquote,
+        selected: element.selected,
+      });
+    });
+
+    // --------------------------------------------------------------
+
+    aprobadoflag.value = res.aprobadoflag;
+    fullflag.value = res.fullflag;
+    tiporeporte.value = res.tiporeporte;
+
+    mostrarBtnActualizarFlag.value = !(res.statusmain == 0 || res.aprobadoflag == true);
+    Promise.all([
+      GetArchivos(res.url_folderonedrive),
+      getTextoWhatsapp({
+        id_shipment: res.idtipocarga,
+        id_quote: res.id,
+        id_containers: res.containers!
+          .map((v) => {
+            return v.id_containers;
+          })
+          .join(","),
+      }),
+    ]);
+    return null;
   }
   async function getCotzacionCalculadora(data: Record<string, unknown>): Promise<void> {
     const config = {
@@ -5497,10 +5499,11 @@ export const usePricingStore = defineStore("pricing", () => {
       });
   }
   async function GetArchivos(folderUrl?: string | null): Promise<void> {
+    listadoFilesDrive.value = [];
     if (!folderUrl) {
       return;
     }
-    const config = {
+    const response = await request<ArchivoDrive>({
       method: "get",
       url: `${import.meta.env.VITE_URL_MAIN}listado_files`,
       params: {
@@ -5509,15 +5512,8 @@ export const usePricingStore = defineStore("pricing", () => {
       headers: {
         "Content-Type": "application/json",
       },
-    };
-    axios<ApiResponse<ArchivoDrive[]>>(config).then((response) => {
-      const data = response.data;
-      if (data.estadoflag) {
-        // sessionStorage.setItem("auth-token", data.token);
-
-        listadoFilesDrive.value = data.data;
-      }
     });
+    listadoFilesDrive.value = response.estadoflag ? response.data : [];
   }
 
   async function getTextoWhatsapp(params: ParametrosTextoWhatsapp): Promise<void> {

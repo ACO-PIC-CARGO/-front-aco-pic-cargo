@@ -6,6 +6,8 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import Swal from "sweetalert2";
+import { returnToQuoteList } from "@/utils/quoteScreen";
 
 const DatosPrincipales = defineAsyncComponent(
   () =>
@@ -70,17 +72,24 @@ watch(
 );
 
 onMounted(async () => {
-  // this.$store.commit("SET_RESET");
   appStore.spiner = true;
   verFlag.value = false;
-  await Promise.all([
-    pricingStore.getQuote({ id: route.params.id as string }),
-    pricingStore.getShipment(),
-  ]);
+  pricingStore.page = 1;
+  let quoteProblem: string | null = null;
+  try {
+    [quoteProblem] = await Promise.all([
+      pricingStore.getQuote({ id: route.params.id as string }),
+      pricingStore.getShipment(),
+    ]);
+  } finally {
+    appStore.spiner = false;
+  }
+  if (quoteProblem) {
+    await returnToQuoteList(quoteProblem);
+    return;
+  }
 
   appStore.mainTitle = `VER  COTIZACIÓN - ${pricingStore.nro_quote}`;
-
-  appStore.spiner = false;
   verFlag.value = true;
 
   // Buscar el tipo de carga y validar que existe
@@ -120,8 +129,13 @@ onMounted(async () => {
       }),
     );
   }
-  //
-  await Promise.all(promisesToLoad);
+  const loads = await Promise.allSettled(promisesToLoad);
+  if (loads.some((load) => load.status === "rejected")) {
+    Swal.fire({
+      icon: "warning",
+      text: "No pudimos cargar todos los datos de esta cotización. Recarga la página para verla completa.",
+    });
+  }
   mostrarStepS.value = true;
 
   pricingStore.llenadoCostos = false;
@@ -148,12 +162,6 @@ onMounted(async () => {
     });
   }
   aduanaStore.getAduanaUnificar(route.params.id as string);
-  setTimeout(async () => {
-    const aprobadas = pricingStore.opcionCostos.filter((v) => v.selected);
-    if (aprobadas.length && !pricingStore.aprobadoflag) {
-      await pricingStore.GuardaCostosFinalesQuote();
-    }
-  }, 300);
 });
 </script>
 
