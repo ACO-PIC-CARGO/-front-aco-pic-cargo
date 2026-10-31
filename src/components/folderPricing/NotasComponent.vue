@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
+import { blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
 import type {
   DatosPrevisualizacion,
   FilaServicioNota,
@@ -109,13 +110,12 @@ const lstNoIncluye = computed(() => {
 });
 
 function abrirDialogCotizacionRapida() {
-  const esperandoSeguro = pricingStore.listQuoteStatus.find(
-    (v) => v.code == "4",
-  );
-  // this.previewFlag = true;
+  const estado =
+    pricingStore.listQuoteStatus.find((v) => v.code == "4") ??
+    defaultQuoteStatus(pricingStore.listQuoteStatus);
   nextTick(() => {
     tiporeporte.value = "AGRUPADO";
-    selectedStatusId.value = esperandoSeguro!.id!;
+    selectedStatusId.value = estado?.id ?? null;
     generarPreview({ val: true });
   });
 }
@@ -192,24 +192,31 @@ async function anidarNota() {
   dialog.value = !dialog.value;
 }
 
+async function guardarCotizacion() {
+  if (route.name == "editQuote") return pricingStore.updateQuote();
+  const respuesta = await pricingStore.registrarQuote({ fullflag: true });
+  if (!respuesta.estadoflag) {
+    Swal.fire({ icon: "error", title: "No se guardó la cotización", text: respuesta.mensaje });
+  }
+  return respuesta.estadoflag;
+}
+
 async function generar() {
   pricingStore.tiporeporte = tiporeporte.value;
-  loading.value = true;
 
   if ((await frmReporte.value!.validate()).valid) {
+    if (blockedQuoteSave(pricingStore)) return;
+    loading.value = true;
     appStore.spiner = true;
     const name = route.name;
-    // 1. Registro inicial
-    if (name == "newQuote") {
-      await pricingStore.registrarQuote({ fullflag: true }).catch((e) =>
-        console.log(e),
-      );
-    }
-    if (name == "editQuote") {
-      await pricingStore.updateQuote();
-    }
-    if (pricingStore.nro_quote) {
+    let guardada = false;
+    try {
+      guardada = await guardarCotizacion();
+    } finally {
       appStore.spiner = false;
+      loading.value = guardada;
+    }
+    if (guardada) {
       await pricingStore.obtenerDatosEmpresa().catch((e) => console.log(e));
 
       // 2. Generación de reportes

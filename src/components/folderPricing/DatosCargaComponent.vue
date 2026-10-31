@@ -8,6 +8,7 @@ import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import { positiveInteger } from "@/components/folderPricing/quoteRules";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type {
@@ -840,9 +841,9 @@ async function aceptar() {
     if (isFcl.value) {
       if (containersList.value.length == 0) {
         Swal.fire({
-          icon: "error",
-          title: "Aviso",
-          text: "Se necesita al menos un contenedor",
+          icon: "warning",
+          title: "Falta el contenedor",
+          text: "Agrega al menos un contenedor con el botón Agregar Contenedor antes de continuar.",
         });
         validate = false;
       }
@@ -854,9 +855,9 @@ async function aceptar() {
         !pricingStore.datosPrincipales.peso
       ) {
         Swal.fire({
-          icon: "error",
-          title: "Aviso",
-          text: "Se necesita los datos de la carga",
+          icon: "warning",
+          title: "Faltan los datos de la carga",
+          text: "Ingresa bultos, peso y volumen y pulsa AGREGAR antes de continuar.",
         });
         validate = false;
       }
@@ -1406,7 +1407,7 @@ function finalizarSeleccionDistrito() {
                   (v) => !!v || 'Dato Requerido',
                   (v) =>
                     /^-?\d+$/.test(v) || 'Debe ser un número entero válido',
-                  (v) => v > 0 || 'El valor tiene que ser un númro positivo',
+                  (v) => v > 0 || 'Ingresa un número mayor que 0.',
                 ]"
                 @keyup.enter="anadirCarga()"
               />
@@ -1426,7 +1427,7 @@ function finalizarSeleccionDistrito() {
                 suffix="kg"
                 :rules="[
                   (v) => !!v || 'Dato Requerido',
-                  (v) => v > 0 || 'El valor tiene que ser un númro positivo',
+                  (v) => v > 0 || 'Ingresa un número mayor que 0.',
                 ]"
                 @keyup.enter="anadirCarga()"
               />
@@ -1445,7 +1446,7 @@ function finalizarSeleccionDistrito() {
                 suffix="m3"
                 :rules="[
                   (v) => !!v || 'Dato Requerido',
-                  (v) => v > 0 || 'El valor tiene que ser un númro positivo',
+                  (v) => v > 0 || 'Ingresa un número mayor que 0.',
                 ]"
                 @keyup.enter="anadirCarga()"
               />
@@ -1591,7 +1592,7 @@ function finalizarSeleccionDistrito() {
               label="Cantidad"
               v-model="containers.cantidad"
               type="number"
-              :rules="[(v) => !!v || 'Dato Requerido']"
+              :rules="[positiveInteger]"
             />
           </v-form>
         </v-card-text>
@@ -1635,7 +1636,7 @@ function finalizarSeleccionDistrito() {
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
-                        v > 0.0 || 'El valor tiene que ser un númro positivo',
+                        v > 0.0 || 'Ingresa un número mayor que 0.',
                     ]"
                     v-model="fromMedidas.idLongitud"
                   />
@@ -1683,7 +1684,7 @@ function finalizarSeleccionDistrito() {
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
-                        v > 0.0 || 'El valor tiene que ser un númro positivo',
+                        v > 0.0 || 'Ingresa un número mayor que 0.',
                     ]"
                     v-model="fromMedidas.largo"
                     inputmode="numeric"
@@ -1698,7 +1699,7 @@ function finalizarSeleccionDistrito() {
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
-                        v > 0.0 || 'El valor tiene que ser un númro positivo',
+                        v > 0.0 || 'Ingresa un número mayor que 0.',
                     ]"
                     v-model="fromMedidas.ancho"
                     inputmode="numeric"
@@ -1713,7 +1714,7 @@ function finalizarSeleccionDistrito() {
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
-                        v > 0.0 || 'El valor tiene que ser un númro positivo',
+                        v > 0.0 || 'Ingresa un número mayor que 0.',
                     ]"
                     v-model="fromMedidas.alto"
                     inputmode="numeric"
@@ -1731,7 +1732,7 @@ function finalizarSeleccionDistrito() {
                     :rules="[
                       (v) => !!v || 'Dato Requerido.',
                       (v) =>
-                        v > 0.0 || 'El valor tiene que ser un númro positivo',
+                        v > 0.0 || 'Ingresa un número mayor que 0.',
                     ]"
                     v-model="fromMedidas.peso"
                   />

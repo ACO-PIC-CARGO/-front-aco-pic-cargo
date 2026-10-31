@@ -1,17 +1,16 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useTownStore } from "@/stores/town";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import { servicesStepErrors } from "@/components/folderPricing/quoteRules";
 import type { Servicio } from "@/types/cotizacion";
 
 withDefaults(defineProps<{ mostrarBtn?: boolean }>(), { mostrarBtn: true });
 const emit = defineEmits<{ activarLlenadoCostos: []; recargarCostos: [] }>();
 
-const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
 const townStore = useTownStore();
@@ -33,7 +32,6 @@ const categoriasConfig = [
 ];
 const errorIdTown = ref("");
 
-const isEmpresaPermitida = computed(() => appStore.isEmpresaPermitida);
 const iddestino = computed(() => pricingStore.datosPrincipales.iddestino);
 // Two-way bindings para propiedades de Vuex usando getters/setters computados
 const amountModel = computed({
@@ -169,33 +167,18 @@ function actualizarCostoTransporte(idTown: unknown) {
 }
 
 function continuarLlenadoCostos() {
-  errorIdTown.value = "";
-  pricingStore.errorValorMercancia = "";
-  let val = true;
-
-  const validarTown = listServices.value.some(
-    (v) => v.code_service == '14' && v.status == 1,
-  );
-
-  if (
-    requiereValorMercancia.value ||
-    (validarTown && !pricingStore.datosPrincipales.id_town)
-  ) {
-    const amount = pricingStore.datosPrincipales.amount;
-    if (!amount || (amount as number) <= 0) {
-      pricingStore.errorValorMercancia = "Datos Requeridos y mayor que 0";
-      val = false;
-    }
-    if (
-      validarTown &&
-      !pricingStore.datosPrincipales.id_town &&
-      townStore.lstTownPricing.length > 0
-    ) {
-      errorIdTown.value = "Datos Requeridos";
-      val = false;
-    }
-  }
-  if (val) {
+  const errores = servicesStepErrors({
+    requiresGoodsValue: requiereValorMercancia.value,
+    amount: pricingStore.datosPrincipales.amount,
+    destinationTransport: listServices.value.some(
+      (v) => v.code_service == "14" && v.status == 1,
+    ),
+    idTown: pricingStore.datosPrincipales.id_town,
+    hasTowns: townStore.lstTownPricing.length > 0,
+  });
+  pricingStore.errorValorMercancia = errores.amount;
+  errorIdTown.value = errores.town;
+  if (!errores.amount && !errores.town) {
     emit("activarLlenadoCostos");
     mostrarContinuarFlag.value = false;
   }
@@ -375,7 +358,6 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
               v-if="
                 service.code_service == 14 &&
                   service.status == 1 &&
-                  isEmpresaPermitida &&
                   townStore.lstTownPricing.length > 0
               "
             >
@@ -418,11 +400,11 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
                 (v) =>
                   !requiereValorMercancia ||
                   (!!v && Number(v) > 0) ||
-                  'Dato Requerido',
+                  'Ingresa el valor de la mercancía (mayor que 0).',
                 (v) =>
                   !v ||
                   /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
-                  'Debe ser un número real entero positivo',
+                  'Ingresa un monto válido, por ejemplo 1500.50.',
               ]"
               @update:model-value="recargarCostos"
               @blur="recargarCostos"

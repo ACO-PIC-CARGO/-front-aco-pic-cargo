@@ -19,6 +19,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import { blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import type {
   Costo,
@@ -54,6 +55,7 @@ let mostrarCostos: boolean | undefined;
 onMounted(async () => {
   pricingStore.step = 1;
   pricingStore.SET_RESET();
+  calculadorasStore.lstTransporte = [];
   appStore.mainTitle = "Nueva Cotización";
   await Promise.all([
     // await this.resetQuoteNew(),
@@ -66,7 +68,7 @@ onMounted(async () => {
     pricingStore.getCargarEjecutivo(),
   ]);
 
-  await setDefaultStatusPreliminar();
+  setDefaultStatus();
   const opciones = [...pricingStore.opcionCostos];
   const IdProveedor: (number | string | null | undefined)[] = [];
   opciones.forEach((opcion) => {
@@ -91,15 +93,46 @@ onMounted(async () => {
   });
 });
 
-function recargar() {
+async function recargar() {
+  if (DatosCargaComponentFlag.value) {
+    await cargarPuertos();
+  }
   if (pricingStore.listServices.length > 0) {
     recargarServicios();
-    pricingStore.getTipoCostos();
+    await Promise.all([pricingStore.getTipoCostos(), cargarTarifasTransporte()]);
   }
   if (editableStep2.value) {
     recargarCostos();
-    // this.$store.state.pricing.index = 0;
   }
+}
+function idTransporteSeleccionado() {
+  const tipoCarga = pricingStore.datosPrincipales.idtipocarga as TipoCarga;
+  return (tipoCarga.id_transport ? tipoCarga.id_transport : tipoCarga) as number | string;
+}
+async function cargarPuertos() {
+  const datos = pricingStore.datosPrincipales;
+  const id_transport = idTransporteSeleccionado();
+  await Promise.all([
+    pricingStore.getPortBegin({ id_transport, id: datos.idorigen || null }),
+    pricingStore.getPortEnd({ id_transport, id: datos.iddestino || null }),
+  ]);
+  if (!pricingStore.listPortBegin.some((v) => v.id_port == datos.idorigen)) {
+    datos.idorigen = "";
+  }
+  if (!pricingStore.listPortEnd.some((v) => v.id_port == datos.iddestino)) {
+    datos.iddestino = "";
+    datos.id_town = null;
+  }
+}
+function cargarTarifasTransporte() {
+  const tipoCarga = pricingStore.datosPrincipales.idtipocarga;
+  const idTipoCarga = typeof tipoCarga === "object" ? tipoCarga.id : tipoCarga;
+  return calculadorasStore.getTransporte({
+    shimpent: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!.code,
+    id_modality: pricingStore.datosPrincipales.idsentido as number,
+    id_pais: sessionUser().id_pais,
+    id_branch: sessionBranchId(),
+  });
 }
 function continuarComparativa() {
   step.value = 3;
@@ -108,20 +141,7 @@ function continuarComparativa() {
 }
 async function activarDatosCarga() {
   appStore.spiner = true;
-  await Promise.all([
-    pricingStore.getPortBegin({
-      id_transport: ((pricingStore.datosPrincipales.idtipocarga as TipoCarga)
-        .id_transport
-        ? (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id_transport
-        : pricingStore.datosPrincipales.idtipocarga) as number | string,
-    }),
-    pricingStore.getPortEnd({
-      id_transport: ((pricingStore.datosPrincipales.idtipocarga as TipoCarga)
-        .id_transport
-        ? (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id_transport
-        : pricingStore.datosPrincipales.idtipocarga) as number | string,
-    }),
-  ]);
+  await cargarPuertos();
   DatosCargaComponentFlag.value = true;
   nextTick(() => {
     // setTimeout(() => {
@@ -134,12 +154,6 @@ async function activarDatosCarga() {
   appStore.spiner = false;
 }
 async function activarServicios() {
-  ServicesComponentFlag.value = true;
-  const idTipoCarga =
-    typeof pricingStore.datosPrincipales.idtipocarga === "object"
-      ? pricingStore.datosPrincipales.idtipocarga.id
-      : pricingStore.datosPrincipales.idtipocarga;
-
   const services = [...pricingStore.preServices];
   let serv: Servicio[] = services.filter(
     (v) =>
@@ -148,17 +162,7 @@ async function activarServicios() {
       v.id_shipment ==
         (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id,
   );
-  Promise.all([
-    pricingStore.getTipoCostos(),
-
-    calculadorasStore.getTransporte({
-      shimpent: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
-        .code,
-      id_modality: pricingStore.datosPrincipales.idsentido as number,
-      id_pais: sessionUser().id_pais,
-      id_branch: sessionBranchId(),
-    }),
-  ]);
+  await Promise.all([pricingStore.getTipoCostos(), cargarTarifasTransporte()]);
   const { esgrupalflag } = pricingStore.datosPrincipales;
 
   if (esgrupalflag) {
@@ -174,6 +178,7 @@ async function activarServicios() {
     });
   }
   pricingStore.listServices = serv;
+  ServicesComponentFlag.value = true;
   nextTick(() => {
     // setTimeout(() => {
     const element = document.getElementById("ServicesComponent");
@@ -716,49 +721,58 @@ function obtenerTransporteIndividual(item: Costo) {
   return monto;
 }
 async function guardar() {
+  if (blockedQuoteSave(pricingStore)) return;
   appStore.spiner = true;
-
   pricingStore.opcionCostos[0]!.selected = true;
-  await pricingStore.registrarQuote({ fullflag: false }).catch(() => {});
-  if (pricingStore.nro_quote) {
+  let respuesta;
+  try {
+    respuesta = await pricingStore.registrarQuote({ fullflag: false });
+  } finally {
     appStore.spiner = false;
-
+  }
+  if (!respuesta.estadoflag) {
     Swal.fire({
-      icon: "success",
-      title: "Aviso",
-      text: pricingStore.mensaje,
-      confirmButtonText: "Ir al listado",
-      showConfirmButton: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        router.push({
-          name: "lstQuote",
-        });
-      }
-      if (result.isDismissed) {
-        router.push({
-          name: "lstQuote",
-        });
-      }
+      icon: "error",
+      title: "No se guardó la cotización",
+      text: respuesta.mensaje,
     });
-    const id_branch = sessionBranchId();
-    const branchCreacion = [1, 2];
-    if (branchCreacion.includes(id_branch)) {
-      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
-        nro_quote: pricingStore.nro_quote,
-        nombre: pricingStore.datosPrincipales.nombre,
+    return;
+  }
+  Swal.fire({
+    icon: "success",
+    title: "Cotización guardada",
+    text: pricingStore.mensaje,
+    confirmButtonText: "Ir al listado",
+    showConfirmButton: true,
+  }).then((result) => {
+    if (result.isConfirmed) {
+      router.push({
+        name: "lstQuote",
       });
+    }
+    if (result.isDismissed) {
+      router.push({
+        name: "lstQuote",
+      });
+    }
+  });
+  const id_branch = sessionBranchId();
+  const branchCreacion = [1, 2];
+  if (branchCreacion.includes(id_branch)) {
+    const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+      nro_quote: pricingStore.nro_quote,
+      nombre: pricingStore.datosPrincipales.nombre,
+    });
 
-      if (urlGenerada) {
-        await pricingStore.actualizarURLEnElQuote({
-          id: pricingStore.id,
-          url: urlGenerada,
-        });
-      } else {
-        console.error(
-          "No se obtuvo URL de OneDrive, se saltó la actualización.",
-        );
-      }
+    if (urlGenerada) {
+      await pricingStore.actualizarURLEnElQuote({
+        id: pricingStore.id,
+        url: urlGenerada,
+      });
+    } else {
+      console.error(
+        "No se obtuvo URL de OneDrive, se saltó la actualización.",
+      );
     }
   }
 }
@@ -940,7 +954,7 @@ async function onExcelSelected(e: {
     });
     await ensurePreliminarStatus();
     await pricingStore.getQuoteStatus();
-    await setDefaultStatusPreliminar();
+    setDefaultStatus();
     await emitirPreliminarAuto();
   } catch {
     Swal.fire({
@@ -1138,22 +1152,10 @@ async function createPreliminarStatus() {
     await quoteStatusStore.setQuoteStatus();
   } catch {}
 }
-function setDefaultStatusPreliminar() {
-  const estados = pricingStore.listQuoteStatus || [];
-  if (!Array.isArray(estados) || estados.length === 0) return;
-  const prelim = estados.find(
-    (e) =>
-      typeof e.name === "string" &&
-      e.name.toLowerCase().includes("preliminar") &&
-      e.status == 1,
-  );
-  if (prelim) {
-    pricingStore.datosPrincipales.id_status = prelim.id;
-    return;
-  }
-  const activo = estados.find((e) => e.status == 1) || estados[0];
-  if (activo) {
-    pricingStore.datosPrincipales.id_status = activo.id;
+function setDefaultStatus() {
+  const estado = defaultQuoteStatus(pricingStore.listQuoteStatus || []);
+  if (estado) {
+    pricingStore.datosPrincipales.id_status = estado.id;
   }
 }
 async function emitirPreliminarAuto() {
@@ -1302,9 +1304,10 @@ function formatearCostoTotal(valor: Costo) {
         </div>
 
         <div class="alert-description">
-          El peso o volumen ingresado
-          <strong>supera lo registrado</strong>
-          en el sistema.
+          El peso de la carga
+          <strong>no entra en ningún rango de tarifa</strong>
+          de transporte para este distrito. Continuaremos sin tarifa: ingresa
+          el costo del transporte en los costos de la cotización.
         </div>
 
         <v-card-actions class="justify-center alert-actions">
@@ -1336,8 +1339,9 @@ function formatearCostoTotal(valor: Costo) {
 
         <div class="alert-description">
           El distrito seleccionado
-          <strong>no cuenta con tarifa</strong>
-          en el sistema.
+          <strong>no tiene tarifa de transporte</strong>
+          registrada. Continuaremos sin tarifa: ingresa el costo del transporte
+          en los costos de la cotización.
         </div>
 
         <v-card-actions class="justify-center alert-actions">

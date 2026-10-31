@@ -3,6 +3,7 @@ import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { usePricingStore } from "@/stores/pricing";
+import { invalidMultiplierMessage } from "@/components/folderPricing/quoteRules";
 import { calcularValor, currencyFormat } from "@/utils/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
@@ -704,6 +705,7 @@ onMounted(() => {
                   <td class="colProveedorMultiplicador">
                     <CboMultiplicador
                       v-model="valor.id_multiplicador"
+                      :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                       placeholder="Multiplicador"
                       @change="calcTotales"
                       :hide-details="true"

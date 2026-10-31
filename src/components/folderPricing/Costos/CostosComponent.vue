@@ -8,6 +8,7 @@ import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useEntitiesStore } from "@/stores/entities";
 import { useProveedorStore } from "@/stores/proveedor";
 import { usePricingStore } from "@/stores/pricing";
+import { invalidMultiplierMessage } from "@/components/folderPricing/quoteRules";
 import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
@@ -1160,6 +1161,7 @@ onMounted(async () => {
                         <td class="colProveedorMultiplicador">
                           <CboMultiplicador
                             v-model="valor.id_multiplicador"
+                            :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                             placeholder="Multiplicador"
                             @change="calcTotales"
                             :hide-details="true"
@@ -1473,6 +1475,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"
@@ -1770,6 +1773,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"
@@ -2067,6 +2071,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"
@@ -2365,6 +2370,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"
@@ -2661,6 +2667,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"
@@ -2959,6 +2966,7 @@ onMounted(async () => {
                       <td class="colProveedorMultiplicador">
                         <CboMultiplicador
                           v-model="valor.id_multiplicador"
+                          :error-messages="invalidMultiplierMessage(valor, pricingStore.listMultiplicador)"
                           placeholder="Multiplicador"
                           @change="calcTotales"
                           :hide-details="true"

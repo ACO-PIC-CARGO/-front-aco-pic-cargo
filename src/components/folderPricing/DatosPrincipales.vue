@@ -20,7 +20,7 @@ withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
   { mostrarBtn: true, editableFlag: true, recargarFlag: false },
 );
-const emit = defineEmits<{ activarDatosCarga: [activar: boolean] }>();
+const emit = defineEmits<{ activarDatosCarga: [activar: boolean]; recargarServiciosCostos: [] }>();
 
 const route = useRoute();
 const router = useRouter();
@@ -212,8 +212,9 @@ function recargarServiciosCostos(id_incoterms?: number | string) {
         Swal.close();
       }
     });
+  } else {
+    emit("recargarServiciosCostos");
   }
-  // this.recargarServiciosCostosContinuar(id_incoterms)
 }
 function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
   if (route.name == "editQuote") {

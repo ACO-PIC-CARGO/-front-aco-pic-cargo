@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent, nextTick, ref, useTemplateRef, watch } 
 import moment from "moment";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
+import { positiveInteger } from "@/components/folderPricing/quoteRules";
 import type { Costo } from "@/types/cotizacion";
 
 withDefaults(
@@ -331,10 +332,7 @@ watch(reset, () => {
                 pricingStore.opcionCostos[pricingStore.index]!
                   .tiempo_transito
               "
-              :rules="[
-                (v) => !!v || 'Dato Requerido',
-                (v) => v > 0 || 'El valor tiene que ser positivo.',
-              ]"
+              :rules="[positiveInteger]"
             />
           </v-col>
           <v-col cols="8">
@@ -429,10 +427,7 @@ watch(reset, () => {
             :name="`Tiempo en tránsito de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
             :label="`Tiempo en tránsito de la Opción ${opcionSeleccionadaActual.nro_propuesta}`"
             v-model="opcionSeleccionadaActual.tiempo_transito"
-            :rules="[
-              (v) => !!v || 'Dato Requerido',
-              (v) => v > 0 || 'El valor tiene que ser positivo.',
-            ]"
+            :rules="[positiveInteger]"
           />
         </v-col>
         <v-col
