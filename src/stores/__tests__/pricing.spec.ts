@@ -1543,6 +1543,15 @@ describe("pricing store", () => {
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
     });
 
+    test("generarReporte tells the backend which quote the PDF belongs to so it lands in the quote's folder", async () => {
+      const pricing = cotizacion();
+      pricing.id = 77;
+
+      await pricing.generarReporte({ tipo: "TOTAL", guardarFlag: true });
+
+      expect((postedBody("quote_preview_totales") as Record<string, unknown>).id_quote).toBe(77);
+    });
+
     test("generarReporte names the WhatsApp PDF after the quote type, the consolidated load and the client", async () => {
       const pricing = cotizacion();
 
@@ -1568,17 +1577,17 @@ describe("pricing store", () => {
     });
 
     test("generarReporte reports a WhatsApp message the backend could not send", async () => {
-      postMock.mockResolvedValue({ data: { estadoflag: false, error: "whatsapp down" } });
+      postMock.mockResolvedValue({ data: { estadoflag: false, msg: "No pudimos enviar el WhatsApp. Revisa el número del cliente e intenta de nuevo.", error: "No pudimos enviar el WhatsApp." } });
       const pricing = cotizacion();
 
       await pricing.generarReporte({ tipo: "TOTAL", enviarWspCliente: true, textWhatsapp: "hola" });
 
       expect(Swal.fire).toHaveBeenCalledWith({
         icon: "error",
-        title: "Ocurrió un error. Comuníquese con el administrador del sistema",
+        title: "No se envió el mensaje",
+        text: "No pudimos enviar el WhatsApp. Revisa el número del cliente e intenta de nuevo.",
         showConfirmButton: true,
       });
-      expect(console.error).toHaveBeenCalledWith("whatsapp down");
       expect(window.open).not.toHaveBeenCalled();
     });
 

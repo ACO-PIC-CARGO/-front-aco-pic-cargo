@@ -1178,6 +1178,7 @@ exports[`pricing store > reports > generarReporte posts the AGRUPADO totals of t
   "guardarFlag": false,
   "icoterm": "FOB",
   "id_branch": 1,
+  "id_quote": "",
   "importante": [
     {
       "name": "SALIDAS SEMANALES",
@@ -1386,6 +1387,7 @@ exports[`pricing store > reports > generarReporte posts the DETALLE totals of th
   "guardarFlag": false,
   "icoterm": "FOB",
   "id_branch": 1,
+  "id_quote": "",
   "importante": [
     {
       "name": "SALIDAS SEMANALES",
@@ -1594,6 +1596,7 @@ exports[`pricing store > reports > generarReporte posts the TOTAL totals of the 
   "guardarFlag": false,
   "icoterm": "FOB",
   "id_branch": 1,
+  "id_quote": "",
   "importante": [
     {
       "name": "SALIDAS SEMANALES",

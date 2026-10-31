@@ -2973,6 +2973,7 @@ export const usePricingStore = defineStore("pricing", () => {
       index: nro_propuesta,
       isImport: isImport,
       id_branch: sessionBranchId(),
+      id_quote: id.value,
       code: nro_quote.value,
       business_name: datosEmpresa.value[0]!.business_name ? datosEmpresa.value[0]!.business_name : "",
       nameEmpresa: sessionSucursal().trade_name,
@@ -3073,10 +3074,10 @@ export const usePricingStore = defineStore("pricing", () => {
           } else {
             Swal.fire({
               icon: "error",
-              title: "Ocurrió un error. Comuníquese con el administrador del sistema",
+              title: "No se envió el mensaje",
+              text: res.msg,
               showConfirmButton: true,
             });
-            console.error(res.error);
           }
         }
       })
