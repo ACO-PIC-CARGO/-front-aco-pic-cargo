@@ -382,7 +382,7 @@ async function generarControlesGastos() {
       const branchCreacion = [1, 2];
       if (branchCreacion.includes(id_branch)) {
         const url = await mastersStore.createCarpetaOneDrive({
-          name: response[0]!.nro_master,
+          id_master: response[0]!.id_master,
         });
         console.log("url1", url);
         if (url) {
