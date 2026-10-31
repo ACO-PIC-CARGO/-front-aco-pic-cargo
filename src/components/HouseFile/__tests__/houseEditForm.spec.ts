@@ -74,3 +74,11 @@ test("a house needs a client and a provider before saving", () => {
   expect(editFormError({ ...form, id_consigner: null })).toBe("Elige el cliente HBL y el proveedor para guardar.");
   expect(editFormError({ ...form, id_proveedor: null })).toBe("Elige el cliente HBL y el proveedor para guardar.");
 });
+
+test("a house cannot be saved with a negative quantity, weight, volume or amount", () => {
+  const form = editFormFromHouse(house);
+  for (const field of ["bultos", "peso", "volumen", "monto"] as const) {
+    expect(editFormError({ ...form, [field]: -1 })).toBe("Revisa bultos, peso, volumen y monto: no pueden ser negativos.");
+    expect(editFormError({ ...form, [field]: 0 })).toBeNull();
+  }
+});

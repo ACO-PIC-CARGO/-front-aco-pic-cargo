@@ -626,6 +626,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.bultos"
+            min="0"
             type="number"
             label="Bultos"
             :readonly="false"
@@ -644,6 +645,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.peso"
+            min="0"
             type="number"
             suffix="kg"
             label="Peso"
@@ -664,6 +666,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.volumen"
+            min="0"
             type="number"
             suffix="m3"
             label="Volumen"
@@ -686,6 +689,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.bultos"
+            min="0"
             type="number"
             label="Bultos"
             :readonly="false"
@@ -704,6 +708,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.peso"
+            min="0"
             type="number"
             suffix="kg"
             label="Peso"
@@ -772,6 +777,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.peso"
+            min="0"
             type="number"
             suffix="kg"
             label="Peso"
@@ -792,6 +798,7 @@ onMounted(async () => {
           <v-text-field
             v-if="editing"
             v-model.number="form.volumen"
+            min="0"
             type="number"
             suffix="m3"
             label="Volumen"

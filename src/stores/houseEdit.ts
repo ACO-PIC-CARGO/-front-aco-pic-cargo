@@ -9,7 +9,7 @@ import type { HouseDetalle } from "@/types/operaciones";
 
 const SAVE_ERROR = "No pudimos guardar los cambios del house. Revisa tu conexión e intenta de nuevo.";
 const NOT_LOADED = "No pudimos cargar todos los datos del house. Recarga la página e intenta de nuevo.";
-// setHouseEdit never answers when its SQL fails, so the request must give up on its own.
+const MISSING_CLIENT = "Elige el cliente HBL para continuar.";
 const SAVE_TIMEOUT_MS = 30000;
 const ONEDRIVE_BRANCHES = [1, 2];
 
@@ -56,17 +56,28 @@ export const useHouseEditStore = defineStore("houseEdit", () => {
     if (saving.value) return null;
     const invalid = editFormError(form.value);
     if (invalid) return invalid;
+    return send(house);
+  }
+
+  async function saveClient(house: HouseDetalle, clientId: number | null): Promise<string | null> {
+    if (saving.value) return null;
+    if (!clientId) return MISSING_CLIENT;
+    form.value.id_consigner = clientId;
+    return send(house);
+  }
+
+  async function send(house: HouseDetalle): Promise<string | null> {
     // Services not sent are deleted by the DB, so a house without its services list must never be saved.
     if (!Array.isArray(house.services) || !form.value.id || Number(house.id) !== form.value.id) return NOT_LOADED;
     saving.value = true;
     try {
-      const response = (await request({
+      const response = await request({
         method: "put",
         url: "setHouseEdit",
         data: houseEditPayload(form.value, house.services, sessionBranchId()),
         timeout: SAVE_TIMEOUT_MS,
-      })) as { statusBol?: boolean };
-      if (!response.statusBol) return SAVE_ERROR;
+      });
+      if (!response.estadoflag) return response.tipomensaje === "TMSGERR" || !response.mensaje ? SAVE_ERROR : response.mensaje;
       await createOneDriveFolder(house);
       return null;
     } finally {
@@ -74,5 +85,5 @@ export const useHouseEditStore = defineStore("houseEdit", () => {
     }
   }
 
-  return { form, loadingLists, saving, start, save };
+  return { form, loadingLists, saving, start, save, saveClient };
 });

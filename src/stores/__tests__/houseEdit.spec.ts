@@ -32,7 +32,7 @@ describe("houseEdit store", () => {
   });
 
   test("save sends the edit form with every service of the house and a 30 s timeout", async () => {
-    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true } });
+    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true, estadoflag: true } });
     const store = useHouseEditStore();
     store.form = editFormFromHouse(house);
     expect(await store.save(house)).toBeNull();
@@ -48,7 +48,28 @@ describe("houseEdit store", () => {
     expect(await store.save(house)).toBe(SAVE_ERROR);
     httpMock.mockResolvedValueOnce({ data: { status: 500, statusBol: false } });
     expect(await store.save(house)).toBe(SAVE_ERROR);
+    httpMock.mockResolvedValueOnce({ data: { status: 200, statusBol: true, estadoflag: false, tipomensaje: "TMSGERR", mensaje: "x" } });
+    expect(await store.save(house)).toBe(SAVE_ERROR);
     expect(store.saving).toBe(false);
+  });
+
+  test("a save the server refuses returns the server's reason", async () => {
+    const reason = "Revisa bultos, peso, volumen y monto: no pueden ser negativos. Corrígelos e intenta de nuevo.";
+    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true, estadoflag: false, tipomensaje: "TMSGADV", mensaje: reason } });
+    const store = useHouseEditStore();
+    store.form = editFormFromHouse(house);
+    expect(await store.save(house)).toBe(reason);
+  });
+
+  test("choosing the client of a new house saves it even before the provider is known", async () => {
+    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true, estadoflag: true } });
+    const store = useHouseEditStore();
+    const newHouse = { ...house, id_consigner: null, id_proveedor: null } as unknown as HouseDetalle;
+    store.form = editFormFromHouse(newHouse);
+    expect(await store.saveClient(newHouse, null)).toBe("Elige el cliente HBL para continuar.");
+    expect(httpMock).not.toHaveBeenCalled();
+    expect(await store.saveClient(newHouse, 31)).toBeNull();
+    expect((httpMock.mock.calls[0]![0].data as { id_consigner: number }).id_consigner).toBe(31);
   });
 
   test("a house without client or provider is not sent", async () => {
@@ -79,14 +100,14 @@ describe("houseEdit store", () => {
     store.form = editFormFromHouse(house);
     const first = store.save(house);
     expect(await store.save(house)).toBeNull();
-    finish({ data: { status: 200, statusBol: true } });
+    finish({ data: { status: 200, statusBol: true, estadoflag: true } });
     expect(await first).toBeNull();
     expect(httpMock).toHaveBeenCalledTimes(1);
   });
 
   test("a saved house of sucursal 1 without a folder gets its OneDrive folder", async () => {
     sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1 }]));
-    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true } });
+    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true, estadoflag: true } });
     const folder = vi.spyOn(useHousesStore(), "guardarCarpetaHouse").mockResolvedValue();
     const store = useHouseEditStore();
     const noFolder = { ...house, url_onedrive: "" } as unknown as HouseDetalle;
