@@ -11,7 +11,7 @@ async function filtrar() {
   appStore.spiner = true;
 
   if (
-    appStore.controlgastosfiltro.id_tipo_embarqu &&
+    appStore.controlgastosfiltro.id_tipo_embarque &&
     Object.keys(appStore.controlgastosfiltro.id_tipo_embarque)
       .length > 0
   ) {
