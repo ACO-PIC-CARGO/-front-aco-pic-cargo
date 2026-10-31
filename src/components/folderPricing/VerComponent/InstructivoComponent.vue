@@ -10,7 +10,7 @@ import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
-import type { ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
+import type { AprobacionCotizacion, ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
 
 const ConfigCotizacion = defineAsyncComponent(() =>
@@ -345,22 +345,28 @@ function verificarMaster() {
   }
 }
 async function imprimir() {
-  for (
-    let index = 0;
-    index <
-    pricingStore.opcionCostos.filter((v) => !!v.selected)
-      .length;
-    index++
-  ) {
-    ((index: number) => {
+  pricingStore.opcionCostos
+    .filter((v) => !!v.selected)
+    .forEach((opcion) => {
       pricingStore.imprimirInstructivoQuote({
-        nro_propuesta:
-          pricingStore.opcionCostos[index]!.nro_propuesta,
-        url_folderonedrive:
-          pricingStore.datosPrincipales.url_folderonedrive,
+        nro_propuesta: opcion.nro_propuesta,
+        url_folderonedrive: pricingStore.datosPrincipales.url_folderonedrive,
       } as { nro_propuesta?: number });
-    })(index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
+    });
+}
+async function approveQuote(details: AprobacionCotizacion) {
+  Swal.fire({
+    icon: "info",
+    title: "Aprobando cotización",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+  const approved = await pricingStore.aprobarCotizacion({ ...details, IdempotencyKey: IdempotencyKey.value });
+  if (!approved) {
+    IdempotencyKey.value = generateIdempotencyKey();
+    return;
   }
+  await pricingStore.GuardaCostosFinalesQuote();
 }
 async function guardarNota() {
   if ((await notaForm.value!.validate()).valid) {
@@ -582,18 +588,7 @@ async function abrirModalAprobar() {
                   (v) => v.nro_propuesta == nro_propuesta.value,
                 )[0]!.dataVentas;
               if (res.isConfirmed) {
-                Swal.fire({
-                  icon: "info",
-                  title: "Aprobando Cotizacion",
-                  timerProgressBar: true,
-                  allowOutsideClick: false,
-                  timer: null as unknown as number,
-                  didOpen: () => {
-                    Swal.showLoading();
-                  },
-                });
-                await pricingStore.aprobarCotizacion({
-                  IdempotencyKey: IdempotencyKey.value,
+                await approveQuote({
                   id_quote: route.params.id,
                   nuevoexpediente: true,
                   id_exp: id_exp.value,
@@ -607,9 +602,6 @@ async function abrirModalAprobar() {
                   id_opcion: id_opcion.value,
                   url_folderonedrive: url_folderonedrive.value,
                 });
-                appStore.spiner = true;
-
-                appStore.spiner = false;
               }
             });
           }
@@ -706,18 +698,7 @@ async function abrirModalAprobar() {
                 (v) => v.nro_propuesta == nro_propuesta.value,
               )[0]!.dataVentas;
             if (res.isConfirmed) {
-              Swal.fire({
-                icon: "info",
-                title: "Aprobando Cotizacion",
-                timerProgressBar: true,
-                allowOutsideClick: false,
-                timer: null as unknown as number,
-                didOpen: () => {
-                  Swal.showLoading();
-                },
-              });
-              await pricingStore.aprobarCotizacion({
-                IdempotencyKey: IdempotencyKey.value,
+              await approveQuote({
                 id_quote: route.params.id,
                 nuevoexpediente: true,
                 id_exp: id_exp.value,
@@ -731,9 +712,6 @@ async function abrirModalAprobar() {
                 id_opcion: id_opcion.value,
                 url_folderonedrive: url_folderonedrive.value,
               });
-              appStore.spiner = true;
-
-              appStore.spiner = false;
             }
           });
         }
@@ -882,18 +860,7 @@ async function continuarAprobarHouses() {
     return;
   }
   if (formulario || id_exp.value || nuevoexpediente.value) {
-    Swal.fire({
-      icon: "info",
-      title: "Aprobando Cotizacion",
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-    await pricingStore.aprobarCotizacion({
-      IdempotencyKey: IdempotencyKey.value,
+    await approveQuote({
       id_quote: route.params.id,
       nuevoexpediente: false,
       id_exp: id_exp.value,
@@ -908,9 +875,7 @@ async function continuarAprobarHouses() {
       id_opcion_house: id_opcion_house.value,
       url_folderonedrive: url_folderonedrive.value,
     });
-    appStore.spiner = true;
     aprobarflag.value = false;
-    appStore.spiner = false;
   }
 }
 

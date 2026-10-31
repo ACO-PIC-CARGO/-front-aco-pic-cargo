@@ -77,7 +77,8 @@ import {
 } from "@/utils/cotizacion";
 import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { filledParams } from "@/utils/queryParams";
-import { hasFailed, notifySuccess, request } from "@/utils/request";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
+import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
@@ -1620,29 +1621,18 @@ export const usePricingStore = defineStore("pricing", () => {
     });
   }
   async function crearCarpetaOneDrive({
-    nro_quote = "",
-    nombre = "",
+    id_quote = id.value,
   }: {
+    id_quote?: number | string;
     nro_quote?: string;
     nombre?: string;
-  }): Promise<string | null> {
-    const folder = nro_quote + "-" + nombre;
-    const config = {
+  } = {}): Promise<string | null> {
+    const response = (await request({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `crear-carpeta-cotizacion?nombrecotizacion=${folder}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-
-    try {
-      const response = await axios<ApiResponse<string>>(config);
-      // IMPORTANTE: Debes retornar el valor para que 'urlGenerada' tenga contenido
-      return response.data.data;
-    } catch (error) {
-      console.error("Error en crearCarpetaOneDrive:", error);
-      return null; // Retornamos null para manejar el error en la siguiente etapa
-    }
+      url: import.meta.env.VITE_URL_MAIN + "crear-carpeta-cotizacion",
+      params: { id_quote },
+    })) as unknown as ApiResponse<string | null>;
+    return response.estadoflag && response.data ? response.data : null;
   }
   async function actualizarURLEnElQuote({
     id = "",
@@ -4698,8 +4688,8 @@ export const usePricingStore = defineStore("pricing", () => {
       return false;
     }
   }
-  async function aprobarCotizacion(dataParaAprobar: AprobacionCotizacion): Promise<void> {
-    const config = {
+  async function aprobarCotizacion(dataParaAprobar: AprobacionCotizacion): Promise<boolean> {
+    const data = await request<MasterAprobado>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "aprobar_cotizacion",
       headers: {
@@ -4707,88 +4697,91 @@ export const usePricingStore = defineStore("pricing", () => {
         "idempotency-key": dataParaAprobar.IdempotencyKey,
       },
       data: dataParaAprobar,
-    };
-    await axios<ApiResponse<MasterAprobado[]>>(config).then(async (res) => {
-      const data = res.data;
-      const name = data.data[0]!.code_master + " - " + datosPrincipales.value.nombre;
-      const id_branch = sessionBranchId();
-      const id_branchs = ["1", "2", 1, 2];
-      if (dataParaAprobar.nuevoexpediente == true && id_branchs.includes(id_branch)) {
-        Promise.all([
-          useHousesStore().guardarCarpetaHouse({
-            nroMaster: name,
-            id: data.data[0]!.id_master,
-            idSelectedFile: selectedFile.value.map((v) => v.id),
-          }),
-
-          useControlGastosStore().imprimirGuardarControlDetallado({
-            guardarEnCarpeta: false,
-            asociadoflag: true,
-            id: data.data[0]!.id_master,
-            id_branch: sessionBranchId(),
-          }),
-        ]);
-      }
-
-      if (dataParaAprobar.nuevoexpediente == false && id_branchs.includes(id_branch)) {
-        Promise.all([
-          useFilesStore().moveFileToOneDrive({
-            destinationFolderUrl: dataParaAprobar.url_folderonedrive,
-            nroMaster: name,
-            id: data.data[0]!.id_master,
-            fileIds: selectedFile.value.map((v) => v.id),
-          }),
-          useControlGastosStore().imprimirGuardarControlDetallado({
-            guardarEnCarpeta: false,
-            asociadoflag: true,
-            id: data.data[0]!.id_master,
-            id_branch: sessionBranchId(),
-          }),
-        ]);
-      }
-      Swal.fire({
-        icon: data.estadoflag == true ? "success" : "error",
-        title: "Aviso",
-        text: res.data.mensaje,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        confirmButtonText: "Ir al control de gastos",
-        // cancelButtonText: "Enviar Correos",
-        denyButtonText: "Ahora continuaremos con los Email.",
-        // showCancelButton: true,
-        showConfirmButton: true,
-        showDenyButton: true,
-        confirmButtonColor: "#004D40",
-        denyButtonColor: "#DD2C00",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          router.push({
-            name: "editControlGasto",
-            params: {
-              id: data.data[0]!.id_master,
-              id_branch: sessionBranchId(),
-            },
-          });
-        }
-        if (res.isDenied) {
-          // La ruta actual está en 'currentRoute'
-          const idActual = router.currentRoute.value.params.id;
-
-          if (idActual) {
-            router.push({
-              name: "verQuote",
-              params: { id: idActual, step: 5 },
-            });
-
-            setTimeout(() => {
-              window.location.reload();
-            }, 1000);
-          } else {
-            console.warn("No se encontró el ID en la ruta actual");
-          }
-        }
-      });
     });
+    if (!data.estadoflag || !data.data[0]) {
+      const refusedByServer = !data.estadoflag && data.mensaje !== CONNECTION_ERROR_MESSAGE;
+      Swal.fire({ icon: "error", text: refusedByServer ? data.mensaje : APPROVE_FAILED_MESSAGE });
+      return false;
+    }
+    const name = data.data[0]!.code_master + " - " + datosPrincipales.value.nombre;
+    const id_branch = sessionBranchId();
+    const id_branchs = ["1", "2", 1, 2];
+    if (dataParaAprobar.nuevoexpediente == true && id_branchs.includes(id_branch)) {
+      Promise.all([
+        useHousesStore().guardarCarpetaHouse({
+          nroMaster: name,
+          id: data.data[0]!.id_master,
+          idSelectedFile: selectedFile.value.map((v) => v.id),
+        }),
+
+        useControlGastosStore().imprimirGuardarControlDetallado({
+          guardarEnCarpeta: false,
+          asociadoflag: true,
+          id: data.data[0]!.id_master,
+          id_branch: sessionBranchId(),
+        }),
+      ]);
+    }
+
+    if (dataParaAprobar.nuevoexpediente == false && id_branchs.includes(id_branch)) {
+      Promise.all([
+        useFilesStore().moveFileToOneDrive({
+          destinationFolderUrl: dataParaAprobar.url_folderonedrive,
+          nroMaster: name,
+          id: data.data[0]!.id_master,
+          fileIds: selectedFile.value.map((v) => v.id),
+        }),
+        useControlGastosStore().imprimirGuardarControlDetallado({
+          guardarEnCarpeta: false,
+          asociadoflag: true,
+          id: data.data[0]!.id_master,
+          id_branch: sessionBranchId(),
+        }),
+      ]);
+    }
+    Swal.fire({
+      icon: "success",
+      title: "Aviso",
+      text: data.mensaje,
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      confirmButtonText: "Ir al control de gastos",
+      // cancelButtonText: "Enviar Correos",
+      denyButtonText: "Ahora continuaremos con los Email.",
+      // showCancelButton: true,
+      showConfirmButton: true,
+      showDenyButton: true,
+      confirmButtonColor: "#004D40",
+      denyButtonColor: "#DD2C00",
+    }).then((res) => {
+      if (res.isConfirmed) {
+        router.push({
+          name: "editControlGasto",
+          params: {
+            id: data.data[0]!.id_master,
+            id_branch: sessionBranchId(),
+          },
+        });
+      }
+      if (res.isDenied) {
+        // La ruta actual está en 'currentRoute'
+        const idActual = router.currentRoute.value.params.id;
+
+        if (idActual) {
+          router.push({
+            name: "verQuote",
+            params: { id: idActual, step: 5 },
+          });
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        } else {
+          console.warn("No se encontró el ID en la ruta actual");
+        }
+      }
+    });
+    return true;
   }
   function comienzaNoConCaracter(nombre: string, caracter: string): boolean {
     return nombre.charAt(0).toUpperCase() !== caracter.toUpperCase();

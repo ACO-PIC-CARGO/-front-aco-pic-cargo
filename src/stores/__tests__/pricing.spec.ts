@@ -1851,18 +1851,6 @@ describe("pricing store", () => {
       expect(router.push).not.toHaveBeenCalled();
     });
 
-    test("aprobarCotizacion shows an error icon when the backend refuses the approval", async () => {
-      respond({ aprobar_cotizacion: { estadoflag: false, mensaje: "Ya fue aprobada", data: [{ id_master: 902, code_master: "M-902" }] } });
-      vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
-      const pricing = usePricingStore();
-      pricing.datosPrincipales = { nombre: "ZEVALLOS" };
-
-      await pricing.aprobarCotizacion({ IdempotencyKey: "key-3", nuevoexpediente: true });
-      await flushPromises();
-
-      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", title: "Aviso", text: "Ya fue aprobada" });
-    });
-
     describe("when the user picks the emails", () => {
       const params = router.currentRoute.value.params as Record<string, unknown>;
       afterEach(() => delete params.id);
