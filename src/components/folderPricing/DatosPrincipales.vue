@@ -114,6 +114,9 @@ async function copiarArchivos() {
     .catch((e: unknown) => {
       console.error(e);
     });
+  abrirNuevaCotizacion();
+}
+function abrirNuevaCotizacion() {
   router.push({
     name: "editQuote",
     params: {
@@ -227,12 +230,24 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
     };
     setTimeout(async () => {
       appStore.spiner = true;
-      await pricingStore.registrarQuotePorCambioIncoterms(data);
-      appStore.spiner = false;
-      if (pricingStore.nro_quote) {
+      let respuesta;
+      let urlCarpeta: string | null = null;
+      try {
+        respuesta = await pricingStore.registrarQuotePorCambioIncoterms(data);
+        if (respuesta.estadoflag) urlCarpeta = await crearCarpetaNuevaCotizacion();
+      } finally {
+        appStore.spiner = false;
+      }
+      if (!respuesta.estadoflag) {
+        pricingStore.datosPrincipales.idincoterms = idincoterms.value as DatosPrincipales["idincoterms"];
+        Swal.fire({ icon: "error", title: "No se creó la nueva cotización", text: respuesta.mensaje });
+        return;
+      }
+      if (urlCarpeta) {
+        urlGenerada.value = urlCarpeta;
         Swal.fire({
           icon: "success",
-          title: "Aviso",
+          title: "Nueva cotización creada",
           text: pricingStore.mensaje,
           confirmButtonText: "Copiar Archivos",
           showConfirmButton: true,
@@ -242,32 +257,29 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
         }).then(() => {
           dialogFiles.value = true;
         });
-        const id_branch = sessionBranchId();
-        const branchCreacion = [1, 2];
-        if (branchCreacion.includes(id_branch)) {
-          const urlCarpeta = await pricingStore.crearCarpetaOneDrive({
-            id_quote: pricingStore.id,
-          });
-
-          if (urlCarpeta) {
-            urlGenerada.value = urlCarpeta;
-            console.log(urlGenerada.value);
-            await Promise.all([
-              pricingStore.actualizarURLEnElQuote({
-                id: pricingStore.id,
-                url: urlCarpeta,
-              }),
-            ]);
-          } else {
-            Swal.fire({ icon: "warning", title: "Cotización creada sin carpeta", text: FOLDER_NOT_CREATED });
-          }
-        }
+        return;
       }
+      const sinCarpeta = [1, 2].includes(sessionBranchId())
+        ? ` ${FOLDER_NOT_CREATED} Los archivos no se copiaron porque la carpeta no existe.`
+        : "";
+      const res = await Swal.fire({
+        icon: "success",
+        title: "Nueva cotización creada",
+        text: `${pricingStore.mensaje}${sinCarpeta}`,
+        confirmButtonText: "Ir a la nueva cotización",
+      });
+      if (res.isConfirmed) abrirNuevaCotizacion();
     }, 500);
   }
   // if (this.$route.name == "newQuote") {
   //   this.recargarNuevo(id_incoterms);
   // }
+}
+async function crearCarpetaNuevaCotizacion() {
+  if (![1, 2].includes(sessionBranchId())) return null;
+  const url = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
+  if (url) await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
+  return url;
 }
 function recargarServicioEditar(id_incoterms?: number | string) {
   const servicesPorIncoterm = pricingStore.preServices.filter(
