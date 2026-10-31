@@ -5,6 +5,8 @@ import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { sessionBranchId } from "@/utils/sesion";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 import type { AbonoCliente, ConceptoSolicitudPago } from "@/types/requests";
 
 const appStore = useAppStore();
@@ -119,11 +121,11 @@ function getDebs() {
   _getDebsClient();
   appStore.spiner = false;
 }
-function editControl(nro_master: string) {
+function editControl(id_master: number) {
   appRouter.push({
     name: "editControlGasto",
     params: {
-      code_master: nro_master,
+      id: id_master,
       id_branch: sessionBranchId(),
     },
   });
@@ -143,7 +145,8 @@ function processPayment(id: string, path: string, master: string, monto: string,
   paymentMaster.value = master;
   paymentmonto.value = monto;
   nameproveedor.value = namelong;
-  _getRequestPaymentConceptos(sPaymentId.value);
+  errorNroOp.value = "";
+  nro_operacion.value = "";
   dialogProcess.value = true;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -165,30 +168,13 @@ async function reversar(item: AbonoCliente) {
   });
 }
 async function reversarProceso(item: AbonoCliente) {
-  const config = {
+  const answer = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "reversar_debscliente",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
     data: { id: item.id },
-  };
-  await axios(config)
-    .then(function (response) {
-      const res = response.data.data;
-
-      Swal.fire({
-        title: "Aviso",
-        text: res[0].mensaje,
-        icon: "info",
-      });
-      getDebs();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  Swal.fire({ icon: answer.estadoflag ? "success" : answer.tipomensaje === "TMSGERR" ? "error" : "info", text: answer.mensaje || CONNECTION_ERROR_MESSAGE });
+  if (answer.estadoflag) getDebs();
 }
 function openPaymentFile(id: string, path: string, proveedor: string) {
   pathfileAll.value = path;
@@ -205,27 +191,13 @@ function openInvoice(id: number, id_house: number, providerName: string) {
   //this.dialogInvoice = true;
 }
 async function _getDebsClient() {
-  const data = {
-    id_branch: sessionBranchId(),
-  };
-  const config = {
+  const answer = await request<AbonoCliente>({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getDebsClientList",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function (response) {
-      dataList.value = true;
-      itemsDebsClient.value = response.data.data;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsDebsClient.value = answer.data;
+  dataList.value = true;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _uploadFile() {
@@ -264,58 +236,37 @@ function cleandData() {
   comentarioadmin.value = "";
 }
 async function _setCheckDebsClient() {
-  if (nro_operacion.value) {
-    Swal.fire({
-      icon: "info",
-      title: "Aprobando el pago...",
-      text: "Por favor espere",
-    });
-    const data = {
-      comentario_admin:
-        !comentarioadmin.value || comentarioadmin.value == ""
-          ? null
-          : comentarioadmin.value,
-      checkComision:
-        !checkComision.value || checkComision.value == ""
-          ? null
-          : checkComision.value,
-      comision:
-        !montocomision.value || montocomision.value == ""
-          ? null
-          : montocomision.value,
-      status: 2,
-      nro_operacion: nro_operacion.value,
-      id: sPaymentId.value,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setCheckDebsClient/",
-
-      headers: {
-
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function () {
-        _getDebsClient();
-        //vm.itemsSPayment = response.data.data;
-        Swal.fire({
-          icon: "success",
-          title: "Pago Aprobado",
-          text: "El pago ha sido Aprobado correctamente",
-        });
-
-        cleandData();
-        dialogProcess.value = false;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  } else {
-    errorNroOp.value = "Dato Requerido.";
+  if (!nro_operacion.value) {
+    errorNroOp.value = "Escribe el número de operación del banco.";
+    return;
   }
+  Swal.fire({
+    icon: "info",
+    title: "Aprobando el abono...",
+    text: "Espera un momento.",
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+  const answer = await request({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "setCheckDebsClient",
+    data: {
+      id: sPaymentId.value,
+      nro_operacion: nro_operacion.value,
+      comentario_admin: comentarioadmin.value || null,
+      checkComision: checkComision.value === true,
+      comision: montocomision.value || null,
+    },
+  });
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
+  }
+  Swal.fire({ icon: "success", title: "Abono aprobado", text: answer.mensaje });
+  cleandData();
+  dialogProcess.value = false;
+  await _getDebsClient();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _getRequestPayment() {
@@ -390,6 +341,7 @@ onMounted(async () => {
         :headers="headersdebs"
         :items="itemsDebsClient"
         :search="search"
+        no-data-text="No hay abonos de clientes por confirmar ni confirmados en tu empresa."
       >
         <template #[`item.status`]="{ item }">
           <v-chip
@@ -421,7 +373,7 @@ onMounted(async () => {
           <v-icon
             color="info"
             class="mr-2"
-            @click="editControl(item.code_master)"
+            @click="editControl(item.id_master)"
           >
             mdi-pencil
           </v-icon>

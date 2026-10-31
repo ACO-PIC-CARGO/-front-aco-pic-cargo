@@ -5,6 +5,8 @@ import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 import type { EgresoExpediente, ExpedienteSinSolicitud } from "@/types/requests";
 
 const appStore = useAppStore();
@@ -63,9 +65,7 @@ const headers = ref([
   { title: "Pagar", key: "actions" },
 ]);
 
-let payoperacion: string | undefined;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let dialogProcess: boolean | undefined;
+const payoperacion = ref("");
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let payFile: string | undefined;
 
@@ -107,8 +107,8 @@ function _uploadFile() {
       boolFile.value = true;
       payPath.value = JSON.stringify(response.data.data[0].insertid);
     })
-    .catch(function (error) {
-      console.error(error);
+    .catch(function () {
+      Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
     });
 }
 
@@ -120,48 +120,35 @@ async function _setSPaymentFile() {
   Swal.fire({
     icon: "info",
     title: "Procesando pago...",
-    text: "Por favor espere",
+    text: "Espera un momento.",
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
   });
-  const data = {
-    fecha_operacion: date.value,
-    nro_operacion: payoperacion,
-    id_banks: paybanco.value,
-    id_coins: paymoneda.value,
-    monto: paymonto.value,
-    id_path: payPath.value,
-    status: 1,
-    id_request: "",
-    itemsSPaymentConceptos: selected.value,
-  };
-  const config = {
+  const answer = await request({
     method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile/",
-
-    headers: {
-
-      "Content-Type": "application/json",
+    url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile",
+    data: {
+      fecha_operacion: date.value,
+      nro_operacion: payoperacion.value,
+      id_banks: paybanco.value,
+      id_coins: paymoneda.value,
+      monto: paymonto.value,
+      id_path: payPath.value,
+      id_request: null,
+      expense_ids: selected.value.map((egreso) => egreso.id),
     },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      //vm.itemsSPayment = response.data.data;
-      Swal.fire({
-        icon: "success",
-        title: "Pago Procesado",
-        text: "El pago ha sido procesado correctamente",
-      });
-
-      cleandData();
-      dialogProcess = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
+  }
+  Swal.fire({ icon: "success", title: "Pago procesado", text: answer.mensaje });
+  cleandData();
 }
 function cleandData() {
-  date.value = "";
-  payoperacion = "";
+  date.value = moment().format("YYYY-MM-DD");
+  payoperacion.value = "";
   paybanco.value = "";
   paymoneda.value = "";
   paymonto.value = "";
@@ -175,28 +162,17 @@ function cleandData() {
     getEgresosExpedientes();
   }, 1000);
 }
-function getEgresosExpedientes() {
-  const data = {
-    id_house: id_house.value,
-  };
-  const config = {
+async function getEgresosExpedientes() {
+  const answer = await request<EgresoExpediente>({
     method: "post",
-    url:
-      import.meta.env.VITE_URL_MAIN + "getEgresosExpediente/" + id_house.value,
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  axios(config)
-    .then(function (response) {
-      itemsEgresos.value = response.data.data;
-      dialogPayment.value = true;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getEgresosExpediente/" + id_house.value,
+  });
+  if (hasFailed(answer)) {
+    showRejectedResponse(answer);
+    return;
+  }
+  itemsEgresos.value = answer.data;
+  dialogPayment.value = true;
 }
 
 watch(menu, (open) => {
@@ -226,11 +202,10 @@ onMounted(() => {
           :headers="headers"
           :items="itemsHouseListAll"
           :search="search"
+          no-data-text="No hay expedientes para pagar sin solicitud."
         >
           <template #[`item.actions`]="{ item }">
-            <!-- @vue-expect-error statusList is not defined -->
             <v-icon
-              v-if="statusList != '2'"
               size="large"
               color="dark"
               class="mr-2"
@@ -264,6 +239,7 @@ onMounted(() => {
                   v-model="selected"
                   :headers="headersEgresos"
                   :items="itemsEgresos"
+                  no-data-text="Este expediente aún no tiene conceptos de costo."
                   item-value="id"
                   return-object
                   show-select

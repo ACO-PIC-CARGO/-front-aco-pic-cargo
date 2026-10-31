@@ -6,6 +6,8 @@ import axios from "@/api/http";
 import moment from "moment";
 import { useFilesStore } from "@/stores/files";
 import { sessionBranchId } from "@/utils/sesion";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 import type { ConceptoSolicitudPago, FacturaSolicitudPago, SolicitudPago } from "@/types/requests";
 
 const componentProps = defineProps<{ filtrarFlag?: string | boolean }>();
@@ -159,29 +161,17 @@ function openInvoice(id: number, id_house: number, providerName: string) {
   //this.dialogInvoice = true;
 }
 async function _getInvoice(id_proveedor: number, id_house: number) {
-  const data = {
-    id_house: id_house,
-    id_proveedor: id_proveedor,
-    id_branch: sessionBranchId(),
-  };
-  const config = {
+  const answer = await request<FacturaSolicitudPago>({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getListInvoice",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function (response) {
-      dialogListInvoince.value = true;
-      itemsListInvoice.value = response.data.data;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    data: { id_house, id_proveedor },
+  });
+  if (hasFailed(answer)) {
+    showRejectedResponse(answer);
+    return;
+  }
+  itemsListInvoice.value = answer.data;
+  dialogListInvoince.value = true;
 }
 function _uploadFile() {
   const data = new FormData();
@@ -203,13 +193,13 @@ function _uploadFile() {
       boolFile.value = true;
       payPath.value = JSON.stringify(response.data.data[0].insertid);
     })
-    .catch(function (error) {
-      console.error(error);
+    .catch(function () {
+      Swal.fire({ icon: "error", text: "No pudimos subir el soporte. Revisa tu conexión y vuelve a intentarlo." });
     });
 }
-function editControl(nro_master: string) {
+function editControl(id_master: number) {
   window.open(
-    "/home/folderBilling/editControlGastos/view/" + nro_master,
+    `/home/folderBilling/editControlGastos/view/${id_master}/${sessionBranchId()}`,
     "Instructivo",
     "width=1593,height=1293",
     // @ts-expect-error window.open takes three arguments
@@ -237,83 +227,49 @@ async function _setSPaymentFile() {
   Swal.fire({
     icon: "info",
     title: "Procesando pago...",
-    text: "Por favor espere",
+    text: "Espera un momento.",
+    showConfirmButton: false,
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
   });
-  const data = {
-    fecha_operacion: date.value,
-    nro_operacion: payoperacion.value,
-    id_banks: paybanco.value,
-    id_coins: paymoneda.value,
-    monto: paymonto.value,
-    id_path: payPath.value,
-    status: 1,
-    id_request: sPaymentId.value,
-    itemsSPaymentConceptos: itemsSPaymentConceptos.value,
-  };
-  const config = {
+  const answer = await request({
     method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile/",
-
-    headers: {
-
-      "Content-Type": "application/json",
+    url: import.meta.env.VITE_URL_MAIN + "setSPaymentFile",
+    data: {
+      fecha_operacion: date.value,
+      nro_operacion: payoperacion.value,
+      id_banks: paybanco.value,
+      id_coins: paymoneda.value,
+      monto: paymonto.value,
+      id_path: payPath.value,
+      id_request: sPaymentId.value,
+      expense_ids: itemsSPaymentConceptos.value.map((concepto) => concepto.id_egreso),
     },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      //vm.itemsSPayment = response.data.data;
-      Swal.fire({
-        icon: "success",
-        title: "Pago Procesado",
-        text: "El pago ha sido procesado correctamente",
-      });
-
-      cleandData();
-      dialogProcess.value = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
+  }
+  Swal.fire({ icon: "success", title: "Pago procesado", text: answer.mensaje });
+  cleandData();
+  dialogProcess.value = false;
 }
 async function _getRequestPayment() {
-  const config = {
+  const answer = await request<SolicitudPago>({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getRequestPayment",
-    data: {
-      id_branch: sessionBranchId(),
-    },
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsSPayment.value = response.data.data;
-      dataList.value = true;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsSPayment.value = answer.data;
+  dataList.value = true;
 }
 async function _getRequestPaymentConceptos(id: string) {
-  const config = {
+  const answer = await request<ConceptoSolicitudPago>({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "getRequestPaymentConceptos/" + id,
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsSPaymentConceptos.value = response.data.data;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsSPaymentConceptos.value = answer.data;
 }
 function viewPdf(pdf: string) {
   window.open(import.meta.env.VITE_URL_MAIN + pdf, "_blank");
@@ -339,30 +295,13 @@ async function reversar(item: SolicitudPago) {
   });
 }
 async function reversarProceso(item: SolicitudPago) {
-  const config = {
+  const answer = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "reversar_debsproveedor",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
     data: { id: item.id },
-  };
-  await axios(config)
-    .then(function (response) {
-      const res = response.data.data;
-
-      Swal.fire({
-        title: "Aviso",
-        text: res[0].mensaje,
-        icon: "info",
-      });
-      getDebs();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  Swal.fire({ icon: answer.estadoflag ? "success" : answer.tipomensaje === "TMSGERR" ? "error" : "info", text: answer.mensaje || CONNECTION_ERROR_MESSAGE });
+  if (answer.estadoflag) getDebs();
 }
 async function getDebs() {
   appStore.spiner = true;
@@ -440,7 +379,7 @@ onMounted(async () => {
             class="text-body-large text-center"
             cols="12"
           >
-            Cargando informacíon
+            Cargando información
           </v-col>
           <v-col cols="6">
             <v-progress-linear
@@ -457,6 +396,7 @@ onMounted(async () => {
         :headers="headersPdf"
         :items="itemsSPayment"
         :search="search"
+        no-data-text="No hay solicitudes de pago pendientes ni pagadas en tu empresa."
       >
         <template #[`item.status`]="{ item }">
           <v-chip
@@ -528,7 +468,7 @@ onMounted(async () => {
         <template #[`item.inst`]="{ item }">
           <v-icon
             class="mr-2"
-            @click="editControl(item.code_master)"
+            @click="editControl(item.id_master)"
           >
             mdi-eye
           </v-icon>
@@ -740,6 +680,7 @@ onMounted(async () => {
             :headers="headersInvoice"
             :items="itemsListInvoice"
             density="compact"
+            no-data-text="Este proveedor aún no tiene facturas cargadas para este expediente."
             item-value="id"
             class="elevation-0"
           >

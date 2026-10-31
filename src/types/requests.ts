@@ -35,6 +35,7 @@ export interface ExpedienteSinSolicitud {
 
 export interface AbonoCliente {
   id: string;
+  id_master: number;
   status: number;
   path: string;
   code_master: string;
@@ -47,6 +48,7 @@ export interface AbonoCliente {
 
 export interface ConceptoSolicitudPago {
   id: number;
+  id_egreso: number;
   name: string;
 }
 
@@ -202,6 +204,7 @@ export interface ComentarioCxp {
 
 export interface SolicitudPago {
   id: string;
+  id_master: number;
   id_proveedor: number;
   id_house: number;
   status: number;
