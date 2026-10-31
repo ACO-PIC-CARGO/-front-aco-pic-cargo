@@ -17,7 +17,6 @@ import { useControlGastosStore } from "@/stores/controlGastos";
 import type { ArchivoInicial } from "@/types/archivos";
 import type { ControlGastoHouse } from "@/types/finanzas";
 import type {
-  DatosFacturaHouse,
   DatosInstructivoManual,
   DeudaClienteHouse,
   DocumentoQuote,
@@ -30,7 +29,8 @@ import type {
   Monto,
   ProformaFiscalForm,
 } from "@/types/billingEntries";
-import { sessionUser } from "@/utils/sesion";
+import type { ApiResponse } from "@/types/api";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -163,7 +163,6 @@ const comentario = ref("");
 const errfile = ref("");
 const sufmoneda = ref<string | undefined>("");
 const msgfile = ref("");
-const id_branch = ref<number | string>("");
 const obtenerDatosHouse = ref<boolean>(null as unknown as boolean);
 const dialogFacturar = ref(false);
 const dialogNewDebs = ref(false);
@@ -171,6 +170,7 @@ const dialogIngreso = ref(false);
 const dialogDebs = ref(false);
 const dialogDebsEdit = ref(false);
 const loading = ref(false);
+const savingIngreso = ref(false);
 const boolFile = ref(false);
 const house = ref({
   debscliente: [],
@@ -273,13 +273,16 @@ const datosinstructivomanual = ref<DatosInstructivoManual>({});
 const id_quote = ref<number | null>(null);
 
 let payPath: number | string | undefined;
+const warnIfRefused = (response: ApiResponse) => {
+  if (response.estadoflag) return false;
+  Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje });
+  return true;
+};
 const masterHouses = computed(() => componentProps.master_houses as unknown as HouseIngreso[]);
 const datosManuales = undefined as unknown as Record<string, unknown>;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let ingreso: object | undefined;
 let id: number | undefined;
-let datosFactura: DatosFacturaHouse;
-let id_house: number | undefined;
 
 function abrirModalRegistroDocumentoHouse(datosInstructivoManual: DatosInstructivoManual, idQuote: number) {
   datosinstructivomanual.value = datosInstructivoManual;
@@ -335,61 +338,6 @@ function recibirId(file: { id: unknown; archivo: unknown }) {
 
   msgfile.value = "Archivo procesado y vinculado correctamente.";
   errfile.value = "";
-}
-async function eliminarHouseIngreso(house: HouseIngreso) {
-  Swal.fire({
-    icon: "question",
-    title: "ADVERTENCIA",
-    text: "¿Está seguro que desea eliminar todo el registro de ingresos de este expediente (house)?",
-    showDenyButton: true,
-    confirmButtonText: "Si",
-    denyButtonText: "No",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        const config = {
-          method: "put",
-          url:
-            import.meta.env.VITE_URL_MAIN +
-            "setHouseIngresosDelete/" +
-            house.id_house,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        };
-
-        const response = await axios(config);
-
-        if (response.data && response.data.status == "401") {
-          Swal.fire({
-            icon: "error",
-            text: response.data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          });
-          return;
-        }
-
-        if (response.data && response.data.statusBol) {
-          Swal.fire({
-            icon: "success",
-            title: "REGISTRO ELIMINADO.",
-          });
-
-          await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-          emit("recalcularProfit");
-        }
-      } catch (error) {
-        console.error(error);
-        Swal.fire({
-          icon: "error",
-          title: "Lo sentimos",
-          text: error as string,
-        });
-      }
-    }
-  });
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _openDebs(houseSeleccionado: HouseIngreso) {
@@ -596,12 +544,10 @@ function abrirModalFacturar(houseSeleccionado: HouseIngreso) {
   stepProforma.value = 1;
   house.value = houseSeleccionado;
   selected.value = [];
-  obtenerDatos();
   dialogFacturar.value = true;
 }
 async function nuevoControlGasto(house: HouseIngreso) {
-  house.id_master = route.params.id as string;
-  await controlGastosStore.setControl(house as HouseIngreso & { id_master: string | number });
+  await controlGastosStore.setControl(house);
   await controlGastosStore.getListControlGastosHouses(route.params.id as string);
   appStore.spiner = false;
 }
@@ -619,8 +565,8 @@ function calcularE() {
   if (tipocambio.value) {
     const partes = tipocambio.value.toString().split(".");
     const decimales = partes[1] ? partes[1].length : 0;
-    if (decimales > 2) {
-      tipocambio.value = parseFloat(String(tipocambio.value)).toFixed(2);
+    if (decimales > 4) {
+      tipocambio.value = parseFloat(String(tipocambio.value)).toFixed(4);
     }
   }
   let igv = 0;
@@ -693,24 +639,20 @@ async function _setDebsClient() {
       },
       data: data,
     };
-    await axios(config)
-      .then(async function () {
-        dialogNewDebs.value = false;
-        dialogDebs.value = false;
-        await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-
-        cleandData();
-
-        // vm.dialogDebs = true;
-        Swal.fire({
-          icon: "success",
-          title: "Pago Cargado",
-          text: "El pago ha sido cargado correctamente",
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    const response = await request(config);
+    if (warnIfRefused(response)) {
+      loading.value = false;
+      return;
+    }
+    dialogNewDebs.value = false;
+    dialogDebs.value = false;
+    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+    cleandData();
+    Swal.fire({
+      icon: "success",
+      title: "Pago registrado",
+      text: "El pago del cliente quedó registrado.",
+    });
   }
   loading.value = false;
 }
@@ -829,14 +771,9 @@ async function _delDebsClient(id: number) {
       "Content-Type": "application/json",
     },
   };
-  await axios(config)
-    .then(async function () {
-      await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-      dialogDebs.value = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  if (warnIfRefused(await request(config))) return;
+  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  dialogDebs.value = false;
 }
 async function editIngresos() {
   if (!(await frmIngreso.value!.validate()).valid) {
@@ -871,7 +808,7 @@ async function editIngresos() {
     tipo_pago: ingresos.value.opcion,
     // tipocambio: this.tipocambio,git status
   };
-  await controlGastosStore.actualizarIngresos(data);
+  if (!(await controlGastosStore.actualizarIngresos(data))) return;
   await controlGastosStore.getListControlGastosHouses(route.params.id as string);
   statusBtn.value = 1;
   dialogIngreso.value = false;
@@ -1059,14 +996,14 @@ async function continuarEliminar(id: number | undefined) {
         code_master: route.params.code_master as string,
         id: id as number,
       };
-      await controlGastosStore.eliminarIngreso(data);
+      if (!(await controlGastosStore.eliminarIngreso(data))) return;
       await controlGastosStore.getListControlGastosHouses(route.params.id as string);
       emit("recalcularProfit");
     }
   });
 }
 async function setIngresos() {
-  if (!(await frmIngreso.value!.validate()).valid) {
+  if (savingIngreso.value || !(await frmIngreso.value!.validate()).valid) {
     return;
   }
   const houseExistente = masterHouses.value.find(
@@ -1095,13 +1032,15 @@ async function setIngresos() {
     ...ingresos.value,
     code_master: route.params.code_master as string,
     id_orders: house.value.id_orders,
-    id_user: sessionUser().id,
     tipo_pago: ingresos.value.opcion,
     numero: ingresos.value.numero,
     fecha: ingresos.value.fecha,
     id_master: route.params.id as string,
   };
-  await controlGastosStore.guardarIngresos(data);
+  savingIngreso.value = true;
+  const saved = await controlGastosStore.guardarIngresos(data);
+  savingIngreso.value = false;
+  if (!saved) return;
   dialogIngreso.value = false;
   emit("recalcularProfit");
 }
@@ -1136,131 +1075,66 @@ async function actualizar() {
       },
       data: data,
     };
-    await axios(config)
-      .then(function () {
-        cleandData();
-
-        // vm.dialogDebs = true;
-        Swal.fire({
-          icon: "success",
-          title: "Pago Cargado",
-          text: "El pago ha sido cargado correctamente",
-        }).then(async (result) => {
-          if (result.isConfirmed) {
-            dialogDebsEdit.value = false;
-            dialogDebs.value = false;
-            await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-          }
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    if (warnIfRefused(await request(config))) return;
+    cleandData();
+    Swal.fire({
+      icon: "success",
+      title: "Pago actualizado",
+      text: "Los cambios del pago quedaron guardados.",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        dialogDebsEdit.value = false;
+        dialogDebs.value = false;
+        await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+      }
+    });
   }
 }
-async function obtenerDatos() {
-  obtenerDatosHouse.value = true;
-  datosFactura = [] as unknown as DatosFacturaHouse;
-  const config = {
-    method: "get",
-    url: `${import.meta.env.VITE_URL_MAIN}data_factura/${house.value.id_house}/${id_branch.value}`,
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config).then(function (response) {
-    if (response.data.statusBol == true) {
-      datosFactura = response.data.data[0];
-    }
-  });
-  obtenerDatosHouse.value = false;
-}
 async function generarDocumento() {
-  // return
   errorCoin.value = "";
   if (!id_coins.value) {
     errorCoin.value = "Seleccione una moneda";
     coinSelect.value!.focus();
     return;
   }
-  const monedas = [...appStore.itemsCoinsList];
-  const monedaSeleccionada = monedas.find((v) => v.id === id_coins.value);
-  if (monedaSeleccionada) {
-    datosFactura.coins = monedaSeleccionada.symbol;
-  }
-  datosFactura.details = selected.value.map((element) => {
-    return {
-      concepto: element.concepto,
-      id_orders: element.id_orders,
-      monto: element.montoopcuentabanco,
-      igv: element.igvopcuentabanco,
-      total: element.totalopcuentabanco,
-    };
-  });
-  id_house = selected.value[0]!.id_house;
-  let total = 0;
-  let total_igv = 0;
-  let total_monto = 0;
-
-  selected.value.forEach((element) => {
-    total = parseFloat(String(total)) + parseFloat(String(element.total_op));
-    total_igv = parseFloat(String(total_igv)) + parseFloat(String(element.igv_op));
-    total_monto = parseFloat(String(total_monto)) + parseFloat(String(element.monto_op));
-  });
-
-  datosFactura.total = parseFloat(String(total)).toFixed(2);
-  datosFactura.url_logo = sessionUser().path;
-  datosFactura.total_igv = parseFloat(String(total_igv)).toFixed(2);
-  datosFactura.total_monto = parseFloat(String(total_monto)).toFixed(2);
-  datosFactura.nombreProforma = nombreProforma.value;
+  const [first] = selected.value;
   obtenerDatosHouse.value = true;
-  datosFactura.impuesto =
-    enterprisesStore.impuesto.nombre_impuesto;
-  const data = datosFactura;
-  // console.log(vm.datosFactura);
-  // return;
-  const config = {
+  const proforma = (await request({
     method: "post",
     url: `${import.meta.env.VITE_URL_MAIN}generar_factura`,
-    headers: {
-      "Content-Type": "application/json",
+    data: {
+      id_house: first!.id_house,
+      id_correlativo: first!.id_correlativo,
+      id_coins: id_coins.value,
+      conceptos: selected.value.map(({ id }) => id),
+      nombreProforma: nombreProforma.value,
     },
-    data: data,
-  };
-  const res = await axios(config).then(function (response) {
-    return response;
-  });
-
-  if (res.data.statusBol == true) {
-    registrarFactura(res.data);
-    dialogFacturar.value = false;
-    nombreProforma.value = "PROFORMA";
+  })) as ApiResponse & { path: string; nro_factura: string };
+  if (warnIfRefused(proforma)) {
     obtenerDatosHouse.value = false;
+    return;
   }
+  await registrarFactura(proforma);
+  dialogFacturar.value = false;
+  nombreProforma.value = "PROFORMA";
+  obtenerDatosHouse.value = false;
 }
-async function registrarFactura(data: { nro_factura: string; path: string }) {
-  const dataFactura = {
-    id_house: id_house,
-    id_coins: id_coins.value,
-    nro_factura: data.nro_factura,
-    url_documento: import.meta.env.VITE_URL_MAIN + data.path,
-    total_monto: datosFactura.total_monto,
-    total_igv: datosFactura.total_igv,
-    total: datosFactura.total,
-    id_correlativo: selected.value[0]!.id_correlativo,
-    details: selected.value,
-  };
-  const config = {
+async function registrarFactura(proforma: { nro_factura: string; path: string }) {
+  const [first] = selected.value;
+  const response = await request({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "registrar_factura",
-    headers: {
-      "Content-Type": "application/json",
+    data: {
+      id_house: first!.id_house,
+      id_coins: id_coins.value,
+      id_correlativo: first!.id_correlativo,
+      nro_factura: proforma.nro_factura,
+      url_documento: import.meta.env.VITE_URL_MAIN + proforma.path,
+      details: selected.value.map(({ id }) => ({ id })),
     },
-    data: dataFactura,
-  };
-  await axios(config);
-  window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
+  });
+  if (warnIfRefused(response)) return;
+  window.open(import.meta.env.VITE_URL_MAIN + proforma.path, "_blank");
   await controlGastosStore.getListControlGastosHouses(route.params.id as string);
 }
 function isBotonEmitirProformaDisabled(house: Partial<HouseIngreso> = {}) {
@@ -1517,14 +1391,14 @@ async function aplicarCambioExpediente() {
         icon: "warning",
         text:
           (response && response.data && response.data.mensaje) ||
-          "No se pudo reasignar el expediente. Se requiere soporte de backend.",
+          "No pudimos cambiar el expediente. Intenta de nuevo en unos minutos.",
       });
     }
   } catch (error) {
     console.error(error);
     await Swal.fire({
-      icon: "info",
-      text: "Endpoint para reasignar house a otro master no disponible. Front listo; requerirá habilitar API (PUT reasignar_house).",
+      icon: "error",
+      text: CONNECTION_ERROR_MESSAGE,
     });
   }
 }
@@ -1575,34 +1449,26 @@ async function eliminarFactura(item: number) {
     return;
   }
 
-  // Si pasa la validación, anula la factura
-  const datos = { id: item };
-  const config = {
+  const { value: motivo } = await Swal.fire({
+    title: "Anular factura",
+    input: "textarea",
+    inputLabel: "Motivo de la anulación",
+    inputPlaceholder: "Por ejemplo: datos del cliente errados",
+    showCancelButton: true,
+    confirmButtonText: "Anular factura",
+    cancelButtonText: "Cancelar",
+    inputValidator: (text) => (text.trim() ? null : "Escribe el motivo de la anulación."),
+  });
+  if (!motivo) return;
+
+  const response = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "anular_factura",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: datos,
-  };
-
-  try {
-    const response = await axios(config);
-    console.log(response);
-    await Swal.fire(
-      "¡Anulada!",
-      "Factura anulada correctamente.",
-      "success",
-    );
-    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
-  } catch (error) {
-    console.error(error);
-    Swal.fire(
-      "Error",
-      "Ocurrió un problema al anular la factura.",
-      "error",
-    );
-  }
+    data: { id: item, motivo },
+  });
+  if (warnIfRefused(response)) return;
+  await Swal.fire({ icon: "success", title: "Factura anulada", text: response.mensaje });
+  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
 }
 function bloquearCopiarMontos(ingresos: IngresoDetalle[]) {
   return ingresos.some((v) => v.facturado);
@@ -1616,7 +1482,6 @@ function mostrarMontoOperativos(ingresos: IngresoDetalle[]) {
 }
 
 onMounted(async () => {
-  id_branch.value = Number(route.params.id_branch);
   setTimeout(() => {
     headersFacturas.value[2]!.title =
       enterprisesStore.impuesto.nombre_impuesto!;
@@ -1845,14 +1710,6 @@ onMounted(async () => {
                   >
                     Cambiar expediente
                   </v-btn>
-                  <v-btn
-                    v-if="houseIngreso.id_orders"
-                    color="red-darken-1"
-                    size="small"
-                    @click.stop="eliminarHouseIngreso(houseIngreso)"
-                  >
-                    Eliminar
-                  </v-btn>
                 </td>
                 <td>
                   <v-icon
@@ -2074,7 +1931,7 @@ onMounted(async () => {
                   <v-icon
                     color="orange"
                     @click="editIngreso(item)"
-                    v-if="item.pagado == 0"
+                    v-if="item.pagado == 0 && !item.facturado"
                   >
                     mdi-pencil
                   </v-icon>
@@ -2383,6 +2240,8 @@ onMounted(async () => {
           <v-btn
             v-if="statusBtn == 1"
             @click="setIngresos()"
+            :loading="savingIngreso"
+            :disabled="savingIngreso"
             block
             color="success"
             elevation="0"
@@ -2947,20 +2806,6 @@ onMounted(async () => {
                     error-messages="Si necesita cambiar de moneda. Edite el/los concepto(s)"
                   />
                 </v-col>
-                <v-col
-                  cols="8"
-                  v-if="appStore.branchs.length > 1"
-                >
-                  <v-autocomplete
-                    :items="appStore.branchs"
-                    item-title="trade_name"
-                    item-value="id"
-                    label="Sucursal"
-                    placeholder="Seleccione una sucursal"
-                    v-model="id_branch"
-                    @update:model-value="obtenerDatos()"
-                  />
-                </v-col>
                 <v-col cols="12" />
               </v-row>
             </v-stepper-vertical-item>
@@ -2972,7 +2817,7 @@ onMounted(async () => {
             v-if="stepProforma == 2"
             color="success"
             :loading="obtenerDatosHouse"
-            :disabled="id_branch == '' || selected.length == 0"
+            :disabled="selected.length == 0"
             @click="generarDocumento()"
             class="mx-1"
           >
