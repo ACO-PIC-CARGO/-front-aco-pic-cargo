@@ -9,6 +9,8 @@ const APPROVED = "Esta cotización ya está aprobada. Cópiala para hacer cambio
 const NOT_FOUND = "No encontramos esta cotización. Vuelve al listado e inténtalo de nuevo.";
 const MISSING_QUOTE_ID = 999999999;
 
+const QUOTE_WRITES = /\/(delQuote|setCalls|putQuote|aprobar_cotizacion|copiar_cotizacion|insert_monto_finales_quote|actualizar_quote_folderonedrive)(\?|$)/;
+
 const dialogWith = (page, text) => page.locator(".swal2-popup").filter({ hasText: text });
 const params = (request) => Object.fromEntries(new URL(request.url()).searchParams);
 const listState = (page) =>
@@ -28,12 +30,19 @@ async function openList(page) {
 const activeTab = (page) => page.locator(".v-window-item--active");
 const rowOf = (page, code) => page.locator("tbody tr").filter({ hasText: code }).first();
 
-async function quotesOnList(page) {
-  const { listQuotes } = await listState(page);
-  return {
-    approved: listQuotes.find((q) => q.aprobadoflag === true && q.statusmain != 0),
-    draft: listQuotes.find((q) => !q.aprobadoflag && q.statusmain != 0),
-  };
+async function quotesOnList(page, pagesToLook = 20) {
+  const found = {};
+  for (let pageNumber = 1; pageNumber <= pagesToLook; pageNumber++) {
+    const { listQuotes, totalregistro } = await listState(page);
+    found.approved ??= listQuotes.find((q) => q.aprobadoflag === true && q.statusmain != 0);
+    found.draft ??= listQuotes.find((q) => !q.aprobadoflag && q.statusmain != 0);
+    if ((found.approved && found.draft) || pageNumber * 10 >= totalregistro) break;
+    const next = page.waitForResponse((r) => r.url().includes("/getQuoteList"));
+    await page.getByRole("button", { name: "Next page" }).click();
+    await next;
+    await waitForPageToSettle(page);
+  }
+  return found;
 }
 
 test.describe("quote list", () => {
@@ -76,6 +85,68 @@ test.describe("quote list", () => {
     const { listQuotes } = await listState(page);
     expect(listQuotes.length).toBeGreaterThan(0);
     expect(listQuotes.every((quote) => String(quote.statusquote) === String(chip.id))).toBe(true);
+  });
+
+  test("the list asks the server for one page and counts every quote of the range", async ({ page }) => {
+    const { list } = await openList(page);
+    expect(params(list)).toMatchObject({ limit: "10", pagina: "1" });
+    const { listQuotes, totalregistro } = await listState(page);
+    expect(listQuotes.length).toBeLessThanOrEqual(10);
+    await expect(page.locator(".v-data-table-footer")).toContainText(`of ${totalregistro}`);
+    test.skip(totalregistro <= 10, "a single page of quotes in this year's range");
+
+    const next = page.waitForResponse((r) => r.url().includes("/getQuoteList"));
+    await page.getByRole("button", { name: "Next page" }).click();
+    const answer = await next;
+
+    expect(params(answer.request())).toMatchObject({ limit: "10", pagina: "2" });
+    const secondPage = (await answer.json()).data.map((quote) => quote.id);
+    expect(secondPage.length).toBeGreaterThan(0);
+    expect(secondPage.filter((id) => listQuotes.some((quote) => quote.id === id))).toEqual([]);
+  });
+
+  test("the search is answered by the server and starts again from the first page", async ({ page }) => {
+    await openList(page);
+    const { totalregistro } = await listState(page);
+    test.skip(totalregistro <= 10, "a single page of quotes in this year's range");
+    const secondPage = page.waitForResponse((r) => r.url().includes("/getQuoteList"));
+    await page.getByRole("button", { name: "Next page" }).click();
+    const [quote] = (await (await secondPage).json()).data;
+    await waitForPageToSettle(page);
+
+    const searched = page.waitForResponse((r) => r.url().includes("/getQuoteList") && params(r.request()).search === quote.codigo);
+    await page.getByLabel("Buscar").fill(quote.codigo);
+    const answer = await searched;
+
+    expect(params(answer.request())).toMatchObject({ pagina: "1", search: quote.codigo });
+    expect((await answer.json()).data.map((row) => row.codigo)).toContain(quote.codigo);
+    await expect(rowOf(page, quote.codigo)).toBeVisible();
+  });
+
+  test("the deleted quotes filter lists deleted quotes only to look at them", async ({ page }) => {
+    const writes = [];
+    await page.route(QUOTE_WRITES, (route) => {
+      writes.push(route.request().url());
+      return route.abort();
+    });
+    await openList(page);
+    await activeTab(page).getByRole("button", { name: /Filtrar/ }).click();
+    const drawer = page.locator(".v-navigation-drawer--active");
+    await drawer.getByLabel("Ver cotizaciones eliminadas").check();
+    const filtered = page.waitForResponse((r) => r.url().includes("/getQuoteList"));
+
+    await drawer.getByRole("button", { name: "Filtrar", exact: true }).click();
+
+    const answer = await filtered;
+    expect(params(answer.request())).toMatchObject({ estado: "0" });
+    const deleted = (await answer.json()).data;
+    test.skip(!deleted.length, "no deleted quotes in this year's range");
+    expect(deleted.every((quote) => quote.statusmain === 0)).toBe(true);
+    await waitForPageToSettle(page);
+    const row = rowOf(page, deleted[0].codigo);
+    await expect(row.getByText("Eliminada")).toBeVisible();
+    await expect(row.getByRole("button")).toHaveCount(0);
+    expect(writes).toEqual([]);
   });
 
   test("an approved quote explains it must be copied, and offers no delete", async ({ page }) => {
