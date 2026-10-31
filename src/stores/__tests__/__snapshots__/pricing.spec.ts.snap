@@ -1055,56 +1055,6 @@ exports[`pricing store > instructivo > imprimirInstructivoQuote posts the instru
 }
 `;
 
-exports[`pricing store > quote > registrarQuote computes the cost subtotals only for multiplier rows that carry a length 1`] = `
-[
-  [
-    "FLETE INTERNACIONAL",
-    3,
-    125,
-  ],
-  [
-    "GASTOS EN ORIGEN",
-    1,
-    120.5,
-  ],
-  [
-    "VISTOS BUENOS",
-    2,
-    87.5,
-  ],
-  [
-    "COMISION AGENCIA",
-    13,
-    0,
-  ],
-  [
-    "ALMACEN",
-    4,
-    96,
-  ],
-  [
-    "SEGURO DE CARGA",
-    5,
-    0,
-  ],
-  [
-    "FLETE INTERNACIONAL",
-    3,
-    100,
-  ],
-  [
-    "VISTOS BUENOS",
-    1,
-    30,
-  ],
-  [
-    "COMISION AGENCIA",
-    1,
-    0,
-  ],
-]
-`;
-
 exports[`pricing store > reports > generarReporte posts the AGRUPADO totals of the chosen option 1`] = `
 {
   "TipoCostos": [
