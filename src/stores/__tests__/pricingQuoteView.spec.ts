@@ -60,7 +60,7 @@ describe("opening a quote", () => {
     const pricing = usePricingStore();
     pricing.listadoFilesDrive = [{ name: "anterior.pdf" }];
 
-    const loading = pricing.GetArchivos("https://drive/78");
+    const loading = pricing.GetArchivos(78);
 
     expect(pricing.listadoFilesDrive).toEqual([]);
     await loading;
@@ -68,13 +68,25 @@ describe("opening a quote", () => {
     expect(pricing.listadoFilesDrive).toEqual([]);
   });
 
-  test("a quote without folder shows no OneDrive files", async () => {
+  test("the OneDrive files are asked by quote", async () => {
+    respond({ listado_files: accepted([{ name: "cotizacion.pdf" }]) });
+    const pricing = usePricingStore();
+
+    await pricing.GetArchivos(78);
+
+    expect(httpMock.mock.calls[0]![0].params).toEqual({ id_quote: 78 });
+    expect(pricing.listadoFilesDrive).toEqual([{ name: "cotizacion.pdf" }]);
+  });
+
+  test("a quote without folder shows no OneDrive files and no error", async () => {
+    respond({ listado_files: { estadoflag: false, mensaje: "La cotización no tiene carpeta.", tipomensaje: "TMSGINF", data: [] } });
     const pricing = usePricingStore();
     pricing.listadoFilesDrive = [{ name: "anterior.pdf" }];
 
-    await pricing.GetArchivos(null);
+    await pricing.GetArchivos(78);
 
     expect(pricing.listadoFilesDrive).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
   test("resetting the quote forgets its OneDrive files", () => {

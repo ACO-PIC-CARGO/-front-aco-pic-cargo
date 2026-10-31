@@ -1441,7 +1441,7 @@ describe("pricing store", () => {
         1,
         true,
       ]);
-      expect(sentConfig("listado_files")!.params).toEqual({ folderUrl: "https://drive/77" });
+      expect(sentConfig("listado_files")!.params).toEqual({ id_quote: 77 });
       expect(sentConfig("get_texto_whatsapp")!.params).toEqual({ id_shipment: 3, id_quote: 77, id_containers: "5,6", id_branch: 1 });
       expect(pricing.listadoFilesDrive).toEqual([{ name: "a.pdf" }]);
       expect(pricing.textWhatsapp).toEqual([{ texto_pdf: "pdf" }]);

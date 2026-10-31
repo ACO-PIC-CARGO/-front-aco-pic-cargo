@@ -1705,7 +1705,7 @@ export const usePricingStore = defineStore("pricing", () => {
 
     mostrarBtnActualizarFlag.value = !(res.statusmain == 0 || res.aprobadoflag == true);
     Promise.all([
-      GetArchivos(res.url_folderonedrive),
+      GetArchivos(res.url_folderonedrive ? res.id : null),
       getTextoWhatsapp({
         id_shipment: res.idtipocarga,
         id_quote: res.id,
@@ -5491,16 +5491,16 @@ export const usePricingStore = defineStore("pricing", () => {
         console.error(error);
       });
   }
-  async function GetArchivos(folderUrl?: string | null): Promise<void> {
+  async function GetArchivos(idQuote?: number | string | null): Promise<void> {
     listadoFilesDrive.value = [];
-    if (!folderUrl) {
+    if (!idQuote) {
       return;
     }
     const response = await request<ArchivoDrive>({
       method: "get",
       url: `${import.meta.env.VITE_URL_MAIN}listado_files`,
       params: {
-        folderUrl: folderUrl,
+        id_quote: idQuote,
       },
       headers: {
         "Content-Type": "application/json",
