@@ -79,6 +79,10 @@ onMounted(async () => {
 function updateStatus(newValue: unknown) {
   record.value.status = newValue ? 1 : 0;
 }
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
+}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
@@ -107,7 +111,7 @@ async function switch_status(item: Moneda) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await coinsStore.updateCoins(item);
     }
   });
@@ -140,7 +144,7 @@ async function open_update(itemId: number) {
 }
 async function submit_insert() {
   if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     await coinsStore.insertCoins(record.value);
   }
 }
@@ -154,7 +158,7 @@ async function submit_update() {
       description: record.value.description,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     if (await coinsStore.updateCoins(data)) showFilterDrawerUpdate.value = false;
   }
 }

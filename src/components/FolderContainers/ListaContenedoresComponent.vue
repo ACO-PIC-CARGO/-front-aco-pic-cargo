@@ -98,20 +98,18 @@ onMounted(async () => {
 function updateStatus(newValue: unknown) {
   record.value.status = newValue ? 1 : 0;
 }
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
+}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
-    await containersStore.fetchDataContainers(records.value);
-    showFilterDrawer.value = false;
   } else {
     record.value = emptyRecord();
   }
   await containersStore.fetchDataContainers(records.value);
   showFilterDrawer.value = false;
-}
-async function reset_records() {
-  resetRecord("filter");
-  submit_filter();
 }
 async function switch_status(item: TipoContenedor) {
   Swal.fire({
@@ -126,9 +124,8 @@ async function switch_status(item: TipoContenedor) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await containersStore.updateContainers(item);
-      await reset_records();
     }
   });
 }
@@ -159,7 +156,7 @@ async function open_update(itemId: number) {
 }
 async function submit_insert() {
   if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     if (await containersStore.insertContainers(record.value)) showFilterDrawerNew.value = false;
   }
 }
@@ -176,7 +173,7 @@ async function submit_update() {
       maximunvolumen: record.value.maximunvolumen,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     if (await containersStore.updateContainers(data)) showFilterDrawerUpdate.value = false;
   }
 }

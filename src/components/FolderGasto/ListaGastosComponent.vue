@@ -75,6 +75,10 @@ onMounted(async () => {
 function updateStatus(newValue: unknown) {
   record.value.status = newValue ? 1 : 0;
 }
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
+}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
@@ -100,7 +104,7 @@ async function switch_status(item: TipoGasto) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await gastosStore.updateGasto(item);
     }
   });
@@ -135,7 +139,7 @@ async function submit_insert() {
   saving.value = true;
   await validate_nuevo_code();
   if ((await formNew.value!.validate()).valid && errorCode.value == null) {
-    resetRecord("filter");
+    resetFilter();
     if (await gastosStore.insertGasto(record.value)) showFilterDrawerNew.value = false;
   }
   saving.value = false;
@@ -148,7 +152,7 @@ async function submit_update() {
       calculoflag: record.value.calculoflag,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     if (await gastosStore.updateGasto(data)) showFilterDrawerUpdate.value = false;
   }
 }

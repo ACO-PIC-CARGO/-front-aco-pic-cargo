@@ -71,6 +71,10 @@ onMounted(async () => {
   appStore.mainTitle = `Tipo de Ingreso`;
 });
 
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
+}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
@@ -96,7 +100,7 @@ async function switch_status(item: TipoIngreso) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await ingresosStore.updateIngreso(item);
     }
   });
@@ -131,7 +135,7 @@ async function submit_insert() {
   saving.value = true;
   await validate_code();
   if ((await formNew.value!.validate()).valid && errorCode.value == null) {
-    resetRecord("filter");
+    resetFilter();
     if (await ingresosStore.insertIngreso(record.value)) showFilterDrawerNew.value = false;
   }
   saving.value = false;
@@ -144,7 +148,7 @@ async function submit_update() {
       calculoflag: record.value.calculoflag,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     if (await ingresosStore.updateIngreso(data)) showFilterDrawerUpdate.value = false;
   }
 }

@@ -69,6 +69,10 @@ onMounted(async () => {
   appStore.mainTitle = `Tipo de Documentos`;
 });
 
+function resetFilter() {
+  documents.value = { ...originalDocuments.value };
+  showFilterDrawer.value = false;
+}
 async function clear(option?: string) {
   if (option == "filter") {
     documents.value = { ...originalDocuments.value };
@@ -88,7 +92,7 @@ async function insert() {
   if (saving.value) return;
   saving.value = true;
   if ((await formNew.value!.validate()).valid) {
-    clear("filter");
+    resetFilter();
     if (await documentStore.insertDocument(document.value)) showFilterDrawerNew.value = false;
   }
   saving.value = false;
@@ -106,7 +110,7 @@ async function switch_status(item: TipoDocumento) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      clear("filter");
+      resetFilter();
       await documentStore.updateDocument(item);
     }
   });
@@ -141,7 +145,7 @@ async function update() {
       description: document.value.description,
       status: document.value.status,
     };
-    clear("filter");
+    resetFilter();
     if (await documentStore.updateDocument(data)) showFilterDrawerUpdate.value = false;
   }
   saving.value = false;
