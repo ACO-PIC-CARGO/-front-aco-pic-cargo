@@ -17,29 +17,22 @@ import type {
 } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
 import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import { emptyHouseFilter, houseListParams } from "@/components/HouseFile/houseListFilters";
 
 export const useHousesStore = defineStore("houses", () => {
   const listHouse = ref<HouseListado[]>([]);
   const house = ref<HouseDetalle>({});
   const lstFacturasFiscales = ref<FacturaFiscal[]>([]);
 
-  // getCargarHouse
   async function verHouse(filtros: FiltroHouseConsulta): Promise<void> {
-    filtros.id_branch = sessionBranchId();
-    await axios
-      .get<ApiResponse<HouseDetalle[] | undefined>>(import.meta.env.VITE_URL_MAIN + `house_ver`, {
-        params: filtros,
-
-        // @ts-expect-error the header goes in as a request option.
-        "Content-Type": "application/json",
-      })
-      .then(function (response) {
-        const data = response.data;
-        house.value = data.data ? data.data[0]! : {};
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    const response = await request<HouseDetalle>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "house_ver",
+      params: { id: filtros.id },
+    });
+    if (response.estadoflag) house.value = response.data[0]!;
+    else if (response.tipomensaje !== "TMSGERR") house.value = {};
   }
 
   async function setConfirmarTelex(data: Record<string, unknown>): Promise<void> {
@@ -79,24 +72,16 @@ export const useHousesStore = defineStore("houses", () => {
       console.log("Respuesta de guardarCarpetaHouse:", res);
     });
   }
-  async function listarHouse(filtros: FiltroHouseConsulta): Promise<void> {
-    filtros.id_branch = sessionBranchId();
-    await axios
-      .get<ApiResponse<HouseListado[] | undefined>>(import.meta.env.VITE_URL_MAIN + `listado_houses`, {
-        params: filtros,
-
-        // @ts-expect-error the header goes in as a request option.
-        "Content-Type": "application/json",
-      })
-      .then(function (response) {
-        const data = response.data;
-
-        listHouse.value = data.data ? data.data : [];
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function listarHouse(filtro: FiltroExpedientesRaiz): Promise<void> {
+    const response = await request<HouseListado>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "listado_houses",
+      params: houseListParams(filtro),
+    });
+    listHouse.value = response.estadoflag ? response.data : [];
+    if (hasFailed(response)) Swal.fire({ icon: "error", text: response.mensaje });
   }
+
   async function getCargarHouse(): Promise<void> {
     const config = {
       method: "get",
@@ -157,63 +142,34 @@ export const useHousesStore = defineStore("houses", () => {
         console.error(error);
       });
   }
-  async function deleteHouse(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "setHouseDelete",
-      headers: {
-        "Content-Type": "application/json",
+  async function deleteHouse(data: Record<string, unknown>): Promise<boolean> {
+    const response = await request({ method: "put", url: import.meta.env.VITE_URL_MAIN + "setHouseDelete", data });
+    if (!response.estadoflag) {
+      Swal.fire({ icon: "warning", text: response.mensaje });
+      return false;
+    }
+    const masterId = house.value.id == data.id ? house.value.id_master : copy_house.value?.id_master;
+    Swal.fire({ icon: "success", text: response.mensaje, allowEnterKey: false, allowEscapeKey: false, allowOutsideClick: false }).then(
+      () => {
+        const ruta = router.currentRoute.value.name;
+        if (ruta === "controlHouseEditar" || ruta === "controlHouseVer") {
+          router.push({ name: "controlMasterEditar", params: { id: masterId } });
+        } else if (ruta === "controlMasterEditar") {
+          window.location.reload();
+        }
       },
-      data: data,
-    };
+    );
+    return true;
+  }
 
-    await axios<ApiResponse & { statusBol?: boolean }>(config).then(function (response) {
-      sessionStorage.setItem("auth-token", response.data.token!);
-
-      if (response.data.status == "401") {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-
-      if (response.data.statusBol) {
-        Swal.fire({
-          icon: "success",
-          title: "REGISTRO ELIMINADO.",
-          allowEnterKey: false,
-          allowEscapeKey: false,
-          allowOutsideClick: false,
-        }).then((res) => {
-          if (res.isConfirmed) {
-            const ruta = router.currentRoute.value.name;
-            console.log("ruta", ruta);
-            if (ruta === "controlHouseEditar") {
-              const id_master = copy_house.value!.id_master;
-              router.push({
-                name: "controlMasterEditar",
-                params: {
-                  id: id_master,
-                },
-              });
-            } else if (ruta === "controlMasterEditar") {
-              window.location.reload();
-            }
-          }
-        });
-      }
+  function sendArrivalNotice(houseId: number, noticeType: string, accountIds: number[]): Promise<ApiResponse> {
+    return request({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
+      data: { id: houseId, notificacion: noticeType, cuentasBancarias: accountIds },
     });
   }
+
   async function getFacturasFiscales(houseFacturable: HouseFacturable = {}): Promise<void> {
     lstFacturasFiscales.value = [];
 
@@ -281,12 +237,7 @@ export const useHousesStore = defineStore("houses", () => {
   const house_nro_declaracion_aduana = ref<Numerico>("");
   const house_canal_aduana = ref<Numerico>("");
   const house_filtrarData = ref(false);
-  const house_filtro = ref<FiltroExpedientesRaiz>({
-    fecha_etd_desde: null,
-    fecha_eta_desde: null,
-    fecha_etd_hasta: null,
-    fecha_eta_hasta: null,
-  } as FiltroExpedientesRaiz);
+  const house_filtro = ref<FiltroExpedientesRaiz>(emptyHouseFilter());
   const dataHouse_transporte = ref<Numerico>("");
   const bitacora_id_bitacora = ref<Numerico>("");
   const bitacora_comentario_predefinido = ref<ComentarioEstadoHouse>("" as unknown as ComentarioEstadoHouse);
@@ -444,6 +395,7 @@ export const useHousesStore = defineStore("houses", () => {
     getCargarHouse,
     insertComentarioHouse,
     deleteHouse,
+    sendArrivalNotice,
     getFacturasFiscales,
     copy_house,
     modalServices_manualMode,

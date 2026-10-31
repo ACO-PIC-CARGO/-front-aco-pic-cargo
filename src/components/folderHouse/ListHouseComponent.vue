@@ -4,23 +4,20 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useHousesStore } from "@/stores/houses";
-import { useMastersStore } from "@/stores/masters";
-import { usePricingStore } from "@/stores/pricing";
+import GuardarUrlMaster from "@/components/comun/GuardarUrlMaster.vue";
 import type { HouseListado } from "@/types/cotizacion";
-import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
+import type { RegistroConUrlCarpeta } from "@/types/archivos";
+import { sessionBranchId } from "@/utils/sesion";
 
 defineProps<{ statusReport?: boolean; statusList?: string }>();
 
 const appStore = useAppStore();
 const router = useRouter();
 const housesStore = useHousesStore();
-const pricingStore = usePricingStore();
-const mastersStore = useMastersStore();
 
 const search = ref("");
 const dialogUrl = ref(false);
-const url_folderonedrive = ref("");
-const houseEditar = ref<HouseListado>({} as HouseListado);
+const folderMaster = ref<RegistroConUrlCarpeta>({});
 const expanded = ref([]);
 const headers = [
   { title: "Master", key: "code_master" },
@@ -41,30 +38,16 @@ const dialogComentario = ref(false);
 const loading = ref(false);
 const house = ref<HouseListado>({} as HouseListado);
 const fecha = ref(moment().format("YYYY-MM-DD"));
-const id_vendedor = ref<number | string>("");
 const frmComentario = useTemplateRef("frmComentario");
 const comentario = ref("");
 
 function abrirCaperta(item: HouseListado) {
-  console.log("item:", item);
-  houseEditar.value = { ...item };
-  url_folderonedrive.value = "";
+  folderMaster.value = { id: item.id_master, url_folderonedrive: item.url_folderonedrive };
   dialogUrl.value = true;
-  // window.open(url, "_blank");
 }
-async function actualizarUrl() {
-  await mastersStore.actualizarURLEnElMaster({
-    id: houseEditar.value.id,
-    url: url_folderonedrive.value,
-  });
-  houseEditar.value.url_folderonedrive = url_folderonedrive.value;
+async function cerrarCarpeta() {
   dialogUrl.value = false;
-  setTimeout(async () => {
-    await housesStore.listarHouse(housesStore.house_filtro);
-  }, 1000);
-}
-function to_link({ url = "" }: { url?: string }) {
-  window.open(url, "_blank");
+  await housesStore.listarHouse(housesStore.house_filtro);
 }
 function editHouse(id: number) {
   router.push("/home/folderHouse/control/editar/" + id);
@@ -89,7 +72,6 @@ function selectHouse(houseItem: HouseListado) {
 function abrirModalComentario(item: HouseListado) {
   dialogComentario.value = true;
   house.value = item;
-  id_vendedor.value = sessionUserIdOrEmpty();
   comentario.value = "";
 }
 async function guardarComentario() {
@@ -99,14 +81,13 @@ async function guardarComentario() {
 
     await housesStore.insertComentarioHouse({
       id_house: house.value.id,
-      id_entities: id_vendedor.value,
       fecha: fecha.value,
       comentario: comentario.value,
     });
 
     dialogComentario.value = !dialogComentario.value;
 
-    await appStore._getHouseListAll();
+    await housesStore.listarHouse(housesStore.house_filtro);
 
     appStore.spiner = false;
     loading.value = false;
@@ -120,8 +101,6 @@ onMounted(async () => {
   // await this._getHouseListAll();
   appStore.spiner = false;
   await Promise.all([
-    appStore._getTotalHouseListAll(),
-    pricingStore.getModulesEntities(),
     appStore._getModality(),
     appStore._getShipment(),
     appStore.cargarClientes(),
@@ -330,14 +309,6 @@ onMounted(async () => {
                 type="date"
                 readonly
               />
-              <v-autocomplete
-                label="Ejecutivo"
-                :items="pricingStore.listEjecutivo"
-                item-title="name"
-                item-value="id_entitie"
-                v-model="id_vendedor"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
               <v-textarea
                 label="Estado/ Comentario"
                 v-model="comentario"
@@ -361,46 +332,11 @@ onMounted(async () => {
         </v-card>
       </v-dialog>
     </v-card>
-    <v-dialog
-      v-model="dialogUrl"
-      scrollable
-      persistent
-      max-width="30%"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title> Actualizar URL Carpeta </v-card-title>
-        <v-card-text>
-          <v-btn
-            color="success"
-            size="small"
-            :disabled="!houseEditar.url_folderonedrive"
-            @click="to_link({ url: houseEditar.url_folderonedrive })"
-          >
-            Abrir <v-icon class="mx-1">
-              mdi-folder-open-outline
-            </v-icon>
-          </v-btn>
-          <v-divider class="my-3" />
-          <v-text-field
-            label="Nueva URL"
-            id="id"
-            v-model="url_folderonedrive"
-            append-inner-icon="mdi-folder-check"
-            @click:append-inner="actualizarUrl"
-          />
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="error"
-              @click="dialogUrl = false"
-            >
-              Cerrar
-            </v-btn>
-          </v-card-actions>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <GuardarUrlMaster
+      :dialog-url="dialogUrl"
+      :master-editar="folderMaster"
+      @cerrar="cerrarCarpeta"
+    />
   </div>
 </template>
 

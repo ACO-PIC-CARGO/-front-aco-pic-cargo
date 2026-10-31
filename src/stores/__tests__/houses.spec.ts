@@ -7,11 +7,10 @@ import router from "@/router";
 import { useHousesStore } from "@/stores/houses";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
-vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { get: vi.fn(), put: vi.fn() }) }));
+vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { put: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere" } } } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
-const getMock = http.get as unknown as Mock<(url: string, config: unknown) => Promise<{ data: unknown }>>;
 const putMock = http.put as unknown as Mock<(url: string, data: unknown, config: unknown) => Promise<{ data: unknown }>>;
 const currentRoute = router.currentRoute as unknown as { value: { name: string } };
 
@@ -32,20 +31,18 @@ describe("houses store", () => {
     vi.restoreAllMocks();
   });
 
-  test("verHouse stamps the branch on the filters and keeps the first row", async () => {
-    getMock.mockResolvedValue({ data: { data: [{ id: 5, code_house: "H-5" }, { id: 6 }] } });
+  test("verHouse keeps the first row of the house the server returns", async () => {
+    respond({ house_ver: accepted([{ id: 5, code_house: "H-5" }, { id: 6 }]) });
     const houses = useHousesStore();
-    const filtros: Record<string, unknown> = { id: 5 };
 
-    await houses.verHouse(filtros);
+    await houses.verHouse({ id: 5 });
 
-    expect(filtros.id_branch).toBe(7);
-    expect(getMock).toHaveBeenCalledWith(URL_MAIN + "house_ver", { params: { id: 5, id_branch: 7 }, "Content-Type": "application/json" });
+    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "house_ver", params: { id: 5 } });
     expect(houses.house).toEqual({ id: 5, code_house: "H-5" });
   });
 
-  test("verHouse empties the house when the answer carries no rows", async () => {
-    getMock.mockResolvedValue({ data: {} });
+  test("verHouse empties the house when the server refuses it", async () => {
+    respond({ house_ver: rejected("No encontramos ese expediente. Recarga la página e intenta de nuevo.") });
     const houses = useHousesStore();
     houses.house = { id: 1 };
 
@@ -55,8 +52,7 @@ describe("houses store", () => {
   });
 
   test("verHouse keeps the house when the request fails", async () => {
-    getMock.mockRejectedValue(new Error("network"));
-    vi.spyOn(console, "error").mockImplementation(() => {});
+    respond({ house_ver: new Error("network") });
     const houses = useHousesStore();
     houses.house = { id: 1 };
 
@@ -65,16 +61,32 @@ describe("houses store", () => {
     expect(houses.house).toEqual({ id: 1 });
   });
 
-  test("listarHouse stamps the branch and keeps the rows, or empties the list without rows", async () => {
+  test("listarHouse sends the filters the list reads and keeps the rows", async () => {
+    respond({ listado_houses: accepted([{ id: 1 }, { id: 2 }]) });
     const houses = useHousesStore();
-    getMock.mockResolvedValueOnce({ data: { data: [{ id: 1 }, { id: 2 }] } });
-    await houses.listarHouse({ code: "H" });
-    expect(getMock).toHaveBeenCalledWith(URL_MAIN + "listado_houses", { params: { code: "H", id_branch: 7 }, "Content-Type": "application/json" });
-    expect(houses.listHouse).toEqual([{ id: 1 }, { id: 2 }]);
 
-    getMock.mockResolvedValueOnce({ data: {} });
-    await houses.listarHouse({});
+    await houses.listarHouse({ ...houses.house_filtro, id_sentido: 1, id_tipo_embarque: { id: 3 } } as never);
+
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "get",
+      url: URL_MAIN + "listado_houses",
+      params: { id_modality: 1, id_shipment: 3 },
+    });
+    expect(houses.listHouse).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  test("listarHouse shows an empty list when nothing matches, and says so only when the request fails", async () => {
+    const houses = useHousesStore();
+    houses.listHouse = [{ id: 1 }] as never;
+    respond({ listado_houses: rejected() });
+    await houses.listarHouse(houses.house_filtro);
     expect(houses.listHouse).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+
+    respond({ listado_houses: new Error("network") });
+    await houses.listarHouse(houses.house_filtro);
+    expect(houses.listHouse).toEqual([]);
+    expect(firstSwal()).toMatchObject({ icon: "error" });
   });
 
   test("getCargarHouse asks for the houses of the session branch", async () => {
@@ -195,70 +207,45 @@ describe("houses store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("deleteHouse saves the token and sends the user to Login when the session expired", async () => {
-    vi.useFakeTimers();
-    respond({ setHouseDelete: { token: "t-d", status: "401", mensaje: "Token vencido" } });
+  test("deleteHouse explains why the server refused and stays on the house", async () => {
+    const reason = "No podemos eliminar este house porque ya tiene pagos registrados. Anula esos pagos primero e intenta de nuevo.";
+    respond({ setHouseDelete: { ...rejected(reason), tipomensaje: "TMSGADV" } });
+    currentRoute.value.name = "controlHouseVer";
     const houses = useHousesStore();
 
-    await houses.deleteHouse({ id: 1 });
-    await flushPromises();
+    expect(await houses.deleteHouse({ id: 1 })).toBe(false);
 
-    expect(httpMock).toHaveBeenCalledWith({ method: "put", url: URL_MAIN + "setHouseDelete", headers: JSON_HEADERS, data: { id: 1 } });
-    expect(sessionStorage.getItem("auth-token")).toBe("t-d");
-    expect(firstSwal()).toMatchObject({ icon: "error", text: "Token vencido" });
-    expect(router.push).toHaveBeenCalledWith({ name: "Login" });
+    expect(httpMock).toHaveBeenCalledWith({ method: "put", url: URL_MAIN + "setHouseDelete", data: { id: 1 } });
+    expect(firstSwal()).toMatchObject({ icon: "warning", text: reason });
+    expect(router.push).not.toHaveBeenCalled();
   });
 
-  test("deleteHouse goes back to the master of the copied house after deleting from the house editor", async () => {
-    respond({ setHouseDelete: { token: "t", statusBol: true } });
-    currentRoute.value.name = "controlHouseEditar";
-    vi.spyOn(console, "log").mockImplementation(() => {});
+  test("deleteHouse goes to the house's master after deleting from the house screen", async () => {
+    respond({ setHouseDelete: { ...accepted([]), mensaje: "Eliminamos el house." } });
     const houses = useHousesStore();
-    houses.copy_house = { id_master: 12 } as never;
+    houses.house = { id: 1, id_master: 12 };
 
-    await houses.deleteHouse({ id: 1 });
-    await flushPromises();
-
-    expect(firstSwal()).toEqual({
-      icon: "success",
-      title: "REGISTRO ELIMINADO.",
-      allowEnterKey: false,
-      allowEscapeKey: false,
-      allowOutsideClick: false,
-    });
-    expect(router.push).toHaveBeenCalledWith({ name: "controlMasterEditar", params: { id: 12 } });
+    for (const name of ["controlHouseEditar", "controlHouseVer"]) {
+      vi.mocked(router.push).mockClear();
+      currentRoute.value.name = name;
+      expect(await houses.deleteHouse({ id: 1 })).toBe(true);
+      await flushPromises();
+      expect(router.push).toHaveBeenCalledWith({ name: "controlMasterEditar", params: { id: 12 } });
+    }
+    expect(firstSwal()).toMatchObject({ icon: "success", text: "Eliminamos el house." });
   });
 
-  test("deleteHouse reloads the page after deleting from the master editor and stays put elsewhere", async () => {
-    respond({ setHouseDelete: { token: "t", statusBol: true } });
+  test("deleteHouse reloads the page after deleting from the master editor", async () => {
+    respond({ setHouseDelete: accepted([]) });
     const reload = vi.fn();
     vi.stubGlobal("location", { reload });
-    vi.spyOn(console, "log").mockImplementation(() => {});
-    const houses = useHousesStore();
-
     currentRoute.value.name = "controlMasterEditar";
-    await houses.deleteHouse({ id: 1 });
-    await flushPromises();
-    expect(reload).toHaveBeenCalledTimes(1);
-    expect(router.push).not.toHaveBeenCalled();
-
-    currentRoute.value.name = "listHouse";
-    await houses.deleteHouse({ id: 1 });
-    await flushPromises();
-    expect(reload).toHaveBeenCalledTimes(1);
-    expect(router.push).not.toHaveBeenCalled();
-  });
-
-  test("deleteHouse does not navigate when the success message is dismissed", async () => {
-    respond({ setHouseDelete: { token: "t", statusBol: true } });
-    vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
-    currentRoute.value.name = "controlHouseEditar";
-    vi.spyOn(console, "log").mockImplementation(() => {});
     const houses = useHousesStore();
 
     await houses.deleteHouse({ id: 1 });
     await flushPromises();
 
+    expect(reload).toHaveBeenCalledTimes(1);
     expect(router.push).not.toHaveBeenCalled();
   });
 });

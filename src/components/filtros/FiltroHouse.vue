@@ -3,6 +3,7 @@ import { useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useHousesStore } from "@/stores/houses";
 import FormatFecha from "../comun/FormatFecha.vue";
+import { emptyHouseFilter } from "@/components/HouseFile/houseListFilters";
 
 const appStore = useAppStore();
 const housesStore = useHousesStore();
@@ -15,23 +16,17 @@ async function filtrar() {
   appStore.spiner = false;
   housesStore.house_filtrarData = false;
 }
-async function activarPort(id_transport: number) {
+async function activarPort(id_transport?: number) {
+  if (!id_transport) return;
   await appStore._getPortBegin({ id_transport: id_transport });
   await appStore._getPortEnd({ id_transport: id_transport });
 }
 async function limpiar() {
   appStore.spiner = true;
-
   frmFiltro.value!.reset();
-  housesStore.house_filtro.pagina = 1;
-  housesStore.house_filtro.limite = 10;
-
-  await appStore._getTotalHouseListAll();
-  await appStore._getHouseListAll();
-
-  housesStore.house_filtrarData =
-    !housesStore.house_filtrarData;
-
+  housesStore.house_filtro = emptyHouseFilter();
+  await housesStore.listarHouse(housesStore.house_filtro);
+  housesStore.house_filtrarData = false;
   appStore.spiner = false;
 }
 </script>
@@ -72,7 +67,7 @@ async function limpiar() {
           v-model="housesStore.house_filtro.id_tipo_embarque"
           return-object
           @update:model-value="
-            activarPort(housesStore.house_filtro.id_tipo_embarque.id_transport)
+            activarPort(housesStore.house_filtro.id_tipo_embarque?.id_transport)
           "
         />
         <v-autocomplete
