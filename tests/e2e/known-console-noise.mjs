@@ -15,16 +15,6 @@ export const KNOWN_CONSOLE_NOISE = [
     routes: ["lstProyeccionCXP", "nuevaProyeccionCXP", "verProyeccion", "editarProyeccion"],
   },
   {
-    pattern: /^TypeError: Cannot read properties of undefined \(reading 'fecha_inicio'\)(\n|$)/,
-    reason: "pre-existing on Vue 2: listFlujoMensual",
-    routes: ["listFlujoMensual"],
-  },
-  {
-    pattern: /^TypeError: Cannot read properties of undefined \(reading '(fecha_fin|cantidad_semanas)'\)(\n|$)/,
-    reason: "same pre-existing issue as the listFlujoMensual 'fecha_inicio' entry, Vue 3 wording: each slot renders on its own, so the empty lstFlujoOperacionesMes[0] also fails at fecha_fin and cantidad_semanas",
-    routes: ["listFlujoMensual"],
-  },
-  {
     pattern: /^Request failed with status code 500(\n|$)/,
     reason: "pre-existing on Vue 2: verQuote, editQuote (listado_files answers 500: the SharePoint folder is unreachable locally)",
     routes: ["verQuote", "editQuote"],
