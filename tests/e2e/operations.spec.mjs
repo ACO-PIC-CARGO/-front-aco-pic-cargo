@@ -119,7 +119,7 @@ test("adds an income line to an expense control", async ({ page }) => {
   expect(response.ok()).toBe(true);
   const body = await response.json();
   expect(body.statusBol, "setIngresos response").toBe(true);
-  await expect(page.locator(".swal2-popup")).toContainText("Registro Corrrecto.");
+  await expect(page.locator(".swal2-popup")).toContainText("Concepto agregado.");
   await page.getByRole("button", { name: "OK" }).click();
   await page.getByRole("cell", { name: /\(\d+\) - \d+/ }).first().click();
   await expect(page.getByText(concept)).toBeVisible();
