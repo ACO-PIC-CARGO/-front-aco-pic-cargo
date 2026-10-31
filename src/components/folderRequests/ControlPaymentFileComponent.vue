@@ -20,7 +20,7 @@ const boolFile = ref(false);
 const paybanco = ref("");
 const paymoneda = ref("");
 const paymonto = ref("");
-const payfile = ref("" as unknown as File | File[]);
+const payfile = ref<File | File[] | null>(null);
 const payPath = ref<string | never[]>("");
 const pathfile = ref("");
 const date = ref(
@@ -394,9 +394,8 @@ onMounted(() => {
                 </v-chip>
               </v-col>
               <v-col cols="3">
-                <!-- @vue-expect-error an array literal is never equal to the model -->
                 <v-btn
-                  :disabled="boolFile || payfile == []"
+                  :disabled="boolFile || !payfile"
                   color="blue-grey"
                   block
                   class="ma-2 text-white"
