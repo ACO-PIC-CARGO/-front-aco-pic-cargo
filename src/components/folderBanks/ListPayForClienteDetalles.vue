@@ -220,8 +220,8 @@ async function getListBanksDetailsCxC() {
         filtro.value.serie ? filtro.value.serie : ""
       }&id_banco=${
         filtro.value.id_banco ? filtro.value.id_banco : ""
-      }&id_coin=${
-        filtro.value.id_coin ? filtro.value.id_coin : ""
+      }&id_cuenta=${
+        filtro.value.id_cuenta ? filtro.value.id_cuenta : ""
       }&id_consigner=${
         filtro.value.id_consigner ? filtro.value.id_consigner : ""
       }&id_tipoingreso=${
@@ -377,31 +377,16 @@ async function exportar() {
   loading.value = true;
   const config = {
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `exportar_listado_reporte_ingresos?id_branch=${
-        sessionBranchId()
-      }&nro_operacion=${
-        filtro.value.nro_operacion ? filtro.value.nro_operacion : ""
-      }&monto=${filtro.value.monto ? filtro.value.monto : ""}&fechadesde=${
-        filtro.value.fechadesde ? filtro.value.fechadesde : ""
-      }&fechahasta=${
-        filtro.value.fechahasta ? filtro.value.fechahasta : ""
-      }&factura=${filtro.value.factura ? filtro.value.factura : ""}&serie=${
-        filtro.value.serie ? filtro.value.serie : ""
-      }&id_banco=${
-        filtro.value.id_banco ? filtro.value.id_banco : ""
-      }&id_coin=${
-        filtro.value.id_coin ? filtro.value.id_coin : ""
-      }&id_consigner=${
-        filtro.value.id_consigner ? filtro.value.id_consigner : ""
-      }&id_tipoingreso=${
-        filtro.value.tipoingreso ? filtro.value.tipoingreso : ""
-      }&id_tiposubingreso=${
-        filtro.value.tiposubingreso ? filtro.value.tiposubingreso : ""
-      }&operativo=${filtro.value.operativo}&administrativo=${
-        filtro.value.administrativo
-      }&nro_exp=${filtro.value.nro_exp ? filtro.value.nro_exp : ""}`,
+    url: import.meta.env.VITE_URL_MAIN + "exportar_listado_reporte_ingresos",
+    params: {
+      id_banco_origin: filtro.value.id_banco,
+      id_cuenta_destino: filtro.value.id_cuenta,
+      id_consigner: filtro.value.id_consigner,
+      nro_operacion: filtro.value.nro_operacion,
+      nro_exp: filtro.value.nro_exp,
+      fechadesde: filtro.value.fechadesde,
+      fechahasta: filtro.value.fechahasta,
+    },
     responseType: "blob" as const,
     headers: {
       "Content-Type": "application/json",

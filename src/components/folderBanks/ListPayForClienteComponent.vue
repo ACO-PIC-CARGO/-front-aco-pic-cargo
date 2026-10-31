@@ -455,31 +455,8 @@ async function exportar() {
   loading.value = true;
   const config = {
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `exportar_listado_reporte_ingresos?id_branch=${
-        sessionBranchId()
-      }&nro_operacion=${
-        filtro.value.nro_operacion ? filtro.value.nro_operacion : ""
-      }&monto=${filtro.value.monto ? filtro.value.monto : ""}&fechadesde=${
-        filtro.value.fechadesde ? filtro.value.fechadesde : ""
-      }&fechahasta=${
-        filtro.value.fechahasta ? filtro.value.fechahasta : ""
-      }&factura=${filtro.value.factura ? filtro.value.factura : ""}&serie=${
-        filtro.value.serie ? filtro.value.serie : ""
-      }&id_banco=${
-        filtro.value.id_banco ? filtro.value.id_banco : ""
-      }&id_coin=${
-        filtro.value.id_coin ? filtro.value.id_coin : ""
-      }&id_consigner=${
-        filtro.value.id_consigner ? filtro.value.id_consigner : ""
-      }&id_tipoingreso=${
-        filtro.value.tipoingreso ? filtro.value.tipoingreso : ""
-      }&id_tiposubingreso=${
-        filtro.value.tiposubingreso ? filtro.value.tiposubingreso : ""
-      }&operativo=${filtro.value.operativo}&administrativo=${
-        filtro.value.administrativo
-      }&nro_exp=${filtro.value.nro_exp ? filtro.value.nro_exp : ""}`,
+    url: import.meta.env.VITE_URL_MAIN + "exportar_listado_reporte_ingresos",
+    params: filtro.value,
     responseType: "blob" as const,
     headers: {
       "Content-Type": "application/json",
@@ -791,7 +768,7 @@ onMounted(async () => {
         <v-card-text>
           <v-select
             :items="appStore.itemsDataBanksList"
-            v-model="filtro.id_banco"
+            v-model="filtro.id_banco_origin"
             label="Banco Origen"
             item-title="acronym"
             item-value="id"
@@ -803,7 +780,7 @@ onMounted(async () => {
           />
           <v-select
             :items="cuentas"
-            v-model="filtro.id_cuenta"
+            v-model="filtro.id_cuenta_destino"
             label="Cuenta Bancaria Destino (PIC)"
             item-title="label"
             item-value="id"
@@ -874,7 +851,7 @@ onMounted(async () => {
           <v-text-field
             type="number"
             label="Monto"
-            v-model="filtro.monto"
+            v-model="filtro.monto_factura"
             clearable
             variant="outlined"
             class="mb-2"

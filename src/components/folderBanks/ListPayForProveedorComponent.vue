@@ -446,35 +446,8 @@ async function exportar() {
   loading.value = true;
   const config = {
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `exportar_listado_reporte_egresos?id_branch=${
-        sessionBranchId()
-      }&desde=${
-        filtro.value.fechadesde ? filtro.value.fechadesde : ""
-      }&hasta=${
-        filtro.value.fechahasta ? filtro.value.fechahasta : ""
-      }&nro_operacion=${
-        filtro.value.nro_operacion ? filtro.value.nro_operacion : ""
-      }&id_cuenta=${
-        filtro.value.id_cuenta ? filtro.value.id_cuenta : ""
-      }&id_proveedor=${
-        filtro.value.id_proveedor ? filtro.value.id_proveedor : ""
-      }&monto=${filtro.value.monto ? filtro.value.monto : ""}&id_moneda=${
-        filtro.value.id_moneda ? filtro.value.id_moneda : ""
-      }&nro_factura=${
-        filtro.value.nro_factura ? filtro.value.nro_factura : ""
-      }&nro_serie=${
-        filtro.value.nro_serie ? filtro.value.nro_serie : ""
-      }&nro_serie=${
-        filtro.value.nro_serie ? filtro.value.nro_serie : ""
-      }&tipogastos=${
-        filtro.value.tipogastos ? filtro.value.tipogastos : ""
-      }&tiposubgastos=${
-        filtro.value.tiposubgastos ? filtro.value.tiposubgastos : ""
-      }&operativo=${filtro.value.operativo}&administrativo=${
-        filtro.value.administrativo
-      }`,
+    url: import.meta.env.VITE_URL_MAIN + "exportar_listado_reporte_egresos",
+    params: filtro.value,
     responseType: "blob" as const,
     headers: {
       "Content-Type": "application/json",
