@@ -10,7 +10,11 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
+import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+
+const TOTALS_FAILED_MESSAGE = "No pudimos guardar los montos finales de la cotización. Revisa tu conexión e inténtalo de nuevo.";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -438,10 +442,10 @@ describe("aduana store", () => {
     });
 
     test.each([
-      ["activo", "1"],
-      ["eliminado", "0"],
+      ["activo", 1],
+      ["eliminado", 0],
       [true, ""],
-    ] as const)("getQuoteCallAduana sends the %s calls filter as estado=%s and keys pricing's calls by id and position", async (estado, sent) => {
+    ] as const)("getQuoteCallAduana sends the chosen filters under the keys the API reads, the %s calls as estado=%s, and keys pricing's calls by id and position", async (estado, sent) => {
       respond({ list_calls_aduana: accepted([{ id: 7 }, { id: 7 }]) });
       const aduana = useAduanaStore();
       aduana.filtroCalls = { id_marketing: "", id_status: 3, id_entities: "", id_modality: "", id_shipment: "", id_incoterm: "", fechainicio: "", fechafin: "2026-10-31", estado };
@@ -450,9 +454,9 @@ describe("aduana store", () => {
 
       expect(sentConfig("list_calls_aduana")).toEqual({
         method: "get",
-        url: URL_MAIN + `list_calls_aduana?id_branch=1&id_marketing=&id_status=3&id_entities=&id_modality=&id_shipment=&id_incoterm=&fechainicio=&fechafin=2026-10-31&estado=${sent}`,
+        url: URL_MAIN + "list_calls_aduana",
         headers: JSON_HEADERS,
-        data: { id_branch: 1, id_estado: 1, id_sentido: 2, id_carga: 3, id_incoterms: 4, desde: "a", hasta: "b" },
+        params: { id_estado: 1, id_sentido: 2, id_carga: 3, id_icoterms: 4, desde: "a", hasta: "b", estado: sent },
       });
       expect(usePricingStore().listCall).toEqual([
         { id: 7, rowId: "7_0" },
@@ -519,17 +523,34 @@ describe("aduana store", () => {
 
   describe("quote", () => {
     test("registrarAduana posts the LCL quote with formatted costs, notes, taxes and services and keeps the new id", async () => {
-      respond({ "insert_aduana  ": { insertId: 77, nro_quote: "77-A", msg: "Registrado" } });
+      respond({ "insert_aduana  ": { estadoflag: true, insertId: 77, nro_quote: "77-A", msg: "Registrado" } });
       const aduana = cotizacion();
 
-      await aduana.registrarAduana({ fullflag: false });
+      const saved = await aduana.registrarAduana({ fullflag: false });
 
+      expect(saved).toBe(true);
       expect(sentConfig("insert_aduana  ")).toMatchSnapshot();
       expect([aduana.id, aduana.nro_quote, aduana.mensaje, aduana.tiporeporte]).toEqual([77, "77-A", "Registrado", ""]);
     });
 
+    test.each([
+      [{ estadoflag: false, mensaje: "El estado elegido no pertenece a tu empresa.", tipomensaje: "TMSGADV" }, "El estado elegido no pertenece a tu empresa."],
+      [new Error("down"), CONNECTION_ERROR_MESSAGE],
+    ])("registrarAduana keeps no number and says why when the aduana is not saved", async (answer, text) => {
+      respond({ "insert_aduana  ": answer });
+      const aduana = cotizacion();
+      aduana.id = "";
+      aduana.nro_quote = "";
+
+      const saved = await aduana.registrarAduana({ fullflag: false });
+
+      expect(saved).toBe(false);
+      expect([aduana.id, aduana.nro_quote]).toEqual(["", ""]);
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text }));
+    });
+
     test("registrarAduana sends the containers and no weights for an FCL quote, and no taxes without the tax service", async () => {
-      respond({ "insert_aduana  ": { insertId: 78, nro_quote: "78-A", msg: "ok" } });
+      respond({ "insert_aduana  ": { estadoflag: true, insertId: 78, nro_quote: "78-A", msg: "ok" } });
       const aduana = cotizacion();
       aduana.datosPrincipales.idtipocarga = { id: 2, code: "FCL" };
       aduana.datosPrincipales.containers = [{ id_containers: 7, cantidad: 2, description: "20ST" }];
@@ -557,10 +578,50 @@ describe("aduana store", () => {
       aduana.id = 14;
       aduana.opcionCostos = [opcion({ id: 6 })];
 
-      await aduana.actualizarQuoteAduana();
+      const saved = await aduana.actualizarQuoteAduana();
 
+      expect(saved).toBe(true);
       expect(sentConfig("actualizar_aduana")).toMatchSnapshot();
       expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", text: "Actualizado" });
+    });
+
+    test.each([
+      [{ estadoflag: false, mensaje: "Esta cotización ya está aprobada y no se puede modificar.", tipomensaje: "TMSGADV" }, "Esta cotización ya está aprobada y no se puede modificar."],
+      [new Error("down"), CONNECTION_ERROR_MESSAGE],
+    ])("actualizarQuoteAduana answers false and says why when the changes are not saved", async (answer, text) => {
+      respond({ actualizar_aduana: answer });
+      const aduana = cotizacion();
+      aduana.id = 14;
+
+      const saved = await aduana.actualizarQuoteAduana();
+
+      expect(saved).toBe(false);
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text }));
+    });
+
+    test("getAdunaVer answers false for an aduana it cannot open and leaves the form as it was", async () => {
+      respond({ ver_aduana: rejected() });
+      const aduana = cotizacion();
+      aduana.id = 3;
+
+      const opened = await aduana.getAdunaVer({ id: 999999999 });
+
+      expect(opened).toBe(false);
+      expect([aduana.id, aduana.datosPrincipales.nombre]).toEqual([3, DATOS.nombre]);
+    });
+
+    test("resetAduanaNew forgets the aduana that was open before", () => {
+      const aduana = cotizacion();
+      aduana.id = 14;
+      aduana.aprobadoflag = true;
+      aduana.opcionCostos = [opcion({ id: 6 }), opcion({ id: 7, nro_propuesta: 2 })];
+
+      aduana.resetAduanaNew();
+
+      expect([aduana.id, aduana.nro_quote, aduana.aprobadoflag, aduana.datosPrincipales.id_entitie, aduana.listServices]).toEqual(["", "", false, "", []]);
+      expect(aduana.opcionCostos).toEqual([
+        { nro_propuesta: 1, date_end: "", tiempo_transito: 0, listCostos: [], listImpuestos: [], listNotasQuote: [], selected: false },
+      ]);
     });
 
     test("getAdunaVer loads the quote into the form, its options and flags", async () => {
@@ -636,11 +697,11 @@ describe("aduana store", () => {
     });
 
     test("unificarQuoteAduana posts the pair and keeps the unified quote", async () => {
-      respond({ aduana_unificar: { insertId: 99, nro_quote: "99-P", msg: "Unificado" } });
+      respond({ aduana_unificar: { estadoflag: true, insertId: 99, nro_quote: "99-P", msg: "Unificado" } });
       const aduana = useAduanaStore();
       aduana.tiporeporte = "TOTAL";
 
-      await aduana.unificarQuoteAduana({ id_quote: 12895, id_aduana: 14 });
+      expect(await aduana.unificarQuoteAduana({ id_quote: 12895, id_aduana: 14 })).toBe(true);
 
       expect(sentConfig("aduana_unificar")).toEqual({
         method: "post",
@@ -651,6 +712,17 @@ describe("aduana store", () => {
       expect([aduana.IdQuote, aduana.nro_quote, aduana.mensaje, aduana.tiporeporte]).toEqual([99, "99-P", "Unificado", ""]);
     });
 
+    test("unificarQuoteAduana says why when the quotes cannot be unified and keeps no new number", async () => {
+      respond({ aduana_unificar: { estadoflag: false, mensaje: "La cotización fue eliminada.", tipomensaje: "TMSGADV" } });
+      const aduana = useAduanaStore();
+      aduana.nro_quote = "14-A";
+
+      expect(await aduana.unificarQuoteAduana({ id_quote: 12895, id_aduana: 14 })).toBe(false);
+
+      expect(aduana.nro_quote).toBe("");
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text: "La cotización fue eliminada." }));
+    });
+
     test.each([
       [true, "info"],
       [false, "error"],
@@ -658,8 +730,7 @@ describe("aduana store", () => {
       respond({ update_aduana_recibido_enviado: { estadoflag, mensaje: "Actualizado" } });
       const aduana = useAduanaStore();
 
-      aduana.actualizarAduanaRecibidoEnviado({ id: 14, id_status: 3 });
-      await flushPromises();
+      expect(await aduana.actualizarAduanaRecibidoEnviado({ id: 14, id_status: 3 })).toBe(estadoflag);
 
       expect(sentConfig("update_aduana_recibido_enviado")).toEqual({
         method: "put",
@@ -670,13 +741,13 @@ describe("aduana store", () => {
       expect(Swal.fire).toHaveBeenCalledWith({ icon, text: "Actualizado" });
     });
 
-    test("guardarNotaAduana posts the call note and logs a failed request", async () => {
+    test("guardarNotaAduana saves the call on the aduana, confirms it, and says what to do when it fails", async () => {
       respond({ set_calls_aduana: accepted([]) });
       const aduana = useAduanaStore();
 
-      await aduana.guardarNotaAduana({ id_quote: 14, comentario: "LLAMAR" });
+      expect(await aduana.guardarNotaAduana({ id_quote: 14, comentario: "LLAMAR" })).toBe(true);
       respond({ set_calls_aduana: new Error("down") });
-      await aduana.guardarNotaAduana({ id_quote: 14 });
+      expect(await aduana.guardarNotaAduana({ id_quote: 14 })).toBe(false);
 
       expect(sentConfig("set_calls_aduana")).toEqual({
         method: "post",
@@ -684,41 +755,39 @@ describe("aduana store", () => {
         headers: JSON_HEADERS,
         data: { id_quote: 14, comentario: "LLAMAR" },
       });
-      expect(console.error).toHaveBeenCalledWith(new Error("down"));
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text: CONNECTION_ERROR_MESSAGE }));
+    });
+
+    test("aprobarCotizacionAduana sends its request key, answers true and offers the expense control of the new master", async () => {
+      respond({ aprobar_cotizacion_aduana: { estadoflag: true, mensaje: "Aprobada", data: [{ id_master: 900, nro_master: "M-900" }] } });
+      const aduana = useAduanaStore();
+
+      const approved = await aduana.aprobarCotizacionAduana({ id_quote: 14, nuevoexpediente: true, IdempotencyKey: "key-1" });
+      await flushPromises();
+
+      expect(approved).toBe(true);
+      expect(sentConfig("aprobar_cotizacion_aduana")).toMatchObject({
+        method: "put",
+        headers: { "idempotency-key": "key-1" },
+        data: { id_quote: 14, nuevoexpediente: true },
+      });
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success", text: "Aprobada", confirmButtonText: "Ir al control de gastos" }));
+      expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
     });
 
     test.each([
-      [true, "success"],
-      [false, "error"],
-    ])("aprobarCotizacionAduana puts the approval, shows estadoflag %s as %s and goes to the expense control on confirm", async (estadoflag, icon) => {
-      respond({ aprobar_cotizacion_aduana: { estadoflag, mensaje: "Aprobada", data: [{ id_master: 900, nro_master: "M-900" }] } });
+      [{ estadoflag: false, mensaje: "Esta cotización ya fue aprobada.", tipomensaje: "TMSGADV", data: [] }, "Esta cotización ya fue aprobada."],
+      [new Error("down"), APPROVE_FAILED_MESSAGE],
+    ])("aprobarCotizacionAduana answers false and says why without offering a master that does not exist", async (answer, text) => {
+      respond({ aprobar_cotizacion_aduana: answer });
       const aduana = useAduanaStore();
-      aduana.datosPrincipales = { nombre: "ZEVALLOS" };
 
-      await aduana.aprobarCotizacionAduana({ id_quote: 14, nuevoexpediente: true });
+      const approved = await aduana.aprobarCotizacionAduana({ id_quote: 14, nuevoexpediente: true, IdempotencyKey: "key-2" });
       await flushPromises();
 
-      expect(sentConfig("aprobar_cotizacion_aduana")).toEqual({
-        method: "put",
-        url: URL_MAIN + "aprobar_cotizacion_aduana",
-        headers: JSON_HEADERS,
-        data: { id_quote: 14, nuevoexpediente: true },
-      });
-      expect(Swal.fire).toHaveBeenCalledWith({
-        icon,
-        title: "Aviso",
-        text: "Aprobada",
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        confirmButtonText: "Ir al control de gastos",
-        denyButtonText: "Cerrar",
-        showCancelButton: false,
-        showConfirmButton: true,
-        showDenyButton: true,
-        confirmButtonColor: "#004D40",
-        denyButtonColor: "#DD2C00",
-      });
-      expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
+      expect(approved).toBe(false);
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text });
+      expect(router.push).not.toHaveBeenCalled();
     });
   });
 
@@ -734,13 +803,18 @@ describe("aduana store", () => {
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
     });
 
-    test("generarReporteAduana logs a failed request without opening anything", async () => {
-      postMock.mockRejectedValue(new Error("down"));
+    test.each([
+      [{ data: { estadoflag: false, mensaje: "No pudimos guardar el PDF en la carpeta de la empresa." } }, "No pudimos guardar el PDF en la carpeta de la empresa."],
+      [new Error("down"), CONNECTION_ERROR_MESSAGE],
+    ])("generarReporteAduana says why the PDF was not generated and opens nothing", async (answer, text) => {
+      if (answer instanceof Error) postMock.mockRejectedValue(answer);
+      else postMock.mockResolvedValue(answer);
       const aduana = cotizacion();
 
       await aduana.generarReporteAduana({ tipo: "TOTAL", nro_propuesta: 1 });
 
-      expect(console.log).toHaveBeenCalledWith(new Error("down"));
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text });
+      expect(Swal.fire).not.toHaveBeenCalledWith(expect.objectContaining({ title: "PDF Generado" }));
       expect(window.open).not.toHaveBeenCalled();
     });
 
@@ -826,7 +900,7 @@ describe("aduana store", () => {
 
       await aduana.GuardaCostosFinalesAduana();
 
-      expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", title: "Ocurrió un error", text: "down", showConfirmButton: true });
+      expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: TOTALS_FAILED_MESSAGE });
     });
   });
 });

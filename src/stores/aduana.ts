@@ -58,7 +58,14 @@ import {
   formatearServicios,
 } from "@/utils/cotizacion";
 import { userIdAtAppLoad } from "@/utils/appLoad";
-import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser } from "@/utils/sesion";
+import { generateIdempotencyKey } from "@/utils/idempotencia";
+import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
+import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
+import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+
+const TOTALS_FAILED_MESSAGE = "No pudimos guardar los montos finales de la cotización. Revisa tu conexión e inténtalo de nuevo.";
+
+const showRefusal = (mensaje: string) => Swal.fire({ icon: "error", text: mensaje });
 
 export const useAduanaStore = defineStore("aduana", () => {
   const { calcularFac, formatearCostos, formatearCostosEditar } = useCotizacionCalculos();
@@ -343,18 +350,10 @@ export const useAduanaStore = defineStore("aduana", () => {
     await axios
       // @ts-expect-error the headers object goes in as the request config.
       .post<ApiResponse>(import.meta.env.VITE_URL_MAIN + "insert_monto_finales_aduana", data, headers)
-      .then((response) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const res = response.data;
-      })
-      .catch((e) =>
-        Swal.fire({
-          icon: "error",
-          title: "Ocurrió un error",
-          text: e,
-          showConfirmButton: true,
-        })
-      );
+      .catch((e) => {
+        console.error(e);
+        showRefusal(TOTALS_FAILED_MESSAGE);
+      });
   }
   async function getPersonalPricingAduana(): Promise<void> {
     const config = {
@@ -372,56 +371,116 @@ export const useAduanaStore = defineStore("aduana", () => {
         console.error(error);
       });
   }
-  async function aprobarCotizacionAduana(dataParaAprobar: AprobacionCotizacion): Promise<void> {
-    const config = {
+  async function aprobarCotizacionAduana(dataParaAprobar: AprobacionCotizacion): Promise<boolean> {
+    const data = await request<MasterAprobado>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "aprobar_cotizacion_aduana",
       headers: {
         "Content-Type": "application/json",
+        "idempotency-key": dataParaAprobar.IdempotencyKey ?? generateIdempotencyKey(),
       },
       data: dataParaAprobar,
-    };
-    await axios<ApiResponse<MasterAprobado[]>>(config).then(async (res) => {
-      const data = res.data;
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const name = data.data[0]!.nro_master + " - " + datosPrincipales.value.nombre;
-
-      // if (dataParaAprobar.nuevoexpediente == true) {
-      //   let url_carpeta = await dispatch("createCarpetaOneDrive", { name });
-
-      //   await dispatch("actualizarMaster", {
-      //     id: data.data[0].id_master,
-      //     url: url_carpeta,
-      //   });
-      // }
-      Swal.fire({
-        icon: data.estadoflag == true ? "success" : "error",
-        title: "Aviso",
-        text: res.data.mensaje,
-        timerProgressBar: true,
-        allowOutsideClick: false,
-        confirmButtonText: "Ir al control de gastos",
-        denyButtonText: "Cerrar",
-        showCancelButton: false,
-        showConfirmButton: true,
-        showDenyButton: true,
-        confirmButtonColor: "#004D40",
-        denyButtonColor: "#DD2C00",
-      }).then((res) => {
-        if (res.isConfirmed) {
-          router.push({
-            name: "editControlGasto",
-            params: {
-              id: data.data[0]!.id_master,
-              id_branch: sessionBranchId(),
-            },
-          });
-        }
-        if (res.isDenied) {
-          window.location.reload();
-        }
-      });
     });
+    const master = data.data[0];
+    if (!data.estadoflag || !master) {
+      const refusedByServer = !data.estadoflag && data.mensaje !== CONNECTION_ERROR_MESSAGE;
+      showRefusal(refusedByServer ? data.mensaje : APPROVE_FAILED_MESSAGE);
+      return false;
+    }
+    Swal.fire({
+      icon: "success",
+      title: "Aviso",
+      text: data.mensaje,
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      confirmButtonText: "Ir al control de gastos",
+      denyButtonText: "Cerrar",
+      showCancelButton: false,
+      showConfirmButton: true,
+      showDenyButton: true,
+      confirmButtonColor: "#004D40",
+      denyButtonColor: "#DD2C00",
+    }).then((res) => {
+      if (res.isConfirmed) {
+        router.push({
+          name: "editControlGasto",
+          params: {
+            id: master.id_master,
+            id_branch: sessionBranchId(),
+          },
+        });
+      }
+      if (res.isDenied) {
+        window.location.reload();
+      }
+    });
+    return true;
+  }
+  function resetAduanaNew(): void {
+    id.value = "";
+    nro_quote.value = "";
+    mensaje.value = "";
+    aprobadoflag.value = false;
+    tiporeporte.value = "";
+    copy_quote.value = undefined;
+    opcionCostos.value = [
+      {
+        nro_propuesta: 1,
+        date_end: "",
+        tiempo_transito: 0,
+        listCostos: [],
+        listImpuestos: [],
+        listNotasQuote: [],
+        selected: false,
+      },
+    ];
+    listServices.value = [];
+    listCostos.value = [];
+    btnRegistrar.value = false;
+    step2.value = false;
+    step3.value = false;
+    datosPrincipales.value = {
+      id_percepcionaduana: "",
+      id_marketing: "",
+      id_status: "",
+      id_vendedor: sessionUserIdOrEmpty(),
+      id_pricing: sessionUserIdOrEmpty(),
+      cif: "",
+      contacto: "",
+      descripcionMercancia: "",
+      begEndList: "",
+      ejecutivo_ventas: "",
+      fecha_fin: "",
+      fecha_inicio: "",
+      fullflag: false,
+      ganancia: 0,
+      id: "",
+      id_entitie: "",
+      iddestino: "",
+      idincoterms: "",
+      idorigen: "",
+      idsentido: "",
+      idtipocarga: "",
+      monto: "",
+      nameStatusQuote: "",
+      nombre: "",
+      numerobultos: "",
+      peso: "",
+      volumen: "",
+      quote: "",
+      rangeDays: "",
+      seguro: "",
+      statusMain: "",
+      statusQuote: "",
+      telefono: "",
+      proveedor: "",
+      telefonoproveedor: "",
+      tiempo_transito: "",
+      direccionproveedor: "",
+      containers: [],
+      iddistrito: "",
+      idprovincia: "",
+    };
   }
   async function getServicesAduana(): Promise<void> {
     const config = {
@@ -2161,7 +2220,7 @@ export const useAduanaStore = defineStore("aduana", () => {
         console.error(error);
       });
   }
-  async function registrarAduana({ fullflag = true }: { fullflag?: boolean }): Promise<void> {
+  async function registrarAduana({ fullflag = true }: { fullflag?: boolean }): Promise<boolean> {
     const imp = listServices.value.filter((v) => v.code_service == "15" && v.status == true);
     const isFCL = listShipment.value.some(
       (v) =>
@@ -2250,13 +2309,16 @@ export const useAduanaStore = defineStore("aduana", () => {
       },
       data: data,
     };
-    // let vm = this;
-    await axios<RespuestaRegistroCotizacion>(config).then(async (response) => {
-      id.value = response.data.insertId;
-      nro_quote.value = response.data.nro_quote;
-      mensaje.value = response.data.msg;
-      tiporeporte.value = "";
-    });
+    const response = (await request(config)) as ApiResponse<unknown[]> & Partial<RespuestaRegistroCotizacion>;
+    if (!response.estadoflag) {
+      showRefusal(response.mensaje);
+      return false;
+    }
+    id.value = response.insertId;
+    nro_quote.value = response.nro_quote!;
+    mensaje.value = response.msg!;
+    tiporeporte.value = "";
+    return true;
   }
   async function getListQuoteAduana(): Promise<void> {
     const config = {
@@ -2312,7 +2374,7 @@ export const useAduanaStore = defineStore("aduana", () => {
         console.error(error);
       });
   }
-  async function getAdunaVer({ id: idAduana }: { id: number | string }): Promise<void> {
+  async function getAdunaVer({ id: idAduana }: { id: number | string }): Promise<boolean> {
     const config = {
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `ver_aduana?id=${idAduana}`,
@@ -2320,65 +2382,65 @@ export const useAduanaStore = defineStore("aduana", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse<CotizacionAduanaDetalle[]>>(config).then(async (response) => {
-      const res = response.data.data[0]!;
+    const response = await request<CotizacionAduanaDetalle>(config);
+    const res = response.data[0];
+    if (!response.estadoflag || !res) return false;
+    copy_quote.value = res;
+    id.value = res.id;
+    nro_quote.value = res.quote;
+    datosPrincipales.value.id_marketing = res.id_marketing;
+    datosPrincipales.value.id_status = res.id_status; //-------
+    datosPrincipales.value.id_vendedor = res.id_vendedor;
+    datosPrincipales.value.id_pricing = res.id_pricing;
+    datosPrincipales.value.nombre = res.nombre;
+    datosPrincipales.value.id_entitie = res.id_entitie;
+    datosPrincipales.value.telefono = res.telefono;
+    datosPrincipales.value.idsentido = res.idsentido;
+    datosPrincipales.value.idtipocarga = res.idtipocarga;
+    datosPrincipales.value.idincoterms = res.idincoterms;
+    datosPrincipales.value.proveedor = res.proveedor;
+    datosPrincipales.value.telefonoproveedor = res.telefonoproveedor;
+    datosPrincipales.value.direccionproveedor = res.direccionproveedor;
+    datosPrincipales.value.id_status = res.statusquote;
+    datosPrincipales.value.descripcioncarga = res.descripcionmercancia;
+    datosPrincipales.value.fecha_inicio = res.fecha_inicio;
+    // --------------------------------------------------------------
+    datosPrincipales.value.iddestino = res.iddestino;
+    datosPrincipales.value.idorigen = res.idorigen;
+    datosPrincipales.value.numerobultos = res.numerobultos;
+    datosPrincipales.value.peso = res.peso;
+    datosPrincipales.value.volumen = res.volumen;
+    // --------------------------------------------------------------
+    listServices.value = res.servicios;
+    copylistServices.value = res.servicios;
+    datosPrincipales.value.amount = res.monto;
+    // --------------------------------------------------------------
+    opcionCostos.value = [];
 
-      copy_quote.value = res;
-      id.value = res.id;
-      nro_quote.value = res.quote;
-      datosPrincipales.value.id_marketing = res.id_marketing;
-      datosPrincipales.value.id_status = res.id_status; //-------
-      datosPrincipales.value.id_vendedor = res.id_vendedor;
-      datosPrincipales.value.id_pricing = res.id_pricing;
-      datosPrincipales.value.nombre = res.nombre;
-      datosPrincipales.value.id_entitie = res.id_entitie;
-      datosPrincipales.value.telefono = res.telefono;
-      datosPrincipales.value.idsentido = res.idsentido;
-      datosPrincipales.value.idtipocarga = res.idtipocarga;
-      datosPrincipales.value.idincoterms = res.idincoterms;
-      datosPrincipales.value.proveedor = res.proveedor;
-      datosPrincipales.value.telefonoproveedor = res.telefonoproveedor;
-      datosPrincipales.value.direccionproveedor = res.direccionproveedor;
-      datosPrincipales.value.id_status = res.statusquote;
-      datosPrincipales.value.descripcioncarga = res.descripcionmercancia;
-      datosPrincipales.value.fecha_inicio = res.fecha_inicio;
-      // --------------------------------------------------------------
-      datosPrincipales.value.iddestino = res.iddestino;
-      datosPrincipales.value.idorigen = res.idorigen;
-      datosPrincipales.value.numerobultos = res.numerobultos;
-      datosPrincipales.value.peso = res.peso;
-      datosPrincipales.value.volumen = res.volumen;
-      // --------------------------------------------------------------
-      listServices.value = res.servicios;
-      copylistServices.value = res.servicios;
-      datosPrincipales.value.amount = res.monto;
-      // --------------------------------------------------------------
-      opcionCostos.value = [];
-
-      res.opcioncostos.forEach((element) => {
-        opcionCostos.value.push({
-          id: element.id,
-          nro_propuesta: element.nro_propuesta,
-          date_end: element.date_end,
-          tiempo_transito: element.tiempo_transito,
-          listCostos: element.listcostos,
-          listImpuestos: element.listimpuestos,
-          listNotasQuote: element.listnotasquote,
-          selected: element.selected,
-        });
+    res.opcioncostos.forEach((element) => {
+      opcionCostos.value.push({
+        id: element.id,
+        nro_propuesta: element.nro_propuesta,
+        date_end: element.date_end,
+        tiempo_transito: element.tiempo_transito,
+        listCostos: element.listcostos,
+        listImpuestos: element.listimpuestos,
+        listNotasQuote: element.listnotasquote,
+        selected: element.selected,
       });
-
-      // --------------------------------------------------------------
-
-      datosPrincipales.value.containers = res.containers;
-      aprobadoflag.value = res.aprobadoflag;
-      fullflag.value = res.fullflag;
-      tiporeporte.value = res.tiporeporte;
-      datosPrincipales.value.id_percepcionaduana = res.id_percepcionaduana;
-      mostrarBtnActualizarFlag.value = !(res.statusmain == 0 || res.aprobadoflag == true);
     });
+
+    // --------------------------------------------------------------
+
+    datosPrincipales.value.containers = res.containers;
+    aprobadoflag.value = res.aprobadoflag;
+    fullflag.value = res.fullflag;
+    tiporeporte.value = res.tiporeporte;
+    datosPrincipales.value.id_percepcionaduana = res.id_percepcionaduana;
+    mostrarBtnActualizarFlag.value = !(res.statusmain == 0 || res.aprobadoflag == true);
+    return true;
   }
-  async function actualizarQuoteAduana(): Promise<void> {
+  async function actualizarQuoteAduana(): Promise<boolean> {
     const imp = listServices.value.filter((v) => v.code_service == "15" && v.status == true);
     const opciones: unknown[] = [];
     await opcionCostos.value.forEach(async (opcionCosto) => {
@@ -2457,15 +2519,16 @@ export const useAduanaStore = defineStore("aduana", () => {
       },
       data: data,
     };
-    // let vm = this;
-    await axios<ApiResponse>(config).then(async (response) => {
-      const data = response.data;
-
-      Swal.fire({
-        icon: "info",
-        text: data.mensaje,
-      });
+    const response = await request(config);
+    if (!response.estadoflag) {
+      showRefusal(response.mensaje);
+      return false;
+    }
+    Swal.fire({
+      icon: "info",
+      text: response.mensaje,
     });
+    return true;
   }
   async function getCargarMasterDetalleNotasCotizacionAduana(): Promise<void> {
     const headers = {
@@ -2491,7 +2554,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     });
   }
 
-  async function unificarQuoteAduana(data: Record<string, unknown>): Promise<void> {
+  async function unificarQuoteAduana(data: Record<string, unknown>): Promise<boolean> {
     const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "aduana_unificar",
@@ -2501,15 +2564,20 @@ export const useAduanaStore = defineStore("aduana", () => {
       data: data,
     };
 
-    await axios<RespuestaRegistroCotizacion>(config).then((response) => {
-      IdQuote.value = response.data.insertId;
-      nro_quote.value = response.data.nro_quote;
-      mensaje.value = response.data.msg;
-      tiporeporte.value = "";
-    });
+    const response = (await request(config)) as ApiResponse<unknown[]> & Partial<RespuestaRegistroCotizacion>;
+    if (!response.estadoflag) {
+      nro_quote.value = "";
+      showRefusal(response.mensaje);
+      return false;
+    }
+    IdQuote.value = response.insertId!;
+    nro_quote.value = response.nro_quote!;
+    mensaje.value = response.msg!;
+    tiporeporte.value = "";
+    return true;
   }
 
-  async function actualizarAduanaRecibidoEnviado(data: Record<string, unknown>): Promise<void> {
+  async function actualizarAduanaRecibidoEnviado(data: Record<string, unknown>): Promise<boolean> {
     const headers = {
       "Content-Type": "application/json",
     };
@@ -2520,16 +2588,14 @@ export const useAduanaStore = defineStore("aduana", () => {
       headers: headers,
       data: data,
     };
-    axios<ApiResponse>(config).then((response) => {
-      const data = response.data;
-
-      Swal.fire({
-        icon: data.estadoflag == true ? "info" : "error",
-        text: data.mensaje,
-      });
+    const response = await request(config);
+    Swal.fire({
+      icon: response.estadoflag ? "info" : "error",
+      text: response.mensaje,
     });
+    return response.estadoflag;
   }
-  async function guardarNotaAduana(data: Record<string, unknown>): Promise<void> {
+  async function guardarNotaAduana(data: Record<string, unknown>): Promise<boolean> {
     const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "set_calls_aduana",
@@ -2538,41 +2604,31 @@ export const useAduanaStore = defineStore("aduana", () => {
       },
       data: data,
     };
-    await axios<ApiResponse>(config).catch(function (error) {
-      console.error(error);
-    });
+    const response = await request(config);
+    if (!response.estadoflag) {
+      showRefusal(response.mensaje);
+      return false;
+    }
+    notifySuccess("Registramos la llamada.");
+    return true;
   }
   async function getQuoteCallAduana(filtro: FiltroLlamadasAduana): Promise<void> {
-    const data = {
-      id_branch: sessionBranchId(),
-      id_estado: filtro.id_estado,
-      id_sentido: filtro.id_sentido,
-      id_carga: filtro.id_carga,
-      id_incoterms: filtro.id_incoterms,
-      desde: filtro.desde,
-      hasta: filtro.hasta,
-    };
-
-    const header = {
-      "Content-Type": "application/json",
-    };
+    const estado = filtroCalls.value.estado;
     const config = {
       method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `list_calls_aduana?id_branch=${sessionBranchId()}&id_marketing=${
-          filtroCalls.value.id_marketing ? filtroCalls.value.id_marketing : ""
-        }&id_status=${filtroCalls.value.id_status ? filtroCalls.value.id_status : ""}&id_entities=${
-          filtroCalls.value.id_entities ? filtroCalls.value.id_entities : ""
-        }&id_modality=${filtroCalls.value.id_modality ? filtroCalls.value.id_modality : ""}&id_shipment=${
-          filtroCalls.value.id_shipment ? filtroCalls.value.id_shipment : ""
-        }&id_incoterm=${filtroCalls.value.id_incoterm ? filtroCalls.value.id_incoterm : ""}&fechainicio=${
-          filtroCalls.value.fechainicio ? filtroCalls.value.fechainicio : ""
-        }&fechafin=${filtroCalls.value.fechafin ? filtroCalls.value.fechafin : ""}&estado=${
-          typeof filtroCalls.value.estado === "string" ? (filtroCalls.value.estado == "activo" ? 1 : 0) : ""
-        }`,
-      headers: header,
-      data: data,
+      url: import.meta.env.VITE_URL_MAIN + "list_calls_aduana",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      params: {
+        id_estado: filtro.id_estado,
+        id_sentido: filtro.id_sentido,
+        id_carga: filtro.id_carga,
+        id_icoterms: filtro.id_incoterms,
+        desde: filtro.desde,
+        hasta: filtro.hasta,
+        estado: typeof estado === "string" ? (estado == "activo" ? 1 : 0) : "",
+      },
     };
     await axios<ApiResponse<LlamadaCotizacion[]>>(config)
       .then(function (response) {
@@ -3979,8 +4035,12 @@ export const useAduanaStore = defineStore("aduana", () => {
 
     await axios
       // @ts-expect-error the headers object goes in as the request config.
-      .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "quote_preview_totales", data, headers)
+      .post<RespuestaArchivo & Partial<ApiResponse>>(import.meta.env.VITE_URL_MAIN + "quote_preview_totales", data, headers)
       .then((response) => {
+        if (response.data.estadoflag === false) {
+          showRefusal(response.data.mensaje!);
+          return;
+        }
         Swal.fire({
           icon: "success",
           title: "PDF Generado",
@@ -3994,7 +4054,10 @@ export const useAduanaStore = defineStore("aduana", () => {
           "_blank"
         );
       })
-      .catch((e) => console.log(e));
+      .catch((e) => {
+        console.error(e);
+        showRefusal(CONNECTION_ERROR_MESSAGE);
+      });
   }
   async function getInstructivoIdAduana({ id: id }: { id: number | string }): Promise<void> {
     const headers = {
@@ -6025,6 +6088,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     GuardaCostosFinalesAduana,
     getPersonalPricingAduana,
     aprobarCotizacionAduana,
+    resetAduanaNew,
     getServicesAduana,
     cargarListadoQuoteAduana,
     getCotizacionUnificar,
