@@ -13,7 +13,6 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
-import { sessionBranchId } from "@/utils/sesion";
 import type { Costo, TipoCarga } from "@/types/cotizacion";
 
 const router = useRouter();
@@ -31,17 +30,9 @@ const editableStep4 = ref(false);
 const indexCostos = ref(0);
 // ...mapState(["preServices", "preCostos"]),
 
-// Not defined anywhere, so calling these throws.
-const recargarServicios = undefined as unknown as () => void;
-const crearCarpetaOneDrive = undefined as unknown as (
-  data: Record<string, unknown>
-) => Promise<void>;
-const actualizarURLEnElQuote = undefined as unknown as (
-  data: Record<string, unknown>
-) => Promise<void>;
-
 onMounted(async () => {
   appStore.mainTitle = "Nueva Cotización";
+  aduanaStore.resetAduanaNew();
   await pricingStore.resetQuoteNew();
   await pricingStore.getMarketingList();
   await pricingStore.getQuoteStatus();
@@ -60,17 +51,6 @@ onMounted(async () => {
   await appStore._getContainers();
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function recargar() {
-  if (aduanaStore.listServices.length > 0) {
-    recargarServicios();
-    aduanaStore.getTipoCostosAduana();
-  }
-  if (editableStep2.value) {
-    recargarCostos();
-    // this.$store.state.aduana.index = 0;
-  }
-}
 function continuarComparativa() {
   step.value = 3;
 }
@@ -274,48 +254,18 @@ async function activarLlenadoCostos() {
 async function guardar() {
   appStore.spiner = true;
   aduanaStore.opcionCostos[0]!.selected = true;
-  await pricingStore.registrarQuote({ fullflag: false }).catch((e) => {
-    console.error("registrarQuote", e);
+  const saved = await aduanaStore.registrarAduana({ fullflag: false });
+  appStore.spiner = false;
+  if (!saved) return;
+
+  await Swal.fire({
+    icon: "success",
+    title: "Aviso",
+    text: aduanaStore.mensaje,
+    confirmButtonText: "Ir al listado",
+    showConfirmButton: true,
   });
-  if (aduanaStore.nro_quote) {
-    appStore.spiner = false;
-
-    Swal.fire({
-      icon: "success",
-      title: "Aviso",
-      text: aduanaStore.mensaje,
-      confirmButtonText: "Ir al listado",
-      showConfirmButton: true,
-    }).then((result) => {
-      if (result.isConfirmed) {
-        router.push({
-          name: "lstQuote",
-        });
-      }
-      if (result.isDismissed) {
-        router.push({
-          name: "lstQuote",
-        });
-      }
-    });
-    const id_branch = sessionBranchId();
-    const branchCreacion = [1, 2];
-    if (branchCreacion.includes(id_branch)) {
-      await crearCarpetaOneDrive({
-        nro_quote: aduanaStore.nro_quote,
-        nombre: aduanaStore.datosPrincipales.nombre,
-      }).catch((e) => {
-        console.error("crearCarpetaOneDrive", e);
-      });
-
-      await actualizarURLEnElQuote({
-        id: aduanaStore.id,
-        url: aduanaStore.urlFolder,
-      }).catch((e) => {
-        console.error("actualizarURLEnElQuote", e);
-      });
-    }
-  }
+  router.push({ name: "lstQuoteAduanaAduana" });
 }
 function anadirNuevaOpcion(nro_propuesta: number) {
   // this.$store.state.spiner = true;

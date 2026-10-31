@@ -27,8 +27,7 @@ async function unificar() {
     id_quote: id_quote.value,
     id_aduana: route.params.id,
   };
-  await aduanaStore.unificarQuoteAduana(data);
-  if (aduanaStore.nro_quote) {
+  if (await aduanaStore.unificarQuoteAduana(data)) {
     Swal.fire({
       icon: "success",
       title: "Aviso",

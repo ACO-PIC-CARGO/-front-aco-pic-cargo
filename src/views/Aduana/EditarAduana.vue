@@ -13,6 +13,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { ADUANA_APPROVED_MESSAGE, ADUANA_NOT_FOUND_MESSAGE, returnToAduanaList } from "@/utils/aduanaScreen";
 import type { Costo, OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
@@ -38,13 +39,15 @@ watch(step, () => {
 
 onMounted(async () => {
   appStore.spiner = true;
-  await Promise.all([
-    await aduanaStore.getAdunaVer({ id: route.params.id as string }),
-    await aduanaStore.getShipmentAduana(),
+  const [opened] = await Promise.all([
+    aduanaStore.getAdunaVer({ id: route.params.id as string }),
+    aduanaStore.getShipmentAduana(),
   ]);
+  appStore.spiner = false;
+  if (!opened) return returnToAduanaList(ADUANA_NOT_FOUND_MESSAGE);
+  if (aduanaStore.aprobadoflag) return returnToAduanaList(ADUANA_APPROVED_MESSAGE);
 
   appStore.mainTitle = `EDITAR  COTIZACIÓN - ${aduanaStore.nro_quote}`;
-  appStore.spiner = false;
   mostrar.value = true;
   const idTipoCarga = aduanaStore.listShipment.filter(
     (v) => v.id == (aduanaStore.datosPrincipales.idtipocarga as number | string)
@@ -65,7 +68,7 @@ onMounted(async () => {
     }),
     aduanaStore.getPortEndAduana({
       id_transport: idTipoCarga!,
-      id: aduanaStore.datosPrincipales.idorigen,
+      id: aduanaStore.datosPrincipales.iddestino,
     }),
     pricingStore.getMarketingList(),
     pricingStore.getQuoteStatus(),
@@ -90,7 +93,7 @@ onMounted(async () => {
     }),
     aduanaStore.getPortEndAduana({
       id_transport: idTipoCarga!,
-      id: aduanaStore.datosPrincipales.idorigen,
+      id: aduanaStore.datosPrincipales.iddestino,
     }),
 
     // this.cargarProveedores(),
@@ -213,9 +216,10 @@ async function activarLlenadoCostos() {
       return [
         {
           ...item,
+          id: 0,
           esopcionflag: 1,
           esventaflag: 0,
-          status: true,
+          status: 1,
           cif: parseFloat(String(0.35)),
           seguro: parseFloat(String(0.45)),
         },
@@ -224,17 +228,19 @@ async function activarLlenadoCostos() {
       return [
         {
           ...item,
+          id: 0,
           esopcionflag: 1,
           esventaflag: 0,
-          status: true,
+          status: 1,
           cif: parseFloat(String(0.35)),
           seguro: parseFloat(String(0.45)),
         },
         {
           ...item,
+          id: 0,
           esopcionflag: 0,
           esventaflag: 1,
-          status: true,
+          status: 1,
           cif: 0,
           seguro: 0,
         },
@@ -243,10 +249,8 @@ async function activarLlenadoCostos() {
   });
 
   aduanaStore.opcionCostos[0]!.listCostos = cDuplicado as Costo[];
-  aduanaStore.opcionCostos[0]!.listImpuestos =
-    aduanaStore.listImpuestos;
-  aduanaStore.opcionCostos[0]!.listNotasQuote =
-    aduanaStore.listNotasQuote;
+  aduanaStore.opcionCostos[0]!.listImpuestos = aduanaStore.listImpuestos.map((impuesto) => ({ ...impuesto, id: undefined }));
+  aduanaStore.opcionCostos[0]!.listNotasQuote = aduanaStore.listNotasQuote.map((nota) => ({ ...nota, id: undefined }));
 
   step.value = 2;
   editableStep2.value = true;
@@ -290,9 +294,10 @@ function anadirNuevaOpcion(nro_propuesta: number) {
       return [
         {
           ...item,
+          id: 0,
           esopcionflag: 1,
           esventaflag: 0,
-          status: true,
+          status: 1,
           cif: parseFloat(String(0.35)),
           seguro: parseFloat(String(0.45)),
         },
@@ -301,17 +306,19 @@ function anadirNuevaOpcion(nro_propuesta: number) {
       return [
         {
           ...item,
+          id: 0,
           esopcionflag: 1,
           esventaflag: 0,
-          status: true,
+          status: 1,
           cif: parseFloat(String(0.35)),
           seguro: parseFloat(String(0.45)),
         },
         {
           ...item,
+          id: 0,
           esopcionflag: 0,
           esventaflag: 1,
-          status: true,
+          status: 1,
           cif: 0,
           seguro: 0,
         },

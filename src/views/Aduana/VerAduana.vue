@@ -6,6 +6,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { ADUANA_NOT_FOUND_MESSAGE, returnToAduanaList } from "@/utils/aduanaScreen";
 
 const DatosPrincipales = defineAsyncComponent(() =>
   import(
@@ -48,12 +49,13 @@ const verFlag = ref(true);
 onMounted(async () => {
   appStore.spiner = true;
   verFlag.value = false;
-  await Promise.all([
+  const [opened] = await Promise.all([
     aduanaStore.getAdunaVer({ id: route.params.id as string }),
     aduanaStore.getShipmentAduana(),
   ]);
-  appStore.mainTitle = `VER  COTIZACIÓN - ${aduanaStore.nro_quote}`;
   appStore.spiner = false;
+  if (!opened) return returnToAduanaList(ADUANA_NOT_FOUND_MESSAGE);
+  appStore.mainTitle = `VER  COTIZACIÓN - ${aduanaStore.nro_quote}`;
   verFlag.value = true;
 
   const idTipoCarga = aduanaStore.listShipment.filter(
@@ -103,16 +105,6 @@ onMounted(async () => {
       ? Number(route.params.step)
       : 1;
   }
-
-  setTimeout(async () => {
-    const aprobadas = aduanaStore.opcionCostos.filter(
-      (v) => v.selected
-    );
-
-    if (aprobadas.length && !aduanaStore.aprobadoflag) {
-      await aduanaStore.GuardaCostosFinalesAduana();
-    }
-  }, 300);
 });
 </script>
 

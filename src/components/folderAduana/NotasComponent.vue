@@ -167,69 +167,74 @@ async function generar() {
   if (!route.params.id) {
     if ((await frmReporte.value!.validate()).valid) {
       appStore.spiner = true;
-      await aduanaStore.registrarAduana({ fullflag: true }).catch((e) => {
+      const saved = await aduanaStore.registrarAduana({ fullflag: true });
+      if (!saved) {
+        appStore.spiner = false;
+        loading.value = false;
+        return;
+      }
+      appStore.spiner = false;
+      await aduanaStore.obtenerDatosEmpresaAduana().catch((e) => {
        console.error(e);
       });
-      if (aduanaStore.nro_quote) {
-        appStore.spiner = false;
-        await aduanaStore.obtenerDatosEmpresaAduana().catch((e) => {
-         console.error(e);
-        });
 
-        for (
-          let index = 0;
-          index < aduanaStore.opcionCostos.length;
-          index++
+      for (
+        let index = 0;
+        index < aduanaStore.opcionCostos.length;
+        index++
+      ) {
+        if (
+          aduanaStore.opcionCostos[index]!.selected == true
         ) {
-          if (
-            aduanaStore.opcionCostos[index]!.selected == true
-          ) {
-            await aduanaStore.generarReporteAduana({
-              tipo: tiporeporte.value,
-              nro_propuesta:
-                aduanaStore.opcionCostos[index]!.nro_propuesta,
-            }).catch((e) => {
-             console.error(e);
-            });
-          }
+          await aduanaStore.generarReporteAduana({
+            tipo: tiporeporte.value,
+            nro_propuesta:
+              aduanaStore.opcionCostos[index]!.nro_propuesta,
+          }).catch((e) => {
+           console.error(e);
+          });
         }
-        loadingTable = false;
-        loading.value = false;
-        appStore.spiner = false;
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const id_branch = sessionBranchId();
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const branchCreacion = [1, 2];
-        // if (branchCreacion.includes(id_branch)) {
-        //   this.crearCarpetaOneDrive({
-        //     nro_quote: this.$store.state.aduana.nro_quote,
-        //     nombre: this.$store.state.aduana.datosPrincipales.nombre,
-        //   }).catch((err) => {
-        //     console.log("crearCarpetaOneDrive", err);
-        //   });
-
-        //   await this.actualizarURLEnElQuote({
-        //     id: this.$store.state.aduana.id,
-        //     url: this.$store.state.aduana.urlFolder,
-        //   }).catch((err) => {
-        //     console.log("actualizarURLEnElQuote", err);
-        //   });
-        // }
-        console.log(aduanaStore.id);
-        router.push({
-          name: "VerAduana",
-          params: {
-            id: aduanaStore.id,
-          },
-        });
       }
+      loadingTable = false;
+      loading.value = false;
+      appStore.spiner = false;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const id_branch = sessionBranchId();
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const branchCreacion = [1, 2];
+      // if (branchCreacion.includes(id_branch)) {
+      //   this.crearCarpetaOneDrive({
+      //     nro_quote: this.$store.state.aduana.nro_quote,
+      //     nombre: this.$store.state.aduana.datosPrincipales.nombre,
+      //   }).catch((err) => {
+      //     console.log("crearCarpetaOneDrive", err);
+      //   });
+
+      //   await this.actualizarURLEnElQuote({
+      //     id: this.$store.state.aduana.id,
+      //     url: this.$store.state.aduana.urlFolder,
+      //   }).catch((err) => {
+      //     console.log("actualizarURLEnElQuote", err);
+      //   });
+      // }
+      console.log(aduanaStore.id);
+      router.push({
+        name: "VerAduana",
+        params: {
+          id: aduanaStore.id,
+        },
+      });
     }
   } else {
     if ((await frmReporte.value!.validate()).valid) {
       appStore.spiner = true;
       imprimirFlag.value = false;
 
-      await aduanaStore.actualizarQuoteAduana();
+      if (!(await aduanaStore.actualizarQuoteAduana())) {
+        appStore.spiner = false;
+        loading.value = false;
+        return;
+      }
       await aduanaStore.obtenerDatosEmpresaAduana();
 
       for (
