@@ -12,20 +12,18 @@ import HouseCustomsCard from "@/components/HouseFile/HouseCustomsCard.vue";
 import HouseMasterDates from "@/components/HouseFile/HouseMasterDates.vue";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
+import HouseArrivalNoticeDialog from "@/components/HouseFile/HouseArrivalNoticeDialog.vue";
+import HouseClientRequiredDialog from "@/components/HouseFile/HouseClientRequiredDialog.vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { notifySuccess } from "@/utils/request";
 import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
-import type { CuentaBancariaPic, HouseDetalle, ItemNotificacion } from "@/types/operaciones";
-import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
-import { useBankStore } from "@/stores/bank";
 
-//houselist,
+const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
 
 const appStore = useAppStore();
-const bankStore = useBankStore();
 const route = useRoute();
 const appRouter = useRouter();
 const housesStore = useHousesStore();
@@ -78,500 +76,115 @@ async function loadTracking() {
   trackingError.value = (await houseTrackingStore.load(houseId.value)) ?? "";
 }
 
-const selected = ref<CuentaBancariaPic[]>([]);
-const errorCuentas = ref("");
-const headers = [
-  { key: "label", title: "Nombre" },
-  { key: "cuenta", title: "Cuenta" },
-  { key: "cci", title: "CCI" },
-  { key: "symbol", title: "Moneda" },
-];
-const notificacion = ref<ItemNotificacion>(null as unknown as ItemNotificacion);
-const abrirModalCuentasNotificacion = ref(false);
-const itemsNotificacionesImport: ItemNotificacion[] = [
-  { title: "Aviso de Salida", value: 1 },
-  { title: "Actualización de Salida", value: 2 },
-  { title: "Pre-Aviso de Llegada", value: 3 },
-  { title: "Aviso de Llegada", value: 4 },
-  { title: "Actualización de Llegada", value: 5 },
-];
-const itemsNotificacionesExport: ItemNotificacion[] = [
-  { title: "Aviso de Salida", value: 1 },
-  { title: "Actualización de Salida", value: 2 },
-  { title: "Aviso de Llegada", value: 3 },
-];
-const displayMenuNotificaciones = ref(false);
-const loadingBotonNotificaciones = ref(false);
+const noticeDialog = ref(false);
+const clientDialog = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const fab = ref(false);
-const openMenuNotificaciones = ref(false);
 const dialogFormato = ref(false);
 const formatoflag = ref(true);
 
 function abrirModalFormato() {
   dialogFormato.value = true;
 }
-async function exportarFormatoAWB() {
+
+async function downloadFormat(url: string, prefix: string) {
   try {
     const response = await axios({
       method: "get",
-      url: `${import.meta.env.VITE_URL_MAIN}generar_formato_awb`,
-      params: {
-        id_house: route.params.id,
-        formatoflag: formatoflag.value,
-      },
-      headers: {},
+      url,
+      params: { id_house: houseId.value, formatoflag: formatoflag.value },
       responseType: "blob",
     });
-
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
-
+    const blob = response.data as Blob;
+    if (blob.type.includes("json")) {
+      Swal.fire({ icon: "warning", text: JSON.parse(await blob.text()).mensaje || FORMAT_ERROR });
+      return;
+    }
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[:.]/g, "-")
-      .slice(0, -5);
-    const filename = `formato_awb_${timestamp}.xlsx`;
-    link.download = filename;
+    link.download = `${prefix}_${new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5)}.xlsx`;
     link.click();
-
     window.URL.revokeObjectURL(link.href);
   } catch (err) {
-    console.error("Error exportando archivo:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo generar el formato",
-    });
+    console.error(err);
+    Swal.fire({ icon: "error", text: FORMAT_ERROR });
+  } finally {
+    dialogFormato.value = false;
   }
-  dialogFormato.value = false;
 }
-async function exportarFormatoHBL() {
-  try {
-    const response = await axios({
-      method: "get",
-      url: `${import.meta.env.VITE_URL_MAIN}generar_formato_bl`,
-      params: {
-        id_house: route.params.id,
-        formatoflag: formatoflag.value,
-      },
-      headers: {},
-      responseType: "blob",
-    });
 
-    const blob = new Blob([response.data], {
-      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    });
+const exportarFormatoAWB = () => downloadFormat("generar_formato_awb", "formato_awb");
+const exportarFormatoHBL = () => downloadFormat("generar_formato_bl", "formato_bl");
 
-    const link = document.createElement("a");
-    link.href = window.URL.createObjectURL(blob);
-    const timestamp = new Date()
-      .toISOString()
-      .replace(/[:.]/g, "-")
-      .slice(0, -5);
-    const filename = `formato_bl_${timestamp}.xlsx`;
-    link.download = filename;
-    link.click();
-
-    window.URL.revokeObjectURL(link.href);
-  } catch (err) {
-    console.error("Error exportando archivo:", err);
-    Swal.fire({
-      icon: "error",
-      title: "Error",
-      text: "No se pudo generar el formato",
-    });
-  }
-  dialogFormato.value = false;
-}
-function openNotificaciones() {
-  validarMenuNotificaciones();
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _setMasterContainer(id_master: number, id_containers: number, quantity: number) {
-  //vm._getnroMaster();
-  const data = JSON.stringify({
-    id_master: id_master,
-    id_containers: id_containers,
-    quantity: quantity,
-    status: 1,
+async function eliminarHouse() {
+  const answer = await Swal.fire({
+    icon: "question",
+    text: "¿Quieres eliminar este house? Su cotización quedará disponible para otro expediente.",
+    showDenyButton: true,
+    confirmButtonText: "Sí, eliminar",
+    denyButtonText: "No",
   });
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  axios(config)
-    .then(function () {})
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error as string,
-      });
-    });
+  if (!answer.isConfirmed) return;
+  loadingBotonEliminarHouse.value = true;
+  await housesStore.deleteHouse({ id: houseId.value });
+  loadingBotonEliminarHouse.value = false;
 }
-function eliminarHouse() {
-  if (housesStore.house.cantidad_houses_x_master! > 1) {
-    Swal.fire({
-      icon: "question",
-      title: "ADVERTENCIA",
-      text: "¿Está seguro que desea eliminar el house?",
-      showDenyButton: true,
-      confirmButtonText: "Si",
-      denyButtonText: "No",
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        loadingBotonEliminarHouse.value = !loadingBotonEliminarHouse.value;
 
-        const config = {
-          method: "put",
-          url:
-            import.meta.env.VITE_URL_MAIN +
-            "setHouseDelete/" +
-            route.params.id,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        };
-
-        await axios(config).then(function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          if (response.data.status == "401") {
-            Swal.fire({
-              icon: "error",
-              text: response.data.mensaje,
-              allowOutsideClick: false,
-              allowEscapeKey: false,
-              allowEnterKey: false,
-            }).then((resSwal) => {
-              if (resSwal.isConfirmed && response.data.status == "401") {
-                // @ts-expect-error router is not defined in this scope
-                router.push({ name: "Login" });
-                setTimeout(() => {
-                  window.location.reload();
-                }, 10);
-              }
-            });
-          }
-
-          if (response.data.statusBol) {
-            Swal.fire({
-              icon: "success",
-              title: "REGISTRO ELIMINADO.",
-            });
-
-            loadingBotonEliminarHouse.value = !loadingBotonEliminarHouse.value;
-            appRouter.go(-1);
-          }
-        });
-      }
-    });
-  } else {
-    Swal.fire({
-      icon: "info",
-      text: "Un expediente máster debe tener al menos un house asignado",
-    });
-  }
+function shipmentCode() {
+  return itemsShipment.value.find((v: { id: number; code: string }) => v.id == housesStore.house.id_shipment)?.code ?? "";
 }
-function isImportacion() {
-  let val = false;
-  const name = housesStore.house.modality;
-  if (name == "Importación") {
-    val = true;
-  }
 
-  return val;
-}
-function isExportacion() {
-  let val = false;
-  const name = housesStore.house.modality;
-  if (name == "Exportación") {
-    val = true;
-  }
-
-  return val;
-}
 function isAereo() {
-  let val = false;
-  const id = housesStore.house_id_trasnport;
-
-  const code =
-    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
-      : "";
-
-  if (code == "Aéreo") {
-    val = true;
-  }
-
-  return val;
+  return shipmentCode() == "Aéreo";
 }
-function isLCL() {
-  let val = false;
-  const id = housesStore.house_id_trasnport;
 
-  const code =
-    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
-      : "";
+const NOTICE_REQUIREMENTS: [string, string][] = [
+  ["id_modality", "Sentido"],
+  ["id_shipment", "Tipo de embarque"],
+  ["id_port_begin", "Puerto de origen"],
+  ["id_port_end", "Puerto de destino"],
+  ["id_proveedor", "Proveedor"],
+  ["id_consigner", "Cliente"],
+  ["emailaddress_clientefinal", "Correo del cliente"],
+  ["id_operador", "Operador"],
+  ["fecha_etd", "Fecha ETD"],
+  ["fecha_eta", "Fecha ETA"],
+  ["monto", "Monto"],
+];
+const LOOSE_CARGO_REQUIREMENTS: [string, string][] = [
+  ["bultos", "Nº de bultos"],
+  ["peso", "Peso"],
+  ["volumen", "Volumen"],
+];
 
-  if (code == "LCL") {
-    val = true;
+function openNotificaciones() {
+  const house = housesStore.house as Record<string, unknown>;
+  const requirements = shipmentCode() == "FCL" ? NOTICE_REQUIREMENTS : [...NOTICE_REQUIREMENTS, ...LOOSE_CARGO_REQUIREMENTS];
+  const missing = requirements.filter(([field]) => !house[field]).map(([, label]) => label);
+  if (!missing.length) {
+    noticeDialog.value = true;
+    return;
   }
-
-  return val;
+  Swal.fire({
+    icon: "warning",
+    title: "Completa el house para enviar el aviso",
+    html: `<p>Falta:</p>${missing.map((label) => `<p>${label}</p>`).join("")}`,
+  });
 }
-function isFCL() {
-  let val = false;
-  const id = housesStore.house_id_trasnport;
 
-  const code =
-    itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id).length > 0
-      ? itemsShipment.value.filter((v: { id: number; code: string }) => v.id == id)[0]!.code
-      : "";
-
-  if (code == "FCL") {
-    val = true;
-  }
-  return val;
-}
-function getItemsNotificaciones() {
-  return isImportacion()
-    ? itemsNotificacionesImport
-    : isExportacion()
-    ? itemsNotificacionesExport
-    : [];
-}
-function getSentidoHouse() {
-  return isImportacion()
-    ? "Import"
-    : isExportacion()
-    ? "Export"
-    : "";
-}
-function getTipoEmbarqueHouse() {
-  return isAereo()
-    ? "Aéreo"
-    : isLCL()
-    ? "LCL"
-    : isFCL()
-    ? "FCL"
-    : "";
-}
-async function validarMenuNotificaciones() {
-  if (bankStore.list.length == 0) {
-    Swal.fire({
-      icon: "warning",
-      title: "Cuentas Bancarias",
-      text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría",
-    });
-    return false;
-  } else {
-    if (
-      !bankStore.list.some((v) => v.banks_details!.length > 0)
-    ) {
-      Swal.fire({
-        icon: "warning",
-        title: "Cuentas Bancarias",
-        text: "Para poder enviar la notificación. Es necesario al menos una cuenta bancaría.",
-      });
-      return false;
-    }
-  }
-  displayMenuNotificaciones.value = false;
-
-  const errores = [];
-  if (!housesStore.house.id_modality) {
-    errores.push("Sentido");
-  }
-  if (!housesStore.house.id_shipment) {
-    errores.push("Tipo de Embarque");
-  }
-  if (!housesStore.house.id_port_begin) {
-    errores.push("Puerto de Origen");
-  }
-  if (!housesStore.house.id_port_end) {
-    errores.push("Puerto de Destino");
-  }
-  if (!housesStore.house.id_proveedor) {
-    errores.push("Proveedor");
-  }
-  if (!housesStore.house.id_consigner) {
-    errores.push("Cliente");
-  }
-  if (!housesStore.house.emailaddress_clientefinal) {
-    errores.push("El cliente debe tener asignado un correo electrónico");
-  }
-  if (!housesStore.house.id_operador) {
-    errores.push("Operador");
-  }
-  if (!housesStore.house.fecha_etd) {
-    errores.push("Fecha ETD");
-  }
-  if (!housesStore.house.fecha_eta) {
-    errores.push("Fecha ETA");
-  }
-  if (
-    !itemsShipment.value.filter(
-      (v: { id: number; code: string }) =>
-        v.id == housesStore.house.id_shipment && v.code == "FCL",
-    ).length
-  ) {
-    if (!housesStore.house.bultos) {
-      errores.push("Nº de bultos");
-    }
-    if (!housesStore.house.peso) {
-      errores.push("Peso");
-    }
-    if (!housesStore.house.volumen) {
-      errores.push("Volumen");
-    }
-  }
-  if (!housesStore.house.monto) {
-    errores.push("Monto");
-  }
-
-  if (!errores.length) {
-    displayMenuNotificaciones.value = true;
-  } else {
-    Swal.fire({
-      icon: "error",
-      html: `
-            <b>¡El Expediente House requiere los siguientes datos para mostrar el menú de notificaciones!</b>
-            <br><br>
-            ${errores.map((error) => `<p>${error}</p>`).join("")}
-          `,
-    });
-  }
-}
-async function houseRowForMail(): Promise<HouseDetalle | undefined> {
-  const data = {
-    id: route.params.id,
-    id_branch: sessionBranchId(),
-  };
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "getHouseListId/",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  try {
-    const response = await axios(config);
-    sessionStorage.setItem("auth-token", response.data.token);
-    return response.data.data && response.data.data[0];
-  } catch (error) {
-    console.error(error);
-    return undefined;
-  }
-}
-function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
-  selected.value = [];
-  notificacion.value = notificacionSeleccionada;
-  abrirModalCuentasNotificacion.value = true;
-}
-async function enviarNotificacion(notificacion: ItemNotificacion) {
-  errorCuentas.value = "";
-  if (selected.value.length == 0) {
-    errorCuentas.value = "Es necesario al menos una cuenta";
-    return false;
-  }
-
-  loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
-
-  const houseForMail = (await houseRowForMail()) ?? housesStore.house;
-  const data = {
-    id: houseId.value,
-    notificacion: notificacion,
-    house: houseForMail,
-    user: sessionUser(),
-    sentido: getSentidoHouse(),
-    tipoEmbarque: getTipoEmbarqueHouse(),
-    cuentasBancarias: selected.value,
-    razonSocial:
-      sessionSucursal().trade_name || "",
-  };
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  await axios(config)
-    .then(function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      if (response.data.status == "401") {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            // @ts-expect-error router is not defined in this scope
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      } else {
-        abrirModalCuentasNotificacion.value = false;
-        Swal.fire({
-          icon: "success",
-          title: "Excelente",
-          text: "Notificación enviada éxitosamente",
-        });
-      }
-    })
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error as string,
-      });
-    })
-    .finally(function () {
-      loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
-    });
+async function clientSaved() {
+  await finishEditing();
 }
 
 onMounted(async () => {
   appStore.spiner = true;
-  await housesStore.verHouse(route.params);
+  await housesStore.verHouse({ id: houseId.value });
   await Promise.all([loadTracking(), branchTimeZoneStore.load()]);
   await pricingStore.getCargarEjecutivo();
   showTitle();
+  clientDialog.value = isEditing.value && Boolean(route.params.activar) && !housesStore.house.id_consigner;
   if (isEditing.value) await houseEdit.start(housesStore.house);
   appStore.spiner = false;
-  await bankStore.fetchDataBank({
-    code: "",
-    name: "",
-    acronym: "",
-    description: "",
-    status: 1,
-  });
 });
 </script>
 
@@ -753,38 +366,6 @@ onMounted(async () => {
             </v-btn>
           </v-speed-dial>
         </div>
-        <!-- Menú de notificaciones -->
-        <v-menu
-          v-model="openMenuNotificaciones"
-          location="top"
-          content-class="elevation-0"
-        >
-          <template #activator="{ props }">
-            <span v-bind="props" />
-          </template>
-          <v-list
-            color="transparent"
-            v-show="displayMenuNotificaciones"
-          >
-            <v-list-item
-              v-for="(item, index) in getItemsNotificaciones()"
-              :key="index"
-              class="px-0"
-            >
-              <v-list-item-title>
-                <v-btn
-                  variant="flat"
-                  block
-                  size="small"
-                  color="primary"
-                  @click="sendNotificacion(item)"
-                >
-                  {{ item.title }}
-                </v-btn>
-              </v-list-item-title>
-            </v-list-item>
-          </v-list>
-        </v-menu>
         <!-- Modal para seleccionar formato de impresión -->
         <v-dialog
           v-model="dialogFormato"
@@ -846,59 +427,15 @@ onMounted(async () => {
         </v-dialog>
       </v-container>
 
-      <!-- <v-footer app color="white" elevation="5" height="72" inset>
-        <router-link class="div__button_bottom" to="">
-          <img width="30" :src="$store.state.imgFolder" alt="" />
-          <p class="title_button_bottom">Abrir carpeta</p>
-        </router-link>
-        <router-link class="div__button_bottom" to="">
-          <img width="30" :src="$store.state.imgMailbox" alt="" />
-          <p class="title_button_bottom">Linea de correos</p>
-        </router-link>
-      </v-footer> -->
-      <v-dialog
-        v-model="abrirModalCuentasNotificacion"
-        persistent
-        width="70%"
-      >
-        <v-card>
-          <v-card-title primary-title>
-            Seleccione las cuentas a utilizar
-          </v-card-title>
-          <v-card-text>
-            <p class="text-red">
-              {{ errorCuentas }}
-            </p>
-            <v-data-table
-              v-model="selected"
-              :headers="headers"
-              :items="appStore.cuentas_pic"
-              item-value="id"
-              return-object
-              show-select
-              class="elevation-1"
-            />
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer />
-            <v-btn
-              color="success"
-              :loading="loadingBotonNotificaciones"
-              @click="enviarNotificacion(notificacion)"
-            >
-              Enviar Notificación
-            </v-btn>
-            <v-btn
-              color="danger"
-              @click="
-                abrirModalCuentasNotificacion = !abrirModalCuentasNotificacion
-              "
-            >
-              Cancelar
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <HouseArrivalNoticeDialog
+        v-model="noticeDialog"
+        :house-id="houseId"
+        :modality="housesStore.house.modality"
+      />
+      <HouseClientRequiredDialog
+        v-model="clientDialog"
+        @saved="clientSaved"
+      />
     </v-form>
   </v-theme-provider>
 </template>

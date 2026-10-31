@@ -14,7 +14,8 @@ import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import type { ApiResponse } from "@/types/api";
-import type { CuentaBancariaPic, ItemNotificacion, ServicioHouse } from "@/types/operaciones";
+import type { ServicioHouse } from "@/types/operaciones";
+import HouseArrivalNoticeDialog from "@/components/HouseFile/HouseArrivalNoticeDialog.vue";
 import { sessionBranchId } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
 import type { HouseCopiaRaiz } from "@/types/app";
@@ -33,33 +34,11 @@ const itemsShipment = computed(() => appStore.itemsShipment);
 
 const fab = ref(false);
 const transition = "slide-y-reverse-transition";
-const selected = ref<CuentaBancariaPic[]>([]);
-const errorCuentas = ref("");
-const headers = [
-  { key: "label", title: "Nombre" },
-  { key: "cuenta", title: "Cuenta" },
-  { key: "cci", title: "CCI" },
-  { key: "symbol", title: "Moneda" },
-];
-const notificacion = ref<ItemNotificacion>(null as unknown as ItemNotificacion);
-const abrirModalCuentasNotificacion = ref(false);
+const SAVE_ERROR = "No pudimos guardar los cambios del house. Revisa tu conexión e intenta de nuevo.";
+const noticeDialog = ref(false);
 const statusData = ref(false);
 const formControlHouseReadonly = ref(false);
-const itemsNotificacionesImport: ItemNotificacion[] = [
-  { title: "Aviso de Salida", value: 1 },
-  { title: "Actualización de Salida", value: 2 },
-  { title: "Pre-Aviso de Llegada", value: 3 },
-  { title: "Aviso de Llegada", value: 4 },
-  { title: "Actualización de Llegada", value: 5 },
-];
-const itemsNotificacionesExport: ItemNotificacion[] = [
-  { title: "Aviso de Salida", value: 1 },
-  { title: "Actualización de Salida", value: 2 },
-  { title: "Aviso de Llegada", value: 3 },
-];
 const displayMenuNotificaciones = ref(false);
-const openMenuNotificaciones = ref(false);
-const loadingBotonNotificaciones = ref(false);
 const loadingBotonGuardarHouse = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const loadingBotonTracking = ref(false);
@@ -240,37 +219,6 @@ function irAVerMaster() {
     id: route.params.id,
   });
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _setMasterContainer(id_master: number, id_containers: number, quantity: number) {
-  //vm._getnroMaster();
-  const data = JSON.stringify({
-    id_master: id_master,
-    id_containers: id_containers,
-    quantity: quantity,
-    status: 1,
-  });
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  axios(config)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    .then(function (response) {})
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error,
-      });
-    });
-}
 async function _setHouseEdit() {
   if (
     !appStore.house_id_consigner ||
@@ -378,25 +326,8 @@ async function _setHouseEdit() {
 
   try {
     const response = await axios(config);
-    sessionStorage.setItem("auth-token", response.data.token);
-
-    if (response.data.status == "401") {
-      loadingBotonGuardarHouse.value = false;
-      Swal.fire({
-        icon: "error",
-        text: response.data.mensaje,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      }).then((resSwal) => {
-        if (resSwal.isConfirmed && response.data.status == "401") {
-          // @ts-expect-error router is not defined in this scope
-          router.push({ name: "Login" });
-          setTimeout(() => {
-            window.location.reload();
-          }, 10);
-        }
-      });
+    if (!response.data.estadoflag) {
+      Swal.fire({ icon: "warning", text: response.data.mensaje || SAVE_ERROR });
       return;
     }
 
@@ -431,12 +362,7 @@ async function _setHouseEdit() {
     // Refresh data in background (non-blocking)
   } catch (error) {
     console.error(error);
-    loadingBotonGuardarHouse.value = false;
-    Swal.fire({
-      icon: "error",
-      title: "Lo sentimos",
-      text: error as string,
-    });
+    Swal.fire({ icon: "error", text: SAVE_ERROR });
   } finally {
     loadingBotonGuardarHouse.value = false;
   }
@@ -463,8 +389,9 @@ function eliminarHouse() {
     denyButtonText: "No",
   }).then(async (result) => {
     if (result.isConfirmed) {
-      loadingBotonEliminarHouse.value = !loadingBotonEliminarHouse.value;
-      housesStore.deleteHouse({ id: route.params.id });
+      loadingBotonEliminarHouse.value = true;
+      await housesStore.deleteHouse({ id: route.params.id });
+      loadingBotonEliminarHouse.value = false;
     }
   });
   // } else {
@@ -547,13 +474,6 @@ function isFCL() {
     val = true;
   }
   return val;
-}
-function getItemsNotificaciones() {
-  return isImportacion()
-    ? itemsNotificacionesImport
-    : isExportacion()
-    ? itemsNotificacionesExport
-    : [];
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getSentidoHouse() {
@@ -661,9 +581,9 @@ async function validarMenuNotificaciones() {
     });
   }
 }
-function openNotificaciones() {
-  validarMenuNotificaciones();
-  openMenuNotificaciones.value = displayMenuNotificaciones.value;
+async function openNotificaciones() {
+  await validarMenuNotificaciones();
+  noticeDialog.value = displayMenuNotificaciones.value;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function _getHouseById() {
@@ -738,99 +658,6 @@ async function _getHouseServices() {
       });
   }
 }
-function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
-  selected.value = [];
-  notificacion.value = notificacionSeleccionada;
-  abrirModalCuentasNotificacion.value = true;
-}
-async function enviarNotificacion(notificacion: ItemNotificacion) {
-  errorCuentas.value = "";
-  if (selected.value.length == 0) {
-    errorCuentas.value = "Es necesario al menos una cuenta";
-    return false;
-  }
-
-  loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
-
-  // await vm._getHouseById();
-  const data = {
-    id: housesStore.house_id,
-    notificacion: notificacion.title,
-    cuentasBancarias: selected.value.map((item) => item.id).join(","),
-    id_branch: sessionBranchId(),
-  };
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  let html = "";
-  await axios<ApiResponse<{ html: string }[]>>(config)
-    .then(function (response) {
-      // console.log(response)
-      sessionStorage.setItem("auth-token", response.data.token!);
-      html = response.data.data[0]!.html;
-      console.log(html);
-      if (response.data.status == "401") {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            // @ts-expect-error router is not defined in this scope
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      } else {
-        abrirModalCuentasNotificacion.value = false;
-        // vm.$swal({
-        //   icon: "success",
-        //   title: "Excelente",
-        //   text: "Notificación enviada éxitosamente",
-        // });
-      }
-    })
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error,
-      });
-    })
-    .finally(async function () {
-      const blob = new Blob([html], { type: "text/html" });
-      const data = [new ClipboardItem({ ["text/html"]: blob })];
-      await navigator.clipboard.write(data);
-      alert(
-        "Información de copiada. Al aceptar, se abrirá Proveedor de Corre. (Luego presiona Ctrl+V)",
-      );
-      const subject = `Notificación: ${notificacion.title} - House BL: ${
-        housesStore.copy_house.nro_hbl
-          ? housesStore.copy_house.nro_hbl
-          : ""
-      } EXPEDIENTE: ${
-        housesStore.house_master_expediente
-      }`;
-      // 4. ABRIR EL MAIL: Solo ocurre DESPUÉS de cerrar el alert
-      const body = encodeURIComponent("CONTROL + V (PEGA LA TABLA AQUÍ)");
-      window.location.href = `mailto:${
-        housesStore.copy_house.emailaddress_clientefinal
-      }?subject=${encodeURIComponent(subject)}&body=${body}`;
-      loadingBotonNotificaciones.value = !loadingBotonNotificaciones.value;
-    });
-}
-
 watch(() => appStore.modalEntitie, (val) => {
   console.log("modalEntitie", appStore.modalEntitie);
   console.log("val", val);
@@ -1093,7 +920,6 @@ onMounted(async () => {
                   size="small"
                   color="deep-purple"
                   :disabled="formControlHouseReadonly"
-                  :loading="loadingBotonNotificaciones"
                   @click="openNotificaciones"
                 >
                   <v-icon
@@ -1170,38 +996,6 @@ onMounted(async () => {
                 </v-btn>
               </template>
             </v-text-field>
-
-            <v-menu
-              v-model="openMenuNotificaciones"
-              location="top"
-              content-class="elevation-0"
-            >
-              <template #activator="{ props }">
-                <span v-bind="props" />
-              </template>
-              <v-list
-                color="transparent"
-                v-show="displayMenuNotificaciones"
-              >
-                <v-list-item
-                  v-for="(item, index) in getItemsNotificaciones()"
-                  :key="index"
-                  class="px-0"
-                >
-                  <v-list-item-title>
-                    <v-btn
-                      variant="flat"
-                      block
-                      size="small"
-                      color="primary"
-                      @click="sendNotificacion(item)"
-                    >
-                      {{ item.title }}
-                    </v-btn>
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
           </v-card>
         </v-col>
 
@@ -1360,38 +1154,6 @@ onMounted(async () => {
           </template>
         </v-text-field>
       </div>
-      <!-- Menú de notificaciones reubicado fuera de la tarjeta oculta -->
-      <v-menu
-        v-model="openMenuNotificaciones"
-        location="top"
-        content-class="elevation-0"
-      >
-        <template #activator="{ props }">
-          <span v-bind="props" />
-        </template>
-        <v-list
-          color="transparent"
-          v-show="displayMenuNotificaciones"
-        >
-          <v-list-item
-            v-for="(item, index) in getItemsNotificaciones()"
-            :key="index"
-            class="px-0"
-          >
-            <v-list-item-title>
-              <v-btn
-                variant="flat"
-                block
-                size="small"
-                color="primary"
-                @click="sendNotificacion(item)"
-              >
-                {{ item.title }}
-              </v-btn>
-            </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
     </v-container>
 
     <!-- Botones flotantes removidos - ahora en sección de Acciones -->
@@ -1456,49 +1218,11 @@ onMounted(async () => {
       </v-card>
     </v-dialog>
 
-    <v-dialog
-      v-model="abrirModalCuentasNotificacion"
-      persistent
-      width="70%"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          Seleccione las cuentas a utilizar
-        </v-card-title>
-        <v-card-text>
-          <p class="text-red">
-            {{ errorCuentas }}
-          </p>
-          <v-data-table
-            v-model="selected"
-            :headers="headers"
-            :items="appStore.cuentas_pic"
-            item-value="id"
-            return-object
-            show-select
-            class="elevation-1"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="success"
-            :loading="loadingBotonNotificaciones"
-            @click="enviarNotificacion(notificacion)"
-          >
-            Enviar Notificación
-          </v-btn>
-          <v-btn
-            color="danger"
-            @click="
-              abrirModalCuentasNotificacion = !abrirModalCuentasNotificacion
-            "
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+    <HouseArrivalNoticeDialog
+      v-model="noticeDialog"
+      :house-id="Number(housesStore.house_id)"
+      :modality="itemsModality.find((item: { id: number; name: string }) => item.id == housesStore.house_sentido)?.name"
+    />
 
     <v-dialog
       v-model="loadingBotonGuardarHouse"
