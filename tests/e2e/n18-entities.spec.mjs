@@ -116,7 +116,7 @@ async function addPhone(page, phone) {
 
 async function saveClientChanges(page) {
   await visible(main(page).getByRole("button", { name: "GUARDAR CAMBIOS" })).click();
-  await acknowledge(page, "Aviso");
+  await acknowledge(page, "Cliente actualizado");
   await expect(visible(main(page).getByRole("button", { name: "EDITAR CLIENTE" }))).toBeVisible();
 }
 
