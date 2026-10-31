@@ -687,8 +687,7 @@ onMounted(async () => {
   ) {
     await pricingStore.getQuoteNoAsignadoHouse();
   } else {
-    await pricingStore.ListarMontosFinalesQuoteMONGODB();
-    await aduanaStore.ListarMontosFinalesAduanaMONGODB();
+    await Promise.all([pricingStore.ListarMontosFinalesQuoteMONGODB(), aduanaStore.ListarMontosFinalesAduanaMONGODB()]);
   }
 
 
