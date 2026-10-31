@@ -87,12 +87,14 @@ describe("type_phone store", () => {
     expect(error).toHaveBeenCalledWith("Error al obtener los datos:", expect.any(Error));
   });
 
-  test("insertTypePhone posts the record and reloads the page once the user closes the message", async () => {
-    respond({ insertTypePhone: accepted([]) });
+  const listReloads = () => httpMock.mock.calls.filter(([config]) => config.url.includes("getListTypePhone"));
+  const unfilteredList = URL_MAIN + "getListTypePhone?id_branch=7&code=&name=&status=1";
+
+  test("insertTypePhone posts the record and reloads the unfiltered list, not the page, once the user closes the message", async () => {
+    respond({ insertTypePhone: accepted([]), getListTypePhone: accepted([mobile]) });
     const typePhone = useTypePhoneStore();
 
-    await typePhone.insertTypePhone({ code: "MOV", name: "Móvil", status: 1 });
-    await flushPromises();
+    const confirmed = await typePhone.insertTypePhone({ code: "MOV", name: "Móvil", status: 1 });
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "post",
@@ -101,26 +103,27 @@ describe("type_phone store", () => {
       data: { code: "MOV", name: "Móvil", status: 1 },
     });
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok", showCancelButton: false, confirmButtonText: "Ok" });
-    expect(reload).toHaveBeenCalledOnce();
+    expect(confirmed).toBe(true);
+    expect(listReloads().map(([config]) => config.url)).toEqual([unfilteredList]);
+    expect(reload).not.toHaveBeenCalled();
   });
 
   test("insertTypePhone does not reload when the user dismisses the message", async () => {
     respond({ insertTypePhone: rejected("Duplicado") });
     vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
 
-    await useTypePhoneStore().insertTypePhone({ code: "MOV" });
-    await flushPromises();
+    const confirmed = await useTypePhoneStore().insertTypePhone({ code: "MOV" });
 
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Duplicado" });
-    expect(reload).not.toHaveBeenCalled();
+    expect(confirmed).toBe(false);
+    expect(listReloads()).toEqual([]);
   });
 
   test("updateTypePhone puts the record and only tells the user when the backend accepts", async () => {
-    respond({ updateTypePhone: accepted([]) });
+    respond({ updateTypePhone: accepted([]), getListTypePhone: accepted([mobile]) });
     const typePhone = useTypePhoneStore();
 
-    await typePhone.updateTypePhone({ id: 3, name: "Móvil", status: 1 });
-    await flushPromises();
+    expect(await typePhone.updateTypePhone({ id: 3, name: "Móvil", status: 1 })).toBe(true);
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "put",
@@ -128,22 +131,21 @@ describe("type_phone store", () => {
       headers: JSON_HEADERS,
       data: { id: 3, name: "Móvil", status: 1 },
     });
-    expect(reload).toHaveBeenCalledOnce();
+    expect(listReloads().map(([config]) => config.url)).toEqual([unfilteredList]);
 
     vi.mocked(Swal.fire).mockClear();
-    reload.mockClear();
+    httpMock.mockClear();
     respond({ updateTypePhone: rejected("Duplicado") });
-    await typePhone.updateTypePhone({ id: 3 });
-    await flushPromises();
+    expect(await typePhone.updateTypePhone({ id: 3 })).toBe(false);
     expect(Swal.fire).not.toHaveBeenCalled();
+    expect(listReloads()).toEqual([]);
     expect(reload).not.toHaveBeenCalled();
   });
 
-  test("inactiveTypePhone puts the id to deleteTypePhone and reloads the page after the message", async () => {
-    respond({ deleteTypePhone: accepted([]) });
+  test("inactiveTypePhone puts the id to deleteTypePhone and reloads the list, not the page, after the message", async () => {
+    respond({ deleteTypePhone: accepted([]), getListTypePhone: accepted([mobile]) });
 
-    await useTypePhoneStore().inactiveTypePhone({ id: 3 });
-    await flushPromises();
+    expect(await useTypePhoneStore().inactiveTypePhone({ id: 3 })).toBe(true);
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "put",
@@ -151,7 +153,8 @@ describe("type_phone store", () => {
       headers: JSON_HEADERS,
       data: { id: 3 },
     });
-    expect(reload).toHaveBeenCalledOnce();
+    expect(listReloads().map(([config]) => config.url)).toEqual([unfilteredList]);
+    expect(reload).not.toHaveBeenCalled();
   });
 
   test("readTypePhone keeps the whole response body as the record, or shows the backend message", async () => {

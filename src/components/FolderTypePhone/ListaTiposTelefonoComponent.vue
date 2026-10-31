@@ -80,8 +80,14 @@ function volver() {
 function updateStatus(newValue: unknown) {
   type.value.status = newValue ? 1 : 0;
 }
-function insert() {
-  typePhoneStore.insertTypePhone(type.value);
+function showSavedList() {
+  showFilterDrawerNew.value = false;
+  showFilterDrawerUpdate.value = false;
+  search.value = "";
+  resetType();
+}
+async function insert() {
+  if (await typePhoneStore.insertTypePhone(type.value)) showSavedList();
 }
 function resetType() {
   Object.assign(type.value, originalType.value);
@@ -94,9 +100,9 @@ function inactive(row: TipoTelefono) {
     showCancelButton: true,
     confirmButtonText: "Sí",
     cancelButtonText: "Cancelar",
-  }).then((result) => {
+  }).then(async (result) => {
     if (result.isConfirmed) {
-      typePhoneStore.inactiveTypePhone({ id: row.id });
+      if (await typePhoneStore.inactiveTypePhone({ id: row.id })) showSavedList();
     } else {
       // item is an empty string, so this write always throws.
       const target = selectedItem.value as unknown as { status: number };
@@ -113,13 +119,13 @@ function update(itemId: number) {
   typePhoneStore.readTypePhone(itemId);
   id.value = itemId;
 }
-function btnUpdate() {
+async function btnUpdate() {
   const data = {
     id: id.value as number,
     name: type.value.name,
     status: type.value.status,
   };
-  typePhoneStore.updateTypePhone(data);
+  if (await typePhoneStore.updateTypePhone(data)) showSavedList();
 }
 function filter() {
   typePhoneStore.fetchDataTypePhone(type.value);

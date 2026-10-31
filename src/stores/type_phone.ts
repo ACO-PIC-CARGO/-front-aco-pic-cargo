@@ -53,29 +53,32 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
       });
   }
 
-  async function insertTypePhone(data: FormTipoTelefono): Promise<void> {
-    await axios<ApiResponse>({
+  async function reloadUnfilteredList(): Promise<void> {
+    await fetchDataTypePhone({ code: "", name: "", status: 1 });
+  }
+
+  async function insertTypePhone(data: FormTipoTelefono): Promise<boolean> {
+    return axios<ApiResponse>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "insertTypePhone",
       headers: { "Content-Type": "application/json" },
       data: data,
     })
-      .then((response) => {
+      .then(async (response) => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
+        const result = await Swal.fire({
           icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.reload();
-          }
         });
+        if (result.isConfirmed) await reloadUnfilteredList();
+        return result.isConfirmed;
       })
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
+        return false;
       });
   }
 
@@ -102,58 +105,55 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
       });
   }
 
-  async function inactiveTypePhone(data: Pick<TipoTelefono, "id">): Promise<void> {
-    await axios<ApiResponse>({
+  async function inactiveTypePhone(data: Pick<TipoTelefono, "id">): Promise<boolean> {
+    return axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "deleteTypePhone",
       headers: { "Content-Type": "application/json" },
       data: data,
     })
-      .then((response) => {
+      .then(async (response) => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
+        const result = await Swal.fire({
           icon: data.estadoflag ? "success" : "error",
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            window.location.reload();
-          }
         });
+        if (result.isConfirmed) await reloadUnfilteredList();
+        return result.isConfirmed;
       })
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
+        return false;
       });
   }
 
-  async function updateTypePhone(data: FormTipoTelefono): Promise<void> {
-    await axios<ApiResponse>({
+  async function updateTypePhone(data: FormTipoTelefono): Promise<boolean> {
+    return axios<ApiResponse>({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "updateTypePhone",
       headers: { "Content-Type": "application/json" },
       data: data,
     })
-      .then((response) => {
+      .then(async (response) => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
 
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-            showCancelButton: false,
-            confirmButtonText: "Ok",
-          }).then((result) => {
-            if (result.isConfirmed) {
-              window.location.reload();
-            }
-          });
-        }
+        if (!data.estadoflag) return false;
+        const result = await Swal.fire({
+          icon: data.estadoflag ? "success" : "error",
+          text: data.mensaje,
+          showCancelButton: false,
+          confirmButtonText: "Ok",
+        });
+        if (result.isConfirmed) await reloadUnfilteredList();
+        return result.isConfirmed;
       })
       .catch((e) => {
         console.error("Error al obtener los datos:", e);
+        return false;
       });
   }
 
