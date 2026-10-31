@@ -65,7 +65,7 @@ describe("values read when the app loads", () => {
 
     expect([pricing.filtro, pricing.filtroCalls]).toEqual([
       { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1 },
-      { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1 },
+      { fechainicio: "2026-10-01", fechafin: "2026-10-31", tipopdf: 1 },
     ]);
     expect(pricing.filtro).not.toBe(pricing.filtroCalls);
   });

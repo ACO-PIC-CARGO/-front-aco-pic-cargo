@@ -75,7 +75,8 @@ import {
   formatearNotas,
   formatearServicios,
 } from "@/utils/cotizacion";
-import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
+import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
+import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
@@ -193,8 +194,8 @@ export const usePricingStore = defineStore("pricing", () => {
     tipopdf: 1,
   });
   const filtroCalls = ref<FiltroCotizaciones>({
-    fechainicio: quoteFilterDatesAtAppLoad.fechainicio,
-    fechafin: quoteFilterDatesAtAppLoad.fechafin,
+    fechainicio: callFilterDatesAtAppLoad.fechainicio,
+    fechafin: callFilterDatesAtAppLoad.fechafin,
     tipopdf: 1,
   });
   const ventaflag = ref(false);
@@ -774,6 +775,9 @@ export const usePricingStore = defineStore("pricing", () => {
   }
   async function reloadQuoteList(): Promise<void> {
     await Promise.all([getListQuote(), getResumenPorEstado()]);
+  }
+  function resetCallFilter(): void {
+    filtroCalls.value = { ...currentMonthToDate(), tipopdf: 1 };
   }
   function resetQuoteFilter(): void {
     filtro.value = {
@@ -3321,12 +3325,14 @@ export const usePricingStore = defineStore("pricing", () => {
           Swal.close();
           Swal.fire({
             icon: "warning",
-            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
+            text: response.data.mensaje || "No pudimos generar el PDF. Revisa los filtros e inténtalo de nuevo.",
             showConfirmButton: true,
           });
         }
       })
-      .catch((e) => console.log(e));
+      .catch(() => {
+        Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+      });
   }
 
   async function getListRecibidoCotizacion(): Promise<void> {
@@ -7141,6 +7147,7 @@ export const usePricingStore = defineStore("pricing", () => {
     getResumenPorEstado,
     getListQuote,
     reloadQuoteList,
+    resetCallFilter,
     resetQuoteFilter,
     getTipoCostos,
     getQuoteNoAsignadoHouse,

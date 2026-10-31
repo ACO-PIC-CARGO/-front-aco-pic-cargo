@@ -2,7 +2,6 @@
 import { onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import FormatFecha from "../comun/FormatFecha.vue";
-import moment from "moment";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 
@@ -93,21 +92,9 @@ async function filtrar() {
   appStore.spiner = false;
 }
 async function limpiar() {
+  errorFiltroFecha.value = "";
   appStore.spiner = true;
-  pricingStore.filtroCalls.id_marketing = null;
-  pricingStore.filtroCalls.id_status = null;
-  pricingStore.filtroCalls.id_entities = null;
-  pricingStore.filtroCalls.id_modality = null;
-  pricingStore.filtroCalls.id_shipment = null;
-  pricingStore.filtroCalls.id_incoterm = null;
-  pricingStore.filtroCalls.fechaemisiondesde = null;
-  pricingStore.filtroCalls.fechaemisionhasta = null;
-  pricingStore.filtroCalls.fechafin =
-    moment().format("YYYY-01-01");
-  pricingStore.filtroCalls.fechafin = moment()
-    .endOf("month")
-    .format("YYYY-MM-DD");
-  pricingStore.filtroCalls.estado = true;
+  pricingStore.resetCallFilter();
   await pricingStore.getQuoteCall(pricingStore.filtroCalls);
   pricingStore.filtrarCallsFlag = false;
   appStore.spiner = false;

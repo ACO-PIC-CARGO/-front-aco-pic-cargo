@@ -1,5 +1,13 @@
-import { expect, test } from "vitest";
-import { inTimeZone, shortDate } from "@/utils/dates";
+import { expect, test, vi } from "vitest";
+import { currentMonthToDate, inTimeZone, shortDate } from "@/utils/dates";
+
+test("currentMonthToDate runs from the first day of this month to today", () => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(2026, 9, 30, 23, 59));
+
+  expect(currentMonthToDate()).toEqual({ fechainicio: "2026-10-01", fechafin: "2026-10-30" });
+  vi.useRealTimers();
+});
 
 test("shortDate shows day, uppercase Spanish month and year without shifting date-only values", () => {
   expect(shortDate("2026-10-03")).toBe("03/OCT/2026");

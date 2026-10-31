@@ -151,33 +151,30 @@ function formatearFecha(fecha: string | null | undefined) {
 }
 async function limpiar() {
   appStore.spiner = true;
-  pricingStore.filtroCalls = {
-    fechainicio: moment().format("YYYY-01-01"),
-    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-  };
-  // this.$store.state.pricing.filtroCalls.estado = true;
-  await pricingStore.getQuoteCall();
-
-  pricingStore.filtrarQuoteFlag = false;
-  pricingStore.filtroCalls.estado = true;
-  appStore.spiner = false;
+  pricingStore.resetCallFilter();
+  try {
+    await pricingStore.getQuoteCall();
+  } finally {
+    pricingStore.filtrarCallsFlag = false;
+    appStore.spiner = false;
+  }
 }
-function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
+function rangoFechaSuperaUnAnio(inicio: string | null | undefined, fin: string | null | undefined) {
   const fechaInicio = moment(inicio);
   const fechaFin = moment(fin);
   return (
     fechaInicio.isValid() &&
     fechaFin.isValid() &&
-    fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+    fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
   );
 }
 async function imprimierCalls() {
   const f = pricingStore.filtroCalls;
-  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+  const rangoCreacionExcedido = rangoFechaSuperaUnAnio(
     f.fechainicio,
     f.fechafin,
   );
-  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+  const rangoEmisionExcedido = rangoFechaSuperaUnAnio(
     f.fechaemisiondesde,
     f.fechaemisionhasta,
   );
@@ -192,7 +189,7 @@ async function imprimierCalls() {
     await Swal.fire({
       icon: "warning",
       title: "No se puede generar el reporte",
-      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 año</strong> para continuar.`,
       confirmButtonText: "Revisar fechas",
     });
     return;
@@ -292,12 +289,14 @@ async function imprimierCalls() {
   }
 
   loading4.value = true;
-  await pricingStore.imprimiReporteListadoCalls({
-    filtroSeleccionado: filtroSeleccionado,
-    filtroCabecera: filtroCabecera,
-  });
-  loading4.value = false;
-  appStore.spiner = false;
+  try {
+    await pricingStore.imprimiReporteListadoCalls({
+      filtroSeleccionado: filtroSeleccionado,
+      filtroCabecera: filtroCabecera,
+    });
+  } finally {
+    loading4.value = false;
+  }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function registrarLlamada(id: number) {
