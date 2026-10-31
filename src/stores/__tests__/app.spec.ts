@@ -10,6 +10,7 @@ import type { ExpedienteSinSolicitud } from "@/types/requests";
 import type { FiltroControlGastosRaiz, ListaPagosRaiz, TipoEmbarqueRaiz } from "@/types/app";
 import type { MasterListadoControlGasto } from "@/types/billing";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
@@ -616,7 +617,7 @@ describe("app store", () => {
     expect(app.itemsDataTotalesProveedor).toEqual([{ total: 1 }]);
   });
 
-  test("_getControlList sends the expense filter with the branch and flags the list as loading during the request", async () => {
+  test("_getControlList sends the expense filter and flags the list as loading during the request", async () => {
     const app = useAppStore();
     app.controlgastosfiltro = { id_canal: 2 } as FiltroControlGastosRaiz;
     app.dataGastos = true;
@@ -628,37 +629,33 @@ describe("app store", () => {
 
     await app._getControlList();
 
-    expect(lastConfig()).toEqual({
-      method: "get",
-      url: URL_MAIN + "getControlList",
-      headers: JSON_HEADERS,
-      params: { id_canal: 2, id_branch: 7 },
-    });
+    expect(lastConfig()).toEqual({ method: "get", url: URL_MAIN + "getControlList", params: { id_canal: 2 } });
     expect(loadedDuringRequest).toBe(false);
     expect(app.itemsDataControlList).toEqual([{ id: 1 }]);
     expect(app.dataGastos).toBe(true);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok");
   });
 
-  test("_getControlList empties the list on a rejection and sends a confirmed 401 to Login", async () => {
-    vi.useFakeTimers();
-    respond({ getControlList: { ...rejected("Sesión expirada", "401"), statusText: "Unauthorized" } });
+  test("_getControlList empties the list quietly when there are no masters", async () => {
+    respond({ getControlList: rejected() });
     const app = useAppStore();
     app.itemsDataControlList = [{ id: 1 }] as MasterListadoControlGasto[];
 
     await app._getControlList();
-    await flushPromises();
 
     expect(app.itemsDataControlList).toEqual([]);
-    expect(Swal.fire).toHaveBeenCalledWith({
-      icon: "error",
-      title: "Unauthorized",
-      text: "Sesión expirada",
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      allowEnterKey: false,
-    });
-    expect(router.push).toHaveBeenCalledWith({ name: "Login" });
+    expect(app.dataGastos).toBe(true);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  test("_getControlList stops loading and says to check the connection when there is no answer", async () => {
+    respond({ getControlList: new Error("network") });
+    const app = useAppStore();
+
+    await app._getControlList();
+
+    expect(app.itemsDataControlList).toEqual([]);
+    expect(app.dataGastos).toBe(true);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("_getListaPagosXProveedorCxC empties the list first, then numbers the rows and defaults rate and currency to 1", async () => {

@@ -46,7 +46,7 @@ import type { ExpedienteMasterReporte } from "@/types/reportes";
 import type { ExpedienteSinSolicitud } from "@/types/requests";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { dataBranchAtAppLoad } from "@/utils/appLoad";
-import { hasFailed } from "@/utils/request";
+import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 // getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
@@ -1859,47 +1859,14 @@ export const useAppStore = defineStore("app", () => {
   }
 
   async function _getControlList(): Promise<void> {
-    const data = {
-      ...controlgastosfiltro.value,
-      id_branch: sessionBranchId(),
-    };
     dataGastos.value = false;
-    const config = {
+    const response = await request<MasterListadoControlGasto>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "getControlList",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: data,
-    };
-    await axios<ApiResponse<MasterListadoControlGasto[]> & { statusText?: string }>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        if (data.estadoflag) {
-          _setItemsDataControlList(response.data.data);
-        } else {
-          _setItemsDataControlList([]);
-          Swal.fire({
-            icon: "error",
-            title: data.statusText,
-            text: data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then((resSwal) => {
-            if (resSwal.isConfirmed && data.status == "401") {
-              router.push({ name: "Login" });
-              setTimeout(() => {
-                window.location.reload();
-              }, 10);
-            }
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+      params: { ...controlgastosfiltro.value },
+    });
+    if (hasFailed(response)) Swal.fire({ icon: "error", text: response.mensaje });
+    _setItemsDataControlList(response.estadoflag ? response.data : []);
   }
 
   async function _getAccountList(): Promise<void> {
