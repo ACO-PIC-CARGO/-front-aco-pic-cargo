@@ -9,6 +9,9 @@ import type {
   OpcionCosto,
 } from "@/types/cotizacion";
 
+export const NO_DEFAULT_STATUS =
+  "Tu empresa no tiene un estatus por defecto ni un estatus PRELIMINAR activo para cotizaciones. Elige el estado de la cotización en la lista o configura el estatus por defecto en Configuración.";
+
 export const FOLDER_NOT_CREATED =
   "No pudimos crear la carpeta de la cotización en OneDrive. Puedes seguir trabajando y pedir a soporte que la cree.";
 
@@ -25,14 +28,20 @@ export const invalidMultiplierMessage = (costo: Costo, multiplicadores: Multipli
     : "";
 
 export function quoteSaveProblem({
+  idStatus,
   opcionCostos,
   containers,
   multiplicadores,
 }: {
+  idStatus: DatosPrincipales["id_status"];
   opcionCostos: OpcionCosto[];
   containers: ContenedorCantidad[];
   multiplicadores: Multiplicador[];
 }): string | null {
+  if (!idStatus) {
+    return `Falta el estado de la cotización. ${NO_DEFAULT_STATUS}`;
+  }
+
   const transitoInvalido = opcionCostos
     .filter((opcion) => positiveInteger(opcion.tiempo_transito) !== true)
     .map((opcion) => opcion.nro_propuesta);
@@ -67,6 +76,7 @@ export function blockedQuoteSave(pricing: {
   listMultiplicador: Multiplicador[];
 }): boolean {
   const problem = quoteSaveProblem({
+    idStatus: pricing.datosPrincipales.id_status,
     opcionCostos: pricing.opcionCostos,
     containers: pricing.datosPrincipales.containers ?? [],
     multiplicadores: pricing.listMultiplicador,
@@ -79,9 +89,7 @@ const isOn = (value: EstadoCotizacion["defaultstatus"]) => value === 1 || value 
 
 export const defaultQuoteStatus = (estados: EstadoCotizacion[]): EstadoCotizacion | undefined =>
   estados.find((estado) => isOn(estado.defaultstatus)) ??
-  estados.find((estado) => estado.status == 1 && /preliminar/i.test(estado.name ?? "")) ??
-  estados.find((estado) => estado.status == 1) ??
-  estados[0];
+  estados.find((estado) => estado.status == 1 && /preliminar/i.test(estado.name ?? ""));
 
 export function servicesStepErrors({
   requiresGoodsValue,

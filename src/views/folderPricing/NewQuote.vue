@@ -19,7 +19,12 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
-import { FOLDER_NOT_CREATED, blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
+import {
+  FOLDER_NOT_CREATED,
+  NO_DEFAULT_STATUS,
+  blockedQuoteSave,
+  defaultQuoteStatus,
+} from "@/components/folderPricing/quoteRules";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import type {
   Costo,
@@ -1146,7 +1151,9 @@ function setDefaultStatus() {
   const estado = defaultQuoteStatus(pricingStore.listQuoteStatus || []);
   if (estado) {
     pricingStore.datosPrincipales.id_status = estado.id;
+    return;
   }
+  Swal.fire({ icon: "warning", title: "Falta el estatus por defecto", text: NO_DEFAULT_STATUS });
 }
 async function emitirPreliminarAuto() {
   pricingStore.opcionCostos[0]!.selected = true;

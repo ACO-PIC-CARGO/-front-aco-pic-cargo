@@ -55,11 +55,18 @@ describe("quoteSaveProblem", () => {
   });
 
   test("a complete quote has no problem", () => {
-    expect(quoteSaveProblem({ opcionCostos: [opcion()], containers: [], multiplicadores })).toBeNull();
+    expect(quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion()], containers: [], multiplicadores })).toBeNull();
+  });
+
+  test.each(["", undefined])("a quote without a status (%p) asks for one and points to the default status setting", (idStatus) => {
+    const problem = quoteSaveProblem({ idStatus, opcionCostos: [opcion()], containers: [], multiplicadores });
+    expect(problem).toContain("estado");
+    expect(problem).toContain("Configuración");
   });
 
   test("names the option whose transit time is not a positive whole number", () => {
     const problem = quoteSaveProblem({
+      idStatus: 454,
       opcionCostos: [opcion(), opcion({ nro_propuesta: 2, tiempo_transito: 2.5 })],
       containers: [],
       multiplicadores,
@@ -70,6 +77,7 @@ describe("quoteSaveProblem", () => {
 
   test("names the container whose quantity is not a positive whole number", () => {
     const problem = quoteSaveProblem({
+      idStatus: 454,
       opcionCostos: [opcion()],
       containers: [
         { description: "20 ST", cantidad: 2 },
@@ -84,6 +92,7 @@ describe("quoteSaveProblem", () => {
   test("lists each active line whose multiplier is not valid once, across options", () => {
     const invalid = { nameservice: "HANDLING", status: 1, id_multiplicador: 37 };
     const problem = quoteSaveProblem({
+      idStatus: 454,
       opcionCostos: [
         opcion({ listCostos: [invalid, { ...invalid, esventaflag: 1 }] }),
         opcion({ nro_propuesta: 2, listCostos: [invalid, { nameservice: "REMOVED", status: 0, id_multiplicador: 37 }] }),
@@ -117,9 +126,8 @@ describe("defaultQuoteStatus", () => {
     ).toBe(3);
   });
 
-  test("falls back to the first active status, then the first one", () => {
-    expect(defaultQuoteStatus([{ id: 1, status: 0 }, { id: 2, status: 1 }])!.id).toBe(2);
-    expect(defaultQuoteStatus([{ id: 1, status: 0 }])!.id).toBe(1);
+  test("gives none when there is neither a default nor an active PRELIMINAR status", () => {
+    expect(defaultQuoteStatus([{ id: 1, name: "COTIZADO", status: 1 }, { id: 2, name: "PRELIMINAR", status: 0 }])).toBeUndefined();
     expect(defaultQuoteStatus([])).toBeUndefined();
   });
 });
@@ -160,7 +168,7 @@ describe("servicesStepErrors", () => {
 describe("blockedQuoteSave", () => {
   const pricing = (tiempo_transito: number) => ({
     opcionCostos: [{ nro_propuesta: 1, tiempo_transito, listCostos: [], listImpuestos: [], listNotasQuote: [] }],
-    datosPrincipales: { containers: null },
+    datosPrincipales: { id_status: 454, containers: null },
     listMultiplicador: [],
   });
 
