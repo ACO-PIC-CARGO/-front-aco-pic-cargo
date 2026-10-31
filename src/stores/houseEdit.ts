@@ -39,17 +39,7 @@ export const useHouseEditStore = defineStore("houseEdit", () => {
 
   async function createOneDriveFolder(house: HouseDetalle): Promise<void> {
     if (house.url_onedrive || !ONEDRIVE_BRANCHES.includes(Number(sessionBranchId()))) return;
-    const client = useAppStore().clientes.find((item: { id: number }) => item.id == form.value.id_consigner) as
-      | { namelong?: string }
-      | undefined;
-    try {
-      await useHousesStore().guardarCarpetaHouse({
-        id: house.id_master,
-        nroMaster: `${house.code_master}_${client?.namelong ?? ""}`,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+    await useHousesStore().guardarCarpetaHouse({ id: house.id_master });
   }
 
   async function save(house: HouseDetalle): Promise<string | null> {

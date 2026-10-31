@@ -56,20 +56,11 @@ export const useHousesStore = defineStore("houses", () => {
   }
 
   async function guardarCarpetaHouse(data: Record<string, unknown>): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    const config = {
+    await request({
       method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `crear-carpeta-house`,
-      headers: headers,
-      data: data,
-    };
-
-    axios<ApiResponse>(config).then((response) => {
-      const res = response.data;
-      console.log("Respuesta de guardarCarpetaHouse:", res);
+      url: import.meta.env.VITE_URL_MAIN + "crear-carpeta-house",
+      headers: { "Content-Type": "application/json" },
+      data,
     });
   }
   async function listarHouse(filtro: FiltroExpedientesRaiz): Promise<void> {

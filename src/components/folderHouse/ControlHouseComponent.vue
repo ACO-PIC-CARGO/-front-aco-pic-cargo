@@ -333,19 +333,8 @@ async function _setHouseEdit() {
 
     statusData.value = true;
 
-    console.log("url_onedrive:", housesStore.url_onedrive);
-    if (!housesStore.url_onedrive) {
-      const proveedor = appStore.clientes.find(
-        (v: { id: number }) => v.id == appStore.house_id_consigner,
-      );
-      const id_branch = sessionBranchId();
-      const id_branchs = ["1", "2", 1, 2];
-      if (id_branchs.includes(id_branch)) {
-        await housesStore.guardarCarpetaHouse({
-          id: housesStore.house_master,
-          nroMaster: `${housesStore.house_master_expediente}_${proveedor!.namelong}`,
-        });
-      }
+    if (!housesStore.url_onedrive && ["1", "2", 1, 2].includes(sessionBranchId())) {
+      await housesStore.guardarCarpetaHouse({ id: housesStore.house_master });
     }
 
     loadingBotonGuardarHouse.value = false;

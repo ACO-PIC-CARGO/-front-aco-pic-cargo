@@ -265,18 +265,8 @@ async function _setHouseEdit() {
 
     statusData = true;
 
-    if (!housesStore.url_onedrive) {
-      const proveedor = appStore.clientes.find(
-        (v: { id: number }) => v.id == appStore.house_id_consigner,
-      );
-      const id_branch = sessionBranchId();
-      const id_branchs = ["1", "2", 1, 2];
-      if (id_branchs.includes(id_branch)) {
-        await housesStore.guardarCarpetaHouse({
-          id: housesStore.house_master,
-          nroMaster: `${housesStore.house_master_expediente}_${proveedor!.namelong}`,
-        });
-      }
+    if (!housesStore.url_onedrive && ["1", "2", 1, 2].includes(sessionBranchId())) {
+      await housesStore.guardarCarpetaHouse({ id: housesStore.house_master });
     }
 
     loadingBotonGuardarHouse = false;
@@ -377,6 +367,7 @@ async function asociarCotizacionA() {
     listVentasInstructivo: dataAprobar.value.listIngresosInstructivo, //
     id_house: route.params.id, //
     id_opcion: id_opcion.value, //
+    IdempotencyKey: generateIdempotencyKey(),
   });
 }
 async function _validaData() {
@@ -674,7 +665,6 @@ onMounted(async () => {
     appStore._getModality(),
     appStore._getShipment(),
     appStore._getIncoterms(),
-    mastersStore._getnroMaster(),
     appStore._getAgents(),
     appStore._getConsigners(),
     appStore._getNotify(),
