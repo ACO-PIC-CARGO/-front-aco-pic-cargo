@@ -6,9 +6,9 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
-import { useSecuritysStore } from "@/stores/securitys";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+import { APPROVED_QUOTE_MESSAGE, isApprovedQuote } from "@/utils/quoteApproval";
 import type { ApiResponse } from "@/types/api";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type {
@@ -17,7 +17,6 @@ import type {
   HouseDisponible,
   HouseListado,
 } from "@/types/cotizacion";
-import type { UsuarioSesion } from "@/types/sesion";
 
 withDefaults(
   defineProps<{ filtrosSeleccionados?: Record<string, unknown> }>(),
@@ -27,17 +26,17 @@ withDefaults(
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-const securitysStore = useSecuritysStore();
 
 const typingTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const dialogUrl = ref(false);
 const search = ref("");
 const masterEditar = ref<RegistroConUrlCarpeta>({});
 const url_folderonedrive = ref<string | null>(null);
-const lstPricing = ref(true);
 const id_status = ref<number | string | null>(null);
 const comentario = ref("");
 const dialogRegistroNotaLlamada = ref(false);
+const callQuoteApproved = ref(false);
+const savingCall = ref(false);
 const expanded = ref<CotizacionListado[]>([]);
 const singleExpand = true;
 const loading = ref(false);
@@ -205,18 +204,7 @@ const detallenota = useTemplateRef("detallenota");
 const frmAprobar = useTemplateRef("frmAprobar");
 
 function mostrarBoton(item: CotizacionListado) {
-  if (item.statusmain == 0) {
-    return false;
-  }
-  const aprobado = ([true, 1, "true", "1", "si", "sí", "yes"] as unknown[]).includes(
-    typeof item.aprobadoflag === "string"
-      ? item.aprobadoflag.trim().toLowerCase()
-      : item.aprobadoflag,
-  );
-  if (aprobado) {
-    return false;
-  }
-  return true;
+  return item.statusmain != 0 && !isApprovedQuote(item);
 }
 function formatearFecha(fecha: string | null | undefined) {
   if (!fecha) return "";
@@ -246,89 +234,12 @@ function displayMarketing(item: CotizacionListado) {
   );
   return m ? m.name : "";
 }
-function esItemAprobado(item: CotizacionListado) {
-  // Verificar por aprobadoflag
-  if (item.aprobadoflag === true) return true;
-
-  const statusName = (item.status || "").toString().toUpperCase().trim();
-  if (statusName === "APROBADO" || statusName === "APROBADA") return true;
-
-  return false;
-}
-function esUsuarioAdmin() {
-  try {
-    const dataUser = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[] | null;
-    if (dataUser && dataUser[0]) {
-      const userEmail = dataUser[0].user || dataUser[0].usuario || "";
-      return userEmail.toLowerCase() === "cmrg1979a@gmail.com";
-    }
-  } catch (e) {
-    console.error("Error al verificar usuario admin:", e);
-  }
-  return false;
-}
 function handleEditar(item: CotizacionListado) {
-  if (esItemAprobado(item)) {
-    if (esUsuarioAdmin()) {
-      ira("editQuote", item.id);
-    } else {
-      iraAprobado(item.id);
-    }
-  } else {
-    ira("editQuote", item.id);
-  }
-}
-async function iraAprobado(id: number | undefined) {
-  let val = false;
-  let msg = "";
-
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    focusConfirm: false,
-    didOpen: () => {
-      // Aquí forzamos el foco manualmente
-      document.getElementById("swal-input1")!.focus();
-    },
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value;
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value;
-
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-
-      return {
-        usuario: input1,
-        clave: input2,
-      };
-    },
-  }).then(async (result) => {
-    if (result.isConfirmed && result.value) {
-      const res = await securitysStore.validarUsuarioAdmin(result.value);
-      val = res!.estadoflag === true;
-      msg = res!.mensaje;
-    }
-  });
-
-  if (!val) {
-    if (msg) {
-      await Swal.fire({ icon: "error", text: msg });
-    }
+  if (isApprovedQuote(item)) {
+    Swal.fire({ icon: "info", text: APPROVED_QUOTE_MESSAGE });
     return;
   }
-  router.push({
-    name: "editQuote",
-    params: {
-      id: id,
-    },
-  });
+  ira("editQuote", item.id);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function fecha(fecha: string) {
@@ -423,30 +334,25 @@ function registrarLlamada(item: CotizacionListado) {
   };
   pricingStore.id = item.id!;
   id_status.value = item.statusquote!;
+  callQuoteApproved.value = isApprovedQuote(item);
   dialogRegistroNotaLlamada.value = true;
 }
 async function guardarNota() {
-  if ((await detallenota.value!.validate()).valid) {
-    dialogRegistroNotaLlamada.value = false;
-    appStore.spiner = true;
-
-    const data = {
-      id_quote: pricingStore.id,
-      id_operador: fromData.value.identities,
-      comentario: fromData.value.descripcion,
-      fecha: fromData.value.date,
-      id_status: id_status.value,
-    };
-
-    await pricingStore.guardarNotaQuote(data).catch((err) => {
-      console.log(err);
-    });
-    await pricingStore.getListQuote().catch((err) => {
-      console.log(err);
-    });
-
-    appStore.spiner = false;
-  }
+  if (savingCall.value || !(await detallenota.value!.validate()).valid) return;
+  savingCall.value = true;
+  const saved = await pricingStore.guardarNotaQuote({
+    id_quote: pricingStore.id,
+    id_operador: fromData.value.identities,
+    comentario: fromData.value.descripcion,
+    fecha: fromData.value.date,
+    id_status: id_status.value,
+  });
+  savingCall.value = false;
+  if (!saved) return;
+  dialogRegistroNotaLlamada.value = false;
+  appStore.spiner = true;
+  await pricingStore.reloadQuoteList();
+  appStore.spiner = false;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -562,7 +468,7 @@ function ira(ruta: string, id: number | undefined) {
 }
 
 async function eliminar(id: number | undefined, codigo: string | undefined) {
-  Swal.fire({
+  const result = await Swal.fire({
     title: "ADVERTENCIA",
     text: "DESEA ELIMINAR LA COTIZACIÓN CON CÓDIGO: " + codigo,
     icon: "warning",
@@ -570,21 +476,12 @@ async function eliminar(id: number | undefined, codigo: string | undefined) {
     confirmButtonText: "ACEPTAR",
     cancelButtonText: "CANCELAR",
     reverseButtons: false,
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      pricingStore.eliminarRegistro(id!);
-      Swal.fire(
-        "ELIMINADO!",
-        "COTIZACIÓN " + codigo + " ELIMINADA CON ÉXITO",
-        "success",
-      );
-      lstPricing.value = false;
-      await pricingStore.getListQuote().catch((err) => {
-        console.log(err);
-      });
-      lstPricing.value = true;
-    }
   });
+  if (!result.isConfirmed) return;
+  await pricingStore.eliminarRegistro(id!);
+  appStore.spiner = true;
+  await pricingStore.reloadQuoteList();
+  appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function abrirModalEnlazarHouse(selected: CotizacionListado) {
@@ -1111,16 +1008,16 @@ onMounted(async () => {
                     v-if="item.statusmain != 0"
                   >
                     <v-icon
-                      color="#FB9514"
+                      :color="isApprovedQuote(item) ? 'grey' : '#FB9514'"
                       size="small"
                       readonly
                       hide-details
                     >
-                      mdi-pencil
+                      {{ isApprovedQuote(item) ? "mdi-pencil-off" : "mdi-pencil" }}
                     </v-icon>
                   </v-btn>
                 </template>
-                <span>Editar</span>
+                <span>{{ isApprovedQuote(item) ? APPROVED_QUOTE_MESSAGE : "Editar" }}</span>
               </v-tooltip>
 
               <v-tooltip location="top">
@@ -1132,6 +1029,7 @@ onMounted(async () => {
                     v-bind="props"
                     size="x-small"
                     @click="registrarLlamada(item)"
+                    aria-label="Registrar llamada"
                     v-if="item.statusmain != 0"
                   >
                     <v-icon
@@ -1206,6 +1104,7 @@ onMounted(async () => {
                    
                     v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
+                    aria-label="Eliminar cotización"
                     v-if="mostrarBoton(item)"
                   >
                     <v-icon
@@ -1450,6 +1349,7 @@ onMounted(async () => {
             />
 
             <v-autocomplete
+              v-if="!callQuoteApproved"
               variant="outlined"
               :items="pricingStore.listQuoteStatus"
               label="ESTADO DE LA COTIZACIÓN"
@@ -1467,6 +1367,7 @@ onMounted(async () => {
             <v-btn
               variant="text"
               color="success"
+              :loading="savingCall"
               @click="guardarNota"
             >
               Aceptar

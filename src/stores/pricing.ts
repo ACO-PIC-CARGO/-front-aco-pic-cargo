@@ -77,7 +77,7 @@ import {
 } from "@/utils/cotizacion";
 import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { filledParams } from "@/utils/queryParams";
-import { hasFailed, request } from "@/utils/request";
+import { hasFailed, notifySuccess, request } from "@/utils/request";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -3403,18 +3403,14 @@ export const usePricingStore = defineStore("pricing", () => {
       });
     });
   }
-  async function guardarNotaQuote(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setCalls",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config).catch(function (error) {
-      console.error(error);
-    });
+  async function saveWithFeedback(config: Parameters<typeof request>[0], successMessage: string): Promise<boolean> {
+    const response = await request(config);
+    if (response.estadoflag) notifySuccess(successMessage);
+    else Swal.fire({ icon: "error", text: response.mensaje });
+    return response.estadoflag;
+  }
+  async function guardarNotaQuote(data: Record<string, unknown>): Promise<boolean> {
+    return saveWithFeedback({ method: "post", url: import.meta.env.VITE_URL_MAIN + "setCalls", data }, "Registramos la llamada.");
   }
   async function updateQuote(): Promise<boolean> {
     const imp = listServices.value.filter((v) => v.code_service == "15" && v.status == true);
@@ -3481,20 +3477,8 @@ export const usePricingStore = defineStore("pricing", () => {
     });
     return response.estadoflag;
   }
-  async function eliminarRegistro(id: number | string): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `delQuote`,
-      headers: headers,
-      data: { id: id },
-    };
-    axios<ApiResponse>(config).then((response) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const data = response.data;
-    });
+  async function eliminarRegistro(id: number | string): Promise<boolean> {
+    return saveWithFeedback({ method: "post", url: import.meta.env.VITE_URL_MAIN + "delQuote", data: { id } }, "Eliminamos la cotización.");
   }
 
   async function predata({ tipo = "" }: { tipo?: string }): Promise<DatosPrevisualizacion> {

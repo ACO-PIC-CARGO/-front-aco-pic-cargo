@@ -71,6 +71,47 @@ describe("quote list", () => {
     expect(pricing.listadoResumen).toEqual([]);
   });
 
+  test("a deleted quote is confirmed only when the server deleted it", async () => {
+    respond({ delQuote: accepted([]) });
+
+    expect(await usePricingStore().eliminarRegistro(5)).toBe(true);
+
+    expect(requestTo("delQuote")).toMatchObject({ method: "post", data: { id: 5 } });
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+  });
+
+  test.each([
+    ["the server refuses", { response: { data: { estadoflag: false, mensaje: "La cotización ya está aprobada." } } }, "La cotización ya está aprobada."],
+    ["the server cannot be reached", new Error("Network Error"), CONNECTION_ERROR_MESSAGE],
+  ])("a delete that %s is not confirmed and says why", async (_case, failure, reason) => {
+    httpMock.mockRejectedValue(failure);
+
+    expect(await usePricingStore().eliminarRegistro(5)).toBe(false);
+
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text: reason }));
+    expect(Swal.fire).not.toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+  });
+
+  test("a registered call is confirmed only when the server saved it", async () => {
+    respond({ setCalls: accepted([]) });
+    const call = { id_quote: 5, comentario: "Llamó", id_status: 3 };
+
+    expect(await usePricingStore().guardarNotaQuote(call)).toBe(true);
+
+    expect(requestTo("setCalls")).toMatchObject({ method: "post", data: call });
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success" }));
+  });
+
+  test("a call the server refuses is not confirmed and says why", async () => {
+    respond({ setCalls: { estadoflag: false, mensaje: "No puedes cambiar el estado de una cotización aprobada.", tipomensaje: "TMSGERR" } });
+
+    expect(await usePricingStore().guardarNotaQuote({ id_quote: 5 })).toBe(false);
+
+    expect(Swal.fire).toHaveBeenCalledWith(
+      expect.objectContaining({ icon: "error", text: "No puedes cambiar el estado de una cotización aprobada." }),
+    );
+  });
+
   test("clearing the filters goes back to this year's active quotes and drops every other filter", () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 9, 15));
