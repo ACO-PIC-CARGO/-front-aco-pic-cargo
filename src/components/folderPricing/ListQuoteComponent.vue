@@ -952,6 +952,14 @@ onMounted(async () => {
         >
           <!-- <td></td> -->
           <td>
+            <v-chip
+              v-if="item.statusmain == 0"
+              color="error"
+              size="small"
+              variant="tonal"
+            >
+              Eliminada
+            </v-chip>
             <v-btn-toggle>
               <!-- <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
@@ -977,6 +985,7 @@ onMounted(async () => {
                    
                     @click="ira('verQuote', item.id)"
                     aria-label="Ver cotización"
+                    v-if="item.statusmain != 0"
                   >
                     <v-icon
                       color="#4A148C"
@@ -1053,6 +1062,8 @@ onMounted(async () => {
                    
                     v-bind="props"
                     @click="abrirCaperta(item)"
+                    aria-label="Abrir carpeta de la cotización"
+                    v-if="item.statusmain != 0"
                   >
                     <v-icon
                       color="#FFAB00"

@@ -106,6 +106,14 @@ test("a search goes to the server once the user stops typing, from the first pag
   vi.useRealTimers();
 });
 
+test("a deleted quote can only be looked at: it says it was deleted and offers no action", async () => {
+  await mountList();
+
+  expect(rowOf("ELIMINADA SAC").textContent).toContain("Eliminada");
+  expect(rowOf("ELIMINADA SAC").querySelectorAll("button")).toHaveLength(0);
+  expect(actionIn(rowOf("BORRADOR SAC"), "Ver cotización")).not.toBeNull();
+});
+
 test("editing an approved quote explains it must be copied instead of opening the editor", async () => {
   await mountList();
 

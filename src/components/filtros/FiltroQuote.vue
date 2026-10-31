@@ -643,13 +643,18 @@ onMounted(async () => {
               </v-alert>
               <span />
             </v-col>
-            <!-- <v-col cols="12">
-              <v-radio-group v-model="$store.state.pricing.filtro.estado" row>
-                <v-radio label="Activo" color="green" :value="true"></v-radio>
-                <v-radio label="Inactivo" color="red" :value="false"></v-radio>
-                <v-radio label="Todos" color="blue" value=""></v-radio
-              ></v-radio-group>
-            </v-col> -->
+            <v-col cols="12">
+              <v-switch
+                v-model="pricingStore.filtro.estado"
+                true-value="0"
+                false-value="1"
+                color="error"
+                density="compact"
+                label="Ver cotizaciones eliminadas"
+                hint="Las cotizaciones eliminadas solo se pueden consultar. El reporte PDF no usa este filtro."
+                persistent-hint
+              />
+            </v-col>
           </v-row>
           <v-row>
             <v-col cols="12">
