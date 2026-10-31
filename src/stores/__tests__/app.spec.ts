@@ -172,6 +172,7 @@ describe("app store", () => {
         status_administrativo: 0,
         id_branch: 7,
         id_tipo_embarque: 2,
+        status_op: "",
         status_adm: 0,
         pagina: 40,
         limite: 20,
@@ -199,24 +200,44 @@ describe("app store", () => {
       status_administrativo: 2,
       id_branch: 7,
       id_tipo_embarque: "",
+      status_op: "",
       status_adm: "",
       pagina: 0,
       limite: -1,
     });
   });
 
-  test("_getMasterList empties the list on a rejection and shows the error only while filtering", async () => {
-    respond({ getMasterList: rejected("Sin datos") });
+  test("_getMasterList filters by the operational status the API reads", async () => {
+    respond({ getMasterList: accepted([]) });
+    useMastersStore().master_filtro = { ...emptyFilter(), status_operativo: 1 };
+
+    await useAppStore()._getMasterList();
+
+    expect(lastConfig().params).toMatchObject({ status_op: 1 });
+  });
+
+  test("_getMasterList empties the list without an error when no master matches", async () => {
+    respond({ getMasterList: rejected("No se encontraron registros") });
     const app = useAppStore();
     app.itemsMasterList = [{ id: 1 }];
+    useMastersStore().master_filtrarData = true;
 
     await app._getMasterList();
+
     expect(app.itemsMasterList).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  test("_getMasterList shows a refusal only while filtering", async () => {
+    respond({ getMasterList: { ...rejected("Tu sesión no es válida."), tipomensaje: "TMSGADV" } });
+    const app = useAppStore();
+
+    await app._getMasterList();
     expect(Swal.fire).not.toHaveBeenCalled();
 
     useMastersStore().master_filtrarData = true;
     await app._getMasterList();
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Sin datos" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Tu sesión no es válida." });
   });
 
   test("_getHouseListAll builds the URL from the houses filter and its defaults", async () => {

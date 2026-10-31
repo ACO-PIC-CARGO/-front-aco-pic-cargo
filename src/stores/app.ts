@@ -46,6 +46,7 @@ import type { ExpedienteMasterReporte } from "@/types/reportes";
 import type { ExpedienteSinSolicitud } from "@/types/requests";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { dataBranchAtAppLoad } from "@/utils/appLoad";
+import { hasFailed } from "@/utils/request";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 // getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
@@ -1298,6 +1299,10 @@ export const useAppStore = defineStore("app", () => {
         id_tipo_embarque: mastersStore.master_filtro.id_tipo_embarque
           ? mastersStore.master_filtro.id_tipo_embarque.id || ""
           : "",
+        status_op:
+          mastersStore.master_filtro.status_operativo == 0 || mastersStore.master_filtro.status_operativo == 1
+            ? mastersStore.master_filtro.status_operativo
+            : "",
         status_adm:
           mastersStore.master_filtro.status_administrativo == 0 || mastersStore.master_filtro.status_administrativo == 1
             ? mastersStore.master_filtro.status_administrativo
@@ -1349,7 +1354,7 @@ export const useAppStore = defineStore("app", () => {
         } else {
           _setMasterList([]);
 
-          if (mastersStore.master_filtrarData) {
+          if (mastersStore.master_filtrarData && hasFailed(response.data)) {
             Swal.fire({
               icon: "error",
               text: response.data.mensaje,

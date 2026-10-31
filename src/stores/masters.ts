@@ -8,42 +8,19 @@ import type { ExpedienteMasterRaiz, FilaRaiz, FiltroExpedientesRaiz, GrupoServic
 import type { Numerico } from "@/types/cotizacion";
 import type { ComentarioMaster } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
+import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useMastersStore = defineStore("masters", () => {
-  async function createCarpetaOneDrive({ name = "" }: { name?: string }): Promise<string | false> {
-    const config = {
+  async function createCarpetaOneDrive({ id_master = "" }: { id_master?: number | string; name?: string }): Promise<string | false> {
+    const answer = await request({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `crear-carpeta-master?nromaster=${name}`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    const res = await axios<ApiResponse<string>>(config)
-      .then(async function (response) {
-        return response.data.data;
-      })
-      .catch((e) => {
-        console.error(e);
-        return false as const;
-      });
-    return res;
-  }
-  async function actualizarMaster({ id = 0, url = "" }: { id?: number; url?: string }): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `update_folder_onedrive`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        id: id,
-        url: url,
-      },
-    };
-    await axios<ApiResponse>(config).then(async function (response) {
-      return response.data.data;
+      url: import.meta.env.VITE_URL_MAIN + `crear-carpeta-master?id_master=${id_master}`,
     });
+    return answer.estadoflag ? (answer.data as unknown as string) : false;
+  }
+  function actualizarMaster({ id = 0, url = "" }: { id?: number; url?: string }): Promise<ApiResponse> {
+    return request({ method: "put", url: import.meta.env.VITE_URL_MAIN + `update_folder_onedrive`, data: { id, url } });
   }
   async function insertComentarioMaster({
     id_entitie = 0,
@@ -93,22 +70,8 @@ export const useMastersStore = defineStore("masters", () => {
       }
     });
   }
-  async function actualizarURLEnElMaster({ id = "", url = "" }: { id?: number | string; url?: string }): Promise<void> {
-    console.log("crearCarpetaOneDrive", url);
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_folder_onedrive_master`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        id: id,
-        url: url,
-      },
-    };
-    await axios<ApiResponse>(config).then(async (response) => {
-      return response.data.data;
-    });
+  function actualizarURLEnElMaster({ id = "", url = "" }: { id?: number | string; url?: string }): Promise<ApiResponse> {
+    return request({ method: "put", url: import.meta.env.VITE_URL_MAIN + `actualizar_folder_onedrive_master`, data: { id, url } });
   }
   async function moverCostos(data: Record<string, unknown>): Promise<void> {
     const config = {
@@ -127,45 +90,12 @@ export const useMastersStore = defineStore("masters", () => {
         console.error(e);
       });
   }
-  async function controlGastosReactivar(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `master_control_reactivar`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then(async (response) => {
-        return response.data.data;
-      })
-      .catch((e) => {
-        console.error(e);
-      });
+  function controlGastosReactivar(data: Record<string, unknown>): Promise<ApiResponse> {
+    return request({ method: "put", url: import.meta.env.VITE_URL_MAIN + `master_control_reactivar`, data });
   }
   async function CambiarExpedienteAsociadoAMaster(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `cambiar_expediente_asociado_a_master`,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then(async (response) => {
-        const res = response.data;
-        if (res.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: res.mensaje,
-          });
-        }
-      })
-      .catch((e) => {
-        console.error(e);
-      });
+    const answer = await request({ method: "put", url: import.meta.env.VITE_URL_MAIN + `cambiar_expediente_asociado_a_master`, data });
+    Swal.fire({ icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info", text: answer.mensaje });
   }
 
   const salidaflag = ref(false);
@@ -243,7 +173,7 @@ export const useMastersStore = defineStore("masters", () => {
   }
 
   function _setDataNroMaster(data: NroMasterRaiz[]): void {
-    master_expediente.value = new Date().getFullYear() + "MBL" + data[0]!.nro_master;
+    master_expediente.value = data[0]!.code_master;
     master_nro_expediente.value = data[0]!.nro_master;
   }
 
@@ -370,10 +300,10 @@ export const useMastersStore = defineStore("masters", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse & { total: string }>(config)
+    await axios<ApiResponse<{ total: string }[]>>(config)
       .then(function (response) {
         sessionStorage.setItem("auth-token", response.data.token!);
-        _setTotalMasterList(parseInt(response.data.total) || 0);
+        _setTotalMasterList(parseInt(response.data.data?.[0]?.total ?? "") || 0);
       })
       .catch(function (error) {
         console.error(error);

@@ -72,7 +72,7 @@ describe("masters store, root state part", () => {
 
   test("_getTotalMasterList counts with the master filter and reads a missing total as zero", async () => {
     const masters = useMastersStore();
-    respond({ getTotalMasterList: { ...accepted([]), total: "15" } });
+    respond({ getTotalMasterList: accepted([{ total: "15" }]) });
 
     await masters._getTotalMasterList();
     expect(lastConfig().url).toBe(
@@ -108,19 +108,13 @@ describe("masters store, root state part", () => {
     expect(masters.totalItemsMasterList).toBe(0);
   });
 
-  test("_getnroMaster builds the file number from the current year", async () => {
+  test("_getnroMaster shows the next number exactly as the server builds it", async () => {
     const masters = useMastersStore();
-    respond({ getNroMaster: accepted([{ nro_master: 41 }]) });
+    respond({ getNroMaster: accepted([{ nro_master: "00041", code_master: "1999MBL00041" }]) });
 
     await masters._getnroMaster();
 
-    expect(lastConfig()).toEqual({
-      method: "post",
-      url: URL_MAIN + "getNroMaster",
-      headers: JSON_HEADERS,
-      data: { id_branch: 7 },
-    });
-    expect(masters.master_expediente).toBe(new Date().getFullYear() + "MBL41");
-    expect(masters.master_nro_expediente).toBe(41);
+    expect(masters.master_expediente).toBe("1999MBL00041");
+    expect(masters.master_nro_expediente).toBe("00041");
   });
 });

@@ -229,6 +229,7 @@ export interface GrupoMenuRaiz {
 
 export interface NroMasterRaiz {
   nro_master: number | string;
+  code_master: string;
 }
 
 export interface NroHouseRaiz {
