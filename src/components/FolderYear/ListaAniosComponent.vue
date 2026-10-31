@@ -74,17 +74,19 @@ function submit_insert() {
 
   setTimeout(async () => {
     if ((await form.value!.validate()).valid && errorCode.value == null) {
-      resetRecord("filter");
+      resetFilter();
       await yearStore.insertYear(record.value);
     }
   }, 500);
+}
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
   if (option == "filter") records.value = { ...originalRecords.value };
   else record.value = { ...originalRecord.value };
   await filter();
-  // @ts-expect-error showFilterDrawer is a boolean, so this call always throws.
-  showFilterDrawer.value();
 }
 async function reset_records() {
   resetRecord("filter");
@@ -125,9 +127,8 @@ async function switch_status(item: Anio) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await yearStore.updateYear(item);
-      await reset_records();
     }
   });
 }
@@ -149,7 +150,7 @@ async function submit_update() {
       description: record.value.description,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     await yearStore.updateYear(data);
   }
 }

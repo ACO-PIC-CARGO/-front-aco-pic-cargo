@@ -86,10 +86,14 @@ function insert() {
   validate_nuevo_acronym();
   setTimeout(async () => {
     if ((await form1.value!.validate()).valid && errorAcronym.value == null) {
-      resetRecord("filter");
+      resetFilter();
       await sexStore.insertSex(record.value);
     }
   }, 500);
+}
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
   if (option == "filter") {
@@ -118,7 +122,7 @@ async function switch_status(item: Sexo) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await sexStore.updateSex(item);
     }
   });
@@ -147,7 +151,7 @@ async function btnUpdate() {
         description: record.value.description,
         status: record.value.status,
       };
-      resetRecord("filter");
+      resetFilter();
       await sexStore.updateSex(data);
     }
   }, 500);

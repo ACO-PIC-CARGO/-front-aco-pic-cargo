@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { defineComponent } from "vue";
-import type { Component } from "vue";
+import { defineComponent, h } from "vue";
+import type { Component, SetupContext } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -13,6 +13,16 @@ import ListaDocumentosComponent from "@/components/FolderDocument/ListaDocumento
 import ListaGastosComponent from "@/components/FolderGasto/ListaGastosComponent.vue";
 import ListaIngresosComponent from "@/components/FolderIngresos/ListaIngresosComponent.vue";
 import ListaMonedasComponent from "@/components/FolderCoins/ListaMonedasComponent.vue";
+import ListaModalidadesComponent from "@/components/FolderModality/ListaModalidadesComponent.vue";
+import ListaIncotermsComponent from "@/components/FolderIncoterm/ListaIncotermsComponent.vue";
+import ListaServiciosComponent from "@/components/FolderGroupServices/ListaServiciosComponent.vue";
+import ListaMultiplicadoresComponent from "@/components/FolderMultiplicador/ListaMultiplicadoresComponent.vue";
+import ListaPerformanceComponent from "@/components/FolderPerformance/ListaPerformanceComponent.vue";
+import ListaGenerosComponent from "@/components/FolderSex/ListaGenerosComponent.vue";
+import ListaTiposCargaComponent from "@/components/FolderTipoCarga/ListaTiposCargaComponent.vue";
+import ListaTransportesComponent from "@/components/FolderTransport/ListaTransportesComponent.vue";
+import ListaAniosComponent from "@/components/FolderYear/ListaAniosComponent.vue";
+import ListaMarketingComponent from "@/components/FolderMarketing/ListaMarketingComponent.vue";
 import { accepted, httpMock, URL_MAIN } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -25,7 +35,7 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 
-const ROW = { id: 9, code: "X1", name: "Fila", description: "Fila activa", calculoflag: false, status: 1 };
+const ROW = { id: 9, code: "X1", name: "Fila", description: "Fila activa", calculoflag: false, status: 1, editableflag: true, maxposition: 3 };
 let wrapper: VueWrapper | undefined;
 
 beforeEach(() => {
@@ -33,17 +43,17 @@ beforeEach(() => {
   sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 7 }]));
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
   httpMock.mockImplementation(async (config) => ({
-    data: accepted(/^(listar|ver)_/.test(config.url.slice(URL_MAIN.length)) ? [{ ...ROW }] : []),
+    data: accepted(/^(listar|ver|ultima)_/.test(config.url.slice(URL_MAIN.length)) ? [{ ...ROW }] : []),
   }));
 });
 
 afterEach(() => wrapper?.unmount());
 
-const mountScreen = async (screen: Component) => {
+const mountScreen = async (screen: Component, stubs: Record<string, Component> = {}) => {
   const pinia = createPinia();
   setActivePinia(pinia);
   wrapper = mount(defineComponent({ components: { screen }, template: "<v-app><screen /></v-app>" }), {
-    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    global: { plugins: [createVuetify({ components, directives }), pinia], stubs },
     attachTo: document.body,
   });
   await flushPromises();
@@ -122,4 +132,81 @@ test("saving an edited currency reloads the list once", { timeout: 15_000 }, asy
 
   expect(listReloads("actualizar_coins")).toBe(1);
   expect(listReloads("listar_coins")).toBe(1);
+});
+
+const validForm = {
+  setup(_props: unknown, { expose, slots }: SetupContext) {
+    expose({ validate: async () => ({ valid: true }), reset: () => {} });
+    return () => h("form", slots.default?.());
+  },
+};
+const activeDrawer = () => document.body.querySelector(".v-navigation-drawer--active")!;
+const waitFor = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+interface Catalog {
+  screen: string;
+  component: Component;
+  list: string;
+  actions: string[];
+  filterButton?: string;
+  newSave?: string;
+  editSave?: string;
+  saveDelay?: number;
+}
+const everyAction = ["inactivar", "nuevo", "editar", "limpiar"];
+const catalogs: Catalog[] = [
+  { screen: "Modalidades", component: ListaModalidadesComponent, list: "listar_modality", actions: ["limpiar"] },
+  { screen: "Incoterms", component: ListaIncotermsComponent, list: "listar_incoterms", actions: everyAction },
+  { screen: "Servicios", component: ListaServiciosComponent, list: "listar_groupservices", actions: everyAction },
+  {
+    screen: "Multiplicadores",
+    component: ListaMultiplicadoresComponent,
+    list: "listar_multiplicador",
+    actions: everyAction,
+    filterButton: "Filtrar",
+    newSave: "Nuevo",
+    editSave: "Actualizar",
+  },
+  { screen: "Performance", component: ListaPerformanceComponent, list: "listar_performance", actions: everyAction, filterButton: "Filtrar" },
+  { screen: "Géneros", component: ListaGenerosComponent, list: "listar_sex", actions: everyAction, saveDelay: 600 },
+  { screen: "Tipos de carga", component: ListaTiposCargaComponent, list: "listar_shipment", actions: everyAction },
+  { screen: "Transportes", component: ListaTransportesComponent, list: "listar_transport", actions: ["limpiar"] },
+  { screen: "Años", component: ListaAniosComponent, list: "listar_year", actions: everyAction, saveDelay: 600 },
+  { screen: "Marketing", component: ListaMarketingComponent, list: "listar_marketing", actions: everyAction, filterButton: "Filtrar" },
+];
+
+const runAction: Record<string, (catalog: Catalog) => Promise<void>> = {
+  inactivar: async () => {
+    document.body.querySelector<HTMLElement>(".mdi-delete")!.click();
+  },
+  nuevo: async ({ newSave = "Aceptar", saveDelay = 0 }) => {
+    buttonNamed("Nuevo").click();
+    await flushPromises();
+    httpMock.mockClear();
+    buttonNamed(newSave, activeDrawer()).click();
+    await waitFor(saveDelay);
+  },
+  editar: async ({ editSave = "Aceptar", saveDelay = 0 }) => {
+    document.body.querySelector<HTMLElement>(".mdi-pencil")!.click();
+    await flushPromises();
+    httpMock.mockClear();
+    buttonNamed(editSave, activeDrawer()).click();
+    await waitFor(saveDelay);
+  },
+  limpiar: async ({ filterButton = "Fitrar" }) => {
+    buttonNamed(filterButton).click();
+    await flushPromises();
+    buttonNamed("Limpiar", activeDrawer()).click();
+  },
+};
+
+describe.each(catalogs)("$screen", (catalog) => {
+  test.each(catalog.actions)("%s reloads the list once", { timeout: 15_000 }, async (action) => {
+    await mountScreen(catalog.component, { VForm: validForm });
+
+    await runAction[action]!(catalog);
+    await flushPromises();
+
+    expect(listReloads(catalog.list)).toBe(1);
+  });
 });

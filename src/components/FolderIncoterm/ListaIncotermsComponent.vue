@@ -73,9 +73,13 @@ function updateStatus(newValue: unknown) {
 }
 async function insert() {
   if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     await incotermStore.insertIncoterms(record.value);
   }
+}
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
   if (option == "filter") {
@@ -102,7 +106,7 @@ async function switch_status(item: Incoterm) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await incotermStore.updateIncoterms(item);
     }
   });
@@ -128,7 +132,7 @@ async function btnUpdate() {
     id_branch: sessionBranchId(),
   };
   if ((await form.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     await incotermStore.updateIncoterms(data);
   }
 }

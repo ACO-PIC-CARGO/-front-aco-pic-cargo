@@ -92,7 +92,7 @@ describe("year store", () => {
     expect(error).toHaveBeenCalledWith("Error al obtener los datos:", expect.any(Error));
   });
 
-  test("insertYear posts the record and reloads the unfiltered list only when the user closes the message", async () => {
+  test("insertYear posts the record and reloads the unfiltered list once the message closes, however the user closes it", async () => {
     respond({ insertar_year: accepted([]), listar_year: accepted([y2026]) });
     const year = useYearStore();
 
@@ -109,10 +109,20 @@ describe("year store", () => {
     expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + defaultFilters);
 
     httpMock.mockClear();
-    vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+    vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false, isDismissed: true } as never);
     await year.insertYear({ description: "2027", status: 1 });
     await flushPromises();
-    expect(httpMock).toHaveBeenCalledTimes(1);
+    expect(httpMock.mock.calls.map(([config]) => config.url)).toEqual([URL_MAIN + "insertar_year", URL_MAIN + defaultFilters]);
+  });
+
+  test("updateYear reloads the list also when the user dismisses the message", async () => {
+    respond({ actualizar_year: accepted([]), listar_year: accepted([]) });
+    vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false, isDismissed: true } as never);
+
+    await useYearStore().updateYear({ id: 3, description: "2026", status: 0 });
+    await flushPromises();
+
+    expect(httpMock.mock.calls.map(([config]) => config.url)).toEqual([URL_MAIN + "actualizar_year", URL_MAIN + defaultFilters]);
   });
 
   test("updateYear puts the record, shows the backend error and still reloads the list", async () => {

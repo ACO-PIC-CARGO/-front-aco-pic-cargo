@@ -73,12 +73,16 @@ async function submit_insert() {
   saving.value = true;
   try {
     if ((await formNew.value!.validate()).valid) {
-      resetRecord("filter");
+      resetFilter();
       if (await performanceStore.insertPerformance(record.value)) showFilterDrawerNew.value = false;
     }
   } finally {
     saving.value = false;
   }
+}
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
   if (option == "filter") {
@@ -107,7 +111,7 @@ async function switch_status(item: Performance) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await performanceStore.updatePerformance(item);
     }
   });
@@ -131,7 +135,7 @@ async function btnUpdate() {
       description: record.value.description,
       status: record.value.status,
     };
-    resetRecord("filter");
+    resetFilter();
     if (await performanceStore.updatePerformance(data)) showFilterDrawerUpdate.value = false;
   }
 }

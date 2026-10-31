@@ -57,10 +57,8 @@ export const useYearStore = defineStore("year", () => {
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetchDataYear({ description: "", status: 1 });
-          }
+        }).then(() => {
+          fetchDataYear({ description: "", status: 1 });
         });
       })
       .catch((e) => {
@@ -106,10 +104,8 @@ export const useYearStore = defineStore("year", () => {
           text: data.mensaje,
           showCancelButton: false,
           confirmButtonText: "Ok",
-        }).then((result) => {
-          if (result.isConfirmed) {
-            fetchDataYear({ description: "", status: 1 });
-          }
+        }).then(() => {
+          fetchDataYear({ description: "", status: 1 });
         });
       })
       .catch((e) => {

@@ -84,6 +84,10 @@ onMounted(async () => {
   appStore.mainTitle = `Multiplicadores`;
 });
 
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
+}
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
@@ -109,7 +113,7 @@ async function switch_status(item: Multiplicador) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await multiplicadorStore.updateMultiplicador(item);
     }
   });
@@ -144,13 +148,13 @@ async function btnNuevo() {
     return;
   }
   if ((await form.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     if (await multiplicadorStore.nuevoMultiplicador(multiplicadorStore.record)) showFilterDrawerUpdate.value = false;
   }
 }
 async function btnUpdate() {
   if ((await form.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     if (await multiplicadorStore.updateMultiplicador(multiplicadorStore.record)) showFilterDrawerUpdate.value = false;
   }
 }

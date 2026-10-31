@@ -75,9 +75,13 @@ function updateStatus(newValue: unknown) {
 }
 async function insert() {
   if ((await formNew.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     await groupservicesStore.insertGroupServices(record.value);
   }
+}
+function resetFilter() {
+  records.value = { ...originalRecords.value };
+  showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
   if (option == "filter") {
@@ -104,7 +108,7 @@ async function switch_status(item: GrupoServicio) {
   }).then(async (result) => {
     if (result.isConfirmed) {
       item.status = 0;
-      resetRecord("filter");
+      resetFilter();
       await groupservicesStore.updateGroupServices(item);
     }
   });
@@ -130,7 +134,7 @@ async function btnUpdate() {
     status: record.value.status,
   };
   if ((await form.value!.validate()).valid) {
-    resetRecord("filter");
+    resetFilter();
     await groupservicesStore.updateGroupServices(data);
   }
 }
