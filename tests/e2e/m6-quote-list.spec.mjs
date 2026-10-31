@@ -59,9 +59,7 @@ test.describe("quote list", () => {
 
   test("the status chips count the list's own filters and a chip filters the list", async ({ page }) => {
     const { list, totals } = await openList(page);
-    const { id_branch: _listBranch, ...listFilters } = params(list);
-    const { id_branch: _totalsBranch, ...totalsFilters } = params(totals);
-    expect(totalsFilters).toEqual(listFilters);
+    expect(params(totals)).toEqual(params(list));
 
     const { listadoResumen } = await listState(page);
     const chip = listadoResumen.find((item) => Number(item.cantidad) > 0);
