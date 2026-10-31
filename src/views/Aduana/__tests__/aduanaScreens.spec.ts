@@ -3,7 +3,6 @@ import { flushPromises, shallowMount } from "@vue/test-utils";
 import type { Component } from "vue";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
-import http from "@/api/http";
 import VerAduana from "@/views/Aduana/VerAduana.vue";
 import EditarAduana from "@/views/Aduana/EditarAduana.vue";
 import NewQuote from "@/views/Aduana/NewQuote.vue";
