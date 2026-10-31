@@ -498,7 +498,7 @@ describe("pricing store", () => {
 
   describe("quote", () => {
     test("registrarQuote posts the LCL quote with formatted costs, notes, taxes and services and keeps the new id", async () => {
-      httpMock.mockResolvedValue({ data: { insertId: 501, nro_quote: "15000-P", msg: "Registrado" } });
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 501, nro_quote: "15000-P", msg: "Registrado" } });
       const pricing = cotizacion();
       pricing.totalFlete = 125;
 
@@ -808,9 +808,6 @@ describe("pricing store", () => {
             "url_folderonedrive": "https://drive/x",
             "ventascasillerodetalles": [],
             "volumen": 2.5,
-          },
-          "headers": {
-            "Content-Type": "application/json",
           },
           "method": "post",
           "url": "undefinedsetQuote",
@@ -1292,7 +1289,7 @@ describe("pricing store", () => {
                     "orden": 2,
                     "percentage": 0,
                     "type": 2,
-                    "valor": "0.00",
+                    "valor": "125.00",
                   },
                   {
                     "id": 3,
@@ -1301,7 +1298,7 @@ describe("pricing store", () => {
                     "orden": 3,
                     "percentage": 1.5,
                     "type": 3,
-                    "valor": "75.00",
+                    "valor": "76.88",
                   },
                   {
                     "id": 5,
@@ -1310,7 +1307,7 @@ describe("pricing store", () => {
                     "orden": 5,
                     "percentage": 6,
                     "type": 5,
-                    "valor": "304.50",
+                    "valor": "312.11",
                   },
                   {
                     "id": 7,
@@ -1319,7 +1316,7 @@ describe("pricing store", () => {
                     "orden": 7,
                     "percentage": 2,
                     "type": 7,
-                    "valor": "107.59",
+                    "valor": "110.28",
                   },
                   {
                     "id": 8,
@@ -1328,7 +1325,7 @@ describe("pricing store", () => {
                     "orden": 8,
                     "percentage": 16,
                     "type": 8,
-                    "valor": "860.72",
+                    "valor": "882.24",
                   },
                 ],
                 "listNotasQuote": [
@@ -1398,9 +1395,6 @@ describe("pricing store", () => {
             "tiporeporte": "TOTAL",
             "url_folderonedrive": "https://drive/x",
             "volumen": 2.5,
-          },
-          "headers": {
-            "Content-Type": "application/json",
           },
           "method": "put",
           "url": "undefinedputQuote",

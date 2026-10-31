@@ -1406,7 +1406,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }
     });
   }
-  async function registrarQuote({ fullflag = true }: { fullflag?: boolean }): Promise<void> {
+  async function registrarQuote({ fullflag = true }: { fullflag?: boolean }): Promise<ApiResponse> {
     const imp = listServices.value.filter((v) => v.code_service == "15" && v.status == true);
     const isFCL = listShipment.value.some(
       (v) =>
@@ -1417,12 +1417,13 @@ export const usePricingStore = defineStore("pricing", () => {
     );
     const opciones: unknown[] = [];
     await opcionCostos.value.forEach(async (opcionCosto) => {
+      const fleteOpcion = calcularTotalFleteVenta({ listCostos: opcionCosto.listCostos });
       const costocotizacion = formatearCostos({
         costos: opcionCosto.listCostos,
         services: listServices.value,
         multiplicadores: listMultiplicador.value,
         datosPrincipales: datosPrincipales.value,
-        totalDeFlete: totalFlete.value,
+        totalDeFlete: fleteOpcion,
       });
       const notacosto = formatearNotas({
         notas: opcionCosto.listNotasQuote.filter((v) => v.estado == 1),
@@ -1432,7 +1433,7 @@ export const usePricingStore = defineStore("pricing", () => {
           ? formatImp({
               impuestos: opcionCosto.listImpuestos,
               datosPrincipales: datosPrincipales.value,
-              totalFlete: totalFlete.value,
+              totalFlete: fleteOpcion,
             })
           : [];
       opciones.push({
@@ -1473,22 +1474,18 @@ export const usePricingStore = defineStore("pricing", () => {
       tienefleteflag: datosPrincipales.value.tienefleteflag,
       id_branch: sessionBranchId(),
     };
-    //  console.log(data.costocotizacion);
-    const config = {
+    const response = (await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "setQuote",
-      headers: {
-        "Content-Type": "application/json",
-      },
       data: data,
-    };
-    // let vm = this;
-    await axios<RespuestaRegistroCotizacion>(config).then(async (response) => {
-      id.value = response.data.insertId;
-      nro_quote.value = response.data.nro_quote;
-      mensaje.value = response.data.msg;
+    })) as ApiResponse & Partial<RespuestaRegistroCotizacion>;
+    if (response.estadoflag) {
+      id.value = response.insertId!;
+      nro_quote.value = response.nro_quote!;
+      mensaje.value = response.msg!;
       tiporeporte.value = "";
-    });
+    }
+    return response;
   }
   async function registrarQuotePorCambioIncoterms(newData: CambioIncoterms): Promise<void> {
     const imp = newData.listServices.filter((v) => v.code_service == "15" && v.status == true);
@@ -3419,16 +3416,17 @@ export const usePricingStore = defineStore("pricing", () => {
       console.error(error);
     });
   }
-  async function updateQuote(): Promise<void> {
+  async function updateQuote(): Promise<boolean> {
     const imp = listServices.value.filter((v) => v.code_service == "15" && v.status == true);
     const opciones: unknown[] = [];
     await opcionCostos.value.forEach(async (opcionCosto) => {
+      const fleteOpcion = calcularTotalFleteVenta({ listCostos: opcionCosto.listCostos });
       const costocotizacion = formatearCostosEditar({
         costos: opcionCosto.listCostos,
         services: listServices.value,
         multiplicadores: listMultiplicador.value,
         datosPrincipales: datosPrincipales.value,
-        totalDeFlete: totalFlete.value,
+        totalDeFlete: fleteOpcion,
       });
       const notacosto = formatearNotas({
         notas: opcionCosto.listNotasQuote.filter((v) => v.estado == 1),
@@ -3438,7 +3436,7 @@ export const usePricingStore = defineStore("pricing", () => {
           ? formatImp({
               impuestos: opcionCosto.listImpuestos,
               datosPrincipales: datosPrincipales.value,
-              totalFlete: totalFlete.value,
+              totalFlete: fleteOpcion,
             })
           : [];
       opciones.push({
@@ -3472,23 +3470,16 @@ export const usePricingStore = defineStore("pricing", () => {
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
     };
-    const config = {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "putQuote",
-      headers: {
-        "Content-Type": "application/json",
-      },
       data: data,
-    };
-    // let vm = this;
-    await axios<ApiResponse>(config).then(async (response) => {
-      const data = response.data;
-
-      Swal.fire({
-        icon: "info",
-        text: data.mensaje,
-      });
     });
+    Swal.fire({
+      icon: response.estadoflag ? "info" : "error",
+      text: response.mensaje,
+    });
+    return response.estadoflag;
   }
   async function eliminarRegistro(id: number | string): Promise<void> {
     const headers = {
