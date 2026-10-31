@@ -1038,7 +1038,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 0,
             "nameservice": "FLETE INTERNACIONAL",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 125,
           },
           {
             "code_cost": 2,
@@ -1053,7 +1053,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 0,
             "nameservice": "GASTOS EN ORIGEN",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 120.5,
           },
           {
             "code_cost": 3,
@@ -1068,7 +1068,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 100,
             "nameservice": "VISTOS BUENOS",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 87.5,
           },
           {
             "cif": 0.35,
@@ -1085,7 +1085,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "nameservice": "COMISION AGENCIA",
             "seguro": 0.45,
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 118,
           },
           {
             "code_cost": 4,
@@ -1100,7 +1100,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 0,
             "nameservice": "ALMACEN",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 96,
           },
           {
             "cif": 0.35,
@@ -1117,7 +1117,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "nameservice": "SEGURO DE CARGA",
             "seguro": 0.45,
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 60,
           },
           {
             "code_cost": 1,
@@ -1133,7 +1133,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 0,
             "nameservice": "FLETE INTERNACIONAL",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 100,
           },
           {
             "code_cost": 3,
@@ -1149,7 +1149,7 @@ exports[`aduana store > quote > actualizarQuoteAduana puts the edited quote with
             "minimo": 0,
             "nameservice": "VISTOS BUENOS",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 30,
           },
           {
             "code_cost": 6,
@@ -1388,7 +1388,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 0,
             "nameservice": "FLETE INTERNACIONAL",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 125,
           },
           {
             "code_cost": 2,
@@ -1404,7 +1404,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 0,
             "nameservice": "GASTOS EN ORIGEN",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 120.5,
           },
           {
             "code_cost": 3,
@@ -1420,7 +1420,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 100,
             "nameservice": "VISTOS BUENOS",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 87.5,
           },
           {
             "cif": 0.35,
@@ -1438,7 +1438,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "nameservice": "COMISION AGENCIA",
             "seguro": 0.45,
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 118,
           },
           {
             "code_cost": 4,
@@ -1454,7 +1454,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 0,
             "nameservice": "ALMACEN",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 96,
           },
           {
             "cif": 0.35,
@@ -1472,7 +1472,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "nameservice": "SEGURO DE CARGA",
             "seguro": 0.45,
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 60,
           },
           {
             "code_cost": 1,
@@ -1489,7 +1489,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 0,
             "nameservice": "FLETE INTERNACIONAL",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 100,
           },
           {
             "code_cost": 3,
@@ -1506,7 +1506,7 @@ exports[`aduana store > quote > registrarAduana posts the LCL quote with formatt
             "minimo": 0,
             "nameservice": "VISTOS BUENOS",
             "status": 1,
-            "subtotal": 0,
+            "subtotal": 30,
           },
           {
             "code_cost": 6,
