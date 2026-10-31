@@ -1,5 +1,5 @@
 import { test, expect } from "./fixtures.mjs";
-import { pickFirstOption } from "./support/fields.mjs";
+import { pickFirstOption, searchAndPick } from "./support/fields.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
 
 const LIST = "/home/folderHouse/list";
@@ -98,6 +98,31 @@ test.describe("M1 house file", () => {
     await page.getByRole("button", { name: "Guardar" }).click();
     await expect(page.getByText("Esa carpeta no está en el OneDrive de tu empresa.")).toBeVisible();
     expect(sent).toMatchObject({ id: house.id_master });
+  });
+
+  test("the list's comment is signed by the session user unless the writer picks another executive", async ({ page }) => {
+    const executives = page.waitForResponse((r) => r.url().includes("/getModulesEntities"), { timeout: 60_000 });
+    const [house] = await openList(page);
+    const { data: people } = await (await executives).json();
+    const [sessionEntity, token] = await page.evaluate(() => [JSON.parse(sessionStorage.getItem("dataUser"))[0].id, sessionStorage.getItem("auth-token")]);
+    const other = people.find((person) => person.id_entitie !== sessionEntity && /^[A-Z]+( [A-Z]+)+$/.test(person.name));
+    let sent;
+    await page.route(/\/insertComentarioHouse$/, (route) => {
+      sent = route.request().postDataJSON();
+      return route.fulfill({ json: { status: 200, statusBol: true, estadoflag: true, mensaje: "Registro Correcto.", tipomensaje: "TMSGINF", data: [], token } });
+    });
+
+    await page.getByLabel("Buscar").fill(house.nro_hbl ?? house.code_master);
+    await page.locator("tbody tr").filter({ hasText: house.code_master }).first().locator(".mdi-chat-plus").click();
+    const dialog = page.locator(".v-overlay--active").filter({ hasText: "Registro de Estado/ Comentario" });
+    await expect(dialog.locator(".v-autocomplete__selection")).toHaveText(people.find((person) => person.id_entitie === sessionEntity).name);
+
+    await searchAndPick(page, "Ejecutivo", other.name);
+    await dialog.getByLabel("Estado/ Comentario").fill("Sigue en aduana");
+    await dialog.getByRole("button", { name: "Guardar" }).click();
+
+    await expect(dialogWith(page, "Registro Correcto.")).toBeVisible();
+    expect(sent).toMatchObject({ id_house: house.id, id_entities: other.id_entitie, comentario: "Sigue en aduana" });
   });
 
   test("the arrival notice says why it was not sent and never claims it was", async ({ page }) => {
