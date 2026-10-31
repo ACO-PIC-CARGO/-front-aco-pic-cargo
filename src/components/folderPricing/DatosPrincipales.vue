@@ -79,10 +79,10 @@ watch(
     appStore.spiner = true;
     await appStore._getEntitiesCliente();
     appStore.spiner = false;
-    if (entitiesStore.id) {
-      const cliente = appStore.itemsEntities.filter(
-        (v: ClienteListado) => v.id == entitiesStore.id,
-      )[0]!;
+    const cliente = appStore.itemsEntities.find(
+      (v: ClienteListado) => v.id == entitiesStore.id,
+    );
+    if (cliente) {
       pricingStore.datosPrincipales.id_entitie = cliente.id;
       pricingStore.datosPrincipales.nombre = cliente.nombrecompleto;
       pricingStore.datosPrincipales.telefono = cliente.phone;

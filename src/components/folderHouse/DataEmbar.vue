@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { useEntitiesStore } from "@/stores/entities";
 import { useMastersStore } from "@/stores/masters";
 import { useHousesStore } from "@/stores/houses";
 import axios from "@/api/http";
@@ -12,6 +13,7 @@ import type { HouseCambio } from "@/types/operaciones";
 defineProps<{ isFormActionsDisabled?: boolean }>();
 
 const appStore = useAppStore();
+const entitiesStore = useEntitiesStore();
 const mastersStore = useMastersStore();
 const housesStore = useHousesStore();
 const route = useRoute();
@@ -166,6 +168,7 @@ function _callModalEntitie(id_role: number) {
   }
 }
 function abrirEditarClinte(id_role: number) {
+  entitiesStore.clienteModalEditId = Number(appStore.house_id_consigner);
   _callModalEntitie(id_role);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

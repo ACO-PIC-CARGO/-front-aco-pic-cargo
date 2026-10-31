@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -385,6 +385,9 @@ function verCotizacion() {
   }
 }
 
+onBeforeUnmount(() => {
+  appStore.house_id_consigner = "";
+});
 onMounted(async () => {
   appStore.spiner = true;
 

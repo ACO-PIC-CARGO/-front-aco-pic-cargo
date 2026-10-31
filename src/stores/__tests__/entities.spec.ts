@@ -9,7 +9,7 @@ import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
-import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { name: "somewhere", params: {} } } } }));
@@ -305,7 +305,7 @@ describe("entities store", () => {
     await flushPromises();
 
     const sent = httpMock.mock.calls[0]![0];
-    expect(sent).toMatchObject({ method: "post", url: URL_MAIN + "registrar_cliente", headers: JSON_HEADERS });
+    expect(sent).toMatchObject({ method: "post", url: URL_MAIN + "registrar_cliente" });
     expect(sent.data).toMatchObject({
       nombrecompleto: "Ana",
       id_branch: 7,

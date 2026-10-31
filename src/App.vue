@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onBeforeMount, onMounted, ref, useTemplateRef } from "vue";
+import { defineAsyncComponent, onBeforeMount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { io } from "socket.io-client";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -116,19 +116,20 @@ async function actualizar() {
     window.location.href = `${url}?v=${new Date().getTime()}`;
   }, 5000); // espera 5 segundos
 }
-async function registrarCliente() {
+async function guardarClienteModal() {
   appStore.spiner = true;
-  await entitiesStore.guardarCliente();
-  appStore.spiner = false;
+  try {
+    await entitiesStore.guardarClienteModal();
+  } finally {
+    appStore.spiner = false;
+  }
 }
-async function modificarCliente() {
-  appStore.spiner = true;
-  await entitiesStore.actualizarCliente();
-  appStore.modalEntitie = false;
-  appStore.recargarClienteFlag =
-    !appStore.recargarClienteFlag;
-  appStore.spiner = false;
-}
+watch(
+  () => appStore.modalEntitie,
+  (abierto) => {
+    if (!abierto) entitiesStore.clienteModalEditId = null;
+  },
+);
 function closeWelcome() {
   sessionStorage.setItem("welcome", "1");
   dialogWelcome.value = false;
@@ -304,6 +305,9 @@ function _deleteContacts(i: number | string) {
 }
 
 function mostrarBtnGuardar() {
+  if (entitiesStore.clienteModalEditId) {
+    return true;
+  }
   if (!entitiesStore.cliente.id_tipopersona) {
     return false;
   }
@@ -317,10 +321,6 @@ function mostrarBtnGuardar() {
     return false;
   }
   if (!entitiesStore.cliente.telefonoActual.telefono) {
-    return false;
-  }
-  // @ts-expect-error the entities store has no house_id_consigner, so this read is always undefined.
-  if (entitiesStore.house_id_consigner) {
     return false;
   }
   return true;
@@ -541,12 +541,13 @@ function mostrarBtnGuardar() {
         </v-card-title>
         <v-card-text>
           <EditarCliente
-            v-if="appStore.house_id_consigner"
+            v-if="entitiesStore.clienteModalEditId"
             @btn-guardar="guardarClienteFlag = $event"
             :is-pricing="isPricing"
-            :house-id-consigner="appStore.house_id_consigner as number"
+            :house-id-consigner="entitiesStore.clienteModalEditId"
           />
           <NuevoCliente
+            v-else
             @btn-guardar="guardarClienteFlag = $event"
             :is-pricing="isPricing"
           />
@@ -556,15 +557,7 @@ function mostrarBtnGuardar() {
           <v-btn
             v-if="mostrarBtnGuardar()"
             color="success"
-            @click="registrarCliente"
-            class="px-10"
-          >
-            Guardar
-          </v-btn>
-          <v-btn
-            v-if="appStore.house_id_consigner"
-            color="success"
-            @click="modificarCliente"
+            @click="guardarClienteModal"
             class="px-10"
           >
             Guardar

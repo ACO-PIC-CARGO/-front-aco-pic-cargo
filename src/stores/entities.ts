@@ -158,6 +158,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   const informacionEntrega = ref<InformacionEntrega>({});
   const lstShippers = ref<ShipperCliente[]>([]);
   const id = ref<number | null>(null);
+  const clienteModalEditId = ref<number | null>(null);
   const filtrarProveedor = ref(false);
   const stepper = ref(1);
   const isEdit = ref(false);
@@ -819,7 +820,7 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function guardarCliente(): Promise<void> {
+  async function guardarCliente(): Promise<boolean> {
     cliente.value.id_branch = sessionBranchId();
     cliente.value.lstTelefonos = lstTelefonos.value;
     cliente.value.lstContactos = lstContactos.value;
@@ -830,54 +831,51 @@ export const useEntitiesStore = defineStore("entities", () => {
     cliente.value.informacionEntrega = informacionEntrega.value;
     cliente.value.lstEmails = emailsToSave(lstEmails.value);
 
-    await axios<ApiResponse<EntidadRegistrada[]>>({
+    const data = await request<EntidadRegistrada>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + `registrar_cliente`,
-      headers: {
-        "Content-Type": "application/json",
-      },
       data: cliente.value,
-    })
-      .then(function (response) {
-        // console.log(response)
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
+    });
+    if (data.status == "401") {
+      showRejectedResponse(data);
+      return false;
+    }
+    if (!data.estadoflag) {
+      Swal.fire({ icon: "error", title: "No se registró el cliente", text: data.mensaje, allowOutsideClick: false });
+      return false;
+    }
 
-        if (data.status == "401") {
-          showRejectedResponse(data);
-        } else {
-          console.log(router.currentRoute.value.name);
-
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            title: "Aviso",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            confirmButtonText:
-              useAppStore().modalEntitie == true
-                ? "Aceptar"
-                : "Ir al listado",
-          }).then((res) => {
-            if (res.isConfirmed) {
-              if (useAppStore().modalEntitie == true) {
-                console.log("ddddd", data.data[0]);
-                useAppStore().registroClienteFlag =
-                  !useAppStore().registroClienteFlag;
-                id.value = data.data[0]!.id_entitie;
-                useAppStore().modalEntitie = false;
-              } else {
-                lstProveedor.value = [];
-                router.push({
-                  name: "listClientes",
-                });
-              }
-            }
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
+    const app = useAppStore();
+    const desdeDialogo = app.modalEntitie == true;
+    const res = await Swal.fire({
+      icon: "success",
+      title: "Cliente registrado",
+      text: data.mensaje,
+      allowOutsideClick: false,
+      confirmButtonText: desdeDialogo ? "Aceptar" : "Ir al listado",
+    });
+    if (desdeDialogo) {
+      id.value = data.data[0]!.id_entitie;
+      app.registroClienteFlag = !app.registroClienteFlag;
+      app.modalEntitie = false;
+    } else if (res.isConfirmed) {
+      lstProveedor.value = [];
+      router.push({
+        name: "listClientes",
       });
+    }
+    return true;
+  }
+
+  async function guardarClienteModal(): Promise<void> {
+    if (!clienteModalEditId.value) {
+      await guardarCliente();
+      return;
+    }
+    if (!(await actualizarCliente())) return;
+    const app = useAppStore();
+    app.modalEntitie = false;
+    app.recargarClienteFlag = !app.recargarClienteFlag;
   }
 
   async function verCliente(idCliente: number | null = null): Promise<void> {
@@ -984,12 +982,12 @@ export const useEntitiesStore = defineStore("entities", () => {
       data: { ...cliente.value, rute: nombreRuta },
     });
     if (!response.estadoflag) {
-      Swal.fire({ icon: "error", title: "Aviso", text: response.mensaje, allowOutsideClick: false });
+      Swal.fire({ icon: "error", title: "No se guardaron los cambios del cliente", text: response.mensaje, allowOutsideClick: false });
       return false;
     }
 
     await verCliente(cliente.value.id);
-    Swal.fire({ icon: "success", title: "Aviso", text: response.mensaje, allowOutsideClick: false });
+    Swal.fire({ icon: "success", title: "Cliente actualizado", text: response.mensaje, allowOutsideClick: false });
     return true;
   }
 
@@ -1144,6 +1142,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     informacionEntrega,
     lstShippers,
     id,
+    clienteModalEditId,
     filtrarProveedor,
     stepper,
     isEdit,
@@ -1177,6 +1176,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     getListClientes,
     getValidaDocumentCliente,
     guardarCliente,
+    guardarClienteModal,
     verCliente,
     actualizarCliente,
     exportListClientes,
