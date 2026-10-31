@@ -334,6 +334,7 @@ export interface CotizacionListado {
   fecha_enviocliente?: string;
   details?: DetalleLlamada[];
   quote?: string;
+  totalregistro?: number | string;
 }
 
 export interface LlamadaCotizacion {

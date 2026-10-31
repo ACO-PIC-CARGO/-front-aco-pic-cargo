@@ -78,6 +78,7 @@ import {
 import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
+import { latestRequestTracker } from "@/utils/latestRequest";
 import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
@@ -106,7 +107,7 @@ export const usePricingStore = defineStore("pricing", () => {
     formatearCostosEditar,
   } = useCotizacionCalculos();
   const search = ref<string>("");
-  const totalregistro = ref<number>(1);
+  const totalregistro = ref<number>(0);
   const limit = ref<number>(10);
   const pagina = ref<number>(1);
   const dataCliente = ref<ClienteCotizacion>({});
@@ -710,7 +711,9 @@ export const usePricingStore = defineStore("pricing", () => {
     });
     listadoResumen.value = response.estadoflag ? response.data : [];
   }
+  const startQuoteListRequest = latestRequestTracker();
   async function getListQuote(): Promise<void> {
+    const isLatest = startQuoteListRequest();
     const response = await request<CotizacionListado>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `getQuoteList`,
@@ -719,7 +722,9 @@ export const usePricingStore = defineStore("pricing", () => {
         "Content-Type": "application/json",
       },
     });
+    if (!isLatest()) return;
     const rows = response.estadoflag ? response.data : [];
+    totalregistro.value = Number(rows[0]?.totalregistro ?? 0);
     setListQuotes(
       rows.map((elemento, index) => ({
         ...elemento,

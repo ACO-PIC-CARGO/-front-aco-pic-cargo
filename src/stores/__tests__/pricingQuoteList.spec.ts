@@ -37,6 +37,46 @@ describe("quote list", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
+  test("the list asks the server for one page with the search and keeps the total the server counted", async () => {
+    respond({ getQuoteList: accepted([{ id: 9, totalregistro: "57" }]) });
+    const pricing = usePricingStore();
+    pricing.filtro = { fechainicio: "2026-10-01", fechafin: "2026-10-31", tipopdf: 1, estado: "0" };
+    pricing.pagina = 3;
+    pricing.limit = 25;
+    pricing.search = "ACME";
+
+    await pricing.getListQuote();
+
+    expect(requestTo("getQuoteList")!.params).toMatchObject({ pagina: 3, limit: 25, search: "ACME", estado: "0" });
+    expect(pricing.totalregistro).toBe(57);
+  });
+
+  test("a range without quotes counts no quotes", async () => {
+    respond({ getQuoteList: rejected() });
+    const pricing = usePricingStore();
+    pricing.totalregistro = 40;
+
+    await pricing.getListQuote();
+
+    expect(pricing.totalregistro).toBe(0);
+  });
+
+  test("an older list answer does not replace a newer one", async () => {
+    let answerFirst: (answer: { data: unknown }) => void = () => {};
+    httpMock
+      .mockImplementationOnce(() => new Promise((resolve) => (answerFirst = resolve)))
+      .mockImplementationOnce(async () => ({ data: accepted([{ id: 2, totalregistro: "1" }]) }));
+    const pricing = usePricingStore();
+
+    const older = pricing.getListQuote();
+    await pricing.getListQuote();
+    answerFirst({ data: accepted([{ id: 1, totalregistro: "40" }]) });
+    await older;
+
+    expect(pricing.listQuotes.map((quote) => quote.id)).toEqual([2]);
+    expect(pricing.totalregistro).toBe(1);
+  });
+
   test("a list that cannot be loaded drops the previous rows and says what to do", async () => {
     httpMock.mockRejectedValue(new Error("Network Error"));
     const pricing = usePricingStore();
