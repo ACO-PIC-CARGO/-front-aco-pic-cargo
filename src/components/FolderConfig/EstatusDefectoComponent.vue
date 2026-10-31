@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import axios from "axios";
 import Swal from "sweetalert2";
-import type { ApiResponse } from "@/types/api";
 import type { EstadoCotizacion } from "@/types/cotizacion";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
 
 const estatusSeleccionado = ref<EstadoCotizacion["id"] | null>(null);
 const estatusDisponibles = ref<EstadoCotizacion[]>([]);
@@ -13,74 +11,25 @@ const loadingEstatus = ref(false);
 const guardando = ref(false);
 
 onMounted(async () => {
-  await cargarDatos();
+  loadingEstatus.value = true;
+  await cargarEstatusDisponibles();
+  loadingEstatus.value = false;
 });
 
-async function cargarDatos() {
-  loadingEstatus.value = true;
-  try {
-    // Cargar estatus disponibles para la empresa
-    await cargarEstatusDisponibles();
-
-    // Cargar configuración actual
-    await cargarConfiguracionActual();
-  } catch (error) {
-    console.error('Error cargando datos:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: 'No se pudieron cargar los datos de configuración.'
-    });
-  } finally {
-    loadingEstatus.value = false;
-  }
-}
-
 async function cargarEstatusDisponibles() {
-  const id_branch = sessionBranchId();
-  const config = {
-    method: 'post',
+  const response = await request<EstadoCotizacion>({
+    method: "post",
     url: `${import.meta.env.VITE_URL_MAIN}getQuoteStatus`,
-    headers: {
-      'auth-token': sessionStorage.getItem('auth-token'),
-      'Content-Type': 'application/json',
-    },
-    data: {
-      id_branch: id_branch
-    }
-  };
-
-  // Debug request
-  console.log('[EstatusDefecto] getQuoteStatus -> request', {
-    method: config.method,
-    url: config.url,
-    hasAuth: !!config.headers['auth-token'],
-    body: config.data
   });
-
-  const response = await axios<ApiResponse<EstadoCotizacion[]>>(config);
-
-  // Debug response
-  console.log('[EstatusDefecto] getQuoteStatus -> response', {
-    estadoflag: response?.data?.estadoflag,
-    mensaje: response?.data?.mensaje,
-    cantidad: Array.isArray(response?.data?.data) ? response.data.data.length : 0
-  });
-  if (response.data.estadoflag && response.data.data) {
-    estatusDisponibles.value = response.data.data;
-  }
+  if (hasFailed(response)) Swal.fire({ icon: "error", text: response.mensaje });
+  estatusDisponibles.value = response.estadoflag ? response.data : [];
+  cargarConfiguracionActual();
 }
 
-async function cargarConfiguracionActual() {
-  // Buscar en la lista de estatus cuál tiene defaultstatus = 1 para esta empresa
+function cargarConfiguracionActual() {
   const estatusConDefault = estatusDisponibles.value.find(estatus => estatus.defaultstatus === 1 || estatus.defaultstatus === '1' || estatus.defaultstatus === true);
-  if (estatusConDefault) {
-    configuracionActual.value = estatusConDefault;
-    estatusSeleccionado.value = estatusConDefault.id;
-  } else {
-    configuracionActual.value = null;
-    estatusSeleccionado.value = null;
-  }
+  configuracionActual.value = estatusConDefault ?? null;
+  estatusSeleccionado.value = estatusConDefault?.id ?? null;
 }
 
 async function guardarEstatusDefecto() {
@@ -93,61 +42,14 @@ async function guardarEstatusDefecto() {
   }
 
   guardando.value = true;
-  try {
-    const id_branch = sessionBranchId();
-    const payload = {
-      id_estatus_defecto: estatusSeleccionado.value,
-      id_branch: id_branch,
-    };
-
-    const config = {
-      method: 'put',
-      url: `${import.meta.env.VITE_URL_MAIN}configurar_estatus_defecto`,
-      headers: {
-        'auth-token': sessionStorage.getItem('auth-token'),
-        'Content-Type': 'application/json',
-      },
-      data: payload,
-    };
-
-    // Debug request
-    console.log('[EstatusDefecto] configurar_estatus_defecto -> request', {
-      method: config.method,
-      url: config.url,
-      hasAuth: !!config.headers['auth-token'],
-      payload
-    });
-
-    const response = await axios<ApiResponse>(config);
-
-    // Debug response
-    console.log('[EstatusDefecto] configurar_estatus_defecto -> response', {
-      estadoflag: response?.data?.estadoflag,
-      mensaje: response?.data?.mensaje
-    });
-    const ok = response?.data?.estadoflag;
-
-    Swal.fire({
-      icon: ok ? 'success' : 'error',
-      title: ok ? 'Guardado' : 'Error',
-      text: ok ? 'Configuración guardada correctamente.' : (response?.data?.mensaje || 'No se pudo guardar.'),
-    });
-
-    if (ok) {
-      // Recargar la lista completa para obtener los valores actualizados
-      await cargarEstatusDisponibles();
-      await cargarConfiguracionActual();
-    }
-  } catch (error) {
-    console.error('Error guardando configuración:', error);
-    Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: (error as Error).message || 'No se pudo guardar la configuración.'
-    });
-  } finally {
-    guardando.value = false;
-  }
+  const response = await request({
+    method: "put",
+    url: `${import.meta.env.VITE_URL_MAIN}configurar_estatus_defecto`,
+    data: { id_estatus_defecto: estatusSeleccionado.value },
+  });
+  Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+  if (response.estadoflag) await cargarEstatusDisponibles();
+  guardando.value = false;
 }
 </script>
 
