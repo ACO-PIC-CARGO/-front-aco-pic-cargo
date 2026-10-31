@@ -231,18 +231,9 @@ async function cambiarPagina() {
 }
 async function limpiar() {
   appStore.spiner = true;
-  pricingStore.filtro = {
-    fechainicio: moment().format("YYYY-01-01"),
-    fechadesde: moment().format("YYYY-01-01"),
-    fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-    tipopdf: 1,
-  };
-
-  pricingStore.filtro.estado = true;
-  await pricingStore.getListQuote();
-
+  pricingStore.resetQuoteFilter();
+  await pricingStore.reloadQuoteList();
   pricingStore.filtrarQuoteFlag = false;
-  pricingStore.filtro.estado = true;
   appStore.spiner = false;
 }
 function displayMarketing(item: CotizacionListado) {
@@ -1045,6 +1036,7 @@ onMounted(async () => {
       show-expand
       class="elevation-1"
       disable-sort
+      no-data-text="No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros."
     >
       <template #item="{ item, internalItem, isExpanded, toggleExpand }">
         <tr

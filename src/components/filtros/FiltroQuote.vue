@@ -90,29 +90,16 @@ function validarFiltroFechas() {
 async function filtrar() {
   if (!validarFiltroFechas()) return;
   appStore.spiner = true;
-  await pricingStore.getListQuote();
+  await pricingStore.reloadQuoteList();
   pricingStore.filtrarQuoteFlag = false;
   appStore.spiner = false;
 }
 async function limpiar() {
+  errorFiltroFecha.value = "";
   appStore.spiner = true;
-  pricingStore.filtro.id_marketing = null;
-  pricingStore.filtro.id_status = null;
-  pricingStore.filtro.id_entities = null;
-  pricingStore.filtro.id_modality = null;
-  pricingStore.filtro.id_shipment = null;
-  pricingStore.filtro.id_incoterm = null;
-  pricingStore.filtro.fechaemisiondesde = null;
-  pricingStore.filtro.fechaemisionhasta = null;
-  pricingStore.filtro.fechafin = moment().format("YYYY-01-01");
-  pricingStore.filtro.fechafin = moment()
-    .endOf("month")
-    .format("YYYY-MM-DD");
-  pricingStore.filtro.estado = true;
-  await pricingStore.getListQuote();
-
+  pricingStore.resetQuoteFilter();
+  await pricingStore.reloadQuoteList();
   pricingStore.filtrarQuoteFlag = false;
-  pricingStore.filtro.estado = true;
   appStore.spiner = false;
 }
 function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {

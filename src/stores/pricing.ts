@@ -76,6 +76,8 @@ import {
   formatearServicios,
 } from "@/utils/cotizacion";
 import { quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
+import { filledParams } from "@/utils/queryParams";
+import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -726,75 +728,57 @@ export const usePricingStore = defineStore("pricing", () => {
       }
     });
   }
-  async function getResumenPorEstado(): Promise<void> {
-    const config = {
-      method: "get",
-      url: `${import.meta.env.VITE_URL_MAIN}resumen_por_estado`,
-      params: {
-        id_branch: sessionBranchId(),
-      },
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    await axios<ApiResponse<ResumenEstadoCotizacion[]>>(config).then((response) => {
-      const data = response.data;
-      if (data.estadoflag) {
-        sessionStorage.setItem("auth-token", data.token!);
-
-        listadoResumen.value = data.data;
-      }
+  function quoteListParams(): Record<string, unknown> {
+    return filledParams({
+      ...filtro.value,
+      search: search.value,
+      limit: limit.value,
+      pagina: pagina.value,
+      id_branch: sessionBranchId(),
     });
   }
-  async function getListQuote(): Promise<void> {
-    const config = {
+  async function getResumenPorEstado(): Promise<void> {
+    const response = await request<ResumenEstadoCotizacion>({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `getQuoteList`,
-      params: {
-        ...filtro.value,
-        search: search.value,
-        limit: limit.value,
-        pagina: pagina.value,
-        id_branch: sessionBranchId(),
-      },
+      url: `${import.meta.env.VITE_URL_MAIN}resumen_por_estado`,
+      params: quoteListParams(),
       headers: {
         "Content-Type": "application/json",
       },
+    });
+    listadoResumen.value = response.estadoflag ? response.data : [];
+  }
+  async function getListQuote(): Promise<void> {
+    const response = await request<CotizacionListado>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + `getQuoteList`,
+      params: quoteListParams(),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const rows = response.estadoflag ? response.data : [];
+    setListQuotes(
+      rows.map((elemento, index) => ({
+        ...elemento,
+        index,
+        rowId: elemento.id ? `${elemento.id}_${index}` : `quote_${index}`,
+      })),
+    );
+    if (hasFailed(response)) {
+      Swal.fire({ icon: "error", text: response.mensaje });
+    }
+  }
+  async function reloadQuoteList(): Promise<void> {
+    await Promise.all([getListQuote(), getResumenPorEstado()]);
+  }
+  function resetQuoteFilter(): void {
+    filtro.value = {
+      fechainicio: moment().format("YYYY-01-01"),
+      fechafin: moment().endOf("month").format("YYYY-MM-DD"),
+      tipopdf: 1,
+      estado: "1",
     };
-    await axios<ApiResponse<CotizacionListado[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        if (data.estadoflag) {
-          const rows = data.data.map((elemento, index) => {
-            return {
-              ...elemento,
-              index,
-              rowId: elemento.id ? `${elemento.id}_${index}` : `quote_${index}`,
-            };
-          });
-          setListQuotes(rows);
-        } else {
-          setListQuotes([]);
-          Swal.fire({
-            icon: "error",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then((resSwal) => {
-            if (resSwal.isConfirmed && data.status == "401") {
-              router.push({ name: "Login" });
-              setTimeout(() => {
-                window.location.reload();
-              }, 10);
-            }
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
   }
   async function getTipoCostos(): Promise<void> {
     const config = {
@@ -7192,6 +7176,8 @@ export const usePricingStore = defineStore("pricing", () => {
     getServices,
     getResumenPorEstado,
     getListQuote,
+    reloadQuoteList,
+    resetQuoteFilter,
     getTipoCostos,
     getQuoteNoAsignadoHouse,
     getQuoteDataNoAsignadaHouse,

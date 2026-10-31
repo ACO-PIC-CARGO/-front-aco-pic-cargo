@@ -35,10 +35,10 @@ function redirect() {
     });
   });
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function filtrarCotizaciones(item: ResumenEstadoCotizacion) {
+  pricingStore.filtro.id_status = item.id;
   appStore.spiner = true;
-
+  await pricingStore.reloadQuoteList();
   appStore.spiner = false;
 }
 async function guardarConfig() {
@@ -53,13 +53,12 @@ onMounted(async () => {
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
   dialog.value = !val.existecot;
   appStore.spiner = true;
-  await Promise.all([pricingStore.getListQuote(), pricingStore.getQuoteCall()]);
+  await Promise.all([pricingStore.reloadQuoteList(), pricingStore.getQuoteCall()]);
   appStore.spiner = false;
   await Promise.all([
     pricingStore.cargarTrabajadores(),
     pricingStore.getQuoteStatus(),
     pricingStore.getMarketingList(),
-    pricingStore.getResumenPorEstado(),
     appStore.cargarClientes(),
     masterusuariosStore.cargarTemperaturaLeds(),
     // this.getListEnviadoCliente(),

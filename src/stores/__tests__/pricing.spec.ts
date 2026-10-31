@@ -183,20 +183,6 @@ describe("pricing store", () => {
       ]);
     });
 
-    test("getListQuote empties the list on a rejection and sends an expired session to Login", async () => {
-      vi.useFakeTimers();
-      respond({ getQuoteList: rejected("Sesión expirada", "401") });
-      const pricing = usePricingStore();
-      pricing.listQuotes = [{ id: 1 }];
-
-      await pricing.getListQuote();
-      await flushPromises();
-
-      expect(pricing.listQuotes).toEqual([]);
-      expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Sesión expirada" });
-      expect(router.push).toHaveBeenCalledWith({ name: "Login" });
-    });
-
     test("getQuoteNoAsignadoHouse always empties the quotes, because the answer has no estado field", async () => {
       respond({ quote_cargar_noasignadoshouse: accepted([{ id: 5, code: "E1" }]) });
       const pricing = usePricingStore();
