@@ -48,6 +48,7 @@ import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { dataBranchAtAppLoad } from "@/utils/appLoad";
 import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import { shareWhilePending } from "@/utils/sharedRequest";
 
 // getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
 const withoutDuplicatePorts = (ports: Puerto[]): Puerto[] => {
@@ -759,15 +760,18 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getProveedor(): Promise<void> {
-    const config = {
+  const requestProviders = shareWhilePending((idBranch: number) =>
+    axios<ApiResponse<ProveedorRaiz[] & ProveedorRolRaiz[]>>({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "CargarProveedores?id_branch=" + sessionBranchId(),
+      url: import.meta.env.VITE_URL_MAIN + "CargarProveedores?id_branch=" + idBranch,
       headers: {
         "Content-Type": "application/json",
       },
-    };
-    await axios<ApiResponse<ProveedorRolRaiz[]>>(config)
+    }),
+  );
+
+  async function _getProveedor(): Promise<void> {
+    await requestProviders(sessionBranchId())
       .then(function (response) {
         _setItemsProveedorList(response.data.data);
       })
@@ -1936,14 +1940,7 @@ export const useAppStore = defineStore("app", () => {
 
   //ZONE ADD DATA
   async function cargarProveedores(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "CargarProveedores?id_branch=" + sessionBranchId(),
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    await axios<ApiResponse<ProveedorRaiz[]>>(config)
+    await requestProviders(sessionBranchId())
       .then(function (response) {
         _setProveedores(response.data.data);
       })

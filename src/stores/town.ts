@@ -7,6 +7,7 @@ import type { Distrito, FiltroDistrito } from "@/types/catalogos";
 import { filledParams } from "@/utils/queryParams";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { request } from "@/utils/request";
+import { shareWhilePending } from "@/utils/sharedRequest";
 
 type DistritoRow = Distrito & { editableflag?: boolean };
 
@@ -52,15 +53,18 @@ export const useTownStore = defineStore("town", () => {
     else showRejectedResponse(response);
   }
 
-  async function cargarTownParaPricing(params: { id_pais: number | string }): Promise<void> {
-    const config = {
+  const requestTownsForPricing = shareWhilePending((params: { id_pais: number | string }) =>
+    axios<ApiResponse<Distrito[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `cargar_town_pricing`,
       params: params,
       headers: { "Content-Type": "application/json" },
-    };
+    }),
+  );
+
+  async function cargarTownParaPricing(params: { id_pais: number | string }): Promise<void> {
     try {
-      await axios<ApiResponse<Distrito[]>>(config)
+      await requestTownsForPricing(params)
         .then(function (response) {
           const data = response.data;
           if (data.estadoflag == true) {
