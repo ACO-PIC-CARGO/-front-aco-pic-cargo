@@ -117,7 +117,7 @@ export const KNOWN_CONSOLE_NOISE = [
   {
     pattern: /^\[Vue warn\]: Property "showNombreFiscal" was accessed during render but is not defined on instance\./,
     reason: "same pre-existing issue as the nuevoClientes 'showNombreFiscal' entry, Vue 3 wording: seccionCliente renders v-if=\"showNombreFiscal\" without defining it",
-    routes: ["nuevoClientes", "verCliente", "editarCliente"],
+    routes: ["nuevoClientes", "verCliente", "editarCliente", "newQuote"],
   },
   {
     pattern: /^\[Vue warn\]: Invalid prop: type check failed for prop "newId"\. Expected (?:Number with value 0|Number \| Null), got String with value ""\./,
