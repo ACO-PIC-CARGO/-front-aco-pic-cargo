@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useBalancesStore } from "@/stores/balances";
@@ -14,6 +14,8 @@ import type {
 
 const appStore = useAppStore();
 const balancesStore = useBalancesStore();
+const mesFlujo = computed(() => balancesStore.lstFlujoOperacionesMes[0]);
+const cantidadSemanas = computed(() => mesFlujo.value?.cantidad_semanas ?? 0);
 
 const cantidadmes = ref(0);
 const items = ref<TipoFlujoMes[]>([]);
@@ -28,8 +30,8 @@ const filtro = ref<FiltroFlujoMes>({
 //
 
 function formatearData() {
-  flujo.value = balancesStore.lstFlujoOperacionesMes[0]!.flujo as RegistroFlujoMes[];
-  fechas.value = balancesStore.lstFlujoOperacionesMes[0]!.fechahasta as string[];
+  flujo.value = (mesFlujo.value?.flujo ?? []) as RegistroFlujoMes[];
+  fechas.value = (mesFlujo.value?.fechahasta ?? []) as string[];
 
   let tipos = flujo.value.map((element) => {
     return element.tipo;
@@ -346,6 +348,9 @@ onMounted(async () => {
             label="Nro. Expediente"
             id="id"
             v-model="filtro.nro_expediente"
+            type="number"
+            min="1"
+            hint="Solo el número, por ejemplo 1483"
             clearable
           />
         </v-card-text>
@@ -372,14 +377,14 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
-    <v-row>
+    <v-row v-if="mesFlujo">
       <v-col cols="1">
         <b>Desde:</b>
       </v-col>
       <v-col cols="1">
         {{
           getFechaNombreMes({
-            fecha: balancesStore.lstFlujoOperacionesMes[0]!.fecha_inicio,
+            fecha: mesFlujo.fecha_inicio,
           })
         }}
       </v-col>
@@ -389,7 +394,7 @@ onMounted(async () => {
       <v-col cols="1">
         {{
           getFechaNombreMes({
-            fecha: balancesStore.lstFlujoOperacionesMes[0]!.fecha_fin,
+            fecha: mesFlujo.fecha_fin,
           })
         }}
       </v-col>
@@ -481,8 +486,7 @@ onMounted(async () => {
                   {{ item.tipo }}
                 </td>
                 <td
-                  v-for="i in balancesStore.lstFlujoOperacionesMes[0]!
-                    .cantidad_semanas"
+                  v-for="i in cantidadSemanas"
                   :key="i"
                 >
                   <center>
@@ -539,8 +543,7 @@ onMounted(async () => {
                     </v-tooltip>
                   </td>
                   <td
-                    v-for="i in balancesStore.lstFlujoOperacionesMes[0]!
-                      .cantidad_semanas"
+                    v-for="i in cantidadSemanas"
                     :key="i"
                   >
                     <center>
@@ -586,8 +589,7 @@ onMounted(async () => {
                     </td>
                     <td />
                     <td
-                      v-for="i in balancesStore
-                        .lstFlujoOperacionesMes[0]!.cantidad_semanas"
+                      v-for="i in cantidadSemanas"
                       :key="i"
                     >
                       <center>
@@ -621,8 +623,7 @@ onMounted(async () => {
                       <td>{{ cost.persona }}</td>
                       <td />
                       <td
-                        v-for="i in balancesStore
-                          .lstFlujoOperacionesMes[0]!.cantidad_semanas"
+                        v-for="i in cantidadSemanas"
                         :key="i"
                       >
                         <center>
@@ -636,13 +637,17 @@ onMounted(async () => {
                 </template>
               </template>
             </template>
+            <tr v-if="items.length === 0">
+              <td :colspan="cantidadSemanas + 7">
+                No hay cobros ni pagos proyectados para este mes. Cambia de mes o limpia los filtros.
+              </td>
+            </tr>
             <tr class="totales">
               <td colspan="5">
                 SALDOS
               </td>
               <td
-                v-for="i in balancesStore.lstFlujoOperacionesMes[0]!
-                  .cantidad_semanas"
+                v-for="i in cantidadSemanas"
                 :key="i"
               >
                 <center>{{ calcularTotales({ semana: i }) }}</center>

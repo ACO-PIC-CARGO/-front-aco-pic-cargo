@@ -3884,12 +3884,14 @@ onMounted(async () => {
                           :items="itemsGanancia"
                           width="100%"
                           sticky-header
+                          no-data-text="No hay ingresos en el periodo elegido. Cambia el año o los meses y vuelve a consultar."
                         />
 
                         <v-data-table
                           :headers="headersDetailsGastos"
                           :items="itemsGastos"
                           width="100%"
+                          no-data-text="No hay gastos en el periodo elegido. Cambia el año o los meses y vuelve a consultar."
                         />
                       </v-expansion-panel-text>
                     </v-expansion-panel>
@@ -3919,6 +3921,7 @@ onMounted(async () => {
                   :items="itemsGananciaFiltro"
                   width="100%"
                   sticky-header
+                  no-data-text="Ningún ingreso coincide con el filtro. Cambia los criterios y vuelve a filtrar."
                 >
                   <template #[`item.editar`]="{ item }">
                     <v-icon
@@ -3948,6 +3951,7 @@ onMounted(async () => {
                   :headers="headersDetailsGastosFiltro"
                   :items="itemsGastosFiltro"
                   width="100%"
+                  no-data-text="Ningún gasto coincide con el filtro. Cambia los criterios y vuelve a filtrar."
                 >
                   <template #[`item.editar`]="{ item }">
                     <v-icon
