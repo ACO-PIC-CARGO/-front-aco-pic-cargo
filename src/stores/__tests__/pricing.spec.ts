@@ -545,7 +545,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 125,
                   },
                   {
                     "code_cost": 2,
@@ -561,7 +561,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "GASTOS EN ORIGEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 120.5,
                   },
                   {
                     "code_cost": 3,
@@ -578,7 +578,7 @@ describe("pricing store", () => {
                     "minimo": 100,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "cif": 0.35,
@@ -596,7 +596,7 @@ describe("pricing store", () => {
                     "nameservice": "COMISION AGENCIA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 118,
                   },
                   {
                     "code_cost": 4,
@@ -612,7 +612,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "ALMACEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 96,
                   },
                   {
                     "cif": 0.35,
@@ -630,7 +630,7 @@ describe("pricing store", () => {
                     "nameservice": "SEGURO DE CARGA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 60,
                   },
                   {
                     "code_cost": 1,
@@ -647,7 +647,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "code_cost": 3,
@@ -664,7 +664,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 30,
                   },
                   {
                     "code_cost": 6,
@@ -829,19 +829,6 @@ describe("pricing store", () => {
       expect(data.contenedores).toEqual([{ id: 7, id_contenedor: 5, cantidad: 2, status: true }]);
     });
 
-    test("registrarQuote computes the cost subtotals only for multiplier rows that carry a length", async () => {
-      httpMock.mockResolvedValue({ data: { insertId: 503, nro_quote: "15002-P", msg: "ok" } });
-      const pricing = cotizacion();
-      pricing.listMultiplicador = MULTIPLICADORES.map((m) => ({ ...m, length: 1 }));
-      pricing.datosPrincipales = { ...clone(DATOS), metroscc: 2.5, kg: 1200 };
-      pricing.totalFlete = 125;
-
-      await pricing.registrarQuote({ fullflag: false });
-
-      const [option] = (sentConfig("setQuote")!.data as { opcionCostos: { listCostos: Costo[] }[] }).opcionCostos;
-      expect(option!.listCostos.map((c) => [c.concepto, c.id_multiplicador, c.subtotal])).toMatchSnapshot();
-    });
-
     test("registrarQuotePorCambioIncoterms posts the services and options it receives with the quote header", async () => {
       httpMock.mockResolvedValue({ data: { insertId: 503, nro_quote: "15002-P", msg: "ok" } });
       const pricing = cotizacion();
@@ -893,7 +880,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 125,
                   },
                   {
                     "code_cost": 2,
@@ -909,7 +896,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "GASTOS EN ORIGEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 120.5,
                   },
                   {
                     "code_cost": 3,
@@ -926,7 +913,7 @@ describe("pricing store", () => {
                     "minimo": 100,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "cif": 0.35,
@@ -944,7 +931,7 @@ describe("pricing store", () => {
                     "nameservice": "COMISION AGENCIA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 118,
                   },
                   {
                     "code_cost": 4,
@@ -960,7 +947,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "ALMACEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 96,
                   },
                   {
                     "cif": 0.35,
@@ -978,7 +965,7 @@ describe("pricing store", () => {
                     "nameservice": "SEGURO DE CARGA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 60,
                   },
                   {
                     "code_cost": 1,
@@ -995,7 +982,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "code_cost": 3,
@@ -1012,7 +999,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 30,
                   },
                   {
                     "code_cost": 6,
@@ -1141,7 +1128,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 125,
                   },
                   {
                     "code_cost": 2,
@@ -1156,7 +1143,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "GASTOS EN ORIGEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 120.5,
                   },
                   {
                     "code_cost": 3,
@@ -1172,7 +1159,7 @@ describe("pricing store", () => {
                     "minimo": 100,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "cif": 0.35,
@@ -1189,7 +1176,7 @@ describe("pricing store", () => {
                     "nameservice": "COMISION AGENCIA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 118,
                   },
                   {
                     "code_cost": 4,
@@ -1204,7 +1191,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "ALMACEN",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 96,
                   },
                   {
                     "cif": 0.35,
@@ -1221,7 +1208,7 @@ describe("pricing store", () => {
                     "nameservice": "SEGURO DE CARGA",
                     "seguro": 0.45,
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 60,
                   },
                   {
                     "code_cost": 1,
@@ -1237,7 +1224,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "FLETE INTERNACIONAL",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 100,
                   },
                   {
                     "code_cost": 3,
@@ -1253,7 +1240,7 @@ describe("pricing store", () => {
                     "minimo": 0,
                     "nameservice": "VISTOS BUENOS",
                     "status": 1,
-                    "subtotal": 0,
+                    "subtotal": 30,
                   },
                   {
                     "code_cost": 6,

@@ -288,6 +288,40 @@ describe("formatearCostos", () => {
     expect(costs[0]!.subtotal).toBe(0);
   });
 
+  test("computes each cost's subtotal the way the cost screen shows it", () => {
+    const datosPrincipales = { volumen: 2.5, peso: 1200, amount: 1000, containers: [] };
+    const subtotals = formatearCostos({
+      costos: [
+        baseCost,
+        { ...baseCost, costounitario: 30, considerarvalorminimoflag: true, minimo: 100 },
+        { ...baseCost, code_cost: 4, costounitario: 50, id_multiplicador: 2 },
+        { ...baseCost, id_multiplicador: 3, cif: 0.35, minimo: 0 },
+      ],
+      multiplicadores: [...multiplicadores, { id: 2, code: 4, valor: 1 }, { id: 3, code: 13, valor: 1 }],
+      datosPrincipales,
+      totalDeFlete: 200,
+    }).map((cost) => cost.subtotal);
+
+    expect(subtotals[0]).toBe(75);
+    expect(subtotals[1]).toBe(225);
+    expect(subtotals[2]).toBe(60);
+    expect(subtotals[3]).toBeCloseTo(4.2, 10);
+  });
+
+  test("applies the minimum and the one-unit floor for small freight", () => {
+    const [minimum, freight] = formatearCostos({
+      costos: [
+        { ...baseCost, considerarvalorminimoflag: true, minimo: 100 },
+        { ...baseCost, code_cost: 4, id_multiplicador: 2 },
+      ],
+      multiplicadores: [...multiplicadores, { id: 2, code: 2, valor: 1 }],
+      datosPrincipales: { volumen: 0.5 },
+    });
+
+    expect(minimum!.subtotal).toBe(100);
+    expect(freight!.subtotal).toBe(10);
+  });
+
   test("drops costs whose multiplier is not found", () => {
     expect(
       formatearCostos({
@@ -372,6 +406,15 @@ describe("formatearCostosEditar", () => {
       multiplicadores,
     });
     expect(cost).toMatchObject({ code_cost: 7, id: 3, minimo: 20 });
+  });
+
+  test("computes each cost's subtotal the way the cost screen shows it", () => {
+    const [cost] = formatearCostosEditar({
+      costos: [baseCost],
+      multiplicadores,
+      datosPrincipales: { volumen: 2 },
+    });
+    expect(cost!.subtotal).toBe(60);
   });
 
   test("keeps a cost without a multiplier id and drops an unknown one", () => {

@@ -10,7 +10,6 @@ import type {
 import { calcularValor, numeroSeguro } from "@/utils/cotizacion";
 
 type CodigoMultiplicador = number | string | null | undefined;
-type MultiplicadorBuscado = Multiplicador & { length?: number };
 
 interface OpcionesFormatearCostos {
   costos?: Costo[];
@@ -125,47 +124,47 @@ export function useCotizacionCalculos() {
     }, 0);
   }
 
-  function buscarMultiplicador(
-    costo: Costo,
-    multiplicadores: Multiplicador[],
-  ): MultiplicadorBuscado | undefined {
-    return costo.id_multiplicador
-      ? multiplicadores.filter((v) => v.id == costo.id_multiplicador)[0]
-      : [];
-  }
-
   function calcularSubtotal(
     costo: Costo,
-    codemultiplicador: MultiplicadorBuscado,
+    multiplicador: Multiplicador | undefined,
     datosPrincipales: DatosPrincipales,
     totalDeFlete: Numerico,
   ): number {
-    const code = codemultiplicador.code;
-    const esPorcentaje =
-      code == 5 || code == 13 || code == 14;
-    if (!esPorcentaje) {
-      return (
-        Number(codemultiplicador.valor) *
-        Number(costo.costounitario) *
-        Number(
-          calcularFac(
-            code,
-            datosPrincipales.metroscc,
-            datosPrincipales.kg,
-            datosPrincipales.containers,
-            datosPrincipales.amount,
-          ),
-        )
+    if (!multiplicador) return 0;
+    const code = multiplicador.code;
+    if ([5, 13, 14].includes(Number(code))) {
+      return calcularValor(
+        datosPrincipales.amount,
+        totalDeFlete,
+        code,
+        [5, 13, 14, 15].includes(Number(code)) ? costo.cif : costo.seguro,
+        costo.minimo as number,
       );
     }
-    calcularValor(
-      datosPrincipales.amount,
-      totalDeFlete,
-      code,
-      code == 14 ? costo.cif : costo.seguro,
-      costo.minimo ? Number(costo.minimo) : 118,
+    let factor = numeroSeguro(
+      calcularFac(
+        code,
+        datosPrincipales.volumen,
+        datosPrincipales.peso,
+        datosPrincipales.containers,
+        datosPrincipales.amount,
+      ),
     );
-    return 0;
+    if (costo.code_cost == 4 && numeroSeguro(datosPrincipales.volumen) < 1) {
+      factor = Math.max(factor, 1);
+    }
+    const subtotal =
+      numeroSeguro(multiplicador.valor) * numeroSeguro(costo.costounitario) * factor;
+    return costo.considerarvalorminimoflag && costo.costounitario != 0
+      ? Math.max(numeroSeguro(costo.minimo), subtotal)
+      : subtotal;
+  }
+
+  function costosConMultiplicador(costos: Costo[], multiplicadores: Multiplicador[]) {
+    return costos.flatMap((costo) => {
+      const multiplicador = multiplicadores.find((v) => v.id == costo.id_multiplicador);
+      return costo.id_multiplicador && !multiplicador ? [] : [{ costo, multiplicador }];
+    });
   }
 
   function formatearCostos({
@@ -196,44 +195,25 @@ export function useCotizacionCalculos() {
 
       return tieneFlag && statusOk;
     });
-    const cost: Costo[] = [];
-    costos
-      .filter(
-        (v) =>
-          (v.esorigenflag ||
-            v.esfleteflag ||
-            v.eslocalflag ||
-            v.esaduanaflag ||
-            v.esgastostercerosflag ||
-            v.esalmacenflag) &&
-          v.status == 1,
-      )
-      .forEach((costo) => {
-        const codemultiplicador = buscarMultiplicador(costo, multiplicadores);
-        let subTotal = 0;
-
-        if (codemultiplicador && codemultiplicador.length! > 0) {
-          subTotal = calcularSubtotal(
-            costo,
-            codemultiplicador,
-            datosPrincipales,
-            totalDeFlete,
-          );
-        }
-        if (codemultiplicador) {
-          cost.push({
-            ...costo,
-            code_service: costo.code_service ? costo.code_service : "",
-            code_cost: costo.code_cost ? costo.code_cost : "",
-            id: costo.id ? costo.id : "",
-            concepto: costo.nameservice,
-            minimo: costo.minimo ? costo.minimo : 0,
-            subtotal: subTotal,
-          });
-        }
-      });
-    // console.log("cost", cost);
-    return cost;
+    const activos = costos.filter(
+      (v) =>
+        (v.esorigenflag ||
+          v.esfleteflag ||
+          v.eslocalflag ||
+          v.esaduanaflag ||
+          v.esgastostercerosflag ||
+          v.esalmacenflag) &&
+        v.status == 1,
+    );
+    return costosConMultiplicador(activos, multiplicadores).map(({ costo, multiplicador }) => ({
+      ...costo,
+      code_service: costo.code_service ? costo.code_service : "",
+      code_cost: costo.code_cost ? costo.code_cost : "",
+      id: costo.id ? costo.id : "",
+      concepto: costo.nameservice,
+      minimo: costo.minimo ? costo.minimo : 0,
+      subtotal: calcularSubtotal(costo, multiplicador, datosPrincipales, totalDeFlete),
+    }));
   }
 
   function formatearCostosEditar({
@@ -242,43 +222,24 @@ export function useCotizacionCalculos() {
     datosPrincipales = {},
     totalDeFlete = 0,
   }: OpcionesFormatearCostos) {
-    const cost: Costo[] = [];
-    costos
-      .filter(
-        (v) =>
-          (v.esorigenflag == true ||
-            v.eslocalflag == true ||
-            v.esfleteflag == true ||
-            v.esaduanaflag == true ||
-            v.esgastostercerosflag == true ||
-            v.esalmacenflag == true) &&
-          v.status == 1,
-      )
-      .forEach((costo) => {
-        const codemultiplicador = buscarMultiplicador(costo, multiplicadores);
-        let subTotal = 0;
-
-        if (codemultiplicador && codemultiplicador.length! > 0) {
-          subTotal = calcularSubtotal(
-            costo,
-            codemultiplicador,
-            datosPrincipales,
-            totalDeFlete,
-          );
-        }
-        if (codemultiplicador) {
-          cost.push({
-            ...costo,
-            code_cost: costo.code_cost ? costo.code_cost : null,
-            id: costo.id ? costo.id : null,
-            concepto: costo.nameservice,
-            minimo: costo.minimo ? costo.minimo : 0,
-            subtotal: subTotal,
-          });
-        }
-      });
-
-    return cost;
+    const activos = costos.filter(
+      (v) =>
+        (v.esorigenflag == true ||
+          v.eslocalflag == true ||
+          v.esfleteflag == true ||
+          v.esaduanaflag == true ||
+          v.esgastostercerosflag == true ||
+          v.esalmacenflag == true) &&
+        v.status == 1,
+    );
+    return costosConMultiplicador(activos, multiplicadores).map(({ costo, multiplicador }) => ({
+      ...costo,
+      code_cost: costo.code_cost ? costo.code_cost : null,
+      id: costo.id ? costo.id : null,
+      concepto: costo.nameservice,
+      minimo: costo.minimo ? costo.minimo : 0,
+      subtotal: calcularSubtotal(costo, multiplicador, datosPrincipales, totalDeFlete),
+    }));
   }
 
   return {
