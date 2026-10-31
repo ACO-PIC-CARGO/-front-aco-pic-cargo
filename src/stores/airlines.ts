@@ -5,6 +5,7 @@ import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { Aerolinea, FiltroAerolinea } from "@/types/catalogos";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId, sessionBranchIdOrEmpty } from "@/utils/sesion";
 
 export const useAirlinesStore = defineStore("airlines", () => {
@@ -101,27 +102,19 @@ export const useAirlinesStore = defineStore("airlines", () => {
     }
   }
 
-  async function setAirline(): Promise<void> {
+  async function saveAirline(method: "post" | "put", path: string): Promise<boolean> {
     AirlineModel.value.id_branch = sessionBranchId();
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insert_airlines`,
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       data: AirlineModel.value,
       headers: { "Content-Type": "application/json" },
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
+
+  const setAirline = () => saveAirline("post", "insert_airlines");
 
   async function ValidateCodigoIATAEditar(): Promise<ApiResponse> {
     const config = {
@@ -158,27 +151,7 @@ export const useAirlinesStore = defineStore("airlines", () => {
     }
   }
 
-  async function actualizarAirline(): Promise<void> {
-    AirlineModel.value.id_branch = sessionBranchId();
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_airlines`,
-      data: AirlineModel.value,
-      headers: { "Content-Type": "application/json" },
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
+  const actualizarAirline = () => saveAirline("put", "actualizar_airlines");
 
   return {
     tipo,

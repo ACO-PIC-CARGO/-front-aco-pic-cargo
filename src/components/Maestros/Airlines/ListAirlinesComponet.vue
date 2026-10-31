@@ -124,13 +124,6 @@ async function eliminar(item: Aerolinea) {
         >
           FILTRAR
         </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#004D40"
-        >
-          EXPORTAR
-        </v-btn>
       </v-col>
       <v-col cols="12">
         <v-data-table

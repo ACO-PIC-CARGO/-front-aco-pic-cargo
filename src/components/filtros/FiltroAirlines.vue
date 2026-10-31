@@ -10,6 +10,7 @@ const appStore = useAppStore();
 const errIATA = ref("");
 const errICAO = ref("");
 const loading = ref(false);
+const saving = ref(false);
 const airline = ref<Partial<Aerolinea>>({});
 const frmDML = useTemplateRef("frmDML");
 
@@ -19,7 +20,7 @@ watch(drawer, () => {
   airline.value = { ...airlinesStore.AirlineModel };
   errIATA.value = "";
   errICAO.value = "";
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
 });
 
 function getName() {
@@ -30,7 +31,7 @@ function getName() {
     return "Nueva Aerolínea";
   }
   if (airlinesStore.tipo == "editar") {
-    return `Modificar Areolínea: ${airline.value.name}`;
+    return `Modificar Aerolínea: ${airline.value.name}`;
   }
   if (airlinesStore.tipo == "filter") {
     return "Filtrar Registros";
@@ -76,29 +77,16 @@ async function ValitateICAO() {
 }
 
 async function Aceptar() {
-  loading.value = true;
-  if (airlinesStore.tipo == "nuevo") {
-    setTimeout(async () => {
-      if ((await frmDML.value!.validate()).valid && !errIATA.value && !errICAO.value) {
-        loading.value = true;
-        await airlinesStore.setAirline();
-        await airlinesStore.GetListAirline();
-        loading.value = false;
-      } else {
-        loading.value = false;
-      }
-    }, 1000);
-  }
-  if (airlinesStore.tipo == "editar") {
-    setTimeout(async () => {
-      if ((await frmDML.value!.validate()).valid && !errIATA.value && !errICAO.value) {
-        await airlinesStore.actualizarAirline();
-        await airlinesStore.GetListAirline();
-        loading.value = false;
-      } else {
-        loading.value = false;
-      }
-    }, 1000);
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if (!(await frmDML.value!.validate()).valid || errIATA.value || errICAO.value) return;
+    const saved = airlinesStore.tipo == "nuevo" ? await airlinesStore.setAirline() : await airlinesStore.actualizarAirline();
+    if (!saved) return;
+    await airlinesStore.GetListAirline();
+    airlinesStore.drawer = false;
+  } finally {
+    saving.value = false;
   }
 }
 async function Filtrar() {
@@ -301,7 +289,10 @@ async function Limpiar() {
             v-model="airlinesStore.AirlineModel.name"
             label="Nombre"
             :readonly="airlinesStore.tipo == 'ver'"
-            :rules="[(v) => !!v || 'Dato Requerido']"
+            :rules="[
+              (v) => !!v || 'Dato Requerido',
+              (v) => !v || v.length <= 255 || 'El nombre puede tener hasta 255 caracteres.',
+            ]"
           />
         </v-col>
         <v-col
@@ -350,7 +341,7 @@ async function Limpiar() {
             airlinesStore.tipo != 'ver'
         "
         @click="Aceptar()"
-        :loading="loading"
+        :loading="saving"
       >
         Aceptar
       </v-btn>
