@@ -8,8 +8,7 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import ListaTiposTelefonoComponent from "@/components/FolderTypePhone/ListaTiposTelefonoComponent.vue";
-import { useTypePhoneStore } from "@/stores/type_phone";
-import { accepted, httpMock, respond, URL_MAIN } from "@/stores/__tests__/catalogHttp";
+import { accepted, httpMock, rejected, respond, URL_MAIN } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -46,15 +45,40 @@ const fieldIn = (drawer: Element, label: string) =>
     .find((field) => field.querySelector("label")?.textContent?.trim() === label)!
     .querySelector("input")!;
 
-test("a saved phone type closes the panel, empties the form and reloads only the list", { timeout: 15_000 }, async () => {
+const mountList = async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
-  useTypePhoneStore().list = [{ id: 3, code: "MOV", name: "Móvil", status: 1 }];
   wrapper = mount(
     defineComponent({ components: { ListaTiposTelefonoComponent }, template: "<v-app><ListaTiposTelefonoComponent /></v-app>" }),
-    { global: { plugins: [createVuetify({ components, directives }), pinia], stubs: { VDataTable: true } }, attachTo: document.body },
+    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
   );
   await flushPromises();
+};
+const stillLoading = () =>
+  [...document.body.querySelectorAll(".v-col")].some(
+    (column) => column.textContent!.includes("Cargando información") && !column.closest(".v-navigation-drawer"),
+  );
+
+test("the list shows the phone types it loads", { timeout: 15_000 }, async () => {
+  await mountList();
+
+  expect(stillLoading()).toBe(false);
+  expect([...document.body.querySelectorAll("tbody tr")].map((row) => row.textContent)).toEqual([
+    expect.stringContaining("Móvil"),
+  ]);
+});
+
+test("a rejected list shows its message and stops loading", { timeout: 15_000 }, async () => {
+  respond({ getListTypePhone: rejected("No se encontraron registros") });
+
+  await mountList();
+
+  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "No se encontraron registros" });
+  expect(stillLoading()).toBe(false);
+});
+
+test("a saved phone type closes the panel, empties the form and reloads only the list", { timeout: 15_000 }, async () => {
+  await mountList();
   buttonNamed("Nuevo").click();
   await flushPromises();
   const code = fieldIn(activeDrawers()[0]!, "Código (*)");

@@ -70,6 +70,7 @@ const originalType = ref<FormTipoTelefono>({ ...type.value });
 
 onMounted(async () => {
   await typePhoneStore.fetchDataTypePhone(types.value);
+  loading.value = false;
   appStore.mainTitle = `Tipo de Teléfono`;
 });
 

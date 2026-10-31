@@ -27,9 +27,8 @@ describe("type_phone store", () => {
     vi.restoreAllMocks();
   });
 
-  test("fetchDataTypePhone lists with the encoded filters and keeps the whole response body as the list", async () => {
-    const body = accepted([mobile]);
-    respond({ getListTypePhone: body });
+  test("fetchDataTypePhone lists with the encoded filters and keeps the answer's rows as the list", async () => {
+    respond({ getListTypePhone: accepted([mobile]) });
     const typePhone = useTypePhoneStore();
 
     await typePhone.fetchDataTypePhone({ code: "M V", name: "Mó & vil", status: 1 });
@@ -39,7 +38,7 @@ describe("type_phone store", () => {
       url: URL_MAIN + "getListTypePhone?id_branch=7&code=M%20V&name=M%C3%B3%20%26%20vil&status=1",
       headers: JSON_HEADERS,
     });
-    expect(typePhone.list).toEqual(body);
+    expect(typePhone.list).toEqual([mobile]);
     expect(sessionStorage.getItem("auth-token")).toBe("tok");
     expect(Swal.fire).not.toHaveBeenCalled();
   });
@@ -157,19 +156,18 @@ describe("type_phone store", () => {
     expect(reload).not.toHaveBeenCalled();
   });
 
-  test("readTypePhone keeps the whole response body as the record, or shows the backend message", async () => {
-    const body = accepted([mobile]);
-    respond({ readTypePhone: body });
+  test("readTypePhone keeps the answer's row as the record, or shows the backend message", async () => {
+    respond({ readTypePhone: accepted([mobile]) });
     const typePhone = useTypePhoneStore();
 
     await typePhone.readTypePhone(3);
 
     expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "readTypePhone?id=3", headers: JSON_HEADERS });
-    expect(typePhone.record).toEqual(body);
+    expect(typePhone.record).toEqual(mobile);
 
     respond({ readTypePhone: rejected("No existe") });
     await typePhone.readTypePhone(9);
-    expect(typePhone.record).toEqual(body);
+    expect(typePhone.record).toEqual(mobile);
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "No existe" });
   });
 });

@@ -28,8 +28,7 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          // Stores the whole response body, not its rows.
-          list.value = response.data as unknown as TipoTelefono[];
+          list.value = data.data;
         } else {
           list.value = [];
           Swal.fire({
@@ -83,7 +82,7 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
   }
 
   async function readTypePhone(id: TipoTelefono["id"]): Promise<void> {
-    await axios<ApiResponse>({
+    await axios<ApiResponse<TipoTelefono[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `readTypePhone?id=${id}`,
       headers: { "Content-Type": "application/json" },
@@ -92,7 +91,7 @@ export const useTypePhoneStore = defineStore("type_phone", () => {
         const data = response.data;
         sessionStorage.setItem("auth-token", data.token!);
         if (data.estadoflag) {
-          record.value = data as Partial<TipoTelefono>;
+          record.value = data.data[0]!;
         } else {
           Swal.fire({
             icon: data.estadoflag ? "success" : "error",
