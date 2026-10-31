@@ -12,6 +12,7 @@ const errPositionSelect = ref("");
 const errPositionReport = ref("");
 const errPositionCalls = ref("");
 const loading = ref(false);
+const saving = ref(false);
 const StatusQuote = ref<EstadoCotizacion>({});
 const frmFilter = useTemplateRef("frmFilter");
 const frmDML = useTemplateRef("frmDML");
@@ -20,7 +21,7 @@ const drawer = computed(() => QuoteStatusStore.drawer);
 
 watch(drawer, () => {
   StatusQuote.value = { ...QuoteStatusStore.StatusModel };
-  frmDML.value!.resetValidation();
+  frmDML.value?.resetValidation();
   errPosition.value = "";
   errPositionSelect.value = "";
   errPositionReport.value = "";
@@ -32,7 +33,7 @@ function getName() {
     return `Estado : ${StatusQuote.value.name} – Modo Vista`;
   }
   if (QuoteStatusStore.tipo == "nuevo") {
-    return "Nueva Estado";
+    return "Nuevo estado";
   }
   if (QuoteStatusStore.tipo == "editar") {
     return `Modificar Estado: ${StatusQuote.value.name}`;
@@ -131,30 +132,21 @@ async function validatePositionCalls() {
   }
 }
 async function Aceptar() {
-  if (QuoteStatusStore.tipo == "nuevo") {
-    loading.value = true;
-    setTimeout(async () => {
-      if ((await frmDML.value!.validate()).valid) {
-        loading.value = true;
-        await QuoteStatusStore.setQuoteStatus();
-        await QuoteStatusStore.GetListQuoteStatus();
-        loading.value = false;
-      }
-    }, 500);
-    loading.value = false;
-  }
-  if (QuoteStatusStore.tipo == "editar") {
-    loading.value = true;
-    setTimeout(async () => {
-      if ((await frmDML.value!.validate()).valid) {
-        await QuoteStatusStore.actualizarQuoteStatus();
-        await QuoteStatusStore.GetListQuoteStatus();
-      }
-    }, 500);
-    loading.value = false;
-  }
   if (QuoteStatusStore.tipo == "ver") {
-    QuoteStatusStore.drawer = !QuoteStatusStore.drawer;
+    QuoteStatusStore.drawer = false;
+    return;
+  }
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if (!(await frmDML.value!.validate()).valid) return;
+    const saved =
+      QuoteStatusStore.tipo == "nuevo" ? await QuoteStatusStore.setQuoteStatus() : await QuoteStatusStore.actualizarQuoteStatus();
+    if (!saved) return;
+    await QuoteStatusStore.GetListQuoteStatus();
+    QuoteStatusStore.drawer = false;
+  } finally {
+    saving.value = false;
   }
 }
 </script>
@@ -357,7 +349,7 @@ async function Aceptar() {
             >
               <v-text-field
                 v-if="QuoteStatusStore.tipo != 'nuevo'"
-                :readonly="QuoteStatusStore.tipo == 'ver'"
+                readonly
                 v-model="QuoteStatusStore.StatusModel.code"
                 density="compact"
                 label="Código"
@@ -550,7 +542,7 @@ async function Aceptar() {
         class="mx-1"
         color="success"
         v-if="QuoteStatusStore.tipo != 'filter'"
-        :loading="loading"
+        :loading="saving"
         @click="Aceptar()"
       >
         Aceptar

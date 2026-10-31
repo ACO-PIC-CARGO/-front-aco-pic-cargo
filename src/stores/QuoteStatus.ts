@@ -6,6 +6,7 @@ import type { ApiResponse } from "@/types/api";
 import type { FiltroEstadoCotizacion, PosicionMaximaEstado } from "@/types/catalogos";
 import type { EstadoCotizacion } from "@/types/cotizacion";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { request } from "@/utils/request";
 import { sessionBranchId, sessionBranchIdOrEmpty } from "@/utils/sesion";
 
 export const useQuoteStatusStore = defineStore("QuoteStatus", () => {
@@ -175,30 +176,18 @@ export const useQuoteStatusStore = defineStore("QuoteStatus", () => {
     }
   }
 
-  async function setQuoteStatus(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_position_calls`,
+  async function saveQuoteStatus(method: "post" | "put", path: string): Promise<boolean> {
+    const response = await request({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
       data: StatusModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
+
+  const setQuoteStatus = () => saveQuoteStatus("post", "insertar_position_calls");
 
   async function getValidatePositionActualizarQuoteStatus(): Promise<ApiResponse | undefined> {
     const config = {
@@ -270,30 +259,7 @@ export const useQuoteStatusStore = defineStore("QuoteStatus", () => {
     }
   }
 
-  async function actualizarQuoteStatus(): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `actualizar_position_calls`,
-      headers: { "Content-Type": "application/json" },
-      data: StatusModel.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  const actualizarQuoteStatus = () => saveQuoteStatus("put", "actualizar_position_calls");
 
   return {
     tipo,
