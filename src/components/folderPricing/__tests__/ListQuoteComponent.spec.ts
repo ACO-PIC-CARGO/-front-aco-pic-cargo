@@ -8,7 +8,6 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import ListQuoteComponent from "@/components/folderPricing/ListQuoteComponent.vue";
-import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 const push = vi.hoisted(() => vi.fn());
@@ -29,12 +28,14 @@ Object.defineProperty(window, "visualViewport", {
 
 const APPROVED = { id: 5, codigo: "Q-5", nombres: "APROBADA SAC", statusmain: 1, statusquote: 7, aprobadoflag: true };
 const DRAFT = { id: 6, codigo: "Q-6", nombres: "BORRADOR SAC", statusmain: 1, statusquote: 3, aprobadoflag: false };
+const DELETED = { id: 7, codigo: "Q-7", nombres: "ELIMINADA SAC", statusmain: 0, statusquote: 3, aprobadoflag: false, status: "ELIMINADO" };
 let wrapper: VueWrapper | undefined;
 
+const listAnswer = (total: number) => accepted([APPROVED, DRAFT, DELETED].map((row) => ({ ...row, totalregistro: String(total) })));
 const answerWith = (answers: Record<string, unknown>) =>
   httpMock.mockImplementation(async (config) => {
     const path = config.url.slice(URL_MAIN.length).split("?")[0]!;
-    return { data: answers[path] ?? accepted([]) };
+    return { data: answers[path] ?? (path === "getQuoteList" ? listAnswer(3) : accepted([])) };
   });
 const requestsTo = (path: string) => httpMock.mock.calls.filter(([config]) => config.url === URL_MAIN + path);
 
@@ -49,12 +50,12 @@ afterEach(() => wrapper?.unmount());
 const mountList = async () => {
   const pinia = createPinia();
   setActivePinia(pinia);
-  usePricingStore().listQuotes = [{ ...APPROVED, rowId: "5_0" }, { ...DRAFT, rowId: "6_1" }];
   wrapper = mount(defineComponent({ components: { ListQuoteComponent }, template: "<v-app><ListQuoteComponent /></v-app>" }), {
     global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
   await flushPromises();
+  httpMock.mockClear();
 };
 const rowOf = (client: string) => [...document.body.querySelectorAll("tr")].find((row) => row.textContent?.includes(client))!;
 const actionIn = (row: HTMLElement, label: string) => row.querySelector<HTMLElement>(`button[aria-label="${label}"]`);
@@ -63,6 +64,47 @@ const click = async (element: HTMLElement) => {
   await flushPromises();
 };
 const callDialog = () => document.body.querySelector<HTMLElement>(".v-overlay--active .v-card");
+const searchField = () =>
+  [...document.body.querySelectorAll(".v-text-field")].find((field) => field.querySelector("label")?.textContent === "Buscar")!
+    .querySelector("input")!;
+const lastListParams = () => {
+  const requests = requestsTo("getQuoteList");
+  return requests[requests.length - 1]![0].params;
+};
+
+test("the table counts every quote the server found and asks the server for the page the user moves to", async () => {
+  answerWith({ getQuoteList: listAnswer(30) });
+  await mountList();
+
+  expect(document.body.querySelector(".v-data-table-footer")!.textContent).toContain("1-10 of 30");
+
+  await click(document.body.querySelector<HTMLElement>('button[aria-label="Next page"]')!);
+
+  expect(lastListParams()).toMatchObject({ pagina: 2, limit: 10 });
+  expect(requestsTo("resumen_por_estado")).toHaveLength(0);
+});
+
+test("a search goes to the server once the user stops typing, from the first page, without recounting the totals", async () => {
+  answerWith({ getQuoteList: listAnswer(30) });
+  await mountList();
+  await click(document.body.querySelector<HTMLElement>('button[aria-label="Next page"]')!);
+  httpMock.mockClear();
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  const field = searchField();
+
+  field.value = "ACME";
+  field.dispatchEvent(new Event("input"));
+  vi.advanceTimersByTime(400);
+  expect(requestsTo("getQuoteList")).toHaveLength(0);
+
+  vi.advanceTimersByTime(100);
+  await flushPromises();
+
+  expect(requestsTo("getQuoteList")).toHaveLength(1);
+  expect(lastListParams()).toMatchObject({ search: "ACME", pagina: 1 });
+  expect(requestsTo("resumen_por_estado")).toHaveLength(0);
+  vi.useRealTimers();
+});
 
 test("editing an approved quote explains it must be copied instead of opening the editor", async () => {
   await mountList();

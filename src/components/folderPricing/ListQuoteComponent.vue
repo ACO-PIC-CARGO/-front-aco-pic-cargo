@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef, watch } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -27,7 +28,6 @@ const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 
-const typingTimer = ref<ReturnType<typeof setTimeout> | null>(null);
 const dialogUrl = ref(false);
 const search = ref("");
 const masterEditar = ref<RegistroConUrlCarpeta>({});
@@ -211,7 +211,12 @@ function formatearFecha(fecha: string | null | undefined) {
 
   return moment(fecha).format("YYYY-MMM-DD").toUpperCase();
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+pricingStore.search = "";
+pricingStore.pagina = 1;
+const buscar = useDebouncedSearch((texto: string) => {
+  pricingStore.search = texto;
+}, 500);
+
 async function cambiarPagina() {
   appStore.spiner = true;
   await pricingStore.getListQuote();
@@ -573,20 +578,6 @@ async function enlazarHouse(house: HouseDisponible) {
   }
 }
 
-watch(
-  () => pricingStore.search,
-  async () => {
-    if (typingTimer.value) {
-      clearTimeout(typingTimer.value);
-    }
-    typingTimer.value = setTimeout(async () => {
-      appStore.spiner = true;
-      await pricingStore.getListQuote();
-      appStore.spiner = false;
-    }, 500);
-  },
-);
-
 onMounted(async () => {
   appStore.mainTitle = "LISTADO DE COTIZACIONES";
   // await this.getListQuote();
@@ -857,6 +848,7 @@ onMounted(async () => {
           density="compact"
           variant="outlined"
           messages=" "
+          @update:model-value="buscar"
         >
           <template #message>
             <span v-if="search">
@@ -922,10 +914,13 @@ onMounted(async () => {
       </v-col>
     </v-row>
     <!-- @vue-expect-error return-object makes the expanded model hold rows, the typing says string ids -->
-    <v-data-table
-      :search="search"
+    <v-data-table-server
+      :search="pricingStore.search"
       :headers="cabCotizaciones"
       :items="pricingStore.listQuotes"
+      :items-length="pricingStore.totalregistro"
+      v-model:page="pricingStore.pagina"
+      v-model:items-per-page="pricingStore.limit"
       :expand-strategy="singleExpand ? 'single' : 'multiple'"
       v-model:expanded="expanded"
       item-value="rowId"
@@ -934,6 +929,7 @@ onMounted(async () => {
       class="elevation-1"
       disable-sort
       no-data-text="No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros."
+      @update:options="cambiarPagina"
     >
       <template #item="{ item, internalItem, isExpanded, toggleExpand }">
         <tr
@@ -1214,18 +1210,7 @@ onMounted(async () => {
           </td>
         </tr>
       </template>
-    </v-data-table>
-    <!-- <template>
-      <div class="text-center">
-        <v-pagination
-          v-model="$store.state.pricing.pagina"
-          :total-visible="7"
-          :length="$store.state.pricing.totalregistro"
-          circle
-          @input="cambiarPagina()"
-        ></v-pagination>
-      </div>
-    </template> -->
+    </v-data-table-server>
     <v-dialog
       v-model="dialog"
       scrollable

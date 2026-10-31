@@ -53,7 +53,7 @@ onMounted(async () => {
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
   dialog.value = !val.existecot;
   appStore.spiner = true;
-  await Promise.all([pricingStore.reloadQuoteList(), pricingStore.getQuoteCall()]);
+  await Promise.all([pricingStore.getResumenPorEstado(), pricingStore.getQuoteCall()]);
   appStore.spiner = false;
   await Promise.all([
     pricingStore.cargarTrabajadores(),
