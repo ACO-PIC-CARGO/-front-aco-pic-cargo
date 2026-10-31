@@ -185,13 +185,29 @@ describe("Listado de aduanas", () => {
     expect(requestsTo("resumen_por_estado")).toHaveLength(0);
   });
 
-  test("deleting is not offered as a Pricing delete and explains why", async () => {
+  test("deleting asks first, then deletes the aduana itself, never a Pricing quote, and reloads the aduana list", async () => {
     const { vm } = await openScreen(ListAduanaComponent);
+    answerWith({ delete_aduana: { estadoflag: true, mensaje: "Cotización eliminada.", tipomensaje: "TMSGINF", data: [] } });
+    httpMock.mockClear();
 
     await vm.eliminar!(14, "00000014");
+    await flushPromises();
 
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "warning", showCancelButton: true }));
+    expect(requestsTo("delete_aduana").map(([config]) => config.data)).toEqual([{ id: 14 }]);
     expect(requestsTo("delQuote")).toHaveLength(0);
-    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "info", text: expect.stringContaining("no se pueden eliminar") }));
+    expect(requestsTo("listar_aduana")).toHaveLength(1);
+  });
+
+  test("cancelling the delete leaves the aduana alone", async () => {
+    const { vm } = await openScreen(ListAduanaComponent);
+    vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+    httpMock.mockClear();
+
+    await vm.eliminar!(14, "00000014");
+    await flushPromises();
+
+    expect(requestsTo("delete_aduana")).toHaveLength(0);
   });
 
   test("a call registered from the list is saved on the aduana", async () => {

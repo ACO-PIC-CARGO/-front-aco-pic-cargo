@@ -230,11 +230,21 @@ function ira(ruta: string, id: number | undefined) {
   // }, 100);
 }
 
-async function eliminar() {
-  await Swal.fire({
-    icon: "info",
-    text: "Por ahora las cotizaciones de aduana no se pueden eliminar desde aquí. Si ya no la necesitas, cambia su estado o pide ayuda a tu administrador.",
+async function eliminar(id: number | undefined, codigo: string | undefined) {
+  const result = await Swal.fire({
+    title: "ADVERTENCIA",
+    text: "DESEA ELIMINAR LA COTIZACIÓN CON CÓDIGO: " + codigo,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "ACEPTAR",
+    cancelButtonText: "CANCELAR",
+    reverseButtons: false,
   });
+  if (!result.isConfirmed) return;
+  await aduanaStore.deleteAduana(id!);
+  appStore.spiner = true;
+  await aduanaStore.getListQuoteAduana();
+  appStore.spiner = false;
 }
 
 onMounted(async () => {
@@ -420,7 +430,7 @@ onMounted(async () => {
                     size="x-small"
                    
                     v-bind="props"
-                    @click="eliminar()"
+                    @click="eliminar(item.id, item.codigo)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
                     <v-icon

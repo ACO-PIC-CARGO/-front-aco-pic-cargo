@@ -758,6 +758,23 @@ describe("aduana store", () => {
       expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text: CONNECTION_ERROR_MESSAGE }));
     });
 
+    test.each([
+      [{ estadoflag: true, mensaje: "Cotización eliminada.", tipomensaje: "TMSGINF" }, true],
+      [{ estadoflag: false, mensaje: "Esta cotización ya está aprobada y no se puede eliminar.", tipomensaje: "TMSGADV" }, false],
+      [new Error("down"), false],
+    ])("deleteAduana deletes the aduana by id and answers whether it was deleted", async (answer, deleted) => {
+      respond({ delete_aduana: answer });
+      const aduana = useAduanaStore();
+
+      expect(await aduana.deleteAduana(14)).toBe(deleted);
+
+      expect(sentConfig("delete_aduana")).toMatchObject({ method: "post", url: URL_MAIN + "delete_aduana", data: { id: 14 } });
+      if (!deleted) {
+        const text = answer instanceof Error ? CONNECTION_ERROR_MESSAGE : answer.mensaje;
+        expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text }));
+      }
+    });
+
     test("aprobarCotizacionAduana sends its request key, answers true and offers the expense control of the new master", async () => {
       respond({ aprobar_cotizacion_aduana: { estadoflag: true, mensaje: "Aprobada", data: [{ id_master: 900, nro_master: "M-900" }] } });
       const aduana = useAduanaStore();

@@ -2618,6 +2618,15 @@ export const useAduanaStore = defineStore("aduana", () => {
     notifySuccess("Registramos la llamada.");
     return true;
   }
+  async function deleteAduana(id: number | string): Promise<boolean> {
+    const response = await request({ method: "post", url: import.meta.env.VITE_URL_MAIN + "delete_aduana", data: { id } });
+    if (!response.estadoflag) {
+      showRefusal(response.mensaje);
+      return false;
+    }
+    notifySuccess("Eliminamos la cotización.");
+    return true;
+  }
   async function getQuoteCallAduana(filtro: FiltroLlamadasAduana): Promise<void> {
     const estado = filtroCalls.value.estado;
     const config = {
@@ -6118,6 +6127,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     unificarQuoteAduana,
     actualizarAduanaRecibidoEnviado,
     guardarNotaAduana,
+    deleteAduana,
     getQuoteCallAduana,
     generarReporteAduana,
     getInstructivoIdAduana,
