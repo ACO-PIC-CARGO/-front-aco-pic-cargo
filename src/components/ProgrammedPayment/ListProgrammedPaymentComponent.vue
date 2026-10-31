@@ -100,7 +100,6 @@ const tab = ref<string | null>(null);
 const step2 = ref(true);
 const total = ref<number | string>(0);
 const id_cuenta = ref<CuentaSalidaPago>("" as unknown as CuentaSalidaPago);
-const dialgoCXP = ref(false);
 const montoMonExt = ref<number | string>(0);
 const headersProgXProveedor = [
   { title: "Expediente", key: "nro_master" },
@@ -121,7 +120,6 @@ const headersProgXProveedor = [
   { title: "Acción", key: "action" },
 ];
 const expanded = ref<string[]>([]);
-const idDetails = ref("");
 const dialog = ref(false);
 const loadingFile = ref(false);
 const loadingRegistro = ref(false);
@@ -285,7 +283,7 @@ async function uploadFile() {
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     filesStore.payPath
       ? (msgfile.value = "Archivo cargado")
-      : (errfile.value = "Comuniquese con el admistrador");
+      : (errfile.value = "No pudimos subir el archivo. Revisa tu conexión e intenta de nuevo.");
   } else {
     errfile.value = "Dato Requerido";
   }
@@ -427,7 +425,6 @@ async function _putPayForProveedor() {
             title: "Aviso",
             text: response.data.data.msg,
           });
-          ActualizarPagoProgramado();
         }
       })
       .catch(function (error) {
@@ -478,7 +475,6 @@ async function _setSPaymentFile() {
         text: "El pago ha sido procesado correctamente",
       });
 
-      ActualizarPagoProgramado();
       cleandData();
       dialogProcess.value = false;
     })
@@ -531,32 +527,11 @@ async function obtenerDatos() {
       });
   }
 }
-async function ActualizarPagoProgramado() {
-  const config = {
-    method: "put",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `updateProgrammedPayment/${idDetails.value}`,
-    headers: {
-     
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function () {
-      dialgoCXP.value = false;
-      dialogProcess.value = false;
-      programacionesStore.ListProgrammedPayment();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
-}
 async function eliminar(item: ProgramacionConDetalles, id_proveedor: number, id_details: number) {
   // @ts-expect-error showDenyButton takes a boolean
   Swal.fire({
     icon: "question",
-    text: "¿Está seguro que de desea eliminar esta programación?",
+    text: "¿Quieres quitar estos pagos de la programación?",
     showDenyButton: "Cancelar",
     denyButtonText: "Cancelar",
     confirmButtonText: "Eliminar",
@@ -649,6 +624,7 @@ onMounted(async () => {
       expand-on-click
       class="mx-4 ext-uppercase"
       :custom-filter="filterOnlyCapsText"
+      no-data-text="No hay pagos programados. Prográmalos desde Cuentas por pagar."
       fixed-header
     >
       <template #[`item.total_dolar_total`]="{ item }">
@@ -804,6 +780,7 @@ onMounted(async () => {
                 return-object
                 v-model="selected"
                 :search="search"
+                no-data-text="Este proveedor no tiene pagos pendientes en esta programación."
               >
                 <template #[`item.item_moneda`]="{ item }">
                   <v-autocomplete

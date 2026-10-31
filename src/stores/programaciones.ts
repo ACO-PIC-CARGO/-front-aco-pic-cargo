@@ -1,168 +1,67 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
-import axios from "@/api/http";
-import router from "@/router";
-import type { ApiResponse } from "@/types/api";
 import type {
   FiltroProgramacionProveedor,
   ProgramacionListado,
   ProgramacionPagoProveedor,
 } from "@/types/finanzas";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+
+const JSON_HEADERS = { "Content-Type": "application/json" };
+
+const load = <Row>(path: string) =>
+  request<Row>({ method: "get", url: import.meta.env.VITE_URL_MAIN + path, headers: JSON_HEADERS });
+
+const send = (method: "post" | "put", path: string, data: Record<string, unknown>) =>
+  request({ method, url: import.meta.env.VITE_URL_MAIN + path, headers: JSON_HEADERS, data });
+
+const notify = (response: { estadoflag: boolean; mensaje: string }) =>
+  Swal.fire({ icon: response.estadoflag ? "success" : "warning", titleText: "Aviso", text: response.mensaje });
 
 export const useProgramacionesStore = defineStore("programaciones", () => {
   const listado = ref<ProgramacionListado[]>([]);
   const listProgramacion = ref<unknown[]>([]);
   const listProgramacionxProveedor = ref<ProgramacionPagoProveedor[]>([]);
 
-  async function ListProgrammedPayment(): Promise<void> {
-    const data = {
-      id_branch: sessionBranchId(),
-    };
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "ListProgrammedPaymentDetails/" + sessionBranchId(),
+  async function loadInto<Row>(path: string, target: { value: Row[] }): Promise<void> {
+    const response = await load<Row>(path);
+    target.value = response.estadoflag ? response.data : [];
+    if (hasFailed(response)) {
+      Swal.fire({ icon: "error", text: response.mensaje });
+    }
+  }
 
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<ProgramacionListado[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        if (data.estadoflag) {
-          listado.value = data.data;
-        } else {
-          listado.value = [];
-          Swal.fire({
-            icon: "error",
-            text: data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then((resSwal) => {
-            if (resSwal.isConfirmed && data.status == "401") {
-              router.push({ name: "Login" });
-              setTimeout(() => {
-                window.location.reload();
-              }, 10);
-            }
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function ListProgrammedPayment(): Promise<void> {
+    await loadInto("ListProgrammedPayment", listado);
   }
   async function GetTotalCotizacion(): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "cargar_programacion?id_branch=" + sessionBranchId(),
-      headers: headers,
-    };
-
-    await axios<ApiResponse<unknown[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      listProgramacion.value = response.data.data;
-    });
+    await loadInto("cargar_programacion", listProgramacion);
   }
   async function getListProgramacion(data: FiltroProgramacionProveedor): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "get",
-      url:
-        import.meta.env.VITE_URL_MAIN +
-        `pagos_programados_por_proveedor?id_branch=${sessionBranchId()}&id_proveedor=${data.id_proveedor}&id_programend=${data.id}&id_coins=${
-          data.id_coins
-        }`,
-      headers: headers,
-    };
-
-    await axios<ApiResponse<ProgramacionPagoProveedor[]>>(config).then((response) => {
-      const data = response.data.data;
-      sessionStorage.setItem("auth-token", response.data.token!);
-      data.forEach((element) => {
-        element.tipocambio = element.tipocambio ? element.tipocambio : 1;
-      });
-      listProgramacionxProveedor.value = data;
+    await loadInto(
+      `pagos_programados_por_proveedor?id_proveedor=${data.id_proveedor}&id_programend=${data.id}&id_coins=${data.id_coins}`,
+      listProgramacionxProveedor,
+    );
+    listProgramacionxProveedor.value.forEach((element) => {
+      element.tipocambio = element.tipocambio ? element.tipocambio : 1;
     });
+  }
+  async function saveAndReload(method: "post" | "put", path: string, data: Record<string, unknown>): Promise<void> {
+    const response = await send(method, path, data);
+    const result = await notify(response);
+    if (response.estadoflag && result.isConfirmed) {
+      await ListProgrammedPayment();
+    }
   }
   async function setPagoProgramado(data: Record<string, unknown>): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `registrar_pagos_programado`,
-      headers: headers,
-      data: data,
-    };
-
-    await axios<ApiResponse<{ mensaje: string }[]>>(config).then((response) => {
-      const data = response.data.data[0]!;
-      Swal.fire({
-        icon: "info",
-        titleText: "Aviso",
-        text: data.mensaje,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          ListProgrammedPayment();
-        }
-      });
-    });
+    await saveAndReload("post", "registrar_pagos_programado", data);
   }
   async function eliminarProgramacion(data: Record<string, unknown>): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `eliminar_programacion`,
-      headers: headers,
-      data: data,
-    };
-
-    await axios<ApiResponse<{ mensaje: string }[]>>(config).then((response) => {
-      const data = response.data.data[0]!;
-      Swal.fire({
-        icon: "info",
-        titleText: "Aviso",
-        text: data.mensaje,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          ListProgrammedPayment();
-        }
-      });
-    });
+    await saveAndReload("put", "eliminar_programacion", data);
   }
   async function eliminarProgramacionDetalle(data: Record<string, unknown>): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `eliminar_programacion_detalle`,
-      headers: headers,
-      data: data,
-    };
-
-    await axios<ApiResponse<{ mensaje: string }[]>>(config).then((response) => {
-      const data = response.data.data[0]!;
-      Swal.fire({
-        icon: "info",
-        titleText: "Aviso",
-        text: data.mensaje,
-      }).then(() => {});
-    });
+    await notify(await send("put", "eliminar_programacion_detalle", data));
   }
 
   return {

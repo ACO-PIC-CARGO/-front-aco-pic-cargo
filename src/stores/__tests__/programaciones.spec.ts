@@ -1,12 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
-import router from "@/router";
 import { useProgramacionesStore } from "@/stores/programaciones";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
-vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 describe("programaciones store", () => {
@@ -23,45 +21,47 @@ describe("programaciones store", () => {
     vi.restoreAllMocks();
   });
 
-  test("ListProgrammedPayment keeps the rows and the token when the backend accepts", async () => {
-    respond({ "ListProgrammedPaymentDetails/7": { ...accepted([{ id: 1 }]), token: "tok-p" } });
+  test("ListProgrammedPayment asks the session API and keeps the rows the backend accepts", async () => {
+    respond({ ListProgrammedPayment: accepted([{ id: 1 }]) });
     const programaciones = useProgramacionesStore();
 
     await programaciones.ListProgrammedPayment();
 
-    expect(httpMock).toHaveBeenCalledWith({
-      method: "get",
-      url: URL_MAIN + "ListProgrammedPaymentDetails/7",
-      headers: JSON_HEADERS,
-      data: { id_branch: 7 },
-    });
+    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "ListProgrammedPayment", headers: JSON_HEADERS });
     expect(programaciones.listado).toEqual([{ id: 1 }]);
-    expect(sessionStorage.getItem("auth-token")).toBe("tok-p");
   });
 
-  test("ListProgrammedPayment empties the list, shows the error and goes to Login on a 401", async () => {
-    vi.useFakeTimers();
-    respond({ "ListProgrammedPaymentDetails/7": rejected("Token vencido", "401") });
+  test("ListProgrammedPayment shows an empty list without an error when there are no programmings", async () => {
+    respond({ ListProgrammedPayment: rejected() });
     const programaciones = useProgramacionesStore();
     programaciones.listado = [{ id: 9 }];
 
     await programaciones.ListProgrammedPayment();
-    await flushPromises();
 
     expect(programaciones.listado).toEqual([]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", text: "Token vencido" });
-    expect(router.push).toHaveBeenCalledWith({ name: "Login" });
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("ListProgrammedPayment keeps the list when the request fails", async () => {
-    respond({ "ListProgrammedPaymentDetails/7": new Error("network") });
-    vi.spyOn(console, "error").mockImplementation(() => {});
+  test("ListProgrammedPayment empties the list and shows the server's reason when it refuses", async () => {
+    respond({ ListProgrammedPayment: { ...rejected("Tu sesión no es válida."), tipomensaje: "TMSGADV" } });
     const programaciones = useProgramacionesStore();
     programaciones.listado = [{ id: 9 }];
 
     await programaciones.ListProgrammedPayment();
 
-    expect(programaciones.listado).toEqual([{ id: 9 }]);
+    expect(programaciones.listado).toEqual([]);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Tu sesión no es válida." });
+  });
+
+  test("ListProgrammedPayment says it could not connect when the request fails", async () => {
+    respond({ ListProgrammedPayment: new Error("network") });
+    const programaciones = useProgramacionesStore();
+    programaciones.listado = [{ id: 9 }];
+
+    await programaciones.ListProgrammedPayment();
+
+    expect(programaciones.listado).toEqual([]);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: expect.stringMatching(/^No pudimos conectar/) });
   });
 
   test("GetTotalCotizacion keeps the rows and sends no other request", async () => {
@@ -71,6 +71,7 @@ describe("programaciones store", () => {
     await programaciones.GetTotalCotizacion();
 
     expect(programaciones.listProgramacion).toEqual([{ id: 2 }]);
+    expect(httpMock).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + "cargar_programacion", headers: JSON_HEADERS });
     expect(httpMock).toHaveBeenCalledTimes(1);
   });
 
@@ -81,7 +82,7 @@ describe("programaciones store", () => {
     await programaciones.getListProgramacion({ id_proveedor: 5, id: 6, id_coins: 2 });
 
     expect(httpMock.mock.calls[0]![0].url).toBe(
-      URL_MAIN + "pagos_programados_por_proveedor?id_branch=7&id_proveedor=5&id_programend=6&id_coins=2",
+      URL_MAIN + "pagos_programados_por_proveedor?id_proveedor=5&id_programend=6&id_coins=2",
     );
     expect(programaciones.listProgramacionxProveedor).toEqual([
       { id: 1, tipocambio: 1 },
@@ -91,9 +92,9 @@ describe("programaciones store", () => {
 
   test("setPagoProgramado and eliminarProgramacion reload the list once the user confirms the notice", async () => {
     respond({
-      registrar_pagos_programado: accepted([{ mensaje: "Registrado" }]),
-      eliminar_programacion: accepted([{ mensaje: "Eliminado" }]),
-      "ListProgrammedPaymentDetails/7": accepted([{ id: 1 }]),
+      registrar_pagos_programado: { ...accepted([]), mensaje: "Registrado" },
+      eliminar_programacion: { ...accepted([]), mensaje: "Eliminado" },
+      ListProgrammedPayment: accepted([{ id: 1 }]),
     });
     const programaciones = useProgramacionesStore();
 
@@ -102,22 +103,33 @@ describe("programaciones store", () => {
     await flushPromises();
 
     expect(vi.mocked(Swal.fire).mock.calls.map((c) => c[0])).toEqual([
-      { icon: "info", titleText: "Aviso", text: "Registrado" },
-      { icon: "info", titleText: "Aviso", text: "Eliminado" },
+      { icon: "success", titleText: "Aviso", text: "Registrado" },
+      { icon: "success", titleText: "Aviso", text: "Eliminado" },
     ]);
-    const reloads = httpMock.mock.calls.filter((c) => c[0].url.endsWith("ListProgrammedPaymentDetails/7"));
+    const reloads = httpMock.mock.calls.filter((c) => c[0].url.endsWith("ListProgrammedPayment"));
     expect(reloads).toHaveLength(2);
     expect(programaciones.listado).toEqual([{ id: 1 }]);
   });
 
+  test("a refused payment shows the server's reason and does not reload the list", async () => {
+    respond({ registrar_pagos_programado: { ...rejected("El monto a pagar no puede superar la deuda."), tipomensaje: "TMSGADV" } });
+    const programaciones = useProgramacionesStore();
+
+    await programaciones.setPagoProgramado({ a: 1 });
+    await flushPromises();
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", titleText: "Aviso", text: "El monto a pagar no puede superar la deuda." });
+    expect(httpMock).toHaveBeenCalledTimes(1);
+  });
+
   test("eliminarProgramacionDetalle shows the notice and does not reload the list", async () => {
-    respond({ eliminar_programacion_detalle: accepted([{ mensaje: "Quitado" }]) });
+    respond({ eliminar_programacion_detalle: { ...accepted([]), mensaje: "Quitado" } });
     const programaciones = useProgramacionesStore();
 
     await programaciones.eliminarProgramacionDetalle({ id: 3 });
     await flushPromises();
 
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", titleText: "Aviso", text: "Quitado" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", titleText: "Aviso", text: "Quitado" });
     expect(httpMock).toHaveBeenCalledTimes(1);
   });
 });
