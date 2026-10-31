@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
 import axios from "@/api/http";
+import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionListado } from "@/types/cotizacion";
@@ -101,8 +102,10 @@ function _validaDatass() {
       .then(async function (response) {
         // console.log(response)
 
-        sessionStorage.setItem("auth-token", response.data.token);
-
+        if (!response.data.estadoflag) {
+          Swal.fire({ icon: "info", text: "No encontramos ese expediente en tu empresa. Vuelve a la lista y ábrelo desde allí." });
+          return;
+        }
         mastersStore.master_insertId = mastersStore.master_Id_get;
         mastersStore.nro_master = response.data.data[0].nro_master;
         mastersStore.master_cantidad_house =
@@ -415,9 +418,6 @@ onMounted(async () => {
     mastersStore._getProveedorRolColoader(),
     _validaDatass(),
   ]);
-  if (!route.params.id) {
-    await mastersStore._getnroMaster();
-  }
   appStore.spiner = false;
   //this.$store.state.drawer = false;
 });
@@ -435,6 +435,8 @@ onMounted(async () => {
         <v-text-field
           v-model="mastersStore.master_expediente"
           label="N° de Expedientes"
+          placeholder="Se asigna al guardar"
+          persistent-placeholder
           disabled
         />
       </v-col>

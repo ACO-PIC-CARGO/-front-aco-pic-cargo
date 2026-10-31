@@ -7,6 +7,9 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
 import type { HouseDeMaster } from "@/types/operacionesMaster";
+import { mastersToMoveHouseTo } from "@/utils/masters";
+
+const HOUSE_NOT_MOVED = "No pudimos mover el house. Revisa tu conexión e intenta de nuevo.";
 
 const emit = defineEmits<{ recargarDatos: [] }>();
 
@@ -75,6 +78,8 @@ const totalVolumenHouse = computed(() => {
 const sumaTotal = computed(() => {
   return 0;
 });
+const isViewMode = computed(() => route.name == "controlMasterVer");
+const mastersForHouse = computed(() => mastersToMoveHouseTo(appStore.itemsMasterList || [], route.params.id as string));
 const esAereo = computed(() => {
   const st = appStore;
   const id =
@@ -103,9 +108,10 @@ async function aplicarCambioExpediente() {
     dialogCambiarExpediente.value = false;
     return;
   }
-  const targetLabel = appStore.itemsMasterList.find(
+  const targetLabel = mastersForHouse.value.find(
     (x: { id: number }) => x.id === selectedNuevoExpediente.value,
-  )!.code_master;
+  )?.code_master;
+  if (!targetLabel) return;
   const res = await Swal.fire({
     icon: "question",
     title: "Confirmar cambio",
@@ -132,29 +138,16 @@ async function aplicarCambioExpediente() {
       data: payload,
     };
     const response = await axios(config);
-    flagCambiarExpediente.value = false;
     dialogCambiarExpediente.value = false;
-    emit("recargarDatos");
-    if (response && response.data && response.data.estadoflag) {
-      await Swal.fire({ icon: "success", text: "Expediente actualizado" });
-      dialogCambiarExpediente.value = false;
-      flagCambiarExpediente.value = true;
+    if (response.data?.estadoflag) {
+      await Swal.fire({ icon: "success", text: response.data.mensaje || `Movimos el house al expediente ${targetLabel}.` });
       emit("recargarDatos");
-      // await this.getListControlGastos(this.$route.params.id);
     } else {
-      await Swal.fire({
-        icon: "warning",
-        text:
-          (response && response.data && response.data.mensaje) ||
-          "No se pudo reasignar el expediente. Se requiere soporte de backend.",
-      });
+      await Swal.fire({ icon: "warning", text: response.data?.mensaje || HOUSE_NOT_MOVED });
     }
   } catch (error) {
     console.error(error);
-    await Swal.fire({
-      icon: "info",
-      text: "Endpoint para reasignar house a otro master no disponible. Front listo; requerirá habilitar API (PUT reasignar_house).",
-    });
+    await Swal.fire({ icon: "error", text: HOUSE_NOT_MOVED });
   }
 }
 function showHouse(id: number) {
@@ -351,6 +344,7 @@ onMounted(async () => {
                           </v-icon>
                         </v-btn>
                         <v-btn
+                          v-if="!isViewMode"
                           variant="text"
                           icon
                           color="red"
@@ -360,6 +354,7 @@ onMounted(async () => {
                           </v-icon>
                         </v-btn>
                         <v-btn
+                          v-if="!isViewMode"
                           variant="text"
                           icon
                           color="#F57F17"
@@ -443,11 +438,7 @@ onMounted(async () => {
         >
           <v-card-text>
             <v-autocomplete
-              :items="
-                appStore.itemsMasterList.filter(
-                  (v: { id: number | string }) => v.id != route.params.id,
-                )
-              "
+              :items="mastersForHouse"
               :readonly="false"
               v-model="selectedNuevoExpediente"
               item-value="id"

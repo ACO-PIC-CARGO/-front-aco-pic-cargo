@@ -9,7 +9,12 @@ import dataEmbar from "./DataEmbarMaster.vue";
 import dataFechas from "./FechasMaster.vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import { blankToNull, isEtaBeforeEtd } from "@/utils/masters";
+import { hasFailed } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
+
+const HOUSE_NOT_CREATED = "No pudimos crear el house. Revisa tu conexión y usa «Agregar House» para intentarlo de nuevo.";
+const SAVE_FAILED = "No pudimos guardar el expediente. Revisa tu conexión e intenta de nuevo.";
 
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
@@ -44,177 +49,6 @@ async function irAVerMaster() {
     id: route.params.id,
   });
   window.location.reload();
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function createCarpetaOneDrive({ name = "" }: { name?: string }) {
-  const config = {
-    method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `crear-carpeta-master?nromaster=${name}`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  const res = await axios(config)
-    .then(async function (response) {
-      return response.data.data;
-    })
-    .catch((e) => {
-     console.error(e);
-      return false;
-    });
-  return res;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function actualizarMaster({ id = 0, url = "" }: { id?: number; url?: string }) {
-  const config = {
-    method: "put",
-    url: import.meta.env.VITE_URL_MAIN + `update_folder_onedrive`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: {
-      id: id,
-      url: url,
-    },
-  };
-  await axios(config).then(async function (response) {
-    return response.data.data;
-  });
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _setMasterContainer(
-  id_master: number,
-  id_containers: number,
-  nrocontainer: string,
-  nroprecinto: string,
-  quantity: number,
-) {
-  //vm._getnroMaster();
-  const data = JSON.stringify({
-    id_master: id_master,
-    id_containers: id_containers,
-    nro_containers: nrocontainer,
-    nro_precinto: nroprecinto,
-    quantity: quantity,
-    status: 1,
-  });
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setMasterContainers",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  axios(config)
-    .then(function (response) {
-      console.log(response);
-    })
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error,
-      });
-    });
-}
-function _setHouseContainer(
-  id_house: number,
-  id_containers: number,
-  nrocontainer: string,
-  nroprecinto: string,
-  quantity: number,
-) {
-  //vm._getnroMaster();
-  const data = JSON.stringify({
-    id_house: id_house,
-    id_containers: id_containers,
-    nro_containers: nrocontainer,
-    nro_precinto: nroprecinto,
-    quantity: quantity,
-    status: 1,
-  });
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setHouseContainers",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  axios(config)
-    .then(function () {})
-    .catch(function (error) {
-      console.error(error);
-      Swal.fire({
-        icon: "error",
-        title: "Lo sentimos",
-        text: error,
-      });
-    });
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _setMasterServices(id_master: number, id_house: number, i: number) {
-  mastersStore.itemsServicesList.map(function (item: { id_begend: number; nameservice: string; price: number }) {
-    const data = {
-      id_house: id_house,
-      id_begend: item.id_begend,
-      nameservice: item.nameservice,
-      price_services: item.price,
-      status: 0,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setServices",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    axios(config)
-      .then(function () {})
-      .catch(function (error) {
-        console.error(error);
-      });
-  });
-
-  mastersStore.statusData = true;
-  (appStore.master_itemsContainers as { id: number; nro_container: string; nro_precinto: string; cantidad: number }[]).map(function (item) {
-    /*vm._setMasterContainer(
-      id_master,
-      item.id,
-      item.nro_container,
-      item.nro_precinto,
-      item.cantidad
-    );*/
-
-    _setHouseContainer(
-      id_house,
-      item.id,
-      item.nro_container,
-      item.nro_precinto,
-      item.cantidad,
-    );
-  });
-
-  appStore._getHouseList();
-
-  if (i == mastersStore.master_cantidad_house) {
-    Swal.fire({
-      icon: "success",
-      title: "Excelente",
-      text:
-        "Master registrado éxitosamente con el número " +
-        mastersStore.master_expediente,
-    });
-  }
 }
 async function addNewHouse() {
   loadingBotonNuevoHouse.value = !loadingBotonNuevoHouse.value;
@@ -298,6 +132,10 @@ async function _setHouse({ id_master = "", pintaSuccess = true }) {
       router.push({ name: "Login" });
       return null;
     }
+    if (!response.data.estadoflag || !res?.[0]?.insertid) {
+      if (pintaSuccess) Swal.fire({ icon: "error", text: response.data.mensaje || HOUSE_NOT_CREATED });
+      return null;
+    }
     if (pintaSuccess) {
       Swal.fire({
         icon: "success",
@@ -309,122 +147,8 @@ async function _setHouse({ id_master = "", pintaSuccess = true }) {
     return res;
   } catch (error) {
     console.error("_setHouse: Error al crear House:", error);
-    return null; // O el error, según prefieras
-  }
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _setMasterHouse(id_master: number | string) {
-  for (let i = 1; i <= mastersStore.master_cantidad_house; i++) {
-    const data = JSON.stringify({
-      code_house: appStore.house_expediente + "-" + i,
-      id_master: !id_master || id_master == "" ? null : id_master,
-      nro_house:
-        !mastersStore.house_nro_expediente ||
-        mastersStore.house_nro_expediente == ""
-          ? null
-          : mastersStore.house_nro_expediente,
-      id_agent:
-        !appStore.master_id_agente ||
-        appStore.master_id_agente == ""
-          ? null
-          : appStore.master_id_agente,
-      id_consigner: null,
-      id_notify:
-        !mastersStore.master_id_notify ||
-        mastersStore.master_id_notify == ""
-          ? null
-          : mastersStore.master_id_notify,
-      id_aerolinea:
-        !mastersStore.master_id_airlines ||
-        mastersStore.master_id_airlines == ""
-          ? null
-          : mastersStore.master_id_airlines,
-      id_coloader:
-        !mastersStore.master_id_coloader ||
-        mastersStore.master_id_coloader == ""
-          ? null
-          : mastersStore.master_id_coloader,
-      id_naviera:
-        !mastersStore.master_id_naviera ||
-        mastersStore.master_id_naviera == ""
-          ? null
-          : mastersStore.master_id_naviera,
-      id_incoterms:
-        !mastersStore.master_incoterms ||
-        mastersStore.master_incoterms == ""
-          ? null
-          : mastersStore.master_incoterms,
-      nro_hbl:
-        !mastersStore.master_blmaster ||
-        mastersStore.master_blmaster == ""
-          ? null
-          : mastersStore.master_blmaster,
-      id_motonave:
-        !mastersStore.master_id_motonave ||
-        mastersStore.master_id_motonave == ""
-          ? null
-          : mastersStore.master_id_motonave,
-      nro_viaje:
-        !mastersStore.master_viaje || mastersStore.master_viaje == ""
-          ? null
-          : mastersStore.master_viaje,
-      bultos:
-        !mastersStore.master_bultos ||
-        mastersStore.master_bultos == ""
-          ? null
-          : mastersStore.master_bultos,
-      peso:
-        !mastersStore.master_peso || mastersStore.master_peso == ""
-          ? null
-          : mastersStore.master_peso,
-      volumen:
-        !mastersStore.master_volumen ||
-        mastersStore.master_volumen == ""
-          ? null
-          : mastersStore.master_volumen,
-      id_conditions:
-        !mastersStore.master_id_condicion ||
-        mastersStore.master_id_condicion == ""
-          ? null
-          : mastersStore.master_id_condicion,
-      id_moneda:
-        !mastersStore.master_id_coins ||
-        mastersStore.master_id_coins == ""
-          ? null
-          : mastersStore.master_id_coins,
-      monto:
-        !mastersStore.master_monto || mastersStore.master_monto == ""
-          ? null
-          : mastersStore.master_monto,
-      status: 1,
-      id_branch: sessionBranchId(),
-    });
-
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setHouse",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    axios(config)
-      .then(function (response) {
-        if (response.data.status == 200) {
-          // vm._setMasterServices(id_master, response.data.data.insertid, i);
-        }
-
-        cleanData();
-      })
-      .catch(function (error) {
-        console.error(error);
-        Swal.fire({
-          icon: "error",
-          title: "Lo sentimos",
-          text: error,
-        });
-      });
+    if (pintaSuccess) Swal.fire({ icon: "error", text: HOUSE_NOT_CREATED });
+    return null;
   }
 }
 async function _putMaster() {
@@ -450,118 +174,29 @@ async function _putMaster() {
           ? appStore.master_id_trasnport.id
           : appStore.master_id_trasnport,
       id_incoterms: mastersStore.master_incoterms,
-      id_port_begin:
-        !appStore.master_origen ||
-        appStore.master_origen == ""
-          ? null
-          : appStore.master_origen,
-      id_port_end:
-        !appStore.master_destino ||
-        appStore.master_destino == ""
-          ? null
-          : appStore.master_destino,
-      id_operador:
-        !mastersStore.master_id_operador ||
-        mastersStore.master_id_operador == ""
-          ? null
-          : mastersStore.master_id_operador,
-      fecha_eta:
-        !mastersStore.master_fecha_eta ||
-        mastersStore.master_fecha_eta == ""
-          ? null
-          : mastersStore.master_fecha_eta,
-      fecha_etd:
-        !mastersStore.master_fecha_etd ||
-        mastersStore.master_fecha_etd == ""
-          ? null
-          : mastersStore.master_fecha_etd,
-      fecha_disponibilidad:
-        !mastersStore.master_fecha_disponibilidad ||
-        mastersStore.master_fecha_disponibilidad == ""
-          ? null
-          : mastersStore.master_fecha_disponibilidad,
-      ganancia_pricing:
-        !mastersStore.master_ganancia_pricing ||
-        mastersStore.master_ganancia_pricing == ""
-          ? null
-          : mastersStore.master_ganancia_pricing,
-      ganancia_operaciones:
-        !mastersStore.master_ganancia_operaciones ||
-        mastersStore.master_ganancia_operaciones == ""
-          ? null
-          : mastersStore.master_ganancia_operaciones,
-      id_agent:
-        !appStore.master_id_agente ||
-        appStore.master_id_agente == ""
-          ? null
-          : appStore.master_id_agente,
-      id_consigner:
-        !mastersStore.master_id_consigner ||
-        mastersStore.master_id_consigner == ""
-          ? null
-          : mastersStore.master_id_consigner,
-      id_notify:
-        !mastersStore.master_id_notify ||
-        mastersStore.master_id_notify == ""
-          ? null
-          : mastersStore.master_id_notify,
-      id_aerolinea:
-        !mastersStore.master_id_airlines ||
-        mastersStore.master_id_airlines == ""
-          ? null
-          : mastersStore.master_id_airlines,
-      id_coloader:
-        !mastersStore.master_id_coloader ||
-        mastersStore.master_id_coloader == ""
-          ? null
-          : mastersStore.master_id_coloader,
-      id_naviera:
-        !mastersStore.master_id_naviera ||
-        mastersStore.master_id_naviera == ""
-          ? null
-          : mastersStore.master_id_naviera,
-      nro_mbl:
-        !mastersStore.master_blmaster ||
-        mastersStore.master_blmaster == ""
-          ? null
-          : mastersStore.master_blmaster,
-      id_motonave:
-        !mastersStore.master_id_motonave ||
-        mastersStore.master_id_motonave == ""
-          ? null
-          : mastersStore.master_id_motonave,
-      nro_viaje:
-        !mastersStore.master_viaje || mastersStore.master_viaje == ""
-          ? null
-          : mastersStore.master_viaje,
-      bultos:
-        !mastersStore.master_bultos ||
-        mastersStore.master_bultos == ""
-          ? null
-          : mastersStore.master_bultos,
-      peso:
-        !mastersStore.master_peso || mastersStore.master_peso == ""
-          ? null
-          : mastersStore.master_peso,
-      volumen:
-        !mastersStore.master_volumen ||
-        mastersStore.master_volumen == ""
-          ? null
-          : mastersStore.master_volumen,
-      id_conditions:
-        !mastersStore.master_id_condicion ||
-        mastersStore.master_id_condicion == ""
-          ? null
-          : mastersStore.master_id_condicion,
-      id_moneda:
-        !mastersStore.master_id_coins ||
-        mastersStore.master_id_coins == ""
-          ? null
-          : mastersStore.master_id_coins,
-      monto:
-        !mastersStore.master_monto || mastersStore.master_monto == ""
-          ? null
-          : mastersStore.master_monto,
+      id_port_begin: blankToNull(appStore.master_origen),
+      id_port_end: blankToNull(appStore.master_destino),
+      id_operador: blankToNull(mastersStore.master_id_operador),
+      fecha_eta: blankToNull(mastersStore.master_fecha_eta),
+      fecha_etd: blankToNull(mastersStore.master_fecha_etd),
+      fecha_disponibilidad: blankToNull(mastersStore.master_fecha_disponibilidad),
+      ganancia_pricing: blankToNull(mastersStore.master_ganancia_pricing),
+      ganancia_operaciones: blankToNull(mastersStore.master_ganancia_operaciones),
+      id_agent: blankToNull(appStore.master_id_agente),
+      id_consigner: blankToNull(mastersStore.master_id_consigner),
+      id_notify: blankToNull(mastersStore.master_id_notify),
+      id_aerolinea: blankToNull(mastersStore.master_id_airlines),
+      id_coloader: blankToNull(mastersStore.master_id_coloader),
+      id_naviera: blankToNull(mastersStore.master_id_naviera),
+      nro_mbl: blankToNull(mastersStore.master_blmaster),
+      id_motonave: blankToNull(mastersStore.master_id_motonave),
+      nro_viaje: blankToNull(mastersStore.master_viaje),
+      bultos: blankToNull(mastersStore.master_bultos),
+      peso: blankToNull(mastersStore.master_peso),
+      volumen: blankToNull(mastersStore.master_volumen),
+      id_conditions: blankToNull(mastersStore.master_id_condicion),
+      id_moneda: blankToNull(mastersStore.master_id_coins),
+      monto: blankToNull(mastersStore.master_monto),
       status: 1,
       id_branch: sessionBranchId(),
       cuotas: cuotas,
@@ -600,7 +235,7 @@ async function _putMaster() {
       .then(function (response) {
         sessionStorage.setItem("auth-token", response.data.token);
 
-        if (response.data.status == 200) {
+        if (response.data.estadoflag) {
           Swal.fire({
             icon: "success",
             title: "Excelente",
@@ -629,11 +264,7 @@ async function _putMaster() {
       })
       .catch(function (error) {
         console.error(error);
-        Swal.fire({
-          icon: "error",
-          title: "Lo sentimos",
-          text: error,
-        });
+        Swal.fire({ icon: "error", text: SAVE_FAILED });
       });
     appStore.spiner = false;
   }
@@ -744,6 +375,10 @@ function validate() {
   if (!mastersStore.master_fecha_etd) {
     val = false;
     html += "<li>La fecha etd es requerida</li>";
+  }
+  if (isEtaBeforeEtd(mastersStore.master_fecha_etd as string, mastersStore.master_fecha_eta as string)) {
+    val = false;
+    html += "<li>La fecha ETA no puede ser anterior a la ETD</li>";
   }
   if (
     mastersStore.statusData &&
@@ -906,50 +541,13 @@ async function _setMaster() {
 
     await axios(config)
       .then(async function (response) {
-        sessionStorage.setItem("auth-token", response.data.token);
-
-        // Solo redirigir a login cuando es 401 o sesión expirada
-        if (
-          response.data.status == "401" ||
-          response.data.mensaje === "Sesión Expirada"
-        ) {
-          Swal.fire({
-            icon: "error",
-            text: response.data.mensaje,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-          }).then(function (resSwal) {
-            if (resSwal.isConfirmed) {
-              // @ts-expect-error router is not defined in this scope
-              router.push({ name: "Login" });
-              setTimeout(function () {
-                window.location.reload();
-              }, 10);
-            }
-          });
-          appStore.spiner = false;
+        if (!response.data.estadoflag) {
+          Swal.fire({ icon: hasFailed(response.data) ? "error" : "info", text: response.data.mensaje || SAVE_FAILED });
           return;
         }
-
-        const masterRow =
-          response.data.data && response.data.data[0]
-            ? response.data.data[0]
-            : null;
-
-        const id_master = masterRow
-          ? masterRow.id || masterRow.insertid
-          : null;
-
-        if (!id_master) {
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: "No se pudo obtener el ID del expediente creado. Revise la consola para más detalles.",
-          });
-          appStore.spiner = false;
-          return;
-        }
+        const { id: id_master, code_master } = response.data.data[0];
+        mastersStore.master_insertId = id_master;
+        mastersStore.master_expediente = code_master;
 
         Swal.fire({
           icon: "info",
@@ -957,51 +555,22 @@ async function _setMaster() {
           timerProgressBar: true,
           text: "Generando expediente...",
         });
-
-        const id_branch = sessionBranchId();
-        const branchCreacion = [1, 2];
-        if (branchCreacion.includes(id_branch)) {
-          // var url = await vm.createCarpetaOneDrive({
-          //   name: vm.$store.state.master_nro_expediente,
-          // });
-          // await vm.actualizarMaster({
-          //   id: id_master,
-          //   url: url,
-          // });
-        }
-
-        const res = await _setHouse({
-          id_master: id_master,
-          pintaSuccess: false,
-        });
+        const res = await _setHouse({ id_master, pintaSuccess: false });
         Swal.close();
-        console.log("_setMaster: Respuesta de _setHouse:", res);
-        if (res[0].estadoflag) {
-          appRouter.push({
-            name: "controlHouseEditar",
-            params: {
-              id: res[0].insertid,
-              activar: 1,
-            },
-          });
+        if (res) {
+          appRouter.push({ name: "controlHouseEditar", params: { id: res[0].insertid, activar: 1 } });
+          return;
         }
-        appStore.itemsHouseList = [];
-        mastersStore.master_insertId = id_master;
-
-        // vm.$router.push({
-        //   name: "controlMasterEditar",
-        //   params: {
-        //     id: id_master,
-        //   },
-        // });
-        // window.location.reload();
+        await Swal.fire({
+          icon: "warning",
+          text: `Creamos el expediente ${code_master}, pero no pudimos crear su house. Te llevamos al expediente: usa «Agregar House» para intentarlo de nuevo.`,
+        });
+        await appRouter.push({ name: "controlMasterEditar", params: { id: id_master } });
+        window.location.reload();
       })
       .catch(function (error) {
-        Swal.fire({
-          icon: "error",
-          title: "Lo sentimos",
-          text: "Error al crear el expediente: " + (error.message || error),
-        });
+        console.error(error);
+        Swal.fire({ icon: "error", text: SAVE_FAILED });
       });
     appStore.spiner = false;
   }

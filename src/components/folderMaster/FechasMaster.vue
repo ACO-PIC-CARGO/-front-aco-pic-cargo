@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import { availabilityBaseDate, isEtaBeforeEtd } from "@/utils/masters";
 
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
@@ -43,54 +44,40 @@ function isLCL() {
   }
   return val;
 }
+function modalityCode() {
+  return itemsModality.value.find((v: { id: number }) => v.id == mastersStore.master_sentido)?.code;
+}
+function availabilityBase() {
+  return availabilityBaseDate(
+    modalityCode(),
+    mastersStore.master_fecha_etd as string,
+    mastersStore.master_fecha_eta as string,
+  );
+}
 function _getDate() {
-  const code_sentido = itemsModality.value.filter(
-    (v: { id: number }) => v.id == mastersStore.master_sentido,
-  )[0]!.code;
-
-  if (code_sentido == "E") {
-    if (!mastersStore.master_fecha_disponibilidad) {
-      mastersStore.master_fecha_disponibilidad =
-        mastersStore.master_fecha_eta;
-    }
-  } else if (code_sentido == "I") {
-    if (!mastersStore.master_fecha_disponibilidad) {
-      mastersStore.master_fecha_disponibilidad =
-        mastersStore.master_fecha_etd;
-    }
+  if (isEtaBeforeEtd(mastersStore.master_fecha_etd as string, mastersStore.master_fecha_eta as string)) {
+    Swal.fire({
+      icon: "warning",
+      text: "La fecha de llegada (ETA) no puede ser anterior a la de salida (ETD). Corrige una de las dos.",
+    });
+    return;
+  }
+  if (!mastersStore.master_fecha_disponibilidad) {
+    mastersStore.master_fecha_disponibilidad = availabilityBase() ?? "";
   }
   _validaDate();
 }
 function _validaDate() {
-  const code_sentido = itemsModality.value.filter(
-    (v: { id: number }) => v.id == mastersStore.master_sentido,
-  )[0]!.code;
-  if (code_sentido == "E") {
-    if (
-      mastersStore.master_fecha_disponibilidad <
-      mastersStore.master_fecha_eta
-    ) {
-      mastersStore.master_fecha_disponibilidad =
-        mastersStore.master_fecha_eta;
-      Swal.fire({
-        icon: "warning",
-        title: "Lo sentimos",
-        text: "La fecha de disponibilidad no puede ser menor a la fecha de llegada",
-      });
-    }
-  } else if (code_sentido == "I") {
-    if (
-      mastersStore.master_fecha_disponibilidad <
-      mastersStore.master_fecha_etd
-    ) {
-      mastersStore.master_fecha_disponibilidad =
-        mastersStore.master_fecha_etd;
-      Swal.fire({
-        icon: "warning",
-        title: "Lo sentimos",
-        text: "La fecha de disponibilidad no puede ser menor a la fecha de llegada",
-      });
-    }
+  const base = availabilityBase();
+  if (base && mastersStore.master_fecha_disponibilidad < base) {
+    mastersStore.master_fecha_disponibilidad = base;
+    Swal.fire({
+      icon: "warning",
+      text:
+        modalityCode() === "I"
+          ? "La fecha de disponibilidad no puede ser anterior a la llegada (ETA)."
+          : "La fecha de disponibilidad no puede ser anterior a la salida (ETD).",
+    });
   }
 }
 </script>

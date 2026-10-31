@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
+import Swal from "sweetalert2";
 import { useMastersStore } from "@/stores/masters";
 
 const props = withDefaults(
@@ -23,12 +24,17 @@ async function actualizarUrl() {
     err.value = "Dato requerido";
     return;
   }
-  await mastersStore.actualizarURLEnElMaster({
+  const answer = await mastersStore.actualizarURLEnElMaster({
     id: props.masterEditar.id,
     url: url_folderonedrive.value,
   });
+  if (!answer.estadoflag) {
+    err.value = answer.mensaje;
+    return;
+  }
   // eslint-disable-next-line vue/no-mutating-props
   props.masterEditar.url_folderonedrive = url_folderonedrive.value;
+  Swal.fire({ icon: "success", text: answer.mensaje });
   cerrarDialog();
 }
 function cerrarDialog() {

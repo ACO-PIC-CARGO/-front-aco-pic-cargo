@@ -4,7 +4,6 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import axios from "@/api/http";
-import type { AxiosResponse } from "axios";
 import moment from "moment";
 import Swal from "sweetalert2";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
@@ -15,6 +14,8 @@ import { useMastersStore } from "@/stores/masters";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { MasterListado } from "@/types/operacionesMaster";
+import { isEtaBeforeEtd, isMasterClosed, masterRowClass } from "@/utils/masters";
+import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 const appStore = useAppStore();
@@ -143,7 +144,7 @@ async function reactivarMaster({
     return false;
   }
   appStore.spiner = true;
-  await mastersStore.controlGastosReactivar({
+  const answer = await mastersStore.controlGastosReactivar({
     id: id,
     activaranulado: activaranulado,
     abriroperativo: abriroperativo,
@@ -151,6 +152,7 @@ async function reactivarMaster({
   });
   await appStore._getMasterList();
   appStore.spiner = false;
+  Swal.fire({ icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info", text: answer.mensaje });
 }
 // validarUsuarioAdmin
 // controlGastosReactivar
@@ -166,63 +168,30 @@ function editFechas(item: MasterListado) {
   };
   dialogFecha.value = true;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function actualizarUrl() {
-  await mastersStore.actualizarURLEnElMaster({
-    id: masterEditar.value.id,
-    url: url_folderonedrive.value,
-  });
-  masterEditar.value.url_folderonedrive = url_folderonedrive.value;
-  dialogUrl.value = false;
-  setTimeout(async () => {
-    await appStore._getMasterList();
-  }, 1000);
-}
 async function guardarFechas() {
-  loading.value = true;
-  try {
-    const response = await axios
-      .put(
-        import.meta.env.VITE_URL_MAIN + "updateFechasMaster",
-        {
-          fecha_etd: exp.value.fecha_etd,
-          fecha_eta: exp.value.fecha_eta,
-          fecha_disponibilidad: exp.value.fecha_disponibilidad,
-          salidaflag: exp.value.salidaflag,
-          llegadaflag: exp.value.llegadaflag,
-          disponibilidadflag: exp.value.disponibilidadflag,
-          id: exp.value.id,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
-      )
-      .catch((e) => {
-        console.error(e);
-      });
-
-    const data = (response as AxiosResponse).data;
-    if (data.estadoflag) {
-      Swal.fire({
-        icon: "success",
-        text: data.mensaje,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      });
-    }
-
-    // Ahora 'this' funcionará correctamente
-    await appStore._getMasterList();
-    dialogFecha.value = false;
-    loading.value = false;
-  } catch (error) {
-    console.error("Error al guardar fechas:", error);
-  } finally {
-    dialogFecha.value = false;
+  if (isEtaBeforeEtd(exp.value.fecha_etd, exp.value.fecha_eta)) {
+    Swal.fire({ icon: "warning", text: "La fecha de llegada (ETA) no puede ser anterior a la de salida (ETD). Corrige una de las dos." });
+    return;
   }
+  loading.value = true;
+  const answer = await request({
+    method: "put",
+    url: import.meta.env.VITE_URL_MAIN + "updateFechasMaster",
+    data: {
+      fecha_etd: exp.value.fecha_etd,
+      fecha_eta: exp.value.fecha_eta,
+      fecha_disponibilidad: exp.value.fecha_disponibilidad,
+      salidaflag: exp.value.salidaflag,
+      llegadaflag: exp.value.llegadaflag,
+      disponibilidadflag: exp.value.disponibilidadflag,
+      id: exp.value.id,
+    },
+  });
+  loading.value = false;
+  Swal.fire({ icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info", text: answer.mensaje });
+  if (!answer.estadoflag) return;
+  dialogFecha.value = false;
+  await appStore._getMasterList();
 }
 function abrirModalSeleccionQuote() {
   Swal.fire({
@@ -242,33 +211,6 @@ function abrirModalSeleccionQuote() {
       dialogEscogerCotizacion.value = true;
     }
   });
-}
-function itemRowBackground(item: MasterListado) {
-  if (
-    item.statusLock === 1 &&
-    item.statusLockAdm === 0 &&
-    item.status === 1
-  ) {
-    return "rowRed";
-  } else if (
-    item.statusLock === 0 &&
-    item.statusLockAdm === 1 &&
-    item.status === 1
-  ) {
-    return "rowRed";
-  } else if (
-    item.statusLock === 1 &&
-    item.statusLockAdm === 1 &&
-    item.status === 1
-  ) {
-    return "rowRedMark";
-  } else if (item.status === 0) {
-    return "rowNull";
-  } else if (item.background == "#ff9898") {
-    return "rowLlego";
-  } else if (item.background == "#f9cfcf") {
-    return "rowLlegar";
-  }
 }
 function _lockMaster(id: number) {
   Swal.fire({
@@ -525,61 +467,6 @@ function isExportacion(id: number) {
 //     : "";
 // },
 
-async function getMasterListPaginated(options: { page?: number; itemsPerPage?: number; sortBy?: string[]; sortDesc?: boolean[] } = {}) {
-  const {
-    page = 1,
-    itemsPerPage = 10,
-    sortBy = [],
-    sortDesc = [],
-  } = options;
-
-  mastersStore.master_filtro.pagina = page;
-  mastersStore.master_filtro.limite = itemsPerPage;
-  mastersStore.master_filtro.orden = sortBy
-    .map((item, i) => item + " " + (!sortDesc[i] ? "ASC" : "DESC"))
-    .toString();
-  mastersStore.master_filtro.busqueda = search.value;
-
-  loadingDataTable.value = true;
-  await appStore._getMasterList();
-  loadingDataTable.value = false;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function deleteMaster(id: number) {
-  Swal.fire({
-    html: "Si elimina el expediente máster, también se eliminarán todos los expedientes houses asociados. <br>¿Está seguro que desea continuar?",
-    showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
-    confirmButtonText: "Si",
-    cancelButtonText: "No",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const config = {
-        method: "delete",
-        url: import.meta.env.VITE_URL_MAIN + "deleteMaster/" + id,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
-
-      axios(config)
-        .then(async function (response) {
-          sessionStorage.setItem("auth-token", response.data.token);
-
-          const res = response.data;
-          if (res.status == 200) {
-            Swal.fire("", res.mensaje, "success");
-            await getMasterListPaginated();
-          }
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    }
-  });
-}
-
 onMounted(async () => {
   appStore.drawer = false;
   appStore.spiner = true;
@@ -723,7 +610,7 @@ onMounted(async () => {
         :headers="headers"
         :items="mastersConHouse"
         :search="search"
-        :row-props="({ item }) => ({ class: itemRowBackground(item) })"
+        :row-props="({ item }) => ({ class: masterRowClass(item) })"
         expand-on-click
         v-model:expanded="expanded"
         item-value="id"
@@ -863,7 +750,7 @@ onMounted(async () => {
             <v-list>
               <v-list-item
                 class="itemMenu"
-                v-if="!item.statuslock && item.status == 1"
+                v-if="!isMasterClosed(item) && item.status == 1"
               >
                 <v-list-item-title
                   small
@@ -1055,7 +942,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <v-btn
                 variant="text"
-                v-if="item.status == 1"
+                v-if="!isMasterClosed(item) && item.status == 1"
                 color="#212121"
                 size="small"
                 icon

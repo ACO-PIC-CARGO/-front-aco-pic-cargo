@@ -210,7 +210,7 @@ describe("app store", () => {
 
   test("_getMasterList filters by the operational status the API reads", async () => {
     respond({ getMasterList: accepted([]) });
-    useMastersStore().master_filtro = { ...emptyFilter(), status_operativo: 1 };
+    useMastersStore().master_filtro = { ...emptyFilter(), id_tipo_embarque: embarque(2), status_operativo: 1 };
 
     await useAppStore()._getMasterList();
 
