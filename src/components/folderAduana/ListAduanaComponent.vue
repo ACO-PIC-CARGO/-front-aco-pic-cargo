@@ -4,7 +4,6 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
-import { useSecuritysStore } from "@/stores/securitys";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
@@ -14,7 +13,6 @@ const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
-const securitysStore = useSecuritysStore();
 
 const lstPricing = ref(true);
 const id_status = ref<number | string | null>(null);
@@ -23,16 +21,12 @@ const search = ref("");
 const dialogRegistroNotaLlamada = ref(false);
 const expanded = ref<CotizacionListado[]>([]);
 const singleExpand = false;
-const loading = ref(false);
-const loading2 = ref(false);
-const loading3 = ref(false);
 const dialog = ref(false);
 const fromData = ref<FormNotaLlamada>({
   date: moment().format("YYYY-MM-DD"),
   descripcion: "",
   identities: sessionUserIdOrEmpty(),
 });
-const aprobarflag = ref(false);
 const cabCotizaciones = [
     {
       key: "acciones",
@@ -135,80 +129,14 @@ const cabCotizaciones = [
       estado: true,
     },
 ] as const;
-const filtro = {
-  idmarketing: null,
-  idstatus: null,
-  identities: null,
-  idmodality: null,
-  idshipment: null,
-  idincoterm: null,
-  fechainicio: null,
-  fechafin: null,
-  estado: "activo",
-};
 const quote = ref<CotizacionListado | null>(null);
 const id_master_recibidocotizacion = ref<number | string>("");
 const id_master_enviadocliente = ref<number | string>("");
 const fecha_enviocliente = ref("");
-const nuevoexpediente = ref(true);
-const id_exp = ref<number | string>("");
-let fecha_validez: string | undefined;
+const callAduanaId = ref<number>();
 const frmEstado = useTemplateRef("frmEstado");
 const detallenota = useTemplateRef("detallenota");
-const frmAprobar = useTemplateRef("frmAprobar");
 
-async function iraAprobado(id: number | undefined) {
-  let val = false;
-  let msg = "";
-
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    focusConfirm: false,
-    didOpen: () => {
-      // Aquí forzamos el foco manualmente
-      document.getElementById("swal-input1")!.focus();
-    },
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value;
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value;
-
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-
-      return {
-        usuario: input1,
-        clave: input2,
-      };
-    },
-  }).then(async (result) => {
-    if (result.isConfirmed && result.value) {
-      const res = await securitysStore.validarUsuarioAdmin(result.value);
-      val = res!.estadoflag === true;
-      msg = res!.mensaje;
-    }
-  });
-
-  if (!val) {
-    if (msg) {
-      await Swal.fire({ icon: "error", text: msg });
-    }
-    return;
-  }
-  router.push({
-    name: "EditarAduana",
-    params: {
-      id: id,
-    },
-  });
-}
 function fecha(fecha: string | undefined) {
   moment.locale("es");
   const newFecha = moment(fecha).format("YYYY-MMM-DD HH:mm");
@@ -236,28 +164,6 @@ function to_direct({ url }: { url: string }) {
   window.open(url, "_blank");
 }
 
-async function reporteListado() {
-  loading2.value = true;
-  // @ts-expect-error the action destructures other keys, so the filter is ignored.
-  await pricingStore.imprimiReporteListado(filtro).catch((e) => {
-    console.error(e);
-  });
-  loading2.value = false;
-}
-async function excelListadoQuote() {
-  loading3.value = true;
-  await pricingStore.exportarExcelListadoQuote().catch((e) => {
-    console.error(e);
-  });
-  loading3.value = false;
-}
-async function imprimirListMercadeo() {
-  loading.value = true;
-  await pricingStore.imprimirMercadeo().catch((e) => {
-    console.error(e);
-  });
-  loading.value = false;
-}
 function abrirModal(quoteFila: CotizacionListado) {
   quote.value = quoteFila;
   id_master_recibidocotizacion.value = quoteFila.id_master_recibidocotizacion!;
@@ -277,10 +183,11 @@ async function updateQuoteRecibidoEnviado() {
       comentario: comentario.value,
       id_pricing: sessionUser().id,
     };
-    await aduanaStore.actualizarAduanaRecibidoEnviado(data);
+    const saved = await aduanaStore.actualizarAduanaRecibidoEnviado(data);
+    appStore.spiner = false;
+    if (!saved) return;
     await aduanaStore.getListQuoteAduana();
     dialog.value = false;
-    appStore.spiner = false;
     frmEstado.value!.reset();
   }
 }
@@ -290,7 +197,7 @@ function registrarLlamada(id: number | undefined) {
     descripcion: "",
     identities: sessionUserIdOrEmpty(),
   };
-  pricingStore.id = id!;
+  callAduanaId.value = id;
   dialogRegistroNotaLlamada.value = true;
 }
 async function guardarNota() {
@@ -299,119 +206,14 @@ async function guardarNota() {
     appStore.spiner = true;
 
     const data = {
-      id_quote: pricingStore.id,
+      id_quote: callAduanaId.value,
       id_operador: fromData.value.identities,
       comentario: fromData.value.descripcion,
       fecha: fromData.value.date,
     };
 
-    await aduanaStore.guardarNotaAduana(data).catch((err) => {
-      console.log(err);
-    });
-    await aduanaStore.getListQuoteAduana().catch((err) => {
-      console.log(err);
-    });
+    if (await aduanaStore.guardarNotaAduana(data)) await aduanaStore.getListQuoteAduana();
 
-    appStore.spiner = false;
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function abrirModalAprobar({ item: item }: { item: CotizacionListado }) {
-  quote.value = item;
-  nuevoexpediente.value = true;
-  id_exp.value = "";
-  Swal.fire({
-    icon: "question",
-    iconColor: "red",
-    text: "¿Desea crear un nuevo expediente o seleccionar uno registrado?",
-    showConfirmButton: true,
-    confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-    showDenyButton: true,
-    denyButtonText: "SELECCIONAR EXPEDIENTE",
-    showCancelButton: true,
-    cancelButtonText: "CERRAR",
-    allowOutsideClick: false,
-  }).then(async (res) => {
-    if (res.isConfirmed) {
-      Swal.fire({
-        icon: "warning",
-        title: "Fecha de Validez de la Cotización",
-        html: '<input type="date" id="swal-input1" class="swal2-input">',
-        allowOutsideClick: false,
-        confirmButtonText: "ACEPTAR",
-        showCancelButton: true,
-        cancelButtonText: "CANCELAR",
-        preConfirm: () => {
-          const dateInput = (document.getElementById("swal-input1") as HTMLInputElement).value;
-          if (!dateInput) {
-            Swal.showValidationMessage("La fecha de validez es requerida");
-          } else {
-            const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
-            const currentDate = moment(); // Obtiene la fecha actual
-
-            if (selectedDate.isSameOrBefore(currentDate)) {
-              Swal.showValidationMessage(
-                "La fecha debe ser mayor que la fecha actual"
-              );
-            } else {
-              return dateInput;
-            }
-          }
-        },
-      }).then(async (res) => {
-        fecha_validez = res.value;
-        if (res.isConfirmed) {
-          Swal.fire({
-            icon: "info",
-            title: "Aprobando Cotizacion",
-            timerProgressBar: true,
-            allowOutsideClick: false,
-            timer: null as unknown as number,
-            didOpen: () => {
-              Swal.showLoading();
-            },
-          });
-          await pricingStore.aprobarCotizacion({
-            id_quote: quote.value!.id,
-            nuevoexpediente: true,
-            id_exp: id_exp.value,
-            fecha_validez: fecha_validez,
-          });
-          appStore.spiner = true;
-          await aduanaStore.getListQuoteAduana();
-          appStore.spiner = false;
-        }
-      });
-    }
-    if (res.isDenied) {
-      nuevoexpediente.value = false;
-      aprobarflag.value = true;
-    }
-  });
-}
-
-async function aprobar() {
-  if ((await frmAprobar.value!.validate()).valid) {
-    Swal.fire({
-      icon: "info",
-      title: "Aprobando Cotizacion",
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-    await pricingStore.aprobarCotizacion({
-      id_quote: quote.value!.id,
-      nuevoexpediente: nuevoexpediente.value,
-      id_exp: id_exp.value,
-      fecha_validez: fecha_validez,
-    });
-    appStore.spiner = true;
-    await aduanaStore.getListQuoteAduana();
-    aprobarflag.value = false;
     appStore.spiner = false;
   }
 }
@@ -428,29 +230,10 @@ function ira(ruta: string, id: number | undefined) {
   // }, 100);
 }
 
-async function eliminar(id: number | undefined, codigo: string | undefined) {
-  Swal.fire({
-    title: "ADVERTENCIA",
-    text: "DESEA ELIMINAR LA COTIZACIÓN CON CÓDIGO: " + codigo,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "ACEPTAR",
-    cancelButtonText: "CANCELAR",
-    reverseButtons: false,
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      pricingStore.eliminarRegistro(id!);
-      Swal.fire(
-        "ELIMINADO!",
-        "COTIZACIÓN " + codigo + " ELIMINADA CON ÉXITO",
-        "success"
-      );
-      lstPricing.value = false;
-      await aduanaStore.getListQuoteAduana().catch((err) => {
-        console.log(err);
-      });
-      lstPricing.value = true;
-    }
+async function eliminar() {
+  await Swal.fire({
+    icon: "info",
+    text: "Por ahora las cotizaciones de aduana no se pueden eliminar desde aquí. Si ya no la necesitas, cambia su estado o pide ayuda a tu administrador.",
   });
 }
 
@@ -492,55 +275,6 @@ onMounted(async () => {
           v-model="search"
           append-inner-icon="mdi-magnify"
         />
-      </v-col>
-      <v-col cols="8">
-        <v-col
-          cols="6"
-          offset-md="6"
-          class="text-right"
-        >
-          <v-btn
-            color="red"
-            @click="reporteListado()"
-            class="mx-1"
-            :loading="loading2"
-            :disabled="loading2"
-            size="small"
-          >
-            <v-icon>mdi-file-pdf-box</v-icon> REPORTE
-          </v-btn>
-          <v-btn
-            color="teal-darken-4"
-            @click="excelListadoQuote()"
-            class="mx-1"
-            :loading="loading3"
-            :disabled="loading3"
-            size="small"
-          >
-            <v-icon>mdi-file-excel</v-icon> REPORTE
-          </v-btn>
-          <v-btn
-            color="red"
-            @click="imprimirListMercadeo()"
-            class="mx-1"
-            :loading="loading"
-            :disabled="loading"
-            size="small"
-          >
-            <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
-          </v-btn>
-          <v-btn
-            color="info"
-            @click="
-              pricingStore.filtrarQuoteFlag =
-                !pricingStore.filtrarQuoteFlag
-            "
-            class="mx-1"
-            size="small"
-          >
-            Filtrar
-          </v-btn>
-        </v-col>
       </v-col>
     </v-row>
     <!-- @vue-expect-error return-object makes the expanded model hold rows, the typing says string ids -->
@@ -600,27 +334,6 @@ onMounted(async () => {
                    
                     @click="ira('EditarAduana', item.id)"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
-                  >
-                    <v-icon
-                      color="#FB9514"
-                      size="small"
-                    >
-                      mdi-pencil
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <span>Editar</span>
-              </v-tooltip>
-              <v-tooltip location="top">
-                <template #activator="{ props }">
-                  <v-btn
-                    variant="text"
-                    icon
-                    size="x-small"
-                    v-bind="props"
-                   
-                    v-if="item.aprobadoflag"
-                    @click="iraAprobado(item.id)"
                   >
                     <v-icon
                       color="#FB9514"
@@ -707,7 +420,7 @@ onMounted(async () => {
                     size="x-small"
                    
                     v-bind="props"
-                    @click="eliminar(item.id, item.codigo)"
+                    @click="eliminar()"
                     v-if="!(item.statusmain == 0 || item.aprobadoflag)"
                   >
                     <v-icon
@@ -959,64 +672,6 @@ onMounted(async () => {
               Cancelar
             </v-btn>
           </div>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="aprobarflag"
-      scrollable
-      persistent
-      max-width="35%"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
-          SELECCIONE EL EXPEDIENTE A ASOCIAR:
-          <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="aprobarflag = !aprobarflag"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="frmAprobar">
-            <v-row>
-              <v-autocomplete
-                :items="appStore.itemsMasterList"
-                v-model="id_exp"
-                label="Expediente"
-                item-title="code_master"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato Requerido']"
-              />
-            </v-row>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            class="mx-1"
-            size="small"
-            @click="aprobar()"
-            color="success"
-          >
-            Generar
-          </v-btn>
-          <v-btn
-            class="mx-1"
-            size="small"
-            color="error"
-            @click="aprobarflag = !aprobarflag"
-          >
-            Cancelar
-          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, useTemplateRef } from "vue";
+import { useRouter } from "vue-router";
 import moment from "moment";
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
@@ -7,17 +8,16 @@ import { useAduanaStore } from "@/stores/aduana";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
 
+const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
 
 const search = "";
-const loading4 = ref(false);
 const dialogRegistroNotaLlamada = ref(false);
 const detallenota = useTemplateRef("detallenota");
-let fromData = undefined as unknown as FormNotaLlamada;
-// Not defined anywhere, so calling it throws.
-const accionVerCotizacion = undefined as unknown as (id?: number) => void;
+const fromData = ref<FormNotaLlamada>({ date: "", descripcion: "", identities: "" });
+const callAduanaId = ref<number>();
 const headers = [
     { key: "acciones", title: "", align: "center", estado: true },
     { key: "status", title: "ESTATUS ", aling: "center", estado: true },
@@ -78,22 +78,16 @@ const filtro = {
   hasta: "",
 };
 
-async function imprimierCalls() {
-  appStore.spiner = true;
-  loading4.value = true;
-  // @ts-expect-error the action destructures other keys, so filtro is ignored.
-  await pricingStore.imprimiReporteListadoCalls({ filtro: filtro });
-  loading4.value = false;
-  appStore.spiner = false;
+function accionVerCotizacion(id: number | undefined) {
+  router.push({ name: "VerAduana", params: { id } });
 }
 function registrarLlamada(id: number | undefined) {
-  fromData = {
+  fromData.value = {
     date: moment().format("YYYY-MM-DD"),
     descripcion: "",
     identities: sessionUserIdOrEmpty(),
   };
-  console.log(id);
-  pricingStore.id = id!;
+  callAduanaId.value = id;
   dialogRegistroNotaLlamada.value = true;
 }
 async function guardarNota() {
@@ -102,18 +96,13 @@ async function guardarNota() {
     appStore.spiner = true;
 
     const data = {
-      id_quote: pricingStore.id,
-      id_operador: fromData.identities,
-      comentario: fromData.descripcion,
-      fecha: fromData.date,
+      id_quote: callAduanaId.value,
+      id_operador: fromData.value.identities,
+      comentario: fromData.value.descripcion,
+      fecha: fromData.value.date,
     };
 
-    await pricingStore.guardarNotaQuote(data).catch((err) => {
-      console.log(err);
-    });
-    await aduanaStore.getQuoteCallAduana(filtro).catch((err) => {
-      console.log(err);
-    });
+    if (await aduanaStore.guardarNotaAduana(data)) await aduanaStore.getQuoteCallAduana(filtro);
 
     appStore.spiner = false;
   }
@@ -181,40 +170,6 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-row>
-      <v-col
-        cols="8"
-        offset="4"
-      >
-        <v-col
-          cols="6"
-          offset-md="6"
-          class="text-right"
-        >
-          <v-btn
-            color="red"
-            @click="imprimierCalls()"
-            class="mx-1"
-            :loading="loading4"
-            :disabled="loading4"
-            size="small"
-          >
-            <v-icon>mdi-file-pdf-box</v-icon> Imprimir
-          </v-btn>
-          <v-btn
-            color="info"
-            @click="
-              pricingStore.filtrarCallsFlag =
-                !pricingStore.filtrarCallsFlag
-            "
-            class="mx-1"
-            size="small"
-          >
-            Filtrar
-          </v-btn>
-        </v-col>
-      </v-col>
-    </v-row>
     <v-row>
       <v-data-table
         density="compact"

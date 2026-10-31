@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { usePricingStore } from "@/stores/pricing";
+import { useAduanaStore } from "@/stores/aduana";
 import { currencyFormat } from "@/utils/cotizacion";
 import type { Impuesto, Numerico } from "@/types/cotizacion";
 
@@ -10,7 +10,7 @@ const props = defineProps<{
   index?: number | string;
 }>();
 
-const pricingStore = usePricingStore();
+const aduanaStore = useAduanaStore();
 
 const mostrar = ref(true);
 const headers = [
@@ -24,44 +24,44 @@ const noPorcentaje = ["04", "01", "02", "10", "11", "12"];
 const abierto = ref(0);
 
 const actualizarCostosFlag = computed(() => {
-  return pricingStore.actualizarCostosFlag;
+  return aduanaStore.actualizarCostosFlag;
 });
 
 function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impuesto }) {
   let monto: number | string = 0;
   if (item.codigo === "01") {
     monto = parseFloat(
-      String(pricingStore.datosPrincipales.amount)
+      String(aduanaStore.datosPrincipales.amount)
     ).toFixed(2);
   }
   if (item.codigo === "02") {
-    monto = parseFloat(String(pricingStore.totalFlete)).toFixed(2);
+    monto = parseFloat(String(aduanaStore.totalFlete)).toFixed(2);
   }
   if (item.codigo === "03") {
     monto = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (item.codigo01 as number)) /
         100)
     ).toFixed(2);
   }
   if (item.codigo === "04") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );
     monto = parseFloat(String(fob)) + parseFloat(String(flet)) + parseFloat(String(seguro));
   }
   if (item.codigo === "05") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );
@@ -69,12 +69,12 @@ function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impu
     monto = (cif * (item.codigo01 as number)) / 100;
   }
   if (item.codigo === "06") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
 
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );
@@ -83,12 +83,12 @@ function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impu
     monto = ((cif + adv) * (item.codigo01 as number)) / 100;
   }
   if (item.codigo === "07") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
 
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );
@@ -98,12 +98,12 @@ function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impu
     monto = ((cif + adv + isc) * (item.codigo01 as number)) / 100;
   }
   if (item.codigo === "08") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
 
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );
@@ -113,12 +113,12 @@ function calcularImpuestos({ item = null as unknown as Impuesto }: { item?: Impu
     monto = ((cif + adv + isc) * (item.codigo01 as number)) / 100;
   }
   if (item.codigo === "09") {
-    const fob = parseFloat(String(pricingStore.datosPrincipales.amount));
-    const flet = parseFloat(String(pricingStore.totalFlete));
+    const fob = parseFloat(String(aduanaStore.datosPrincipales.amount));
+    const flet = parseFloat(String(aduanaStore.totalFlete));
 
     const seguro = parseFloat(
-      String(((parseFloat(String(pricingStore.totalFlete)) +
-        parseFloat(String(pricingStore.datosPrincipales.amount))) *
+      String(((parseFloat(String(aduanaStore.totalFlete)) +
+        parseFloat(String(aduanaStore.datosPrincipales.amount))) *
         (obtenerPorcentaje({ code: "03" }) as number)) /
         100)
     );

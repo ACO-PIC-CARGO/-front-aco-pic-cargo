@@ -61,7 +61,6 @@ onMounted(() => {
   pricingStore.e1 = 1;
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string) as { existecot?: boolean };
   dialog.value = !val.existecot;
-  pricingStore.getResumenPorEstado();
 });
 </script>
 
@@ -117,28 +116,6 @@ onMounted(() => {
         </v-col>
       </v-row>
     </v-card>
-    <v-navigation-drawer
-      v-model="pricingStore.filtrarQuoteFlag"
-      location="right"
-      
-      width="20%"
-      temporary
-    >
-      <!-- <v-card elevation="10">
-        <FiltroQuote />
-      </v-card> -->
-    </v-navigation-drawer>
-    <v-navigation-drawer
-      v-model="pricingStore.filtrarCallsFlag"
-      location="right"
-      
-      width="20%"
-      temporary
-    >
-      <!-- <v-card elevation="10">
-        <FiltroCalls />
-      </v-card> -->
-    </v-navigation-drawer>
     <v-dialog
       v-model="dialog"
       persistent

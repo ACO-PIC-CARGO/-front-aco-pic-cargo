@@ -9,7 +9,8 @@ import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
-import type { ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
+import { generateIdempotencyKey } from "@/utils/idempotencia";
+import type { AprobacionCotizacion, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
 
 const ConfigCotizacion = defineAsyncComponent(() =>
@@ -22,7 +23,6 @@ const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
 
-const notaForm = useTemplateRef("nota");
 const frmAprobar = useTemplateRef("frmAprobar");
 const masterForm = useTemplateRef("masterForm");
 
@@ -30,8 +30,7 @@ const nuevoexpediente = ref<boolean | string>("");
 const aprobarflag = ref(false);
 const id_exp = ref<number | string>("");
 const fecha_validez = ref<string | undefined>("");
-const descripcionNota = ref("");
-const dialog = ref(false);
+const IdempotencyKey = ref(generateIdempotencyKey());
 const seleccionQuoteAprobar = ref(false);
 const page = ref(1);
 const nro_propuesta = ref<number | string>("");
@@ -136,36 +135,23 @@ function verificarMaster() {
   }
   console.log(textValidacionCotizacionMaster.value);
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function imprimir() {
-  for (
-    let index = 0;
-    index <
-    aduanaStore.opcionCostos.filter((v) => !!v.selected)
-      .length;
-    index++
-  ) {
-    ((index: number) => {
-      pricingStore.imprimirInstructivoQuote(
-        aduanaStore.opcionCostos[index]!
-          .nro_propuesta as unknown as { nro_propuesta?: number }
-      );
-    })(index); // Pasamos 'index' como argumento y establecemos el contexto a 'this'
+async function approveAduana(details: AprobacionCotizacion) {
+  Swal.fire({
+    icon: "info",
+    title: "Aprobando Cotizacion",
+    timerProgressBar: true,
+    allowOutsideClick: false,
+    timer: null as unknown as number,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+  const approved = await aduanaStore.aprobarCotizacionAduana({ ...details, IdempotencyKey: IdempotencyKey.value });
+  if (!approved) {
+    IdempotencyKey.value = generateIdempotencyKey();
+    return;
   }
-}
-async function guardarNota() {
-  if ((await notaForm.value!.validate()).valid) {
-    appStore.spiner = true;
-    const data = {
-      name: descripcionNota.value,
-      id_quote: route.params.id,
-    };
-    await pricingStore.setNoteQuote(data);
-    notaForm.value!.reset();
-    await pricingStore.getInstructivoId({ id: route.params.id as string });
-    dialog.value = false;
-    appStore.spiner = false;
-  }
+  await aduanaStore.GuardaCostosFinalesAduana();
 }
 async function abrirSeleccionDeQuoteAAprobar() {
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string);
@@ -305,17 +291,7 @@ async function abrirModalAprobar() {
                   (v) => v.nro_propuesta == nro_propuesta.value
                 )[0]!.dataVentas;
               if (res.isConfirmed) {
-                Swal.fire({
-                  icon: "info",
-                  title: "Aprobando Cotizacion",
-                  timerProgressBar: true,
-                  allowOutsideClick: false,
-                  timer: null as unknown as number,
-                  didOpen: () => {
-                    Swal.showLoading();
-                  },
-                });
-                await aduanaStore.aprobarCotizacionAduana({
+                await approveAduana({
                   id_quote: route.params.id,
                   nuevoexpediente: true,
                   id_exp: id_exp.value,
@@ -427,17 +403,7 @@ async function abrirModalAprobar() {
                 (v) => v.nro_propuesta == nro_propuesta.value
               )[0]!.dataVentas;
             if (res.isConfirmed) {
-              Swal.fire({
-                icon: "info",
-                title: "Aprobando Cotizacion",
-                timerProgressBar: true,
-                allowOutsideClick: false,
-                timer: null as unknown as number,
-                didOpen: () => {
-                  Swal.showLoading();
-                },
-              });
-              await aduanaStore.aprobarCotizacionAduana({
+              await approveAduana({
                 id_quote: route.params.id,
                 nuevoexpediente: true,
                 id_exp: id_exp.value,
@@ -569,17 +535,7 @@ async function aprobar() {
       (v) => v.nro_propuesta == nro_propuesta.value
     )[0]!.dataVentas;
   if ((await masterForm.value!.validate()).valid) {
-    Swal.fire({
-      icon: "info",
-      title: "Aprobando Cotizacion",
-      timerProgressBar: true,
-      allowOutsideClick: false,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-    await aduanaStore.aprobarCotizacionAduana({
+    await approveAduana({
       id_quote: route.params.id,
       nuevoexpediente: false,
       id_exp: id_exp.value,
@@ -939,14 +895,6 @@ function getProveedor(element: OpcionCosto) {
           >
             <h4 class="mb-5 ml-1">
               NOTAS ESPECIALES:
-              <v-btn
-                variant="text"
-                color="success"
-                @click="dialog = !dialog"
-                icon
-              >
-                <v-icon>mdi-plus</v-icon>
-              </v-btn>
             </h4>
             <v-table
               density="compact"
@@ -1143,34 +1091,6 @@ function getProveedor(element: OpcionCosto) {
         </v-row>
       </v-col>
     </v-row>
-    <v-dialog
-      v-model="dialog"
-      max-width="600px"
-      transition="dialog-transition"
-    >
-      <v-card>
-        <v-card-title primary-title>
-          NUEVA NOTA:
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="nota">
-            <v-text-field
-              label="DESCRIPCIÓN"
-              v-model="descripcionNota"
-            />
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-btn
-            color="success"
-            variant="text"
-            @click="guardarNota"
-          >
-            Añadir
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
     <v-dialog
       v-model="dialogConfig"
       persistent

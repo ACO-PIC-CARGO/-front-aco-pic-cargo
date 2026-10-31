@@ -7,10 +7,17 @@ import http from "@/api/http";
 import VerAduana from "@/views/Aduana/VerAduana.vue";
 import EditarAduana from "@/views/Aduana/EditarAduana.vue";
 import NewQuote from "@/views/Aduana/NewQuote.vue";
+import ListAduana from "@/views/Aduana/ListAduana.vue";
+import InstructivoComponent from "@/components/folderAduana/VerComponent/InstructivoComponent.vue";
+import ListAduanaComponent from "@/components/folderAduana/ListAduanaComponent.vue";
+import ListCallComponent from "@/components/folderAduana/ListCallComponent.vue";
+import ImpuestosComponent from "@/components/folderAduana/Costos/ImpuestosComponent.vue";
 import { useAppStore } from "@/stores/app";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected } from "@/stores/__tests__/catalogHttp";
 import { ADUANA_APPROVED_MESSAGE, ADUANA_NOT_FOUND_MESSAGE } from "@/utils/aduanaScreen";
+import type { AprobacionCotizacion } from "@/types/cotizacion";
 
 const push = vi.hoisted(() => vi.fn());
 vi.mock("vue-router", () => ({ useRoute: () => ({ params: { id: "14" } }), useRouter: () => ({ push }) }));
@@ -143,5 +150,84 @@ describe("Nueva cotización de aduana", () => {
     expect(requestsTo("setQuote")).toHaveLength(0);
     expect(aduana.id).toBe(15);
     expect(push).toHaveBeenCalledWith(LIST);
+  });
+});
+
+describe("Aprobar desde el instructivo", () => {
+  test("a failed approval is retried with a new key and only a real approval saves the final amounts", async () => {
+    const { vm, aduana } = await openScreen(InstructivoComponent);
+    const approve = vi.spyOn(aduana, "aprobarCotizacionAduana").mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+    const saveFinalAmounts = vi.spyOn(aduana, "GuardaCostosFinalesAduana").mockResolvedValue(undefined);
+
+    await vm.approveAduana!({ id_quote: "14" });
+    expect(saveFinalAmounts).not.toHaveBeenCalled();
+    await vm.approveAduana!({ id_quote: "14" });
+
+    const [firstKey, retryKey] = approve.mock.calls.map(([data]) => (data as AprobacionCotizacion).IdempotencyKey);
+    expect(firstKey).toBeTruthy();
+    expect(retryKey).toBeTruthy();
+    expect(retryKey).not.toBe(firstKey);
+    expect(saveFinalAmounts).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("Listado de aduanas", () => {
+  test("opening the list does not load Pricing's status summary", async () => {
+    await openScreen(ListAduana);
+
+    expect(requestsTo("resumen_por_estado")).toHaveLength(0);
+  });
+
+  test("deleting is not offered as a Pricing delete and explains why", async () => {
+    const { vm } = await openScreen(ListAduanaComponent);
+
+    await vm.eliminar!(14, "00000014");
+
+    expect(requestsTo("delQuote")).toHaveLength(0);
+    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "info", text: expect.stringContaining("no se pueden eliminar") }));
+  });
+
+  test("a call registered from the list is saved on the aduana", async () => {
+    const { vm, wrapper } = await openScreen(ListAduanaComponent, () => {}, { renderStubDefaultSlot: true });
+    usePricingStore().id = 999;
+
+    vm.registrarLlamada!(14);
+    await wrapper.vm.$nextTick();
+    await vm.guardarNota!();
+    await flushPromises();
+
+    expect(requestsTo("set_calls_aduana").map(([config]) => (config.data as { id_quote: number }).id_quote)).toEqual([14]);
+    expect(usePricingStore().id).toBe(999);
+  });
+
+  test("a call registered from the calls tab is saved on the aduana, not on a Pricing quote", async () => {
+    const { vm, wrapper } = await openScreen(ListCallComponent, () => {}, { renderStubDefaultSlot: true });
+
+    vm.registrarLlamada!(14);
+    await wrapper.vm.$nextTick();
+    await vm.guardarNota!();
+    await flushPromises();
+
+    expect(requestsTo("set_calls_aduana").map(([config]) => (config.data as { id_quote: number }).id_quote)).toEqual([14]);
+    expect(requestsTo("setCalls")).toHaveLength(0);
+  });
+});
+
+describe("Impuestos de aduana", () => {
+  test("are computed with the aduana's goods value and freight, not Pricing's", async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const aduana = useAduanaStore();
+    aduana.datosPrincipales.amount = 5000;
+    aduana.totalFlete = 300;
+    usePricingStore().datosPrincipales.amount = 1;
+    usePricingStore().totalFlete = 1;
+    const wrapper = shallowMount(ImpuestosComponent, {
+      props: { impuestos: [{ codigo: "01", codigo01: 0, nro_propuesta: 1 }, { codigo: "02", codigo01: 0, nro_propuesta: 1 }] },
+      global: { plugins: [pinia] },
+    });
+    const vm = wrapper.vm as unknown as { calcularImpuestos: (args: { item: { codigo: string } }) => string };
+
+    expect([vm.calcularImpuestos({ item: { codigo: "01" } }), vm.calcularImpuestos({ item: { codigo: "02" } })]).toEqual(["5000.00", "300.00"]);
   });
 });
