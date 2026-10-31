@@ -8,15 +8,21 @@ import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useHousesStore } from "@/stores/houses";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import {
+  activeConcepts,
+  conceptTotals,
+  priceConcept,
+  repriceConcept,
+  repriceConcepts,
+  type AccountConcept,
+} from "@/utils/accountConcepts";
 import type { TipoBalance } from "@/types/finanzas";
 import type {
   ArchivoSoporte,
   ComprobanteCuenta,
-  ConceptoCuenta,
   ConceptoNuevo,
   ExpedienteCuenta,
-  TotalCuenta,
 } from "@/types/modulesPays";
 
 const props = defineProps<{
@@ -36,6 +42,7 @@ const housesStore = useHousesStore();
 const enterprisesStore = useEnterprisesStore();
 const InvoiceAdmin = computed(() => appStore.InvoiceAdmin);
 const validacionConcepto = useTemplateRef("validacionConcepto");
+const frmFactura = useTemplateRef("frmFactura");
 
 const tipoingreso = ref<number | null>(null);
 const id_tipoingreso = ref<number | null>(null);
@@ -52,7 +59,7 @@ const id_path = ref<string | number | null>("");
 const boolFile = ref(false);
 const itemsExpedientes = ref<ExpedienteCuenta[]>([]);
 const itemsProformace = ref<unknown[]>([]);
-const itemsproductos = ref<ConceptoCuenta[]>([]);
+const itemsproductos = ref<AccountConcept[]>([]);
 const producto = ref({} as ConceptoNuevo);
 const facturaFlag = ref(false);
 const serieFlag = ref(false);
@@ -68,14 +75,11 @@ type MonedaFila = (typeof appStore.itemsCoinsList)[number];
 const id_coins = ref("" as unknown as MonedaFila);
 const monto = ref("");
 const igv = ref("");
-const total = ref<TotalCuenta>({
-  monto: 0,
-  total: 0,
-});
+const totals = computed(() => conceptTotals(itemsproductos.value));
+const saving = ref(false);
 const dialogPro = ref(false);
 const id_month = ref<string | number>("");
 const id_year = ref<string | number>("");
-const row = ref<string | number>("");
 const tipocambio = ref(1);
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -88,11 +92,7 @@ let email: string;
 let select: null;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let checkbox: boolean;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let itemsInvoice: unknown;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let dialogInvoice: boolean;
-const _getInvoice = undefined as unknown as () => void;
+const taxRate = () => Number(enterprisesStore.impuesto.impuesto) || 0;
 
 function validarMonto(v: string | number) {
   if (!v) return "Dato Requerido";
@@ -167,47 +167,8 @@ function clear() {
   select = null;
   checkbox = false;
 }
-function recalcularMonto(prod: ConceptoCuenta, index: number) {
-  let igv = 0;
-  let igvdolar = 0;
-  let total = parseFloat(String(prod.monto));
-  const montodolar = parseFloat(String((prod.monto as number) / tipocambio.value));
-  let totaldolar = parseFloat(String((prod.monto as number) / tipocambio.value));
-  // ------------------------------
-  if (prod.afecto == "true" || prod.afecto == 1) {
-    igv =
-      (parseFloat(String(prod.monto)) *
-        enterprisesStore.impuesto.impuesto!) /
-      100;
-
-    igvdolar = parseFloat(String(igv / tipocambio.value));
-
-    totaldolar += parseFloat(String(igvdolar));
-    console.log("totaldolar", totaldolar);
-    total += parseFloat(String(igv));
-  }
-  // ------------------------------
-
-  const producto = {
-    id: prod.id,
-    concepto: prod.concepto,
-    monto: prod.monto,
-    montodolar: parseFloat(String(montodolar)).toFixed(2),
-    igv: parseFloat(String(igv)).toFixed(2),
-    igvdolar: parseFloat(String(igvdolar)).toFixed(2),
-    afecto: prod.afecto,
-    status: 1,
-    total: total,
-    totaldolar: totaldolar,
-  };
-
-  // Usar Vue.set para actualizar reactividad en Vue 2
-  itemsproductos.value[index] = { ...producto };
-
-  console.log(
-    "Producto después de actualizar:",
-    itemsproductos.value[index],
-  );
+function recalcularMonto(prod: AccountConcept) {
+  itemsproductos.value = repriceConcept(itemsproductos.value, prod, tipocambio.value, taxRate());
 }
 function _valida() {
   if (props.operativa == 1) {
@@ -264,11 +225,7 @@ function _uploadFile() {
     });
 }
 async function _getMasterList() {
-  const data = {
-    id_branch: sessionBranchId(),
-  };
   const config = {
-    data: data,
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getHouseListAll",
 
@@ -315,15 +272,52 @@ function cleanData() {
   id_coins.value = "" as unknown as MonedaFila;
   monto.value = "";
   igv.value = "";
-  total.value = "" as unknown as TotalCuenta;
   payPath.value = "";
   boolFile.value = false;
   facturaFlag.value = false;
   serieFlag.value = false;
 }
+function accountPayload() {
+  return {
+    type_payment: radio.value || null,
+    id_expediente: id_expediente.value || null,
+    id_cliente: id_cliente.value || null,
+    fecha: date.value || null,
+    nro_factura: nro_factura.value || null,
+    nro_serie: nro_serie.value || null,
+    id_coins: id_coins.value?.id ?? null,
+    monto: totals.value.total,
+    montodolar: totals.value.totaldolar,
+    type_igv: igv.value || null,
+    id_path: payPath.value || null,
+    detalle: activeConcepts(itemsproductos.value),
+    id_proformance: id_proformace.value?.id ?? null,
+    id_month: id_month.value || null,
+    id_year: id_year.value || null,
+    tipocambio: tipocambio.value,
+    id_tipoingreso: id_tipoingreso.value,
+  };
+}
+async function saveAccount(method: "post" | "put", url: string, extra: Record<string, unknown> = {}) {
+  if (!validarFormulario() || !(await frmFactura.value!.validate()).valid) return false;
+  Swal.fire({
+    icon: "info",
+    title: "Guardando...",
+    text: "Por favor espere",
+  });
+  const answer = await request({
+    method,
+    url: import.meta.env.VITE_URL_MAIN + url,
+    data: { ...accountPayload(), ...extra },
+  });
+  if (!answer.estadoflag) {
+    Swal.fire({ icon: hasFailed(answer) ? "error" : "info", text: answer.mensaje });
+    return false;
+  }
+  return true;
+}
 async function _setInvoice() {
-  const validacion = validarFormulario();
-  if (itemsproductos.value.length == 0) {
+  if (activeConcepts(itemsproductos.value).length == 0) {
     Swal.fire({
       icon: "error",
       title: "Aviso",
@@ -337,245 +331,50 @@ async function _setInvoice() {
     });
     return false;
   }
-  if (validacion == true) {
+  if (saving.value) return;
+  saving.value = true;
+  const saved = await saveAccount("post", "setInvoiceAdminCxC");
+  saving.value = false;
+  if (saved) {
     Swal.fire({
-      icon: "info",
-      title: "Guardando...",
-      text: "Por favor espere",
+      icon: "success",
+      title: "Documento Cargado",
+      text: "El documento ha sido cargado correctamente",
     });
-    const productos = itemsproductos.value.filter((v) => v.status == 1);
-    const data = {
-      type_payment: radio.value,
-      id_expediente: id_expediente.value,
-      id_cliente: id_cliente.value,
-      fecha: date.value,
-      nro_factura: nro_factura.value,
-      nro_serie: nro_serie.value,
-      id_coins: id_coins.value.id,
-      monto: total.value.total,
-      montodolar: total.value.totaldolar,
-      type_igv: igv.value,
-      //igv: vm.,
-      total: total.value.total,
-      status: 1,
-      id_path: payPath.value,
-      detalle: productos,
-      id_proformance: id_proformace.value.id,
-      id_month: id_month.value,
-      id_year: id_year.value,
-      tipocambio: tipocambio.value,
-      id_tipoingreso: id_tipoingreso.value,
-      id_branch: sessionBranchId(),
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setInvoiceAdminCxC",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function (response) {
-        itemsInvoice = response.data.data;
-
-        Swal.fire({
-          icon: "success",
-          title: "Documento Cargado",
-          text: "El documento ha sido cargado correctamente",
-        });
-
-        // if (vm.radio == 1 && vm.id_proformace > 0) {
-        //   vm.putPro();
-        // } else {
-        router.back();
-        cleanData();
-        // }
-
-        // vm._getInvoice();
-        // vm.dialogInvoice = false;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    router.back();
+    cleanData();
   }
 }
 async function setUpdateInvoiceAdmin() {
-  const validacion = validarFormulario();
-  if (validacion == true) {
-    const productos = itemsproductos.value;
-    const data = {
-      type_payment: radio.value,
-      id_expediente: id_expediente.value,
-      id_cliente: id_cliente.value,
-      fecha: date.value,
-      nro_factura: nro_factura.value,
-      nro_serie: nro_serie.value,
-      id_coins: id_coins.value.id ? id_coins.value.id : id_coins.value,
-      monto: total.value.total,
-      montodolar: total.value.totaldolar,
-      type_igv: igv.value,
-      //igv: vm.,
-      total: total.value.total,
-      status: 1,
-      id_path: payPath.value,
-      detalle: productos,
-      id_proformance: id_proformace.value,
-      id_month: id_month.value,
-      id_year: id_year.value,
-      id: route.params.id,
-      tipocambio: tipocambio.value,
-      id_tipoingreso: id_tipoingreso.value,
-    };
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "setUpdateInvoiceAdminCxC",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function () {
-        Swal.fire({
-          icon: "success",
-          title: "Documento Cargado",
-          text: "El documento ha sido cargado correctamente",
-        });
-
-        if (radio.value == 1 && (id_proformace.value as unknown as number) > 0) {
-          putPro();
-        } else {
-          router.back();
-          cleanData();
-        }
-
-        router.push({
-          name: "viewAccountPaysCxC",
-          params: { id: route.params.id },
-        });
-        dialogInvoice = false;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-}
-async function putPro() {
-  const data = {
-    id_path: payPath.value,
-    id_proformace: id_proformace.value,
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "putPro",
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      cleanData();
-
-      _getInvoice();
-      router.back();
-      dialogInvoice = false;
-    })
-    .catch(function (error) {
-      console.error(error);
+  if (saving.value) return;
+  saving.value = true;
+  const saved = await saveAccount("put", "setUpdateInvoiceAdminCxC", { id: route.params.id });
+  saving.value = false;
+  if (saved) {
+    Swal.fire({
+      icon: "success",
+      title: "Documento Cargado",
+      text: "El documento ha sido cargado correctamente",
     });
+    router.push({
+      name: "viewAccountPaysCxC",
+      params: { id: route.params.id },
+    });
+  }
 }
 async function añadirProducto() {
   if (!(await validacionConcepto.value!.validate()).valid) return;
-  let igv = 0;
-  let igvdolar = 0;
-  let total = parseFloat(String(producto.value.monto));
-  const montodolar = parseFloat(String((producto.value.monto as number) / tipocambio.value));
-  let totaldolar = parseFloat(String((producto.value.monto as number) / tipocambio.value));
-  // ------------------------------
-  if (producto.value.afecto == "true" || producto.value.afecto == 1) {
-    igv =
-      (parseFloat(String(producto.value.monto)) *
-        enterprisesStore.impuesto.impuesto!) /
-      100;
-
-    igvdolar = parseFloat(String(igv / tipocambio.value));
-
-    totaldolar += parseFloat(String(igvdolar));
-    console.log("totaldolar", totaldolar);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    total += parseFloat(String(igv));
-  }
-  // ------------------------------
-
-  const productoNuevo = {
-    id: null,
-    concepto: producto.value.concepto,
-    monto: producto.value.monto,
-    montodolar: parseFloat(String(montodolar)).toFixed(2),
-    igv: parseFloat(String(igv)).toFixed(2),
-    igvdolar: parseFloat(String(igvdolar)).toFixed(2),
-    afecto: producto.value.afecto,
-    status: 1,
-    total:
-      producto.value.afecto == "true"
-        ? (parseFloat(String(producto.value.monto)) *
-            enterprisesStore.impuesto.impuesto!) /
-            100 +
-          parseFloat(String(producto.value.monto))
-        : parseFloat(String(producto.value.monto)),
-    totaldolar:
-      producto.value.afecto == "true"
-        ? parseFloat(String(
-            (parseFloat(String((producto.value.monto as number) / tipocambio.value)) *
-              enterprisesStore.impuesto.impuesto!) /
-              100 +
-              parseFloat(String((producto.value.monto as number) / tipocambio.value)),
-          )).toFixed(2)
-        : parseFloat(String(
-            parseFloat(String((producto.value.monto as number) / tipocambio.value)),
-          )).toFixed(2),
-  };
-  itemsproductos.value.push(productoNuevo);
+  itemsproductos.value.push(priceConcept({ ...producto.value, id: null }, tipocambio.value, taxRate()));
   dialog.value = false;
   producto.value = {
     concepto: "",
     monto: null,
-    afecto: true,
+    afecto: "true",
     total: 0,
   };
-  calculcularTotal();
 }
-function eliminar(producto: ConceptoCuenta) {
-  itemsproductos.value.filter((v) => v == producto)[0]!.status = 0;
-  setTimeout(() => {
-    calculcularTotal();
-  }, 200);
-}
-function calculcularTotal() {
-  const totalF = {
-    monto: 0,
-    igv: 0,
-    total: 0,
-    montodolar: 0,
-    igvdolar: 0,
-    totaldolar: 0,
-  };
-  itemsproductos.value
-    .filter((v) => v.status == 1)
-    .forEach((element) => {
-      totalF.monto += parseFloat(String(element.monto));
-      totalF.igv += parseFloat(element.igv);
-      totalF.total += parseFloat(String(element.total));
-      totalF.montodolar += parseFloat(element.montodolar);
-      totalF.igvdolar += parseFloat(element.igvdolar);
-      totalF.totaldolar += parseFloat(String(element.totaldolar));
-    });
-  total.value = totalF;
+function eliminar(producto: AccountConcept) {
+  producto.status = 0;
 }
 function validacionesRequeridas() {
   switch (id_proformace.value.code) {
@@ -631,11 +430,7 @@ function validarFormulario() {
   return validacion;
 }
 function cambiarTipodeCambio() {
-  itemsproductos.value.forEach((element) => {
-    recalcularMonto(element, itemsproductos.value.indexOf(element));
-  });
-
-  calculcularTotal();
+  itemsproductos.value = repriceConcepts(itemsproductos.value, tipocambio.value, taxRate());
 }
 function filtarSubIngreso() {
   if (!!tipoingreso.value) {
@@ -655,33 +450,40 @@ function mostrarColumna() {
 }
 
 watch(InvoiceAdmin, async () => {
-  id_proformace.value = InvoiceAdmin.value[0]!.id_proformace;
-  id_expediente.value = InvoiceAdmin.value[0]!.id_expediente;
-  id_cliente.value = InvoiceAdmin.value[0]!.id_cliente;
-  date.value = new Date(InvoiceAdmin.value[0]!.fecha)
+  const [account] = InvoiceAdmin.value;
+  if (!account) {
+    Swal.fire({
+      icon: "info",
+      text: "No encontramos esta cuenta por cobrar. Vuelve a la lista y ábrela de nuevo.",
+    });
+    return;
+  }
+  const coin = appStore.itemsCoinsList.find((item) => item.id == (account.id_coins as unknown));
+  const voucher = appStore.performances.find((item) => item.id == (account.id_proformance as unknown));
+  id_proformace.value = (voucher ?? "") as unknown as ComprobanteCuenta;
+  id_expediente.value = account.id_expediente;
+  id_cliente.value = account.id_cliente;
+  date.value = new Date(account.fecha)
     .toISOString()
     .substring(0, 10);
-  nro_factura.value = InvoiceAdmin.value[0]!.nro_factura;
-  nro_serie.value = InvoiceAdmin.value[0]!.nro_serie;
-  id_coins.value = (InvoiceAdmin.value[0]!.id_coins
-    ? InvoiceAdmin.value[0]!.id_coins
-    : "") as MonedaFila;
-  monto.value = InvoiceAdmin.value[0]!.monto;
-  radio.value = InvoiceAdmin.value[0]!.type_payment;
-  payPathName.value = InvoiceAdmin.value[0]!.originalname;
-  payPath.value = InvoiceAdmin.value[0]!.path;
-  id_path.value = InvoiceAdmin.value[0]!.id_path;
-  id_proformace.value = InvoiceAdmin.value[0]!.id_proformance;
-  id_month.value = InvoiceAdmin.value[0]!.id_month;
-  id_year.value = InvoiceAdmin.value[0]!.id_year;
-  tipocambio.value = InvoiceAdmin.value[0]!.tipocambio;
-  name_path.value = InvoiceAdmin.value[0]!.name_path;
+  nro_factura.value = account.nro_factura;
+  nro_serie.value = account.nro_serie;
+  id_coins.value = (coin ?? "") as MonedaFila;
+  symbol.value = coin?.symbol ?? "";
+  monto.value = account.monto;
+  radio.value = account.type_payment;
+  payPathName.value = account.originalname;
+  payPath.value = account.path;
+  id_path.value = account.id_path;
+  id_month.value = account.id_month;
+  id_year.value = account.id_year;
+  tipocambio.value = account.tipocambio;
+  name_path.value = account.name_path;
 
-  tipoingreso.value = InvoiceAdmin.value[0]!.id_tipoingreso;
-  id_tipoingreso.value = InvoiceAdmin.value[0]!.id_subingreso;
-  // DETALLES
+  tipoingreso.value = account.id_tipoingreso;
+  id_tipoingreso.value = account.id_subingreso;
 
-  itemsproductos.value = InvoiceAdmin.value[0]!.details;
+  itemsproductos.value = account.details as unknown as AccountConcept[];
 });
 watch(tipoingreso, () => {
   filtarSubIngreso();
@@ -706,7 +508,6 @@ onMounted(async () => {
   ]);
   if (!!route.params.id) {
     await appStore._getInvoiceAdminCxC(route.params.id as string);
-    calculcularTotal();
   }
 
   producto.value = {
@@ -727,11 +528,11 @@ onMounted(async () => {
       </v-card-title>
       <v-card-title v-if="tipo == 'ver'">
         VER FACTURA TIPO
-        {{ row == 1 ? "ADMNINISTRATIVA" : "OPERATIVA" }}
+        {{ radio == 1 ? "ADMINISTRATIVA" : "OPERATIVA" }}
       </v-card-title>
       <v-card-title v-if="tipo == 'editar'">
         EDITAR FACTURA TIPO
-        {{ row == 1 ? "ADMNINISTRATIVA" : "OPERATIVA" }}
+        {{ radio == 1 ? "ADMINISTRATIVA" : "OPERATIVA" }}
       </v-card-title>
       <v-card-text>
         <v-radio-group
@@ -748,195 +549,201 @@ onMounted(async () => {
             label="Operativa"
           />
         </v-radio-group>
-        <v-row density="compact">
-          <v-col
-            cols="12"
-            md="6"
-            v-if="radio == 2"
-          >
-            <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
-            <v-autocomplete
-              :items="housesStore.listHouse"
-              item-title="description"
-              item-value="id"
-              label="Expediente"
-              v-model="id_expediente"
-              :disabled="radio == ''"
-              @update:model-value="_getProformace()"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-            v-if="radio == 1"
-          >
-            <v-row density="compact">
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
-                <v-autocomplete
-                  :items="appStore.month"
-                  item-title="description"
-                  item-value="id"
-                  label="Mes del Ingreso"
-                  v-model="id_month"
-                  :disabled="radio == ''"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
-                <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
-                <v-autocomplete
-                  :items="Array.isArray(appStore.year) ? appStore.year : []"
-                  item-title="description"
-                  item-value="id"
-                  label="Año del Ingreso"
-                  v-model="id_year"
-                  :disabled="radio == ''"
-                />
-              </v-col>
-            </v-row>
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-autocomplete
-              label="Tipo de Ingreso"
-              :items="
-                balancesStore.tipoingreso.filter((v) => v.id != 0)
-              "
-              v-model="tipoingreso"
-              auto-select-first
-              clearable
-              item-title="description"
-              item-value="id"
-              :disabled="radio == ''"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-autocomplete
-              label="Subtipo de Ingreso"
-              :items="tiposubingresoFilter.filter((v) => v.id != 0)"
-              v-model="id_tipoingreso"
-              auto-select-first
-              clearable
-              item-title="description"
-              item-value="id"
-              :disabled="!tipoingreso"
-              :rules="[(v) => !!v || 'Datos Requerido']"
-            />
-          </v-col>
-
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-autocomplete
-              :items="appStore.performances"
-              item-title="description"
-              item-value="id"
-              label="Tipo de Comprobante"
-              v-model="id_proformace"
-              :disabled="radio == ''"
-              @update:model-value="validacionesRequeridas()"
-              return-object
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-autocomplete
-              :items="appStore.clientes"
-              item-title="namelong"
-              item-value="id"
-              label="Cliente"
-              v-model="id_cliente"
-              :disabled="radio == ''"
-              menu-icon=""
+        <v-form ref="frmFactura">
+          <v-row density="compact">
+            <v-col
+              cols="12"
+              md="6"
+              v-if="radio == 2"
             >
-              <template #append-inner>
-                <v-icon
-                  @click="_callModalEntitie()"
-                  class="btn__add"
-                  color="primary"
+              <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
+              <v-autocomplete
+                :items="housesStore.listHouse"
+                item-title="description"
+                item-value="id"
+                label="Expediente"
+                v-model="id_expediente"
+                :disabled="radio == ''"
+                @update:model-value="_getProformace()"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+              v-if="radio == 1"
+            >
+              <v-row density="compact">
+                <v-col
+                  cols="12"
+                  md="6"
                 >
-                  mdi-plus
-                </v-icon>
-              </template>
-            </v-autocomplete>
-          </v-col>
+                  <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
+                  <v-autocomplete
+                    :items="appStore.month"
+                    item-title="description"
+                    item-value="id"
+                    label="Mes del Ingreso"
+                    v-model="id_month"
+                    :disabled="radio == ''"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                >
+                  <!-- @vue-expect-error radio is narrowed to a number inside this v-if -->
+                  <v-autocomplete
+                    :items="Array.isArray(appStore.year) ? appStore.year : []"
+                    item-title="description"
+                    item-value="id"
+                    label="Año del Ingreso"
+                    v-model="id_year"
+                    :disabled="radio == ''"
+                  />
+                </v-col>
+              </v-row>
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-autocomplete
+                label="Tipo de Ingreso"
+                :items="
+                  balancesStore.tipoingreso.filter((v) => v.id != 0)
+                "
+                v-model="tipoingreso"
+                auto-select-first
+                clearable
+                item-title="description"
+                item-value="id"
+                :disabled="radio == ''"
+                :rules="[(v) => !!v || 'Datos Requerido']"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-autocomplete
+                label="Subtipo de Ingreso"
+                :items="tiposubingresoFilter.filter((v) => v.id != 0)"
+                v-model="id_tipoingreso"
+                auto-select-first
+                clearable
+                item-title="description"
+                item-value="id"
+                :disabled="!tipoingreso"
+                :rules="[(v) => !!v || 'Datos Requerido']"
+              />
+            </v-col>
 
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              type="date"
-              :disabled="radio == ''"
-              label="Fecha Emisión de la Factura"
-              v-model="date"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              v-model="nro_factura"
-              :disabled="radio == ''"
-              label="Nro. de Factura"
-              :required="facturaFlag"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              v-model="nro_serie"
-              :disabled="radio == ''"
-              label="Nro. de Serie"
-              :required="serieFlag"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-autocomplete
-              :disabled="radio == ''"
-              :items="appStore.itemsCoinsList"
-              v-model="id_coins"
-              item-title="acronym"
-              item-value="id"
-              label="Moneda"
-              return-object
-              @update:model-value="obtenerPrefixCoins()"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              type="number"
-              label="Tipo de Cambio"
-              v-model="tipocambio"
-              :disabled="radio == ''"
-              @update:model-value="cambiarTipodeCambio()"
-              v-if="id_coins && symbol != 'USD'"
-            />
-          </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-autocomplete
+                :items="appStore.performances"
+                item-title="description"
+                item-value="id"
+                label="Tipo de Comprobante"
+                v-model="id_proformace"
+                :disabled="radio == ''"
+                @update:model-value="validacionesRequeridas()"
+                return-object
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-autocomplete
+                :items="appStore.clientes"
+                item-title="namelong"
+                item-value="id"
+                label="Cliente"
+                v-model="id_cliente"
+                :disabled="radio == ''"
+                :rules="[(v) => !!v || 'Dato requerido']"
+                menu-icon=""
+              >
+                <template #append-inner>
+                  <v-icon
+                    @click="_callModalEntitie()"
+                    class="btn__add"
+                    color="primary"
+                  >
+                    mdi-plus
+                  </v-icon>
+                </template>
+              </v-autocomplete>
+            </v-col>
+
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                type="date"
+                :disabled="radio == ''"
+                label="Fecha Emisión de la Factura"
+                v-model="date"
+                :rules="[(v) => !!v || 'Dato requerido']"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="nro_factura"
+                :disabled="radio == ''"
+                label="Nro. de Factura"
+                :required="facturaFlag"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                v-model="nro_serie"
+                :disabled="radio == ''"
+                label="Nro. de Serie"
+                :required="serieFlag"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-autocomplete
+                :disabled="radio == ''"
+                :items="appStore.itemsCoinsList"
+                v-model="id_coins"
+                item-title="acronym"
+                item-value="id"
+                label="Moneda"
+                return-object
+                @update:model-value="obtenerPrefixCoins()"
+              />
+            </v-col>
+            <v-col
+              cols="12"
+              md="6"
+            >
+              <v-text-field
+                type="number"
+                label="Tipo de Cambio"
+                v-model="tipocambio"
+                :disabled="radio == ''"
+                @update:model-value="cambiarTipodeCambio()"
+                v-if="id_coins && symbol != 'USD'"
+              />
+            </v-col>
+          </v-row>
+        </v-form>
+        <v-row density="compact">
           <!-- SECCIÓN CONCEPTOS DE COBRO -->
           <v-col
             cols="12"
@@ -1082,7 +889,7 @@ onMounted(async () => {
                         type="number"
                         v-model="productos.monto"
                         step="0.01"
-                        @update:model-value="recalcularMonto(productos, index)"
+                        @update:model-value="recalcularMonto(productos)"
                         style="max-width: 150px"
                         variant="outlined"
                         density="compact"
@@ -1115,87 +922,27 @@ onMounted(async () => {
                     <td>Total:</td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.monto || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.monto.toFixed(2) }}
                     </td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.igv || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.igv.toFixed(2) }}
                     </td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.total || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.total.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.montodolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.montodolar.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.igvdolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.igvdolar.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsproductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.totaldolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.totaldolar.toFixed(2) }}
                     </td>
                   </tr>
                 </tbody>
@@ -1232,7 +979,8 @@ onMounted(async () => {
               @click="_setInvoice()"
               color="primary"
               v-if="tipo == 'nuevo'"
-              :disabled="itemsproductos.length == 0"
+              :loading="saving"
+              :disabled="saving || activeConcepts(itemsproductos).length == 0"
             >
               GUARDAR CUENTA POR COBRAR
             </v-btn>
@@ -1241,6 +989,8 @@ onMounted(async () => {
               color="primary"
               v-if="tipo == 'editar'"
               @click="setUpdateInvoiceAdmin()"
+              :loading="saving"
+              :disabled="saving || activeConcepts(itemsproductos).length == 0"
             >
               GUARDAR CUENTA POR COBRAR
             </v-btn>

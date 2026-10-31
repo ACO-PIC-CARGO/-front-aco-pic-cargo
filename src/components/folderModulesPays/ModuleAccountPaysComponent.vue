@@ -8,7 +8,7 @@ import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useSecuritysStore } from "@/stores/securitys";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
 import type { CuentaListado } from "@/types/modulesPays";
 
 const router = useRouter();
@@ -17,8 +17,6 @@ const securitysStore = useSecuritysStore();
 
 const itemsListInvoice = ref<CuentaListado[]>([]);
 const searchFactura = ref("");
-const dialogPayment = ref(false);
-const id_pro = ref<string | number>("");
 const id_gasto = ref(null);
 const id_subgasto = ref(null);
 const fechapagodesde = ref(moment().format("YYYY-01-01"));
@@ -91,16 +89,6 @@ const headersFacturas = [
   },
 ];
 
-let payfile: string | Blob;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let boolFile: boolean;
-let payPath: string;
-let date: string;
-let factura_pago: string;
-let serie_pago: string;
-let banco_pago: string;
-let moneda_pago: string;
-let monto_pago: string;
 
 const filtro = computed(() => {
   return {
@@ -124,11 +112,6 @@ function filterOnlyCapsText(value: unknown, search: string | null) {
 }
 function toPageAdd() {
   router.push({ name: "addAccountPays" });
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function uploadPayment(id: string | number) {
-  id_pro.value = id;
-  dialogPayment.value = true;
 }
 function eyePro(id: number) {
   // window.open(id, "_blank");
@@ -194,79 +177,6 @@ async function penProConClaveAdmin(id: number) {
   }
   router.push({ name: "EditAccountPays", params: { id: id } });
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function _uploadFile() {
-  const data = new FormData();
-  data.append("name", "Prueba");
-  data.append("file", payfile);
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "uploadAllPath",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-
-  axios(config)
-    .then(function (response) {
-      boolFile = true;
-      payPath = JSON.stringify(response.data.data[0].insertid);
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
-}
-function cleanData() {
-  payfile = "";
-  date = "";
-  payPath = "";
-  factura_pago = "";
-  serie_pago = "";
-  banco_pago = "";
-  moneda_pago = "";
-  monto_pago = "";
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function _putInvoice() {
-  const data = {
-    id_pago: payPath,
-    fecha_pago: date,
-    factura_pago: factura_pago,
-    serie_pago: serie_pago,
-    id_bank_pago: banco_pago,
-    id_coin_pago: moneda_pago,
-    monto_pago: monto_pago,
-    status: 2,
-  };
-
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "paymentInvoiceAdmin/" + id_pro.value,
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      //vm.dialogListInvoince = true;
-      // vm.itemsListInvoice = response.data.data;
-      Swal.fire({
-        icon: "success",
-        title: "Documento Cargado",
-        text: "El documento ha sido cargado correctamente",
-      });
-      dialogPayment.value = false;
-      cleanData();
-      _getInvoiceAdmin();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
-}
 function limpiar() {
   filtroflag.value = false;
   id_gasto.value = null;
@@ -284,7 +194,6 @@ async function _getInvoiceAdmin() {
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getInvoiceAdmin",
     params: {
-      id_branch: sessionBranchId(),
       id_gasto: id_gasto.value,
       id_subgasto: id_subgasto.value,
       fechapagodesde: fechapagodesde.value,
@@ -318,6 +227,7 @@ async function _getInvoiceAdmin() {
 }
 async function delPro(id: number) {
   let val = true;
+  let msg = "";
   await Swal.fire({
     title: "Ingrese sus datos Administrador",
     html:
@@ -340,7 +250,6 @@ async function delPro(id: number) {
     if (!result.isConfirmed) {
       // Usuario canceló
       val = false;
-      // @ts-expect-error msg is not declared in delPro
       msg = "Operación cancelada";
       return;
     }
@@ -355,50 +264,35 @@ async function delPro(id: number) {
         val = true;
       } else {
         val = false;
-        // @ts-expect-error msg is not declared in delPro
-        msg = res?.mensaje || "Credenciales incorrectas";
+          msg = res?.mensaje || "Credenciales incorrectas";
       }
     } else {
       val = false;
-      // @ts-expect-error msg is not declared in delPro
       msg = "Debe ingresar las credenciales";
     }
   });
 
   if (!val) {
-    // @ts-expect-error swal is not defined
-    await swal.fire({
+    await Swal.fire({
       icon: "error",
-      // @ts-expect-error msg is not declared in delPro
       text: msg,
     });
     return false;
   }
 
   await EliminarCuenta(id);
-  await limpiar();
 }
 async function EliminarCuenta(id: number) {
-  const data = {
-    id: id,
-  };
-
-  const config = {
+  const answer = await request({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "delPro",
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      _getInvoiceAdmin();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    data: { id },
+  });
+  Swal.fire({
+    icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info",
+    text: answer.mensaje,
+  });
+  if (answer.estadoflag) await _getInvoiceAdmin();
 }
 
 onMounted(async () => {
@@ -541,7 +435,7 @@ onMounted(async () => {
             </v-chip>
           </template>
           <template #[`item.totaldolar`]="{ item }">
-            USD {{ item.total }}
+            USD {{ item.totaldolar }}
           </template>
           <template #[`item.total`]="{ item }">
             {{ item.namecoins }}

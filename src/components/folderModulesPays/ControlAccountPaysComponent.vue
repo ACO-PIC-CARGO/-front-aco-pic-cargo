@@ -8,14 +8,20 @@ import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import {
+  activeConcepts,
+  conceptTotals,
+  priceConcept,
+  repriceConcept,
+  repriceConcepts,
+  type AccountConcept,
+} from "@/utils/accountConcepts";
 import type {
   ArchivoSoporte,
   ComprobanteCuenta,
-  ConceptoCuenta,
   ConceptoNuevo,
   ExpedienteCuenta,
-  TotalCuenta,
 } from "@/types/modulesPays";
 
 const props = defineProps<{
@@ -50,7 +56,7 @@ const payPathName = ref("");
 const boolFile = ref(false);
 const itemsExpedientes = ref<ExpedienteCuenta[]>([]);
 const itemsProformace = ref<unknown[]>([]);
-const itemsProductos = ref<ConceptoCuenta[]>([]);
+const itemsProductos = ref<AccountConcept[]>([]);
 const name_path = ref("");
 const producto = ref({} as ConceptoNuevo);
 const facturaFlag = ref(false);
@@ -66,20 +72,15 @@ type MonedaFila = (typeof appStore.itemsCoinsList)[number];
 const id_coins = ref("" as unknown as MonedaFila);
 const monto = ref("");
 const igv = ref("");
-const total = ref<TotalCuenta>({
-  monto: 0,
-  total: 0,
-});
+const totals = computed(() => conceptTotals(itemsProductos.value));
+const saving = ref(false);
 const dialogPro = ref(false);
 const id_month = ref<string | number>("");
 const id_year = ref<string | number>("");
 const errorGasto = ref("");
 // id_subgasto: "",
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let itemsInvoice: unknown;
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let dialogInvoice: boolean;
+const taxRate = () => Number(enterprisesStore.impuesto.impuesto) || 0;
 
 function recibirId(file: ArchivoSoporte) {
   if (Object.keys(file).length > 0) {
@@ -221,13 +222,9 @@ function _uploadFile() {
     });
 }
 async function _getMasterList() {
-  const data = {
-    id_branch: sessionBranchId(),
-  };
   const config = {
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "getHouseListAll",
-    data: data,
     headers: {
       "Content-Type": "application/json",
     },
@@ -262,48 +259,8 @@ async function _getProformace() {
       console.error(error);
     });
 }
-function recalcularMonto(prod: ConceptoCuenta, index: number) {
-  console.log("prod", prod);
-  let igv = 0;
-  let igvdolar = 0;
-  let total = parseFloat(String(prod.monto));
-  const montodolar = parseFloat(String((prod.monto as number) / tipocambio.value));
-  let totaldolar = parseFloat(String((prod.monto as number) / tipocambio.value));
-  // ------------------------------
-  if (prod.afecto == "true" || prod.afecto == 1) {
-    igv =
-      (parseFloat(String(prod.monto)) *
-        enterprisesStore.impuesto.impuesto!) /
-      100;
-
-    igvdolar = parseFloat(String(igv / tipocambio.value));
-
-    totaldolar += parseFloat(String(igvdolar));
-    console.log("totaldolar", totaldolar);
-    total += parseFloat(String(igv));
-  }
-  // ------------------------------
-
-  const producto = {
-    id: prod.id,
-    concepto: prod.concepto,
-    monto: prod.monto,
-    montodolar: parseFloat(String(montodolar)).toFixed(2),
-    igv: parseFloat(String(igv)).toFixed(2),
-    igvdolar: parseFloat(String(igvdolar)).toFixed(2),
-    afecto: prod.afecto,
-    status: 1,
-    total: total,
-    totaldolar: totaldolar,
-  };
-
-  // Usar Vue.set para actualizar reactividad en Vue 2
-  itemsProductos.value[index] = { ...producto };
-
-  // console.log(
-  //   "Producto después de actualizar:",
-  //   this.itemsProductos[index]
-  // );
+function recalcularMonto(prod: AccountConcept) {
+  itemsProductos.value = repriceConcept(itemsProductos.value, prod, tipocambio.value, taxRate());
 }
 function cleanData() {
   radio.value = "";
@@ -314,16 +271,57 @@ function cleanData() {
   id_coins.value = "" as unknown as MonedaFila;
   monto.value = "";
   igv.value = "";
-  total.value = "" as unknown as TotalCuenta;
   payPath.value = "";
   id_path.value = "";
   boolFile.value = false;
   facturaFlag.value = false;
   serieFlag.value = false;
 }
+function accountPayload() {
+  return {
+    type_payment: radio.value || null,
+    id_expediente: id_expediente.value || null,
+    id_proveedor: id_proveedor.value || null,
+    fecha: date.value || null,
+    nro_factura: nro_factura.value || null,
+    nro_serie: nro_serie.value || null,
+    id_coins: id_coins.value?.id ?? null,
+    monto: totals.value.total,
+    montodolar: totals.value.totaldolar,
+    type_igv: igv.value || null,
+    id_path: id_path.value || null,
+    detalle: activeConcepts(itemsProductos.value),
+    id_proformance: id_proformace.value?.id ?? null,
+    id_month: id_month.value || null,
+    id_year: id_year.value || null,
+    tipocambio: tipocambio.value,
+    id_gastos: id_gastos.value,
+  };
+}
+async function saveAccount(method: "post" | "put", url: string, extra: Record<string, unknown> = {}) {
+  if (!((await frmFactura.value!.validate()).valid && id_gastos.value)) {
+    errorGasto.value = "Dato Requerido";
+    return false;
+  }
+  Swal.fire({
+    icon: "info",
+    title: "Guardando...",
+    text: "Por favor espere",
+  });
+  const answer = await request({
+    method,
+    url: import.meta.env.VITE_URL_MAIN + url,
+    data: { ...accountPayload(), ...extra },
+  });
+  if (!answer.estadoflag) {
+    Swal.fire({ icon: hasFailed(answer) ? "error" : "info", text: answer.mensaje });
+    return false;
+  }
+  return true;
+}
 async function _setInvoice() {
   errorGasto.value = "";
-  if (itemsProductos.value.length == 0) {
+  if (activeConcepts(itemsProductos.value).length == 0) {
     Swal.fire({
       icon: "error",
       title: "Aviso",
@@ -337,255 +335,55 @@ async function _setInvoice() {
     });
     return false;
   }
-  if ((await frmFactura.value!.validate()).valid && id_gastos.value) {
+  if (saving.value) return;
+  saving.value = true;
+  const saved = await saveAccount("post", "setInvoiceAdmin");
+  saving.value = false;
+  if (saved) {
     Swal.fire({
-      icon: "info",
-      title: "Guardando...",
-      text: "Por favor espere",
+      icon: "success",
+      title: "Documento Cargado",
+      text: "El documento ha sido cargado correctamente",
     });
-
-    const data = {
-      type_payment: radio.value || radio.value != "" ? radio.value : null,
-      id_expediente:
-        id_expediente.value || id_expediente.value != ""
-          ? id_expediente.value
-          : null,
-      id_proveedor:
-        id_proveedor.value || id_proveedor.value != "" ? id_proveedor.value : null,
-      fecha: date.value || date.value != "" ? date.value : null,
-      nro_factura:
-        nro_factura.value || nro_factura.value != "" ? nro_factura.value : null,
-      nro_serie: nro_serie.value || nro_serie.value != "" ? nro_serie.value : null,
-      id_coins:
-        id_coins.value.id || (id_coins.value.id as unknown) != "" ? id_coins.value.id : null,
-      monto: total.value.total || total.value.total != "" ? total.value.total : null,
-      montodolar:
-        total.value.totaldolar || total.value.totaldolar != ""
-          ? total.value.totaldolar
-          : null,
-      type_igv: igv.value || igv.value != "" ? igv.value : null,
-      total: total.value.total || total.value.total != "" ? total.value.total : null,
-      id_path: id_path.value || id_path.value != "" ? id_path.value : null,
-      detalle: itemsProductos.value.filter((v) => v.status == 1),
-      id_proformance:
-        id_proformace.value.id || id_proformace.value.id != ""
-          ? id_proformace.value.id
-          : null,
-      id_month: id_month.value || id_month.value != "" ? id_month.value : null,
-      id_year: id_year.value || id_year.value != "" ? id_year.value : null,
-      status: 1,
-      tipocambio: tipocambio.value,
-      id_gastos: id_gastos.value,
-      id_branch: sessionBranchId(),
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setInvoiceAdmin",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function (response) {
-        itemsInvoice = response.data.data;
-
-        Swal.fire({
-          icon: "success",
-          title: "Documento Cargado",
-          text: "El documento ha sido cargado correctamente",
-        });
-
-        if (radio.value == 1 && (id_proformace.value as unknown as number) > 0) {
-          putPro();
-        } else {
-          router.back();
-          cleanData();
-        }
-
-        dialogInvoice = false;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  } else {
-    errorGasto.value = "Dato Requerido";
+    router.back();
+    cleanData();
   }
 }
 async function setUpdateInvoiceAdmin() {
   errorGasto.value = "";
-  if ((await frmFactura.value!.validate()).valid && id_gastos.value) {
+  if (saving.value) return;
+  saving.value = true;
+  const saved = await saveAccount("put", "setUpdateInvoiceAdmin", { id: route.params.id });
+  saving.value = false;
+  if (saved) {
     Swal.fire({
-      icon: "info",
-      title: "Guardando...",
-      text: "Por favor espere",
+      icon: "success",
+      title: "Documento Cargado",
+      text: "El documento ha sido actualizado correctamente",
     });
-
-    const data = {
-      type_payment: radio.value,
-      id_expediente: id_expediente.value,
-      id_proveedor: id_proveedor.value,
-      fecha: date.value,
-      nro_factura: nro_factura.value,
-      nro_serie: nro_serie.value,
-      id_coins: id_coins.value.id ? id_coins.value.id : id_coins.value,
-      monto: total.value.total,
-      montodolar: total.value.montodolar,
-      type_igv: igv.value,
-      //igv: vm.,
-      total: total.value.total,
-      status: 1,
-      id_path: id_path.value,
-      detalle: itemsProductos.value.filter((v) => v.status == 1),
-      id_proformance: id_proformace.value,
-      id_month: id_month.value,
-      id_year: id_year.value,
-      id: route.params.id,
-      tipocambio: tipocambio.value,
-      id_gastos: id_gastos.value,
-    };
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "setUpdateInvoiceAdmin",
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function (response) {
-        itemsInvoice = response.data;
-        console.log(response.data.data)
-        if (response.data.data[0].estadoflag) {
-          Swal.fire({
-            icon: "success",
-            title: "Documento Cargado",
-            text: "El documento ha sido actualizado correctamente",
-          });
-        }
-
-        router.push({
-          name: "viewAccountPays",
-          params: { id: route.params.id },
-        });
-        // vm._getInvoice();
-        dialogInvoice = false;
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  } else {
-    errorGasto.value = "Dato Requerido";
+    router.push({
+      name: "viewAccountPays",
+      params: { id: route.params.id },
+    });
   }
-}
-async function putPro() {
-  const data = {
-    id_path: id_path.value,
-    id_proformace: id_proformace.value,
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "putPro",
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      cleanData();
-
-      router.back();
-      dialogInvoice = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
 }
 async function añadirProducto() {
   if (!(await validacionConcepto.value!.validate()).valid) return;
 
-  let igv = 0;
-  let igvdolar = 0;
-  let total = parseFloat(String(producto.value.monto));
-  const montodolar = parseFloat(String((producto.value.monto as number) / tipocambio.value));
-  let totaldolar = parseFloat(String((producto.value.monto as number) / tipocambio.value));
-  // ------------------------------
-  if (producto.value.afecto == "true" || producto.value.afecto == 1) {
-    igv =
-      (parseFloat(String(producto.value.monto)) *
-        enterprisesStore.impuesto.impuesto!) /
-      100;
-
-    igvdolar = parseFloat(String(igv / tipocambio.value));
-
-    totaldolar += parseFloat(String(igvdolar));
-    console.log("totaldolar", totaldolar);
-    total += parseFloat(String(igv));
-  }
-  // ------------------------------
-
-  const productoNuevo = {
-    id: null,
-    concepto: producto.value.concepto,
-    monto: producto.value.monto,
-    montodolar: parseFloat(String(montodolar)).toFixed(2),
-    igv: parseFloat(String(igv)).toFixed(2),
-    igvdolar: parseFloat(String(igvdolar)).toFixed(2),
-    afecto: producto.value.afecto,
-    status: 1,
-    total: total,
-    totaldolar: totaldolar,
-  };
-
-  itemsProductos.value.push(productoNuevo);
+  itemsProductos.value.push(priceConcept({ ...producto.value, id: null }, tipocambio.value, taxRate()));
   dialog.value = false;
   producto.value = {
     concepto: "",
     monto: null,
-    afecto: true,
+    afecto: "true",
     total: 0,
   };
-
-  calculcularTotal();
 }
-function eliminar(producto: ConceptoCuenta) {
-  itemsProductos.value.filter((v) => v == producto)[0]!.status = 0;
-  setTimeout(() => {
-    calculcularTotal();
-  }, 200);
-}
-function calculcularTotal() {
-  const totalF = {
-    monto: 0,
-    igv: 0,
-    total: 0,
-    montodolar: 0,
-    igvdolar: 0,
-    totaldolar: 0,
-  };
-  itemsProductos.value
-    .filter((v) => v.status == 1)
-    .forEach((element) => {
-      totalF.monto += parseFloat(String(element.monto));
-      totalF.igv += parseFloat(element.igv);
-      totalF.total += parseFloat(String(element.total));
-      totalF.montodolar += parseFloat(element.montodolar);
-      totalF.igvdolar += parseFloat(element.igvdolar);
-      totalF.totaldolar += parseFloat(String(element.totaldolar));
-    });
-
-  total.value = totalF;
+function eliminar(producto: AccountConcept) {
+  producto.status = 0;
 }
 function cambiarTipodeCambio() {
-  itemsProductos.value.forEach((element) => {
-    recalcularMonto(element, itemsProductos.value.indexOf(element));
-  });
-
-  calculcularTotal();
+  itemsProductos.value = repriceConcepts(itemsProductos.value, tipocambio.value, taxRate());
 }
 function validacionesRequeridas() {
   switch (id_proformace.value.code) {
@@ -649,35 +447,37 @@ function mostrarColumna() {
 }
 
 watch(InvoiceAdmin, () => {
-  id_proformace.value = InvoiceAdmin.value[0]!.id_proformace;
-  id_expediente.value = InvoiceAdmin.value[0]!.id_expediente;
-  id_proveedor.value = InvoiceAdmin.value[0]!.id_proveedor;
-  date.value = new Date(InvoiceAdmin.value[0]!.fecha)
+  const [account] = InvoiceAdmin.value;
+  if (!account) {
+    Swal.fire({
+      icon: "info",
+      text: "No encontramos esta cuenta por pagar. Vuelve a la lista y ábrela de nuevo.",
+    });
+    return;
+  }
+  const coin = appStore.itemsCoinsList.find((item) => item.id == (account.id_coins as unknown));
+  const voucher = appStore.performances.find((item) => item.id == (account.id_proformance as unknown));
+  id_proformace.value = (voucher ?? "") as unknown as ComprobanteCuenta;
+  id_expediente.value = account.id_expediente;
+  id_proveedor.value = account.id_proveedor;
+  date.value = new Date(account.fecha)
     .toISOString()
     .substring(0, 10);
-  nro_factura.value = InvoiceAdmin.value[0]!.nro_factura;
-  nro_serie.value = InvoiceAdmin.value[0]!.nro_serie;
-  id_coins.value = InvoiceAdmin.value[0]!.id_coins as MonedaFila;
-  monto.value = InvoiceAdmin.value[0]!.monto;
-  radio.value = InvoiceAdmin.value[0]!.type_payment;
-  payPathName.value = InvoiceAdmin.value[0]!.originalname;
-  id_path.value = InvoiceAdmin.value[0]!.id_path;
-  payPath.value = InvoiceAdmin.value[0]!.path;
-  id_path.value = InvoiceAdmin.value[0]!.id_path;
-  id_proformace.value = InvoiceAdmin.value[0]!.id_proformance;
-  id_month.value = InvoiceAdmin.value[0]!.id_month;
-  id_year.value = InvoiceAdmin.value[0]!.id_year;
-  tipocambio.value = InvoiceAdmin.value[0]!.tipocambio;
-  id_gastos.value = InvoiceAdmin.value[0]!.id_subgasto;
-  id_gastos.value = InvoiceAdmin.value[0]!.id_subgasto;
-  name_path.value = InvoiceAdmin.value[0]!.name_path;
-  // DETALLES
-  itemsProductos.value = InvoiceAdmin.value[0]!.details;
-
-  calculcularTotal();
-  // setTimeout(async () => {
-  //   await this._getProveedor();
-  // }, 200);
+  nro_factura.value = account.nro_factura;
+  nro_serie.value = account.nro_serie;
+  id_coins.value = (coin ?? "") as MonedaFila;
+  symbol.value = coin?.symbol ?? "";
+  monto.value = account.monto;
+  radio.value = account.type_payment;
+  payPathName.value = account.originalname;
+  id_path.value = account.id_path;
+  payPath.value = account.path;
+  id_month.value = account.id_month;
+  id_year.value = account.id_year;
+  tipocambio.value = account.tipocambio;
+  id_gastos.value = account.id_subgasto;
+  name_path.value = account.name_path;
+  itemsProductos.value = account.details as unknown as AccountConcept[];
 });
 watch(radio, async () => {
   //  await this._getMasterList();
@@ -724,11 +524,11 @@ onMounted(async () => {
   <v-card elevation="0">
     <v-card-title v-if="tipo == 'ver'">
       VER FACTURA TIPO
-      {{ radio == 1 ? "ADMNINISTRATIVA" : "OPERATIVA" }}
+      {{ radio == 1 ? "ADMINISTRATIVA" : "OPERATIVA" }}
     </v-card-title>
-    <v-card-title v-if="tipo == 'editar'">
+    <v-card-title v-else-if="tipo == 'editar'">
       EDITAR FACTURA TIPO
-      {{ radio == 1 ? "ADMNINISTRATIVA" : "OPERATIVA" }}
+      {{ radio == 1 ? "ADMINISTRATIVA" : "OPERATIVA" }}
     </v-card-title>
     <v-card-title v-else>
       CARGAR UNA CUENTA POR PAGAR
@@ -1061,7 +861,7 @@ onMounted(async () => {
                         type="number"
                         v-model="productos.monto"
                         step="0.01"
-                        @update:model-value="recalcularMonto(productos, index)"
+                        @update:model-value="recalcularMonto(productos)"
                         style="max-width: 150px"
                         variant="outlined"
                         density="compact"
@@ -1094,87 +894,27 @@ onMounted(async () => {
                     <td>Total:</td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.monto || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.monto.toFixed(2) }}
                     </td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.igv || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.igv.toFixed(2) }}
                     </td>
                     <td>
                       {{ symbol }}
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.total || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.total.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.montodolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.montodolar.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.igvdolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.igvdolar.toFixed(2) }}
                     </td>
                     <td v-if="mostrarColumna()">
                       USD
-                      {{
-                        parseFloat(String(
-                          itemsProductos
-                            .filter((v) => v.status == 1)
-                            .reduce(
-                              (sum, producto) =>
-                                sum + parseFloat(String(producto.totaldolar || 0)),
-                              0,
-                            ),
-                        )).toFixed(2)
-                      }}
+                      {{ totals.totaldolar.toFixed(2) }}
                     </td>
                   </tr>
                 </tbody>
@@ -1214,7 +954,8 @@ onMounted(async () => {
               color="primary"
               size="large"
               v-if="tipo == 'nuevo'"
-              :disabled="itemsProductos.length == 0"
+              :loading="saving"
+              :disabled="saving || activeConcepts(itemsProductos).length == 0"
               class="font-weight-bold text-uppercase"
             >
               GUARDAR CUENTA POR PAGAR
@@ -1226,7 +967,8 @@ onMounted(async () => {
               size="large"
               v-if="tipo == 'editar'"
               @click="setUpdateInvoiceAdmin()"
-              :disabled="itemsProductos.length == 0"
+              :loading="saving"
+              :disabled="saving || activeConcepts(itemsProductos).length == 0"
               class="font-weight-bold text-uppercase"
             >
               GUARDAR CAMBIOS
