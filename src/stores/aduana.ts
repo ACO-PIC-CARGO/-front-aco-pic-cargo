@@ -1,4 +1,5 @@
 import { defineStore } from "pinia";
+import moment from "moment";
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -57,7 +58,8 @@ import {
   formatearNotas,
   formatearServicios,
 } from "@/utils/cotizacion";
-import { userIdAtAppLoad } from "@/utils/appLoad";
+import { callFilterDatesAtAppLoad, userIdAtAppLoad } from "@/utils/appLoad";
+import { downloadExcel, downloadPdfInBackground } from "@/utils/pdfDownload";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { latestRequestTracker } from "@/utils/latestRequest";
@@ -2626,6 +2628,54 @@ export const useAduanaStore = defineStore("aduana", () => {
     }
     notifySuccess("Eliminamos la cotización.");
     return true;
+  }
+  async function printAduanaListReport(): Promise<void> {
+    await downloadPdfInBackground(
+      {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "export_list_aduana",
+        data: { filtro: { ...filtro.value, tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} },
+      },
+      "REPORTE_COTIZACIONES_ADUANA.pdf",
+    );
+  }
+  async function exportAduanaListExcelReport(): Promise<void> {
+    await downloadExcel(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_aduana_xls", data: { filtro: filtro.value } },
+      `Reporte de Cotizaciones de Aduana ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
+    );
+  }
+  async function printAduanaCallsReport(): Promise<void> {
+    await downloadPdfInBackground(
+      {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "reporte_llamadas_aduana_export",
+        data: { filtro: { ...callFilterDatesAtAppLoad, tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} },
+      },
+      "REPORTE_LLAMADAS_ADUANA.pdf",
+    );
+  }
+  async function printAduanaMarketingReport(): Promise<void> {
+    Swal.fire({
+      icon: "info",
+      title: "Generando PDF",
+      text: "El PDF se abrirá cuando esté listo.",
+      showConfirmButton: false,
+      allowOutsideClick: false,
+      didOpen: () => Swal.showLoading(),
+    });
+    const estado = filtro.value.estado == "activo" ? "1" : filtro.value.estado == "eliminado" ? "0" : "";
+    const response: RespuestaArchivo = await request({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "listado_aduana_mercadeo",
+      data: { filtro: { ...filtro.value, estado } },
+    });
+    if (!response.estadoflag) {
+      Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "info", text: response.mensaje || response.msg });
+      return;
+    }
+    Swal.fire({ icon: "success", title: "PDF generado", text: "Abrimos el PDF en una pestaña nueva." });
+    window.open(`${import.meta.env.VITE_URL_MAIN}${response.path}`, "_blank");
   }
   async function getQuoteCallAduana(filtro: FiltroLlamadasAduana): Promise<void> {
     const estado = filtroCalls.value.estado;
@@ -6128,6 +6178,10 @@ export const useAduanaStore = defineStore("aduana", () => {
     actualizarAduanaRecibidoEnviado,
     guardarNotaAduana,
     deleteAduana,
+    printAduanaListReport,
+    exportAduanaListExcelReport,
+    printAduanaCallsReport,
+    printAduanaMarketingReport,
     getQuoteCallAduana,
     generarReporteAduana,
     getInstructivoIdAduana,

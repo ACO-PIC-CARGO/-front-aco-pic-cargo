@@ -210,6 +210,18 @@ describe("Listado de aduanas", () => {
     expect(requestsTo("delete_aduana")).toHaveLength(0);
   });
 
+  test("REPORTE, Excel and MERCADEO export the aduanas, not the Pricing quotes", async () => {
+    const { vm } = await openScreen(ListAduanaComponent);
+
+    await vm.printAduanaList!();
+    await vm.exportAduanaListExcel!();
+    await vm.printAduanaMarketing!();
+    await flushPromises();
+
+    expect(["export_list_aduana", "export_list_aduana_xls", "listado_aduana_mercadeo"].map((path) => requestsTo(path).length)).toEqual([1, 1, 1]);
+    expect(["export_list_quote", "export_list_quote_xls", "listado_cotizacion_mercadeo"].map((path) => requestsTo(path).length)).toEqual([0, 0, 0]);
+  });
+
   test("a call registered from the list is saved on the aduana", async () => {
     const { vm, wrapper } = await openScreen(ListAduanaComponent, () => {}, { renderStubDefaultSlot: true });
     usePricingStore().id = 999;
@@ -221,6 +233,16 @@ describe("Listado de aduanas", () => {
 
     expect(requestsTo("set_calls_aduana").map(([config]) => (config.data as { id_quote: number }).id_quote)).toEqual([14]);
     expect(usePricingStore().id).toBe(999);
+  });
+
+  test("Imprimir in the calls tab prints the aduanas' calls, not Pricing's", async () => {
+    const { vm } = await openScreen(ListCallComponent);
+
+    await vm.printAduanaCalls!();
+    await flushPromises();
+
+    expect(requestsTo("reporte_llamadas_aduana_export")).toHaveLength(1);
+    expect(requestsTo("reporte_llamadas_export")).toHaveLength(0);
   });
 
   test("a call registered from the calls tab is saved on the aduana, not on a Pricing quote", async () => {

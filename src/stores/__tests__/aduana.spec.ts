@@ -12,6 +12,8 @@ import { usePricingStore } from "@/stores/pricing";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
+import { downloadExcel, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { callFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 const TOTALS_FAILED_MESSAGE = "No pudimos guardar los montos finales de la cotización. Revisa tu conexión e inténtalo de nuevo.";
@@ -19,6 +21,10 @@ const TOTALS_FAILED_MESSAGE = "No pudimos guardar los montos finales de la cotiz
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
+vi.mock("@/utils/pdfDownload", () => ({
+  downloadPdfInBackground: vi.fn(async () => true),
+  downloadExcel: vi.fn(async () => true),
+}));
 
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
 const postedBody = (path: string) => postMock.mock.calls.find(([url]) => url === URL_MAIN + path)?.[1];
@@ -809,6 +815,71 @@ describe("aduana store", () => {
   });
 
   describe("reports", () => {
+    const LIST_FILTER = { id_marketing: 5, id_status: "", id_entities: "", id_modality: "", id_shipment: "", id_incoterm: "", fechainicio: "", fechafin: "", estado: "activo" };
+
+    test("printAduanaListReport downloads the PDF of the aduana list, not of the Pricing quotes", async () => {
+      const aduana = useAduanaStore();
+      aduana.filtro = { ...LIST_FILTER };
+
+      await aduana.printAduanaListReport();
+
+      expect(downloadPdfInBackground).toHaveBeenCalledWith(
+        { method: "post", url: URL_MAIN + "export_list_aduana", data: { filtro: { ...LIST_FILTER, tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} } },
+        "REPORTE_COTIZACIONES_ADUANA.pdf",
+      );
+    });
+
+    test("exportAduanaListExcelReport downloads the workbook of the aduana list", async () => {
+      const aduana = useAduanaStore();
+      aduana.filtro = { ...LIST_FILTER };
+
+      await aduana.exportAduanaListExcelReport();
+
+      expect(downloadExcel).toHaveBeenCalledWith(
+        { method: "post", url: URL_MAIN + "export_list_aduana_xls", data: { filtro: LIST_FILTER } },
+        expect.stringMatching(/^Reporte de Cotizaciones de Aduana .+\.xlsx$/),
+      );
+    });
+
+    test("printAduanaCallsReport downloads the calls PDF of the aduanas for the current month", async () => {
+      await useAduanaStore().printAduanaCallsReport();
+
+      expect(downloadPdfInBackground).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + "reporte_llamadas_aduana_export",
+          data: { filtro: { ...callFilterDatesAtAppLoad, tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} },
+        },
+        "REPORTE_LLAMADAS_ADUANA.pdf",
+      );
+    });
+
+    test("printAduanaMarketingReport sends the aduana list filters and opens the PDF it answers", async () => {
+      respond({ listado_aduana_mercadeo: { estadoflag: true, msg: "Archivo generado.", path: "files/m.pdf" } });
+      const aduana = useAduanaStore();
+      aduana.filtro = { ...LIST_FILTER, estado: "eliminado" };
+
+      await aduana.printAduanaMarketingReport();
+
+      expect(sentConfig("listado_aduana_mercadeo")).toMatchObject({
+        method: "post",
+        data: { filtro: { ...LIST_FILTER, estado: "0" } },
+      });
+      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/m.pdf", "_blank");
+    });
+
+    test.each([
+      [{ estadoflag: false, msg: "No se encontraron registros" }, "No se encontraron registros"],
+      [new Error("down"), CONNECTION_ERROR_MESSAGE],
+    ])("printAduanaMarketingReport says why there is no PDF and opens nothing", async (answer, text) => {
+      respond({ listado_aduana_mercadeo: answer });
+
+      await useAduanaStore().printAduanaMarketingReport();
+
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text }));
+      expect(window.open).not.toHaveBeenCalled();
+    });
+
     test.each(["AGRUPADO", "DETALLE", "TOTAL"])("generarReporteAduana posts the %s totals of the chosen option and opens the PDF", async (tipo) => {
       const aduana = cotizacion();
 

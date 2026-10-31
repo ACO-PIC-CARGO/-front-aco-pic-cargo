@@ -18,6 +18,7 @@ const dialogRegistroNotaLlamada = ref(false);
 const detallenota = useTemplateRef("detallenota");
 const fromData = ref<FormNotaLlamada>({ date: "", descripcion: "", identities: "" });
 const callAduanaId = ref<number>();
+const loadingCallsPdf = ref(false);
 const headers = [
     { key: "acciones", title: "", align: "center", estado: true },
     { key: "status", title: "ESTATUS ", aling: "center", estado: true },
@@ -78,6 +79,11 @@ const filtro = {
   hasta: "",
 };
 
+async function printAduanaCalls() {
+  loadingCallsPdf.value = true;
+  await aduanaStore.printAduanaCallsReport();
+  loadingCallsPdf.value = false;
+}
 function accionVerCotizacion(id: number | undefined) {
   router.push({ name: "VerAduana", params: { id } });
 }
@@ -170,6 +176,29 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-row>
+      <v-col
+        cols="8"
+        offset="4"
+      >
+        <v-col
+          cols="6"
+          offset-md="6"
+          class="text-right"
+        >
+          <v-btn
+            color="red"
+            @click="printAduanaCalls()"
+            class="mx-1"
+            :loading="loadingCallsPdf"
+            :disabled="loadingCallsPdf"
+            size="small"
+          >
+            <v-icon>mdi-file-pdf-box</v-icon> Imprimir
+          </v-btn>
+        </v-col>
+      </v-col>
+    </v-row>
     <v-row>
       <v-data-table
         density="compact"

@@ -22,6 +22,9 @@ const dialogRegistroNotaLlamada = ref(false);
 const expanded = ref<CotizacionListado[]>([]);
 const singleExpand = false;
 const dialog = ref(false);
+const loadingListPdf = ref(false);
+const loadingListExcel = ref(false);
+const loadingMarketing = ref(false);
 const fromData = ref<FormNotaLlamada>({
   date: moment().format("YYYY-MM-DD"),
   descripcion: "",
@@ -160,6 +163,21 @@ function toggleRow(item: CotizacionListado) {
     expanded.value.push(item);
   }
 }
+async function printAduanaList() {
+  loadingListPdf.value = true;
+  await aduanaStore.printAduanaListReport();
+  loadingListPdf.value = false;
+}
+async function exportAduanaListExcel() {
+  loadingListExcel.value = true;
+  await aduanaStore.exportAduanaListExcelReport();
+  loadingListExcel.value = false;
+}
+async function printAduanaMarketing() {
+  loadingMarketing.value = true;
+  await aduanaStore.printAduanaMarketingReport();
+  loadingMarketing.value = false;
+}
 function to_direct({ url }: { url: string }) {
   window.open(url, "_blank");
 }
@@ -285,6 +303,44 @@ onMounted(async () => {
           v-model="search"
           append-inner-icon="mdi-magnify"
         />
+      </v-col>
+      <v-col cols="8">
+        <v-col
+          cols="6"
+          offset-md="6"
+          class="text-right"
+        >
+          <v-btn
+            color="red"
+            @click="printAduanaList()"
+            class="mx-1"
+            :loading="loadingListPdf"
+            :disabled="loadingListPdf"
+            size="small"
+          >
+            <v-icon>mdi-file-pdf-box</v-icon> REPORTE
+          </v-btn>
+          <v-btn
+            color="teal-darken-4"
+            @click="exportAduanaListExcel()"
+            class="mx-1"
+            :loading="loadingListExcel"
+            :disabled="loadingListExcel"
+            size="small"
+          >
+            <v-icon>mdi-file-excel</v-icon> REPORTE
+          </v-btn>
+          <v-btn
+            color="red"
+            @click="printAduanaMarketing()"
+            class="mx-1"
+            :loading="loadingMarketing"
+            :disabled="loadingMarketing"
+            size="small"
+          >
+            <v-icon>mdi-file-pdf-box</v-icon> MERCADEO
+          </v-btn>
+        </v-col>
       </v-col>
     </v-row>
     <!-- @vue-expect-error return-object makes the expanded model hold rows, the typing says string ids -->
