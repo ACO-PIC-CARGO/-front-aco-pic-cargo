@@ -3,10 +3,13 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useBankStore } from "@/stores/bank";
-import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { downloadPdf } from "@/utils/pdfDownload";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
+import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
+vi.mock("@/utils/pdfDownload", () => ({ downloadPdf: vi.fn(async () => true) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
 
 const defaults = "listar_bank?id_branch=7&code=&name=&acronym=&description=&status=1";
@@ -219,37 +222,56 @@ describe("bank store", () => {
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "Sin deuda" });
   });
 
-  test("setRegistroEgresos stamps the branch and, once the user chooses to print, prints the voucher and opens the list", async () => {
-    respond({
-      registro_egresos: accepted([{ v_id: 31 }]),
-      imprimir_registro_egreso: { path: "files/e.pdf" },
-    });
+  test.each([
+    ["setRegistroEgresos", "registro_egresos", "imprimir_registro_egreso", { v_id: 31 }, 31, "listBankCxP"],
+    ["setRegistroIgresos", "registro_ingresos", "imprimir_registro_ingresos", { v_id_pago: 41 }, 41, "listBankCxC"],
+  ] as const)("%s opens the list once the saved notice closes, printing the voucher first only when chosen", async (name, path, print, row, id, list) => {
+    respond({ [path]: accepted([row]) });
     const bank = useBankStore();
 
-    await bank.setRegistroEgresos({ monto: 10 });
-    await flushPromises();
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false, isDismissed: true } as never);
+    expect(await bank[name]({ monto: 10 })).toBe(true);
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "post", data: { monto: 10 } });
+    expect(downloadPdf).not.toHaveBeenCalled();
+    expect(router.push).toHaveBeenCalledWith({ name: list });
 
-    expect(httpMock.mock.calls[0]![0].data).toEqual({ monto: 10, id_branch: 7 });
-    expect(httpMock.mock.calls[1]![0].params).toEqual({ id: 31, id_branch: 7, logo: "logo.png" });
-    expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/e.pdf", "_blank");
-    expect(router.push).toHaveBeenCalledWith({ name: "listBankCxP" });
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);
+    await bank[name]({ monto: 10 });
+    expect(downloadPdf).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + print, params: { id } }, expect.stringContaining(`${id}.pdf`));
+    expect(router.push).toHaveBeenCalledTimes(2);
   });
 
-  test("setRegistroIgresos shows an error notice when the backend rejects and prints the voucher when it accepts", async () => {
-    const bank = useBankStore();
+  test.each([
+    ["setRegistroEgresos", "registro_egresos"],
+    ["setRegistroIgresos", "registro_ingresos"],
+    ["updateRegistroEgresos", "actualizar_egresos"],
+    ["updateRegistroIgresos", "actualizar_ingresos"],
+  ] as const)("%s shows the server's reason when refused and keeps the user on the form", async (name, path) => {
+    respond({ [path]: { ...rejected("El monto supera el saldo pendiente."), tipomensaje: "TMSGADV" } });
 
-    respond({ registro_ingresos: rejected("fallo") });
-    await bank.setRegistroIgresos({});
-    expect(Swal.fire).toHaveBeenCalledWith({
-      icon: "error",
-      text: "Ocurrió un Error, comuníquese con el área de sistemas.",
-    });
+    expect(await useBankStore()[name]({})).toBe(false);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "El monto supera el saldo pendiente." });
+    expect(router.push).not.toHaveBeenCalled();
+  });
 
-    respond({ registro_ingresos: accepted([{ v_id_pago: 41 }]), imprimir_registro_ingresos: { path: "files/i.pdf" } });
-    await bank.setRegistroIgresos({});
-    await flushPromises();
-    expect(httpMock.mock.calls.slice(-1)[0]![0].params).toEqual({ id: 41, id_branch: 7, logo: "logo.png" });
-    expect(router.push).toHaveBeenCalledWith({ name: "listBankCxC" });
+  test("a payment that never reaches the server says so instead of claiming success", async () => {
+    respond({ registro_egresos: new Error("network") });
+
+    expect(await useBankStore().setRegistroEgresos({})).toBe(false);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+    expect(router.push).not.toHaveBeenCalled();
+  });
+
+  test.each([
+    ["updateRegistroEgresos", "actualizar_egresos", "listBankCxP"],
+    ["updateRegistroIgresos", "actualizar_ingresos", "listBankCxC"],
+  ] as const)("%s confirms with the server's message and then opens the list", async (name, path, list) => {
+    respond({ [path]: { ...accepted([]), mensaje: "Actualizamos el pago N° 7." } });
+
+    expect(await useBankStore()[name]({ id: 1 })).toBe(true);
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "put", data: { id: 1 } });
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", text: "Actualizamos el pago N° 7." });
+    expect(router.push).toHaveBeenCalledWith({ name: list });
   });
 
   test.each([
@@ -285,18 +307,18 @@ describe("bank store", () => {
   test.each([
     ["eliminarRegistroIngresos", "eliminar_registro_ingresos"],
     ["eliminarRegistroEgresos", "eliminar_registro_egresos"],
-  ] as const)("%s deletes, tells the user once accepted and always returns an empty object", async (name, path) => {
+  ] as const)("%s tells the user the server's answer and returns whether it annulled", async (name, path) => {
     respond({ [path]: accepted([]) });
     const bank = useBankStore();
 
-    expect(await bank[name]({ id: 1 })).toEqual({});
+    expect(await bank[name]({ id: 1 })).toBe(true);
     expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "delete", data: { id: 1 } });
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok" });
 
     vi.mocked(Swal.fire).mockClear();
-    respond({ [path]: rejected() });
-    await bank[name]({ id: 1 });
-    expect(Swal.fire).not.toHaveBeenCalled();
+    respond({ [path]: { ...rejected("No encontramos ese pago en tu empresa."), tipomensaje: "TMSGADV" } });
+    expect(await bank[name]({ id: 1 })).toBe(false);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "No encontramos ese pago en tu empresa." });
   });
 
   test.each([
@@ -310,31 +332,13 @@ describe("bank store", () => {
     expect(httpMock.mock.calls[0]![0].params).toEqual({ nro: "A", id_branch: 7 });
   });
 
-  test("imprimirComprobanteIngreso waits behind a loading notice and opens the printed file", async () => {
-    respond({ imprimir_registro_ingresos: { path: "files/i.pdf" } });
+  test.each([
+    ["imprimirComprobanteIngreso", "imprimir_registro_ingresos"],
+    ["imprimirComprobanteEgreso", "imprimir_registro_egreso"],
+  ] as const)("%s downloads the record's voucher from the response", async (name, path) => {
+    await useBankStore()[name]({ id: 2 });
 
-    await useBankStore().imprimirComprobanteIngreso({ id: 2 });
-
-    expect(Swal.showLoading).not.toHaveBeenCalled();
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "info", title: "Generando impresión" });
-    expect(httpMock).toHaveBeenCalledWith({
-      method: "get",
-      url: URL_MAIN + "imprimir_registro_ingresos",
-      headers: JSON_HEADERS,
-      params: { id: 2, id_branch: 7, logo: "logo.png" },
-    });
-    expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/i.pdf", "_blank");
-    expect(Swal.close).toHaveBeenCalled();
-  });
-
-  test("updateRegistroEgresos and updateRegistroIgresos put the data with the branch", async () => {
-    respond({ actualizar_egresos: accepted([]), actualizar_ingresos: accepted([]) });
-    const bank = useBankStore();
-
-    await bank.updateRegistroEgresos({ a: 1 });
-    await bank.updateRegistroIgresos({ b: 2 });
-
-    expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "put", data: { a: 1, id_branch: 7 } });
-    expect(httpMock.mock.calls[1]![0]).toMatchObject({ method: "put", data: { b: 2, id_branch: 7 } });
+    expect(downloadPdf).toHaveBeenCalledWith({ method: "get", url: URL_MAIN + path, params: { id: 2 } }, expect.stringContaining("2.pdf"));
+    expect(window.open).not.toHaveBeenCalled();
   });
 });

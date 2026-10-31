@@ -7,6 +7,7 @@ import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
 import { useSecuritysStore } from "@/stores/securitys";
+import { depositMatches, depositTotal } from "@/utils/bankDeposit";
 import type { CuentaIngreso } from "@/types/banks";
 import type {
   DetalleEgreso,
@@ -201,10 +202,9 @@ async function eliminar() {
     });
     return false;
   }
-  await bankStore.eliminarRegistroEgresos({ id: route.params.id });
-  router.push({
-    name: "listBankCxP",
-  });
+  if (await bankStore.eliminarRegistroEgresos({ id: route.params.id })) {
+    router.push({ name: "listBankCxP" });
+  }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function onItemSelected({ item, value }: { item: DetalleEgreso; value: boolean }) {
@@ -386,14 +386,12 @@ function continuarGastoBancario() {
   editableGastoBancario.value = true;
 }
 async function finalizarOperacion() {
-  if (
-    parseFloat(String(monto_local.value)).toFixed(0) !=
-    parseFloat(String((monto.value as number) * (tipocambio.value as number))).toFixed(0)
-  ) {
+  const montos = selected.value.map((item) => item.montoparcial);
+  if (!depositMatches(montos, montogastobancario.value, monto_local.value)) {
     Swal.fire({
-      icon: "error",
-      title: "Monto Local Incorrecto",
-      text: `El monto local debe ser equivalente a ${symbol.value} ${monto.value}.`,
+      icon: "warning",
+      title: "El monto en banco no cuadra",
+      text: `El monto en banco (${symbol.value} ${Number(monto_local.value).toFixed(2)}) debe ser la suma de los montos más la comisión bancaria (${symbol.value} ${depositTotal(montos, montogastobancario.value).toFixed(2)}). Corrige el monto en banco o los montos y vuelve a guardar.`,
     });
     return false;
   }
@@ -418,31 +416,14 @@ async function finalizarOperacion() {
   loading.value = true;
   await bankStore.updateRegistroEgresos(data);
   loading.value = false;
-  Swal.fire({
-    icon: "success",
-    title: "Operación Actualizada",
-    text: "El pago se ha actualizado correctamente.",
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    allowEnterKey: false,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      router.push({
-        name: "listBankCxP",
-      });
-    }
-  });
 }
 function fn_totalAbonado(item: DetalleEgreso) {
   return parseFloat(String(item.montomonedalocal)).toFixed(2);
 }
 function recalcularTotal() {
   monto_local.value = selected.value.reduce((suma: number, element) => {
-    return suma + parseFloat(String(element.montoparcial));
-  }, 0);
-  tipocambiosVer.value = parseFloat(String((monto_local.value as number) / (monto.value as number))).toFixed(
-    4,
-  );
+    return suma + (Number(element.montoparcial) || 0);
+  }, Number(montogastobancario.value) || 0);
 }
 
 watch(id_cuenta, (newVal) => {

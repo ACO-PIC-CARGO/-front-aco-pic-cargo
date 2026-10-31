@@ -517,7 +517,7 @@ function buscarOperacionAlEscribir() {
     })) as OperacionSimilar[];
 
     operacionesSimilares.value = res;
-    if (!res[0]!.estadoflag) {
+    if (!res[0]?.estadoflag) {
       operacionesSimilares.value = [];
       return;
     }

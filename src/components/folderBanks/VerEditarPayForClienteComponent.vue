@@ -7,6 +7,7 @@ import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
 import { useSecuritysStore } from "@/stores/securitys";
+import { depositMatches, depositTotal } from "@/utils/bankDeposit";
 import type {
   CuentaIngreso,
   DetalleIngresoRegistrado,
@@ -211,10 +212,9 @@ async function eliminar() {
     });
     return false;
   }
-  await bankStore.eliminarRegistroIngresos({ id: route.params.id });
-  router.push({
-    name: "listBankCxC",
-  });
+  if (await bankStore.eliminarRegistroIngresos({ id: route.params.id })) {
+    router.push({ name: "listBankCxC" });
+  }
 }
 function esImagen(url: string | null) {
   if (!url) return false;
@@ -317,13 +317,13 @@ function continuarDetalles() {
       });
     }
   } else {
-    errorMesage.value.cliente = cliente.value ? "" : "Proveedor es requerido";
+    errorMesage.value.cliente = cliente.value ? "" : "Elige el cliente.";
     errorMesage.value.monto_local = monto_local.value
       ? ""
       : "Monto de Depósito en banco es requerido";
     errorMesage.value.id_banco_origen = id_banco_origen.value
       ? ""
-      : "Proveedor es requerido";
+      : "Elige el banco de origen.";
     errorMesage.value.id_cuenta =
       Object.keys(id_cuenta.value).length > 0 ? "" : "Cuenta es requerida";
     errorMesage.value.fecha_operacion = fecha_operacion.value
@@ -385,14 +385,12 @@ function continuarGastoBancario() {
   editableGastoBancario.value = true;
 }
 async function finalizarOperacion() {
-  if (
-    parseFloat(String(monto_local.value)).toFixed(2) !=
-    parseFloat(String((monto.value as number) * (tipocambio.value as number))).toFixed(2)
-  ) {
+  const montos = selected.value.map((item) => item.montoparcial);
+  if (!depositMatches(montos, montogastobancario.value, monto_local.value)) {
     Swal.fire({
-      icon: "error",
-      title: "Monto Local Incorrecto",
-      text: `El monto local debe ser equivalente a ${symbol.value} ${monto_local.value}.`,
+      icon: "warning",
+      title: "El monto en banco no cuadra",
+      text: `El monto en banco (${symbol.value} ${Number(monto_local.value).toFixed(2)}) debe ser la suma de los montos más la comisión bancaria (${symbol.value} ${depositTotal(montos, montogastobancario.value).toFixed(2)}). Corrige el monto en banco o los montos y vuelve a guardar.`,
     });
     return false;
   }
@@ -420,20 +418,6 @@ async function finalizarOperacion() {
   loading.value = true;
   await bankStore.updateRegistroIgresos(data);
   loading.value = false;
-  Swal.fire({
-    icon: "success",
-    title: "Operación Finalizada",
-    text: "El pago se ha registrado correctamente.",
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    allowEnterKey: false,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      router.push({
-        name: "listBankCxC",
-      });
-    }
-  });
 }
 function fn_totalAbonado(item: DetalleIngresoRegistrado) {
   if (!selected.value.includes(item)) {

@@ -11,7 +11,8 @@ import type {
   DeudaSeleccionable,
   FiltroBancos,
 } from "@/types/finanzas";
-import { sessionBranchId, sessionSucursal } from "@/utils/sesion";
+import { sessionBranchId } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 import { request } from "@/utils/request";
 
 export const useBankStore = defineStore("bank", () => {
@@ -477,142 +478,71 @@ export const useBankStore = defineStore("bank", () => {
       });
     return res;
   }
-  async function setRegistroEgresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "registro_egresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ...data,
-        id_branch: sessionBranchId(),
-      },
-    };
-    await axios<ApiResponse<{ v_id: number }[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        Swal.fire({
-          icon: "success",
-          text: data.mensaje,
-          confirmButtonText: "Imprimir comprobante",
-          cancelButtonText: "Ir A listado",
-          showCancelButton: true,
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            await imprimirComprobanteEgreso({
-              id: data.data[0]!.v_id,
-            });
-            router.push({
-              name: "listBankCxP",
-            });
-          }
-          // @ts-expect-error SweetAlertResult has no cancelButtonText, so this branch never runs.
-          if (res.cancelButtonText) {
-            router.push({
-              name: "listBankCxP",
-            });
-          }
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  const notifyRefusal = (answer: ApiResponse) =>
+    Swal.fire({ icon: answer.tipomensaje === "TMSGERR" ? "error" : "warning", text: answer.mensaje });
+
+  const paymentRequest = (method: "post" | "put" | "delete", path: string, data: Record<string, unknown>) =>
+    request<Record<string, number>>({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
+      headers: { "Content-Type": "application/json" },
+      data,
+    });
+
+  async function registerPayment(
+    path: string,
+    data: Record<string, unknown>,
+    list: string,
+    printVoucher: (row: Record<string, number>) => Promise<boolean>,
+  ): Promise<boolean> {
+    const answer = await paymentRequest("post", path, data);
+    if (!answer.estadoflag) {
+      notifyRefusal(answer);
+      return false;
+    }
+    const choice = await Swal.fire({
+      icon: "success",
+      text: answer.mensaje,
+      confirmButtonText: "Imprimir comprobante",
+      cancelButtonText: "Ir al listado",
+      showCancelButton: true,
+    });
+    if (choice.isConfirmed) await printVoucher(answer.data[0]!);
+    router.push({ name: list });
+    return true;
   }
 
-  async function updateRegistroEgresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "actualizar_egresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ...data,
-        id_branch: sessionBranchId(),
-      },
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        console.log("Respuesta del servidor al registrar egreso:", data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-  async function updateRegistroIgresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "actualizar_ingresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ...data,
-        id_branch: sessionBranchId(),
-      },
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        console.log("Respuesta del servidor al registrar ingreso:", data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function updatePayment(path: string, data: Record<string, unknown>, list: string): Promise<boolean> {
+    const answer = await paymentRequest("put", path, data);
+    if (!answer.estadoflag) {
+      notifyRefusal(answer);
+      return false;
+    }
+    await Swal.fire({ icon: "success", text: answer.mensaje });
+    router.push({ name: list });
+    return true;
   }
 
-  async function setRegistroIgresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "registro_ingresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: {
-        ...data,
-        id_branch: sessionBranchId(),
-      },
-    };
-    await axios<ApiResponse<{ v_id_pago: number }[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: data.mensaje,
-            confirmButtonText: "Imprimir comprobante",
-            cancelButtonText: "Ir A listado",
-            showCancelButton: true,
-          }).then(async (res) => {
-            if (res.isConfirmed) {
-              await imprimirComprobanteIngreso({
-                id: data.data[0]!.v_id_pago,
-              });
-              router.push({
-                name: "listBankCxC",
-              });
-            }
-            // @ts-expect-error SweetAlertResult has no cancelButtonText, so this branch never runs.
-            if (res.cancelButtonText) {
-              router.push({
-                name: "listBankCxC",
-              });
-            }
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: "Ocurrió un Error, comuníquese con el área de sistemas.",
-          });
-        }
-        console.log("Respuesta del servidor al registrar egreso:", data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function annulPayment(path: string, data: Record<string, unknown>): Promise<boolean> {
+    const answer = await paymentRequest("delete", path, data);
+    if (!answer.estadoflag) {
+      notifyRefusal(answer);
+      return false;
+    }
+    Swal.fire({ icon: "success", text: answer.mensaje });
+    return true;
   }
+
+  const setRegistroEgresos = (data: Record<string, unknown>) =>
+    registerPayment("registro_egresos", data, "listBankCxP", (row) => imprimirComprobanteEgreso({ id: row.v_id }));
+
+  const updateRegistroEgresos = (data: Record<string, unknown>) => updatePayment("actualizar_egresos", data, "listBankCxP");
+
+  const updateRegistroIgresos = (data: Record<string, unknown>) => updatePayment("actualizar_ingresos", data, "listBankCxC");
+
+  const setRegistroIgresos = (data: Record<string, unknown>) =>
+    registerPayment("registro_ingresos", data, "listBankCxC", (row) => imprimirComprobanteIngreso({ id: row.v_id_pago }));
+
   async function getRegistroEgresos(data: Record<string, unknown>): Promise<void> {
     const config = {
       method: "get",
@@ -680,57 +610,10 @@ export const useBankStore = defineStore("bank", () => {
       });
     return res;
   }
-  async function eliminarRegistroIngresos(data: Record<string, unknown>): Promise<BancoRegistro> {
-    const res: BancoRegistro = {};
-    const config = {
-      method: "delete",
-      url: import.meta.env.VITE_URL_MAIN + "eliminar_registro_ingresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: data.mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-    return res;
-  }
+  const eliminarRegistroIngresos = (data: Record<string, unknown>) => annulPayment("eliminar_registro_ingresos", data);
 
-  async function eliminarRegistroEgresos(data: Record<string, unknown>): Promise<BancoRegistro> {
-    const res: BancoRegistro = {};
-    const config = {
-      method: "delete",
-      url: import.meta.env.VITE_URL_MAIN + "eliminar_registro_egresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then(function (response) {
-        const data = response.data;
-        if (data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: data.mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-    return res;
-  }
+  const eliminarRegistroEgresos = (data: Record<string, unknown>) => annulPayment("eliminar_registro_egresos", data);
+
   async function verRegistroEgresos(data: Record<string, unknown>): Promise<BancoRegistro> {
     let res: BancoRegistro = {};
     const config = {
@@ -802,76 +685,14 @@ export const useBankStore = defineStore("bank", () => {
       });
     return res;
   }
-  async function imprimirComprobanteIngreso(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "imprimir_registro_ingresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: {
-        ...data,
-        id_branch: sessionBranchId(),
-        logo: sessionSucursal().logo,
-      },
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Generando impresión",
-      text: "Estamos preparando la impresión del ingreso. Por favor, espera un momento.",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+  const printVoucher = (path: string, id: unknown, fileName: string) =>
+    downloadPdf({ method: "get", url: import.meta.env.VITE_URL_MAIN + path, params: { id } }, `${fileName} ${id}.pdf`);
 
-    await axios<{ path: string }>(config)
-      .then(function (response) {
-        const data = response.data;
-        window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
-        Swal.close();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-  async function imprimirComprobanteEgreso(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "imprimir_registro_egreso",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      params: {
-        ...data,
-        id_branch: sessionBranchId(),
-        logo: sessionSucursal().logo,
-      },
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Generando impresión",
-      text: "Estamos preparando la impresión del egreso. Por favor, espera un momento.",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+  const imprimirComprobanteIngreso = (data: Record<string, unknown>) =>
+    printVoucher("imprimir_registro_ingresos", data.id, "Comprobante de ingreso");
 
-    await axios<{ path: string }>(config)
-      .then(function (response) {
-        const data = response.data;
-        window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
-        Swal.close();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
+  const imprimirComprobanteEgreso = (data: Record<string, unknown>) =>
+    printVoucher("imprimir_registro_egreso", data.id, "Comprobante de salida");
 
   return {
     list,

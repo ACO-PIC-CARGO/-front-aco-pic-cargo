@@ -349,11 +349,11 @@ async function continuarDetalles() {
       });
     }
   } else {
-    errorMesage.value.cliente = cliente.value ? "" : "Proveedor es requerido";
+    errorMesage.value.cliente = cliente.value ? "" : "Elige el cliente.";
 
     errorMesage.value.id_banco_origen = id_banco_origen.value
       ? ""
-      : "Proveedor es requerido";
+      : "Elige el banco de origen.";
     errorMesage.value.id_cuenta =
       Object.keys(id_cuenta.value).length > 0 ? "" : "Cuenta es requerida";
     errorMesage.value.fecha_operacion = fecha_operacion.value
@@ -527,7 +527,7 @@ function buscarOperacionAlEscribir() {
 
     operacionesSimilares.value = res;
 
-    if (!res[0]!.estadoflag) {
+    if (!res[0]?.estadoflag) {
       operacionesSimilares.value = [];
       return;
     }
