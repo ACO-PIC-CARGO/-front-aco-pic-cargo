@@ -248,29 +248,8 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     return saveAndTell("post", "insertar_master_detalle_tipotelefono");
   }
 
-  async function RegistrarMasterDetalleNotasCotizacion(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_master_detalle_notas_cotizacion`,
-      headers: { "Content-Type": "application/json" },
-      data: model.value,
-    };
-    try {
-      await axios<ApiResponse>(config)
-        .then(function (response) {
-          const data = response.data;
-          sessionStorage.setItem("auth-token", data.token!);
-          Swal.fire({
-            icon: data.estadoflag ? "success" : "error",
-            text: data.mensaje,
-          });
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-    } catch (error) {
-      console.error(error);
-    }
+  function RegistrarMasterDetalleNotasCotizacion(): Promise<boolean> {
+    return saveAndTell("post", "insertar_master_detalle_notas_cotizacion");
   }
 
   async function cargarTipoPersona(): Promise<void> {

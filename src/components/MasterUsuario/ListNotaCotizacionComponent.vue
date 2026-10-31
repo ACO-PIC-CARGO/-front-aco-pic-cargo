@@ -93,9 +93,6 @@ async function editar(item: MasterDetalle) {
 }
 async function nuevo() {
   masterusuariosStore.tipo = "nuevo";
-  const lista = masterusuariosStore.lstNotasQuote;
-  const maxOrden = lista.length > 0 ? Math.max(...lista.map((item) => Number(item.orden) || 0)) : 0;
-  const nuevoOrden = maxOrden + 1;
 
   masterusuariosStore.model = {
     id: "",
@@ -108,7 +105,7 @@ async function nuevo() {
     escomunflag: "",
     individualflag: true,
     grupalflag: true,
-    orden: nuevoOrden,
+    orden: null,
     id_branch: sessionBranchId(),
   };
   masterusuariosStore.drawer = !masterusuariosStore.drawer;

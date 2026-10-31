@@ -6,6 +6,7 @@ import type { FormMasterDetalle } from "@/types/seguridad";
 const masterusuariosStore = useMasterusuariosStore();
 
 const loading = ref(false);
+const saving = ref(false);
 const model = ref<FormMasterDetalle | string>("");
 const frmDML = useTemplateRef("frmDML");
 
@@ -65,25 +66,23 @@ async function Limpiar() {
     !masterusuariosStore.drawer;
 }
 async function Aceptar() {
-  if (masterusuariosStore.tipo == "nuevo") {
-    if ((await frmDML.value!.validate()).valid) {
-      loading.value = true;
-      await masterusuariosStore.RegistrarMasterDetalleNotasCotizacion();
-      await masterusuariosStore.GetListNotasCotizacion();
-      loading.value = false;
-    }
-  }
-  if (masterusuariosStore.tipo == "editar") {
-    loading.value = true;
-    if ((await frmDML.value!.validate()).valid) {
-      await masterusuariosStore.ActualizarMasterDetalle();
-      await masterusuariosStore.GetListNotasCotizacion();
-    }
-    loading.value = false;
-  }
   if (masterusuariosStore.tipo == "ver") {
-    masterusuariosStore.drawer =
-      !masterusuariosStore.drawer;
+    masterusuariosStore.drawer = false;
+    return;
+  }
+  if (saving.value) return;
+  saving.value = true;
+  try {
+    if (!(await frmDML.value!.validate()).valid) return;
+    const saved =
+      masterusuariosStore.tipo == "nuevo"
+        ? await masterusuariosStore.RegistrarMasterDetalleNotasCotizacion()
+        : await masterusuariosStore.ActualizarMasterDetalle();
+    if (!saved) return;
+    await masterusuariosStore.GetListNotasCotizacion();
+    masterusuariosStore.drawer = false;
+  } finally {
+    saving.value = false;
   }
 }
 </script>
@@ -219,6 +218,7 @@ async function Aceptar() {
               variant="outlined"
               density="compact"
               v-model="masterusuariosStore.model.orden"
+              hint="Si lo dejas vacío, la nota se ubica al final."
               :readonly="masterusuariosStore.tipo == 'ver'"
               :clearable="masterusuariosStore.tipo != 'ver'"
               type="number"
@@ -297,7 +297,7 @@ async function Aceptar() {
             masterusuariosStore.tipo != 'ver'
         "
         @click="Aceptar()"
-        :loading="loading"
+        :loading="saving"
       >
         Aceptar
       </v-btn>
