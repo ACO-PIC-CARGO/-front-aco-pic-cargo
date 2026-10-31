@@ -4,6 +4,7 @@ import {
   blockedQuoteSave,
   defaultQuoteStatus,
   hasInvalidMultiplier,
+  missingCalculatorFreight,
   positiveInteger,
   quoteSaveProblem,
   servicesStepErrors,
@@ -182,5 +183,18 @@ describe("blockedQuoteSave", () => {
     vi.mocked(Swal.fire).mockClear();
     expect(blockedQuoteSave(pricing(2.5))).toBe(true);
     expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "warning", text: expect.stringContaining("opción 1") }));
+  });
+});
+
+describe("missingCalculatorFreight", () => {
+  test("an individual quote needs the individual freight", () => {
+    expect(missingCalculatorFreight({ monto_flete: "120.00" }, false)).toBe(false);
+    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, false)).toBe(true);
+    expect(missingCalculatorFreight({}, undefined)).toBe(true);
+  });
+
+  test("a group quote needs the group freight", () => {
+    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, true)).toBe(false);
+    expect(missingCalculatorFreight({ monto_flete: "120.00" }, true)).toBe(true);
   });
 });

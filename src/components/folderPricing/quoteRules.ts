@@ -8,9 +8,16 @@ import type {
   Numerico,
   OpcionCosto,
 } from "@/types/cotizacion";
+import type { FletePricingCalculadora } from "@/types/calculadora";
 
 export const NO_DEFAULT_STATUS =
   "Tu empresa no tiene un estatus por defecto ni un estatus PRELIMINAR activo para cotizaciones. Elige el estado de la cotización en la lista o configura el estatus por defecto en Configuración.";
+
+export const NO_CALCULATOR_FREIGHT =
+  "No hay flete de la calculadora para esta ruta. Escribe el flete en los costos de la cotización.";
+
+export const missingCalculatorFreight = (flete: FletePricingCalculadora, esGrupal: boolean | undefined): boolean =>
+  !(esGrupal ? flete.monto_flete_grupal : flete.monto_flete);
 
 export const FOLDER_NOT_CREATED =
   "No pudimos crear la carpeta de la cotización en OneDrive. Puedes seguir trabajando y pedir a soporte que la cree.";

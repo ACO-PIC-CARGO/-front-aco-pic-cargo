@@ -21,9 +21,11 @@ import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
 import {
   FOLDER_NOT_CREATED,
+  NO_CALCULATOR_FREIGHT,
   NO_DEFAULT_STATUS,
   blockedQuoteSave,
   defaultQuoteStatus,
+  missingCalculatorFreight,
 } from "@/components/folderPricing/quoteRules";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import type {
@@ -288,6 +290,13 @@ async function continuarLlenadoCostos() {
     await activarLlenadoCostosIndividual();
   }
 }
+function textoPasarACotizar() {
+  const sinFlete = missingCalculatorFreight(
+    calculadorasStore.fletePricing,
+    pricingStore.datosPrincipales.esgrupalflag,
+  );
+  return `${sinFlete ? `${NO_CALCULATOR_FREIGHT} ` : ""}¿Desea pasar a Cotizar?`;
+}
 async function activarLlenadoCostosGrupal(
   indiceOpcion = 0,
   mostrarConfirmacion = true,
@@ -418,7 +427,7 @@ async function activarLlenadoCostosGrupal(
     Swal.fire({
       icon: "question",
       title: "Cotizar",
-      text: "¿Desea pasar a Cotizar?",
+      text: textoPasarACotizar(),
       confirmButtonText: "Pasar a Cotizar",
       denyButtonText: "Guardar Borrador",
       allowEnterKey: false,
@@ -570,7 +579,7 @@ async function activarLlenadoCostosIndividual(
     Swal.fire({
       icon: "question",
       title: "Cotizar",
-      text: "¿Desea pasar a Cotizar?",
+      text: textoPasarACotizar(),
       confirmButtonText: "Pasar a Cotizar",
       denyButtonText: "Guardar Borrador",
       allowEnterKey: false,
