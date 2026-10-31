@@ -54,8 +54,7 @@ let codigo_master: unknown;
 // ...mapAction([])
 // --------------------
 function irAEditar() {
-  const id_branch =
-    controlGastosStore.listControlGastos[0]!.id_branch;
+  const id_branch = controlGastosStore.listControlGastos[0]?.id_branch;
   if (
     !(
       sessionBranchId() ==
@@ -223,8 +222,7 @@ onMounted(async () => {
   ]);
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   await appStore._getProveedor(), calcularProfit();
-  codigo_master =
-    controlGastosStore.listControlGastos[0]!.master_nromaster;
+  codigo_master = controlGastosStore.listControlGastos[0]?.master_nromaster;
   appStore.spiner = false;
 });
 </script>

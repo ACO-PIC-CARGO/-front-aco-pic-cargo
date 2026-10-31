@@ -5,6 +5,7 @@ import router from "@/router";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { useSecuritysStore } from "@/stores/securitys";
 import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: { id_branch: 7 } } } } }));
@@ -33,46 +34,47 @@ describe("controlGastos store", () => {
     vi.restoreAllMocks();
   });
 
-  test("getListControlGastos asks with the route branch and keeps the rows", async () => {
-    respond({ control_gastos_list: control([{ master_id: 1 }]) });
+  test("getListControlGastos keeps the rows of the master", async () => {
+    respond({ control_gastos_list: accepted([{ master_id: 1 }]) });
     const store = useControlGastosStore();
 
     await store.getListControlGastos(55);
 
-    expect(httpMock.mock.calls[0]![0].url).toBe(URL_MAIN + "control_gastos_list?id=55&id_branch=7");
+    expect(httpMock.mock.calls[0]![0].url).toBe(URL_MAIN + "control_gastos_list?id=55");
     expect(store.listControlGastos).toEqual([{ master_id: 1 }]);
   });
 
-  test("getListControlGastos empties the list, shows the error and goes to Login on a 401", async () => {
-    vi.useFakeTimers();
-    respond({ control_gastos_list: controlRejected({ status: "401" }) });
+  test("getListControlGastos empties the list and says why when the master cannot be read", async () => {
+    respond({ control_gastos_list: { ...rejected("Tu sesión no es válida. Vuelve a iniciar sesión."), tipomensaje: "TMSGADV" } });
     const store = useControlGastosStore();
     store.listControlGastos = [{ master_id: 9 }];
 
     await store.getListControlGastos(55);
-    await flushPromises();
 
     expect(store.listControlGastos).toEqual([]);
-    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "error", title: "Error", text: "Sin permiso" });
-    expect(router.push).toHaveBeenCalledWith({ name: "Login" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "Tu sesión no es válida. Vuelve a iniciar sesión." });
   });
 
-  test("getListControlGastosHouses and Master keep the lsthouses of the answer", async () => {
+  test("getListControlGastosHouses and Master keep the lsthouses of the first row", async () => {
     respond({
-      control_gastos_listhouses: control({ lsthouses: [{ id: 1 }] }),
-      control_gastos_listmaster: control({ lsthouses: [{ id: 2 }] }),
+      control_gastos_listhouses: accepted([{ lsthouses: [{ id: 1 }] }]),
+      control_gastos_listmaster: accepted([{ lsthouses: [{ id: 2 }] }]),
     });
     const store = useControlGastosStore();
 
     await store.getListControlGastosHouses(5);
     await store.getListControlGastosMaster(5);
 
+    expect(httpMock.mock.calls.map(([config]) => config.url)).toEqual([
+      URL_MAIN + "control_gastos_listhouses?id=5",
+      URL_MAIN + "control_gastos_listmaster?id=5",
+    ]);
     expect(store.master_houses).toEqual([{ id: 1 }]);
     expect(store.master_egresos).toEqual([{ id: 2 }]);
   });
 
-  test("getListControlGastosHouses and Master leave the lists undefined when the backend rejects", async () => {
-    respond({ control_gastos_listhouses: controlRejected(), control_gastos_listmaster: controlRejected() });
+  test("getListControlGastosHouses and Master leave empty lists, quietly when there is nothing to show", async () => {
+    respond({ control_gastos_listhouses: rejected(), control_gastos_listmaster: rejected() });
     const store = useControlGastosStore();
     store.master_houses = [{ id: 1 }];
     store.master_egresos = [{ id: 2 }];
@@ -80,9 +82,19 @@ describe("controlGastos store", () => {
     await store.getListControlGastosHouses(5);
     await store.getListControlGastosMaster(5);
 
-    expect(store.master_houses).toBeUndefined();
-    expect(store.master_egresos).toBeUndefined();
-    expect(Swal.fire).toHaveBeenCalledTimes(2);
+    expect(store.master_houses).toEqual([]);
+    expect(store.master_egresos).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  test("getListControlGastosHouses tells the user to check the connection when there is no answer", async () => {
+    httpMock.mockRejectedValueOnce(new Error("network"));
+    const store = useControlGastosStore();
+
+    await store.getListControlGastosHouses(5);
+
+    expect(store.master_houses).toEqual([]);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("cargarCorrelativo keeps the rows and empties them when statusBol is false", async () => {
@@ -110,52 +122,42 @@ describe("controlGastos store", () => {
     ]);
   });
 
-  test("setControl posts the master with the session user and shows the message", async () => {
-    respond({ setControl: control([{ mensaje: "Control activado" }]) });
+  test("setControl asks for the control of the house, not of its master", async () => {
+    respond({ setControl: accepted([{ idcontrol: 3 }]) });
 
-    await useControlGastosStore().setControl({ id_master: 12 });
+    expect(await useControlGastosStore().setControl({ id_house: 40, id_master: 12 })).toBe(true);
 
-    expect(httpMock.mock.calls[0]![0]).toMatchObject({ data: { id_house: 12, id_user: 4, status: 1 } });
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", text: "Control activado" });
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ data: { id_house: 40, status: 1 } });
   });
 
   test("guardarIngresos reloads the houses of the master after a good answer", async () => {
     respond({
-      setIngresos: control([{ mensaje: "Guardado" }]),
-      control_gastos_listhouses: control({ lsthouses: [{ id: 1 }] }),
+      setIngresos: { ...accepted([]), mensaje: "Concepto agregado." },
+      control_gastos_listhouses: accepted([{ lsthouses: [{ id: 1 }] }]),
     });
     const store = useControlGastosStore();
 
-    await store.guardarIngresos({ id_master: 21 });
+    expect(await store.guardarIngresos({ id_master: 21 })).toBe(true);
     await flushPromises();
 
-    expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + "control_gastos_listhouses?id=21&id_branch=7");
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "Concepto agregado." });
+    expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + "control_gastos_listhouses?id=21");
     expect(store.master_houses).toEqual([{ id: 1 }]);
-  });
-
-  test("actualizarIngresos reloads the houses with the master code", async () => {
-    respond({
-      editIngreso: control([{ mensaje: "Actualizado" }]),
-      control_gastos_listhouses: control({ lsthouses: [] }),
-    });
-
-    await useControlGastosStore().actualizarIngresos({ code_master: "M-1" });
-    await flushPromises();
-
-    expect(httpMock.mock.calls[1]![0].url).toBe(URL_MAIN + "control_gastos_listhouses?id=M-1&id_branch=7");
   });
 
   test.each([
     ["guardarIngresos", "setIngresos", { id_master: 1 }],
+    ["actualizarIngresos", "editIngreso", { code_master: 1 }],
     ["copiarCGingresos", "copiar_cgingresos", {}],
     ["copiarCGEgresos", "copiar_cgegresos", {}],
-    ["setControl", "setControl", { id_master: 1 }],
-  ] as const)("%s shows the backend message as an error when statusBol is false", async (name, path, body) => {
-    respond({ [path]: { ...controlRejected(), data: { mensaje: "No permitido" } } });
+    ["setControl", "setControl", { id_house: 1 }],
+    ["eliminarIngreso", "delIngresos/9", { id: 9 }],
+  ] as const)("%s says why the database refused and reports the failure", async (name, path, body) => {
+    respond({ [path]: { ...rejected("No puedes eliminar este concepto porque ya está facturado."), tipomensaje: "TMSGADV" } });
 
-    await useControlGastosStore()[name](body as never);
+    expect(await useControlGastosStore()[name](body as never)).toBe(false);
 
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "No permitido" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "No puedes eliminar este concepto porque ya está facturado." });
   });
 
   test("getNombreCompania returns the campaign name, or an empty text when rejected", async () => {
@@ -169,15 +171,12 @@ describe("controlGastos store", () => {
     expect(await store.getNombreCompania(4)).toBe("");
   });
 
-  test("eliminarIngreso warns only when statusBol is false", async () => {
-    respond({ "delIngresos/9": control([]) });
-    const store = useControlGastosStore();
-    await store.eliminarIngreso({ id: 9 });
-    expect(Swal.fire).not.toHaveBeenCalled();
+  test("eliminarIngreso stays quiet when the concept is deleted", async () => {
+    respond({ "delIngresos/9": accepted([]) });
 
-    respond({ "delIngresos/9": { ...controlRejected(), data: { mensaje: "No se pudo" } } });
-    await store.eliminarIngreso({ id: 9 });
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "No se pudo" });
+    expect(await useControlGastosStore().eliminarIngreso({ id: 9 })).toBe(true);
+
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
   test("CargaMasivaControlDeGastos hands the answer to its own response and then to securitys, and returns it", async () => {
@@ -208,8 +207,8 @@ describe("controlGastos store", () => {
     expect(store.response).toEqual([]);
 
     store.response = [{ id_master: 1 }] as never;
-    respond({ guardar_cuotas_cge_tipo_proveedor: accepted([{ mensaje: "Cuotas guardadas" }]) });
+    respond({ guardar_cuotas_cge_tipo_proveedor: { ...accepted([]), mensaje: "Cuotas guardadas." } });
     expect(await store.guardarCuotasCgeTipoProveedor({})).toEqual([]);
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "Cuotas guardadas" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "Cuotas guardadas." });
   });
 });

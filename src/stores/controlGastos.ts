@@ -1,9 +1,10 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import Swal from "sweetalert2";
+import type { SweetAlertIcon } from "sweetalert2";
+import type { AxiosRequestConfig } from "axios";
 import moment from "moment";
 import axios from "@/api/http";
-import router from "@/router";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { ApiResponse } from "@/types/api";
 import type { ResultadoCargaMasivaGastos } from "@/types/cargaMasiva";
@@ -11,11 +12,31 @@ import type {
   ControlGastoHouse,
   ControlGastoMaster,
   CorrelativoControlGasto,
-  FilaMensaje,
   ListadoControlGastoHouses,
   RespuestaControlGasto,
 } from "@/types/finanzas";
-import { sessionUser } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+
+const URL_MAIN = import.meta.env.VITE_URL_MAIN;
+const ALERT_ICONS: Record<string, SweetAlertIcon> = { TMSGINF: "info", TMSGADV: "warning" };
+
+const alertIcon = (response: ApiResponse) => ALERT_ICONS[response.tipomensaje] ?? "error";
+
+const warnIfFailed = (response: ApiResponse) => {
+  if (hasFailed(response)) Swal.fire({ icon: alertIcon(response), text: response.mensaje });
+};
+
+const save = async (config: AxiosRequestConfig): Promise<boolean> => {
+  const response = await request(config);
+  Swal.fire({ icon: response.estadoflag ? "success" : alertIcon(response), text: response.mensaje });
+  return response.estadoflag;
+};
+
+const expenseControlRows = async (path: string, id: number | string): Promise<ControlGastoHouse[]> => {
+  const response = await request<ListadoControlGastoHouses>({ method: "get", url: `${URL_MAIN}${path}?id=${id}` });
+  warnIfFailed(response);
+  return response.data[0]?.lsthouses ?? [];
+};
 
 export const useControlGastosStore = defineStore("controlGastos", () => {
   const listControlGastos = ref<ControlGastoMaster[]>([]);
@@ -30,124 +51,21 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
     response.value = data;
     useSecuritysStore().response = data as never;
   }
-  function setListControlGastosHouse(data: ListadoControlGastoHouses | never[]): void {
-    master_houses.value = (data as ListadoControlGastoHouses).lsthouses;
-  }
-  function setListControlGastosMaster(data: ListadoControlGastoHouses | never[]): void {
-    master_egresos.value = (data as ListadoControlGastoHouses).lsthouses;
-  }
 
   async function getListControlGastos(id: number | string): Promise<void> {
-    const routeParams = router.currentRoute.value.params;
-    // console.log(routeParams);
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `control_gastos_list?id=${id}&id_branch=${routeParams.id_branch}`,
-      headers: headers,
-    };
-
-    await axios<RespuestaControlGasto<ControlGastoMaster[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.statusBol == true) {
-        listControlGastos.value = response.data.data;
-      } else {
-        listControlGastos.value = [];
-        Swal.fire({
-          icon: "error",
-          title: data.statusText,
-          text: data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && data.status == "401") {
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-    });
+    const response = await request<ControlGastoMaster>({ method: "get", url: `${URL_MAIN}control_gastos_list?id=${id}` });
+    warnIfFailed(response);
+    listControlGastos.value = response.estadoflag ? response.data : [];
   }
+
   async function getListControlGastosHouses(id: number | string): Promise<void> {
-    const routeParams = router.currentRoute.value.params;
-    // console.log(routeParams);
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `control_gastos_listhouses?id=${id}&id_branch=${routeParams.id_branch}`,
-      headers: headers,
-    };
-
-    await axios<RespuestaControlGasto<ListadoControlGastoHouses>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.statusBol == true) {
-        setListControlGastosHouse(response.data.data);
-      } else {
-        setListControlGastosHouse([]);
-        Swal.fire({
-          icon: "error",
-          title: data.statusText,
-          text: data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && data.status == "401") {
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-    });
+    master_houses.value = await expenseControlRows("control_gastos_listhouses", id);
   }
+
   async function getListControlGastosMaster(id: number | string): Promise<void> {
-    const routeParams = router.currentRoute.value.params;
-    // console.log(routeParams);
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `control_gastos_listmaster?id=${id}&id_branch=${routeParams.id_branch}`,
-      headers: headers,
-    };
-
-    await axios<RespuestaControlGasto<ListadoControlGastoHouses>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.statusBol == true) {
-        setListControlGastosMaster(response.data.data);
-      } else {
-        setListControlGastosMaster([]);
-        Swal.fire({
-          icon: "error",
-          title: data.statusText,
-          text: data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && data.status == "401") {
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-    });
+    master_egresos.value = await expenseControlRows("control_gastos_listmaster", id);
   }
+
   async function cargarCorrelativo(): Promise<void> {
     const headers = {
       "Content-Type": "application/json",
@@ -194,168 +112,28 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
       }
     });
   }
-  async function setControl(house: { id_master: number | string; [campo: string]: unknown }): Promise<void> {
-    console.log("house", house);
-    const data = {
-      id_house: house.id_master,
-      id_user: sessionUser().id,
-      status: 1,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setControl",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<RespuestaControlGasto<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-
-        if (data.statusBol == true) {
-          Swal.fire({
-            icon: "info",
-            text: data.data[0]!.mensaje,
-          });
-          // dispatch("getListControlGastos", house.code_master);
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: (data.data as unknown as FilaMensaje).mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function setControl(house: { id_house?: number | string; [campo: string]: unknown }): Promise<boolean> {
+    return save({ method: "post", url: URL_MAIN + "setControl", data: { id_house: house.id_house, status: 1 } });
   }
-  async function guardarIngresos(data: { id_master: number | string; [campo: string]: unknown }): Promise<void> {
-    console.log("data", data);
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "setIngresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
 
-    await axios<RespuestaControlGasto<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (res.statusBol == true) {
-          Swal.fire({
-            icon: "info",
-            text: res.data[0]!.mensaje,
-          });
-          getListControlGastosHouses(data.id_master);
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: (res.data as unknown as FilaMensaje).mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function guardarIngresos(data: { id_master: number | string; [campo: string]: unknown }): Promise<boolean> {
+    const saved = await save({ method: "post", url: URL_MAIN + "setIngresos", data });
+    if (saved) await getListControlGastosHouses(data.id_master);
+    return saved;
   }
-  async function actualizarIngresos(data: { code_master: number | string; [campo: string]: unknown }): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "editIngreso",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
 
-    await axios<RespuestaControlGasto<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (res.statusBol == true) {
-          Swal.fire({
-            icon: "info",
-            text: res.data[0]!.mensaje,
-          });
-          getListControlGastosHouses(data.code_master);
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: (res.data as unknown as FilaMensaje).mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function actualizarIngresos(data: Record<string, unknown>): Promise<boolean> {
+    return save({ method: "post", url: URL_MAIN + "editIngreso", data });
   }
-  async function copiarCGingresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "copiar_cgingresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
 
-    await axios<RespuestaControlGasto<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (res.statusBol == true) {
-          Swal.fire({
-            icon: "info",
-            text: res.data[0]!.mensaje,
-          });
-          // dispatch("getListControlGastosHouses", data.code_master);
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: (res.data as unknown as FilaMensaje).mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function copiarCGingresos(data: Record<string, unknown>): Promise<boolean> {
+    return save({ method: "put", url: URL_MAIN + "copiar_cgingresos", data });
   }
-  async function copiarCGEgresos(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "copiar_cgegresos",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
 
-    await axios<RespuestaControlGasto<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (res.statusBol == true) {
-          Swal.fire({
-            icon: "info",
-            text: res.data[0]!.mensaje,
-          });
-          // dispatch("getListControlGastosMaster", data.code_master);
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: (res.data as unknown as FilaMensaje).mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function copiarCGEgresos(data: Record<string, unknown>): Promise<boolean> {
+    return save({ method: "put", url: URL_MAIN + "copiar_cgegresos", data });
   }
+
   async function getNombreCompania(id_master: number | string | null): Promise<string> {
     const config = {
       method: "get",
@@ -380,31 +158,10 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
       });
     return nombreCampania.value;
   }
-  async function eliminarIngreso(data: { id: number | string; [campo: string]: unknown }): Promise<void> {
-    console.log("data3", data);
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "delIngresos/" + data.id,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    await axios<RespuestaControlGasto<FilaMensaje>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (!res.statusBol == true) {
-          Swal.fire({
-            icon: "error",
-            text: res.data.mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function eliminarIngreso(data: { id: number | string; [campo: string]: unknown }): Promise<boolean> {
+    const response = await request({ method: "post", url: URL_MAIN + "delIngresos/" + data.id });
+    warnIfFailed(response);
+    return response.estadoflag;
   }
 
   async function CargaMasivaControlDeGastos(data: unknown): Promise<ResultadoCargaMasivaGastos[]> {
@@ -457,36 +214,10 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
   }
   async function guardarCuotasCgeTipoProveedor(data: Record<string, unknown>): Promise<ResultadoCargaMasivaGastos[]> {
     response.value = [];
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "guardar_cuotas_cge_tipo_proveedor",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    await axios<ApiResponse<FilaMensaje[]>>(config)
-      .then(function (response) {
-        const res = response.data;
-        sessionStorage.setItem("auth-token", res.token!);
-        if (res.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: res.data[0]!.mensaje,
-          });
-        } else {
-          Swal.fire({
-            icon: "error",
-            text: res.data[0]!.mensaje,
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    await save({ method: "post", url: URL_MAIN + "guardar_cuotas_cge_tipo_proveedor", data });
     return response.value;
   }
+
   async function imprimirGuardarControlDetallado(data: Record<string, unknown>): Promise<void> {
     // vm._calcularTotales();
     console.log("imprimirGuardarControlDetallado", data);
