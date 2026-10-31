@@ -4,7 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
-import { blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
+import { FOLDER_NOT_CREATED, blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
 import type {
   DatosPrevisualizacion,
   FilaServicioNota,
@@ -258,23 +258,17 @@ async function generar() {
       if (branchCreacion.includes(id_branch) && name == "newQuote") {
         console.log("Iniciando creación de carpeta...");
 
-        // Aquí recibimos el return de la función anterior
         const urlGenerada = await pricingStore.crearCarpetaOneDrive({
-          nro_quote: pricingStore.nro_quote,
-          nombre: pricingStore.datosPrincipales.nombre,
+          id_quote: pricingStore.id,
         });
-
 
         if (urlGenerada) {
           await pricingStore.actualizarURLEnElQuote({
             id: pricingStore.id,
             url: urlGenerada,
           });
-          console.log("Base de datos actualizada con URL de OneDrive");
         } else {
-          console.warn(
-            "No se obtuvo URL de OneDrive, se saltó la actualización.",
-          );
+          Swal.fire({ icon: "warning", title: "Cotización guardada sin carpeta", text: FOLDER_NOT_CREATED });
         }
       }
 

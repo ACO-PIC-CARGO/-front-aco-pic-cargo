@@ -15,6 +15,7 @@ import type {
 } from "@/types/cotizacion";
 import type { ClienteListado } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
+import { FOLDER_NOT_CREATED } from "@/components/folderPricing/quoteRules";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -244,14 +245,9 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
         const id_branch = sessionBranchId();
         const branchCreacion = [1, 2];
         if (branchCreacion.includes(id_branch)) {
-          const urlCarpeta = await pricingStore
-            .crearCarpetaOneDrive({
-              nro_quote: pricingStore.nro_quote,
-              nombre: pricingStore.datosPrincipales.nombre,
-            })
-            .catch((e: unknown) => {
-              console.error(e);
-            });
+          const urlCarpeta = await pricingStore.crearCarpetaOneDrive({
+            id_quote: pricingStore.id,
+          });
 
           if (urlCarpeta) {
             urlGenerada.value = urlCarpeta;
@@ -263,9 +259,7 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
               }),
             ]);
           } else {
-            console.warn(
-              "No se obtuvo URL de OneDrive, se saltó la actualización.",
-            );
+            Swal.fire({ icon: "warning", title: "Cotización creada sin carpeta", text: FOLDER_NOT_CREATED });
           }
         }
       }

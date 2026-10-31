@@ -19,7 +19,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
-import { blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
+import { FOLDER_NOT_CREATED, blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import type {
   Costo,
@@ -725,8 +725,10 @@ async function guardar() {
   appStore.spiner = true;
   pricingStore.opcionCostos[0]!.selected = true;
   let respuesta;
+  let avisoCarpeta = "";
   try {
     respuesta = await pricingStore.registrarQuote({ fullflag: false });
+    if (respuesta.estadoflag) avisoCarpeta = await crearCarpetaCotizacion();
   } finally {
     appStore.spiner = false;
   }
@@ -741,7 +743,7 @@ async function guardar() {
   Swal.fire({
     icon: "success",
     title: "Cotización guardada",
-    text: pricingStore.mensaje,
+    text: `${pricingStore.mensaje} ${avisoCarpeta}`.trim(),
     confirmButtonText: "Ir al listado",
     showConfirmButton: true,
   }).then((result) => {
@@ -756,25 +758,13 @@ async function guardar() {
       });
     }
   });
-  const id_branch = sessionBranchId();
-  const branchCreacion = [1, 2];
-  if (branchCreacion.includes(id_branch)) {
-    const urlGenerada = await pricingStore.crearCarpetaOneDrive({
-      nro_quote: pricingStore.nro_quote,
-      nombre: pricingStore.datosPrincipales.nombre,
-    });
-
-    if (urlGenerada) {
-      await pricingStore.actualizarURLEnElQuote({
-        id: pricingStore.id,
-        url: urlGenerada,
-      });
-    } else {
-      console.error(
-        "No se obtuvo URL de OneDrive, se saltó la actualización.",
-      );
-    }
-  }
+}
+async function crearCarpetaCotizacion() {
+  if (![1, 2].includes(sessionBranchId())) return "";
+  const url = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
+  if (!url) return FOLDER_NOT_CREATED;
+  await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
+  return "";
 }
 async function anadirNuevaOpcion(nro_propuesta: number) {
   const pricing = pricingStore;

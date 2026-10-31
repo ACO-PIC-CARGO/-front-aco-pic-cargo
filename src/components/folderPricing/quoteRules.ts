@@ -9,6 +9,9 @@ import type {
   OpcionCosto,
 } from "@/types/cotizacion";
 
+export const FOLDER_NOT_CREATED =
+  "No pudimos crear la carpeta de la cotización en OneDrive. Puedes seguir trabajando y pedir a soporte que la cree.";
+
 export const positiveInteger = (value: unknown): true | string =>
   (/^\d+$/.test(String(value ?? "").trim()) && Number(value) > 0) ||
   "Ingresa un número entero mayor que 0.";
