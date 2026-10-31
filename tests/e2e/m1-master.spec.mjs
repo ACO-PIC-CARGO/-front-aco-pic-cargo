@@ -30,7 +30,7 @@ async function openList(page) {
 async function showOnly(page, code) {
   await page.getByLabel("Buscar").fill(code);
   const row = page.locator("tbody tr").filter({ hasText: code }).first();
-  await expect(row).toBeVisible();
+  await expect(row).toBeVisible({ timeout: 30_000 });
   return row;
 }
 
@@ -126,10 +126,12 @@ test.describe("M1 master file", () => {
   test("viewing a master offers no house delete or move", async ({ page }) => {
     const { withHouses } = await openList(page);
     test.skip(!withHouses, "no master with houses on this database");
+    const houses = page.waitForResponse((r) => r.url().includes("/getHouseList"), { timeout: 45_000 });
     await page.goto(`/home/folderMaster/control/ver/${withHouses.id}`);
+    await houses;
     await waitForPageToSettle(page);
 
-    await expect(page.locator("tbody tr").first()).toBeVisible();
+    await expect(page.locator("tbody tr").first()).toBeVisible({ timeout: 30_000 });
     await expect(page.locator(".mdi-delete")).toHaveCount(0);
     await expect(page.locator(".mdi-folder-arrow-up-down")).toHaveCount(0);
   });
