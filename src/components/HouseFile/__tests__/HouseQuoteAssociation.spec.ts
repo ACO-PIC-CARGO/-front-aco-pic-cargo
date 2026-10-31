@@ -79,3 +79,39 @@ test("a failed association explains it and leaves the house without a quote", as
   expect(document.body.textContent).toContain("No pudimos asociar la cotización. Intenta de nuevo.");
   expect(useHouseEditStore().form.id_cot).toBeNull();
 });
+
+const pickCostOption = async (id: string) => {
+  const option = wrapper!.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Qué hacer con los costos")!;
+  option.vm.$emit("update:modelValue", id);
+  await flushPromises();
+};
+
+const approvalKeys = () =>
+  httpMock.mock.calls
+    .map(([config]) => config as { url?: string; headers?: Record<string, string> })
+    .filter((config) => String(config.url).endsWith("aprobar_cotizacion"))
+    .map((config) => config.headers?.["idempotency-key"]);
+
+test("each association attempt sends its own approval key", async () => {
+  await mountAndPickQuote();
+  await pickCostOption("2");
+  dialogButton("Asociar cotización").click();
+  await flushPromises();
+  useHouseEditStore().form.id_cot = 5;
+  wrapper!.findAllComponents(VAutocomplete)[0]!.vm.$emit("update:modelValue", 5);
+  await flushPromises();
+  await pickCostOption("2");
+  dialogButton("Asociar cotización").click();
+  await flushPromises();
+  const keys = approvalKeys();
+  expect(keys).toHaveLength(2);
+  expect(keys.every((key) => typeof key === "string" && key.length > 0)).toBe(true);
+  expect(keys[0]).not.toBe(keys[1]);
+});
+
+test("replacing the costs checks the payments of the house's master", async () => {
+  await mountAndPickQuote();
+  await pickCostOption("1");
+  const check = httpMock.mock.calls.map(([config]) => config).find((config) => String(config.url).endsWith("validar_existe_pago_master"));
+  expect(check).toMatchObject({ params: { id: 77 } });
+});

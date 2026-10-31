@@ -11,7 +11,10 @@ import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse, ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
+import { generateIdempotencyKey } from "@/utils/idempotencia";
 import type { BegEndHouseRaiz, TipoEmbarqueRaiz } from "@/types/app";
+
+const SAVE_ERROR = "No pudimos guardar los cambios del house. Revisa tu conexión e intenta de nuevo.";
 
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
@@ -255,25 +258,8 @@ async function _setHouseEdit() {
 
   try {
     const response = await axios(config);
-    sessionStorage.setItem("auth-token", response.data.token);
-
-    if (response.data.status == "401") {
-      loadingBotonGuardarHouse = false;
-      Swal.fire({
-        icon: "error",
-        text: response.data.mensaje,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      }).then((resSwal) => {
-        if (resSwal.isConfirmed && response.data.status == "401") {
-          // @ts-expect-error router is not defined in this scope
-          router.push({ name: "Login" });
-          setTimeout(() => {
-            window.location.reload();
-          }, 10);
-        }
-      });
+    if (!response.data.estadoflag) {
+      Swal.fire({ icon: "warning", text: response.data.mensaje || SAVE_ERROR });
       return false;
     }
 
@@ -305,12 +291,7 @@ async function _setHouseEdit() {
     return true;
   } catch (error) {
     console.error(error);
-    loadingBotonGuardarHouse = false;
-    Swal.fire({
-      icon: "error",
-      title: "Lo sentimos",
-      text: error as string,
-    });
+    Swal.fire({ icon: "error", text: SAVE_ERROR });
     return false;
   } finally {
     loadingBotonGuardarHouse = false;
@@ -328,7 +309,7 @@ async function validarExistePagosMaster() {
        
       },
       params: {
-        id: housesStore.house_cotizacion,
+        id: housesStore.house_master,
       },
     };
     const res = await axios(config).then((res) => {
@@ -341,12 +322,14 @@ async function validarExistePagosMaster() {
   activarBtnContinuar.value = false;
 }
 async function asignarDatos() {
+  if (!housesStore.house_cotizacion) return;
   dataAprobar.value = pricingStore.listQuotes.filter(
     (v) => v.id == housesStore.house_cotizacion,
   )[0] as CotizacionAsociableHouse;
   dialogCostos.value = true;
 }
 async function asignarDatosAduana() {
+  if (!housesStore.house_cotizacionaduana) return;
   dataAprobar.value = aduanaStore.listQuotes2.filter(
     (v) => v.id == housesStore.house_cotizacionaduana,
   )[0] as CotizacionAsociableHouse;
@@ -372,6 +355,7 @@ async function asociarCotizacionP() {
     listVentasInstructivo: dataAprobar.value.listIngresosInstructivo, //
     id_house: route.params.id, //
     id_opcion: id_opcion.value, //
+    IdempotencyKey: generateIdempotencyKey(),
   });
 }
 async function asociarCotizacionA() {
@@ -717,9 +701,6 @@ onMounted(async () => {
     await aduanaStore.ListarMontosFinalesAduanaMONGODB();
   }
 
-  housesStore.house_id_coins = appStore.itemsCoinsList.filter(
-    (v: { symbol: string }) => v.symbol === "USD",
-  )[0]!.id;
 
   appStore.spiner = false;
 });
@@ -1053,7 +1034,7 @@ onMounted(async () => {
             variant="text"
             icon
             color="default"
-            @click="dialogCostos = !dialogCostos"
+            @click="dialogCostosAduana = false"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
@@ -1086,7 +1067,7 @@ onMounted(async () => {
             class="mx-1"
             size="small"
             color="error"
-            @click="dialogCostos = !dialogCostos"
+            @click="dialogCostosAduana = false"
           >
             Cancelar
           </v-btn>

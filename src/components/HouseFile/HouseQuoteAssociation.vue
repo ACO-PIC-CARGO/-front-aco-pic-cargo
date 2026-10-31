@@ -7,6 +7,7 @@ import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseEditStore } from "@/stores/houseEdit";
 import { editFormFromHouse } from "./houseEditForm";
+import { generateIdempotencyKey } from "@/utils/idempotencia";
 import type { AprobacionCotizacion, CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse } from "@/types/operaciones";
 
@@ -62,7 +63,7 @@ async function checkPayments() {
   if (kind.value !== "pricing" || option.value !== "1") return;
   blocked.value = true;
   try {
-    const { data } = await axios({ method: "get", url: "validar_existe_pago_master", params: { id: form.value.id_cot } });
+    const { data } = await axios({ method: "get", url: "validar_existe_pago_master", params: { id: housesStore.house.id_master } });
     blocked.value = Boolean(data.estadoflag);
     paymentWarning.value = data.estadoflag ? data.mensaje : "";
   } catch (error) {
@@ -86,6 +87,7 @@ function approvalData(selected: CotizacionAsociableHouse, quoteId: number | null
     listVentasInstructivo: selected.listIngresosInstructivo,
     id_house: housesStore.house.id,
     id_opcion: option.value,
+    IdempotencyKey: generateIdempotencyKey(),
   };
 }
 
@@ -94,7 +96,8 @@ async function associate() {
   try {
     if (kind.value === "pricing") {
       const selected = pricingStore.listQuotes.find((item) => item.id == form.value.id_cot) as CotizacionAsociableHouse;
-      await pricingStore.aprobarCotizacion(approvalData(selected, form.value.id_cot));
+      const approved = await pricingStore.aprobarCotizacion(approvalData(selected, form.value.id_cot));
+      if (!approved) associationError.value = ASSOCIATION_ERROR;
     } else {
       const selected = aduanaStore.listQuotes2.find((item) => item.id == form.value.id_quoteaduana) as CotizacionAsociableHouse;
       await aduanaStore.aprobarCotizacionAduana(approvalData(selected, form.value.id_quoteaduana));
