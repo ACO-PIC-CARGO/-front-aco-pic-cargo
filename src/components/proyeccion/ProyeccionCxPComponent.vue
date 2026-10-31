@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import type { FiltroProyeccion, ProyeccionListado } from "@/types/finanzas";
@@ -10,6 +11,8 @@ import { sessionBranchId, sessionUser } from "@/utils/sesion";
 const appStore = useAppStore();
 const appRouter = useRouter();
 const proyeccionesStore = useProyeccionesStore();
+const frmCopy = useTemplateRef("frmCopy");
+const frmGenerate = useTemplateRef("frmGenerate");
 
 const filtar = ref(false);
 const selectedItem = ref<ProyeccionListado>("" as unknown as ProyeccionListado);
@@ -23,6 +26,8 @@ const estado = ref("");
 const aprobado = ref("");
 const id_monthn = ref<number | string>("");
 const id_yearn = ref<number | string>("");
+const copyMonth = ref<number | string>("");
+const copyYear = ref<number | string>("");
 const headers = [
   { title: "Correlativo", key: "proyeccion_correlativo" },
   { title: "Mes", key: "month_description" },
@@ -38,18 +43,32 @@ const headers = [
   { title: "Acciones", key: "action" },
 ];
 const loading = ref(false);
+const generating = ref(false);
 const dialogn = ref(false);
 const generarflag = ref(false);
 
+function currentFilter(): FiltroProyeccion {
+  return {
+    id_month: id_month.value ? id_month.value : "",
+    id_year: id_year.value ? id_year.value : "",
+    correlativo: correlativo.value ? correlativo.value : "",
+    total_proyectado_ext: total_proyectado_ext.value ? total_proyectado_ext.value : "",
+    estado: estado.value ? estado.value : "",
+    aprobadoflag: aprobado.value ? aprobado.value : "",
+  };
+}
 async function pProyeccion(): Promise<void> {
+  if (!(await frmGenerate.value!.validate()).valid) return;
+  generating.value = true;
   const data = {
     id_month: id_monthn.value,
     id_year: id_yearn.value,
     id_branch: sessionBranchId(),
     id_user: (sessionUser() as UsuarioSesionProyeccion).id_user,
   };
-  await proyeccionesStore.primeraProyeccion(data);
-  dialogn.value = false;
+  const generated = await proyeccionesStore.primeraProyeccion(data);
+  generating.value = false;
+  if (generated) dialogn.value = false;
 }
 function ver(id: unknown): void {
   appRouter.push({ name: "verProyeccion", params: { id: id as string } });
@@ -58,54 +77,44 @@ function editar(id: unknown): void {
   appRouter.push({ name: "editarProyeccion", params: { id: id as string } });
 }
 async function eliminar(id: unknown): Promise<void> {
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    text: "¿Quieres eliminar esta proyección? Dejará de estar activa.",
+    showCancelButton: true,
+    confirmButtonText: "Eliminar",
+    cancelButtonText: "Cancelar",
+  });
+  if (!isConfirmed) return;
   appStore.spiner = true;
-  let data: Record<string, unknown> = { id: id };
-  await proyeccionesStore.eliminarProyeccion(data);
-  data = {};
-  await proyeccionesStore.getProyeccion(data as unknown as FiltroProyeccion);
+  if (await proyeccionesStore.eliminarProyeccion({ id })) {
+    await proyeccionesStore.getProyeccion(currentFilter());
+  }
   appStore.spiner = false;
 }
 function copiar(itemFila: ProyeccionListado): void {
-  id_month.value = "";
-  id_year.value = "";
+  copyMonth.value = "";
+  copyYear.value = "";
   selectedItem.value = itemFila;
   dialog.value = true;
 }
 async function copyProyeccion(): Promise<void> {
+  if (!(await frmCopy.value!.validate()).valid) return;
   loading.value = true;
-  let data: Record<string, unknown> = {
+  const copied = await proyeccionesStore.copiarProyeccion({
     id: selectedItem.value.proyeccion_id,
-    id_month: id_month.value,
-    id_year: id_year.value,
+    id_month: copyMonth.value,
+    id_year: copyYear.value,
     id_branch: sessionBranchId(),
     id_user: (sessionUser() as UsuarioSesionProyeccion).id_user,
-  };
-
-  await proyeccionesStore.copiarProyeccion(data);
-  data = {
-    id_month: "",
-    id_year: "",
-    correlativo: "",
-    total_proyectado_ext: "",
-    estado: "",
-    aprobadoflag: "",
-  };
-  await proyeccionesStore.getProyeccion(data as unknown as FiltroProyeccion);
+  });
+  if (copied) {
+    await proyeccionesStore.getProyeccion(currentFilter());
+    dialog.value = false;
+  }
   loading.value = false;
-  dialog.value = false;
-  id_month.value = "";
-  id_year.value = "";
 }
 async function filtrar(): Promise<void> {
-  const data = {
-    id_month: id_month.value ? id_month.value : "",
-    id_year: id_year.value ? id_year.value : "",
-    correlativo: correlativo.value ? correlativo.value : "",
-    total_proyectado_ext: total_proyectado_ext.value ? total_proyectado_ext.value : "",
-    estado: estado.value ? estado.value : "",
-    aprobadoflag: aprobado.value ? aprobado.value : "",
-  };
-  await proyeccionesStore.getProyeccion(data);
+  await proyeccionesStore.getProyeccion(currentFilter());
   filtar.value = false;
 }
 function clearestado(): void {
@@ -116,17 +125,9 @@ function clearaprobado(): void {
 }
 
 onMounted(async () => {
-  const data = {
-    id_month: "",
-    id_year: "",
-    correlativo: "",
-    total_proyectado_ext: "",
-    estado: "",
-    aprobadoflag: "",
-  };
   appStore.spiner = true;
   await Promise.all([
-    proyeccionesStore.getProyeccion(data),
+    proyeccionesStore.getProyeccion(currentFilter()),
     appStore._getChargeMonth(),
     appStore._getChargeYear(),
   ]);
@@ -173,14 +174,6 @@ onMounted(async () => {
         @click="filtar = !filtar"
       >
         FILTRAR
-      </v-btn>
-      <v-btn
-        color="success"
-        class="mx-1"
-        size="small"
-        rounded
-      >
-        EXPORTAR
       </v-btn>
       <v-col cols="12">
         <v-data-table
@@ -274,31 +267,33 @@ onMounted(async () => {
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                :items="appStore.month"
-                v-model="id_month"
-                label="Mes"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
+          <v-form ref="frmCopy">
+            <v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="appStore.month"
+                  v-model="copyMonth"
+                  label="Mes"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
 
-            <v-col cols="12">
-              <v-select
-                :items="Array.isArray(appStore.year) ? appStore.year : []"
-                v-model="id_year"
-                label="Año"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
-          </v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
+                  v-model="copyYear"
+                  label="Año"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
+            </v-row>
+          </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -343,31 +338,33 @@ onMounted(async () => {
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                :items="appStore.month"
-                v-model="id_monthn"
-                label="Mes"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
+          <v-form ref="frmGenerate">
+            <v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="appStore.month"
+                  v-model="id_monthn"
+                  label="Mes"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
 
-            <v-col cols="12">
-              <v-select
-                :items="Array.isArray(appStore.year) ? appStore.year : []"
-                v-model="id_yearn"
-                label="Año"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
-          </v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
+                  v-model="id_yearn"
+                  label="Año"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
+            </v-row>
+          </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -375,9 +372,9 @@ onMounted(async () => {
             color="success"
             class="mx-1"
             @click="pProyeccion()"
-            :loading="loading"
+            :loading="generating"
           >
-            Copiar
+            Generar
           </v-btn>
           <v-btn
             color="red"

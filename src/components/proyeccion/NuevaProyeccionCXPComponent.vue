@@ -171,7 +171,8 @@ function eliminarfila(item: FilaProyeccion): void {
 async function registrar(): Promise<void> {
   let validaciondetails = true;
   let data: Record<string, unknown> = {};
-  if ((await frmProyeccion.value!.validate()).valid) {
+  const { valid } = await frmProyeccion.value!.validate();
+  if (valid) {
     items.value.forEach((item) => {
       if (!item.id_gasto) {
         item.errgasto = ["Dato Requerido"];
@@ -211,7 +212,7 @@ async function registrar(): Promise<void> {
       }
     });
   }
-  if (!!validaciondetails) {
+  if (valid && validaciondetails) {
     data = {
       id_branch: sessionBranchId(),
       id_month: id_month.value,
@@ -309,7 +310,7 @@ onMounted(async () => {
                   label="Tipo Cambio"
                   density="compact"
                   @blur="calcularTotalTipoCambio()"
-                  :rules="[(v) => !!v || 'Dato requerido']"
+                  :rules="[(v) => Number(v) > 0 || 'Escribe un tipo de cambio mayor que cero']"
                 />
               </v-col>
               <v-col

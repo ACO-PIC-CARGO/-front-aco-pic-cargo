@@ -6,6 +6,25 @@ import router from "@/router";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroProyeccion, Proyeccion, ProyeccionListado } from "@/types/finanzas";
 import { sessionBranchId } from "@/utils/sesion";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+
+const SPREADSHEET_TYPE = "spreadsheetml";
+
+async function sendAndNotify<Row = unknown>(method: string, path: string, data: Record<string, unknown>) {
+  const answer = await request<Row>({ method, url: import.meta.env.VITE_URL_MAIN + path, data });
+  Swal.fire({ icon: answer.estadoflag ? "success" : "error", text: answer.mensaje });
+  return answer;
+}
+
+async function showRefusedDownload(body: unknown): Promise<void> {
+  let mensaje = CONNECTION_ERROR_MESSAGE;
+  try {
+    if (body instanceof Blob) mensaje = JSON.parse(await body.text()).mensaje || mensaje;
+  } catch {
+    // not a JSON answer: keep the connection message
+  }
+  Swal.fire({ icon: "error", text: mensaje });
+}
 
 export const useProyeccionesStore = defineStore("proyecciones", () => {
   const listProyeccion = ref<ProyeccionListado[]>([]);
@@ -13,40 +32,19 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
   const proyeccionaprobada = ref<string>("");
 
   async function setProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertar_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-        if (data.estadoflag) {
-          router.go(-1);
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    const answer = await sendAndNotify("post", "insertar_proyeccion", data);
+    if (answer.estadoflag) router.go(-1);
   }
   async function getProyeccion(data: FiltroProyeccion): Promise<void> {
     const config = {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
-        `list_proyeccion?id_branch=${sessionBranchId()}&id_month=${data.id_month}&id_year=${data.id_year}&correlativo=${
-          data.correlativo
-        }&total_proyectado_ext=${data.total_proyectado_ext}&estado=${
-          data.estado
-        }&aprobadoflag=${data.aprobadoflag}`,
+        `list_proyeccion?id_branch=${sessionBranchId()}&id_month=${data.id_month ?? ""}&id_year=${data.id_year ?? ""}&correlativo=${
+          data.correlativo ?? ""
+        }&total_proyectado_ext=${data.total_proyectado_ext ?? ""}&estado=${
+          data.estado ?? ""
+        }&aprobadoflag=${data.aprobadoflag ?? ""}`,
 
       headers: {
         "Content-Type": "application/json",
@@ -108,30 +106,8 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
   }
 
   async function updateProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `update_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-        if (data.estadoflag) {
-          router.go(-1);
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    const answer = await sendAndNotify("put", "update_proyeccion", data);
+    if (answer.estadoflag) router.go(-1);
   }
   async function validateProyeccionAprobacion(data: Record<string, unknown>): Promise<ApiResponse | null> {
     let res: ApiResponse | null = null;
@@ -153,124 +129,45 @@ export const useProyeccionesStore = defineStore("proyecciones", () => {
       });
     return res;
   }
-  async function copiarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `copiar_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          html: data.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function copiarProyeccion(data: Record<string, unknown>): Promise<boolean> {
+    return (await sendAndNotify("put", "copiar_proyeccion", data)).estadoflag;
   }
-  async function aprobarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `aprobar_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function aprobarProyeccion(data: Record<string, unknown>): Promise<boolean> {
+    return (await sendAndNotify("put", "aprobar_proyeccion", data)).estadoflag;
   }
-  async function eliminarProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + `eliminar_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function eliminarProyeccion(data: Record<string, unknown>): Promise<boolean> {
+    return (await sendAndNotify("put", "eliminar_proyeccion", data)).estadoflag;
   }
-  async function primeraProyeccion(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `generar_primerar_proyeccion`,
-
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<{ id: number }[]>>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-        });
-        if (data.estadoflag) {
-          router.push({
-            name: "editarProyeccion",
-            params: { id: data.data[0]!.id },
-          });
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
+  async function primeraProyeccion(data: Record<string, unknown>): Promise<boolean> {
+    const answer = await sendAndNotify<{ id: number }>("post", "generar_primerar_proyeccion", data);
+    if (answer.estadoflag) {
+      router.push({
+        name: "editarProyeccion",
+        params: { id: answer.data[0]!.id },
       });
+    }
+    return answer.estadoflag;
   }
   async function exportarVerProyeccion(id: number | string): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `excel_proyeccion?id=${id}`,
-      responseType: "blob" as const,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    await axios<BlobPart>(config)
-      .then(function (response) {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `Proyeccion-${Date.now()}.xlsx`);
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch(function (error) {
-        console.error(error);
+    try {
+      const { data } = await axios<Blob>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + `excel_proyeccion?id=${id}`,
+        responseType: "blob",
       });
+      if (!data.type.includes(SPREADSHEET_TYPE)) {
+        await showRefusedDownload(data);
+        return;
+      }
+      const url = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `Proyeccion-${Date.now()}.xlsx`);
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      await showRefusedDownload((error as { response?: { data?: unknown } }).response?.data);
+    }
   }
   async function getProyeccionAprobada(): Promise<void> {
     const config = {

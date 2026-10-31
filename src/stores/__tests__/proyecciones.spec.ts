@@ -3,6 +3,8 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useProyeccionesStore } from "@/stores/proyecciones";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
+import type { FiltroProyeccion } from "@/types/finanzas";
 import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -96,12 +98,54 @@ describe("proyecciones store", () => {
     expect(await proyecciones.validateProyeccionAprobacion({ id: 1 })).toBeNull();
   });
 
-  test("copiarProyeccion shows the message as html", async () => {
+  test("copiarProyeccion shows the message as text, never as html", async () => {
     respond({ copiar_proyeccion: { ...accepted([]), mensaje: "<b>Copiada</b>" } });
 
-    await useProyeccionesStore().copiarProyeccion({ id: 1 });
+    expect(await useProyeccionesStore().copiarProyeccion({ id: 1 })).toBe(true);
 
-    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", html: "<b>Copiada</b>" });
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "<b>Copiada</b>" });
+  });
+
+  test("getProyeccion leaves missing filters empty instead of sending undefined", async () => {
+    respond({ list_proyeccion: accepted([]) });
+
+    await useProyeccionesStore().getProyeccion({} as FiltroProyeccion);
+
+    expect(httpMock.mock.calls[0]![0].url.split("?")[1]).not.toContain("undefined");
+  });
+
+  test.each([
+    ["eliminarProyeccion", "eliminar_proyeccion"],
+    ["copiarProyeccion", "copiar_proyeccion"],
+    ["primeraProyeccion", "generar_primerar_proyeccion"],
+  ] as const)("%s answers false and explains an unreachable server", async (name, path) => {
+    respond({ [path]: new Error("network") });
+
+    expect(await useProyeccionesStore()[name]({ id: 1 })).toBe(false);
+
+    expect(Swal.fire).toHaveBeenLastCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+  });
+
+  test("exportarVerProyeccion shows why the export was refused instead of downloading it", async () => {
+    const download = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    respond({ excel_proyeccion: new Blob([JSON.stringify(rejected("No se encontraron registros"))], { type: "application/json" }) });
+
+    await useProyeccionesStore().exportarVerProyeccion(5);
+
+    expect(download).not.toHaveBeenCalled();
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "No se encontraron registros" });
+  });
+
+  test("exportarVerProyeccion downloads the spreadsheet", async () => {
+    const download = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    URL.createObjectURL = vi.fn(() => "blob:xlsx");
+    URL.revokeObjectURL = vi.fn();
+    respond({ excel_proyeccion: new Blob(["PK"], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }) });
+
+    await useProyeccionesStore().exportarVerProyeccion(5);
+
+    expect(download).toHaveBeenCalledTimes(1);
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
   test("primeraProyeccion opens the editor of the generated projection when accepted", async () => {

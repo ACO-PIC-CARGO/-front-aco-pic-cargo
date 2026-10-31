@@ -8,10 +8,10 @@ import { useBalancesStore } from "@/stores/balances";
 import type {
   FilaProyeccion,
   MonedaProyeccion,
-  RespuestaValidacionAprobacion,
   SucursalSesionProyeccion,
   UsuarioSesionProyeccion,
 } from "@/types/proyecciones";
+import { detailsToSave } from "@/utils/projections";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
@@ -21,6 +21,7 @@ const balancesStore = useBalancesStore();
 const proyeccionesStore = useProyeccionesStore();
 
 const frmProyeccion = useTemplateRef("frmProyeccion");
+const frmCopy = useTemplateRef("frmCopy");
 
 const monExt = ref("");
 const textSize = "2rem";
@@ -219,8 +220,8 @@ function seleccionEditar(): void {
 }
 async function editar(): Promise<void> {
   let validaciondetails = true;
-  // let data = data;
-  if ((await frmProyeccion.value!.validate()).valid) {
+  const { valid } = await frmProyeccion.value!.validate();
+  if (valid) {
     items.value
       .filter((v) => v.estado == true)
       .forEach((item) => {
@@ -262,7 +263,7 @@ async function editar(): Promise<void> {
         }
       });
   }
-  if (!!validaciondetails) {
+  if (valid && validaciondetails) {
     const data = {
       id_branch: sessionBranchId(),
       id_month: id_month.value,
@@ -274,7 +275,7 @@ async function editar(): Promise<void> {
       total_conversionext: montoconversiondolar.value,
       total_monext: totaldolar.value,
       total_proyectado_ext: totalfinal.value,
-      details: items.value,
+      details: detailsToSave(items.value),
     };
     await proyeccionesStore.updateProyeccion(data);
   }
@@ -282,11 +283,9 @@ async function editar(): Promise<void> {
 async function validateAprobacion(): Promise<void> {
   appStore.spiner = true;
   const data = { id_month: id_month.value, id_year: id_year.value };
-  const res = (await proyeccionesStore.validateProyeccionAprobacion(
-    data,
-  )) as RespuestaValidacionAprobacion;
+  const res = await proyeccionesStore.validateProyeccionAprobacion(data);
   appStore.spiner = false;
-  if (!!res.estado) {
+  if (res?.estadoflag) {
     Swal.fire({
       icon: "question",
       text: res.mensaje,
@@ -317,6 +316,7 @@ async function apProyeccion(): Promise<void> {
   appStore.spiner = false;
 }
 async function copyProyeccion(): Promise<void> {
+  if (!(await frmCopy.value!.validate()).valid) return;
   loading.value = true;
   const data = {
     id: route.params.id,
@@ -326,8 +326,9 @@ async function copyProyeccion(): Promise<void> {
     id_user: (sessionUser() as UsuarioSesionProyeccion).id_user,
   };
 
-  await proyeccionesStore.copiarProyeccion(data);
-  appRouter.go(-1);
+  const copied = await proyeccionesStore.copiarProyeccion(data);
+  loading.value = false;
+  if (copied) appRouter.go(-1);
 }
 
 onMounted(async () => {
@@ -400,7 +401,7 @@ onMounted(async () => {
                   label="Tipo Cambio"
                   density="compact"
                   @blur="calcularTotalTipoCambio()"
-                  :rules="[(v) => !!v || 'Dato requerido']"
+                  :rules="[(v) => Number(v) > 0 || 'Escribe un tipo de cambio mayor que cero']"
                 />
               </v-col>
               <v-col
@@ -624,31 +625,33 @@ onMounted(async () => {
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-select
-                :items="appStore.month"
-                v-model="id_monthn"
-                label="Mes"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
+          <v-form ref="frmCopy">
+            <v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="appStore.month"
+                  v-model="id_monthn"
+                  label="Mes"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
 
-            <v-col cols="12">
-              <v-select
-                :items="Array.isArray(appStore.year) ? appStore.year : []"
-                v-model="id_yearn"
-                label="Año"
-                density="compact"
-                item-title="description"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato requerido']"
-              />
-            </v-col>
-          </v-row>
+              <v-col cols="12">
+                <v-select
+                  :items="Array.isArray(appStore.year) ? appStore.year : []"
+                  v-model="id_yearn"
+                  label="Año"
+                  density="compact"
+                  item-title="description"
+                  item-value="id"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                />
+              </v-col>
+            </v-row>
+          </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
