@@ -18,9 +18,9 @@ export interface ExpedienteMasterReporte {
   shipment: string;
   port_begin: string;
   port_end: string;
-  fecha_eta: string;
-  fecha_etd: string;
-  fecha_disponibilidad: string;
+  fecha_eta: string | null;
+  fecha_etd: string | null;
+  fecha_disponibilidad: string | null;
   incoterms: string;
   listhouse: string;
   comentario: ComentarioExpedienteReporte[];
@@ -30,7 +30,7 @@ export interface ExpedienteMasterReporte {
   nro_manifiesto: string;
   color: string;
   statuslock: number;
-  orden: number;
+  arrival_status: number;
 }
 
 export interface ResumenOperador {

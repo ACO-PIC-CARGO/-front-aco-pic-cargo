@@ -2,10 +2,10 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import moment from "moment";
 import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useReportesStore } from "@/stores/reportes";
+import { reportDay } from "@/utils/operationalReports";
 import type {
   ExpedienteMasterReporte,
   FiltroControlFile,
@@ -37,6 +37,7 @@ const filtro = ref<FiltroControlFile>({
   llegadaflag: null,
   disponibilidadflag: null,
 });
+const filtroAplicado = ref<FiltroControlFile>({ ...filtro.value });
 const itemsStatusExpedientes = [
   { id: "0", name: "Abierto" },
   { id: "1", name: "Cerrado" },
@@ -74,11 +75,6 @@ onMounted(async () => {
   loading.value = false;
 });
 
-function getFecha(fecha: string): string {
-  moment.locale("es");
-  return moment(fecha).format("DD-MMM-YYYY");
-}
-
 function getResumen(): void {
   const data: ExpedienteMasterReporte[] = appStore.itemsReportFileAll;
   const operadoresInfo: Record<string, ResumenOperador> = {};
@@ -113,6 +109,7 @@ async function refreshReport(): Promise<void> {
   loading.value = true;
   filterFlag.value = true;
   await appStore._getControlFileAll(filtro.value);
+  filtroAplicado.value = { ...filtro.value };
   await getResumen();
   appStore.reportsDialog = false;
   filterFlag.value = false;
@@ -128,13 +125,13 @@ function getRowBackground(item: { background: string }): string {
 async function _generatePDF(): Promise<boolean | undefined> {
   if (appStore.itemsReportFileAll.length == 0) {
     Swal.fire({
-      icon: "error",
-      text: "No se encontraron registros",
+      icon: "info",
+      text: "No hay expedientes para imprimir. Cambia los filtros y busca de nuevo.",
     });
     return false;
   }
 
-  await reportesStore.exportReporteFile(filtro.value as unknown as Record<string, unknown>);
+  await reportesStore.exportReporteFile({ ...filtroAplicado.value });
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -373,13 +370,13 @@ function getColor(color: string): string {
                 {{ item.port_end }}
               </p>
               <p class="ma-0">
-                Salida: {{ getFecha(item.fecha_eta) }}
+                Salida: {{ reportDay(item.fecha_eta) }}
               </p>
               <p class="ma-0">
-                Llegada: {{ getFecha(item.fecha_etd) }}
+                Llegada: {{ reportDay(item.fecha_etd) }}
               </p>
               <p class="ma-0">
-                Disponibilidad:{{ getFecha(item.fecha_disponibilidad) }}
+                Disponibilidad:{{ reportDay(item.fecha_disponibilidad) }}
               </p>
               <p class="ma-0">
                 Incoterms: {{ item.incoterms }}
@@ -423,7 +420,7 @@ function getColor(color: string): string {
               </p>
 
               <p class="ma-0">
-                <b>Fecha Registro:</b> {{ getFecha(item.created) }}
+                <b>Fecha Registro:</b> {{ reportDay(item.created) }}
               </p>
               <!-- <p>Ejecutivo de Ventas</p> -->
               <p> <b>N° Manifiesto: </b> {{ item.nro_manifiesto || 'Sin Nro Manifesto' }}</p>
@@ -470,21 +467,21 @@ function getColor(color: string): string {
             <p>
               Total Llegados:
               {{
-                itemsReportFileAll.filter((v) => v.orden == 1)
+                itemsReportFileAll.filter((v) => v.arrival_status == 1)
                   .length
               }}
             </p>
             <p>
               Total por Llegar:
               {{
-                itemsReportFileAll.filter((v) => v.orden == 2)
+                itemsReportFileAll.filter((v) => v.arrival_status == 2)
                   .length
               }}
             </p>
             <p>
               Total de Otras:
               {{
-                itemsReportFileAll.filter((v) => v.orden == 3)
+                itemsReportFileAll.filter((v) => v.arrival_status == 3)
                   .length
               }}
             </p>

@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
-import axios from "@/api/http";
+import { computed, ref, watch } from "vue";
 import Swal from "sweetalert2";
 import moment from "moment";
-import type { ApiResponse } from "@/types/api";
 import type { Numerico } from "@/types/cotizacion";
 import type { DetalleControlFile } from "@/types/reportes";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import { downloadPdf } from "@/utils/pdfDownload";
 
 const dateDesde = ref(moment().startOf("month").format("YYYY-MM-DD"));
 const menuDesde = ref(false);
@@ -17,11 +16,6 @@ const dateHastaOnOpen = ref<string | null>(null);
 const expanded = ref<string[]>([]);
 const dataList = ref(true);
 const dialogDate = ref(true);
-const gananciaOp = ref(0);
-const gananciaPr = ref(0);
-const cobrado = ref(0);
-const porCobrar = ref(0);
-const porPagar = ref(0);
 const dessertHeaders = [
   { title: "NRO MASTER", key: "nro_master" },
   { title: "MASTER", key: "code_master" },
@@ -34,6 +28,18 @@ const dessertHeaders = [
   // { text: "VER INSTRUCTIVO", value: "ver_instructivo" },
 ];
 const itemsDetails = ref<DetalleControlFile[]>([]);
+const amount = (value: unknown): number => parseFloat(String(value || 0));
+const sumDetails = (value: (item: DetalleControlFile) => number) =>
+  computed(() => itemsDetails.value.reduce((total, item) => total + value(item), 0));
+const gananciaPr = sumDetails((item) => amount(item.ingresos_pr) - amount(item.egresos_pr));
+const gananciaOp = sumDetails((item) => amount(item.ingresos_op) - amount(item.egresos_op));
+const cobrado = sumDetails((item) => amount(item.ingesos_pagado));
+const porCobrar = sumDetails(
+  (item) => amount(item.ingresos_op != 0 ? item.ingresos_op : item.ingresos_pr) - amount(item.ingesos_pagado),
+);
+const porPagar = sumDetails(
+  (item) => amount(item.egresos_op != 0 ? item.egresos_op : item.egresos_pr) - amount(item.egresos_pagado),
+);
 
 //this.getFileDetails();
 
@@ -57,79 +63,27 @@ function setHasta(value: unknown): void {
   dateHasta.value = moment(value as moment.MomentInput).format("YYYY-MM-DD");
 }
 
-function getFileDetails(): void {
+async function getFileDetails(): Promise<void> {
   dataList.value = false;
-
-  const config = {
+  const answer = await request<DetalleControlFile>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `getReportFileDetails?id_branch=${sessionBranchId()}&desde=${
-        dateDesde.value ? dateDesde.value : ""
-      }&hasta=${dateHasta.value ? dateHasta.value : ""}`,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  };
-  axios<ApiResponse<DetalleControlFile[]>>(config)
-    .then(function (response) {
-      const data = response.data;
-
-      if (data.estadoflag == true) {
-        itemsDetails.value = data.data;
-
-        gananciaPr.value = data.data.reduce((total, item) => {
-          return (
-            parseFloat(String(total)) +
-            (parseFloat(String(item.ingresos_pr || 0)) - parseFloat(String(item.egresos_pr || 0)))
-          );
-        }, 0);
-        gananciaOp.value = data.data.reduce((total, item) => {
-          return (
-            parseFloat(String(total)) +
-            (parseFloat(String(item.ingresos_op)) - parseFloat(String(item.egresos_op)))
-          );
-        }, 0);
-        cobrado.value = data.data.reduce((total, item) => {
-          return parseFloat(String(total)) + parseFloat(String(item.ingesos_pagado));
-        }, 0);
-        porCobrar.value = data.data.reduce((total, item) => {
-          return (
-            parseFloat(String(total)) +
-            (parseFloat(String(item.ingresos_op != 0 ? item.ingresos_op : item.ingresos_pr)) -
-              parseFloat(String(item.ingesos_pagado)))
-          );
-        }, 0);
-        porPagar.value = data.data.reduce((total, item) => {
-          return (
-            parseFloat(String(total)) +
-            (parseFloat(String(item.egresos_op != 0 ? item.egresos_op : item.egresos_pr)) -
-              parseFloat(String(item.egresos_pagado)))
-          );
-        }, 0);
-
-        dataList.value = true;
-        dialogDate.value = false;
-      } else {
-        itemsDetails.value = [];
-        dataList.value = true;
-        dialogDate.value = false;
-        Swal.fire({
-          icon: "error",
-          text: data.mensaje,
-        });
-      }
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getReportFileDetails",
+    params: { desde: dateDesde.value, hasta: dateHasta.value },
+  });
+  dataList.value = true;
+  itemsDetails.value = answer.estadoflag ? answer.data : [];
+  if (answer.estadoflag) {
+    dialogDate.value = false;
+    return;
+  }
+  Swal.fire({ icon: hasFailed(answer) ? "error" : "info", text: answer.mensaje });
 }
 function getTipo(tipo: Numerico): string {
   switch (tipo) {
     case 1:
       return "FACTURA";
     case 2:
-      return "PROFORMACE";
+      return "PROFORMA";
     case 3:
       return "OTRO";
     default:
@@ -140,43 +94,19 @@ function getTipo(tipo: Numerico): string {
 async function _exportPdf(): Promise<boolean | undefined> {
   if (itemsDetails.value.length == 0) {
     Swal.fire({
-      icon: "error",
-      text: "No se encontraron registros",
+      icon: "info",
+      text: "No hay expedientes para exportar. Busca otro rango de fechas primero.",
     });
     return false;
   }
-  Swal.fire({
-    icon: "info",
-    title: "Generando PDF",
-    text: "Espere... ",
-  });
-
-  const data = {
-    id_branch: sessionBranchId(),
-    desde: dateDesde.value,
-    hasta: dateHasta.value,
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "pdfFD",
-
-    headers: {
-      "Content-Type": "application/json",
+  await downloadPdf(
+    {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "pdfFD",
+      data: { desde: dateDesde.value, hasta: dateHasta.value },
     },
-    data: data,
-  };
-  axios<{ path: string }>(config)
-    .then(function (response) {
-      Swal.fire({
-        icon: "success",
-        title: "PDF Generado",
-        text: "El PDF se descargará automaticamente",
-      });
-      window.open(import.meta.env.VITE_URL_MAIN + response.data.path, "_blank");
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    `REPORTE_FILES_DETALLADO_${dateDesde.value}_${dateHasta.value}.pdf`,
+  );
 }
 </script>
 
@@ -378,7 +308,7 @@ async function _exportPdf(): Promise<boolean | undefined> {
               class="text-body-large text-center"
               cols="12"
             >
-              Cargando informacíon
+              Cargando información
             </v-col>
             <v-col cols="6">
               <v-progress-linear
@@ -534,7 +464,7 @@ async function _exportPdf(): Promise<boolean | undefined> {
                       </td>
                       <td>
                         {{ child.type_pago == 1 ? "FACTURA" : "" }}
-                        {{ child.type_pago == 2 ? "PROFORMACE" : "" }}
+                        {{ child.type_pago == 2 ? "PROFORMA" : "" }}
                         {{ child.type_pago == 3 ? "OTRO" : "" }}
                         {{ child.type_pago == null ? "SIN CARGAR" : "" }}
                         {{ child.type_pago == 0 ? "SIN CARGAR" : "" }}
