@@ -518,8 +518,13 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getTransporte(data: FiltroCalculadora): Promise<void> {
-    const res = await obtenerListadoPorPais<TransporteCalculadora>("calc/transporte", data);
-    if (res.estadoflag) lstTransporte.value = res.data;
+    lstTransporte.value = [];
+    try {
+      const res = await obtenerListadoPorPais<TransporteCalculadora>("calc/transporte", data);
+      if (res.estadoflag) lstTransporte.value = res.data;
+    } catch {
+      // No tariffs then: the quote warns that the district has none and asks for the cost by hand.
+    }
   }
 
   async function getOpciones(): Promise<void> {

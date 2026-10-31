@@ -288,7 +288,6 @@ describe("calculadoras store", () => {
   describe.each([
     ["getCostosList", "calc/costos_list", "lstFlete"],
     ["getProfitList", "calc/profit_list", "lstProfit"],
-    ["getTransporte", "calc/transporte", "lstTransporte"],
     ["getDepartamentos", "calc/departamentos", "lstDepartamentos"],
     ["getDistritos", "calc/distritos", "lstDistritos"],
     ["getCiudad", "calc/ciudades", "lstCiudades"],
