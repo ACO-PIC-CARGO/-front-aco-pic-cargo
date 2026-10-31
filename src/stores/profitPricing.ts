@@ -3,6 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
+import { request } from "@/utils/request";
 import type { ConceptoProfitPricing, ListadoProfitPricing, ProfitPricingCosto } from "@/types/cotizacion";
 
 export const useProfitPricingStore = defineStore("profitPricing", () => {
@@ -69,8 +70,8 @@ export const useProfitPricingStore = defineStore("profitPricing", () => {
       });
   }
 
-  async function setProfitPricingCostos(): Promise<void> {
-    await axios<ApiResponse>({
+  async function setProfitPricingCostos(): Promise<boolean> {
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "profit_pricing_costos_set",
       data: {
@@ -83,21 +84,9 @@ export const useProfitPricingStore = defineStore("profitPricing", () => {
       headers: {
         "Content-Type": "application/json",
       },
-    })
-      .then(function (response) {
-        const res = response.data;
-        if (res.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            text: res.mensaje,
-          });
-        } else {
-          console.log(res.mensaje);
-        }
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
 
   return {

@@ -1,20 +1,20 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue";
+import { nonNegativeAmount } from "@/components/Configuracion/Pricing/amountRule";
 import { useAppStore } from "@/stores/app";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { useProfitPricingStore } from "@/stores/profitPricing";
-import { useProveedorStore } from "@/stores/proveedor";
 import { usePricingStore } from "@/stores/pricing";
 import type { Incoterm, ProfitPricingCosto } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 
 const pricingStore = usePricingStore();
-const proveedorStore = useProveedorStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const profitPricingStore = useProfitPricingStore();
 const appStore = useAppStore();
 
 const frmDatos = useTemplateRef("frmDatos");
+const frmProfit = useTemplateRef("frmProfit");
 const frmAsignarCosto = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
 const tab = ref(0);
@@ -24,9 +24,7 @@ const headersIncoterms = [
   { key: "action", title: "" },
 ] as const;
 const headers = [
-  { key: "proveedor", title: "Proveedor", width: "20%" },
-  { key: "multiplicador", title: "Multiplicador", width: "20%" },
-  { key: "concepto", title: "Concepto", width: "20%" },
+  { key: "concepto", title: "Concepto", width: "40%" },
   {
     key: "profitprimeraimportacion",
     title: "Ganancia Primera Importación",
@@ -54,7 +52,7 @@ const formData = ref<ProfitPricingCosto>({
   profitsegundaimportacion: null,
 });
 const dialogNuevoProfit = ref(false);
-const mostrarIncoterms = ref(false);
+const mostrarIncoterms = computed(() => !!(profitPricingStore.id_modality && profitPricingStore.id_shipment));
 
 const incoterms = computed(() => {
   const Icoterms: Incoterm[] = [];
@@ -143,16 +141,7 @@ async function cargarDatos() {
         id_modality: profitPricingStore.id_modality,
         id_shipment: profitPricingStore.id_shipment,
       }),
-      configEmpresaStore.getMultiplicadorConfig({
-        id_shipment: profitPricingStore.id_shipment,
-      }),
     ]);
-    const id = [
-      ...profitPricingStore.lstProfigIndividual!.map((v) => {
-        return v.id_proveedor;
-      }),
-    ];
-    await proveedorStore.obtenerProveedorPricing({ id: id.join(",") });
     loadingObtenerDatos.value = false;
     bloquearBotonAnadirConcepto.value = false;
   }
@@ -183,39 +172,15 @@ async function anadirConcepto() {
   }
 }
 async function guardarDatos() {
+  if (loadingGuardar.value) return;
   loadingGuardar.value = true;
-  await profitPricingStore.setProfitPricingCostos().catch((e) => {
-    console.error(e);
-  });
-  dialogNuevoProfit.value = false;
+  const saved = (await frmProfit.value!.validate()).valid && (await profitPricingStore.setProfitPricingCostos());
   loadingGuardar.value = false;
+  if (saved) dialogNuevoProfit.value = false;
 }
 
 watch(tab, () => {
   console.log(tab.value);
-});
-watch(() => profitPricingStore.id_modality, () => {
-  mostrarIncoterms.value = false;
-  if (
-    profitPricingStore.id_shipment &&
-    profitPricingStore.id_modality
-  ) {
-    appStore.spiner = true;
-    setTimeout(() => {}, 500);
-  }
-});
-watch(() => profitPricingStore.id_shipment, () => {
-  mostrarIncoterms.value = false;
-  if (
-    profitPricingStore.id_shipment &&
-    profitPricingStore.id_modality
-  ) {
-    appStore.spiner = true;
-    setTimeout(() => {
-      appStore.spiner = false;
-      mostrarIncoterms.value = true;
-    }, 500);
-  }
 });
 </script>
 
@@ -339,166 +304,120 @@ watch(() => profitPricingStore.id_shipment, () => {
                   </v-icon>
                 </v-tab>
               </v-tabs>
-              <v-tabs-window v-model="tab">
-                <v-tabs-window-item>
-                  <v-expansion-panels
-                    multiple
-                    class="px-5 py-2"
-                  >
-                    <v-expansion-panel
-                      v-for="(panel, index) in panelesConDatos"
-                      :key="index"
+              <v-form ref="frmProfit">
+                <v-tabs-window v-model="tab">
+                  <v-tabs-window-item>
+                    <v-expansion-panels
+                      multiple
+                      class="px-5 py-2"
                     >
-                      <v-expansion-panel-title>
-                        {{ panel.name }}
-                      </v-expansion-panel-title>
-                      <v-expansion-panel-text>
-                        <v-data-table
-                          :headers="headers"
-                          :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
-                          item-value="id"
-                          density="compact"
-                        >
-                          <template #[`item.proveedor`]="{ item }">
-                            <v-select
-                              :items="proveedorStore.lstProveedores"
-                              v-model="item.id_proveedor"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              item-title="namelong"
-                              item-value="id"
-                              disabled
-                            />
-                          </template>
-                          <template #[`item.multiplicador`]="{ item }">
-                            <v-select
-                              item-title="text"
-                              :items="
-                                configEmpresaStore.lstMultiplicador
-                              "
-                              v-model="item.id_multiplicador"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              disabled
-                            />
-                            <!-- {{ listTipoCostos }} -->
-                          </template>
-                          <template
-                            #[`item.profitprimeraimportacion`]="{ item }"
+                      <v-expansion-panel
+                        v-for="(panel, index) in panelesConDatos"
+                        :key="index"
+                      >
+                        <v-expansion-panel-title>
+                          {{ panel.name }}
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text>
+                          <v-data-table
+                            :headers="headers"
+                            :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
+                            item-value="id"
+                            density="compact"
                           >
-                            <v-text-field
-                              density="compact"
-                              variant="outlined"
-                              type="number"
-                              hide-details
-                              v-model="item.profitprimeraimportacion"
-                            />
-                          </template>
-                          <template
-                            #[`item.profitsegundaimportacion`]="{ item }"
-                          >
-                            <v-text-field
-                              density="compact"
-                              variant="outlined"
-                              v-model="item.profitsegundaimportacion"
-                              type="number"
-                              hide-details
-                            />
-                          </template>
-                          <template #[`item.estado`]="{ item }">
-                            <v-switch
-                              label=""
-                              density="compact"
-                              v-model="item.estado"
-                            />
-                          </template>
-                        </v-data-table>
-                      </v-expansion-panel-text>
-                    </v-expansion-panel>
-                  </v-expansion-panels>
-                </v-tabs-window-item>
-                <v-tabs-window-item>
-                  <v-expansion-panels
-                    multiple
-                    class="px-5 py-2"
-                  >
-                    <v-expansion-panel
-                      v-for="(panel, index) in panelesConDatos"
-                      :key="index"
+                            <template
+                              #[`item.profitprimeraimportacion`]="{ item }"
+                            >
+                              <v-text-field
+                                density="compact"
+                                variant="outlined"
+                                type="number"
+                                :rules="[nonNegativeAmount]"
+                                hide-details="auto"
+                                v-model="item.profitprimeraimportacion"
+                              />
+                            </template>
+                            <template
+                              #[`item.profitsegundaimportacion`]="{ item }"
+                            >
+                              <v-text-field
+                                density="compact"
+                                variant="outlined"
+                                v-model="item.profitsegundaimportacion"
+                                type="number"
+                                :rules="[nonNegativeAmount]"
+                                hide-details="auto"
+                              />
+                            </template>
+                            <template #[`item.estado`]="{ item }">
+                              <v-switch
+                                label=""
+                                density="compact"
+                                v-model="item.estado"
+                              />
+                            </template>
+                          </v-data-table>
+                        </v-expansion-panel-text>
+                      </v-expansion-panel>
+                    </v-expansion-panels>
+                  </v-tabs-window-item>
+                  <v-tabs-window-item>
+                    <v-expansion-panels
+                      multiple
+                      class="px-5 py-2"
                     >
-                      <v-expansion-panel-title>
-                        {{ panel.name }}
-                      </v-expansion-panel-title>
-                      <v-expansion-panel-text>
-                        <v-data-table
-                          :headers="headers"
-                          :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
-                          item-value="id"
-                          density="compact"
-                        >
-                          <template #[`item.proveedor`]="{ item }">
-                            <v-select
-                              :items="proveedorStore.lstProveedores"
-                              v-model="item.id_proveedor"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              item-title="namelong"
-                              item-value="id"
-                              disabled
-                            />
-                          </template>
-                          <template #[`item.multiplicador`]="{ item }">
-                            <v-select
-                              item-title="text"
-                              :items="
-                                configEmpresaStore.lstMultiplicador
-                              "
-                              v-model="item.id_multiplicador"
-                              variant="outlined"
-                              density="compact"
-                              hide-details
-                              disabled
-                            />
-                            <!-- {{ listTipoCostos }} -->
-                          </template>
-                          <template
-                            #[`item.profitprimeraimportacion`]="{ item }"
+                      <v-expansion-panel
+                        v-for="(panel, index) in panelesConDatos"
+                        :key="index"
+                      >
+                        <v-expansion-panel-title>
+                          {{ panel.name }}
+                        </v-expansion-panel-title>
+                        <v-expansion-panel-text>
+                          <v-data-table
+                            :headers="headers"
+                            :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
+                            item-value="id"
+                            density="compact"
                           >
-                            <v-text-field
-                              density="compact"
-                              variant="outlined"
-                              type="number"
-                              hide-details
-                              v-model="item.profitprimeraimportacion"
-                            />
-                          </template>
-                          <template
-                            #[`item.profitsegundaimportacion`]="{ item }"
-                          >
-                            <v-text-field
-                              density="compact"
-                              variant="outlined"
-                              v-model="item.profitsegundaimportacion"
-                              type="number"
-                              hide-details
-                            />
-                          </template>
-                          <template #[`item.estado`]="{ item }">
-                            <v-switch
-                              label=""
-                              density="compact"
-                              v-model="item.estado"
-                            />
-                          </template>
-                        </v-data-table>
-                      </v-expansion-panel-text>
-                    </v-expansion-panel>
-                  </v-expansion-panels>
-                </v-tabs-window-item>
-              </v-tabs-window>
+                            <template
+                              #[`item.profitprimeraimportacion`]="{ item }"
+                            >
+                              <v-text-field
+                                density="compact"
+                                variant="outlined"
+                                type="number"
+                                :rules="[nonNegativeAmount]"
+                                hide-details="auto"
+                                v-model="item.profitprimeraimportacion"
+                              />
+                            </template>
+                            <template
+                              #[`item.profitsegundaimportacion`]="{ item }"
+                            >
+                              <v-text-field
+                                density="compact"
+                                variant="outlined"
+                                v-model="item.profitsegundaimportacion"
+                                type="number"
+                                :rules="[nonNegativeAmount]"
+                                hide-details="auto"
+                              />
+                            </template>
+                            <template #[`item.estado`]="{ item }">
+                              <v-switch
+                                label=""
+                                density="compact"
+                                v-model="item.estado"
+                              />
+                            </template>
+                          </v-data-table>
+                        </v-expansion-panel-text>
+                      </v-expansion-panel>
+                    </v-expansion-panels>
+                  </v-tabs-window-item>
+                </v-tabs-window>
+              </v-form>
             </v-col>
           </v-row>
         </v-card-text>

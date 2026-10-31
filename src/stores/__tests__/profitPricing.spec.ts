@@ -105,7 +105,7 @@ describe("profitPricing store", () => {
     store.lstProfigIndividual = [individual];
     store.lstProfigGrupal = [grupal];
 
-    await store.setProfitPricingCostos();
+    expect(await store.setProfitPricingCostos()).toBe(true);
 
     expect(httpMock).toHaveBeenCalledWith({
       method: "post",
@@ -122,12 +122,11 @@ describe("profitPricing store", () => {
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok" });
   });
 
-  test("setProfitPricingCostos only logs the message of a rejection", async () => {
-    respond({ profit_pricing_costos_set: rejected("No se pudo guardar") });
+  test("setProfitPricingCostos shows why a save was refused and reports the failure", async () => {
+    respond({ profit_pricing_costos_set: rejected("Ingresa una ganancia de 0 o más en «FLETE».") });
 
-    await selectedProfit().setProfitPricingCostos();
+    expect(await selectedProfit().setProfitPricingCostos()).toBe(false);
 
-    expect(Swal.fire).not.toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith("No se pudo guardar");
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Ingresa una ganancia de 0 o más en «FLETE»." });
   });
 });
