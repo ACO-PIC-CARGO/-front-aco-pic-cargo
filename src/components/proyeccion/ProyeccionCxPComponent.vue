@@ -187,10 +187,10 @@ onMounted(async () => {
             <v-btn
               variant="text"
               icon
+              @click="ver(item.proyeccion_id)"
             >
               <v-icon
                 color="info"
-                @click="ver(item.proyeccion_id)"
               >
                 mdi-eye
               </v-icon>
@@ -199,10 +199,10 @@ onMounted(async () => {
               variant="text"
               icon
               v-if="!item.proyeccion_aprobadoflag"
+              @click="editar(item.proyeccion_id)"
             >
               <v-icon
                 color="orange"
-                @click="editar(item.proyeccion_id)"
               >
                 mdi-pencil
               </v-icon>
@@ -210,10 +210,10 @@ onMounted(async () => {
             <v-btn
               variant="text"
               icon
+              @click="copiar(item)"
             >
               <v-icon
                 color="blue-grey-darken-4"
-                @click="copiar(item)"
               >
                 mdi-content-copy
               </v-icon>

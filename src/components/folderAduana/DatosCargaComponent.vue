@@ -919,10 +919,10 @@ function recalcularCalculadora() {
                         variant="text"
                         class="ma-0 pa-0"
                         icon
+                        @click="borrarFila(i)"
                       >
                         <v-icon
                           color="orange-darken-4"
-                          @click="borrarFila(i)"
                         >
                           mdi-delete-circle
                         </v-icon>

@@ -338,8 +338,9 @@ onMounted(async () => {
                           variant="text"
                           icon
                           color="info"
+                          @click.stop="showHouse(item.id)"
                         >
-                          <v-icon @click.stop="showHouse(item.id)">
+                          <v-icon>
                             mdi-open-in-new
                           </v-icon>
                         </v-btn>
@@ -348,8 +349,9 @@ onMounted(async () => {
                           variant="text"
                           icon
                           color="red"
+                          @click.stop="eliminar(item.id)"
                         >
-                          <v-icon @click.stop="eliminar(item.id)">
+                          <v-icon>
                             mdi-delete
                           </v-icon>
                         </v-btn>
@@ -358,10 +360,9 @@ onMounted(async () => {
                           variant="text"
                           icon
                           color="#F57F17"
+                          @click.stop="abrirModalCambiarExpediente(item)"
                         >
-                          <v-icon
-                            @click.stop="abrirModalCambiarExpediente(item)"
-                          >
+                          <v-icon>
                             mdi-folder-arrow-up-down
                           </v-icon>
                         </v-btn>

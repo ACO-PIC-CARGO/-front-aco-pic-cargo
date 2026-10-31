@@ -305,10 +305,10 @@ onMounted(async () => {
                   <v-btn
                     variant="text"
                     icon
+                    @click="anularPago(item.id)"
                   >
                     <v-icon
                       color="red"
-                      @click="anularPago(item.id)"
                     >
                       mdi-circle-off-outline
                     </v-icon>

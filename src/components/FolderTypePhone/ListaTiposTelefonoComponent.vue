@@ -236,10 +236,10 @@ function validateName(v: string | null | undefined) {
           <v-btn
             variant="text"
             icon
+            @click="update(item.id)"
           >
             <v-icon
               color="warning"
-              @click="update(item.id)"
             >
               mdi-pencil
             </v-icon>
@@ -247,10 +247,10 @@ function validateName(v: string | null | undefined) {
           <v-btn
             variant="text"
             icon
+            @click="read(item.id)"
           >
             <v-icon
               color="success"
-              @click="read(item.id)"
             >
               mdi-eye
             </v-icon>

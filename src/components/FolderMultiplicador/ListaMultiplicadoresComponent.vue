@@ -273,10 +273,10 @@ function validateNumber(value: string | number | null | undefined) {
           <v-btn
             variant="text"
             icon
+            @click="open_read(item)"
           >
             <v-icon
               color="primary"
-              @click="open_read(item)"
             >
               mdi-eye
             </v-icon>
@@ -284,10 +284,10 @@ function validateNumber(value: string | number | null | undefined) {
           <v-btn
             variant="text"
             icon
+            @click="open_update(item)"
           >
             <v-icon
               color="warning"
-              @click="open_update(item)"
             >
               mdi-pencil
             </v-icon>

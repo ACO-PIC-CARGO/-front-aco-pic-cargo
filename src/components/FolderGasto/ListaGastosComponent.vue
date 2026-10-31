@@ -272,10 +272,10 @@ async function validate_nuevo_code() {
           <v-btn
             variant="text"
             icon
+            @click="open_read(item.id)"
           >
             <v-icon
               color="primary"
-              @click="open_read(item.id)"
             >
               mdi-eye
             </v-icon>
@@ -283,10 +283,10 @@ async function validate_nuevo_code() {
           <v-btn
             variant="text"
             icon
+            @click="open_update(item.id)"
           >
             <v-icon
               color="warning"
-              @click="open_update(item.id)"
             >
               mdi-pencil
             </v-icon>

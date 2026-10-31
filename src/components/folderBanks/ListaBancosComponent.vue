@@ -352,10 +352,10 @@ onMounted(async () => {
             class="mx-1"
             size="small"
             icon
+            @click="open_read(item.id)"
           >
             <v-icon
               color="primary"
-              @click="open_read(item.id)"
             >
               mdi-eye
             </v-icon>
@@ -365,10 +365,10 @@ onMounted(async () => {
             class="mx-1"
             size="small"
             icon
+            @click="abrirCuentas(item)"
           >
             <v-icon
               color="#0D47A1"
-              @click="abrirCuentas(item)"
             >
               mdi-bank
             </v-icon>
@@ -378,10 +378,10 @@ onMounted(async () => {
             class="mx-1"
             size="small"
             icon
+            @click="open_update(item.id)"
           >
             <v-icon
               color="warning"
-              @click="open_update(item.id)"
             >
               mdi-pencil
             </v-icon>
@@ -831,10 +831,10 @@ onMounted(async () => {
                   <v-btn
                     variant="text"
                     icon
+                    @click="abrirCuenta(item)"
                   >
                     <v-icon
                       color="warning"
-                      @click="abrirCuenta(item)"
                     >
                       mdi-pencil
                     </v-icon>

@@ -2287,8 +2287,9 @@ onMounted(async () => {
                         icon
                         color="orange"
                         size="small"
+                        @click="_editEgreso(item)"
                       >
-                        <v-icon @click="_editEgreso(item)">
+                        <v-icon>
                           mdi-pencil
                         </v-icon>
                       </v-btn>
@@ -2298,8 +2299,9 @@ onMounted(async () => {
                         color="red"
                         size="small"
                         v-if="!item.statusadmin && item.pagado == 0"
+                        @click="_delEngreso(item, egresoProveedor)"
                       >
-                        <v-icon @click="_delEngreso(item, egresoProveedor)">
+                        <v-icon>
                           mdi-delete
                         </v-icon>
                       </v-btn>
@@ -2685,12 +2687,12 @@ onMounted(async () => {
                 variant="text"
                 icon
                 size="small"
+                @click="openDoc(item.path)"
               >
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
                   color="grey"
-                  @click="openDoc(item.path)"
                 >
                   mdi-eye
                 </v-icon>
@@ -2701,12 +2703,12 @@ onMounted(async () => {
                 variant="text"
                 icon
                 size="small"
+                @click="_delInvoice(item.id)"
               >
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
                   color="red"
-                  @click="_delInvoice(item.id)"
                 >
                   mdi-delete
                 </v-icon>

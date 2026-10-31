@@ -2901,12 +2901,12 @@ onMounted(async () => {
                 variant="text"
                 icon
                 size="small"
+                @click="openDoc(item.path!)"
               >
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
                   color="grey"
-                  @click="openDoc(item.path!)"
                 >
                   mdi-eye
                 </v-icon>
@@ -2917,12 +2917,12 @@ onMounted(async () => {
                 variant="text"
                 icon
                 size="small"
+                @click="eliminarProformaFiscal(item.id)"
               >
                 <v-icon
                   class="btn_add mr-2"
                   size="large"
                   color="red"
-                  @click="eliminarProformaFiscal(item.id)"
                 >
                   mdi-delete
                 </v-icon>

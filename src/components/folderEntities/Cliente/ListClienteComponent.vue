@@ -217,10 +217,10 @@ onMounted(async () => {
                 size="x-small"
                 icon
                 v-if="item.status == 1"
+                @click="eliminar(item)"
               >
                 <v-icon
                   color="red"
-                  @click="eliminar(item)"
                 >
                   mdi-delete
                 </v-icon>

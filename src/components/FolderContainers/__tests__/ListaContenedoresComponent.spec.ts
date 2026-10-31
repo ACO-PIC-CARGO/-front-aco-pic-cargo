@@ -102,3 +102,17 @@ test("a saved container closes the Nuevo panel, so it cannot be submitted twice"
 
   expect(document.body.querySelectorAll(".v-navigation-drawer--active")).toHaveLength(0);
 });
+
+test.each(["mdi-eye", "mdi-pencil"])(
+  "clicking anywhere on a row's %s button opens its panel, not only on the icon",
+  { timeout: 15_000 },
+  async (icon) => {
+    httpMock.mockResolvedValue({ data: accepted([viewedContainer]) });
+    await mountScreen();
+
+    document.body.querySelector(`tbody .${icon}`)!.closest("button")!.click();
+    await flushPromises();
+
+    expect(document.body.querySelectorAll(".v-navigation-drawer--active")).toHaveLength(1);
+  },
+);

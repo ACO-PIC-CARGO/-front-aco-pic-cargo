@@ -279,10 +279,10 @@ function getFechaBonita(fecha?: string) {
           <v-btn
             variant="text"
             icon
+            @click="editComentarioPredefinido(item)"
           >
             <v-icon
               color="warning"
-              @click="editComentarioPredefinido(item)"
             >
               mdi-pencil
             </v-icon>
@@ -290,10 +290,10 @@ function getFechaBonita(fecha?: string) {
           <v-btn
             variant="text"
             icon
+            @click="viewComentarioPredefinido(item)"
           >
             <v-icon
               color="primary"
-              @click="viewComentarioPredefinido(item)"
             >
               mdi-eye
             </v-icon>

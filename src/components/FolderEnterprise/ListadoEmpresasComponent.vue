@@ -190,10 +190,10 @@ function open_filter() {
           <v-btn
             variant="text"
             icon
+            @click="updateEnterpriseRoute(item.id)"
           >
             <v-icon
               color="warning"
-              @click="updateEnterpriseRoute(item.id)"
             >
               mdi-pencil
             </v-icon>
@@ -201,10 +201,10 @@ function open_filter() {
           <v-btn
             variant="text"
             icon
+            @click="readEnterprise(item.id)"
           >
             <v-icon
               color="success"
-              @click="readEnterprise(item.id)"
             >
               mdi-eye
             </v-icon>
