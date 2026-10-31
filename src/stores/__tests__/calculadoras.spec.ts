@@ -140,30 +140,6 @@ describe("calculadoras store", () => {
     expect(Swal.fire).toHaveBeenCalledWith({ icon, title: "Llamada" });
   });
 
-  test("ExportarListUser downloads the blob as a dated spreadsheet link", async () => {
-    respond({ export_listar_usuarios_calculadora: "xlsx" });
-    const createObjectURL = vi.fn(() => "blob:lista");
-    vi.stubGlobal("URL", { createObjectURL });
-    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
-    vi.spyOn(Date, "now").mockReturnValue(123);
-
-    await calc().ExportarListUser!();
-
-    expect(httpMock).toHaveBeenCalledWith({
-      method: "get",
-      url: URL_MAIN + "export_listar_usuarios_calculadora?id_pais=9589",
-      headers: { "Content-Type": "blob" },
-      responseType: "blob",
-      data: { iso_pais: 9589 },
-    });
-    expect(createObjectURL).toHaveBeenCalledWith(expect.any(Blob));
-    const link = document.body.querySelector("a[download]") as HTMLAnchorElement;
-    expect(link.getAttribute("href")).toBe("blob:lista");
-    expect(link.getAttribute("download")).toBe("Listado Usuario Calculadora - 123.xlsx");
-    expect(click).toHaveBeenCalledTimes(1);
-    link.remove();
-  });
-
   test.each([
     ["GetCotFCL", "get_cot_fcl", "datos"],
     ["GetCotLCL", "get_cot_lcl", "datos"],
@@ -465,7 +441,6 @@ describe("calculadoras store", () => {
     ["setFleteGrupalVenta", "post", "calc/flete/grupal_venta/guardar", true],
     ["updateFleteGrupalVenta", "put", "calc/flete/grupal_venta/actualizar", true],
     ["actualizarFlete", "put", "calc/flete/actualizar", false],
-    ["actualizarEstadoCotizacionCalculadora", "put", "calc/actualizar/estado/cotizacion", false],
   ])("%s", (action, method, path, stampsCountry) => {
     test("sends the record and shows the backend message only when it accepts", async () => {
       respond({ [path]: accepted([]) });

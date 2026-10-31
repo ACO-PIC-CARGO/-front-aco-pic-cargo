@@ -35,9 +35,11 @@ import type {
 import type { EstadoCotizacion, Multiplicador } from "@/types/cotizacion";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { sessionBranchId, sessionIsoPais } from "@/utils/sesion";
+import { request } from "@/utils/request";
 // import funciones from "./../../mixins/funciones";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
+const EXPORT_FAILED_MESSAGE = "No pudimos generar el Excel. Revisa tu conexión e intenta de nuevo.";
 const sessionBranches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
 const sessionUsers = () => JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[];
 const sessionPaisId = () => sessionBranches()[0]!.id_pais;
@@ -206,22 +208,29 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function ExportarListUser(): Promise<void> {
-    await axios<BlobPart>({
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "export_listar_usuarios_calculadora?id_pais=" + sessionIsoPais(),
-      headers: { "Content-Type": "blob" },
-      responseType: "blob",
-      data: {
-        iso_pais: sessionIsoPais(),
-      },
-    }).then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+    try {
+      const { data } = await axios<Blob>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + "export_listar_usuarios_calculadora",
+        params: { id_pais: sessionIsoPais() },
+        responseType: "blob",
+      });
+      if (data.type.includes("json")) {
+        const answer = JSON.parse(await data.text()) as ApiResponse;
+        Swal.fire({ icon: "info", text: answer.mensaje });
+        return;
+      }
+      const url = window.URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", `Listado Usuario Calculadora - ${Date.now()}.xlsx`);
       document.body.appendChild(link);
       link.click();
-    });
+    } catch (error) {
+      const body = (error as { response?: { data?: Blob } }).response?.data;
+      const answer = body?.type?.includes("json") ? (JSON.parse(await body.text()) as ApiResponse) : null;
+      Swal.fire({ icon: "error", text: answer?.mensaje || EXPORT_FAILED_MESSAGE });
+    }
   }
 
   async function obtenerCotizacion(path: string, token: string): Promise<ConceptoCotizacionCalculadora[]> {
@@ -825,8 +834,14 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function actualizarEstadoCotizacionCalculadora(data: Partial<UsuarioCalculadora>): Promise<void> {
-    await enviarConMensaje("put", "calc/actualizar/estado/cotizacion", data);
+  async function actualizarEstadoCotizacionCalculadora(data: Partial<UsuarioCalculadora>): Promise<boolean> {
+    const response = await request({
+      method: "put",
+      url: import.meta.env.VITE_URL_MAIN + "calc/actualizar/estado/cotizacion",
+      data,
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
 
   const overlay = ref<boolean>();

@@ -108,7 +108,7 @@ function rowTrainerClass(item: UsuarioCalculadora) {
 }
 async function guardarEstadoCotizacion() {
   if ((await frmComentario.value!.validate()).valid) {
-    await calculadorasStore.actualizarEstadoCotizacionCalculadora(dataCotizacion.value);
+    if (!(await calculadorasStore.actualizarEstadoCotizacionCalculadora(dataCotizacion.value))) return;
     dialogEditarEstado.value = false;
     appStore.spiner = true;
     await calculadorasStore.getListUserCalc();
