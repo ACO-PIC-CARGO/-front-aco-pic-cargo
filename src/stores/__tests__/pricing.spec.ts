@@ -830,7 +830,7 @@ describe("pricing store", () => {
     });
 
     test("registrarQuotePorCambioIncoterms posts the services and options it receives with the quote header", async () => {
-      httpMock.mockResolvedValue({ data: { insertId: 503, nro_quote: "15002-P", msg: "ok" } });
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 503, nro_quote: "15002-P", msg: "ok" } });
       const pricing = cotizacion();
       pricing.datosPrincipales.id_marketing = 150;
       pricing.datosPrincipales.id_vendedor = 9;
@@ -1068,9 +1068,6 @@ describe("pricing store", () => {
             "tiporeporte": "TOTAL",
             "ventascasillerodetalles": [],
             "volumen": 2.5,
-          },
-          "headers": {
-            "Content-Type": "application/json",
           },
           "method": "post",
           "url": "undefinedsetQuote",

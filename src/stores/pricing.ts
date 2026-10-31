@@ -1494,7 +1494,7 @@ export const usePricingStore = defineStore("pricing", () => {
     }
     return response;
   }
-  async function registrarQuotePorCambioIncoterms(newData: CambioIncoterms): Promise<void> {
+  async function registrarQuotePorCambioIncoterms(newData: CambioIncoterms): Promise<ApiResponse> {
     const imp = newData.listServices.filter((v) => v.code_service == "15" && v.status == true);
     const isFCL = listShipment.value.some(
       (v) =>
@@ -1577,22 +1577,18 @@ export const usePricingStore = defineStore("pricing", () => {
       opcionCostos: opciones,
       id_branch: sessionBranchId(),
     };
-    //  console.log(data.costocotizacion);
-    const config = {
+    const response = (await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "setQuote",
-      headers: {
-        "Content-Type": "application/json",
-      },
       data: data,
-    };
-    // let vm = this;
-    await axios<RespuestaRegistroCotizacion>(config).then(async (response) => {
-      id.value = response.data.insertId;
-      nro_quote.value = response.data.nro_quote;
-      mensaje.value = response.data.msg;
+    })) as ApiResponse & Partial<RespuestaRegistroCotizacion>;
+    if (response.estadoflag) {
+      id.value = response.insertId!;
+      nro_quote.value = response.nro_quote!;
+      mensaje.value = response.msg!;
       tiporeporte.value = "";
-    });
+    }
+    return response;
   }
   async function copiarQuote({
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

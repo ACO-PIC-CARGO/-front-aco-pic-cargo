@@ -133,4 +133,29 @@ describe("saving a quote", () => {
 
     await expect(quote().crearCarpetaOneDrive({ id_quote: 501 })).resolves.toBeNull();
   });
+
+  test("registrarQuotePorCambioIncoterms keeps the new quote's number only when it was saved", async () => {
+    respond({ setQuote: { ...accepted([]), insertId: 610, nro_quote: "16000-P", msg: "Cotización ingresada con el número 16000-P" } });
+    const pricing = quote();
+
+    const answer = await pricing.registrarQuotePorCambioIncoterms({ listServices: pricing.listServices, opcionCostos: pricing.opcionCostos });
+
+    expect(answer.estadoflag).toBe(true);
+    expect([pricing.id, pricing.nro_quote]).toEqual([610, "16000-P"]);
+  });
+
+  test.each([
+    ["a refused quote", rejected("El puerto de origen elegido no pertenece a tu empresa. Elige uno de la lista e intenta de nuevo."), "El puerto de origen elegido no pertenece a tu empresa. Elige uno de la lista e intenta de nuevo."],
+    ["a server or network failure", new Error("Network Error"), CONNECTION_ERROR_MESSAGE],
+  ])("registrarQuotePorCambioIncoterms reports %s and keeps the edited quote", async (_, body, message) => {
+    respond({ setQuote: body });
+    const pricing = quote();
+    pricing.id = 77;
+    pricing.nro_quote = "14779-P";
+
+    const answer = await pricing.registrarQuotePorCambioIncoterms({ listServices: pricing.listServices, opcionCostos: pricing.opcionCostos });
+
+    expect(answer).toMatchObject({ estadoflag: false, mensaje: message });
+    expect([pricing.id, pricing.nro_quote]).toEqual([77, "14779-P"]);
+  });
 });
