@@ -668,16 +668,17 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
 
   async function obtenerFleteCalculadora(datos: FiltroFleteCalculadora): Promise<void> {
     datos.id_branch = sessionBranchId();
-    await axios<ApiResponse<FletePricingCalculadora[]>>({
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "calc/flete/obtener_flete",
-      headers: JSON_HEADERS,
-      params: datos,
-    }).then((response) => {
-      const res = response.data;
-
-      fletePricing.value = res.data[0]!;
-    });
+    try {
+      const { data: res } = await axios<ApiResponse<FletePricingCalculadora[]>>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + "calc/flete/obtener_flete",
+        headers: JSON_HEADERS,
+        params: datos,
+      });
+      fletePricing.value = (res.estadoflag && res.data[0]) || {};
+    } catch {
+      fletePricing.value = {};
+    }
   }
 
   async function getFleteGrupalVenta(data: FiltroCalculadora): Promise<void> {
