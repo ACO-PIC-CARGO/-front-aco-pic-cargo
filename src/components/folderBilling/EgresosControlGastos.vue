@@ -31,6 +31,8 @@ import type {
   SolicitudPagoListada,
 } from "@/types/billingEntries";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import type { ApiResponse } from "@/types/api";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -66,6 +68,11 @@ const undeclaredAppState = appStore as typeof appStore & {
   controlgastos: { master_houses: ControlGastoHouse[] };
   master_houses: ControlGastoHouse[];
 };
+const warnIfRefused = (response: ApiResponse) => {
+  if (response.estadoflag) return false;
+  Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje });
+  return true;
+};
 const route = useRoute();
 const bankStore = useBankStore();
 const controlGastosStore = useControlGastosStore();
@@ -82,8 +89,6 @@ const frmCuentaBancaria = useTemplateRef("frmCuentaBancaria");
 const frmCopiar = useTemplateRef("frmCopiar");
 
 const dialogCambiarExp = ref(false);
-const dialogCambiarExpediente = ref(false);
-const selectedNuevoExpediente = ref<number | null>(null);
 const egreso = ref({} as EgresoProveedor);
 const id_masterdestino = ref<number | null>(null);
 const dialogCopiar = ref(false);
@@ -271,7 +276,7 @@ let dataProveedor: EgresoProveedor | undefined;
 let id_tipotransaccion: number | string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let itemsInvoice: unknown;
-let sPaymentId: number | undefined;
+let paymentsProvider: EgresoProveedor | undefined;
 // openPaymentFile is not defined in this component, so the template call throws
 const openPaymentFile = undefined as unknown as (path?: string) => void;
 const masterEgresos = computed(() => componentProps.master_egresos as unknown as EgresoProveedor[]);
@@ -326,25 +331,6 @@ const nombreCodigoPago = computed(() => {
   return codigoPago;
 });
 
-function mostrarBotonCambiarExpAsociado(item: EgresoProveedor) {
-  return !item.detalle.some((v) => !!v.consigner);
-}
-function abrirModalCambiarExpediente(item: EgresoProveedor) {
-  egreso.value = item;
-  dialogCambiarExpediente.value = true;
-}
-async function aplicarCambioExpediente() {
-  loading.value = true;
-  await mastersStore.CambiarExpedienteAsociadoAMaster({
-    id_master: egreso.value.id_master,
-    id_proveedor: egreso.value.id_proveedor,
-    id_correlativo: egreso.value.id_correlativo,
-    id_nuevo_master: selectedNuevoExpediente.value,
-  });
-  loading.value = false;
-  dialogCambiarExpediente.value = false;
-  emit("recargarDatos");
-}
 function mostrarColumnaMonedaDiferenteDolar(item: EgresoProveedor) {
   if (item.detalle.some((v) => v.acronym !== "USD")) {
     return true;
@@ -512,8 +498,8 @@ function calcularE() {
   if (tipocambio.value) {
     const partes = tipocambio.value.toString().split(".");
     const decimales = partes[1] ? partes[1].length : 0;
-    if (decimales > 2) {
-      tipocambio.value = parseFloat(String(tipocambio.value)).toFixed(2);
+    if (decimales > 4) {
+      tipocambio.value = parseFloat(String(tipocambio.value)).toFixed(4);
     }
   }
 
@@ -745,25 +731,11 @@ async function _setData() {
     totalopcuentabanco: egresos.value.totalopcuentabanco,
     id_correlativo: id_correlativo.value,
     tipocambio: tipocambio.value,
-    id_user: sessionUser().id,
   };
 
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setEgresos",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(async function () {
-      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-      dialog.value = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  if (warnIfRefused(await request({ method: "post", url: import.meta.env.VITE_URL_MAIN + "setEgresos", data }))) return;
+  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  dialog.value = false;
   emit("recalcularProfit");
 }
 function solicitar(egreso: EgresoProveedor) {
@@ -851,27 +823,17 @@ async function _setInvoice() {
     data: data,
   };
 
-  await axios(config)
-    .then(async function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      itemsInvoice = response.data.data;
-      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-      Swal.fire({
-        icon: "success",
-        title: "Documento Cargado",
-        text: "El documento ha sido cargado correctamente",
-      });
-
-      // vm.cleandData();
-      // vm.dialogListInvoice = false;
-      dialogInvoice.value = false;
-
-      await _getInvoice(egreso.value);
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  const response = await request(config);
+  if (warnIfRefused(response)) return;
+  itemsInvoice = response.data;
+  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  Swal.fire({
+    icon: "success",
+    title: "Documento cargado",
+    text: response.mensaje,
+  });
+  dialogInvoice.value = false;
+  await _getInvoice(egreso.value);
 }
 async function _delInvoice(id: number) {
   const config = {
@@ -882,17 +844,11 @@ async function _delInvoice(id: number) {
     },
   };
 
-  await axios(config)
-    .then(function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      itemsInvoice = response.data.data;
-      _getInvoice(egreso.value);
-      dialogInvoice.value = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  const response = await request(config);
+  if (warnIfRefused(response)) return;
+  itemsInvoice = response.data;
+  _getInvoice(egreso.value);
+  dialogInvoice.value = false;
 }
 async function InsertarActualizarPorcentajeProveedor() {
   if (
@@ -1158,29 +1114,28 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }) 
           const res = response.data;
           if (res.estadoflag == true) {
             Swal.fire({
-              icon: "info",
-              title: "informacíon",
+              icon: "success",
               text: res.mensaje,
             });
             appStore.spiner = false;
             await controlGastosStore.getListControlGastosMaster(route.params.id as string);
           } else {
             Swal.fire({
-              icon: "error",
-              title: "informacíon",
+              icon: "warning",
               text: res.mensaje,
             });
             appStore.spiner = false;
           }
         })
-        .catch(function (error) {
-          console.error(error);
+        .catch(function () {
+          appStore.spiner = false;
+          Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
         });
     }
   });
 }
 async function openPayments(egreso: EgresoProveedor) {
-  sPaymentId = egreso.id_proveedor;
+  paymentsProvider = egreso;
   dialogPayment.value = true;
   dataList.value = false;
   await _getSPaymentPro(egreso);
@@ -1225,8 +1180,6 @@ async function _editEgresos() {
     ...egresos.value,
 
     id_coins: id_coins.value,
-
-    id_user: sessionUser().id,
     id_master: controlGastosStore.listControlGastos[0]!.master_id,
     id_correlativo: id_correlativo.value,
     tipocambio: tipocambio.value,
@@ -1255,22 +1208,9 @@ async function _editEgresos() {
     }
   }
 
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "editEgreso/" + egresos.value.id,
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(async function () {
-      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-      dialog.value = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  if (warnIfRefused(await request({ method: "post", url: import.meta.env.VITE_URL_MAIN + "editEgreso/" + egresos.value.id, data }))) return;
+  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  dialog.value = false;
   emit("recalcularProfit");
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1355,20 +1295,17 @@ function sendAdmin(id: number) {
         data: data,
       };
 
-      axios(config)
-        .then(async function () {
-          Swal.fire({
-            icon: "success",
-            title: "Excelente",
-            text: "Solicitud enviada correctamente",
-          });
-          await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-          _getSPaymentPro(sPaymentId);
-          dataList.value = true;
-        })
-        .catch(function (error) {
-          console.error(error);
+      request(config).then(async function (response) {
+        if (warnIfRefused(response)) return;
+        Swal.fire({
+          icon: "success",
+          title: "Solicitud enviada",
+          text: response.mensaje,
         });
+        await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+        _getSPaymentPro(paymentsProvider);
+        dataList.value = true;
+      });
     }
   });
 
@@ -1399,9 +1336,8 @@ async function eliminar(id: number) {
       const res = response.data;
 
       Swal.fire({
-        icon: "info",
-        title: "Información",
-        text: res.data[0].mensaje,
+        icon: res.estadoflag ? "success" : "warning",
+        text: res.mensaje,
       }).then(async (result) => {
         if (result.isConfirmed) {
           dialogPayment.value = false;
@@ -1449,8 +1385,6 @@ async function _generateSolicitud() {
   });
 
   const datas = {
-    id_house: undeclaredAppState.master_houses.filter((v: ControlGastoHouse) => v.id_house)[0]!
-      .id_house,
     id_proveedor: proveedorId,
     conceptos: concepto,
     monto: pago,
@@ -1474,6 +1408,7 @@ async function _generateSolicitud() {
 
   await axios(config)
     .then(function (response) {
+      if (warnIfRefused(response.data)) return;
       const data = {
         nameProveedor: nameproveedor.value,
         nameConsignatario: clientes,
@@ -1493,7 +1428,7 @@ async function _generateSolicitud() {
         conceptos: conceptos.value,
         selected: selected.value,
         totalSelected: total,
-        number: response.data.number,
+        number: response.data.data[0].number,
         url_logo: sessionUser().path,
         url: controlGastosStore.listControlGastos[0]!
           .url_folderonedrive,
@@ -2032,13 +1967,6 @@ onMounted(async () => {
                 >
                   Solicitar a Administración
                 </th>
-                <th
-                  v-if="editable"
-                  width="16%"
-                  class="text-left"
-                >
-                  Más Acciones
-                </th>
                 <!-- <th width="10%">Acciones</th> -->
                 <!-- <th width="10%">Acciones</th> -->
               </tr>
@@ -2142,17 +2070,6 @@ onMounted(async () => {
                     <v-icon :color="'blue'">
                       mdi-email-arrow-right
                     </v-icon>
-                  </v-btn>
-                </td>
-                <td v-if="editable">
-                  <v-btn
-                    color="indigo"
-                    size="small"
-                    class="mb-1 text-no-wrap"
-                    v-if="mostrarBotonCambiarExpAsociado(egresoProveedor)"
-                    @click="abrirModalCambiarExpediente(egresoProveedor)"
-                  >
-                    Cambiar expediente
                   </v-btn>
                 </td>
               </tr>
@@ -3647,58 +3564,6 @@ onMounted(async () => {
             @click="functionMoverCostos"
           >
             Mover Costo
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="dialogCambiarExpediente"
-      max-width="500"
-    >
-      <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
-          Cambiar expediente
-          <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="dialogCambiarExpediente = false"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-autocomplete
-            :items="
-              appStore.itemsMasterList.filter(
-                (v: ExpedienteItem) => String(v.id) !== route.params.id,
-              )
-            "
-            v-model="selectedNuevoExpediente"
-            item-value="id"
-            item-title="code_master"
-            label="Seleccione nuevo expediente"
-            variant="outlined"
-            class="my-5"
-          />
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            variant="outlined"
-            color="red"
-            @click="dialogCambiarExpediente = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="primary"
-            :loading="loading"
-            :disabled="!selectedNuevoExpediente"
-            @click="aplicarCambioExpediente"
-          >
-            Guardar
           </v-btn>
         </v-card-actions>
       </v-card>
