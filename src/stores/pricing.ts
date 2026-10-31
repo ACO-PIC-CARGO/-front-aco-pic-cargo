@@ -3397,10 +3397,10 @@ export const usePricingStore = defineStore("pricing", () => {
           });
         }
       });
-      opcionCostos.value
+      const opcionesCalculadas = opcionCostos.value
         .filter((v) => v.selected)
-        .forEach((opcionCosto) => {
-          setTimeout(async () => {
+        .map((opcionCosto) =>
+          new Promise((done) => setTimeout(done, 10)).then(async () => {
             importante = [];
             imp = [];
             datosFlete = [];
@@ -4413,8 +4413,8 @@ export const usePricingStore = defineStore("pricing", () => {
               listServices: listServices.value,
               listNotasQuote: opcionCosto.listNotasQuote,
             });
-          }, 10);
-        });
+          }),
+        );
 
       /* FLETE - LOCAL - ADUANA - ALMACEN - SERVICIOS SIEMPRE VENTAFLAG == 0*/
 
@@ -4477,9 +4477,8 @@ export const usePricingStore = defineStore("pricing", () => {
 
         OpcionesSelecciondas: OpcionesSelecciondas,
       };
-      setTimeout(() => {
-        resolve(data);
-      }, 1000);
+      await Promise.allSettled(opcionesCalculadas);
+      resolve(data);
     });
   }
   function validarCosto(): boolean {
