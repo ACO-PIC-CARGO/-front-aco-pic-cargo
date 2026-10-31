@@ -78,6 +78,7 @@ import {
 import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
@@ -95,49 +96,6 @@ async function getSessionBranchId(): Promise<number | string | null> {
   }
 
   return idBranch;
-}
-
-function showPdfGeneratingCountdown(): void {
-  let tiempoRestante = 5;
-  Swal.fire({
-    icon: "success",
-    title: "Generando  PDF",
-    html: `
-      <p>El reporte PDF se abrirá automáticamente en unos segundos.</p>
-      <p style="margin-bottom: 0; color: #666; font-size: 14px;">
-        Puedes continuar con tus actividades mientras se prepara el reporte.
-      </p>
-      <p id="contadorSwal" style="margin-top: 15px; font-weight: 600; color: #3085d6;">
-        Podrás continuar en ${tiempoRestante} segundos...
-      </p>
-    `,
-    confirmButtonText: "OK",
-    confirmButtonColor: "#3085d6",
-    showConfirmButton: true,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => {
-      const botonOk = Swal.getConfirmButton();
-      if (botonOk) botonOk.disabled = true;
-
-      const intervalo = setInterval(() => {
-        tiempoRestante--;
-        const contador = document.getElementById("contadorSwal");
-        // The "PDF Generado" alert can replace this one before the countdown ends.
-        if (!contador) {
-          clearInterval(intervalo);
-          return;
-        }
-        if (tiempoRestante > 0) {
-          contador.textContent = `Podrás continuar en ${tiempoRestante} segundos...`;
-        } else {
-          clearInterval(intervalo);
-          contador.textContent = "Ya puedes continuar.";
-          if (botonOk) botonOk.disabled = false;
-        }
-      }, 1000);
-    },
-  });
 }
 
 export const usePricingStore = defineStore("pricing", () => {
@@ -3083,112 +3041,21 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const data = {
-      filtro: { ...filtro.value },
-      filtroSeleccionado: filtroSeleccionado,
-      filtroCabecera: filtroCabecera,
-    };
-    showPdfGeneratingCountdown();
-
-    await axios
-      // @ts-expect-error the headers object goes in as the request config.
-      .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "export_list_quote", data, headers)
-      .then((response) => {
-        if (response.data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-            showConfirmButton: true,
-          });
-
-          window.open(
-            `${import.meta.env.VITE_URL_MAIN}${response.data.path}`,
-            // "",
-            "_blank"
-          );
-        } else {
-          Swal.close();
-          Swal.fire({
-            icon: "warning",
-            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
-            showConfirmButton: true,
-          });
-        }
-      })
-      .catch((e) => console.log(e));
+    await downloadPdf(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
+      "REPORTE_COTIZACIONES.pdf",
+    );
   }
   async function imprimiReporteListadoMarketing({
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const data = {
-      filtro: { ...filtro.value },
-      filtroSeleccionado: filtroSeleccionado,
-      filtroCabecera: filtroCabecera,
-    };
-    let timerInterval;
-    Swal.fire({
-      icon: "info",
-      title: "Generando  PDF",
-      text: "El PDF se descargará automaticamente",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      timerProgressBar: true,
-      timer: null as unknown as number,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    }).then((res) => {
-      if (res.dismiss) {
-        clearInterval(timerInterval);
-      }
-    });
-
-    await axios
-      // @ts-expect-error the headers object goes in as the request config.
-      .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "reporte_canales_origen", data, headers)
-      .then((response) => {
-        if (response.data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-            showConfirmButton: true,
-          });
-
-          window.open(
-            `${import.meta.env.VITE_URL_MAIN}${response.data.path}`,
-            // "",
-            "_blank"
-          );
-        } else {
-          Swal.close();
-          Swal.fire({
-            icon: "warning",
-            text: "Ocurrió un error al generar el PDF, por favor comuníquese con el administrador del sistema",
-            showConfirmButton: true,
-          });
-        }
-      })
-      .catch((e) => console.log(e));
+    await downloadPdf(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "reporte_canales_origen", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
+      "REPORTE_CANALES_ORIGEN.pdf",
+    );
   }
   async function exportarExcelListadoQuote(): Promise<void> {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-      Accept: "aplication/json",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length",
-      responseType: "arraybuffer" as const,
-    };
     const data = {
       filtro: {
         ...filtro.value,
@@ -3199,19 +3066,10 @@ export const usePricingStore = defineStore("pricing", () => {
       },
       id_branch: sessionBranchId(),
     };
-
-    const url = import.meta.env.VITE_URL_MAIN + "export_list_quote_xls";
-    await axios.post<ArrayBuffer>(url, data, headers).then((response) => {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      // let name = this.uuidv4();
-      link.setAttribute("download", `Reporte de Cotizaciones ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-      // this.previewFlag = false;
-      // this.generandoFlag = false;
-    });
+    await downloadExcel(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote_xls", data },
+      `Reporte de Cotizaciones ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
+    );
   }
   async function imprimirMercadeo(): Promise<void> {
     const filtros = {
@@ -3292,44 +3150,10 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    const headers = {
-      "Content-Type": "application/json",
-    };
-    const data = {
-      filtro: { ...filtroCalls.value },
-      filtroSeleccionado: filtroSeleccionado,
-      filtroCabecera: filtroCabecera,
-    };
-    showPdfGeneratingCountdown();
-    await axios
-      // @ts-expect-error the headers object goes in as the request config.
-      .post<RespuestaArchivo>(import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data, headers)
-      .then((response) => {
-        if (response.data.estadoflag) {
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-            showConfirmButton: true,
-          });
-          console.log("data", response.data);
-          window.open(
-            `${import.meta.env.VITE_URL_MAIN}${response.data.path}`,
-            // "",
-            "_blank"
-          );
-        } else {
-          Swal.close();
-          Swal.fire({
-            icon: "warning",
-            text: response.data.mensaje || "No pudimos generar el PDF. Revisa los filtros e inténtalo de nuevo.",
-            showConfirmButton: true,
-          });
-        }
-      })
-      .catch(() => {
-        Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
-      });
+    await downloadPdf(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data: { filtro: { ...filtroCalls.value }, filtroSeleccionado, filtroCabecera } },
+      "REPORTE_COTIZACIONES.pdf",
+    );
   }
 
   async function getListRecibidoCotizacion(): Promise<void> {

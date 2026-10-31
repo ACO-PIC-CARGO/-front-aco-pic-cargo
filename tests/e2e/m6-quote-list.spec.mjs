@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "./fixtures.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
 
@@ -154,6 +155,20 @@ test.describe("quote list", () => {
 
     expect((await report).postDataJSON().filtro).toMatchObject({ fechainicio: iso(new Date(today.getFullYear(), today.getMonth(), 1)), fechafin: iso(today) });
     await expect(dialogWith(page, "El rango de fechas no es válido.")).toBeVisible();
+  });
+
+  test("the calls report downloads its PDF instead of opening a public file", async ({ page }) => {
+    await openList(page);
+    await page.getByRole("tab", { name: "Llamadas" }).click();
+    await activeTab(page).getByRole("button", { name: "Limpiar" }).click();
+    await waitForPageToSettle(page);
+    const download = page.waitForEvent("download", { timeout: 45_000 });
+
+    await activeTab(page).getByRole("button", { name: "REPORTE" }).click();
+
+    const pdf = await download;
+    expect(pdf.suggestedFilename()).toBe("REPORTE_COTIZACIONES.pdf");
+    expect(readFileSync(await pdf.path()).subarray(0, 5).toString()).toBe("%PDF-");
   });
 });
 

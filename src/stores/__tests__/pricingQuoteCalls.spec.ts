@@ -11,7 +11,6 @@ vi.mock("sweetalert2", () => ({
   default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn(), getConfirmButton: vi.fn() },
 }));
 
-const postMock = vi.mocked((http as unknown as { post: (...args: unknown[]) => Promise<unknown> }).post);
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -35,19 +34,21 @@ test("clearing the calls filters goes back to this month up to today", () => {
   expect(pricing.filtroCalls).toEqual({ fechainicio: "2026-10-01", fechafin: "2026-10-30", tipopdf: 1 });
 });
 
-test("a calls report the server refuses shows its reason", async () => {
-  postMock.mockResolvedValue({
-    data: { estadoflag: false, mensaje: "El rango de fechas no puede superar 366 días.", tipomensaje: "TMSGADV" },
+test("a calls report the server refuses shows its reason instead of saving it", async () => {
+  vi.mocked(http).mockResolvedValue({
+    data: new Blob([JSON.stringify({ estadoflag: false, mensaje: "El rango de fechas no puede superar 366 días.", tipomensaje: "TMSGADV" })], {
+      type: "application/json",
+    }),
   });
 
   await usePricingStore().imprimiReporteListadoCalls({});
 
   const calls = vi.mocked(Swal.fire).mock.calls;
-  expect(calls[calls.length - 1]![0]).toMatchObject({ icon: "warning", text: "El rango de fechas no puede superar 366 días." });
+  expect(calls[calls.length - 1]![0]).toMatchObject({ icon: "info", text: "El rango de fechas no puede superar 366 días." });
 });
 
-test("a calls report that never reaches the server replaces the countdown with what to do", async () => {
-  postMock.mockRejectedValue(new Error("Network Error"));
+test("a calls report that never reaches the server replaces the waiting notice with what to do", async () => {
+  vi.mocked(http).mockRejectedValue(new Error("Network Error"));
 
   await usePricingStore().imprimiReporteListadoCalls({});
 

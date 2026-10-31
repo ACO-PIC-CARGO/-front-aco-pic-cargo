@@ -13,12 +13,14 @@ import { useFilesStore } from "@/stores/files";
 import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: {} } } } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
+vi.mock("@/utils/pdfDownload", () => ({ downloadPdf: vi.fn(async () => true), downloadExcel: vi.fn(async () => true) }));
 
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
 const postedBody = (path: string) => postMock.mock.calls.find(([url]) => url === URL_MAIN + path)?.[1];
@@ -1610,49 +1612,40 @@ describe("pricing store", () => {
       expect(await pending).toMatchSnapshot();
     });
 
-    test("imprimiReporteListado posts the filters and opens the PDF", async () => {
+    test.each([
+      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf"],
+      ["imprimiReporteListadoMarketing", "reporte_canales_origen", "REPORTE_CANALES_ORIGEN.pdf"],
+    ] as const)("%s downloads the PDF of the list filters from %s instead of opening a public file", async (name, path, fileName) => {
       const pricing = usePricingStore();
       pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
 
-      await pricing.imprimiReporteListado({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
+      await pricing[name]({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
 
-      expect(postedBody("export_list_quote")).toEqual({ filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
-      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
-    });
-
-    test("imprimiReporteListadoMarketing posts the filters to the channels report and opens the PDF", async () => {
-      const pricing = usePricingStore();
-      pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
-
-      await pricing.imprimiReporteListadoMarketing({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
-
-      expect(postedBody("reporte_canales_origen")).toEqual({ filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
-      expect(postMock.mock.calls[0]![2]).toEqual({ "Content-Type": "application/json" });
-      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
-    });
-
-    test("imprimiReporteListadoMarketing warns and opens nothing when the PDF fails", async () => {
-      postMock.mockResolvedValue({ data: { estadoflag: false } });
-      const pricing = usePricingStore();
-
-      await pricing.imprimiReporteListadoMarketing({});
-
-      expect(postedBody("reporte_canales_origen")).toEqual({ filtro: pricing.filtro, filtroSeleccionado: {}, filtroCabecera: {} });
-      expect(Swal.close).toHaveBeenCalled();
-      expect(vi.mocked(Swal.fire).mock.calls[vi.mocked(Swal.fire).mock.calls.length - 1]![0]).toMatchObject({ icon: "warning" });
+      expect(downloadPdf).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + path,
+          data: { filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } },
+        },
+        fileName,
+      );
       expect(window.open).not.toHaveBeenCalled();
     });
 
-    test("imprimiReporteListadoCalls posts the calls filters and warns when the PDF fails", async () => {
-      postMock.mockResolvedValue({ data: { estadoflag: false } });
+    test("imprimiReporteListadoCalls downloads the PDF of the calls filters", async () => {
       const pricing = usePricingStore();
       pricing.filtroCalls = { fechainicio: "2026-02-01", fechafin: "2026-02-28", tipopdf: 1 };
 
       await pricing.imprimiReporteListadoCalls({});
 
-      expect(postedBody("reporte_llamadas_export")).toEqual({ filtro: { fechainicio: "2026-02-01", fechafin: "2026-02-28", tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} });
-      expect(Swal.close).toHaveBeenCalled();
-      expect(vi.mocked(Swal.fire).mock.calls[vi.mocked(Swal.fire).mock.calls.length - 1]![0]).toMatchObject({ icon: "warning" });
+      expect(downloadPdf).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + "reporte_llamadas_export",
+          data: { filtro: { fechainicio: "2026-02-01", fechafin: "2026-02-28", tipopdf: 1 }, filtroSeleccionado: {}, filtroCabecera: {} },
+        },
+        "REPORTE_COTIZACIONES.pdf",
+      );
     });
 
     test("imprimirMercadeo maps the filter status to 1, 0 or empty", async () => {
@@ -1669,23 +1662,24 @@ describe("pricing store", () => {
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "m.pdf", "_blank");
     });
 
-    test("exportarExcelListadoQuote posts the paged filter and downloads the workbook", async () => {
-      postMock.mockResolvedValue({ data: new ArrayBuffer(2) });
-      vi.stubGlobal("URL", { createObjectURL: vi.fn(() => "blob:x") });
-      const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    test("exportarExcelListadoQuote downloads the workbook of the paged filter, showing the server's refusal instead of saving it", async () => {
       const pricing = usePricingStore();
       pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1 };
       pricing.search = "abc";
 
       await pricing.exportarExcelListadoQuote();
 
-      expect(postedBody("export_list_quote_xls")).toEqual({
-        filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1, search: "abc", limit: 10, pagina: 1, id_branch: 1 },
-        id_branch: 1,
-      });
-      expect(postMock.mock.calls[0]![2]).toMatchObject({ responseType: "arraybuffer" });
-      expect(click).toHaveBeenCalled();
-      vi.unstubAllGlobals();
+      expect(downloadExcel).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + "export_list_quote_xls",
+          data: {
+            filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1, search: "abc", limit: 10, pagina: 1, id_branch: 1 },
+            id_branch: 1,
+          },
+        },
+        expect.stringMatching(/^Reporte de Cotizaciones .+\.xlsx$/),
+      );
     });
   });
 
