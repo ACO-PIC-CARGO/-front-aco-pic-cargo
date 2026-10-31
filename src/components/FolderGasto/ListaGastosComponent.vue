@@ -82,10 +82,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await gastosStore.fetchDataGasto(records.value);
   } else {
     record.value = emptyRecord();
   }
-  await gastosStore.fetchDataGasto(records.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {

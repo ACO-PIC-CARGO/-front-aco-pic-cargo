@@ -105,10 +105,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await containersStore.fetchDataContainers(records.value);
   } else {
     record.value = emptyRecord();
   }
-  await containersStore.fetchDataContainers(records.value);
   showFilterDrawer.value = false;
 }
 async function switch_status(item: TipoContenedor) {

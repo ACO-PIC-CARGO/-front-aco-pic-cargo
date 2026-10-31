@@ -87,10 +87,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await performanceStore.fetchDataPerformance(records.value);
   } else {
     record.value = emptyRecord();
   }
-  await performanceStore.fetchDataPerformance(records.value);
   showFilterDrawer.value = false;
 }
 

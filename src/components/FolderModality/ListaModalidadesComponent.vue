@@ -81,10 +81,10 @@ async function submit_insert() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await modalityStore.fetchDataModality(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await modalityStore.fetchDataModality(records.value);
   showFilterDrawer.value = false;
 }
 

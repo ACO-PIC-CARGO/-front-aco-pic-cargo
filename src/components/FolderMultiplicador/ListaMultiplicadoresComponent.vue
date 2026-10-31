@@ -91,10 +91,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await multiplicadorStore.fetchDataMultiplicador(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await multiplicadorStore.fetchDataMultiplicador(records.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {

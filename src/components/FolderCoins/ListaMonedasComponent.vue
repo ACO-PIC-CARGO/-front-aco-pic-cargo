@@ -86,10 +86,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await coinsStore.fetchDataCoins(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await coinsStore.fetchDataCoins(records.value);
   showFilterDrawer.value = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars

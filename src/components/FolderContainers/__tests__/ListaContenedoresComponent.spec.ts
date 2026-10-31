@@ -116,3 +116,16 @@ test.each(["mdi-eye", "mdi-pencil"])(
     expect(document.body.querySelectorAll(".v-navigation-drawer--active")).toHaveLength(1);
   },
 );
+
+test.each(["mdi-eye", "mdi-pencil", "Nuevo"])("opening %s does not ask the server for the list again", { timeout: 15_000 }, async (opener) => {
+  httpMock.mockResolvedValue({ data: accepted([viewedContainer]) });
+  await mountScreen();
+  const listRequests = () => httpMock.mock.calls.filter(([config]) => /listar_containers|list_containers|containers_list/i.test(config.url)).length;
+  const before = listRequests();
+
+  const button = opener === "Nuevo" ? buttonNamed("Nuevo") : document.body.querySelector(`tbody .${opener}`)!.closest("button")!;
+  button.click();
+  await flushPromises();
+
+  expect(listRequests()).toBe(before);
+});

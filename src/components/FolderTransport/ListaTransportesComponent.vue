@@ -82,10 +82,10 @@ async function submit_insert() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await transportStore.fetchDataTransport(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await transportStore.fetchDataTransport(records.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {

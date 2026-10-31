@@ -86,10 +86,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await groupservicesStore.fetchDataGroupServices(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await groupservicesStore.fetchDataGroupServices(records.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {

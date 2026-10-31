@@ -89,10 +89,10 @@ function resetFilter() {
 async function resetRecord(option?: string) {
   if (option == "filter") {
     records.value = { ...originalRecords.value };
+    await shipmentStore.fetchDataShipment(records.value);
   } else {
     record.value = { ...originalRecord.value };
   }
-  await shipmentStore.fetchDataShipment(records.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {

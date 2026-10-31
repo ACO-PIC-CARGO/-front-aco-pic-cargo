@@ -84,9 +84,10 @@ function resetFilter() {
   showFilterDrawer.value = false;
 }
 async function resetRecord(option?: string) {
-  if (option == "filter") records.value = { ...originalRecords.value };
-  else record.value = { ...originalRecord.value };
-  await filter();
+  if (option == "filter") {
+    records.value = { ...originalRecords.value };
+    await filter();
+  } else record.value = { ...originalRecord.value };
 }
 async function reset_records() {
   resetRecord("filter");
