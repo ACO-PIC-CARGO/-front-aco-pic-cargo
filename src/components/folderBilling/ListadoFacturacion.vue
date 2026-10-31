@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
-import type { ApiResponse } from "@/types/api";
 import type { EncabezadoTabla, FacturaListado } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
 
 const enterprisesStore = useEnterprisesStore();
 
@@ -82,24 +81,9 @@ onMounted(async () => {
 });
 
 async function listadoFacturacion() {
-  const data = {
-    id_branch: sessionBranchId(),
-  };
-  const config = {
-    method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      "listar_Factura/" +
-      sessionBranchId(),
-
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios<ApiResponse<FacturaListado[]>>(config).then((response) => {
-    lstFac.value = response.data.data;
-  });
+  const response = await request<FacturaListado>({ method: "get", url: import.meta.env.VITE_URL_MAIN + "listar_Factura/" + sessionBranchId() });
+  if (hasFailed(response)) Swal.fire({ icon: "error", text: response.mensaje });
+  lstFac.value = response.estadoflag ? response.data : [];
 }
 
 function verFactura(url: string) {
@@ -117,34 +101,27 @@ function filterOnlyCapsText(value: unknown, search: string | null) {
   );
 }
 
-async function eliminar(data: FacturaListado) {
-  Swal.fire({
+async function anular(data: FacturaListado) {
+  const { value: motivo } = await Swal.fire({
     icon: "question",
-    title: "ADVERTENCIA",
-    html: `Deseas <b>ANULAR</b> el correlativo con número <b>${data.correlativo}</b> perteneciente al cliente <b> ${data.cliente} </b>`,
-    showConfirmButton: true,
+    title: "Anular factura",
+    html: `Vas a anular la factura <b>${data.correlativo}</b> del cliente <b>${data.cliente}</b>. Escribe el motivo.`,
+    input: "textarea",
+    inputPlaceholder: "Por ejemplo: datos del cliente errados",
     showCancelButton: true,
-    confirmButtonText: "Eliminar",
-  }).then((result) => {
-    if (result.isConfirmed) {
-      const datos = {
-        id: data.id,
-      };
-      const config = {
-        method: "put",
-        url: import.meta.env.VITE_URL_MAIN + "anular_factura",
-
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: datos,
-      };
-      axios(config).then(() => {
-        Swal.fire("Deleted!", "Factura Anulada.", "success");
-        listadoFacturacion();
-      });
-    }
+    confirmButtonText: "Anular factura",
+    cancelButtonText: "Cancelar",
+    inputValidator: (text) => (text.trim() ? null : "Escribe el motivo de la anulación."),
   });
+  if (!motivo) return;
+
+  const response = await request({ method: "put", url: import.meta.env.VITE_URL_MAIN + "anular_factura", data: { id: data.id, motivo } });
+  if (!response.estadoflag) {
+    Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje });
+    return;
+  }
+  Swal.fire({ icon: "success", title: "Factura anulada", text: response.mensaje });
+  await listadoFacturacion();
 }
 </script>
 
@@ -155,6 +132,7 @@ async function eliminar(data: FacturaListado) {
       :items="lstFac"
       item-value="id"
       :search="search"
+      no-data-text="Aún no hay facturas emitidas. Emítelas desde el control de gastos de un master."
     >
       <template #top>
         <v-text-field
@@ -194,8 +172,10 @@ async function eliminar(data: FacturaListado) {
         <v-btn
           variant="text"
           color="red"
-          @click="eliminar(item)"
+          @click="anular(item)"
           icon
+          aria-label="Anular factura"
+          title="Anular factura"
           v-if="item.estatus == 1"
         >
           <v-icon>mdi-cancel</v-icon>
