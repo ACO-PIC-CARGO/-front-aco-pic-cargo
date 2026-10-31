@@ -2,13 +2,15 @@
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
-import axios from "@/api/http";
 import moment from "moment";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
-import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
+import { adminReceivableTotals, downloadExternalFile, receivableQuery } from "@/utils/accountsReports";
 import type {
   ClienteCxc,
   ClienteCxcAdmin,
@@ -82,7 +84,7 @@ const cabTotalAdministrativo = [
     key: "moneda",
   },
   {
-    title: "Nonto",
+    title: "Monto",
     key: "monto",
   },
   {
@@ -111,7 +113,7 @@ const headersdbp = [
     sortable: false,
   },
   {
-    title: "NO LLLEGADAS",
+    title: "NO LLEGADAS",
     key: "total_no_llegada",
     headerProps: { class: "hNoLlegada" },
     sortable: false,
@@ -195,8 +197,18 @@ function sumField(key: string) {
 
   return itemsCpp.value.reduce((a, b) => a + parseFloat(String(b[key as keyof ClienteCxc] || 0)), 0);
 }
+function currentFilters() {
+  return receivableQuery({
+    clients: filtroOp.value.proveedorOp,
+    arrival: filtroOp.value.llegadaOp,
+    to: filtroOp.value.fechaOp,
+    file: nro_expediente.value,
+    incomes: ingreso.value,
+    subIncomes: subingreso.value,
+  });
+}
 async function exportarPDF() {
-  Swal.fire({
+  const res = await Swal.fire({
     icon: "question",
     title: "¿Cómo deseas generar el PDF del reporte?",
     text: "Elige cómo deseas generar el PDF del reporte de cuentas por cobrar:",
@@ -212,155 +224,46 @@ async function exportarPDF() {
     },
     inputValidator: (value) => {
       if (!value) {
-        return "Debe seleccionar una opción";
+        return "Elige una opción para generar el PDF.";
       }
     },
-  }).then(async (res) => {
-    if (res.isConfirmed) {
-      const tipoReportePDF = res.value;
-
-      exportandopdf.value = true;
-
-      const config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          `exportarPDFCXC?id_branch=${
-            sessionBranchId()
-          }&id_proveedor=${
-            proveedorOp.value ? proveedorOp.value : ""
-          }&llegada=${llegadaOp.value ? llegadaOp.value : ""}&desde=&hasta=${
-            fechaOp.value ? fechaOp.value : ""
-          }&nro_expediente=${
-            nro_expediente.value ? nro_expediente.value : ""
-          }&tipo_reporte=${
-            tipoReportePDF ? tipoReportePDF : ""
-          }&id_ingreso=${ingreso.value ? ingreso.value : ""}&id_subingreso=${
-            subingreso.value ? subingreso.value : ""
-          }`,
-        responseType: "blob" as const,
-        headers: {
-
-          "Content-Type": "blob",
-        },
-      };
-
-      await axios(config)
-        .then(function (response) {
-
-
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Reporte CxC - ${Date.now()}.pdf`);
-          document.body.appendChild(link);
-          link.click();
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-
-      exportandopdf.value = false;
-    }
   });
+  if (!res.isConfirmed) return;
+  exportandopdf.value = true;
+  await downloadPdf(
+    {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "exportarPDFCXC",
+      params: { ...currentFilters(), tipo_reporte: res.value },
+    },
+    `Reporte CxC - ${Date.now()}.pdf`,
+  );
+  exportandopdf.value = false;
 }
 async function _getDebsToPay() {
   appStore.spiner = true;
   dataList.value = false;
-  const config = {
+  const answer = await request<ClienteCxc>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `getReporteCXC?id_branch=${
-        sessionBranchId()
-      }&id_cliente=${
-        filtroOp.value.proveedorOp ? filtroOp.value.proveedorOp : ""
-      }&llegadaflag=${
-        filtroOp.value.llegadaOp ? filtroOp.value.llegadaOp : ""
-      }&fechahasta=${
-        filtroOp.value.fechaOp ? filtroOp.value.fechaOp : ""
-      }&nro_expediente=${nro_expediente.value}`,
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsCpp.value = response.data.data ? response.data.data : [];
-      dataList.value = true;
-      calcularTotalOperativo({
-        data: response.data.data ? response.data.data : [],
-      });
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getReporteCXC",
+    params: currentFilters(),
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsCpp.value = answer.data;
+  dataList.value = true;
+  calcularTotalOperativo({ data: answer.data });
   appStore.spiner = false;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function _getDebsToPayFilter() {
-  dataList.value = false;
-
-  const data = {
-    date_begin: date.value[0],
-    date_end: date.value[1],
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "getReportAccountsFilter",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsCpp.value = response.data.data;
-      dataList.value = true;
-      //
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
 }
 async function _getInvoiceAdminCxCAdmin() {
   appStore.spiner = true;
-  const config = {
+  const answer = await request<ClienteCxcAdmin>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `getReporteCXCAdmin?id_branch=${
-        sessionBranchId()
-      }&id_cliente=${
-        filtroOp.value.proveedorOp ? filtroOp.value.proveedorOp : ""
-      }&llegadaflag=${
-        filtroOp.value.llegadaOp ? filtroOp.value.llegadaOp : ""
-      }&fechahasta=${
-        filtroOp.value.fechaOp ? filtroOp.value.fechaOp : ""
-      }&nro_expediente=${nro_expediente.value}&id_ingreso=${
-        ingreso.value ? ingreso.value : ""
-      }&id_subingreso=${subingreso.value ? subingreso.value : ""}`,
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      //vm.dialogListInvoince = true;
-
-      itemsCxcAdmin.value = response.data.data;
-      setTimeout(() => {
-        calcularTotalAdministrativo({ data: response.data.data });
-      }, 100);
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getReporteCXCAdmin",
+    params: currentFilters(),
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsCxcAdmin.value = answer.data;
+  totalAdministrativo.value = adminReceivableTotals(answer.data, moneda.value);
   appStore.spiner = false;
 }
 function calcularTotalOperativo({ data }: { data: ClienteCxc[] }) {
@@ -435,54 +338,15 @@ async function limpiar() {
     llegadaOp: "",
     fechaOp: "",
   };
-  await _getDebsToPay();
-  await _getInvoiceAdminCxCAdmin();
   proveedorOp.value = "";
   llegadaOp.value = "";
   fechaOp.value = "";
+  nro_expediente.value = "";
+  ingreso.value = "";
+  subingreso.value = "";
+  await _getDebsToPay();
+  await _getInvoiceAdminCxCAdmin();
   offcanvas.value = false;
-}
-function calcularTotalAdministrativo({ data }: { data: ClienteCxcAdmin[] }) {
-  totalAdministrativo.value = [];
-  let totalMontoDolares = 0;
-  let IgvDolares = 0;
-  let totalDolares = 0;
-
-  let totalMontoSoles = 0;
-  let IgvSoles = 0;
-  let totalSoles = 0;
-  if (data) {
-    data.forEach((element) => {
-      element.details.forEach((element2) => {
-        if (element2.symbol == "USD") {
-          totalMontoDolares += parseFloat(element2.total_pagar);
-          IgvDolares += parseFloat(element2.igv);
-          totalDolares +=
-            parseFloat(element2.total_pagar) + parseFloat(element2.igv);
-        } else {
-          totalMontoSoles += parseFloat(element2.total_pagar);
-          IgvSoles += parseFloat(element2.igv);
-          totalSoles +=
-            parseFloat(element2.total_pagar) + parseFloat(element2.igv);
-        }
-      });
-    });
-  }
-  totalAdministrativo.value.push(
-    {
-      moneda: "USD",
-      monto: parseFloat(String(totalMontoDolares)).toFixed(2),
-      igv: parseFloat(String(IgvDolares)).toFixed(2),
-      total: parseFloat(String(totalDolares)).toFixed(2),
-    },
-    {
-      moneda: moneda.value,
-      monto: parseFloat(String(totalMontoSoles)).toFixed(2),
-      igv: parseFloat(String(IgvSoles)).toFixed(2),
-      total: parseFloat(String(totalSoles)).toFixed(2),
-    }
-  );
-  appStore.spiner = false;
 }
 async function descargarArchivos() {
   if (
@@ -523,72 +387,18 @@ async function download() {
   });
 }
 async function downloadFactura(item: FacturaCxc) {
-  const url = item.url_documento;
-  axios({
-    url,
-    method: "GET",
-    responseType: "blob",
-  })
-    .then((response) => {
-      const urlArchivo = URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = urlArchivo;
-      link.setAttribute(
-        "download",
-        `FACTURA Nro - ${item.nro_factura}.pdf`
-      );
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    })
-    .catch((error) => {
-      console.error("Error al descargar el archivo:", error);
-    });
+  await downloadExternalFile(item.url_documento, `FACTURA Nro - ${item.nro_factura}.pdf`);
 }
 async function exportar() {
   exportando.value = true;
-  const config = {
-    method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `reportcxcexcel?id_branch=${
-        sessionBranchId()
-      }&id_cliente=${
-        filtroOp.value.proveedorOp ? filtroOp.value.proveedorOp : ""
-      }&llegadaflag=${
-        filtroOp.value.llegadaOp ? filtroOp.value.llegadaOp : ""
-      }&fechahasta=${
-        filtroOp.value.fechaOp ? filtroOp.value.fechaOp : ""
-      }&nro_expediente=${nro_expediente.value}&nombre_impuesto=${
-        enterprisesStore.impuesto.nombre_impuesto
-      }&moneda=${moneda.value}&id_ingreso=${
-        ingreso.value ? ingreso.value : ""
-      }&id_subingreso=${subingreso.value ? subingreso.value : ""}`,
-
-    responseType: "blob" as const,
-    headers: {
-
-      "Content-Type": "blob",
+  await downloadExcel(
+    {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "reportcxcexcel",
+      params: { ...currentFilters(), nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto, moneda: moneda.value },
     },
-  };
-  await axios(config)
-    .then(function (response) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute(
-        "download",
-        `Reporte Cuentas por Cobrar ${moment().format(
-          "DD-MM-YYYY hh:mm:ss"
-        )}.xlsx`
-      );
-      document.body.appendChild(link);
-      link.click();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
-
+    `Reporte Cuentas por Cobrar ${moment().format("DD-MM-YYYY hh-mm-ss")}.xlsx`,
+  );
   exportando.value = false;
 }
 async function mostrarComentariosOp(data: Partial<ClienteCxc> = {}) {
@@ -634,106 +444,37 @@ function agregarComentarioAdmin() {
 async function getComentarios() {
   lstComentarios.value = [];
   loadingDataTableComentarios.value = true;
-
-  const config = {
+  const answer = await request<RegistroComentario>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `listarComentariosCXC?id_cliente=${dataCXC.value.id_consigner}`,
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-
-  await axios(config).then(function (response) {
-
-    sessionStorage.setItem("auth-token", response.data.token);
-
-    if (response.data.status == "401") {
-      Swal.fire({
-        icon: "error",
-        text: response.data.mensaje,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      }).then((resSwal) => {
-        if (resSwal.isConfirmed) {
-          // @ts-expect-error router is not defined in this scope
-          router.push({ name: "Login" });
-          setTimeout(() => {
-            window.location.reload();
-          }, 10);
-        }
-      });
-    } else {
-      if (response.data.estadoflag) {
-        const comentarios = response.data.data;
-
-        if (dataCXC.value.esoperativo) {
-          lstComentarios.value = comentarios.filter((v: RegistroComentario) => !!v.esoperativo);
-        } else if (dataCXC.value.esadministrativo) {
-          lstComentarios.value = comentarios.filter(
-            (v: RegistroComentario) => !!v.esadministrativo
-          );
-        }
-      } else {
-        lstComentarios.value = [];
-      }
-    }
+    url: import.meta.env.VITE_URL_MAIN + "listarComentariosCXC",
+    params: { id_cliente: dataCXC.value.id_consigner },
   });
-
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  lstComentarios.value = answer.data.filter((v) => (dataCXC.value.esoperativo ? !!v.esoperativo : !!v.esadministrativo));
   loadingDataTableComentarios.value = false;
 }
 async function guardarComentario() {
-  if ((await frmComentario.value!.validate()).valid) {
-    loadingBotonGuardarComentario.value = true;
-
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertarComentarioCXC`,
-      headers: {
-
-        "Content-Type": "application/json",
-      },
-      data: comentario.value,
-    };
-
-    await axios(config).then(async function (response) {
-
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      if (response.data.estadoflag) {
-        Swal.fire({
-          icon: "success",
-          text: response.data.mensaje,
-        });
-
-        await getComentarios();
-      } else {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            // @ts-expect-error router is not defined in this scope
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-    });
-
-    loadingBotonGuardarComentario.value = false;
-    dialogNuevoComentario.value = !dialogNuevoComentario.value;
-
-    comentario.value.texto = "";
+  if (!(await frmComentario.value!.validate()).valid) return;
+  loadingBotonGuardarComentario.value = true;
+  const answer = await request({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "insertarComentarioCXC",
+    data: {
+      id_cliente: comentario.value.id_cliente,
+      texto: comentario.value.texto,
+      esoperativo: comentario.value.esoperativo,
+      esadministrativo: comentario.value.esadministrativo,
+    },
+  });
+  loadingBotonGuardarComentario.value = false;
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
   }
+  Swal.fire({ icon: "success", text: answer.mensaje });
+  dialogNuevoComentario.value = false;
+  comentario.value.texto = "";
+  await getComentarios();
 }
 
 onMounted(async () => {
@@ -802,6 +543,7 @@ onMounted(async () => {
               :headers="cabTotalOperativo"
               :items="totalOperativo"
               hide-default-footer
+              no-data-text="Aún no hay totales operativos."
             />
           </v-col>
           <v-col
@@ -813,6 +555,7 @@ onMounted(async () => {
               :headers="cabTotalAdministrativo"
               :items="totalAdministrativo"
               hide-default-footer
+              no-data-text="Aún no hay totales administrativos."
             />
           </v-col>
         </v-row>
@@ -820,6 +563,7 @@ onMounted(async () => {
           :headers="headersdbp"
           :items="itemsCpp"
           :search="search"
+          no-data-text="No hay cuentas por cobrar operativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expanded"
           item-value="id_consigner"
           show-expand
@@ -905,6 +649,7 @@ onMounted(async () => {
           :headers="headersdbpa"
           :items="itemsCxcAdmin"
           :search="search"
+          no-data-text="No hay cuentas por cobrar administrativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expandeda"
           item-value="nameconsigner"
           return-object
@@ -1053,6 +798,7 @@ onMounted(async () => {
             :headers="headersLstComentarios"
             :items="lstComentarios"
             class="elevation-1"
+            no-data-text="Este cliente aún no tiene comentarios. Agrega el primero con Nuevo Comentario."
             :loading="loadingDataTableComentarios"
           />
         </v-card-text>

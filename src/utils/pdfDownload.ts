@@ -31,10 +31,10 @@ const save = (pdf: Blob, fileName: string): void => {
   setTimeout(() => URL.revokeObjectURL(url), URL_LIFETIME_MS);
 };
 
-const requestPdf = async (config: AxiosRequestConfig, fileName: string): Promise<PdfAnswer | null> => {
+const requestFile = async (config: AxiosRequestConfig, fileName: string, fileType: string): Promise<PdfAnswer | null> => {
   try {
     const { data } = await axios<Blob>({ ...config, responseType: "blob" });
-    if (!data.type.includes("pdf")) return readAnswer(data);
+    if (!data.type.includes(fileType)) return readAnswer(data);
     save(data, fileName);
     return null;
   } catch (error) {
@@ -42,17 +42,17 @@ const requestPdf = async (config: AxiosRequestConfig, fileName: string): Promise
   }
 };
 
-export const downloadPdf = async (config: AxiosRequestConfig, fileName: string): Promise<boolean> => {
+const downloadFile = async (config: AxiosRequestConfig, fileName: string, fileType: string, label: string): Promise<boolean> => {
   Swal.fire({
     icon: "info",
-    title: "Generando PDF",
-    text: "Estamos preparando el PDF. Espera un momento.",
+    title: `Generando ${label}`,
+    text: `Estamos preparando el ${label}. Espera un momento.`,
     showConfirmButton: false,
     allowOutsideClick: false,
     allowEscapeKey: false,
     didOpen: () => Swal.showLoading(),
   });
-  const answer = await requestPdf(config, fileName);
+  const answer = await requestFile(config, fileName, fileType);
   if (!answer) {
     Swal.close();
     return true;
@@ -61,3 +61,8 @@ export const downloadPdf = async (config: AxiosRequestConfig, fileName: string):
   Swal.fire({ icon, text: answer.mensaje });
   return answer.estadoflag;
 };
+
+export const downloadPdf = (config: AxiosRequestConfig, fileName: string): Promise<boolean> => downloadFile(config, fileName, "pdf", "PDF");
+
+export const downloadExcel = (config: AxiosRequestConfig, fileName: string): Promise<boolean> =>
+  downloadFile(config, fileName, "spreadsheetml", "Excel");

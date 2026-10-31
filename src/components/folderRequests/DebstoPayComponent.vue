@@ -10,6 +10,10 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useProgramacionesStore } from "@/stores/programaciones";
 import { sessionBranchId } from "@/utils/sesion";
+import { hasFailed, request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
+import { payableQuery, unscheduledLines } from "@/utils/accountsReports";
 import type {
   ComentarioCxp,
   ContextoComentarioCxp,
@@ -75,7 +79,7 @@ const cabTotalAdministrativo = ref([
     key: "moneda",
   },
   {
-    title: "Nonto",
+    title: "Monto",
     key: "monto",
   },
   {
@@ -92,7 +96,6 @@ const totalAdministrativo = ref<TotalAdministrativo[]>([]);
 const expanded = ref([]);
 const expandeda = ref<CuentaPagarAdmin[]>([]);
 const date = ref(["", ""]);
-const value = ref(0);
 const radio = ref<number | string>(1);
 const radiopdf = ref<number | string>("");
 const dialogPdf = ref(false);
@@ -330,102 +333,44 @@ async function _exportPdf() {
       console.error(error);
     });
 }
+function currentFilters() {
+  return payableQuery({
+    providers: proveedorOp.value,
+    arrival: llegadaOp.value,
+    to: fechaOp.value,
+    file: nro_expediente.value,
+    expenses: gasto.value,
+    subExpenses: subgasto.value,
+  });
+}
 async function _getDebsToPay() {
   overlay.value = true;
   itemsCpp.value = [];
-  setInterval(() => {
-    value.value = value.value + 3;
-  }, 1000);
   dataList.value = false;
-  const config = {
+  const answer = await request<CuentaPagarProveedor>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `getReporteCXP?id_branch=${
-        sessionBranchId()
-      }&id_proveedor=${proveedorOp.value ? proveedorOp.value : ""}&llegada=${
-        llegadaOp.value ? llegadaOp.value : ""
-      }&desde=&hasta=${fechaOp.value ? fechaOp.value : ""}&nro_expediente=${
-        nro_expediente.value
-      }`,
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsCpp.value = response.data.data;
-      dataList.value = true;
-      calcularTotalOperativo({ data: response.data.data });
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getReporteCXP",
+    params: currentFilters(),
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsCpp.value = answer.data;
+  dataList.value = true;
+  calcularTotalOperativo({ data: answer.data });
   overlay.value = false;
 }
 async function _getDebsToPayAdmin() {
   overlay.value = true;
-  const config = {
+  const answer = await request<CuentaPagarAdmin>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `getDebsToPayAdmin?id_branch=${
-        sessionBranchId()
-      }&id_proveedor=${proveedorOp.value ? proveedorOp.value : ""}&llegada=${
-        llegadaOp.value ? llegadaOp.value : ""
-      }&desde=&hasta=${fechaOp.value ? fechaOp.value : ""}&nro_expediente=${
-        nro_expediente.value
-      }&id_gasto=${gasto.value ? gasto.value : ""}&id_subgasto=${
-        subgasto.value ? subgasto.value : ""
-      }`,
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsCppa.value = response.data.data;
-      appStore.drawer = false;
-      setTimeout(() => {
-        calcularTotalAdministrativo({ data: response.data.data });
-      }, 100);
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    url: import.meta.env.VITE_URL_MAIN + "getDebsToPayAdmin",
+    params: currentFilters(),
+  });
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  itemsCppa.value = answer.data;
+  appStore.drawer = false;
+  calcularTotalAdministrativo({ data: answer.data });
   overlay.value = false;
   offcanvas.value = false;
-}
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function _getDebsToPayFilter() {
-  dataList.value = false;
-
-  const data = {
-    date_begin: date.value[0],
-    date_end: date.value[1],
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "getDebsToPayFilter",
-
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function (response) {
-      itemsCpp.value = response.data.data;
-      dataList.value = true;
-      appStore.drawer = false;
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
 }
 function calcularTotalOperativo({ data }: { data: CuentaPagarProveedor[] }) {
   totalOperativo.value = [];
@@ -530,7 +475,7 @@ function programar({ item = null, tipo: tipoPago = 1 }: { item?: CuentaPagarProv
         { title: "Monto Pagar", key: "total_pagar" },
       ];
       nameProveedor.value = (item as CuentaPagarProveedor).nameproveedor;
-      details.value = item!.details.filter((v) => v.programado == 0);
+      details.value = unscheduledLines((item as CuentaPagarProveedor).details);
 
       details.value.forEach((element) => {
         element.index = index;
@@ -545,49 +490,36 @@ function programar({ item = null, tipo: tipoPago = 1 }: { item?: CuentaPagarProv
         { title: "Monto Pagar", key: "monto" },
       ];
       nameProveedor.value = (item as CuentaPagarAdmin).nameconsigner;
-      details.value = item!.details.filter((v) => v.programado == 1);
+      details.value = unscheduledLines((item as CuentaPagarAdmin).details);
       details.value.forEach((element) => {
         element.index = index;
         index++;
       });
+      break;
     default:
       break;
   }
   dialogNuevoPago.value = true;
 }
 async function enviarProgramacion() {
-  const data = {
-    id: programend_id.value,
-    tipo: tipo.value,
-    fecha: fechaNuevaProgramacion.value,
-    details: selected.value,
-    id_branch: sessionBranchId(),
-  };
-  const config = {
+  const answer = await request({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "setProgrammedPayment",
-    headers: {
-
-      "Content-Type": "application/json",
+    data: {
+      id: programend_id.value,
+      tipo: tipo.value,
+      fecha: fechaNuevaProgramacion.value,
+      details: selected.value,
+      id_branch: sessionBranchId(),
     },
-    data: data,
-  };
-  await axios(config)
-    .then(function (response) {
-      Swal.fire({
-        icon: "info",
-        title: "Aviso",
-        text: response.data.mensaje,
-      }).then((result) => {
-        if (result.isConfirmed) {
-          limpiar();
-          dialogNuevoPago.value = false;
-        }
-      });
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  });
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
+  }
+  await Swal.fire({ icon: "success", text: answer.mensaje });
+  dialogNuevoPago.value = false;
+  await limpiar();
 }
 async function filtrar() {
   appStore.spiner = true;
@@ -609,45 +541,18 @@ async function limpiar() {
 }
 async function exportar() {
   exportando.value = true;
-  const config = {
-    method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `reportcxpexcel?id_branch=${
-        sessionBranchId()
-      }&id_proveedor=${proveedorOp.value ? proveedorOp.value : ""}&llegada=${
-        llegadaOp.value ? llegadaOp.value : ""
-      }&desde=&hasta=${fechaOp.value ? fechaOp.value : ""}&nro_expediente=${
-        nro_expediente.value
-      }&nombre_impuesto=${
-        enterprisesStore.impuesto.nombre_impuesto
-      }&moneda=${moneda.value}&id_gasto=${
-        gasto.value ? gasto.value : ""
-      }&id_subgasto=${subgasto.value ? subgasto.value : ""}`,
-
-    responseType: "blob" as const,
-    headers: {
-
-      "Content-Type": "blob",
+  await downloadExcel(
+    {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "reportcxpexcel",
+      params: { ...currentFilters(), nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto, moneda: moneda.value },
     },
-  };
-  await axios(config)
-    .then(function (response) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `Reporte CxP - ${Date.now()}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    `Reporte CxP - ${Date.now()}.xlsx`,
+  );
   exportando.value = false;
-  // exportar_listado_reporte_pagos
 }
 async function exportarPDF() {
-  Swal.fire({
+  const res = await Swal.fire({
     icon: "question",
     title: "¿Cómo deseas generar el PDF del reporte?",
     text: "Elige cómo deseas generar el PDF del reporte de cuentas por pagar:",
@@ -663,57 +568,21 @@ async function exportarPDF() {
     },
     inputValidator: (value) => {
       if (!value) {
-        return "Debe seleccionar una opción";
+        return "Elige una opción para generar el PDF.";
       }
     },
-  }).then(async (res) => {
-    if (res.isConfirmed) {
-      const tipoReportePDF = res.value;
-
-      exportandopdf.value = true;
-
-      const config = {
-        method: "get",
-        url:
-          import.meta.env.VITE_URL_MAIN +
-          `exportarPDFCXP?id_branch=${
-            sessionBranchId()
-          }&id_proveedor=${
-            proveedorOp.value ? proveedorOp.value : ""
-          }&llegada=${llegadaOp.value ? llegadaOp.value : ""}&desde=&hasta=${
-            fechaOp.value ? fechaOp.value : ""
-          }&nro_expediente=${nro_expediente.value}&tipo_reporte=${
-            tipoReportePDF ? tipoReportePDF : ""
-          }&nombre_impuesto=${
-            enterprisesStore.impuesto.nombre_impuesto
-          }&id_gasto=${gasto.value ? gasto.value : ""}&id_subgasto=${
-            subgasto.value ? subgasto.value : ""
-          }`,
-        responseType: "blob" as const,
-        headers: {
-
-          "Content-Type": "blob",
-        },
-      };
-
-      await axios(config)
-        .then(function (response) {
-          // console.log(response)
-
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement("a");
-          link.href = url;
-          link.setAttribute("download", `Reporte CxP - ${Date.now()}.pdf`);
-          document.body.appendChild(link);
-          link.click();
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
-
-      exportandopdf.value = false;
-    }
   });
+  if (!res.isConfirmed) return;
+  exportandopdf.value = true;
+  await downloadPdf(
+    {
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "exportarPDFCXP",
+      params: { ...currentFilters(), tipo_reporte: res.value, nombre_impuesto: enterprisesStore.impuesto.nombre_impuesto },
+    },
+    `Reporte CxP - ${Date.now()}.pdf`,
+  );
+  exportandopdf.value = false;
 }
 async function mostrarComentariosOp(data: Partial<CuentaPagarProveedor> = {}) {
   dataCXP.value = {
@@ -761,104 +630,37 @@ function agregarComentarioAdmin() {
 async function getComentarios() {
   lstComentarios.value = [];
   loadingDataTableComentarios.value = true;
-
-  const config = {
+  const answer = await request<RegistroComentario>({
     method: "get",
-    url:
-      import.meta.env.VITE_URL_MAIN +
-      `listarComentariosCXP?id_proveedor=${dataCXP.value.id}`,
-    headers: {
-
-      "Content-Type": "application/json",
-    },
-  };
-
-  await axios(config).then(function (response) {
-    sessionStorage.setItem("auth-token", response.data.token);
-
-    if (response.data.status == "401") {
-      Swal.fire({
-        icon: "error",
-        text: response.data.mensaje,
-        allowOutsideClick: false,
-        allowEscapeKey: false,
-        allowEnterKey: false,
-      }).then((resSwal) => {
-        if (resSwal.isConfirmed) {
-          // @ts-expect-error router is not defined in this scope
-          router.push({ name: "Login" });
-          setTimeout(() => {
-            window.location.reload();
-          }, 10);
-        }
-      });
-    } else {
-      if (response.data.estadoflag) {
-        const comentarios = response.data.data;
-
-        if (dataCXP.value.esoperativo) {
-          lstComentarios.value = comentarios.filter((v: RegistroComentario) => !!v.esoperativo);
-        } else if (dataCXP.value.esadministrativo) {
-          lstComentarios.value = comentarios.filter(
-            (v: RegistroComentario) => !!v.esadministrativo,
-          );
-        }
-      } else {
-        lstComentarios.value = [];
-      }
-    }
+    url: import.meta.env.VITE_URL_MAIN + "listarComentariosCXP",
+    params: { id_proveedor: dataCXP.value.id },
   });
-
+  if (hasFailed(answer)) showRejectedResponse(answer);
+  lstComentarios.value = answer.data.filter((v) => (dataCXP.value.esoperativo ? !!v.esoperativo : !!v.esadministrativo));
   loadingDataTableComentarios.value = false;
 }
 async function guardarComentario() {
-  if ((await frmComentario.value!.validate()).valid) {
-    loadingBotonGuardarComentario.value = true;
-
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `insertarComentarioCXP`,
-      headers: {
-
-        "Content-Type": "application/json",
-      },
-      data: comentario.value,
-    };
-
-    await axios(config).then(async function (response) {
-      sessionStorage.setItem("auth-token", response.data.token);
-
-      if (response.data.estadoflag) {
-        Swal.fire({
-          icon: "success",
-          text: response.data.mensaje,
-        });
-
-        await getComentarios();
-      } else {
-        Swal.fire({
-          icon: "error",
-          text: response.data.mensaje,
-          allowOutsideClick: false,
-          allowEscapeKey: false,
-          allowEnterKey: false,
-        }).then((resSwal) => {
-          if (resSwal.isConfirmed && response.data.status == "401") {
-            // @ts-expect-error router is not defined in this scope
-            router.push({ name: "Login" });
-            setTimeout(() => {
-              window.location.reload();
-            }, 10);
-          }
-        });
-      }
-    });
-
-    loadingBotonGuardarComentario.value = false;
-    dialogNuevoComentario.value = !dialogNuevoComentario.value;
-
-    comentario.value.texto = "";
+  if (!(await frmComentario.value!.validate()).valid) return;
+  loadingBotonGuardarComentario.value = true;
+  const answer = await request({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "insertarComentarioCXP",
+    data: {
+      id_proveedor: comentario.value.id_proveedor,
+      texto: comentario.value.texto,
+      esoperativo: comentario.value.esoperativo,
+      esadministrativo: comentario.value.esadministrativo,
+    },
+  });
+  loadingBotonGuardarComentario.value = false;
+  if (!answer.estadoflag) {
+    showRejectedResponse(answer);
+    return;
   }
+  Swal.fire({ icon: "success", text: answer.mensaje });
+  dialogNuevoComentario.value = false;
+  comentario.value.texto = "";
+  await getComentarios();
 }
 // async limpiar() {
 //   this.$store.state.spiner = true;
@@ -945,6 +747,7 @@ onMounted(async () => {
               :headers="cabTotalOperativo"
               :items="totalOperativo"
               hide-default-footer
+              no-data-text="Aún no hay totales operativos."
             />
           </v-col>
           <v-col
@@ -956,6 +759,7 @@ onMounted(async () => {
               :headers="cabTotalAdministrativo"
               :items="totalAdministrativo"
               hide-default-footer
+              no-data-text="Aún no hay totales administrativos."
             />
           </v-col>
         </v-row>
@@ -965,6 +769,7 @@ onMounted(async () => {
           :headers="headersdbp"
           :items="itemsCpp"
           :search="search"
+          no-data-text="No hay cuentas por pagar operativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expanded"
           item-value="nameproveedor"
           show-expand
@@ -1075,6 +880,7 @@ onMounted(async () => {
           :search="search"
           :headers="headersdbpa"
           :items="itemsCppa"
+          no-data-text="No hay cuentas por pagar administrativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expandeda"
           item-value="nameconsigner"
           return-object
@@ -1124,7 +930,7 @@ onMounted(async () => {
                     >
                       <td>
                         <v-icon
-                          v-if="child.programado"
+                          v-if="child.programado == 0"
                           @click="nuevaFecha({ item: item, tipo: 2 })"
                         >
                           mdi-clock-outline
@@ -1183,6 +989,7 @@ onMounted(async () => {
             :headers="headersLstComentarios"
             :items="lstComentarios"
             class="elevation-1"
+            no-data-text="Este proveedor aún no tiene comentarios. Agrega el primero con Nuevo Comentario."
             :loading="loadingDataTableComentarios"
           />
         </v-card-text>
@@ -1363,6 +1170,7 @@ onMounted(async () => {
                 v-model="selected"
                 :headers="headerProgramacion"
                 :items="details"
+                no-data-text="Todas las cuentas de este proveedor ya están programadas."
                 item-value="index"
                 return-object
                 show-select
