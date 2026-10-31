@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import Swal from "sweetalert2";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { BancoGastoDetalle, TotalMasterAgrupado, TotalMasterMes } from "@/types/finanzas";
 import { sessionBranchId } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 
 export const useReportesStore = defineStore("reportes", () => {
   const listDetalle = ref<BancoGastoDetalle[]>([]);
@@ -16,41 +16,11 @@ export const useReportesStore = defineStore("reportes", () => {
     totalMasterAgrupado.value = data;
   }
 
-  async function exportReporteFile(data: Record<string, unknown>): Promise<void> {
-    data.id_branch = sessionBranchId();
-    Swal.fire({
-      icon: "info",
-      title: "Generando PDF...",
-      text: "Por favor espere",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-    });
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "createdPDF",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios(config)
-      .then(function () {
-        Swal.fire({
-          icon: "success",
-          title: "PDF Generado",
-          text: "El PDF se descargará automaticamente",
-          showConfirmButton: true,
-        });
-
-        window.open(
-          `${import.meta.env.VITE_URL_MAIN}REPORT_CONTROL_FILE.pdf`,
-          // "",
-          "_blank",
-        );
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function exportReporteFile(filtros: Record<string, unknown>): Promise<void> {
+    await downloadPdf(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "createdPDF", data: filtros },
+      "REPORTE_CONTROL_FILE.pdf",
+    );
   }
   async function getListarBancosgastosDetalles(data: Record<string, unknown>): Promise<void> {
     data.id_branch = sessionBranchId();
@@ -98,67 +68,17 @@ export const useReportesStore = defineStore("reportes", () => {
         console.log("Error al obtener los datos:", error);
       });
   }
-  async function printTotalesMasterPorMes(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `imprimir_reporte_ganancia`,
-      params: data,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Generando impresión",
-      text: "Estamos preparando la impresión. Por favor, espera un momento.",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    await axios<{ path: string }>(config)
-      .then(function (response) {
-        const data = response.data;
-        window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
-        Swal.close();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function printTotalesMasterPorMes(periodo: Record<string, unknown>): Promise<void> {
+    await downloadPdf(
+      { method: "get", url: import.meta.env.VITE_URL_MAIN + "imprimir_reporte_ganancia", params: periodo },
+      `REPORTE_GANANCIA_${periodo.year}.pdf`,
+    );
   }
-  async function imprimirReporteGananciaDetallado(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `imprimir_reporte_ganancia_detallado`,
-      params: data,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    Swal.fire({
-      icon: "info",
-      title: "Generando impresión",
-      text: "Estamos preparando la impresión. Por favor, espera un momento.",
-      showConfirmButton: false,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
-
-    await axios<{ path: string }>(config)
-      .then(function (response) {
-        const data = response.data;
-        window.open(import.meta.env.VITE_URL_MAIN + data.path, "_blank");
-        Swal.close();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+  async function imprimirReporteGananciaDetallado(periodo: Record<string, unknown>): Promise<void> {
+    await downloadPdf(
+      { method: "get", url: import.meta.env.VITE_URL_MAIN + "imprimir_reporte_ganancia_detallado", params: periodo },
+      `REPORTE_GANANCIA_DETALLADO_${periodo.year}.pdf`,
+    );
   }
   async function getTotalesMasterPorMes(data: Record<string, unknown>): Promise<void> {
     const config = {

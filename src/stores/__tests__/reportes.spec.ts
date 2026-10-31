@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
-import Swal from "sweetalert2";
 import { useReportesStore } from "@/stores/reportes";
-import { JSON_HEADERS, URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
+import { downloadPdf } from "@/utils/pdfDownload";
+import { URL_MAIN, accepted, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
+vi.mock("@/utils/pdfDownload", () => ({ downloadPdf: vi.fn(async () => true) }));
 
 describe("reportes store", () => {
   beforeEach(() => {
@@ -19,22 +20,15 @@ describe("reportes store", () => {
   });
   afterEach(() => vi.restoreAllMocks());
 
-  test("exportReporteFile stamps the branch on the body, posts it and opens the PDF", async () => {
-    respond({ createdPDF: {} });
+  test("exportReporteFile downloads the control file PDF of the filters, leaving the branch to the session", async () => {
     const reportes = useReportesStore();
-    const body: Record<string, unknown> = { a: 1 };
 
-    await reportes.exportReporteFile(body);
+    await reportes.exportReporteFile({ status_op: "0" });
 
-    expect(body.id_branch).toBe(7);
-    expect(httpMock).toHaveBeenCalledWith({
-      method: "post",
-      url: URL_MAIN + "createdPDF",
-      headers: JSON_HEADERS,
-      data: { a: 1, id_branch: 7 },
-    });
-    expect(vi.mocked(Swal.fire).mock.calls[1]![0]).toMatchObject({ icon: "success", title: "PDF Generado" });
-    expect(window.open).toHaveBeenCalledWith(URL_MAIN + "REPORT_CONTROL_FILE.pdf", "_blank");
+    expect(downloadPdf).toHaveBeenCalledWith(
+      { method: "post", url: URL_MAIN + "createdPDF", data: { status_op: "0" } },
+      "REPORTE_CONTROL_FILE.pdf",
+    );
   });
 
   test("getListarBancosgastosDetalles stamps the branch, keeps accepted rows and empties the list otherwise", async () => {
@@ -97,15 +91,16 @@ describe("reportes store", () => {
   });
 
   test.each([
-    ["printTotalesMasterPorMes", "imprimir_reporte_ganancia"],
-    ["imprimirReporteGananciaDetallado", "imprimir_reporte_ganancia_detallado"],
-  ] as const)("%s opens the printed file and closes the waiting notice", async (name, path) => {
-    respond({ [path]: { path: "files/x.pdf" } });
+    ["printTotalesMasterPorMes", "imprimir_reporte_ganancia", "REPORTE_GANANCIA_2026.pdf"],
+    ["imprimirReporteGananciaDetallado", "imprimir_reporte_ganancia_detallado", "REPORTE_GANANCIA_DETALLADO_2026.pdf"],
+  ] as const)("%s downloads the printed report for the chosen period", async (name, path, fileName) => {
     const reportes = useReportesStore();
 
-    await reportes[name]({ anio: 1 });
+    await reportes[name]({ year: 2026, mes: "01" });
 
-    expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
-    expect(Swal.close).toHaveBeenCalled();
+    expect(downloadPdf).toHaveBeenCalledWith(
+      { method: "get", url: URL_MAIN + path, params: { year: 2026, mes: "01" } },
+      fileName,
+    );
   });
 });

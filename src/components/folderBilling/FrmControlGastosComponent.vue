@@ -2,12 +2,12 @@
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { useBancosStore } from "@/stores/bancos";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { sessionBranchId } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 
 withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 
@@ -182,53 +182,14 @@ function calcularProfit() {
 }
 async function imprimirControlDetallado(guardarEnCarpeta: boolean) {
   // vm._calcularTotales();
-  if (!guardarEnCarpeta) {
-    Swal.fire({
-      icon: "info",
-      title: "Generando PDF...",
-      text: "Por favor espere",
-    });
-  } else {
-    Swal.fire({
-      icon: "warning",
-      title: "Moviendo",
-      text: "Se avisará cuando se haya guardado",
-      timer: 2000,
-    });
-  }
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
-    headers: {
-      "Content-Type": "application/json",
+  await downloadPdf(
+    {
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivoDetallado",
+      data: { ...route.params, guardarEnCarpeta, asociadoflag: false },
     },
-    data: {
-      ...route.params,
-      guardarEnCarpeta: guardarEnCarpeta,
-      asociadoflag: false,
-      folders_quote:
-        controlGastosStore.listControlGastos[0]!.folders_quote,
-    },
-  };
-  await axios<{ path: string }>(config)
-    .then(function (response) {
-      Swal.fire({
-        icon: "success",
-        title: guardarEnCarpeta ? "PDF Guardado" : "PDF Generado",
-        text: guardarEnCarpeta
-          ? "Se guardó en la carpeta el pdf."
-          : "El PDF se descargará automaticamente",
-      });
-      if (!guardarEnCarpeta) {
-        window.open(
-          import.meta.env.VITE_URL_MAIN + response.data.path,
-          "_blank",
-        );
-      }
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+    "CONTROL_DE_GASTOS_DETALLADO.pdf",
+  );
 }
 
 // ----------------------------------------------------------
