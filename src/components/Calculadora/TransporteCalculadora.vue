@@ -46,6 +46,7 @@ const tabTransporte = ref("datosactuales");
 const datosExcel = ref<TransporteCalculadora[]>([]);
 const transporte = ref<TransporteCalculadora>({});
 const subir = ref(false);
+const saving = ref(false);
 const frmEditar = useTemplateRef("frmEditar");
 const frmDatos = useTemplateRef("frmDatos");
 
@@ -129,28 +130,20 @@ function abrirModalNuevo() {
     frmEditar.value!.resetValidation();
   }, 100);
 }
-async function guardarRegistro() {
-  console.log("frmEditar", frmEditar.value);
-  if ((await frmEditar.value!.validate()).valid) {
-    await calculadorasStore.RegistroTransporte(transporte.value);
-    await calculadorasStore.getTransporte({
-      shimpent: props.type,
-      id_modality: props.idModality,
-    });
-    dialogEditar.value = false;
-  }
+async function saveTransport(save: (tariff: TransporteCalculadora) => Promise<boolean>) {
+  if (saving.value || !(await frmEditar.value!.validate()).valid) return;
+  saving.value = true;
+  const saved = await save(transporte.value);
+  saving.value = false;
+  if (!saved) return;
+  dialogEditar.value = false;
+  await calculadorasStore.getTransporte({
+    shimpent: props.type,
+    id_modality: props.idModality,
+  });
 }
-async function actualizarRegistro() {
-  // @ts-expect-error tests that validate exists instead of calling it
-  if (frmEditar.value!.validate) {
-    await calculadorasStore.ActualizarTransporte(transporte.value);
-    await calculadorasStore.getTransporte({
-      shimpent: props.type,
-      id_modality: props.idModality,
-    });
-    dialogEditar.value = false;
-  }
-}
+const guardarRegistro = () => saveTransport(calculadorasStore.RegistroTransporte);
+const actualizarRegistro = () => saveTransport(calculadorasStore.ActualizarTransporte);
 function borrar(item: TransporteCalculadora) {
   Swal.fire({
     icon: "question",
@@ -466,14 +459,14 @@ async function registrarDatos() {
               v-model="transporte.peso_desde"
               type="number"
               step="0.01"
-              :rules="[(v) => v === 0 || !!v || 'Dato Requerido']"
+              :rules="[(v) => (v !== '' && v !== null && Number(v) >= 0) || 'Ingresa un peso de 0 o más']"
             />
             <v-text-field
               label="Peso Hasta"
               v-model="transporte.peso_hasta"
               type="number"
               step="0.01"
-              :rules="[(v) => v === 0 || !!v || 'Dato Requerido']"
+              :rules="[(v) => (v !== '' && v !== null && Number(v) >= 0) || 'Ingresa un peso de 0 o más']"
             />
 
             <v-autocomplete
@@ -531,6 +524,7 @@ async function registrarDatos() {
           <v-btn
             color="success"
             v-if="!transporte.id"
+            :loading="saving"
             @click="guardarRegistro"
             size="small"
           >
@@ -539,6 +533,7 @@ async function registrarDatos() {
           <v-btn
             color="success"
             v-if="!!transporte.id"
+            :loading="saving"
             @click="actualizarRegistro"
             size="small"
           >

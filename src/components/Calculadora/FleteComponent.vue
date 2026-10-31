@@ -10,6 +10,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import { readFreightSheet } from "@/utils/freightSheet";
 import type { ApiResponse } from "@/types/api";
 import type {
   FilaCargaFlete,
@@ -67,6 +68,7 @@ const count = ref(0);
 const subir = ref(false);
 const procesando = ref(false);
 const procesando2 = ref(false);
+const guardando = ref(false);
 const procesando3 = false;
 const sucursales = ref<(number | string)[] | null>(null);
 const registrarFlag = ref(false);
@@ -77,17 +79,18 @@ const macroLCL =
   "https://api.agentedecargaonline.com/uploads/MACRO_CARLOS_AGOSTO_2026_08_11_11_43_00.xlsm";
 const headerLCL = [
   // { text: "PAIS ORIGEN", value: "pais_origen", sortable: false },
-  { title: "Pais Origen", key: "pais_origen", sortable: false },
+  { title: "Observación", key: "mensaje", sortable: false },
+  { title: "País Origen", key: "pais_origen", sortable: false },
   { title: "Puerto Origen", key: "puerto_origen", sortable: false },
   {
     title: "Puerto Origen Según Sistema",
     key: "puerto_origen_sistema",
     sortable: false,
   },
-  { title: "Pais Origen", key: "pais_destino", sortable: false },
-  { title: "Puertos Origen", key: "puerto_destino", sortable: false },
+  { title: "País Destino", key: "pais_destino", sortable: false },
+  { title: "Puerto Destino", key: "puerto_destino", sortable: false },
   {
-    title: "Puertos Origen Según Sistema",
+    title: "Puerto Destino Según Sistema",
     key: "puerto_destino_sistema",
     sortable: false,
   },
@@ -322,11 +325,18 @@ async function guardarDatos() {
     };
   }
 
-  calculadorasStore.postGuardarCostos(data);
+  if (guardando.value) return;
+  guardando.value = true;
+  await calculadorasStore.postGuardarCostos(data);
+  guardando.value = false;
 }
 
 async function procesarExcel() {
   const file = document.getElementById("excel") as HTMLInputElement;
+  if (props.type == "LCL") {
+    await procesarLCL(await readXlsFile(file.files![0]!));
+    return;
+  }
   const validacionFormato = await validarCabecerasExcel(file.files![0]!);
 
   if (validacionFormato == true) {
@@ -432,35 +442,26 @@ function exportarFormato() {
     // this.procesando2 = false;
   }, 800);
 }
-async function procesarLCL(rows: Row[]) {
-  procesando.value = true;
-  const datos: FilaCargaFlete[] = [];
-  for (let index = 0; index < rows.length; index++) {
-    if (index > 0) {
-      datos.push({
-        pais_origen: rows[index]![0],
-        puerto_origen: rows[index]![1] ? (rows[index]![1] as string).toUpperCase() : null,
-        pais_destino: rows[index]![2],
-        puerto_destino: rows[index]![3]
-          ? (rows[index]![3] as string).toUpperCase()
-          : null,
-        flete_0_5: rows[index]![4],
-        flete_5_10: rows[index]![5],
-        flete_10_15: rows[index]![6],
-        moneda: rows[index]![7],
-        // vigencia: moment(rows[index][8]).format("YYYY-MM-DD"),
-        vigencia: moment.utc(rows[index]![8] as moment.MomentInput).format("YYYY-MM-DD")
-      });
-    }
+async function procesarLCL(sheetRows: Row[]) {
+  const { rows, missingHeaders } = readFreightSheet(sheetRows);
+  if (missingHeaders.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "Faltan columnas en el archivo",
+      text: `Agrega las columnas ${missingHeaders.join(", ")} o descarga el formato y vuelve a cargarlo.`,
+    });
+    return;
   }
-  // empezar a validar los datos
-  const datosValidar: FilaCargaFlete[] = [];
-
-  datos.map(function (element) {
-    datosValidar.push(element);
-  });
-  const val = await calculadorasStore.GetCotValLCL(datosValidar);
-  itemsLCL.value = val;
+  if (!rows.length) {
+    Swal.fire({
+      icon: "warning",
+      title: "El archivo no tiene tarifas",
+      text: "Agrega al menos una fila debajo de los encabezados y vuelve a procesarlo.",
+    });
+    return;
+  }
+  procesando.value = true;
+  itemsLCL.value = await calculadorasStore.GetCotValLCL(rows);
   // // empezar a validar los datos
 
   // let pais_origen2 = [];
@@ -1382,6 +1383,7 @@ watch(excel, () => {
           color="success"
           class="mx-1"
           size="small"
+          :loading="guardando"
           @click="guardarDatos"
           :disabled="
             itemsLCL.length == 0 && itemsFCL.length == 0 && itemsAereo == 0
@@ -1405,6 +1407,16 @@ watch(excel, () => {
           density="compact"
           :items-per-page="10"
         >
+          <template #[`item.mensaje`]="{ item }">
+            <span
+              v-if="item.estadoflag === false"
+              class="text-error"
+            >{{ item.mensaje }}</span>
+            <span
+              v-else
+              class="text-success"
+            >Correcto</span>
+          </template>
           <template #[`item.puerto_origen_sistema`]="{ item }">
             <v-autocomplete
               :items="

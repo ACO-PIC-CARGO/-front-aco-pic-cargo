@@ -16,6 +16,7 @@ import type {
   FleteCalculadora,
   FleteGrupal,
   FleteGrupalResumen,
+  GroupTariffKind,
   FilaCargaFlete,
   FletePricingCalculadora,
   FormProfitCalculadora,
@@ -49,6 +50,11 @@ const confirmacionSimple = (title: string | undefined) => ({
   allowEnterKey: true,
   allowOutsideClick: true,
   allowEscapeKey: true,
+});
+const refusal = (response: ApiResponse) => ({
+  icon: "error" as const,
+  title: "No se guardaron los cambios",
+  text: response.mensaje,
 });
 const aviso = (data: ApiResponse) => ({
   icon: data.estadoflag ? ("success" as const) : ("error" as const),
@@ -350,8 +356,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function GetCotValLCL(data: unknown[]): Promise<FilaCargaFlete[]> {
-    let res: FilaCargaFlete[] = [];
-    const response = await axios<ApiResponse<FilaCargaFlete[]>>({
+    const response = await request<FilaCargaFlete>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "calc/val_data_lcl",
       headers: JSON_HEADERS,
@@ -359,29 +364,31 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
         data: data,
       },
     });
-    if (response.data.estadoflag) {
-      res = response.data.data;
+    if (!response.data.length) {
+      Swal.fire({ icon: "error", title: "No pudimos validar el archivo", text: response.mensaje });
     }
-    return res;
+    return response.data;
   }
 
-  async function postGuardarCostos(data: Record<string, unknown>): Promise<void> {
+  async function postGuardarCostos(data: Record<string, unknown>): Promise<boolean> {
     const dataUser = sessionUsers();
     data.user = dataUser[0]!.users;
-    data.id_branch = sessionBranchId();
-    const response = await axios<ApiResponse>({
+    const response = await request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "calc/costos_calc",
       headers: JSON_HEADERS,
       data: data,
     });
-    if (response.data.estadoflag) {
-      Swal.fire(confirmacionSimple("Registro Correcto")).then((res) => {
-        if (res.isConfirmed) {
-          window.location.reload();
-        }
-      });
+    if (!response.estadoflag) {
+      Swal.fire(refusal(response));
+      return false;
     }
+    Swal.fire(confirmacionSimple("Registro Correcto")).then((res) => {
+      if (res.isConfirmed) {
+        window.location.reload();
+      }
+    });
+    return true;
   }
 
   async function obtenerListadoPorPais<T>(path: string, data: FiltroCalculadora): Promise<ApiResponse<T[]>> {
@@ -624,33 +631,34 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     if (res.estadoflag) lstFleteGrupalResumen.value = res.data;
   }
 
-  async function enviarConMensaje(method: "post" | "put", path: string, data: unknown): Promise<void> {
-    const response = await axios<ApiResponse>({
+  async function enviarConMensaje(method: "post" | "put", path: string, data: unknown): Promise<boolean> {
+    const response = await request({
       method,
       url: import.meta.env.VITE_URL_MAIN + path,
       headers: JSON_HEADERS,
       data: data,
     });
-    if (response.data.estadoflag) {
-      const res = response.data;
-      Swal.fire(confirmacionSimple(res.mensaje)).then(() => {});
+    if (!response.estadoflag) {
+      Swal.fire(refusal(response));
+      return false;
     }
+    Swal.fire(confirmacionSimple(response.mensaje)).then(() => {});
+    return true;
   }
 
-  async function enviarFleteGrupal(method: "post" | "put", path: string, data: FleteGrupal): Promise<void> {
+  function enviarFleteGrupal(method: "post" | "put", path: string, data: FleteGrupal): Promise<boolean> {
     const branch = sessionBranches();
     const id_pais = branch[0]!.id_pais;
     data.id_pais = id_pais;
-    await enviarConMensaje(method, path, data);
+    return enviarConMensaje(method, path, data);
   }
 
-  async function setFleteGrupal(data: FleteGrupal): Promise<void> {
-    console.log("data", data);
-    await enviarFleteGrupal("post", "calc/flete/grupal/guardar", data);
+  function setFleteGrupal(data: FleteGrupal): Promise<boolean> {
+    return enviarFleteGrupal("post", "calc/flete/grupal/guardar", data);
   }
 
-  async function updateFleteGrupal(data: FleteGrupal): Promise<void> {
-    await enviarFleteGrupal("put", "calc/flete/grupal/actualizar", data);
+  function updateFleteGrupal(data: FleteGrupal): Promise<boolean> {
+    return enviarFleteGrupal("put", "calc/flete/grupal/actualizar", data);
   }
 
   async function obtenerFleteCalculadora(datos: FiltroFleteCalculadora): Promise<void> {
@@ -672,13 +680,17 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     if (res.estadoflag) lstFleteGrupalVenta.value = res.data;
   }
 
-  async function setFleteGrupalVenta(data: FleteGrupal): Promise<void> {
-    console.log("data", data);
-    await enviarFleteGrupal("post", "calc/flete/grupal_venta/guardar", data);
+  function setFleteGrupalVenta(data: FleteGrupal): Promise<boolean> {
+    return enviarFleteGrupal("post", "calc/flete/grupal_venta/guardar", data);
   }
 
-  async function updateFleteGrupalVenta(data: FleteGrupal): Promise<void> {
-    await enviarFleteGrupal("put", "calc/flete/grupal_venta/actualizar", data);
+  function updateFleteGrupalVenta(data: FleteGrupal): Promise<boolean> {
+    return enviarFleteGrupal("put", "calc/flete/grupal_venta/actualizar", data);
+  }
+
+  function removeGroupTariff({ tariff, kind }: { tariff: FleteGrupal; kind: GroupTariffKind }): Promise<boolean> {
+    const deactivated = { ...tariff, estado: false };
+    return kind === "venta" ? updateFleteGrupalVenta(deactivated) : updateFleteGrupal(deactivated);
   }
 
   async function enviarTransportes(path: string, data: unknown): Promise<TransporteCalculadora[]> {
@@ -719,35 +731,37 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function enviarConAviso(method: "post" | "put", path: string, data: unknown): Promise<void> {
-    const response = await axios<ApiResponse>({
+  async function enviarConAviso(method: "post" | "put", path: string, data: unknown): Promise<boolean> {
+    const response = await request({
       method,
       url: import.meta.env.VITE_URL_MAIN + path,
       headers: JSON_HEADERS,
       data: data,
     });
-
-    if (response.data.estadoflag) {
-      Swal.fire(aviso(response.data));
+    if (!response.estadoflag) {
+      Swal.fire(refusal(response));
+      return false;
     }
+    Swal.fire(aviso(response));
+    return true;
   }
 
-  async function EliminarTransporte(data: TransporteCalculadora): Promise<void> {
-    await enviarConAviso("put", "calc/transporte/eliminar", data);
+  function EliminarTransporte(data: TransporteCalculadora): Promise<boolean> {
+    return enviarConAviso("put", "calc/transporte/eliminar", data);
   }
 
-  async function ActualizarTransporte(data: TransporteCalculadora): Promise<void> {
-    await enviarConAviso("put", "calc/transporte/actualizar", data);
+  function ActualizarTransporte(data: TransporteCalculadora): Promise<boolean> {
+    return enviarConAviso("put", "calc/transporte/actualizar", data);
   }
 
-  async function RegistroTransporte(data: TransporteCalculadora): Promise<void> {
-    await enviarConAviso("post", "calc/transporte/registro", data);
+  function RegistroTransporte(data: TransporteCalculadora): Promise<boolean> {
+    return enviarConAviso("post", "calc/transporte/registro", data);
   }
 
-  async function actualizarFechaVigencia(vigencia: unknown): Promise<void> {
+  function actualizarFechaVigencia(vigencia: unknown): Promise<boolean> {
     const branch = sessionBranches();
     const id_pais = branch[0]!.id_pais;
-    await enviarConAviso("put", "calc/actualizar_fecha_flete", { id_pais_destino: id_pais, vigencia: vigencia });
+    return enviarConAviso("put", "calc/actualizar_fecha_flete", { id_pais_destino: id_pais, vigencia: vigencia });
   }
 
   async function EnviarCotizacionCalculadoraAPrincing(data: EnvioCotizacionCalculadora): Promise<void> {
@@ -796,27 +810,26 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function opcionActualizar(data: OpcionCalculadora): Promise<void> {
-    await axios<ApiResponse>({
+  async function opcionActualizar(data: OpcionCalculadora): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + `calc/opcion_actualizar`,
       data: data,
-    }).then((res) => {
-      const data = res.data;
-      if (data.estadoflag) {
-        Swal.fire({
-          icon: "success",
-          text: data.mensaje,
-        });
-        opcionListado();
-      } else {
-        opcionListado();
-      }
     });
+    if (!response.estadoflag) {
+      Swal.fire(refusal(response));
+      return false;
+    }
+    Swal.fire({
+      icon: "success",
+      text: response.mensaje,
+    });
+    opcionListado();
+    return true;
   }
 
-  async function actualizarFlete(data: FleteCalculadora): Promise<void> {
-    await enviarConMensaje("put", "calc/flete/actualizar", data);
+  function actualizarFlete(data: FleteCalculadora): Promise<boolean> {
+    return enviarConMensaje("put", "calc/flete/actualizar", data);
   }
 
   async function cargarEstatus(): Promise<void> {
@@ -920,6 +933,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     getFleteGrupalVenta,
     setFleteGrupalVenta,
     updateFleteGrupalVenta,
+    removeGroupTariff,
     validarTransporte,
     setGuardarTransporte,
     EliminarTransporte,

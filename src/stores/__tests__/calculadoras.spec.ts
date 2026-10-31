@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -220,32 +221,40 @@ describe("calculadoras store", () => {
     expect(sentUrls()).toEqual(["calc/costos/insertar"]);
   });
 
-  test("GetCotValLCL wraps the rows for validation and returns the validated rows, or none when rejected", async () => {
-    respond({ "calc/val_data_lcl": accepted([{ puerto_origen: "NINGBO", id_pais_origen: 38 }]) });
-    const c = calc();
+  test("GetCotValLCL wraps the rows for validation and returns every validated row with its own verdict", async () => {
+    const checked = [
+      { estadoflag: false, mensaje: "Fila 2: falta la moneda.", puerto_origen: "NINGBO" },
+      { estadoflag: true, mensaje: null, puerto_origen: "XIAMEN" },
+    ];
+    respond({ "calc/val_data_lcl": { ...rejected("Fila 2: falta la moneda."), data: checked } });
 
-    expect(await c.GetCotValLCL!([{ puerto_origen: "NINGBO" }])).toEqual([{ puerto_origen: "NINGBO", id_pais_origen: 38 }]);
+    expect(await calc().GetCotValLCL!([{ puerto_origen: "NINGBO" }])).toEqual(checked);
     expect(httpMock).toHaveBeenCalledWith({
       method: "post",
       url: URL_MAIN + "calc/val_data_lcl",
       headers: JSON_HEADERS,
       data: { data: [{ puerto_origen: "NINGBO" }] },
     });
-
-    respond({ "calc/val_data_lcl": rejected() });
-    expect(await c.GetCotValLCL!([])).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
   });
 
-  test("postGuardarCostos stamps the user and branch, confirms and reloads the page", async () => {
+  test("GetCotValLCL shows why nothing could be validated and returns no rows", async () => {
+    respond({ "calc/val_data_lcl": new Error("Network Error") });
+
+    expect(await calc().GetCotValLCL!([{ puerto_origen: "NINGBO" }])).toEqual([]);
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", title: "No pudimos validar el archivo", text: CONNECTION_ERROR_MESSAGE });
+  });
+
+  test("postGuardarCostos stamps the user but no branch, confirms and reloads the page", async () => {
     respond({ "calc/costos_calc": accepted([{ ok: 1 }]) });
     const reload = vi.fn();
     vi.stubGlobal("location", { reload });
     const datos: Record<string, unknown> = { shipment: "LCL", costos: [] };
 
-    expect(await calc().postGuardarCostos!(datos)).toBeUndefined();
+    expect(await calc().postGuardarCostos!(datos)).toBe(true);
     await flushPromises();
 
-    expect(datos).toEqual({ shipment: "LCL", costos: [], user: "ana", id_branch: 7 });
+    expect(datos).toEqual({ shipment: "LCL", costos: [], user: "ana" });
     expect(httpMock).toHaveBeenCalledWith({ method: "post", url: URL_MAIN + "calc/costos_calc", headers: JSON_HEADERS, data: datos });
     expect(Swal.fire).toHaveBeenCalledWith({
       icon: "success",
@@ -257,12 +266,17 @@ describe("calculadoras store", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
-  test("postGuardarCostos stays silent when the backend rejects and does not reload when the message is dismissed", async () => {
+  test("postGuardarCostos shows why the batch was refused and does not reload when the message is dismissed", async () => {
     const reload = vi.fn();
     vi.stubGlobal("location", { reload });
-    respond({ "calc/costos_calc": rejected() });
-    await calc().postGuardarCostos!({});
-    expect(Swal.fire).not.toHaveBeenCalled();
+    respond({ "calc/costos_calc": rejected("No guardamos ninguna tarifa. Fila 3: falta la moneda.") });
+    expect(await calc().postGuardarCostos!({})).toBe(false);
+    expect(Swal.fire).toHaveBeenCalledWith({
+      icon: "error",
+      title: "No se guardaron los cambios",
+      text: "No guardamos ninguna tarifa. Fila 3: falta la moneda.",
+    });
+    vi.mocked(Swal.fire).mockClear();
 
     respond({ "calc/costos_calc": accepted([]) });
     vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
@@ -442,18 +456,18 @@ describe("calculadoras store", () => {
     ["updateFleteGrupalVenta", "put", "calc/flete/grupal_venta/actualizar", true],
     ["actualizarFlete", "put", "calc/flete/actualizar", false],
   ])("%s", (action, method, path, stampsCountry) => {
-    test("sends the record and shows the backend message only when it accepts", async () => {
+    test("sends the record, confirms an accepted save and explains a refused one", async () => {
       respond({ [path]: accepted([]) });
       const record: Record<string, unknown> = { volumen: 1 };
 
-      await calc()[action]!(record);
-      respond({ [path]: rejected() });
-      await calc()[action]!({});
+      expect(await calc()[action]!(record)).toBe(true);
+      respond({ [path]: rejected("Ingresa un valor mayor que 0.") });
+      expect(await calc()[action]!({})).toBe(false);
 
       expect(record).toEqual(stampsCountry ? { volumen: 1, id_pais: 139 } : { volumen: 1 });
       expect(httpMock).toHaveBeenNthCalledWith(1, { method, url: URL_MAIN + path, headers: JSON_HEADERS, data: record });
-      expect(Swal.fire).toHaveBeenCalledTimes(1);
-      expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", title: "ok", allowEnterKey: true, allowOutsideClick: true, allowEscapeKey: true });
+      expect(Swal.fire).toHaveBeenNthCalledWith(1, { icon: "success", title: "ok", allowEnterKey: true, allowOutsideClick: true, allowEscapeKey: true });
+      expect(Swal.fire).toHaveBeenNthCalledWith(2, { icon: "error", title: "No se guardaron los cambios", text: "Ingresa un valor mayor que 0." });
     });
   });
 
@@ -515,15 +529,19 @@ describe("calculadoras store", () => {
     ["ActualizarTransporte", "put", "calc/transporte/actualizar"],
     ["RegistroTransporte", "post", "calc/transporte/registro"],
   ])("%s", (action, method, path) => {
-    test("sends the tariff and shows the notice only when the backend accepts", async () => {
+    test("sends the tariff, confirms an accepted change and explains a refused one", async () => {
       respond({ [path]: accepted([]) });
-      await calc()[action]!({ id: "322" });
-      respond({ [path]: rejected() });
-      await calc()[action]!({ id: "322" });
+      expect(await calc()[action]!({ id: "322" })).toBe(true);
+      respond({ [path]: rejected("Este rango se cruza con el de 0 a 100 kg.") });
+      expect(await calc()[action]!({ id: "322" })).toBe(false);
 
       expect(httpMock).toHaveBeenNthCalledWith(1, { method, url: URL_MAIN + path, headers: JSON_HEADERS, data: { id: "322" } });
-      expect(Swal.fire).toHaveBeenCalledTimes(1);
-      expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", title: "Aviso", text: "ok" });
+      expect(Swal.fire).toHaveBeenNthCalledWith(1, { icon: "success", title: "Aviso", text: "ok" });
+      expect(Swal.fire).toHaveBeenNthCalledWith(2, {
+        icon: "error",
+        title: "No se guardaron los cambios",
+        text: "Este rango se cruza con el de 0 a 100 kg.",
+      });
     });
   });
 
@@ -589,20 +607,50 @@ describe("calculadoras store", () => {
     expect(c.lstOpciones).toEqual([]);
   });
 
-  test("opcionActualizar reloads the options either way and only confirms an accepted update", async () => {
-    respond({ "calc/opcion_actualizar": rejected(), "calc/opcion_listado": accepted([]) });
+  test("opcionActualizar explains a refused update and keeps the edited options on screen", async () => {
+    respond({ "calc/opcion_listado": accepted([{ id: "1", volumenmax: "25.00" }]) });
     const c = calc();
-    await c.opcionActualizar!({ id: "2" });
-    await flushPromises();
-    expect(Swal.fire).not.toHaveBeenCalled();
+    await c.opcionListado!();
+    (c.lstOpciones as unknown as { volumenmax: string }[])[0]!.volumenmax = "30";
+    respond({ "calc/opcion_actualizar": rejected("El volumen máximo de la opción individual no puede pasar de 15 m³.") });
 
+    expect(await c.opcionActualizar!({ id: "1", volumenmax: "30" })).toBe(false);
+
+    expect(Swal.fire).toHaveBeenCalledWith({
+      icon: "error",
+      title: "No se guardaron los cambios",
+      text: "El volumen máximo de la opción individual no puede pasar de 15 m³.",
+    });
+    expect(sentUrls()).toEqual(["calc/opcion_listado", "calc/opcion_actualizar"]);
+    expect(c.lstOpciones).toEqual([{ id: "1", volumenmax: "30", editarflag: false }]);
+  });
+
+  test("opcionActualizar confirms an accepted update and reloads the options", async () => {
     respond({ "calc/opcion_actualizar": accepted([]), "calc/opcion_listado": accepted([]) });
-    await c.opcionActualizar!({ id: "2" });
+
+    expect(await calc().opcionActualizar!({ id: "2" })).toBe(true);
     await flushPromises();
 
     expect(httpMock).toHaveBeenNthCalledWith(1, { method: "put", url: URL_MAIN + "calc/opcion_actualizar", data: { id: "2" } });
-    expect(sentUrls()).toEqual(["calc/opcion_actualizar", "calc/opcion_listado", "calc/opcion_actualizar", "calc/opcion_listado"]);
+    expect(sentUrls()).toEqual(["calc/opcion_actualizar", "calc/opcion_listado"]);
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "ok" });
+  });
+
+  test.each([
+    ["venta", "calc/flete/grupal_venta/actualizar"],
+    ["costo", "calc/flete/grupal/actualizar"],
+  ] as const)("removeGroupTariff deactivates a %s tariff through its own endpoint only", async (kind, path) => {
+    respond({ [path]: accepted([]) });
+
+    expect(await calc().removeGroupTariff!({ tariff: { id: "11", volumen: "1.0000" }, kind })).toBe(true);
+
+    expect(sentUrls()).toEqual([path]);
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "put",
+      url: URL_MAIN + path,
+      headers: JSON_HEADERS,
+      data: { id: "11", volumen: "1.0000", estado: false, id_pais: 139 },
+    });
   });
 
   test("cargarEstatus keeps the statuses, or empties them when rejected", async () => {

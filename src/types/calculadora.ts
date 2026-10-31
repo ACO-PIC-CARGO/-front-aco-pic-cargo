@@ -173,6 +173,8 @@ export interface FleteGrupal {
   id_pais?: number;
 }
 
+export type GroupTariffKind = "costo" | "venta";
+
 export interface FleteGrupalResumen {
   id_pais?: number;
   volumen?: Numerico;
@@ -272,6 +274,8 @@ export interface PuertoCalculadora {
 export type ValidacionCarga = ApiResponse & { permiso?: boolean };
 
 export interface FilaCargaFlete {
+  estadoflag?: boolean;
+  mensaje?: string | null;
   Continente?: CeldaCarga;
   pais_origen?: CeldaCarga;
   puerto_origen?: CeldaCarga;

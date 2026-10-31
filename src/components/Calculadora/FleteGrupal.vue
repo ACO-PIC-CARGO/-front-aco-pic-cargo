@@ -4,7 +4,7 @@ import Swal from "sweetalert2";
 
 import FormatFechaVue from "../comun/FormatFecha.vue";
 import { useCalculadorasStore } from "@/stores/calculadoras";
-import type { FleteGrupal } from "@/types/calculadora";
+import type { FleteGrupal, GroupTariffKind } from "@/types/calculadora";
 
 const props = defineProps<{ type?: string }>();
 
@@ -67,60 +67,42 @@ const editarflag = ref(false);
 const errorFechaVigencia = ref("");
 const tipoCosto = ref("");
 const frmNuevo = useTemplateRef("frmNuevo");
-// ...mapState(["getFleteGrupal"]),
+const saving = ref(false);
+const positiveRule = (v: unknown) => Number(v) > 0 || "Ingresa un valor mayor que 0";
 
-function eliminar(element: FleteGrupal) {
-  Swal.fire({
+function reloadTariffs(kind: GroupTariffKind) {
+  const filter = { tipo: props.type };
+  return Promise.all([
+    kind === "venta" ? calculadorasStore.getFleteGrupalVenta(filter) : calculadorasStore.getFleteGrupal(filter),
+    calculadorasStore.getFleteGrupalResumen({ tipo: props.type }),
+  ]);
+}
+
+async function eliminar(element: FleteGrupal, kind: GroupTariffKind) {
+  const res = await Swal.fire({
     icon: "question",
     title: "Eliminar",
-    text: "¿Desea eliminar el registro?",
-    confirmButtonText: "Si,Eliminar",
+    text: "¿Deseas eliminar esta tarifa?",
+    confirmButtonText: "Sí, eliminar",
     showCancelButton: true,
     cancelButtonText: "Cancelar",
-  }).then((res) => {
-    if (res.isConfirmed) {
-      calculadorasStore.updateFleteGrupal({ ...element, estado: false });
-      calculadorasStore.getFleteGrupal({ tipo: props.type });
-    }
   });
+  if (res.isConfirmed && (await calculadorasStore.removeGroupTariff({ tariff: element, kind }))) {
+    await reloadTariffs(kind);
+  }
 }
 async function actualizar() {
-  if (editarflag.value) {
-    if (tipoCosto.value == "costo") {
-      await calculadorasStore.updateFleteGrupal({ ...form.value, estado: true });
-      calculadorasStore.getFleteGrupal({ tipo: props.type });
-    }
-    if (tipoCosto.value == "venta") {
-      await calculadorasStore.updateFleteGrupalVenta({ ...form.value, estado: true });
-
-      calculadorasStore.getFleteGrupalVenta({ tipo: props.type });
-    }
-    calculadorasStore.getFleteGrupalResumen({ tipo: props.type });
-    dialog.value = false;
-    return;
-  }
-  Swal.fire({
-    icon: "question",
-    title: "Eliminar",
-    text: "¿Desea eliminar el registro?",
-    confirmButtonText: "Si,Eliminar",
-    showCancelButton: true,
-    cancelButtonText: "Cancelar",
-  }).then(async (res) => {
-    if (res.isConfirmed) {
-      if ((tipoCosto.value = "costo")) {
-        await calculadorasStore.updateFleteGrupal({ ...form.value, estado: false });
-        calculadorasStore.getFleteGrupal({ tipo: props.type });
-      }
-      if ((tipoCosto.value = "venta")) {
-        await calculadorasStore.updateFleteGrupalVenta({ ...form.value, estado: false });
-        calculadorasStore.getFleteGrupalVenta({ tipo: props.type });
-      }
-      // @ts-expect-error called without a filter, so it throws before any request
-      calculadorasStore.getFleteGrupalResumen();
-      dialog.value = false;
-    }
-  });
+  if (saving.value || !(await frmNuevo.value!.validate()).valid) return;
+  const kind = tipoCosto.value as GroupTariffKind;
+  saving.value = true;
+  const saved =
+    kind === "venta"
+      ? await calculadorasStore.updateFleteGrupalVenta({ ...form.value, estado: true })
+      : await calculadorasStore.updateFleteGrupal({ ...form.value, estado: true });
+  saving.value = false;
+  if (!saved) return;
+  dialog.value = false;
+  await reloadTariffs(kind);
 }
 function abrirModal({ tipo = "nuevo", item = {}, tipoCosto: tipoCostoElegido = "costo" }: { tipo?: string; item?: FleteGrupal; tipoCosto?: string }) {
   tipoCosto.value = tipoCostoElegido;
@@ -141,37 +123,37 @@ function abrirModal({ tipo = "nuevo", item = {}, tipoCosto: tipoCostoElegido = "
   });
 }
 async function guardarFleteGrupal() {
+  if (saving.value) return;
   errorFechaVigencia.value = "";
   if ((await frmNuevo.value!.validate()).valid && form.value.vigencia) {
     if (
       (calculadorasStore.lstFleteGrupal.some(
         (v) => Number(v.volumen) === Number(form.value.volumen),
       ) &&
-        tab.value == "costo") ||
+        tipoCosto.value == "costo") ||
       (calculadorasStore.lstFleteGrupalVenta.some(
         (v) => Number(v.volumen) === Number(form.value.volumen),
       ) &&
-        tab.value == "venta")
+        tipoCosto.value == "venta")
     ) {
       Swal.fire({
         icon: "error",
-        title: "Error",
-        text: "Ya existe un valor asociado, al volumen",
+        title: "Volumen repetido",
+        text: "Ya hay una tarifa para ese volumen. Edítala en lugar de crear otra.",
       });
       return;
     }
-    if (tab.value == "costo") {
-      await calculadorasStore.setFleteGrupal(form.value);
-      calculadorasStore.getFleteGrupal({ tipo: props.type });
-    }
-    if (tab.value == "venta") {
-      await calculadorasStore.setFleteGrupalVenta(form.value);
-      calculadorasStore.getFleteGrupalVenta({ tipo: props.type });
-      dialog.value = false;
-    }
+    const kind = tipoCosto.value as GroupTariffKind;
+    saving.value = true;
+    const saved =
+      kind === "venta" ? await calculadorasStore.setFleteGrupalVenta(form.value) : await calculadorasStore.setFleteGrupal(form.value);
+    saving.value = false;
+    if (!saved) return;
+    dialog.value = false;
+    await reloadTariffs(kind);
   } else {
     if (!form.value.vigencia) {
-      errorFechaVigencia.value = "Dato Requerido";
+      errorFechaVigencia.value = "Elige la fecha de vigencia";
     }
   }
 }
@@ -293,7 +275,8 @@ onMounted(async () => {
                   variant="text"
                   color="error"
                   icon
-                  @click="eliminar(item)"
+                  aria-label="Eliminar tarifa de compra"
+                  @click="eliminar(item, 'costo')"
                 >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
@@ -363,7 +346,8 @@ onMounted(async () => {
                   variant="text"
                   color="error"
                   icon
-                  @click="eliminar(item)"
+                  aria-label="Eliminar tarifa de venta"
+                  @click="eliminar(item, 'venta')"
                 >
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
@@ -405,7 +389,7 @@ onMounted(async () => {
             label="Volumen"
             type="number"
             v-model="form.volumen"
-            :rules="[(v) => !!v || 'Dato Requerido']"
+            :rules="[positiveRule]"
             step="0.01"
             suffix="m³"
           />
@@ -413,7 +397,7 @@ onMounted(async () => {
             label="Peso"
             type="number"
             v-model="form.peso"
-            :rules="[(v) => !!v || 'Dato Requerido']"
+            :rules="[positiveRule]"
             step="0.01"
             suffix="kg"
           />
@@ -421,7 +405,7 @@ onMounted(async () => {
             label="Valor"
             type="number"
             v-model="form.valor"
-            :rules="[(v) => !!v || 'Dato Requerido']"
+            :rules="[positiveRule]"
             step="0.01"
             prefix="$."
           />
@@ -437,6 +421,7 @@ onMounted(async () => {
               color="success"
               v-if="nuevoflag"
               size="small"
+              :loading="saving"
               @click="guardarFleteGrupal"
             >
               Guardar
@@ -444,6 +429,7 @@ onMounted(async () => {
             <v-btn
               color="success"
               v-if="editarflag"
+              :loading="saving"
               @click="actualizar"
               size="small"
             >

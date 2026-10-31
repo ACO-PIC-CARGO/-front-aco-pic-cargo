@@ -76,7 +76,7 @@ onMounted(async () => {
           base-color="rgba(255, 255, 255, 0.6)"
           value="config"
         >
-          Configuracion
+          Configuración
         </v-tab>
         <v-tab
           base-color="rgba(255, 255, 255, 0.6)"

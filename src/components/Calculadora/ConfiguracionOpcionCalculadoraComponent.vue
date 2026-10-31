@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import type { OpcionCalculadora } from "@/types/calculadora";
 
@@ -42,8 +42,14 @@ const lstOpciones = computed({
   },
 });
 
+const savingId = ref<string | null>(null);
+const positiveRule = (v: unknown) => Number(v) > 0 || "Ingresa un valor mayor que 0";
+
 async function actualizarOpcion(item: OpcionCalculadora) {
+  if (savingId.value) return;
+  savingId.value = item.id;
   await calculadorasStore.opcionActualizar(item);
+  savingId.value = null;
 }
 </script>
 
@@ -80,42 +86,27 @@ async function actualizarOpcion(item: OpcionCalculadora) {
           v-model="item.volumenmax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
+          :rules="[positiveRule]"
+          aria-label="Volumen máximo"
           density="compact"
           variant="outlined"
           style="max-width: 100px"
-          messages=" "
           type="number"
-        >
-          <template #message>
-            <span
-              v-if="item.editarflag"
-              style="color: orange; font-style: italic; font-size: 0.7rem"
-            >
-              Si el monto es 0, se considerará la opción sin restricción
-            </span>
-          </template>
-        </v-text-field>
+          suffix="m³"
+        />
       </template>
       <template #[`item.toneladamax`]="{ item }">
         <v-text-field
           v-model="item.toneladamax"
           :disabled="!item.editarflag"
           :hide-details="!item.editarflag"
+          :rules="[positiveRule]"
+          aria-label="Tonelada máxima"
           density="compact"
           variant="outlined"
           style="max-width: 100px"
-          messages=" "
           type="number"
-        >
-          <template #message>
-            <span
-              v-if="item.editarflag"
-              style="color: orange; font-style: italic; font-size: 0.7rem"
-            >
-              Si el monto es 0, se considerará la opción sin restricción
-            </span>
-          </template>
-        </v-text-field>
+        />
       </template>
 
       <template #[`item.estado`]="{ item }">
@@ -186,6 +177,7 @@ async function actualizarOpcion(item: OpcionCalculadora) {
           v-if="item.editarflag"
           color="success"
           size="small"
+          :loading="savingId === item.id"
           @click="actualizarOpcion(item)"
         >
           Guardar
