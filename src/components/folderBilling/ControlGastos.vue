@@ -15,6 +15,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import type { ApiResponse } from "@/types/api";
 import type { AbonoCliente, DatosFactura, RespuestaFactura, SucursalFactura } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -301,11 +302,6 @@ function _uploadFile() {
     });
 }
 async function _generatePDF() {
-  Swal.fire({
-    icon: "info",
-    title: "Generando PDF...",
-    text: "Por favor espere",
-  });
   let sentido;
   if (appStore.report_id_sentido == "") {
     sentido = "";
@@ -392,31 +388,7 @@ async function _generatePDF() {
     ).toFixed(2),
   };
 
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo",
-    headers: {
-     
-      "Content-Type": "application/json",
-    },
-    data: data,
-  };
-  await axios(config)
-    .then(function () {
-      Swal.fire({
-        icon: "success",
-        title: "PDF Generado",
-        text: "El PDF se descargará automaticamente",
-      });
-
-      window.open(
-        import.meta.env.VITE_URL_MAIN + "INSTRUCTIVO.pdf",
-        "_blank"
-      );
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
+  await downloadPdf({ method: "post", url: import.meta.env.VITE_URL_MAIN + "getPdfInstructivo", data }, "INSTRUCTIVO.pdf");
 }
 
 watch(menu, (open) => {

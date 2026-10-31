@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import type { ApiResponse } from "@/types/api";
 import type { ConceptoSolicitud, DocumentoProveedor, SolicitudPagoProveedor } from "@/types/billing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -482,7 +483,7 @@ async function _generateSolicitud() {
   };
 
   axios(config)
-    .then(function (response) {
+    .then(async function (response) {
       const data = {
         nameProveedor: nameproveedorLocal.value,
         nameConsignatario: appStore.dataHouse_consigners,
@@ -501,32 +502,11 @@ async function _generateSolicitud() {
         number: response.data.data[0].number,
         url_logo: sessionUser().path,
       };
-      const config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
-        headers: {
-         
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      axios(config)
-        .then(function (response) {
-          appStore._getTotalesProveedor();
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-          });
-          window.open(
-            import.meta.env.VITE_URL_MAIN + response.data.path,
-            "_blank"
-          );
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
+      await downloadPdf(
+        { method: "post", url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud", data },
+        `SOLICITUD_EXPEDIENTE_${data.expediente}_${data.number}.pdf`,
+      );
+      appStore._getTotalesProveedor();
     })
     .catch(function (error) {
       console.error(error);

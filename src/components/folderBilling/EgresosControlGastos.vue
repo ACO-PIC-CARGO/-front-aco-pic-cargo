@@ -31,6 +31,7 @@ import type {
   SolicitudPagoListada,
 } from "@/types/billingEntries";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import { downloadPdf } from "@/utils/pdfDownload";
 import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 
@@ -1407,7 +1408,7 @@ async function _generateSolicitud() {
     .join(", ");
 
   await axios(config)
-    .then(function (response) {
+    .then(async function (response) {
       if (warnIfRefused(response.data)) return;
       const data = {
         nameProveedor: nameproveedor.value,
@@ -1430,37 +1431,15 @@ async function _generateSolicitud() {
         totalSelected: total,
         number: response.data.data[0].number,
         url_logo: sessionUser().path,
-        url: controlGastosStore.listControlGastos[0]!
-          .url_folderonedrive,
+        id_master,
       };
-      const config = {
-        method: "post",
-        url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        data: data,
-      };
-
-      axios(config)
-        .then(async function (response) {
-          await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-          Swal.fire({
-            icon: "success",
-            title: "PDF Generado",
-            text: "El PDF se descargará automaticamente",
-          });
-
-          window.open(
-            import.meta.env.VITE_URL_MAIN + response.data.path,
-            "_blank",
-          );
-          dialogSolicitudDivision.value = false;
-          dialogSolicitud.value = false;
-        })
-        .catch(function (error) {
-          console.error(error);
-        });
+      await downloadPdf(
+        { method: "post", url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud", data },
+        `SOLICITUD_EXPEDIENTE_${data.expediente}_${data.number}.pdf`,
+      );
+      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+      dialogSolicitudDivision.value = false;
+      dialogSolicitud.value = false;
     })
     .catch(function (error) {
       console.error(error);

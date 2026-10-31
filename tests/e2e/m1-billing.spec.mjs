@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test, expect } from "./fixtures.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
 
@@ -116,5 +117,50 @@ test.describe("M1 expense control and invoices", () => {
 
     await expect(dialogWith(page, "Factura anulada")).toBeVisible();
     expect(sent).toEqual([{ id: active.id, motivo: "Datos del cliente errados" }]);
+  });
+
+  test("a payment request downloads its PDF and names the master instead of a OneDrive folder", async ({ page }) => {
+    await page.route(/\/setSPaymentPro$/, (route) =>
+      route.fulfill({ json: { estadoflag: true, mensaje: "Solicitud registrada.", tipomensaje: "TMSGSUC", data: [{ number: 77 }] } }),
+    );
+    const sent = [];
+    await page.route(/\/pdfSolicitud$/, async (route) => {
+      sent.push(route.request().postDataJSON());
+      await route.fulfill({ contentType: "application/pdf", body: "%PDF-1.4" });
+    });
+    const { providers } = await openExpenseControl(page);
+    const requestable = providers.data[0].lsthouses.find(
+      (row) => row.detalle.every((concept) => !concept.pagado && !concept.statusadmin) && new Set(row.detalle.map((concept) => concept.tipocambio)).size === 1,
+    );
+    test.skip(!requestable, "no provider without payment requests on this master");
+
+    await page.locator("table").filter({ hasText: requestable.nombre_proveedor }).first().locator(".mdi-send").click();
+    await dialogWith(page, "¿Desea realizar una solicitud de pago?").getByRole("button", { name: "Si" }).click();
+    const steps = page.locator(".v-overlay--active .v-card").filter({ has: page.locator(".v-stepper") });
+    await steps.getByLabel(/Aplica código de pago/).check();
+    await steps.getByLabel("CODIGO DE PAGO").fill("E2E");
+    await steps.getByRole("button", { name: "Continuar" }).first().click();
+    await steps.getByRole("button", { name: "Continuar" }).last().click();
+    const download = page.waitForEvent("download");
+    await steps.getByRole("button", { name: "ENVIAR A ADMINISTRACIÓN UNA SOLICITUD DE PAGO" }).click();
+
+    expect((await download).suggestedFilename()).toMatch(/^SOLICITUD_EXPEDIENTE_.+_77\.pdf$/);
+    expect(sent).toHaveLength(1);
+    expect(sent[0]).toMatchObject({ id_master: requestable.id_master, number: 77 });
+    expect(sent[0]).not.toHaveProperty("url");
+  });
+
+  test("printing a house's expense control downloads the PDF instead of opening a public file", async ({ page }) => {
+    const { houses } = await openExpenseControl(page);
+    const house = houses.data[0].lsthouses[0];
+
+    await page.goto(`/home/folderBilling/billControlGastos/view/${house.id_house}/1/1/E2E`);
+    await waitForPageToSettle(page);
+    const download = page.waitForEvent("download");
+    await page.getByRole("button", { name: "IMPRIMIR CONTROL" }).click();
+
+    const pdf = await download;
+    expect(pdf.suggestedFilename()).toBe("INSTRUCTIVO.pdf");
+    expect(readFileSync(await pdf.path()).subarray(0, 5).toString()).toBe("%PDF-");
   });
 });
