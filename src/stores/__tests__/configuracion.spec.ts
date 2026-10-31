@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import { useConfiguracionStore } from "@/stores/configuracion";
+import { CONNECTION_ERROR_MESSAGE } from "@/utils/request";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -110,19 +111,31 @@ describe("configuracion store", () => {
     respond({ [path]: { ...accepted([]), mensaje: "Hecho" } });
     const store = useConfiguracionStore();
 
-    await store[action](data as never);
+    expect(await store[action](data as never)).toBe(true);
 
     expect(httpMock).toHaveBeenCalledWith({ method, url: URL_MAIN + path, data, headers: JSON_HEADERS });
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", text: "Hecho" });
   });
 
-  test("setGuardarCostos shows the error icon when the backend rejects", async () => {
+  test("setGuardarCostos shows the error icon and reports the failure when the backend rejects", async () => {
     respond({ costo_pricing_actualizar: rejected("Sin permiso") });
     const store = useConfiguracionStore();
 
-    await store.setGuardarCostos({ lstCostos: [], id_incoterms: 3 });
+    expect(await store.setGuardarCostos({ lstCostos: [], id_incoterms: 3 })).toBe(false);
 
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Sin permiso" });
+  });
+
+  test.each([
+    ["setGuardarCostos", "costo_pricing_actualizar", { lstCostos: [], id_incoterms: 3 }],
+    ["EliminarCosto", "costo_eliminar", { id: 4 }],
+  ] as const)("%s tells the user when the server cannot be reached", async (action, path, data) => {
+    respond({ [path]: new Error("Network Error") });
+    const store = useConfiguracionStore();
+
+    expect(await store[action](data as never)).toBe(false);
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
   test("getTextWhatsapp stores the id and both texts of the first row", async () => {

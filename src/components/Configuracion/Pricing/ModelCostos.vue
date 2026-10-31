@@ -9,6 +9,7 @@ import { usePricingStore } from "@/stores/pricing";
 import { useProveedorStore } from "@/stores/proveedor";
 import type { CostoPricing, FormNuevoCostoPricing } from "@/types/configuracion";
 import type { TipoCostoConfig } from "@/types/empresas";
+import { nonNegativeAmount } from "./amountRule";
 
 const props = withDefaults(
   defineProps<{
@@ -54,6 +55,7 @@ const headers = [
   { key: "action", title: "", width: "10%" },
 ];
 const frmNuevoCosto = useTemplateRef("frmNuevoCosto");
+const frmCostos = useTemplateRef("frmCostos");
 
 function copiarCosto(item: CostoPricing) {
   Swal.fire({
@@ -93,11 +95,16 @@ function mostrarMinimo(item: FormNuevoCostoPricing) {
   return false;
 }
 async function guardar() {
-  await configuracionStore.setGuardarCostos({
-    lstCostos: lstCostos.value,
-    id_incoterms: props.idIncoterms!,
-  });
-  emit("cerrarModalGuardar");
+  if (loading.value) return;
+  loading.value = true;
+  const saved =
+    (await frmCostos.value!.validate()).valid &&
+    (await configuracionStore.setGuardarCostos({
+      lstCostos: lstCostos.value,
+      id_incoterms: props.idIncoterms!,
+    }));
+  loading.value = false;
+  if (saved) emit("cerrarModalGuardar");
 }
 function obtenerCostosEnBaseTipoCosto(codigoTipoCosto: string | undefined) {
   //   if (this.id_modality == 1) {
@@ -200,16 +207,8 @@ async function guardarCosto() {
   dialog.value = false;
 }
 
-const panelesConDatos = computed(() => {
-  const listaTipos = pricingStore.listTipoCostos;
-  if (!listaTipos) return [];
-
-  const panelesFiltrados = listaTipos.filter((tipo: TipoCostoConfig) => {
-    const costosFiltrados = obtenerCostosEnBaseTipoCosto(tipo.codigo);
-    return costosFiltrados && costosFiltrados.length > 0;
-  });
-
-  return panelesFiltrados.sort((a: TipoCostoConfig, b: TipoCostoConfig) => {
+const paneles = computed(() => {
+  return [...pricingStore.listTipoCostos].sort((a: TipoCostoConfig, b: TipoCostoConfig) => {
     const obtenerPeso = (item: TipoCostoConfig) => {
       if (item.name && item.name.startsWith("ORIGEN")) {
         return 1;
@@ -224,7 +223,7 @@ const panelesConDatos = computed(() => {
   }) as TipoCostoConfig[];
 });
 const panelesAbiertos = computed(() => {
-  return panelesConDatos.value.map((_, index) => index);
+  return paneles.value.map((_, index) => index);
 });
 </script>
 
@@ -237,154 +236,157 @@ const panelesAbiertos = computed(() => {
         {{ incoterms }}
       </h4>
     </v-card-title>
-    <v-expansion-panels
-      multiple
-      class="px-5 py-2"
-      :model-value="panelesAbiertos"
-    >
-      <!-- Ahora iteramos sobre la propiedad computada filtrada -->
-      <v-expansion-panel
-        v-for="(panel, index) in panelesConDatos"
-        :key="index"
+    <v-form ref="frmCostos">
+      <v-expansion-panels
+        multiple
+        class="px-5 py-2"
+        :model-value="panelesAbiertos"
       >
-        <v-expansion-panel-title>
-          {{ panel.name }}
-          <v-btn
-            color="success"
-            size="small"
-            style="max-width: 370px"
-            @click.stop="abrirModal(panel.codigo)"
-            class="ml-auto"
-          >
-            Añadir Costo {{ panel.name }}
-          </v-btn>
-        </v-expansion-panel-title>
-        <v-expansion-panel-text>
-          <v-data-table
-            :headers="headers"
-            :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
-            density="compact"
-            hide-default-footer
-            :items-per-page="-1"
-          >
-            <template #[`item.servicio`]="{ item }">
-              <v-autocomplete
-                :items="lstServicios"
-                item-value="id"
-                item-title="service"
-                v-model="item.id_service"
-                variant="outlined"
-                density="compact"
-                hide-details
-              />
-            </template>
-            <template #[`item.multiplicador`]="{ item }">
-              <v-autocomplete
-                :items="lstMultiplicador"
-                item-value="id"
-                item-title="name"
-                v-model="item.id_multiplicador"
-                variant="outlined"
-                density="compact"
-                hide-details
-              />
-            </template>
-            <template #[`item.costo`]="{ item }">
-              <v-text-field
-                density="compact"
-                v-model="item.costo"
-                variant="outlined"
-                hide-details
-              />
-            </template>
-            <template #[`item.minimo`]="{ item }">
-              <v-text-field
-                v-if="item.considerarvalorminimoflag"
-                density="compact"
-                v-model="item.minimo"
-                variant="outlined"
-                hide-details
-              />
-            </template>
-            <template #[`item.precio`]="{ item }">
-              <v-text-field
-                density="compact"
-                v-model="item.precio"
-                type="number"
-                step="0.01"
-                variant="outlined"
-                hide-details
-              />
-            </template>
-            <template #[`item.status`]="{ item }">
-              <v-switch
-                v-model="item.status"
-                :true-value="1"
-                :false-value="0"
-              />
-            </template>
-            <template #[`item.proveedor`]="{ item }">
-              <v-autocomplete
-                density="compact"
-                item-title="namelong"
-                item-value="id"
-                :items="proveedorStore.lstProveedores"
-                v-model="item.id_proveedor"
-                @update:search="recargarProveedores"
-                hide-details
-                variant="outlined"
-              />
-            </template>
-            <template #[`item.considerarvalorminimoflag`]="{ item }">
-              <v-switch
-                v-model="item.considerarvalorminimoflag"
-                :label="`${item.considerarvalorminimoflag ? 'Si' : 'No'}`"
-              />
-            </template>
-            <template #[`item.action`]="{ item }">
-              <v-btn
-                variant="text"
-                color="success"
-                icon
-                @click="copiarCosto(item)"
-                v-if="item.id"
-              >
-                <v-icon>mdi-content-copy</v-icon>
-              </v-btn>
+        <v-expansion-panel
+          v-for="(panel, index) in paneles"
+          :key="index"
+        >
+          <v-expansion-panel-title>
+            {{ panel.name }}
+            <v-btn
+              color="success"
+              size="small"
+              style="max-width: 370px"
+              @click.stop="abrirModal(panel.codigo)"
+              class="ml-auto"
+            >
+              Añadir Costo {{ panel.name }}
+            </v-btn>
+          </v-expansion-panel-title>
+          <v-expansion-panel-text>
+            <v-data-table
+              :headers="headers"
+              :items="obtenerCostosEnBaseTipoCosto(panel.codigo)"
+              density="compact"
+              hide-default-footer
+              :items-per-page="-1"
+            >
+              <template #[`item.servicio`]="{ item }">
+                <v-autocomplete
+                  :items="lstServicios"
+                  item-value="id"
+                  item-title="service"
+                  v-model="item.id_service"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                />
+              </template>
+              <template #[`item.multiplicador`]="{ item }">
+                <v-autocomplete
+                  :items="lstMultiplicador"
+                  item-value="id"
+                  item-title="name"
+                  v-model="item.id_multiplicador"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                />
+              </template>
+              <template #[`item.costo`]="{ item }">
+                <v-text-field
+                  density="compact"
+                  v-model="item.costo"
+                  variant="outlined"
+                  hide-details
+                />
+              </template>
+              <template #[`item.minimo`]="{ item }">
+                <v-text-field
+                  v-if="item.considerarvalorminimoflag"
+                  density="compact"
+                  v-model="item.minimo"
+                  variant="outlined"
+                  :rules="[nonNegativeAmount]"
+                  hide-details="auto"
+                />
+              </template>
+              <template #[`item.precio`]="{ item }">
+                <v-text-field
+                  density="compact"
+                  v-model="item.precio"
+                  type="number"
+                  step="0.01"
+                  variant="outlined"
+                  :rules="[nonNegativeAmount]"
+                  hide-details="auto"
+                />
+              </template>
+              <template #[`item.status`]="{ item }">
+                <v-switch
+                  v-model="item.status"
+                  :true-value="1"
+                  :false-value="0"
+                />
+              </template>
+              <template #[`item.proveedor`]="{ item }">
+                <v-autocomplete
+                  density="compact"
+                  item-title="namelong"
+                  item-value="id"
+                  :items="proveedorStore.lstProveedores"
+                  v-model="item.id_proveedor"
+                  @update:search="recargarProveedores"
+                  hide-details
+                  variant="outlined"
+                />
+              </template>
+              <template #[`item.considerarvalorminimoflag`]="{ item }">
+                <v-switch
+                  v-model="item.considerarvalorminimoflag"
+                  :label="`${item.considerarvalorminimoflag ? 'Si' : 'No'}`"
+                />
+              </template>
+              <template #[`item.action`]="{ item }">
+                <v-btn
+                  variant="text"
+                  color="success"
+                  icon
+                  @click="copiarCosto(item)"
+                  v-if="item.id"
+                >
+                  <v-icon>mdi-content-copy</v-icon>
+                </v-btn>
 
-              <v-btn
-                variant="text"
-                color="red"
-                icon
-                @click="eliminarRegistro(item)"
-                v-if="item.id"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
+                <v-btn
+                  variant="text"
+                  color="red"
+                  icon
+                  @click="eliminarRegistro(item)"
+                  v-if="item.id"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
 
-              <v-btn
-                variant="text"
-                color="red"
-                icon
-                @click="quitarRegistro(item)"
-                v-if="!item.id"
-              >
-                <v-icon>mdi-delete</v-icon>
-              </v-btn>
+                <v-btn
+                  variant="text"
+                  color="red"
+                  icon
+                  @click="quitarRegistro(item)"
+                  v-if="!item.id"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
 
-              <v-chip
-                class="ma-2"
-                color="green"
-                variant="flat"
-                v-if="!item.id"
-              >
-                Nuevo
-              </v-chip>
-            </template>
-          </v-data-table>
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-    </v-expansion-panels>
+                <v-chip
+                  class="ma-2"
+                  color="green"
+                  variant="flat"
+                  v-if="!item.id"
+                >
+                  Nuevo
+                </v-chip>
+              </template>
+            </v-data-table>
+          </v-expansion-panel-text>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </v-form>
     <v-card-actions>
       <v-btn
         :loading="loading"
@@ -478,7 +480,7 @@ const panelesAbiertos = computed(() => {
                   label="Precio"
                   type="number"
                   min="0"
-                  :rules="[(v) => !!v || 'Dato requerido']"
+                  :rules="[nonNegativeAmount]"
                   v-model="fromDataService.precio"
                 />
               </v-col>
@@ -492,7 +494,7 @@ const panelesAbiertos = computed(() => {
                   type="number"
                   min="0"
                   v-if="mostrarMinimo(fromDataService)"
-                  :rules="[(v) => !!v || 'Dato requerido']"
+                  :rules="[nonNegativeAmount]"
                   v-model="fromDataService.minimo"
                 />
               </v-col>

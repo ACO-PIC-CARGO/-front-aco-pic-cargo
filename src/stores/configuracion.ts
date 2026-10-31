@@ -17,6 +17,7 @@ import type {
   TextoWhatsappFcl,
 } from "@/types/configuracion";
 import type { Multiplicador } from "@/types/cotizacion";
+import { request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useConfiguracionStore = defineStore("configuracion", () => {
@@ -91,23 +92,15 @@ export const useConfiguracionStore = defineStore("configuracion", () => {
       });
   }
 
-  async function setGuardarCostos(data: GuardarCostosPricing): Promise<void> {
-    await axios<ApiResponse>({
+  async function setGuardarCostos(data: GuardarCostosPricing): Promise<boolean> {
+    const response = await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "costo_pricing_actualizar",
       data: data,
       headers: { "Content-Type": "application/json" },
-    })
-      .then(function (response) {
-        const res = response.data;
-        Swal.fire({
-          icon: res.estadoflag ? "success" : "error",
-          text: res.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
 
   async function getTextWhatsapp(): Promise<void> {
@@ -173,23 +166,15 @@ export const useConfiguracionStore = defineStore("configuracion", () => {
       });
   }
 
-  async function EliminarCosto(data: CostoPricing): Promise<void> {
-    await axios<ApiResponse>({
+  async function EliminarCosto(data: CostoPricing): Promise<boolean> {
+    const response = await request({
       method: "delete",
       url: import.meta.env.VITE_URL_MAIN + "costo_eliminar",
       data: data,
       headers: { "Content-Type": "application/json" },
-    })
-      .then(function (response) {
-        const res = response.data;
-        Swal.fire({
-          icon: res.estadoflag ? "success" : "error",
-          text: res.mensaje,
-        });
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    });
+    Swal.fire({ icon: response.estadoflag ? "success" : "error", text: response.mensaje });
+    return response.estadoflag;
   }
 
   async function ObtenerIncotermsConfigCostos(data: FiltroIncotermsCostos): Promise<void> {
