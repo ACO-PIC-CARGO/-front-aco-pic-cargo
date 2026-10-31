@@ -259,8 +259,7 @@ async function modificarProveedor() {
   entitiesStore.isEdit = false;
 }
 
-onMounted(async () => {
-  await appStore.cargarClientes();
+onMounted(() => {
   console.log("isPricing", props.isPricing);
 });
 </script>

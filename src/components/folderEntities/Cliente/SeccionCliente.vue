@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -535,10 +535,6 @@ function obtenerFlag() {
   }
   return flag;
 }
-
-onMounted(async () => {
-  await appStore.cargarClientes();
-});
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function isPricingOption() {

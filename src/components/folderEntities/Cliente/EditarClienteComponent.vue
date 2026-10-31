@@ -26,6 +26,14 @@ const coinsStore = useCoinsStore();
 entitiesStore.lstProveedores_x_nombre = [];
 entitiesStore.lstProveedores_x_documento = [];
 
+function loadClientLocation() {
+  return Promise.all([
+    appStore._getState(entitiesStore.cliente.id_pais),
+    appStore._getCity(entitiesStore.informacionEntrega.id_departamento),
+    appStore._getTown(entitiesStore.informacionEntrega.id_provincia),
+  ]);
+}
+
 onMounted(async () => {
   entitiesStore.isReadonly = true;
   appStore.spiner = true;
@@ -42,13 +50,8 @@ onMounted(async () => {
     appStore._getSex(),
     masterusuariosStore.cargarTipoPersona(),
     appStore._getProveedorRolShipper(),
-    props.houseIdConsigner
-      ? entitiesStore.verCliente(props.houseIdConsigner)
-      : entitiesStore.verCliente(),
+    entitiesStore.verCliente(props.houseIdConsigner).then(loadClientLocation),
   ]);
-  await appStore._getState(entitiesStore.cliente.id_pais);
-  await appStore._getCity(entitiesStore.informacionEntrega.id_departamento);
-  await appStore._getTown(entitiesStore.informacionEntrega.id_provincia);
   appStore.spiner = false;
 
   const clientId = Number(route.params.id);

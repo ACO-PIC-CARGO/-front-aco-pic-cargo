@@ -21,24 +21,31 @@ const coinsStore = useCoinsStore();
 entitiesStore.lstProveedores_x_nombre = [];
 entitiesStore.lstProveedores_x_documento = [];
 
+function loadClientLocation() {
+  return Promise.all([
+    appStore._getState(entitiesStore.cliente.id_pais),
+    appStore._getCity(entitiesStore.informacionEntrega.id_departamento),
+    appStore._getTown(entitiesStore.informacionEntrega.id_provincia),
+  ]);
+}
+
 onMounted(async () => {
   appStore.spiner = true;
   //this.$refs.formProveedor.reset();
-  await appStore._getDocumentsPais();
-  await masterusuariosStore.cargarMasterDetalleTipoProveedor();
-  await appStore._getPais();
-  await masterusuariosStore.cargarMasterDetalleTipoTransaccion();
-  await masterusuariosStore.cargarTipoTelefono();
-  await appStore._getRole();
-  await coinsStore.getCoinsListCargar();
-  await bankStore.getBanksListCargar();
-  await appStore._getSex();
-  await masterusuariosStore.cargarTipoPersona();
-  await appStore._getProveedorRolShipper();
-  await entitiesStore.verCliente();
-  await appStore._getState(entitiesStore.cliente.id_pais);
-  await appStore._getCity(entitiesStore.informacionEntrega.id_departamento);
-  await appStore._getTown(entitiesStore.informacionEntrega.id_provincia);
+  await Promise.all([
+    appStore._getDocumentsPais(),
+    masterusuariosStore.cargarMasterDetalleTipoProveedor(),
+    appStore._getPais(),
+    masterusuariosStore.cargarMasterDetalleTipoTransaccion(),
+    masterusuariosStore.cargarTipoTelefono(),
+    appStore._getRole(),
+    coinsStore.getCoinsListCargar(),
+    bankStore.getBanksListCargar(),
+    appStore._getSex(),
+    masterusuariosStore.cargarTipoPersona(),
+    appStore._getProveedorRolShipper(),
+    entitiesStore.verCliente().then(loadClientLocation),
+  ]);
   appStore.spiner = false;
 
   entitiesStore.stepper = 1;
