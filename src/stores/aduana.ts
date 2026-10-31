@@ -60,6 +60,7 @@ import {
 import { userIdAtAppLoad } from "@/utils/appLoad";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
+import { latestRequestTracker } from "@/utils/latestRequest";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
@@ -2138,7 +2139,11 @@ export const useAduanaStore = defineStore("aduana", () => {
       datosEmpresa.value = data;
     });
   }
+  const startPortBeginRequest = latestRequestTracker();
+  const startPortEndRequest = latestRequestTracker();
+
   async function getPortBeginAduana({ id_transport = 0, id = null, search = null }: FiltroPuertos): Promise<void> {
+    const isLatest = startPortBeginRequest();
     const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "getPortBegin",
@@ -2154,13 +2159,14 @@ export const useAduanaStore = defineStore("aduana", () => {
     };
     await axios<ApiResponse<Puerto[]>>(config)
       .then(function (response) {
-        setListPortBegin(response.data.data);
+        if (isLatest()) setListPortBegin(response.data.data);
       })
       .catch(function (error) {
         console.error(error);
       });
   }
   async function getPortEndAduana({ id_transport = 0, id = null, search = null }: FiltroPuertos): Promise<void> {
+    const isLatest = startPortEndRequest();
     const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "getPortEnd",
@@ -2176,7 +2182,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     };
     await axios<ApiResponse<Puerto[]>>(config)
       .then(function (response) {
-        setListPortEnd(response.data.data);
+        if (isLatest()) setListPortEnd(response.data.data);
       })
       .catch(function (error) {
         console.error(error);

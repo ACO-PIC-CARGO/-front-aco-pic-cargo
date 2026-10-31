@@ -12,6 +12,7 @@ import { invalidMultiplierMessage } from "@/components/folderPricing/quoteRules"
 import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const props = defineProps<{
   valores: Costo[];
@@ -243,7 +244,7 @@ async function nuevoProveedor() {
     search: null,
   });
 }
-async function recargarProveedores(e: string | null) {
+const recargarProveedores = useDebouncedSearch(async (e: string | null) => {
   const opciones = [...pricingStore.opcionCostos];
   const IdProveedor: Costo["id_proveedor"][] = [];
   opciones.forEach((opcion) => {
@@ -256,7 +257,7 @@ async function recargarProveedores(e: string | null) {
     id: IdProveedor.join(","),
     search: e,
   });
-}
+});
 function isITBM(code: Numerico) {
   return code == 38 ? true : false;
 }

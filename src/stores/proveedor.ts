@@ -5,12 +5,15 @@ import axios from "@/api/http";
 import router from "@/router";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroProveedorPricing, ProveedorPricing } from "@/types/entidades";
+import { latestRequestTracker } from "@/utils/latestRequest";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useProveedorStore = defineStore("proveedor", () => {
   const lstProveedores = ref<ProveedorPricing[]>([]);
+  const startProviderSearch = latestRequestTracker();
 
   async function obtenerProveedorPricing(data: FiltroProveedorPricing): Promise<void> {
+    const isLatest = startProviderSearch();
     data.id_branch = sessionBranchId();
     await axios<ApiResponse<ProveedorPricing[]>>({
       method: "get",
@@ -20,6 +23,7 @@ export const useProveedorStore = defineStore("proveedor", () => {
     })
       .then((response) => {
         const data = response.data;
+        if (!isLatest()) return;
         if (data.estadoflag) {
           lstProveedores.value = data.data;
         } else {

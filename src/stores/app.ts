@@ -48,6 +48,7 @@ import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { dataBranchAtAppLoad } from "@/utils/appLoad";
 import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import { latestRequestTracker } from "@/utils/latestRequest";
 import { shareWhilePending } from "@/utils/sharedRequest";
 
 // getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
@@ -992,7 +993,11 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
+  const startPortBeginRequest = latestRequestTracker();
+  const startPortEndRequest = latestRequestTracker();
+
   async function _getPortBegin({ id_transport = 0, id = null, search = null }: FiltroPuertos): Promise<void> {
+    const isLatest = startPortBeginRequest();
     const data = JSON.stringify({
       id_transport: id_transport,
       id_branch: sessionBranchId(),
@@ -1009,7 +1014,7 @@ export const useAppStore = defineStore("app", () => {
     };
     await axios<ApiResponse<Puerto[]>>(config)
       .then(function (response) {
-        _setPortBegin(response.data.data || []);
+        if (isLatest()) _setPortBegin(response.data.data || []);
       })
       .catch(function (error) {
         console.error(error);
@@ -1017,6 +1022,7 @@ export const useAppStore = defineStore("app", () => {
   }
 
   async function _getPortEnd({ id_transport = 0, id = null, search = null }: FiltroPuertos): Promise<void> {
+    const isLatest = startPortEndRequest();
     const data = JSON.stringify({
       id_transport: id_transport,
       id_branch: sessionBranchId(),
@@ -1034,7 +1040,7 @@ export const useAppStore = defineStore("app", () => {
     };
     await axios<ApiResponse<Puerto[]>>(config)
       .then(function (response) {
-        _setPortEnd(response.data.data || []);
+        if (isLatest()) _setPortEnd(response.data.data || []);
       })
       .catch(function () {});
   }

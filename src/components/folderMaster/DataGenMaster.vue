@@ -10,6 +10,7 @@ import { usePricingStore } from "@/stores/pricing";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionParaMaster } from "@/types/operacionesMaster";
 import { sessionSucursal, sessionUser } from "@/utils/sesion";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
@@ -386,20 +387,20 @@ function handleSentido() {
     mastersStore.master_id_notify = "";
   }
 }
-async function recargarPuertoOrigen(textoBuscar: string) {
+const recargarPuertoOrigen = useDebouncedSearch(async (textoBuscar: string) => {
   await appStore._getPortBegin({
     id_transport: id_transport.value as number,
     id: appStore.master_origen,
     search: textoBuscar,
   });
-}
-async function recargarPuertoDestino(textoBuscar: string) {
+});
+const recargarPuertoDestino = useDebouncedSearch(async (textoBuscar: string) => {
   await appStore._getPortEnd({
     id_transport: id_transport.value as number,
     id: appStore.master_destino,
     search: textoBuscar,
   });
-}
+});
 
 onMounted(async () => {
   const branch = sessionSucursal();

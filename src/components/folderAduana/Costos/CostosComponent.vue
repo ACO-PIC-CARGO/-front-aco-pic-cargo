@@ -8,6 +8,7 @@ import { useEntitiesStore } from "@/stores/entities";
 import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const props = defineProps<{
   valores: Costo[];
@@ -190,7 +191,7 @@ const tipoOpcion = computed(() => {
   return tipoOpcion;
 });
 
-async function recargarProveedores(e: string) {
+const recargarProveedores = useDebouncedSearch(async (e: string) => {
   const opciones = [...aduanaStore.opcionCostos];
   const IdProveedor: Costo["id_proveedor"][] = [];
   opciones.forEach((opcion) => {
@@ -203,7 +204,7 @@ async function recargarProveedores(e: string) {
     id: IdProveedor.join(","),
     search: e,
   });
-}
+});
 async function nuevoProveedor() {
   const res = await entitiesStore.guardarProveedor();
   if (!!res.estadoflag) {

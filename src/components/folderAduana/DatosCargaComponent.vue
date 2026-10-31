@@ -14,6 +14,7 @@ import type {
   TipoCarga,
   TotalMedidaCarga,
 } from "@/types/cotizacion";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 
 const props = withDefaults(
   defineProps<{ mostrarBtn?: boolean; abrirModalContenedorRecargar?: boolean }>(),
@@ -177,7 +178,7 @@ async function abrirModalContenedorSombreadoWatcher() {
   }
 }
 
-async function recargarPuertoOrigen(textoBuscar: string) {
+const recargarPuertoOrigen = useDebouncedSearch(async (textoBuscar: string) => {
   const idtipocarga =
     typeof aduanaStore.datosPrincipales.idtipocarga ===
     "object"
@@ -193,8 +194,8 @@ async function recargarPuertoOrigen(textoBuscar: string) {
     id: aduanaStore.datosPrincipales.idorigen,
     search: textoBuscar,
   });
-}
-async function recargarPuertoDestino(textoBuscar: string) {
+});
+const recargarPuertoDestino = useDebouncedSearch(async (textoBuscar: string) => {
   const idtipocarga =
     typeof aduanaStore.datosPrincipales.idtipocarga ===
     "object"
@@ -208,7 +209,7 @@ async function recargarPuertoDestino(textoBuscar: string) {
     id: aduanaStore.datosPrincipales.iddestino,
     search: textoBuscar,
   });
-}
+});
 async function anadirCarga() {
   if ((await frmDatosCarga.value!.validate()).valid) {
     aduanaStore.datosPrincipales.numerobultos =
