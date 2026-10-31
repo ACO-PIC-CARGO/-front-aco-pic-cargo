@@ -111,4 +111,26 @@ describe("saving a quote", () => {
     expect(await quote().updateQuote()).toBe(false);
     expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "error", text: message }));
   });
+
+  test("crearCarpetaOneDrive asks for the folder of the saved quote and returns its url", async () => {
+    respond({ "crear-carpeta-cotizacion": accepted("https://drive/new") });
+    const pricing = quote();
+    pricing.id = 501;
+
+    await expect(pricing.crearCarpetaOneDrive({ nro_quote: "15000-P", nombre: "ZEVALLOS" })).resolves.toBe("https://drive/new");
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({
+      method: "get",
+      url: URL_MAIN + "crear-carpeta-cotizacion",
+      params: { id_quote: 501 },
+    });
+  });
+
+  test.each([
+    ["refuses", { estadoflag: false, mensaje: "La carpeta solo se crea en producción", tipomensaje: "TMSGERR", data: null }],
+    ["fails", new Error("Network Error")],
+  ])("crearCarpetaOneDrive gives no url when the folder service %s", async (_, answer) => {
+    respond({ "crear-carpeta-cotizacion": answer });
+
+    await expect(quote().crearCarpetaOneDrive({ id_quote: 501 })).resolves.toBeNull();
+  });
 });

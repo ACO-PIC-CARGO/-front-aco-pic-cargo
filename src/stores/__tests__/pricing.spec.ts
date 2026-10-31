@@ -1897,17 +1897,6 @@ describe("pricing store", () => {
       expect(pricing.textWhatsapp).toEqual([{ texto_link: "link" }]);
     });
 
-    test("crearCarpetaOneDrive returns the new folder url, or null when the request fails", async () => {
-      respond({ "crear-carpeta-cotizacion": accepted("https://drive/new") });
-      const pricing = usePricingStore();
-
-      await expect(pricing.crearCarpetaOneDrive({ nro_quote: "15000-P", nombre: "ZEVALLOS" })).resolves.toBe("https://drive/new");
-      expect(sentConfig("crear-carpeta-cotizacion")!.url).toBe(URL_MAIN + "crear-carpeta-cotizacion?nombrecotizacion=15000-P-ZEVALLOS");
-
-      respond({ "crear-carpeta-cotizacion": new Error("down") });
-      await expect(pricing.crearCarpetaOneDrive({})).resolves.toBeNull();
-    });
-
     test("getInstructivoId and obtenerDatosEmpresa read the quote instructivo and the branch data", async () => {
       respond({ "getInstructivoId/77": accepted([{ expediente: "E" }]), "getBranch/1": accepted([{ business_name: "PIC" }]) });
       const pricing = usePricingStore();
