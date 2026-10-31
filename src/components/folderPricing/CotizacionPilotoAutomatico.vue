@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
-import { useAppStore } from "@/stores/app";
 import moment from "moment";
+import Swal from "sweetalert2";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
+import { useSpecialCostAmounts } from "@/composables/useSpecialCostAmounts";
 import { useProveedorStore } from "@/stores/proveedor";
 import { usePricingStore } from "@/stores/pricing";
 import { calcularValor, currencyFormat } from "@/utils/cotizacion";
@@ -12,7 +13,6 @@ import type { Costo, Numerico } from "@/types/cotizacion";
 const emit = defineEmits<{ close: [] }>();
 
 const router = useRouter();
-const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const proveedorStore = useProveedorStore();
 const { calcularFac } = useCotizacionCalculos();
@@ -41,67 +41,40 @@ const resumenOpcionVentas = ref({
   almacen: 0,
   gastostercero: 0,
 });
-const valores = usePricingStore().opcionCostos[0]!.listCostos.filter(
+const opcion = pricingStore.opcionCostos[pricingStore.index] ?? pricingStore.opcionCostos[0]!;
+const valores = opcion.listCostos.filter(
   (v) => v.esopcionflag == 1 && v.costounitario == 0,
 );
-const valoresVentas = usePricingStore().opcionCostos[0]!.listCostos.filter(
+const valoresVentas = opcion.listCostos.filter(
   (v) => v.esventaflag == 1,
 );
 let totalOption: number | undefined;
 const isImport = undefined as boolean | undefined;
-// Not defined anywhere, so calling these throws.
-const montoConfeccion = undefined as unknown as (valor: Costo) => string;
-const montoITBM = undefined as unknown as (valor: Costo) => string;
-const montoNotaCredito = undefined as unknown as (valor: Costo) => string;
+const { confeccionAmount, itbmAmount, creditNoteAmount } = useSpecialCostAmounts();
+const optionCosts = () => opcion.listCostos.filter((v) => v.esopcionflag == 1);
+const montoConfeccion = (valor: Costo) => confeccionAmount(valor);
+const montoITBM = (valor: Costo) => itbmAmount(valor, optionCosts());
+const montoNotaCredito = (valor: Costo) => creditNoteAmount(valor, optionCosts());
 const frmFecha = useTemplateRef("frmFecha");
-// Not defined anywhere, so clicking the button throws.
-const eliminarCostos = undefined as unknown as (args: { costo: Costo }) => void;
-const abrirModalRegistroProveedor = undefined as unknown as (valor: Costo) => void;
+const finishing = ref(false);
 
-const mostrarOrigen = computed(() => {
-  return mostrarOrigenFlag.value;
-});
-const mostrarLocal = computed(() => {
-  return mostrarLocalFlag.value;
-});
-const mostrarAduana = computed(() => {
-  return mostrarAduanaFlag.value;
-});
-const mostrarAlmacen = computed(() => {
-  return mostrarAlmacenFlag.value;
-});
-const mostrarGastosTerceros = computed(() => {
-  return mostrarGastosTercerosFlag.value;
-});
 const isFlete = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.esfleteflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.esfleteflag == 1 && v.status == 1);
 });
 const isOrigen = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.esorigenflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.esorigenflag == 1 && v.status == 1);
 });
 const isLocal = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.eslocalflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.eslocalflag == 1 && v.status == 1);
 });
 const isAduana = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.esaduanaflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.esaduanaflag == 1 && v.status == 1);
 });
 const isAlmacen = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.esalmacenflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.esalmacenflag == 1 && v.status == 1);
 });
 const isGastosTercero = computed(() => {
-  return pricingStore.opcionCostos[
-    pricingStore.index
-  ]!.listCostos.some((v) => v.esgastostercerosflag == 1 && v.status == 1);
+  return opcion.listCostos.some((v) => v.esgastostercerosflag == 1 && v.status == 1);
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const mostrarFleteExport = computed(() => {
@@ -153,55 +126,47 @@ function isDateValid(date: string) {
 
   return selectedDate.isAfter(today);
 }
+function hasCostsAtZero() {
+  return valores.some(
+    (v) =>
+      v.status == 1 &&
+      isNotPorcentaje(v, v.id_multiplicador) &&
+      !isITBM(v.code_cost) &&
+      !isConfeccion(v.code_cost) &&
+      !isNotaCredito(v.code_cost) &&
+      !(Number(v.costounitario) > 0),
+  );
+}
+function profitLine(): Costo {
+  return {
+    id: "",
+    code_cost: "0",
+    ventaFlag: 0,
+    esopcionflag: 0,
+    id_begend: 0,
+    costounitario: Number(profit.value),
+    esorigenflag: 0,
+    eslocalflag: 1,
+    esaduanaflag: 0,
+    esalmacenflag: 0,
+    seguro: 0,
+    cif: 0,
+    esventaflag: 1,
+    status: 1,
+    id_groupservices: 0,
+    id_multiplicador: pricingStore.listMultiplicador.find((v) => Number(v.code) == 1)?.id,
+    id_proveedor: 0,
+    nameservice: "PROFIT",
+  };
+}
 async function continuar(step: number) {
-  pricingStore.tiporeporte = "AGRUPADO";
   if (step == 2 && !(await frmFecha.value!.validate()).valid) {
     return;
   }
-  if (step === 5) {
-    console.log(pricingStore.listMultiplicador);
-    const idEmbarque = pricingStore.listMultiplicador.filter(
-      (v) => Number(v.code) == 1,
-    )[0]!.id;
-    const flags = { origin: 0, local: 0, aduana: 0, almacen: 0, terceros: 0 };
-    if (mostrarOrigen.value) {
-      flags.origin = 1;
-    } else if (mostrarLocal.value) {
-      flags.local = 1;
-    } else if (mostrarAduana.value) {
-      flags.aduana = 1;
-    } else if (mostrarAlmacen.value) {
-      flags.almacen = 1;
-    } else if (mostrarGastosTerceros.value) {
-      flags.terceros = 1;
-    }
-    const fromDataService = {
-      id: "",
-      code_cost: "0",
-      ventaFlag: 0,
-      esopcionflag: 0,
-      id_begend: 0,
-      costounitario: Number(profit.value),
-      esorigenflag: 0,
-      eslocalflag: 1,
-      esaduanaflag: 0,
-      esalmacenflag: 0,
-      seguro: 0,
-      cif: 0,
-      esventaflag: 1,
-      status: 1,
-      id_groupservices: 0,
-      id_multiplicador: idEmbarque,
-      id_proveedor: 0,
-      nameservice: "PROFIT",
-    };
-    pricingStore.opcionCostos[0]!.listCostos.push(
-      fromDataService,
-    );
-    setTimeout(() => {
-      console.log(valoresVentas);
-    }, 500);
-    }
+  if (step == 3 && hasCostsAtZero()) {
+    Swal.fire({ icon: "warning", text: "Completa los costos que están en 0 antes de continuar." });
+    return;
+  }
   e6.value = step;
 }
 function cancelar() {
@@ -209,13 +174,15 @@ function cancelar() {
 }
 
 function copiarCostostoVentas() {
-  const costos = pricingStore.opcionCostos[0]!.listCostos.filter(
+  const costos = opcion.listCostos.filter(
     (v) => v.esopcionflag == 1,
   );
   valoresVentas
     .filter((v) => v.status == 1)
     .forEach((venta) => {
-      const costo = costos.find((c) => c.nameservice == venta.nameservice);
+      const costo =
+        costos.find((c) => !!c.code_cost && c.code_cost == venta.code_cost) ??
+        costos.find((c) => c.nameservice == venta.nameservice);
       if (costo) {
         venta.costounitario = costo.costounitario;
         venta.id_multiplicador = costo.id_multiplicador;
@@ -1066,8 +1033,18 @@ function isNotaCredito(code: Numerico) {
   return code == 69 ? true : false;
 }
 async function editarCotizacion() {
-  appStore.spiner = false;
-  await pricingStore.updateQuote();
+  if (finishing.value) return;
+  finishing.value = true;
+  const profitCost = profitLine();
+  opcion.listCostos.push(profitCost);
+  let saved = false;
+  try {
+    saved = await pricingStore.updateQuote();
+  } finally {
+    finishing.value = false;
+    if (!saved) opcion.listCostos.splice(opcion.listCostos.indexOf(profitCost), 1);
+  }
+  if (!saved) return;
 
   router.push({
     name: "verQuote",
@@ -1078,7 +1055,6 @@ async function editarCotizacion() {
         : 1,
     },
   });
-  appStore.spiner = false;
   emit("close");
 }
 
@@ -1114,12 +1090,9 @@ onMounted(() => {
               md="6"
             >
               <v-text-field
-                v-model="
-                  pricingStore.opcionCostos[pricingStore.index]!
-                    .date_end
-                "
+                v-model="opcion.date_end"
                 type="date"
-                label="`Fecha Validez de la cotización`"
+                label="Fecha de validez de la cotización"
                 :rules="[
                   (v) => !!v || 'Dato Requerido',
                   (v) => isDateValid(v) || 'La fecha debe ser mayor que hoy.',
@@ -1131,12 +1104,9 @@ onMounted(() => {
               md="6"
             >
               <v-text-field
-                v-model="
-                  pricingStore.opcionCostos[pricingStore.index]!
-                    .tiempo_transito
-                "
+                v-model="opcion.tiempo_transito"
                 type="number"
-                label="`Tiempo en tránsito de la Opción`"
+                label="Tiempo en tránsito de la opción"
                 :rules="[
                   (v) => !!v || 'Dato Requerido',
                   (v) => v > 0 || 'El valor tiene que ser positivo.',
@@ -1150,15 +1120,15 @@ onMounted(() => {
                 color="primary"
                 @click="continuar(2)"
               >
-                Continue
+                Continuar
               </v-btn>
               <v-btn
                 size="small"
                 class="mx-1"
                 color="error"
-                @click="cancelar"
+                @click="emit('close')"
               >
-                Cancel
+                Cancelar
               </v-btn>
             </v-col>
           </v-row>
@@ -1173,7 +1143,6 @@ onMounted(() => {
         <v-table density="compact">
           <thead>
             <tr>
-              <th />
               <th style="">
                 Proveedor
               </th>
@@ -1199,17 +1168,6 @@ onMounted(() => {
               v-for="(valor, i) in valores.filter((v) => v.status == 1)"
               :key="i"
             >
-              <td class="btnAccion">
-                <v-btn
-                  variant="text"
-                  icon
-                  color="red"
-                  size="x-small"
-                  @click="eliminarCostos({ costo: valor })"
-                >
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </td>
               <td class="colProveedorMultiplicador">
                 <v-autocomplete
                   density="compact"
@@ -1220,15 +1178,7 @@ onMounted(() => {
                   @update:search="recargarProveedores"
                   hide-details
                   menu-icon=""
-                >
-                  <template #append-inner>
-                    <v-icon
-                      icon="mdi-plus"
-                      @mousedown.stop
-                      @click.stop="abrirModalRegistroProveedor(valor)"
-                    />
-                  </template>
-                </v-autocomplete>
+                />
               </td>
               <td class="colConcepto">
                 <v-text-field
@@ -1458,7 +1408,7 @@ onMounted(() => {
           color="primary"
           @click="continuar(3)"
         >
-          Continue
+          Continuar
         </v-btn>
         <v-btn
           size="small"
@@ -1466,7 +1416,7 @@ onMounted(() => {
           color="error"
           @click="cancelar"
         >
-          Cancel
+          Atrás
         </v-btn>
       </v-stepper-vertical-item>
 
@@ -1500,7 +1450,8 @@ onMounted(() => {
           <v-col cols="12">
             <v-text-field
               v-model="profit"
-              type="numer"
+              type="number"
+              label="Profit"
               step="0.01"
             />
           </v-col>
@@ -1510,7 +1461,7 @@ onMounted(() => {
               color="primary"
               @click="continuar(5)"
             >
-              Continue
+              Continuar
             </v-btn>
             <v-btn
               size="small"
@@ -1518,7 +1469,7 @@ onMounted(() => {
               color="error"
               @click="cancelar"
             >
-              Cancel
+              Atrás
             </v-btn>
           </v-col>
         </v-row>
@@ -1529,6 +1480,7 @@ onMounted(() => {
       >
         <v-btn
           color="success"
+          :loading="finishing"
           @click="editarCotizacion"
         >
           Finalizar
