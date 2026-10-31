@@ -10,6 +10,9 @@ const ROUTES = appRoutes();
 const currentRouteName = (page) => routeNameForPath(ROUTES, new URL(page.url()).pathname);
 
 const RUNTIME_PROBLEM = /^(Uncaught )?\w*Error\b|\[Vue warn\]|\[Vue Router warn\]/;
+// The local backend holds the real SMTP account; these routes would mail real clients from the production copy.
+const ROUTES_THAT_SEND_MAIL = /\/(sendNotificacionHouse|registro_nueva_empresa|insertar_enterprise\/?|gen_link_resset)(\?|$)/;
+const MAIL_NOT_SENT = { status: 200, statusBol: true, estadoflag: true, mensaje: "E2E: el correo no se envió.", tipomensaje: "TMSGINF", data: [] };
 
 export const test = base.extend({
   authenticated: [true, { option: true }],
@@ -23,6 +26,7 @@ export const test = base.extend({
         window.sessionStorage.setItem("e2e-session-restored", "1");
       }, saved);
     }
+    await page.route(ROUTES_THAT_SEND_MAIL, (route) => route.fulfill({ json: MAIL_NOT_SENT }));
     await reportAppVersionAsServerVersion(page);
     await stubRequestsThatCrashTheBackend(page);
     const problems = [];
