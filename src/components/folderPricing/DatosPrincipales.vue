@@ -95,13 +95,11 @@ watch(
 onMounted(async () => {
   frmDatosPrincipales.value!.resetValidation();
   appStore._getProveedor();
-  setTimeout(async () => {
-    servicesActuales.value = pricingStore.listServices;
-    if (route.name === "editQuote") {
-      idincoterms.value = pricingStore.datosPrincipales.idincoterms;
-    }
-    // await this.GetArchivos();
-  }, 500);
+  servicesActuales.value = pricingStore.listServices;
+  if (route.name === "editQuote") {
+    idincoterms.value = pricingStore.datosPrincipales.idincoterms;
+  }
+  // await this.GetArchivos();
 
   // this.mostrar = true;
 });

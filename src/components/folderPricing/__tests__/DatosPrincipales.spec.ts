@@ -43,14 +43,42 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount();
   vi.unstubAllGlobals();
+  vi.useRealTimers();
 });
 
-async function changeIncotermInEdit({ saved, folderUrl }: { saved: boolean; folderUrl: string | null }) {
+async function openQuoteInEdit() {
   const pinia = createPinia();
   setActivePinia(pinia);
   const pricing = usePricingStore();
   pricing.listIncoterms = [{ id: 9, name: "FOB" }, { id: 10, name: "EXW" }];
   pricing.datosPrincipales = { idincoterms: 9, idsentido: 1, idtipocarga: 3 };
+  wrapper = mount(
+    defineComponent({ components: { DatosPrincipales }, template: "<v-app><DatosPrincipales /></v-app>" }),
+    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
+  );
+  await flushPromises();
+  return pricing;
+}
+
+async function chooseIncoterm(pricing: ReturnType<typeof usePricingStore>, id: number) {
+  const incoterms = wrapper!.findAllComponents({ name: "VAutocomplete" }).find((field) => field.props("label") === "Incoterms")!;
+  pricing.datosPrincipales.idincoterms = id;
+  incoterms.vm.$emit("update:modelValue", id);
+  await flushPromises();
+}
+
+test("cancelling a new incoterm right after the quote opens puts back the quote's incoterm", { timeout: 15_000 }, async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+  vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+  const pricing = await openQuoteInEdit();
+
+  await chooseIncoterm(pricing, 10);
+
+  expect(pricing.datosPrincipales.idincoterms).toBe(9);
+});
+
+async function changeIncotermInEdit({ saved, folderUrl }: { saved: boolean; folderUrl: string | null }) {
+  const pricing = await openQuoteInEdit();
   vi.spyOn(pricing, "registrarQuotePorCambioIncoterms").mockImplementation(async () => {
     if (!saved) return rejected("El puerto de origen elegido no pertenece a tu empresa. Elige uno de la lista e intenta de nuevo.");
     pricing.id = 610;
@@ -60,16 +88,7 @@ async function changeIncotermInEdit({ saved, folderUrl }: { saved: boolean; fold
   const crearCarpeta = vi.spyOn(pricing, "crearCarpetaOneDrive").mockResolvedValue(folderUrl);
   vi.spyOn(pricing, "actualizarURLEnElQuote").mockResolvedValue();
 
-  wrapper = mount(
-    defineComponent({ components: { DatosPrincipales }, template: "<v-app><DatosPrincipales /></v-app>" }),
-    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
-  );
-  await flushPromises();
-  await new Promise((resolve) => setTimeout(resolve, 600));
-  const incoterms = wrapper.findAllComponents({ name: "VAutocomplete" }).find((field) => field.props("label") === "Incoterms")!;
-  pricing.datosPrincipales.idincoterms = 10;
-  incoterms.vm.$emit("update:modelValue", 10);
-  await flushPromises();
+  await chooseIncoterm(pricing, 10);
   await new Promise((resolve) => setTimeout(resolve, 600));
   await flushPromises();
   return { pricing, crearCarpeta };
