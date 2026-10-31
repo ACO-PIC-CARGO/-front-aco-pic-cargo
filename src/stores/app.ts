@@ -176,8 +176,6 @@ export const useAppStore = defineStore("app", () => {
   const itemsOperadorList = ref<OperadorRaiz[]>([]);
   const itemsProveedorList = ref<ProveedorRolRaiz[]>([]);
   const itemsReportFileAll = ref<ExpedienteMasterReporte[]>([]);
-  const itemsReportFileAllMaster = ref<FilaRaiz[]>([]);
-  const itemsTotalesAll = ref<FilaRaiz[]>([]);
   const itemsDataControl = ref<ControlRaiz[]>([]);
   const itemsDataIngresos = ref<FilaRaiz[]>([]);
   const itemsDataIngresosList = ref<FilaRaiz[]>([]);
@@ -356,8 +354,6 @@ export const useAppStore = defineStore("app", () => {
   const itemsBegEndListGetter = computed(() => itemsBegEndList.value);
   const itemsOperadorListGetter = computed(() => itemsOperadorList.value);
   const itemsReportFileAllGetter = computed(() => itemsReportFileAll.value);
-  const itemsReportFileAllMasterGetter = computed(() => itemsReportFileAllMaster.value);
-  const itemsTotalesAllGetter = computed(() => itemsTotalesAll.value);
   const itemsDataControlGetter = computed(() => itemsDataControl.value);
   const itemsDataIngresosGetter = computed(() => itemsDataIngresos.value);
   const itemsDataIngresosListGetter = computed(() => itemsDataIngresosList.value);
@@ -599,17 +595,6 @@ export const useAppStore = defineStore("app", () => {
 
     reportStatusTable.value = false;
     reportsDialog.value = false;
-  }
-
-  function _setItemsReportFileAllMaster(datas: FilaRaiz[]): void {
-    itemsReportFileAllMaster.value = [];
-    itemsReportFileAllMaster.value = datas;
-    reportStatusTable.value = false;
-    reportsDialog.value = false;
-  }
-
-  function _setItemsTotalesAll(data: FilaRaiz[]): void {
-    itemsTotalesAll.value = data;
   }
 
   function _setItemsPhone(data: FilaConIdRaiz[]): void {
@@ -1517,125 +1502,6 @@ export const useAppStore = defineStore("app", () => {
       });
   }
 
-  async function _getControlFileAllMaster(): Promise<void> {
-    const data = {
-      id_branch: sessionBranchId(),
-    };
-    reportStatusTable.value = true;
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getControlFileAllMaster",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
-      .then(function (response) {
-        _setItemsReportFileAllMaster(response.data.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-
-  async function _getControlFileAllFilter(): Promise<void> {
-    reportStatusTable.value = true;
-    const data = {
-      idsentido: report_id_sentido.value,
-      idOperador: report_id_operador.value,
-      idStatus: report_id_status.value,
-      idStatusAdm: report_id_status_adm.value,
-      fecha_ini: reportFecha_ini.value,
-      fecha_fin: reportFecha_fin.value,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getControlFileAllFilter",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<ExpedienteMasterReporte[]>>(config)
-      .then(function (response) {
-        _setItemsReportFileAll(response.data.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-
-  async function _getControlFileAllFilterMaster(): Promise<void> {
-    reportStatusTable.value = true;
-    const data = {
-      idsentido: report_id_sentido.value,
-      fecha_ini: reportFecha_ini.value,
-      fecha_fin: reportFecha_fin.value,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getControlFileAllFilterMaster",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
-      .then(function (response) {
-        _setItemsReportFileAllMaster(response.data.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-
-  async function _getTotalesAll(): Promise<void> {
-    reportStatusTable.value = true;
-
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getTotalesAll",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
-      .then(function (response) {
-        _setItemsTotalesAll(response.data.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-
-  async function _getTotales(): Promise<void> {
-    reportStatusTable.value = true;
-    const data = {
-      idsentido: report_id_sentido.value,
-      idOperador: report_id_operador.value,
-      idStatus: report_id_status.value,
-      idStatusAdm: report_id_status_adm.value,
-      fecha_ini: reportFecha_ini.value,
-      fecha_fin: reportFecha_fin.value,
-    };
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getTotales",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse<FilaRaiz[]>>(config)
-      .then(function (response) {
-        _setItemsTotalesAll(response.data.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
-  }
-
   async function _addPhones(id_entities: Numerico): Promise<void> {
     itemsListPhone.value.push({
       id: phone_id.value.id,
@@ -2308,8 +2174,6 @@ export const useAppStore = defineStore("app", () => {
     itemsOperadorList,
     itemsProveedorList,
     itemsReportFileAll,
-    itemsReportFileAllMaster,
-    itemsTotalesAll,
     itemsDataControl,
     itemsDataIngresos,
     itemsDataIngresosList,
@@ -2474,8 +2338,6 @@ export const useAppStore = defineStore("app", () => {
     itemsBegEndListGetter,
     itemsOperadorListGetter,
     itemsReportFileAllGetter,
-    itemsReportFileAllMasterGetter,
-    itemsTotalesAllGetter,
     itemsDataControlGetter,
     itemsDataIngresosGetter,
     itemsDataIngresosListGetter,
@@ -2541,8 +2403,6 @@ export const useAppStore = defineStore("app", () => {
     _setItemsDataAccountsNumberList,
     _setItemsDataControlList,
     _setItemsReportFileAll,
-    _setItemsReportFileAllMaster,
-    _setItemsTotalesAll,
     _setItemsPhone,
     _setItemsContacts,
     _setPerfomance,
@@ -2590,11 +2450,6 @@ export const useAppStore = defineStore("app", () => {
     _getHouseServices,
     _getBegEndList,
     _getControlFileAll,
-    _getControlFileAllMaster,
-    _getControlFileAllFilter,
-    _getControlFileAllFilterMaster,
-    _getTotalesAll,
-    _getTotales,
     _addPhones,
     _addContacts,
     ListarPhones,
