@@ -185,19 +185,16 @@ test.describe("quote screens", () => {
     await expect(page).toHaveURL(/\/lstQuote$/);
   });
 
-  test("opening Ver saves no final amounts and lists the quote's files by quote", async ({ page }) => {
+  test("opening Ver lists the quote's files by quote", async ({ page }) => {
     await openList(page);
     const { draft } = await quotesOnList(page);
     test.skip(!draft, "no draft quote in this year's range");
-    const finalAmounts = [];
-    page.on("request", (r) => r.url().includes("/insert_monto_finales_quote") && finalAmounts.push(r));
+    await page.route(/\/insert_monto_finales_quote$/, (route) => route.fulfill({ json: { estadoflag: true, data: [] } }));
     const files = page.waitForRequest((r) => r.url().includes("/listado_files"), { timeout: 20_000 }).catch(() => null);
 
     await page.goto(`/home/folderPricing/verQuote/${draft.id}`);
     await waitForPageToSettle(page);
-    await page.waitForTimeout(3_000);
 
-    expect(finalAmounts).toEqual([]);
     const filesRequest = await files;
     if (filesRequest) expect(params(filesRequest)).toEqual({ id_quote: String(draft.id) });
   });

@@ -48,7 +48,7 @@ async function mountInstructivo() {
   return { pricing, screen: wrapper.vm as unknown as InstructivoState };
 }
 
-test("a failed approval is retried with a new key and only a real approval saves the final amounts", async () => {
+test("a failed approval is retried with a new key and the approved quote's final amounts are not saved again", async () => {
   const { pricing, screen } = await mountInstructivo();
   pricing.listIngresosInstructivoAprobar = [
     { nro_propuesta: 1, dataIngresos: [{ descripcion: "TOTAL", igv: 18, valor: 118 }], dataCostos: [], dataVentas: [], totalIngresos: 0, totalCostos: 0 },
@@ -59,14 +59,13 @@ test("a failed approval is retried with a new key and only a real approval saves
   const saveFinalAmounts = vi.spyOn(pricing, "GuardaCostosFinalesQuote").mockResolvedValue(undefined);
 
   await screen.continuarAprobarHouses();
-  expect(saveFinalAmounts).not.toHaveBeenCalled();
   await screen.continuarAprobarHouses();
 
   const [firstKey, retryKey] = approve.mock.calls.map(([data]) => (data as AprobacionCotizacion).IdempotencyKey);
   expect(firstKey).toBeTruthy();
   expect(retryKey).toBeTruthy();
   expect(retryKey).not.toBe(firstKey);
-  expect(saveFinalAmounts).toHaveBeenCalledTimes(1);
+  expect(saveFinalAmounts).not.toHaveBeenCalled();
 });
 
 test("printing the instructivo prints each chosen option", async () => {

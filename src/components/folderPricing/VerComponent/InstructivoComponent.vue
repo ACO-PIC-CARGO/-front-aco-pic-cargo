@@ -362,11 +362,7 @@ async function approveQuote(details: AprobacionCotizacion) {
     didOpen: () => Swal.showLoading(),
   });
   const approved = await pricingStore.aprobarCotizacion({ ...details, IdempotencyKey: IdempotencyKey.value });
-  if (!approved) {
-    IdempotencyKey.value = generateIdempotencyKey();
-    return;
-  }
-  await pricingStore.GuardaCostosFinalesQuote();
+  if (!approved) IdempotencyKey.value = generateIdempotencyKey();
 }
 async function guardarNota() {
   if ((await notaForm.value!.validate()).valid) {

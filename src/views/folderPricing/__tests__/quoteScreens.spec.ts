@@ -96,18 +96,27 @@ describe("Ver", () => {
     expect(warnings).toHaveLength(1);
   });
 
-  test("opening a quote with a chosen option never saves its final amounts", async () => {
-    vi.useFakeTimers({ toFake: ["setTimeout"] });
+  test("opening a pending quote with a chosen option saves its final amounts so House can offer it", async () => {
     answerWith({ getQuoteId: accepted([QUOTE]) });
 
     const { pricing } = await openScreen(VerPricing, (store) => {
       vi.spyOn(store, "GuardaCostosFinalesQuote").mockResolvedValue(undefined);
     });
-    vi.advanceTimersByTime(5000);
-    vi.useRealTimers();
+
+    expect(pricing.GuardaCostosFinalesQuote).toHaveBeenCalledTimes(1);
+  });
+
+  test.each([
+    ["an approved quote", { ...QUOTE, aprobadoflag: true }],
+    ["a quote without a chosen option", { ...QUOTE, opcioncostos: [{ ...QUOTE.opcioncostos[0], selected: false }] }],
+  ])("opening %s saves no final amounts", async (_case, quote) => {
+    answerWith({ getQuoteId: accepted([quote]) });
+
+    const { pricing } = await openScreen(VerPricing, (store) => {
+      vi.spyOn(store, "GuardaCostosFinalesQuote").mockResolvedValue(undefined);
+    });
 
     expect(pricing.GuardaCostosFinalesQuote).not.toHaveBeenCalled();
-    expect(vi.mocked((await import("@/api/http")).default.post)).not.toHaveBeenCalled();
   });
 
   test("starts on the first option even if another quote was left on a later one", async () => {

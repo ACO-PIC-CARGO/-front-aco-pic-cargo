@@ -105,6 +105,9 @@ onMounted(async () => {
       ? Number(route.params.step)
       : 1;
   }
+  if (!aduanaStore.aprobadoflag && aduanaStore.opcionCostos.some((option) => option.selected)) {
+    await aduanaStore.GuardaCostosFinalesAduana();
+  }
 });
 </script>
 

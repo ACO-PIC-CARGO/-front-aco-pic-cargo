@@ -102,18 +102,27 @@ describe.each([
 });
 
 describe("Ver", () => {
-  test("opening an aduana with a chosen option never saves its final amounts", async () => {
-    vi.useFakeTimers({ toFake: ["setTimeout"] });
+  test("opening a pending aduana with a chosen option saves its final amounts so House can offer it", async () => {
     answerWith({ ver_aduana: accepted([ADUANA]), getShipment: accepted([{ id: 3, id_transport: 1 }]) });
 
-    const { aduana } = await openScreen(VerAduana);
-    const saveFinalAmounts = vi.spyOn(aduana, "GuardaCostosFinalesAduana").mockResolvedValue(undefined);
-    vi.advanceTimersByTime(5000);
-    await flushPromises();
+    const { aduana } = await openScreen(VerAduana, (store) => {
+      vi.spyOn(store, "GuardaCostosFinalesAduana").mockResolvedValue(undefined);
+    });
 
-    expect(saveFinalAmounts).not.toHaveBeenCalled();
+    expect(aduana.GuardaCostosFinalesAduana).toHaveBeenCalledTimes(1);
+  });
 
-    expect(vi.mocked(http.post)).not.toHaveBeenCalled();
+  test.each([
+    ["an approved aduana", { ...ADUANA, aprobadoflag: true }],
+    ["an aduana without a chosen option", { ...ADUANA, opcioncostos: [{ ...ADUANA.opcioncostos[0], selected: false }] }],
+  ])("opening %s saves no final amounts", async (_case, opened) => {
+    answerWith({ ver_aduana: accepted([opened]), getShipment: accepted([{ id: 3, id_transport: 1 }]) });
+
+    const { aduana } = await openScreen(VerAduana, (store) => {
+      vi.spyOn(store, "GuardaCostosFinalesAduana").mockResolvedValue(undefined);
+    });
+
+    expect(aduana.GuardaCostosFinalesAduana).not.toHaveBeenCalled();
   });
 });
 
@@ -154,20 +163,19 @@ describe("Nueva cotización de aduana", () => {
 });
 
 describe("Aprobar desde el instructivo", () => {
-  test("a failed approval is retried with a new key and only a real approval saves the final amounts", async () => {
+  test("a failed approval is retried with a new key and the approved aduana's final amounts are not saved again", async () => {
     const { vm, aduana } = await openScreen(InstructivoComponent);
     const approve = vi.spyOn(aduana, "aprobarCotizacionAduana").mockResolvedValueOnce(false).mockResolvedValueOnce(true);
     const saveFinalAmounts = vi.spyOn(aduana, "GuardaCostosFinalesAduana").mockResolvedValue(undefined);
 
     await vm.approveAduana!({ id_quote: "14" });
-    expect(saveFinalAmounts).not.toHaveBeenCalled();
     await vm.approveAduana!({ id_quote: "14" });
 
     const [firstKey, retryKey] = approve.mock.calls.map(([data]) => (data as AprobacionCotizacion).IdempotencyKey);
     expect(firstKey).toBeTruthy();
     expect(retryKey).toBeTruthy();
     expect(retryKey).not.toBe(firstKey);
-    expect(saveFinalAmounts).toHaveBeenCalledTimes(1);
+    expect(saveFinalAmounts).not.toHaveBeenCalled();
   });
 });
 

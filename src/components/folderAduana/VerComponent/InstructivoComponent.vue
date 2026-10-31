@@ -147,11 +147,7 @@ async function approveAduana(details: AprobacionCotizacion) {
     },
   });
   const approved = await aduanaStore.aprobarCotizacionAduana({ ...details, IdempotencyKey: IdempotencyKey.value });
-  if (!approved) {
-    IdempotencyKey.value = generateIdempotencyKey();
-    return;
-  }
-  await aduanaStore.GuardaCostosFinalesAduana();
+  if (!approved) IdempotencyKey.value = generateIdempotencyKey();
 }
 async function abrirSeleccionDeQuoteAAprobar() {
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string);
