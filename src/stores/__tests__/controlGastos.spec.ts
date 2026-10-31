@@ -198,6 +198,22 @@ describe("controlGastos store", () => {
     expect(result).toEqual([{ id_master: 3 }]);
   });
 
+  test("CargaMasivaControlDeGastos says why a load was refused and returns no rows", async () => {
+    respond({ carga_masiva_controldegasto: { ...rejected("No se encontraron registros"), tipomensaje: "TMSGADV" } });
+
+    expect(await useControlGastosStore().CargaMasivaControlDeGastos({ rows: [] })).toEqual([]);
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: "No se encontraron registros" });
+  });
+
+  test("CargaMasivaControlDeGastos tells the user to check the connection when there is no answer", async () => {
+    httpMock.mockRejectedValueOnce(new Error("network"));
+
+    expect(await useControlGastosStore().CargaMasivaControlDeGastos({ rows: [] })).toEqual([]);
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+  });
+
   test("DescargarConsolidadoCargaMasiva and guardarCuotasCgeTipoProveedor clear the response before the request", async () => {
     const store = useControlGastosStore();
     store.response = [{ id_master: 1 }] as never;

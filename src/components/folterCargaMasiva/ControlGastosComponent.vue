@@ -375,6 +375,10 @@ async function generarControlesGastos() {
     };
     appStore.spiner = true;
     const response: ResultadoCargaMasivaGastos[] = await controlGastosStore.CargaMasivaControlDeGastos(data);
+    if (!response.length) {
+      appStore.spiner = false;
+      return;
+    }
 
     if (response[0]!.esnuevoflag == true) {
       // nro_master

@@ -166,24 +166,9 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
 
   async function CargaMasivaControlDeGastos(data: unknown): Promise<ResultadoCargaMasivaGastos[]> {
     response.value = [];
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "carga_masiva_controldegasto",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-
-    await axios<ApiResponse<ResultadoCargaMasivaGastos[]>>(config)
-      .then(function (res) {
-        const body = res.data;
-        sessionStorage.setItem("auth-token", body.token!);
-        setResponse(body.data);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    const answer = await request<ResultadoCargaMasivaGastos>({ method: "post", url: URL_MAIN + "carga_masiva_controldegasto", data });
+    warnIfFailed(answer);
+    setResponse(answer.data);
     return response.value;
   }
   async function DescargarConsolidadoCargaMasiva(id_mastercontrol: number | string): Promise<void> {
