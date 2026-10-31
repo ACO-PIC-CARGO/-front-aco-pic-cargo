@@ -123,6 +123,19 @@ describe("comentariosPredefinidos store", () => {
     expect(httpMock.mock.calls[1]![0].url).toBe(listUrl("id_branch=7&code=&comentario=&status=1"));
   });
 
+  test("exportToExcelListadoComentarioPredefinidos shows the server's answer instead of saving a refused workbook", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const mensaje = "No tienes acceso a esa sucursal. Vuelve a iniciar sesión y elige una de tus sucursales.";
+    httpMock.mockResolvedValueOnce({
+      data: new Blob([JSON.stringify({ estadoflag: false, mensaje, tipomensaje: "TMSGADV" })], { type: "application/json" }),
+    });
+
+    await useComentariosPredefinidosStore().exportToExcelListadoComentarioPredefinidos();
+
+    expect(Swal.fire).toHaveBeenLastCalledWith({ icon: "info", text: mensaje });
+    expect(click).not.toHaveBeenCalled();
+  });
+
   test("deleteComentarioPredefinido posts the record to eliminar and reloads the active rows", async () => {
     vi.spyOn(console, "log").mockImplementation(() => {});
     respond({ eliminarComentarioPredefinido: accepted([]), listarComentariosPredefinidos: accepted([]) });

@@ -5,6 +5,7 @@ import moment from "moment";
 import axios from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 import type { ComentarioPredefinido, FiltroComentariosPredefinidos, FormComentarioPredefinido } from "@/types/catalogos";
+import { downloadExcel } from "@/utils/pdfDownload";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
@@ -138,42 +139,10 @@ export const useComentariosPredefinidosStore = defineStore("comentariosPredefini
   }
 
   async function exportToExcelListadoComentarioPredefinidos(): Promise<void> {
-    const headers = {
-      "Access-Control-Allow-Origin": "*",
-      "Content-Type": "application/json",
-      Accept: "aplication/json",
-      "Access-Control-Allow-Methods": "GET, POST, PATCH, PUT, DELETE, OPTIONS",
-      "Access-Control-Allow-Headers":
-        "Origin, Content-Type, X-Auth-Token, Authorization, Accept,charset,boundary,Content-Length",
-      responseType: "arraybuffer" as const,
-    };
-    const data = {
-      id_branch: sessionBranchId(),
-    };
-
-    await axios
-      .post<BlobPart>(
-        import.meta.env.VITE_URL_MAIN + "exportarListadoComentariosPredefinidos",
-        data,
-        headers,
-      )
-      .then((response) => {
-        const { data } = response;
-        const url = window.URL.createObjectURL(new Blob([data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute(
-          "download",
-          `LISTADO DE COMENTARIOS PREDEFINIDOS DE ESTADO DEL EMBARQUE ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
-        );
-        document.body.appendChild(link);
-        link.click();
-        // this.previewFlag = false;
-        // this.generandoFlag = false;
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
+    await downloadExcel(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "exportarListadoComentariosPredefinidos" },
+      `LISTADO DE COMENTARIOS PREDEFINIDOS DE ESTADO DEL EMBARQUE ${moment().format("DD-MM-YYYY hh-mm-ss")}.xlsx`,
+    );
   }
 
   return {

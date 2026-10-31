@@ -15,6 +15,7 @@ import type {
   ListadoControlGastoHouses,
   RespuestaControlGasto,
 } from "@/types/finanzas";
+import { downloadExcel } from "@/utils/pdfDownload";
 import { hasFailed, request } from "@/utils/request";
 
 const URL_MAIN = import.meta.env.VITE_URL_MAIN;
@@ -173,29 +174,10 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
   }
   async function DescargarConsolidadoCargaMasiva(id_mastercontrol: number | string): Promise<void> {
     response.value = [];
-
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "consolidado_carga_masiva?id_mastercontrol=" + id_mastercontrol,
-      responseType: "blob" as const,
-      headers: {
-        "Content-Type": "blob",
-      },
-    };
-
-    await axios<BlobPart>(config)
-      .then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        // let name = this.uuidv4();
-        link.setAttribute("download", `Consolidación Carga Masiva ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`);
-        document.body.appendChild(link);
-        link.click();
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+    await downloadExcel(
+      { method: "get", url: URL_MAIN + "consolidado_carga_masiva", params: { id_mastercontrol } },
+      `Consolidación Carga Masiva ${moment().format("DD-MM-YYYY hh-mm-ss")}.xlsx`,
+    );
   }
   async function guardarCuotasCgeTipoProveedor(data: Record<string, unknown>): Promise<ResultadoCargaMasivaGastos[]> {
     response.value = [];

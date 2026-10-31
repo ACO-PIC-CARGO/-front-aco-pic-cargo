@@ -214,6 +214,20 @@ describe("controlGastos store", () => {
     expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
   });
 
+  test("DescargarConsolidadoCargaMasiva shows the server's answer instead of saving a refused workbook", async () => {
+    const click = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    const mensaje = "Este máster aún no tiene ingresos registrados para consolidar.";
+    httpMock.mockResolvedValueOnce({
+      data: new Blob([JSON.stringify({ estadoflag: false, mensaje, tipomensaje: "TMSGINF" })], { type: "application/json" }),
+    });
+
+    await useControlGastosStore().DescargarConsolidadoCargaMasiva(3);
+
+    expect(Swal.fire).toHaveBeenLastCalledWith({ icon: "info", text: mensaje });
+    expect(click).not.toHaveBeenCalled();
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ params: { id_mastercontrol: 3 } });
+  });
+
   test("DescargarConsolidadoCargaMasiva and guardarCuotasCgeTipoProveedor clear the response before the request", async () => {
     const store = useControlGastosStore();
     store.response = [{ id_master: 1 }] as never;
