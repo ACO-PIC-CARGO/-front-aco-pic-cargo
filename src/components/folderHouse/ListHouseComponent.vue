@@ -4,16 +4,18 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import { useHousesStore } from "@/stores/houses";
+import { usePricingStore } from "@/stores/pricing";
 import GuardarUrlMaster from "@/components/comun/GuardarUrlMaster.vue";
 import type { HouseListado } from "@/types/cotizacion";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
-import { sessionBranchId } from "@/utils/sesion";
+import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 defineProps<{ statusReport?: boolean; statusList?: string }>();
 
 const appStore = useAppStore();
 const router = useRouter();
 const housesStore = useHousesStore();
+const pricingStore = usePricingStore();
 
 const search = ref("");
 const dialogUrl = ref(false);
@@ -38,6 +40,7 @@ const dialogComentario = ref(false);
 const loading = ref(false);
 const house = ref<HouseListado>({} as HouseListado);
 const fecha = ref(moment().format("YYYY-MM-DD"));
+const id_vendedor = ref<number | "">("");
 const frmComentario = useTemplateRef("frmComentario");
 const comentario = ref("");
 
@@ -72,6 +75,7 @@ function selectHouse(houseItem: HouseListado) {
 function abrirModalComentario(item: HouseListado) {
   dialogComentario.value = true;
   house.value = item;
+  id_vendedor.value = sessionUserIdOrEmpty();
   comentario.value = "";
 }
 async function guardarComentario() {
@@ -81,6 +85,7 @@ async function guardarComentario() {
 
     await housesStore.insertComentarioHouse({
       id_house: house.value.id,
+      id_entities: id_vendedor.value,
       fecha: fecha.value,
       comentario: comentario.value,
     });
@@ -101,6 +106,7 @@ onMounted(async () => {
   // await this._getHouseListAll();
   appStore.spiner = false;
   await Promise.all([
+    pricingStore.getModulesEntities(),
     appStore._getModality(),
     appStore._getShipment(),
     appStore.cargarClientes(),
@@ -308,6 +314,14 @@ onMounted(async () => {
                 v-model="fecha"
                 type="date"
                 readonly
+              />
+              <v-autocomplete
+                label="Ejecutivo"
+                :items="pricingStore.listEjecutivo"
+                item-title="name"
+                item-value="id_entitie"
+                v-model="id_vendedor"
+                :rules="[(v) => !!v || 'Dato requerido']"
               />
               <v-textarea
                 label="Estado/ Comentario"
