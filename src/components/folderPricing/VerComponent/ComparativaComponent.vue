@@ -44,17 +44,12 @@ const actualizarComparativa = computed(
 
 watch(actualizarComparativa, async () => {
   await calcularTotalesOpciones();
-
-  setTimeout(async () => {
-    await agregarFilasAlHeader();
-  }, 1000);
+  agregarFilasAlHeader();
 });
 
 onMounted(async () => {
   await calcularTotalesOpciones();
-  setTimeout(async () => {
-    await agregarFilasAlHeader();
-  }, 120);
+  agregarFilasAlHeader();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -212,7 +207,7 @@ function continuar() {
 async function calcularTotalesOpciones() {
   opcionesSeleccionadas.value = [];
   loadingTable.value = true;
-  (pricingStore.opcionCostos as OpcionComparativa[]).forEach((element) => {
+  const optionTotals = (pricingStore.opcionCostos as OpcionComparativa[]).map((element) => {
     const id_proveedor = element.listCostos.some(
       (v) => v.esopcionflag == 1 && v.code_cost == 4
     )
@@ -224,42 +219,49 @@ async function calcularTotalesOpciones() {
       (v: { id: number | string }) => v.id == id_proveedor,
     )
         ;
-    setTimeout(async () => {
-      await calcTotales(element.listCostos);
-      element.proveedor = proveedor ? proveedor.namelong : '';
-      element.flete = resumenOpcion.value.flete
-        ? currencyFormat(resumenOpcion.value.flete)
-        : currencyFormat(0);
-      element.origen = resumenOpcion.value.origen
-        ? currencyFormat(resumenOpcion.value.origen)
-        : currencyFormat(0);
-      // element.origen = this.resumenOpcion.origen
-      //   ? this.currencyFormat(this.resumenOpcion.origen)
-      //   : this.currencyFormat(0);
-      element.local = resumenOpcion.value.gasto
-        ? currencyFormat(resumenOpcion.value.gasto)
-        : currencyFormat(0);
-      element.aduana = resumenOpcion.value.aduana
-        ? currencyFormat(resumenOpcion.value.aduana)
-        : currencyFormat(0);
-      element.almacen = resumenOpcion.value.almacen
-        ? currencyFormat(resumenOpcion.value.almacen)
-        : currencyFormat(0);
-      element.gastostercero = resumenOpcion.value.gastostercero
-        ? currencyFormat(resumenOpcion.value.gastostercero)
-        : currencyFormat(0);
-      element.total = currencyFormat(
-        parseFloat(String(resumenOpcion.value.flete ? resumenOpcion.value.flete : 0)) +
-          parseFloat(String(resumenOpcion.value.origen ? resumenOpcion.value.origen : 0)) +
-          parseFloat(String(resumenOpcion.value.gasto ? resumenOpcion.value.gasto : 0)) +
-          parseFloat(String(resumenOpcion.value.aduana ? resumenOpcion.value.aduana : 0)) +
-          parseFloat(String(resumenOpcion.value.almacen ? resumenOpcion.value.almacen : 0)) +
-          parseFloat(String(resumenOpcion.value.gastostercero ? resumenOpcion.value.gastostercero : 0))
-      );
-      opcionesSeleccionadas.value.push(element);
-    }, 100);
+    return new Promise<void>((resolve) =>
+      setTimeout(async () => {
+        try {
+          await calcTotales(element.listCostos);
+          element.proveedor = proveedor ? proveedor.namelong : '';
+          element.flete = resumenOpcion.value.flete
+            ? currencyFormat(resumenOpcion.value.flete)
+            : currencyFormat(0);
+          element.origen = resumenOpcion.value.origen
+            ? currencyFormat(resumenOpcion.value.origen)
+            : currencyFormat(0);
+          // element.origen = this.resumenOpcion.origen
+          //   ? this.currencyFormat(this.resumenOpcion.origen)
+          //   : this.currencyFormat(0);
+          element.local = resumenOpcion.value.gasto
+            ? currencyFormat(resumenOpcion.value.gasto)
+            : currencyFormat(0);
+          element.aduana = resumenOpcion.value.aduana
+            ? currencyFormat(resumenOpcion.value.aduana)
+            : currencyFormat(0);
+          element.almacen = resumenOpcion.value.almacen
+            ? currencyFormat(resumenOpcion.value.almacen)
+            : currencyFormat(0);
+          element.gastostercero = resumenOpcion.value.gastostercero
+            ? currencyFormat(resumenOpcion.value.gastostercero)
+            : currencyFormat(0);
+          element.total = currencyFormat(
+            parseFloat(String(resumenOpcion.value.flete ? resumenOpcion.value.flete : 0)) +
+              parseFloat(String(resumenOpcion.value.origen ? resumenOpcion.value.origen : 0)) +
+              parseFloat(String(resumenOpcion.value.gasto ? resumenOpcion.value.gasto : 0)) +
+              parseFloat(String(resumenOpcion.value.aduana ? resumenOpcion.value.aduana : 0)) +
+              parseFloat(String(resumenOpcion.value.almacen ? resumenOpcion.value.almacen : 0)) +
+              parseFloat(String(resumenOpcion.value.gastostercero ? resumenOpcion.value.gastostercero : 0))
+          );
+          opcionesSeleccionadas.value.push(element);
+        } finally {
+          resolve();
+        }
+      }, 100),
+    );
     // console.log(element);
   });
+  await Promise.all(optionTotals);
   loadingTable.value = false;
 }
 async function calcTotales(data: Costo[]) {
