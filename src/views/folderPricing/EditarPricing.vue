@@ -131,8 +131,6 @@ onMounted(async () => {
       ? pricingStore.datosPrincipales.idtipocarga.id
       : pricingStore.datosPrincipales.idtipocarga;
   await Promise.all([
-    pricingStore.getServices(),
-    pricingStore.obtenerCostosPricing(),
     calculadorasStore.obtenerFleteCalculadora({
       shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)
         ?.code,

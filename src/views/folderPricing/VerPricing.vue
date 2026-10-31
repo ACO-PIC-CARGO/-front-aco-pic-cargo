@@ -161,7 +161,6 @@ onMounted(async () => {
       }, 100);
     });
   }
-  aduanaStore.getAduanaUnificar(route.params.id as string);
   if (!pricingStore.aprobadoflag && pricingStore.opcionCostos.some((option) => option.selected)) {
     await pricingStore.GuardaCostosFinalesQuote();
   }

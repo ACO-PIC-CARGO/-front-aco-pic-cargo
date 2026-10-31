@@ -119,6 +119,14 @@ describe("Ver", () => {
     expect(pricing.GuardaCostosFinalesQuote).not.toHaveBeenCalled();
   });
 
+  test("asks once for the customs quotes it can be unified with", async () => {
+    answerWith({ getQuoteId: accepted([QUOTE]) });
+
+    await openScreen(VerPricing);
+
+    expect(requestsTo("obtener_aduana_unificar")).toHaveLength(1);
+  });
+
   test("starts on the first option even if another quote was left on a later one", async () => {
     answerWith({ getQuoteId: accepted([QUOTE]) });
 
@@ -149,5 +157,17 @@ describe("Editar", () => {
     expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: APPROVED_QUOTE_MESSAGE, confirmButtonText: "Volver al listado" }));
     expect(push).toHaveBeenCalledWith({ name: "lstQuote" });
     expect(requestsTo("getMarketingList")).toHaveLength(0);
+  });
+});
+
+describe("Editar", () => {
+  test("asks once for the company's default services and costs", async () => {
+    answerWith({ getQuoteId: accepted([QUOTE]) });
+
+    const { wrapper } = await openScreen(EditarPricing);
+
+    expect(requestsTo("obtener_servicio_pricing")).toHaveLength(1);
+    expect(requestsTo("obtener_costos_pricing")).toHaveLength(1);
+    wrapper.unmount();
   });
 });
