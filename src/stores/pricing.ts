@@ -78,7 +78,7 @@ import {
 import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/appLoad";
 import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
-import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
+import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
@@ -3041,7 +3041,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdf(
+    await downloadPdfInBackground(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );
@@ -3150,7 +3150,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdf(
+    await downloadPdfInBackground(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data: { filtro: { ...filtroCalls.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );

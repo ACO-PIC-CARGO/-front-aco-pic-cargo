@@ -13,14 +13,18 @@ import { useFilesStore } from "@/stores/files";
 import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
-import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
+import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: {} } } } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
-vi.mock("@/utils/pdfDownload", () => ({ downloadPdf: vi.fn(async () => true), downloadExcel: vi.fn(async () => true) }));
+vi.mock("@/utils/pdfDownload", () => ({
+  downloadPdf: vi.fn(async () => true),
+  downloadPdfInBackground: vi.fn(async () => true),
+  downloadExcel: vi.fn(async () => true),
+}));
 
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
 const postedBody = (path: string) => postMock.mock.calls.find(([url]) => url === URL_MAIN + path)?.[1];
@@ -1613,15 +1617,15 @@ describe("pricing store", () => {
     });
 
     test.each([
-      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf"],
-      ["imprimiReporteListadoMarketing", "reporte_canales_origen", "REPORTE_CANALES_ORIGEN.pdf"],
-    ] as const)("%s downloads the PDF of the list filters from %s instead of opening a public file", async (name, path, fileName) => {
+      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf", downloadPdfInBackground],
+      ["imprimiReporteListadoMarketing", "reporte_canales_origen", "REPORTE_CANALES_ORIGEN.pdf", downloadPdf],
+    ] as const)("%s downloads the PDF of the list filters from %s instead of opening a public file", async (name, path, fileName, download) => {
       const pricing = usePricingStore();
       pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
 
       await pricing[name]({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
 
-      expect(downloadPdf).toHaveBeenCalledWith(
+      expect(download).toHaveBeenCalledWith(
         {
           method: "post",
           url: URL_MAIN + path,
@@ -1638,7 +1642,7 @@ describe("pricing store", () => {
 
       await pricing.imprimiReporteListadoCalls({});
 
-      expect(downloadPdf).toHaveBeenCalledWith(
+      expect(downloadPdfInBackground).toHaveBeenCalledWith(
         {
           method: "post",
           url: URL_MAIN + "reporte_llamadas_export",

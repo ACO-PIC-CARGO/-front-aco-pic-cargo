@@ -57,9 +57,54 @@ const downloadFile = async (config: AxiosRequestConfig, fileName: string, fileTy
     Swal.close();
     return true;
   }
+  return showAnswer(answer);
+};
+
+const showAnswer = (answer: PdfAnswer): boolean => {
   const icon = answer.estadoflag ? "success" : answer.tipomensaje === "TMSGERR" ? "error" : "info";
   Swal.fire({ icon, text: answer.mensaje });
   return answer.estadoflag;
+};
+
+const KEEP_WORKING_SECONDS = 5;
+
+const showKeepWorkingNotice = (): void => {
+  let secondsLeft = KEEP_WORKING_SECONDS;
+  Swal.fire({
+    icon: "info",
+    title: "Generando PDF",
+    html: `<p>El PDF se descargará solo cuando esté listo. Puedes continuar con tus actividades mientras se prepara.</p>
+      <p id="pdfKeepWorking" style="margin-top: 15px; font-weight: 600;">Podrás continuar en ${secondsLeft} segundos...</p>`,
+    confirmButtonText: "OK",
+    showConfirmButton: true,
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      const okButton = Swal.getConfirmButton();
+      if (okButton) okButton.disabled = true;
+      const countdown = setInterval(() => {
+        secondsLeft--;
+        const notice = document.getElementById("pdfKeepWorking");
+        if (!notice || secondsLeft <= 0) {
+          clearInterval(countdown);
+          if (notice) notice.textContent = "Ya puedes continuar.";
+          if (okButton) okButton.disabled = false;
+          return;
+        }
+        notice.textContent = `Podrás continuar en ${secondsLeft} segundos...`;
+      }, 1000);
+    },
+  });
+};
+
+export const downloadPdfInBackground = async (config: AxiosRequestConfig, fileName: string): Promise<boolean> => {
+  showKeepWorkingNotice();
+  const answer = await requestFile(config, fileName, "pdf");
+  if (!answer) {
+    Swal.fire({ icon: "success", title: "PDF generado", text: "Tu PDF ya se descargó." });
+    return true;
+  }
+  return showAnswer(answer);
 };
 
 export const downloadPdf = (config: AxiosRequestConfig, fileName: string): Promise<boolean> => downloadFile(config, fileName, "pdf", "PDF");

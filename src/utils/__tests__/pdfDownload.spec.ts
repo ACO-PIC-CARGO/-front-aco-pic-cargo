@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import Swal from "sweetalert2";
 import http from "@/api/http";
-import { downloadPdf } from "@/utils/pdfDownload";
+import { downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
@@ -69,5 +69,26 @@ describe("downloadPdf", () => {
 
     expect(saved).toEqual([]);
     expect(lastNotice()).toMatchObject({ icon: "success", text: "Guardamos el PDF en la carpeta del expediente." });
+  });
+  test("a long report leaves the notice closable so the user keeps working, then saves the PDF when it is ready", async () => {
+    let answer!: (value: { data: Blob }) => void;
+    httpMock.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+
+    const download = downloadPdfInBackground(CONFIG, "REPORTE.pdf");
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ showConfirmButton: true });
+    answer({ data: new Blob(["%PDF-1.4"], { type: "application/pdf" }) });
+
+    expect(await download).toBe(true);
+    expect(saved).toEqual(["REPORTE.pdf"]);
+    expect(lastNotice()).toMatchObject({ icon: "success" });
+  });
+
+  test("a long report the server refuses shows its reason instead of saving", async () => {
+    httpMock.mockResolvedValue({ data: json({ estadoflag: false, mensaje: "No hay cotizaciones con esos filtros.", tipomensaje: "TMSGINF" }) });
+
+    expect(await downloadPdfInBackground(CONFIG, "REPORTE.pdf")).toBe(false);
+
+    expect(saved).toEqual([]);
+    expect(lastNotice()).toMatchObject({ icon: "info", text: "No hay cotizaciones con esos filtros." });
   });
 });
