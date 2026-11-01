@@ -86,4 +86,25 @@ describe("branch store", () => {
     expect(httpMock).toHaveBeenCalledWith({ method: "put", url: URL_MAIN + "reactivar_sucursal", data: { id: 3 }, headers: JSON_HEADERS });
     expect(done).toBe(true);
   });
+
+  test("eliminarSucursal deletes the company and reports success", async () => {
+    respond({ eliminar_sucursal: accepted([]) });
+
+    const done = await useBranchStore().eliminarSucursal(3);
+
+    expect(httpMock).toHaveBeenCalledWith({ method: "delete", url: URL_MAIN + "eliminar_sucursal", data: { id: 3 }, headers: JSON_HEADERS });
+    expect(done).toBe(true);
+  });
+
+  test("eliminarSucursal shows why a company was not deleted", async () => {
+    respond({ eliminar_sucursal: { ...rejected("Inactiva la empresa antes de eliminarla."), tipomensaje: "TMSGADV" } });
+
+    const done = await useBranchStore().eliminarSucursal(3);
+
+    expect(done).toBe(false);
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({
+      icon: "error",
+      text: "Inactiva la empresa antes de eliminarla.",
+    });
+  });
 });

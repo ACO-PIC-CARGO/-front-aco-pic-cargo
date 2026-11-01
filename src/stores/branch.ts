@@ -23,9 +23,9 @@ export const useBranchStore = defineStore("branch", () => {
     }
   }
 
-  async function changeStatus(path: "inactivar_sucursal" | "reactivar_sucursal", id: number): Promise<boolean> {
+  async function changeCompany(method: "put" | "delete", path: string, id: number): Promise<boolean> {
     const data = await request({
-      method: "put",
+      method,
       url: `${import.meta.env.VITE_URL_MAIN}${path}`,
       data: { id },
       headers: { "Content-Type": "application/json" },
@@ -34,8 +34,9 @@ export const useBranchStore = defineStore("branch", () => {
     return data.estadoflag;
   }
 
-  const inactivarSucursal = (id: number) => changeStatus("inactivar_sucursal", id);
-  const reactivarSucursal = (id: number) => changeStatus("reactivar_sucursal", id);
+  const inactivarSucursal = (id: number) => changeCompany("put", "inactivar_sucursal", id);
+  const reactivarSucursal = (id: number) => changeCompany("put", "reactivar_sucursal", id);
+  const eliminarSucursal = (id: number) => changeCompany("delete", "eliminar_sucursal", id);
 
-  return { lstBranch, ListadoSucursal, inactivarSucursal, reactivarSucursal };
+  return { lstBranch, ListadoSucursal, inactivarSucursal, reactivarSucursal, eliminarSucursal };
 });

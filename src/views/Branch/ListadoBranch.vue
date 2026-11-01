@@ -2,6 +2,8 @@
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useBranchStore } from "@/stores/branch";
+import type { SucursalListado } from "@/types/seguridad";
+import { confirmsCompanyName } from "./companyNameConfirmation";
 
 const branchStore = useBranchStore();
 
@@ -48,6 +50,24 @@ const reactivar = (id: number) =>
     "Sí, reactivar",
     () => branchStore.reactivarSucursal(id),
   );
+
+async function eliminar(company: SucursalListado) {
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    title: "Eliminar empresa",
+    text: `Se borrarán para siempre ${company.trade_name} y todos sus datos, usuarios incluidos. No se puede deshacer. Escribe el nombre de la empresa para confirmar.`,
+    input: "text",
+    inputPlaceholder: company.trade_name,
+    showCancelButton: true,
+    confirmButtonText: "Eliminar para siempre",
+    cancelButtonText: "Cancelar",
+    inputValidator: (typed) =>
+      confirmsCompanyName(typed, company.trade_name) ? null : "Escribe el nombre exacto de la empresa para eliminarla.",
+  });
+  if (isConfirmed && (await branchStore.eliminarSucursal(company.id))) {
+    await branchStore.ListadoSucursal();
+  }
+}
 </script>
 
 <template>
@@ -94,14 +114,22 @@ const reactivar = (id: number) =>
                 aria-label="Inactivar empresa"
                 @click="inactivar(item.id)"
               />
-              <v-btn
-                v-else
-                variant="text"
-                icon="mdi-restore"
-                color="green"
-                aria-label="Reactivar empresa"
-                @click="reactivar(item.id)"
-              />
+              <template v-else>
+                <v-btn
+                  variant="text"
+                  icon="mdi-restore"
+                  color="green"
+                  aria-label="Reactivar empresa"
+                  @click="reactivar(item.id)"
+                />
+                <v-btn
+                  variant="text"
+                  icon="mdi-delete"
+                  color="red"
+                  aria-label="Eliminar empresa"
+                  @click="eliminar(item)"
+                />
+              </template>
             </template>
           </v-data-table>
         </v-col>
