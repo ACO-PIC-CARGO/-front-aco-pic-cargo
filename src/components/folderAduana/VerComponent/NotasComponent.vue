@@ -3,10 +3,12 @@ import { computed, onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import type { FilaServicioNota, OpcionCosto } from "@/types/cotizacion";
 
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
+const { can } = usePermissions();
 
 const headers = [
   { key: "index", title: "#" },
@@ -285,6 +287,7 @@ onMounted(() => {
     <v-card-actions>
       <v-spacer />
       <v-btn
+        v-if="can('lstQuoteAduanaAduana', 'EXPORTAR')"
         color="info"
         class="mx-1"
         size="small"

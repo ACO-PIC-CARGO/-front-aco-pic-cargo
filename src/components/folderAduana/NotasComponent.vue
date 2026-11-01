@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId } from "@/utils/sesion";
 import type { DatosPrevisualizacion, FilaServicioNota, OpcionCosto } from "@/types/cotizacion";
 
@@ -14,6 +15,10 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
+const { can } = usePermissions();
+const canSaveAndPrint = route.params.id
+  ? can("lstQuoteAduanaAduana", "MODIFICAR") && can("lstQuoteAduanaAduana", "EXPORTAR")
+  : can("newCotizacionAduana", "NUEVO") && can("newCotizacionAduana", "EXPORTAR");
 
 // opcionesSeleccionadas: [{ listNotasQuote: [] }],
 const dialog = ref(false);
@@ -748,6 +753,7 @@ onMounted(() => {
 
           <v-spacer />
           <v-btn
+            v-if="canSaveAndPrint"
             color="#A43542"
             class="mx-1"
             style="color: white !important"

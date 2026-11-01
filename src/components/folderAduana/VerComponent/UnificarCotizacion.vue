@@ -4,11 +4,13 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 
 const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
+const { can } = usePermissions();
 
 const id_quote = ref("");
 
@@ -87,6 +89,7 @@ async function unificar() {
         class="py-2"
       >
         <v-btn
+          v-if="can('lstQuoteAduanaAduana', 'MODIFICAR')"
           color="success"
           @click="unificar()"
           :disabled="unificarflag"

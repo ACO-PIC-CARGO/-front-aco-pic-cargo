@@ -9,6 +9,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import type { AprobacionCotizacion, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -22,6 +23,7 @@ const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
+const { can } = usePermissions();
 
 const frmAprobar = useTemplateRef("frmAprobar");
 const masterForm = useTemplateRef("masterForm");
@@ -723,7 +725,7 @@ function getProveedor(element: OpcionCosto) {
         class="mx-1"
         color="#004D40"
         elevation="2"
-        v-if="mostrarBtnAprobar()"
+        v-if="mostrarBtnAprobar() && can('lstQuoteAduanaAduana', 'MODIFICAR')"
         size="small"
         @click="abrirSeleccionDeQuoteAAprobar()"
       >
