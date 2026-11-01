@@ -2936,6 +2936,7 @@ onMounted(async () => {
                 <v-card-text>
                   <div class="text-right">
                     <v-btn
+                      v-if="can('listControlGastos', 'NUEVO')"
                       size="small"
                       color="primary"
                       @click="abrirModalCuentaBancaria()"

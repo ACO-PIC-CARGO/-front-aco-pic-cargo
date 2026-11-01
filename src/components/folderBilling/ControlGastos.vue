@@ -791,6 +791,7 @@ onMounted(() => {
             </v-card-text>
             <v-card-actions>
               <v-btn
+                v-if="can('listControlGastos', 'NUEVO')"
                 color="primary"
                 @click="_setDebsClient()"
                 :disabled="!boolFile"

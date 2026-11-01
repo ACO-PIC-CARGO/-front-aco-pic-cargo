@@ -49,7 +49,7 @@ beforeEach(() => {
 });
 afterEach(() => wrapper?.unmount());
 
-async function mountAs(component: Component, actions: string[], options: { props?: object; stubs?: object } = {}) {
+async function mountAs(component: Component, actions: string[], options: { props?: object; stubs?: Record<string, boolean> } = {}) {
   sessionStorage.setItem(
     "permissions",
     JSON.stringify({ screens: [{ route: "listControlGastos", actions }], controlled: ["listControlGastos"] }),
@@ -157,4 +157,41 @@ test("a payment request to a provider is started only with Nuevo", async () => {
 
   await mountAs(TotalesProveedor, ["VER", "NUEVO"]);
   expect(hasIcon("button .mdi-send")).toBe(true);
+});
+
+const openDialogs = async (state: Record<string, unknown>) => {
+  Object.assign(wrapper!.vm as unknown as Record<string, unknown>, state);
+  await flushPromises();
+};
+const ABONO = { id: 21, status: 1, path: "abono.pdf" };
+
+test("a client payment is registered with Nuevo, corrected with Modificar and removed with Eliminar", async () => {
+  const abonoControls = async (actions: string[]) => {
+    await mountAs(IngresosControlGastos, actions, { props: { master_houses: [HOUSE_INCOME] } });
+    await openDialogs({ house: { ...HOUSE_INCOME, debscliente: [ABONO] }, dialogDebs: true, dialogNewDebs: true, dialogDebsEdit: true });
+    const guardar = buttonTexts().filter((label) => label === "GUARDAR ABONO").length;
+    return {
+      nuevo: shows("CARGAR NUEVO ABONO"),
+      guardar,
+      editar: hasIcon(".v-dialog .mdi-pencil"),
+      eliminar: hasIcon(".v-dialog .mdi-delete"),
+    };
+  };
+  const NONE = { nuevo: false, guardar: 0, editar: false, eliminar: false };
+
+  expect(await abonoControls(["VER"])).toEqual(NONE);
+  expect(await abonoControls(["VER", "NUEVO"])).toEqual({ ...NONE, nuevo: true, guardar: 1 });
+  expect(await abonoControls(["VER", "MODIFICAR"])).toEqual({ ...NONE, guardar: 1, editar: true });
+  expect(await abonoControls(["VER", "ELIMINAR"])).toEqual({ ...NONE, eliminar: true });
+});
+
+test("a new bank account for a payment request is registered only with Nuevo", async () => {
+  const offersAccount = async (actions: string[]) => {
+    await mountAs(EgresosControlGastos, actions, { props: { master_egresos: [PROVIDER_EXPENSE] } });
+    await openDialogs({ dialogSolicitud: true, e1: 2 });
+    return shows("Nueva Cuenta Bancaria");
+  };
+
+  expect(await offersAccount(["VER", "MODIFICAR", "ELIMINAR", "EXPORTAR"])).toBe(false);
+  expect(await offersAccount(["VER", "NUEVO"])).toBe(true);
 });

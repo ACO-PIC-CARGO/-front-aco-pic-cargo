@@ -2305,7 +2305,7 @@ onMounted(async () => {
                 class="btn_add mr-2"
                 size="small"
                 color="warning"
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listControlGastos', 'MODIFICAR')"
                 @click="editarDebs(item)"
               >
                 mdi-pencil
@@ -2314,7 +2314,7 @@ onMounted(async () => {
                 class="btn_add mr-2"
                 size="small"
                 color="red"
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listControlGastos', 'ELIMINAR')"
                 @click="_delDebsClient(item.id)"
               >
                 mdi-delete
@@ -2353,6 +2353,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             color="primary"
             @click="_newDebs()"
           >
@@ -2531,6 +2532,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             color="primary"
             :loading="loading"
             @click="_setDebsClient()"
@@ -2711,6 +2713,7 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-btn
+            v-if="can('listControlGastos', 'MODIFICAR')"
             color="primary"
             @click="actualizar()"
           >
