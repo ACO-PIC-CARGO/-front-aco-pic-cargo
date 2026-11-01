@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
@@ -22,6 +23,7 @@ import type { TipoBalance } from "@/types/finanzas";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const router = useRouter();
 const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
@@ -679,6 +681,7 @@ onMounted(async () => {
               size="small"
               icon
               color="warning"
+              v-if="can('listBankCxC', 'MODIFICAR')"
               @click="editar(item)"
             >
               <v-icon>mdi-pencil</v-icon>

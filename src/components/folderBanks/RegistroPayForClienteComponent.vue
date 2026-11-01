@@ -2,6 +2,7 @@
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
@@ -14,6 +15,7 @@ import type {
 } from "@/types/banks";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
@@ -1303,6 +1305,7 @@ onMounted(async () => {
                     class="mx-1"
                     color="success"
                     :loading="loading"
+                    v-if="can('registroPayForCliente', 'NUEVO')"
                     @click="finalizarOperacion()"
                   >
                     Finalizar Operación

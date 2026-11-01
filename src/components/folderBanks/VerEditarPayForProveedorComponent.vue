@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent, mergeProps, nextTick, onMounted, ref, w
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
@@ -19,6 +20,7 @@ import type {
 withDefaults(defineProps<{ verflag?: boolean }>(), { verflag: false });
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
@@ -560,7 +562,7 @@ onMounted(async () => {
       </v-row>
       <v-row>
         <v-btn
-          v-if="verflag"
+          v-if="verflag && can('listBankCxP', 'MODIFICAR')"
           color="success"
           class="mt-5 ml-3"
           @click="
@@ -574,7 +576,7 @@ onMounted(async () => {
         </v-btn>
 
         <v-btn
-          v-if="verflag"
+          v-if="verflag && can('listBankCxP', 'EXPORTAR')"
           color="red"
           class="mt-5 ml-3"
           @click="bankStore.imprimirComprobanteEgreso({ id: route.params.id })"
@@ -585,7 +587,7 @@ onMounted(async () => {
         </v-btn>
 
         <v-btn
-          v-if="!verflag"
+          v-if="!verflag && can('listBankCxP', 'MODIFICAR')"
           class="mt-5 ml-3"
           color="success"
           :loading="loading"
@@ -595,7 +597,7 @@ onMounted(async () => {
         </v-btn>
 
         <v-btn
-          v-if="!verflag"
+          v-if="!verflag && can('listBankCxP', 'ELIMINAR')"
           class="mt-5"
           color="red"
           :loading="loading"

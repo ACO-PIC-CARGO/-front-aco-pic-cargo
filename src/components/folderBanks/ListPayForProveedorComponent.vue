@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
@@ -24,6 +25,7 @@ import type {
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const router = useRouter();
 const bankStore = useBankStore();
 const balancesStore = useBalancesStore();
@@ -560,6 +562,7 @@ onMounted(async () => {
         class="mr-2"
         color="success"
         size="small"
+        v-if="can('listBankCxP', 'NUEVO')"
         @click="nuevo"
       >
         NUEVO PAGO <v-icon size="small">
@@ -570,6 +573,7 @@ onMounted(async () => {
         class="mr-2"
         color="success"
         size="small"
+        v-if="can('listBankCxP', 'EXPORTAR')"
         @click="exportar()"
         :loading="loading"
       >
@@ -641,6 +645,7 @@ onMounted(async () => {
             size="small"
             icon
             color="orange"
+            v-if="can('listBankCxP', 'MODIFICAR')"
             @click="editar(item)"
           >
             <v-icon>mdi-pencil</v-icon>
@@ -650,6 +655,7 @@ onMounted(async () => {
             size="small"
             icon
             color="red"
+            v-if="can('listBankCxP', 'ELIMINAR')"
             @click="confirmarEliminar(item)"
           >
             <v-icon>mdi-delete</v-icon>

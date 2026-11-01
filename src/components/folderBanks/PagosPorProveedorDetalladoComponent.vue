@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -16,6 +17,7 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const reportesStore = useReportesStore();
 const securitysStore = useSecuritysStore();
 
@@ -275,6 +277,7 @@ onMounted(async () => {
                 size="small"
                 icon
                 color="warning"
+                v-if="can('listBankCxP', 'MODIFICAR')"
                 @click="editar(item)"
               >
                 <v-icon>mdi-pencil</v-icon>
