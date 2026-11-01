@@ -8,6 +8,7 @@ import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
 import SendToTrackingButton from "./SendToTrackingButton.vue";
 import { commentSendState, stepDateTimeLabel } from "./houseTrackingFormat";
 import type { HouseTrackingComment, HouseTrackingStep } from "@/types/houseTracking";
+import { usePermissions } from "@/composables/usePermissions";
 
 const COMMENT_MAX = 1000;
 const COMMENT_MESSAGE = `Escribe el comentario (hasta ${COMMENT_MAX} caracteres).`;
@@ -17,6 +18,7 @@ const props = defineProps<{ houseId: number; step: HouseTrackingStep }>();
 const store = useHouseTrackingStore();
 const stepComments = useTrackingStepCommentsStore();
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
+const { can } = usePermissions();
 const adding = ref(false);
 const loadingOptions = ref(false);
 const comment = ref("");
@@ -103,6 +105,7 @@ async function remove(item: HouseTrackingComment) {
           </div>
         </div>
         <v-btn
+          v-if="can('listHouse', 'ELIMINAR')"
           icon
           variant="text"
           size="x-small"
@@ -129,6 +132,7 @@ async function remove(item: HouseTrackingComment) {
         class="d-flex justify-end"
       >
         <v-btn
+          v-if="can('listHouse', 'NUEVO')"
           color="primary"
           variant="outlined"
           size="small"

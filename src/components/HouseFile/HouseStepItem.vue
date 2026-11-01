@@ -7,12 +7,14 @@ import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { dateLabel, stepDateTimeLabel } from "./houseTrackingFormat";
 import { stepValidationLines } from "./stepValidation";
 import { isClickOnControl } from "@/utils/clickTarget";
+import { usePermissions } from "@/composables/usePermissions";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
 const emit = defineEmits<{ confirm: []; unconfirm: []; "edit-date": [] }>();
 
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
+const canEdit = usePermissions().can("listHouse", "MODIFICAR");
 const expanded = ref(false);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
@@ -65,6 +67,7 @@ function toggleFromRow(event: MouseEvent) {
         size="small"
         color="primary"
         class="text-none px-1"
+        :disabled="!canEdit"
         :aria-label="`Corregir fecha de ${step.name}`"
         @click="emit('confirm')"
       >
@@ -83,6 +86,7 @@ function toggleFromRow(event: MouseEvent) {
         :color="step.scheduled_at ? undefined : 'primary'"
         :class="['text-none px-1', { 'text-medium-emphasis': step.scheduled_at }]"
         :prepend-icon="step.scheduled_at ? undefined : 'mdi-calendar-plus'"
+        :disabled="!canEdit"
         :aria-label="step.scheduled_at ? `Cambiar fecha estimada de ${step.name}` : `Poner fecha a ${step.name}`"
         @click="emit('edit-date')"
       >
@@ -103,7 +107,10 @@ function toggleFromRow(event: MouseEvent) {
       />
     </td>
     <td class="px-1 text-center">
-      <div class="d-inline-flex">
+      <div
+        v-if="canEdit"
+        class="d-inline-flex"
+      >
         <v-switch
           :model-value="confirmed"
           :aria-label="switchLabel"
