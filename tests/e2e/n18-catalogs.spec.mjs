@@ -157,6 +157,8 @@ test.describe("Tipo de teléfono", () => {
     await drawer.getByRole("button", { name: "Aceptar" }).click();
     await acknowledge(page, /registro correcto/i);
     await expect(drawer).toBeHidden();
+    // The list pages by creation date, so a new code may not be on the first page.
+    await page.getByLabel("Buscar", { exact: true }).fill(code);
     await expect(codeRows).toHaveCount(1);
 
     await page.getByRole("button", { name: "NUEVO" }).click();
