@@ -1,7 +1,7 @@
 import type { CatalogScreen, ScreenPermission } from "@/types/roles";
 
 export const VIEW_ACTION = "VER";
-export const ACTIONS = [VIEW_ACTION, "NUEVO", "MODIFICAR", "ELIMINAR", "FILTRAR", "COPIAR", "EXPORTAR"] as const;
+export const ACTIONS = [VIEW_ACTION, "NUEVO", "MODIFICAR", "ELIMINAR", "COPIAR", "EXPORTAR"] as const;
 
 export type Grants = Record<number, string[]>;
 

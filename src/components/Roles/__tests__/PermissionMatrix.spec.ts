@@ -8,7 +8,7 @@ import PermissionMatrix from "@/components/Roles/PermissionMatrix.vue";
 import type { CatalogScreen } from "@/types/roles";
 import type { Grants } from "@/utils/permissionGrants";
 
-const ACTIONS = ["VER", "NUEVO", "MODIFICAR", "ELIMINAR", "FILTRAR", "COPIAR", "EXPORTAR"];
+const ACTIONS = ["VER", "NUEVO", "MODIFICAR", "ELIMINAR", "COPIAR", "EXPORTAR"];
 const screen = (menu_id: number, module_id: number, notGrantable: string[] = []): CatalogScreen => ({
   module_id,
   module: `Módulo ${module_id}`,
