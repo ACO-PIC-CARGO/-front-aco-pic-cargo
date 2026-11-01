@@ -3,12 +3,14 @@ import { onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePermissions } from "@/composables/usePermissions";
 import type { FiltroEmpresa } from "@/types/empresas";
 import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
 const enterprisesStore = useEnterprisesStore();
+const { can } = usePermissions();
 
 const headers = [
   // { text: "Código", align: "start", value: "code" },
@@ -188,6 +190,7 @@ function open_filter() {
         </template>
         <template #[`item.action`]="{ item }">
           <v-btn
+            v-if="can('listEnterprise', 'MODIFICAR')"
             variant="text"
             icon
             @click="updateEnterpriseRoute(item.id)"

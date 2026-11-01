@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { usePermissions } from "@/composables/usePermissions";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
 import type { FormEnterpriseUpdate } from "@/types/empresas";
@@ -17,6 +18,8 @@ const appStore = useAppStore();
 const filesStore = useFilesStore();
 const enterprisesStore = useEnterprisesStore();
 const masterusuariosStore = useMasterusuariosStore();
+const { can } = usePermissions();
+const canEdit = can("listEnterprise", "MODIFICAR");
 
 const companyId = Number(route.params.id);
 const NEW_BANK = { id: 0, name: "Crear Nuevo Banco" };
@@ -546,6 +549,7 @@ async function guardarCuenta() {
               style="text-align: right"
             >
               <v-btn
+                v-if="canEdit"
                 color="success"
                 size="small"
                 @click="abrirModalNuevaCuenta"
@@ -578,6 +582,7 @@ async function guardarCuenta() {
         class="justify-end mt-3"
       >
         <v-btn
+          v-if="canEdit"
           size="small"
           class="mx-1"
           color="success"
