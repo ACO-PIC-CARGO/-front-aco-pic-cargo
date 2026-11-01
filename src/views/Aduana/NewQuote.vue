@@ -13,12 +13,14 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import type { Costo, TipoCarga } from "@/types/cotizacion";
 
 const router = useRouter();
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const canSaveDraft = usePermissions().can("newCotizacionAduana", "NUEVO");
 const enterprisesStore = useEnterprisesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -236,7 +238,7 @@ async function activarLlenadoCostos() {
       allowEnterKey: false,
       allowOutsideClick: false,
       confirmButtonColor: "green",
-      showDenyButton: true,
+      showDenyButton: canSaveDraft,
       allowEscapeKey: false,
     }).then(async (result) => {
       if (result.isConfirmed) {

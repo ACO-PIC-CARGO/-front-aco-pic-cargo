@@ -19,6 +19,7 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import {
   FOLDER_NOT_CREATED,
   NO_CALCULATOR_FREIGHT,
@@ -39,6 +40,7 @@ import type {
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const canSaveDraft = usePermissions().can("newQuote", "NUEVO");
 const calculadorasStore = useCalculadorasStore();
 const masterusuariosStore = useMasterusuariosStore();
 const quoteStatusStore = useQuoteStatusStore();
@@ -433,7 +435,7 @@ async function activarLlenadoCostosGrupal(
       allowEnterKey: false,
       allowOutsideClick: false,
       confirmButtonColor: "green",
-      showDenyButton: true,
+      showDenyButton: canSaveDraft,
       allowEscapeKey: false,
       showCloseButton: true,
     }).then(async (result) => {
@@ -585,7 +587,7 @@ async function activarLlenadoCostosIndividual(
       allowEnterKey: false,
       allowOutsideClick: false,
       confirmButtonColor: "green",
-      showDenyButton: true,
+      showDenyButton: canSaveDraft,
       allowEscapeKey: false,
       showCloseButton: true,
     }).then(async (result) => {
