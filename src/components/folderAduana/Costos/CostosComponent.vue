@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import NuevoProveedorComponentVue from "@/components/folderEntities/Proveedor/NuevoProveedorComponent.vue";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import { useEntitiesStore } from "@/stores/entities";
 import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
@@ -21,6 +23,10 @@ const props = defineProps<{
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const entitiesStore = useEntitiesStore();
+const route = useRoute();
+const { can } = usePermissions();
+const canSaveQuote =
+  route.name === "newCotizacionAduana" ? can("newCotizacionAduana", "NUEVO") : can("lstQuoteAduanaAduana", "MODIFICAR");
 const { calcularFac } = useCotizacionCalculos();
 
 const costo = ref<Costo>({});
@@ -1375,6 +1381,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -1716,6 +1723,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -2058,6 +2066,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -2400,6 +2409,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -2743,6 +2753,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -3084,6 +3095,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -3427,6 +3439,7 @@ onMounted(async () => {
                         >
                           <template #append-inner>
                             <v-icon
+                              v-if="canSaveQuote"
                               icon="mdi-plus"
                               @mousedown.stop
                               @click.stop="abrirModalRegistroProveedor(valor)"
@@ -3824,7 +3837,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-btn
             color="success"
-            v-if="mostrarBtnRegistroProveedor()"
+            v-if="canSaveQuote && mostrarBtnRegistroProveedor()"
             @click="nuevoProveedor()"
           >
             Guardar

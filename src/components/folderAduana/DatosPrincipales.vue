@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ClienteListado } from "@/types/entidades";
 
@@ -21,6 +23,10 @@ const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
+const route = useRoute();
+const { can } = usePermissions();
+const canSaveQuote =
+  route.name === "newCotizacionAduana" ? can("newCotizacionAduana", "NUEVO") : can("lstQuoteAduanaAduana", "MODIFICAR");
 
 const search = ref("");
 const buscarClienteDialog = ref(false);
@@ -373,6 +379,7 @@ function recargarServiciosCostos() {
         <v-card-title class="d-flex align-center flex-wrap">
           Buscar Cliente<v-spacer />
           <v-btn
+            v-if="canSaveQuote"
             color="success"
             @click="registrarNuevoCliente"
             size="small"

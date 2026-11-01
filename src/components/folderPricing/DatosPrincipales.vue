@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId } from "@/utils/sesion";
 import type {
   ArchivoDrive,
@@ -29,6 +30,8 @@ const appStore = useAppStore();
 const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
+const { can } = usePermissions();
+const canSaveQuote = route.name === "newQuote" ? can("newQuote", "NUEVO") : can("lstQuote", "MODIFICAR");
 
 const dialogFiles = ref(false);
 const search = ref("");
@@ -668,6 +671,7 @@ function recargarNuevo(id_incoterms?: number | string) {
         <v-card-title class="d-flex align-center flex-wrap">
           Buscar Cliente<v-spacer />
           <v-btn
+            v-if="canSaveQuote"
             color="success"
             @click="registrarNuevoCliente"
             size="small"
