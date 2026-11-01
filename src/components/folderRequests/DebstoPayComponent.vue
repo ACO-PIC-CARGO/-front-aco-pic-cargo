@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -28,6 +29,7 @@ import type {
 } from "@/types/requests";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const programacionesStore = useProgramacionesStore();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -717,6 +719,7 @@ onMounted(async () => {
         <v-btn
           color="#1D6F42"
           class="mx-1"
+          v-if="can('debstopay', 'EXPORTAR')"
           @click="exportar"
           :loading="exportando"
           size="small"
@@ -728,6 +731,7 @@ onMounted(async () => {
           class="ml-5"
           color="red"
           :loading="exportandopdf"
+          v-if="can('debstopay', 'EXPORTAR')"
           @click="exportarPDF()"
           elevation="0"
           size="small"
@@ -827,7 +831,7 @@ onMounted(async () => {
                         </v-icon>
 
                         <v-icon
-                          v-if="child.programado == 0"
+                          v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
                           @click="
                             nuevaFecha({
                               item: item,
@@ -930,7 +934,7 @@ onMounted(async () => {
                     >
                       <td>
                         <v-icon
-                          v-if="child.programado == 0"
+                          v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
                           @click="nuevaFecha({ item: item, tipo: 2 })"
                         >
                           mdi-clock-outline
@@ -963,7 +967,7 @@ onMounted(async () => {
         <v-card-title class="d-flex align-center flex-wrap">
           Estados/Comentarios de la CxP - {{ dataCXP.proveedor }}
           <v-spacer />
-          <template v-if="dataCXP.esoperativo">
+          <template v-if="dataCXP.esoperativo && can('debstopay', 'NUEVO')">
             <v-btn
               rounded
               size="small"
@@ -973,7 +977,7 @@ onMounted(async () => {
               Nuevo Comentario
             </v-btn>
           </template>
-          <template v-else-if="dataCXP.esadministrativo">
+          <template v-else-if="dataCXP.esadministrativo && can('debstopay', 'NUEVO')">
             <v-btn
               rounded
               size="small"
