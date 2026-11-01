@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from "vue";
+import { useSelectModel } from "@/composables/useSelectModel";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
@@ -36,6 +37,7 @@ const numerooperacion = ref("");
 const proveedor = ref<number | null>(null);
 const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
+const selectedAccount = useSelectModel(id_cuenta);
 const fechaoperacion = ref<string | null>(null);
 const id_path = ref<number | null>(null);
 const selected = ref<DetalleEgreso[]>([]);
@@ -716,7 +718,7 @@ onMounted(async () => {
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
-                    v-model="id_cuenta"
+                    v-model="selectedAccount"
                     return-object
                     variant="outlined"
                     density="compact"
@@ -956,7 +958,7 @@ onMounted(async () => {
                     item-title="label"
                     item-value="id"
                     label="Cuenta de Salida de Banco"
-                    v-model="id_cuenta"
+                    v-model="selectedAccount"
                     return-object
                     variant="outlined"
                     density="compact"
