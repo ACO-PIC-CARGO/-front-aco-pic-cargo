@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useComentariosPredefinidosStore } from "@/stores/comentariosPredefinidos";
 import type { ComentarioPredefinido, FiltroComentariosPredefinidos, FormComentarioPredefinido } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const comentariosPredefinidosStore = useComentariosPredefinidosStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -232,6 +234,7 @@ function getFechaBonita(fecha?: string) {
         />
         <v-spacer />
         <v-btn
+          v-if="can('listComentariosPredefinidos', 'NUEVO')"
           size="small"
           color="success"
           @click="addComentarioPredefinido()"
@@ -247,6 +250,7 @@ function getFechaBonita(fecha?: string) {
           Filtrar
         </v-btn>
         <v-btn
+          v-if="can('listComentariosPredefinidos', 'EXPORTAR')"
           size="small"
           class="ml-1"
           color="#004D40"
@@ -277,6 +281,7 @@ function getFechaBonita(fecha?: string) {
         </template>
         <template #[`item.action`]="{ item }">            
           <v-btn
+            v-if="can('listComentariosPredefinidos', 'MODIFICAR')"
             variant="text"
             icon
             @click="editComentarioPredefinido(item)"
@@ -303,7 +308,7 @@ function getFechaBonita(fecha?: string) {
             icon
             color="red"
             @click="changeStatusComentarioPredefinido(item)"
-            v-if="item.status"
+            v-if="item.status && can('listComentariosPredefinidos', 'ELIMINAR')"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>

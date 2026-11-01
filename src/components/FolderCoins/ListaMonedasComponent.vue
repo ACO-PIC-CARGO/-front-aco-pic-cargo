@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useCoinsStore } from "@/stores/coins";
 import type { FiltroMonedas, FormMoneda, Moneda } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const coinsStore = useCoinsStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -290,6 +292,7 @@ function validateDescription(v: string | null) {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('listCoins', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item.id)"

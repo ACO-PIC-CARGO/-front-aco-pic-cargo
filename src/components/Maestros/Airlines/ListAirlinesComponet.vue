@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 import type { Aerolinea } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const airlinesStore = useAirlinesStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const search = ref("");
@@ -107,6 +109,7 @@ async function eliminar(item: Aerolinea) {
         class="text-right my-auto"
       >
         <v-btn
+          v-if="can('listAirlines', 'NUEVO')"
           size="small"
           color="success"
           @click="nuevo()"
@@ -153,6 +156,7 @@ async function eliminar(item: Aerolinea) {
             <v-tooltip location="bottom">
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('listAirlines', 'MODIFICAR')"
                   color="warning"
                   v-bind="props"
                   @click="editar(item)"
@@ -168,6 +172,7 @@ async function eliminar(item: Aerolinea) {
             >
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('listAirlines', 'ELIMINAR')"
                   color="error"
                   v-bind="props"
                   @click="eliminar(item)"

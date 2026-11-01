@@ -3,8 +3,10 @@ import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useTypepaymentStore } from "@/stores/typepayment";
 import type { TipoPago } from "@/types/catalogos";
+import { usePermissions } from "@/composables/usePermissions";
 
 const typepaymentStore = useTypepaymentStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const loading = ref(false);
@@ -95,6 +97,7 @@ async function eliminar(item: TipoPago) {
         class="text-right my-auto"
       >
         <v-btn
+          v-if="can('ListPayment', 'NUEVO')"
           size="small"
           color="success"
           @click="nuevo()"
@@ -172,6 +175,7 @@ async function eliminar(item: TipoPago) {
             <v-tooltip location="bottom">
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('ListPayment', 'MODIFICAR')"
                   color="warning"
                  
                   v-bind="props"
@@ -188,6 +192,7 @@ async function eliminar(item: TipoPago) {
             >
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('ListPayment', 'ELIMINAR')"
                   color="error"
                  
                   v-bind="props"

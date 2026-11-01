@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useContainersStore } from "@/stores/containers";
 import type { FiltroCatalogo, FormContenedor, TipoContenedor } from "@/types/catalogos";
+import { usePermissions } from "@/composables/usePermissions";
 
 const containersStore = useContainersStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -251,6 +253,7 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
       />
       <v-spacer />
       <v-btn
+        v-if="can('listContainers', 'NUEVO')"
         size="small"
         color="success"
         @click="open_new()"
@@ -294,6 +297,7 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
           </v-icon>
         </v-btn>
         <v-btn
+          v-if="can('listContainers', 'MODIFICAR')"
           variant="text"
           icon
           @click="open_update(item.id)"
@@ -310,7 +314,7 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
           icon
           color="red"
           @click="switch_status(item)"
-          v-if="item.status"
+          v-if="item.status && can('listContainers', 'ELIMINAR')"
         >
           <v-icon>mdi-delete</v-icon>
         </v-btn>

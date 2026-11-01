@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useMultiplicadorStore } from "@/stores/multiplicador";
 import type { FiltroMultiplicador, TipoContenedor } from "@/types/catalogos";
 import type { Multiplicador } from "@/types/cotizacion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const multiplicadorStore = useMultiplicadorStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -241,6 +243,7 @@ function validateNumber(value: string | number | null | undefined) {
         />
         <v-spacer />
         <v-btn
+          v-if="can('listMultiplicador', 'NUEVO')"
           size="small"
           class="mx-1"
           color="success"
@@ -282,6 +285,7 @@ function validateNumber(value: string | number | null | undefined) {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('listMultiplicador', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item)"
@@ -298,7 +302,7 @@ function validateNumber(value: string | number | null | undefined) {
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="item.status && can('listMultiplicador', 'ELIMINAR')"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>

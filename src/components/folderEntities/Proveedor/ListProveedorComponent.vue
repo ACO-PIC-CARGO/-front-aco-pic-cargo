@@ -6,8 +6,10 @@ import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { EntidadListado } from "@/types/entidades";
+import { usePermissions } from "@/composables/usePermissions";
 
 const router = useRouter();
+const { can } = usePermissions();
 const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -99,6 +101,7 @@ onMounted(async () => {
     <v-row>
       <v-col cols="6">
         <v-btn
+          v-if="can('listProveedor', 'NUEVO')"
           rounded
           size="small"
           class="mx-1"
@@ -120,6 +123,7 @@ onMounted(async () => {
           FILTRAR
         </v-btn>
         <v-btn
+          v-if="can('listProveedor', 'EXPORTAR')"
           rounded
           size="small"
           class="mx-1"
@@ -174,7 +178,7 @@ onMounted(async () => {
               </v-btn> -->
               <v-btn
                 variant="text"
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listProveedor', 'MODIFICAR')"
                 size="x-small"
                 icon
                 @click="
@@ -207,7 +211,7 @@ onMounted(async () => {
                 variant="text"
                 size="x-small"
                 icon
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listProveedor', 'ELIMINAR')"
                 @click="eliminar(item)"
               >
                 <v-icon

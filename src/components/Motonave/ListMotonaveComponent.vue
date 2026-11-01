@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { useMotonaveStore } from "@/stores/motonave";
 import type { Motonave } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const motonaveStore = useMotonaveStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const loading = ref(false);
@@ -96,6 +98,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listMotonave', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -172,6 +175,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listMotonave', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -188,6 +192,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listMotonave', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"

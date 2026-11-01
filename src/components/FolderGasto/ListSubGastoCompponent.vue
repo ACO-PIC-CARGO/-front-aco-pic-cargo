@@ -5,8 +5,10 @@ import { useGastosStore } from "@/stores/gastos";
 import { useSubgastoStore } from "@/stores/subgasto";
 import type { SubGasto } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const gastosStore = useGastosStore();
+const { can } = usePermissions();
 const subgastoStore = useSubgastoStore();
 
 const search = ref("");
@@ -110,6 +112,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listSubGasto', 'NUEVO')"
             size="small"
             color="success"
             :loading="loadingNuevo"
@@ -194,6 +197,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listSubGasto', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -210,6 +214,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listSubGasto', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"

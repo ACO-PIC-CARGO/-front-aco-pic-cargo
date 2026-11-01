@@ -8,8 +8,10 @@ import { useMarketingStore } from "@/stores/marketing";
 import type { ApiResponse } from "@/types/api";
 import type { FiltroMarketing, FormMarketing, Marketing } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const marketingStore = useMarketingStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -315,6 +317,7 @@ async function reset_records() {
         />
         <v-spacer />
         <v-btn
+          v-if="can('listMarketing', 'NUEVO')"
           size="small"
           color="success"
           @click="open_insert()"
@@ -330,6 +333,7 @@ async function reset_records() {
           Filtrar
         </v-btn>
         <v-btn
+          v-if="can('listMarketing', 'EXPORTAR')"
           size="small"
           class="mx-1"
           color="#004D40"
@@ -363,6 +367,7 @@ async function reset_records() {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('listMarketing', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item.id)"
@@ -379,7 +384,7 @@ async function reset_records() {
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="item.status && can('listMarketing', 'ELIMINAR')"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>

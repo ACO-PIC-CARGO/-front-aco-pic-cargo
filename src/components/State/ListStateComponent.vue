@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useStatesStore } from "@/stores/states";
 import type { EstadoRegion } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const statesStore = useStatesStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const search = ref("");
@@ -102,7 +104,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
-            v-if="statesStore.editable"
+            v-if="statesStore.editable && can('listState', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -182,6 +184,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listState', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -198,6 +201,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listState', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"

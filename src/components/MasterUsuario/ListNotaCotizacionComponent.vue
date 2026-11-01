@@ -5,8 +5,10 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { MasterDetalle } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const masterusuariosStore = useMasterusuariosStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const mostrarflag = ref(true);
@@ -170,6 +172,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('ListNotasCotizacion', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -185,6 +188,7 @@ onMounted(async () => {
             FILTRAR
           </v-btn>
           <v-btn
+            v-if="can('ListNotasCotizacion', 'EXPORTAR')"
             size="small"
             class="mx-1"
             color="#004D40"
@@ -239,6 +243,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('ListNotasCotizacion', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -259,7 +264,7 @@ onMounted(async () => {
                     color="error"
                    
                     v-bind="props"
-                    v-if="item.status == true"
+                    v-if="item.status == true && can('ListNotasCotizacion', 'ELIMINAR')"
                     @click="eliminar(item)"
                   >
                     mdi-delete

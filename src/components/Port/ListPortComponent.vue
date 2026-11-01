@@ -6,8 +6,10 @@ import { usePuertoStore } from "@/stores/puerto";
 import { useTransportStore } from "@/stores/transport";
 import type { Puerto } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const puertoStore = usePuertoStore();
+const { can } = usePermissions();
 const transportStore = useTransportStore();
 const appStore = useAppStore();
 
@@ -107,6 +109,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listPort', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -183,6 +186,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listPort', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -199,6 +203,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listPort', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"

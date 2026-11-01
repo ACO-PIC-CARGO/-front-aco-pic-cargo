@@ -9,8 +9,10 @@ import type {
   CuentaBancoDetalle,
   RegistroBancoEditable,
 } from "@/types/banksProveedor";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const bankStore = useBankStore();
 const frmCuenta = useTemplateRef("frmCuenta");
 const formNew = useTemplateRef("formNew");
@@ -319,6 +321,7 @@ onMounted(async () => {
         />
         <v-spacer />
         <v-btn
+          v-if="can('bankList', 'NUEVO')"
           size="small"
           color="success"
           @click="open_new()"
@@ -374,6 +377,7 @@ onMounted(async () => {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('bankList', 'MODIFICAR')"
             variant="text"
             class="mx-1"
             size="small"
@@ -393,7 +397,7 @@ onMounted(async () => {
             size="small"
             icon
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="item.status && can('bankList', 'ELIMINAR')"
           >
             <v-icon color="red">
               mdi-delete
@@ -829,6 +833,7 @@ onMounted(async () => {
               <v-row>
                 <v-col>
                   <v-btn
+                    v-if="can('bankList', 'MODIFICAR')"
                     variant="text"
                     icon
                     @click="abrirCuenta(item)"
@@ -842,6 +847,7 @@ onMounted(async () => {
                 </v-col>
                 <v-col>
                   <v-btn
+                    v-if="can('bankList', 'ELIMINAR')"
                     variant="text"
                     color="error"
                     icon
@@ -860,6 +866,7 @@ onMounted(async () => {
         <v-card-actions>
           <v-spacer />
           <v-btn
+            v-if="can('bankList', 'NUEVO')"
             color="success"
             @click="abrirNuevaCuenta()"
           >

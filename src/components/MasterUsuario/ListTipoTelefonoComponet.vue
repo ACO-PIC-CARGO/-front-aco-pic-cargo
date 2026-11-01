@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { TipoTransaccion } from "@/types/entidades";
 import type { MasterDetalle } from "@/types/seguridad";
+import { usePermissions } from "@/composables/usePermissions";
 
 const masterusuariosStore = useMasterusuariosStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const mostrarflag = ref(true);
@@ -131,6 +133,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listTipoTelefeno', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -177,6 +180,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listTipoTelefeno', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -198,7 +202,7 @@ onMounted(async () => {
                     color="error"
                    
                     v-bind="props"
-                    v-if="item.status == true"
+                    v-if="item.status == true && can('listTipoTelefeno', 'ELIMINAR')"
                     @click="eliminar(item)"
                   >
                     mdi-delete

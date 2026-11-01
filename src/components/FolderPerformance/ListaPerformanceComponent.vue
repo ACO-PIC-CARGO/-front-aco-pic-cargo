@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { usePerformanceStore } from "@/stores/performance";
 import type { FiltroPerformance, FormPerformance, Performance } from "@/types/catalogos";
+import { usePermissions } from "@/composables/usePermissions";
 
 const performanceStore = usePerformanceStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -216,7 +218,7 @@ function resetForms() {
         />
         <v-spacer />
         <v-btn
-          v-if="performanceStore.editable"
+          v-if="performanceStore.editable && can('performance', 'NUEVO')"
           size="small"
           color="success"
           @click="open_new()"
@@ -257,7 +259,7 @@ function resetForms() {
             </v-icon>
           </v-btn>
           <v-btn
-            v-if="performanceStore.editable"
+            v-if="performanceStore.editable && can('performance', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item.id)"
@@ -273,7 +275,7 @@ function resetForms() {
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="performanceStore.editable && item.status"
+            v-if="performanceStore.editable && item.status && can('performance', 'ELIMINAR')"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>

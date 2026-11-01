@@ -5,8 +5,10 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import type { EstadoCotizacion } from "@/types/cotizacion";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const QuoteStatusStore = useQuoteStatusStore();
+const { can } = usePermissions();
 const masterusuariosStore = useMasterusuariosStore();
 
 const search = ref("");
@@ -114,6 +116,7 @@ async function eliminar(item: EstadoCotizacion) {
         class="text-right my-auto"
       >
         <v-btn
+          v-if="can('listQuoteStatus', 'NUEVO')"
           size="small"
           color="success"
           @click="nuevo()"
@@ -191,6 +194,7 @@ async function eliminar(item: EstadoCotizacion) {
             <v-tooltip location="bottom">
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('listQuoteStatus', 'MODIFICAR')"
                   color="warning"
                  
                   v-bind="props"
@@ -207,6 +211,7 @@ async function eliminar(item: EstadoCotizacion) {
             >
               <template #activator="{ props }">
                 <v-icon
+                  v-if="can('listQuoteStatus', 'ELIMINAR')"
                   color="error"
                  
                   v-bind="props"

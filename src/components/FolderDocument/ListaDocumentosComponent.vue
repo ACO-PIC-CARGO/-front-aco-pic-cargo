@@ -4,8 +4,10 @@ import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { useDocumentStore } from "@/stores/document";
 import type { FiltroCatalogo, FormDocumento, TipoDocumento } from "@/types/catalogos";
+import { usePermissions } from "@/composables/usePermissions";
 
 const documentStore = useDocumentStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -226,6 +228,7 @@ function resetForms() {
         />
         <v-spacer />
         <v-btn
+          v-if="can('listDocument', 'NUEVO')"
           size="small"
           color="success"
           @click="open_insert()"
@@ -266,6 +269,7 @@ function resetForms() {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('listDocument', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item.id)"
@@ -282,7 +286,7 @@ function resetForms() {
             icon
             color="red"
             @click="switch_status(item)"
-            v-if="item.status"
+            v-if="item.status && can('listDocument', 'ELIMINAR')"
           >
             <v-icon>mdi-delete</v-icon>
           </v-btn>

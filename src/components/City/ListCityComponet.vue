@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useCityStore } from "@/stores/city";
 import type { Ciudad } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const cityStore = useCityStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const search = ref("");
@@ -119,7 +121,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
-            v-if="cityStore.editable"
+            v-if="cityStore.editable && can('listCity', 'NUEVO')"
             size="small"
             color="success"
             @click="nuevo()"
@@ -196,6 +198,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listCity', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -212,6 +215,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listCity', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"

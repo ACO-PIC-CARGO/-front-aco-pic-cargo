@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useIngresosStore } from "@/stores/ingresos";
 import type { FiltroGastoIngreso, FormIngreso, TipoIngreso } from "@/types/catalogos";
 import { request } from "@/utils/request";
+import { usePermissions } from "@/composables/usePermissions";
 
 const ingresosStore = useIngresosStore();
+const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
@@ -234,6 +236,7 @@ async function validate_code() {
         />
         <v-spacer />
         <v-btn
+          v-if="can('listIngresos', 'NUEVO')"
           size="small"
           color="success"
           @click="open_new()"
@@ -277,6 +280,7 @@ async function validate_code() {
             </v-icon>
           </v-btn>
           <v-btn
+            v-if="can('listIngresos', 'MODIFICAR')"
             variant="text"
             icon
             @click="open_update(item.id)"
@@ -297,7 +301,7 @@ async function validate_code() {
               icon
               color="red"
               @click="switch_status(item)"
-              v-if="item.status"
+              v-if="item.status && can('listIngresos', 'ELIMINAR')"
             >
               <v-icon>mdi-delete</v-icon>
             </v-btn>

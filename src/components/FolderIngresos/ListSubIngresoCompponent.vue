@@ -5,8 +5,10 @@ import { useIngresosStore } from "@/stores/ingresos";
 import { useSubingresoStore } from "@/stores/subingreso";
 import type { SubIngreso } from "@/types/catalogos";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const ingresosStore = useIngresosStore();
+const { can } = usePermissions();
 const subingresoStore = useSubingresoStore();
 
 const search = ref("");
@@ -110,6 +112,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listSubIngresos', 'NUEVO')"
             size="small"
             color="success"
             :loading="loadingNuevo"
@@ -194,6 +197,7 @@ onMounted(async () => {
               <v-tooltip location="bottom">
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listSubIngresos', 'MODIFICAR')"
                     color="warning"
                    
                     v-bind="props"
@@ -210,6 +214,7 @@ onMounted(async () => {
               >
                 <template #activator="{ props }">
                   <v-icon
+                    v-if="can('listSubIngresos', 'ELIMINAR')"
                     color="error"
                    
                     v-bind="props"
