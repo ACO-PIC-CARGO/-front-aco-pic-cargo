@@ -5,6 +5,8 @@ export const ACTIONS = [VIEW_ACTION, "NUEVO", "MODIFICAR", "ELIMINAR", "FILTRAR"
 
 export type Grants = Record<number, string[]>;
 
+export const actionLabel = (action: string): string => action[0] + action.slice(1).toLowerCase();
+
 export interface GrantCell {
   menuId: number;
   action: string;

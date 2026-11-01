@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import type { CatalogScreen } from "@/types/roles";
-import { ACTIONS, setActions } from "@/utils/permissionGrants";
+import { ACTIONS, actionLabel, setActions } from "@/utils/permissionGrants";
 import type { GrantCell, Grants } from "@/utils/permissionGrants";
 
 interface ScreenGroup {
@@ -31,7 +31,6 @@ const modules = computed(() => {
   return result;
 });
 
-const label = (action: string) => action[0] + action.slice(1).toLowerCase();
 const offers = (screen: CatalogScreen, action: string) => screen.actions.some((offered) => offered.name === action);
 const canGrant = (screen: CatalogScreen, action: string) =>
   !props.readonly && screen.actions.some((offered) => offered.name === action && offered.grantable);
@@ -68,14 +67,14 @@ function toggle(cells: GrantCell[], on: boolean | null) {
           :key="action"
           class="text-center"
         >
-          {{ label(action) }}
+          {{ actionLabel(action) }}
           <v-checkbox-btn
             v-if="!readonly"
             class="justify-center"
             density="compact"
             :model-value="allGranted(columnCells(action))"
             :disabled="!columnCells(action).length"
-            :aria-label="`${label(action)} en todas las pantallas`"
+            :aria-label="`${actionLabel(action)} en todas las pantallas`"
             @update:model-value="toggle(columnCells(action), $event)"
           />
         </th>
@@ -142,7 +141,7 @@ function toggle(cells: GrantCell[], on: boolean | null) {
                 density="compact"
                 :model-value="isGranted({ menuId: screen.menu_id, action })"
                 :disabled="!canGrant(screen, action)"
-                :aria-label="`${label(action)} en ${screen.screen}`"
+                :aria-label="`${actionLabel(action)} en ${screen.screen}`"
                 @update:model-value="toggle([{ menuId: screen.menu_id, action }], $event)"
               />
             </td>
