@@ -128,7 +128,7 @@ test("a refused save shows the server's reason and keeps the user on the form", 
   await typeInto("Nombre (*)", "Ventas");
   await clickButton("Guardar");
 
-  expect(vi.mocked(Swal.fire).mock.calls.at(-1)![0]).toMatchObject({
+  expect(vi.mocked(Swal.fire).mock.lastCall![0]).toMatchObject({
     icon: "error",
     text: "Ya existe un rol con ese nombre. Elige otro nombre.",
   });

@@ -111,5 +111,5 @@ test("the filters send the search text and Todos as an empty estado", async () =
   [...drawer.querySelectorAll<HTMLElement>("button")].find((button) => button.textContent?.trim() === "Aceptar")!.click();
   await flushPromises();
 
-  expect(listRequests().at(-1)!.params).toEqual({ search: "ven", estado: "" });
+  expect(listRequests().slice(-1)[0]!.params).toEqual({ search: "ven", estado: "" });
 });

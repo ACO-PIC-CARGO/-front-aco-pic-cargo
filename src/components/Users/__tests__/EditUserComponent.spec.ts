@@ -146,7 +146,7 @@ test("the role picker offers the roles the user may assign, and a role added fro
 
   expect(useUserStore().positions).toContainEqual(expect.objectContaining({ id_position: 6, status: true }));
   expect(wrapper.findAll("tr").some((tableRow) => tableRow.text().includes("VENTAS"))).toBe(true);
-  const paths = vi.mocked(http).mock.calls.map(([config]) => (config as { url: string }).url);
+  const paths = vi.mocked(http).mock.calls.map(([config]) => (config as unknown as { url: string }).url);
   expect(paths.some((url) => url.includes("cargar_posicion"))).toBe(false);
   wrapper.unmount();
 });

@@ -23,15 +23,20 @@ const screen = (menu_id: number, module_id: number, notGrantable: string[] = [])
 const catalog = [screen(7, 1, ["ELIMINAR"]), screen(8, 1), screen(9, 2)];
 
 let wrapper: VueWrapper | undefined;
+let current: Grants = {};
 afterEach(() => wrapper?.unmount());
 
 const mountMatrix = (props: { modelValue?: Grants; readonly?: boolean } = {}) => {
+  current = props.modelValue ?? {};
   wrapper = mount(PermissionMatrix, {
     props: {
       catalog,
       modelValue: {},
       ...props,
-      "onUpdate:modelValue": (grants: Grants) => wrapper!.setProps({ modelValue: grants }),
+      "onUpdate:modelValue": (grants: Grants) => {
+        current = grants;
+        return wrapper!.setProps({ modelValue: grants });
+      },
     },
     global: { plugins: [createVuetify({ components, directives })] },
   });
@@ -39,7 +44,8 @@ const mountMatrix = (props: { modelValue?: Grants; readonly?: boolean } = {}) =>
 };
 
 const box = (label: string) => wrapper!.find<HTMLInputElement>(`input[aria-label="${label}"]`);
-const grants = () => wrapper!.props("modelValue") as Grants;
+const grants = () => current;
+const sorted = (actions: readonly string[] | undefined) => [...(actions ?? [])].sort();
 
 test("a cell the user cannot grant is disabled, the others are not", () => {
   mountMatrix();
@@ -69,8 +75,8 @@ test("selecting a whole module grants every action the user can grant on its scr
 
   await box("Seleccionar todo en Módulo 1").setValue(true);
 
-  expect(grants()[7]!.toSorted()).toEqual(ACTIONS.filter((action) => action !== "ELIMINAR").toSorted());
-  expect(grants()[8]!.toSorted()).toEqual(ACTIONS.toSorted());
+  expect(sorted(grants()[7])).toEqual(sorted(ACTIONS.filter((action) => action !== "ELIMINAR")));
+  expect(sorted(grants()[8])).toEqual(sorted(ACTIONS));
   expect(grants()[9]).toBeUndefined();
 });
 
