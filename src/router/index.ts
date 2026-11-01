@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 
@@ -924,6 +925,7 @@ router.beforeEach((to) => {
   const requiresAuth = to.matched.some((record) => record.meta && record.meta.requiresAuth);
   if (requiresAuth && !sessionStorage.getItem("auth-token")) return { name: "Login" };
 });
+router.beforeEach(permissionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
 export default router;
