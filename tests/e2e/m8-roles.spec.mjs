@@ -45,7 +45,9 @@ async function loginAs(browser, baseURL, user) {
   await expect(async () => {
     expect(page.url().endsWith("/home/main") || (await branchPicker.isVisible())).toBe(true);
   }).toPass({ timeout: 30_000 });
-  if (!page.url().endsWith("/home/main")) {
+  // A user with one branch is taken to Main on its own right after the picker shows.
+  const landedAlone = await page.waitForURL(/\/home\/main$/, { timeout: 5_000 }).then(() => true, () => false);
+  if (!landedAlone) {
     await branchPicker.click({ trial: true });
     await page.getByLabel("Sucursal", { exact: true }).click({ force: true });
     await page.getByRole("option", { name: credentials().branch }).click();
