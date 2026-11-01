@@ -3,6 +3,7 @@ import { computed, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
 import type { TrackingStep, TrackingStepComment } from "@/types/trackingCatalog";
+import { usePermissions } from "@/composables/usePermissions";
 
 const COMMENT_MAX = 1000;
 const COMMENT_MESSAGE = `Escribe el comentario (hasta ${COMMENT_MAX} caracteres).`;
@@ -10,6 +11,7 @@ const COMMENT_MESSAGE = `Escribe el comentario (hasta ${COMMENT_MAX} caracteres)
 const props = defineProps<{ step: TrackingStep }>();
 
 const store = useTrackingStepCommentsStore();
+const { can } = usePermissions();
 const loading = ref(false);
 const saving = ref(false);
 const serverError = ref("");
@@ -132,6 +134,7 @@ async function remove(item: TrackingStepComment) {
         >
           <span class="aco-body step-comments__text">{{ item.comment }}</span>
           <v-btn
+            v-if="can('lstEstadoBitaco', 'MODIFICAR')"
             icon
             variant="text"
             :aria-label="`Editar comentario ${index + 1}`"
@@ -146,6 +149,7 @@ async function remove(item: TrackingStepComment) {
             </v-tooltip>
           </v-btn>
           <v-btn
+            v-if="can('lstEstadoBitaco', 'ELIMINAR')"
             icon
             variant="text"
             :aria-label="`Eliminar comentario ${index + 1}`"
@@ -163,6 +167,7 @@ async function remove(item: TrackingStepComment) {
       </li>
     </ol>
     <v-form
+      v-if="can('lstEstadoBitaco', 'NUEVO')"
       class="step-comments__row mt-4"
       @submit.prevent="add"
     >

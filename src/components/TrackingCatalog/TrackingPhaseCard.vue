@@ -8,6 +8,7 @@ import TrackingStepComments from "./TrackingStepComments.vue";
 import { stepRangeLabel, useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import { isClickOnControl } from "@/utils/clickTarget";
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
+import { usePermissions } from "@/composables/usePermissions";
 
 const props = defineProps<{ phase: TrackingPhase; isFirst: boolean; isLast: boolean }>();
 const emit = defineEmits<{
@@ -17,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useTrackingCatalogStore();
+const { can } = usePermissions();
 const { validations, dateDefaults } = storeToRefs(store);
 const validationName = (id: number | null) => validations.value.find((item) => item.id === id)?.name;
 const dateDefaultName = (id: number | null) => dateDefaults.value.find((item) => item.id === id)?.name;
@@ -62,12 +64,14 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
       >Inactiva</span>
       <div class="tracking-phase__actions">
         <TrackingMoveButtons
+          v-if="can('lstEstadoBitaco', 'MODIFICAR')"
           :label="`fase ${phase.name}`"
           :is-first="isFirst"
           :is-last="isLast"
           @move="(direction) => store.movePhase(phase.id, direction)"
         />
         <v-btn
+          v-if="can('lstEstadoBitaco', 'MODIFICAR')"
           icon
           variant="text"
           :aria-label="`Editar fase ${phase.name}`"
@@ -126,16 +130,19 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
             hide-details
             density="compact"
             class="tracking-step__visibility"
+            :disabled="!can('lstEstadoBitaco', 'MODIFICAR')"
             @update:model-value="(visible) => store.setStepVisibility(phase.id, step, Boolean(visible))"
           />
           <div class="tracking-step__actions">
             <TrackingMoveButtons
+              v-if="can('lstEstadoBitaco', 'MODIFICAR')"
               :label="`paso ${step.name}`"
               :is-first="index === 0"
               :is-last="index === phase.steps.length - 1"
               @move="(direction) => store.moveStep(step.id, direction)"
             />
             <v-btn
+              v-if="can('lstEstadoBitaco', 'MODIFICAR')"
               icon
               variant="text"
               :aria-label="`Editar paso ${step.name}`"
@@ -177,6 +184,7 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
 
     <footer class="tracking-phase__footer">
       <v-btn
+        v-if="can('lstEstadoBitaco', 'NUEVO')"
         color="primary"
         variant="tonal"
         prepend-icon="mdi-plus"

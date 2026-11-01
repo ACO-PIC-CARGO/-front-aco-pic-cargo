@@ -7,8 +7,10 @@ import { useProfitPricingStore } from "@/stores/profitPricing";
 import { usePricingStore } from "@/stores/pricing";
 import type { Incoterm, ProfitPricingCosto } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
+import { usePermissions } from "@/composables/usePermissions";
 
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 const configEmpresaStore = useConfigEmpresaStore();
 const profitPricingStore = useProfitPricingStore();
 const appStore = useAppStore();
@@ -233,6 +235,7 @@ watch(tab, () => {
           >
             <template #[`item.action`]="{ item }">
               <v-btn
+                v-if="can('RegistroProfitPricing', 'MODIFICAR')"
                 variant="text"
                 color="info"
                 icon

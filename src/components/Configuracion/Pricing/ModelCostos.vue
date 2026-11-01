@@ -10,6 +10,7 @@ import { useProveedorStore } from "@/stores/proveedor";
 import type { CostoPricing, FormNuevoCostoPricing } from "@/types/configuracion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import { nonNegativeAmount } from "./amountRule";
+import { usePermissions } from "@/composables/usePermissions";
 
 const props = withDefaults(
   defineProps<{
@@ -32,6 +33,7 @@ const props = withDefaults(
 const emit = defineEmits<{ cerrarModal: []; cerrarModalGuardar: []; recargarCostos: [] }>();
 
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 const configuracionStore = useConfiguracionStore();
 const proveedorStore = useProveedorStore();
 const { lstCostos, lstMultiplicador, lstServicios } = storeToRefs(configuracionStore);
@@ -250,6 +252,7 @@ const panelesAbiertos = computed(() => {
             <v-expansion-panel-title>
               {{ panel.name }}
               <v-btn
+                v-if="can('CostosPricing', 'NUEVO')"
                 color="success"
                 size="small"
                 style="max-width: 370px"
@@ -349,7 +352,7 @@ const panelesAbiertos = computed(() => {
                     color="success"
                     icon
                     @click="copiarCosto(item)"
-                    v-if="item.id"
+                    v-if="item.id && can('CostosPricing', 'COPIAR')"
                   >
                     <v-icon>mdi-content-copy</v-icon>
                   </v-btn>
@@ -359,7 +362,7 @@ const panelesAbiertos = computed(() => {
                     color="red"
                     icon
                     @click="eliminarRegistro(item)"
-                    v-if="item.id"
+                    v-if="item.id && can('CostosPricing', 'ELIMINAR')"
                   >
                     <v-icon>mdi-delete</v-icon>
                   </v-btn>

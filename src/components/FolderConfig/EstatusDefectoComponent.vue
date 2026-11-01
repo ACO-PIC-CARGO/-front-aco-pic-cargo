@@ -3,7 +3,9 @@ import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import type { EstadoCotizacion } from "@/types/cotizacion";
 import { hasFailed, request } from "@/utils/request";
+import { usePermissions } from "@/composables/usePermissions";
 
+const { can } = usePermissions();
 const estatusSeleccionado = ref<EstadoCotizacion["id"] | null>(null);
 const estatusDisponibles = ref<EstadoCotizacion[]>([]);
 const configuracionActual = ref<EstadoCotizacion | null>(null);
@@ -81,6 +83,7 @@ async function guardarEstatusDefecto() {
           md="6"
         >
           <v-btn 
+            v-if="can('EstatusDefecto', 'MODIFICAR')"
             color="primary" 
             @click="guardarEstatusDefecto" 
             :disabled="!estatusSeleccionado"

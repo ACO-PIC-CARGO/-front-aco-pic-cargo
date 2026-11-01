@@ -11,8 +11,10 @@ import { usePricingStore } from "@/stores/pricing";
 import { useProveedorStore } from "@/stores/proveedor";
 import type { Modalidad } from "@/types/catalogos";
 import type { TipoCarga } from "@/types/cotizacion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 
 const pricingStore = usePricingStore();
 const incotermStore = useIncotermStore();
@@ -232,6 +234,7 @@ watch(id_shipment, () => {
           >
             <template #[`item.action`]="{ item }">
               <v-btn
+                v-if="can('CostosPricing', 'MODIFICAR')"
                 variant="text"
                 color="#E65100"
                 @click="abrirModal(item.id!, item.name!)"

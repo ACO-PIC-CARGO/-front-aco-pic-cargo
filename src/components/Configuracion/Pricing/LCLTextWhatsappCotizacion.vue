@@ -2,8 +2,10 @@
 import { ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useConfiguracionStore } from "@/stores/configuracion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const configuracionStore = useConfiguracionStore();
+const { can } = usePermissions();
 const { lcl } = storeToRefs(configuracionStore);
 
 const loading = ref(false);
@@ -93,6 +95,7 @@ async function guardar() {
         class="d-flex justify-end"
       >
         <v-btn
+          v-if="can('TextoWhatsappCotizacion', 'MODIFICAR')"
           color="success"
           class="mt-4"
           :loading="loading"

@@ -8,8 +8,10 @@ import TrackingPhaseDialog from "@/components/TrackingCatalog/TrackingPhaseDialo
 import TrackingStepDialog from "@/components/TrackingCatalog/TrackingStepDialog.vue";
 import { useTrackingCatalogStore } from "@/stores/trackingCatalog";
 import type { TrackingPhase, TrackingStep } from "@/types/trackingCatalog";
+import { usePermissions } from "@/composables/usePermissions";
 
 const store = useTrackingCatalogStore();
+const { can } = usePermissions();
 const { phases, loading } = storeToRefs(store);
 
 const loadError = ref("");
@@ -57,6 +59,7 @@ onMounted(() => {
         </p>
       </div>
       <v-btn
+        v-if="can('lstEstadoBitaco', 'NUEVO')"
         color="primary"
         variant="flat"
         prepend-icon="mdi-plus"
@@ -107,6 +110,7 @@ onMounted(() => {
         Aún no tienes fases. Crea la primera para agrupar los pasos del seguimiento.
       </p>
       <v-btn
+        v-if="can('lstEstadoBitaco', 'NUEVO')"
         color="primary"
         variant="flat"
         prepend-icon="mdi-plus"

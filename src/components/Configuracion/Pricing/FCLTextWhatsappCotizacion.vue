@@ -5,8 +5,10 @@ import { useAppStore } from "@/stores/app";
 import { useConfiguracionStore } from "@/stores/configuracion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type { TextoWhatsappFcl } from "@/types/configuracion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const configuracionStore = useConfiguracionStore();
 const { fcl } = storeToRefs(configuracionStore);
 
@@ -135,6 +137,7 @@ async function guardar() {
         class="d-flex justify-end"
       >
         <v-btn
+          v-if="can('TextoWhatsappCotizacion', 'MODIFICAR')"
           color="success"
           @click="guardar"
           :loading="loading"
