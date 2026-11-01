@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { FOLDER_NOT_CREATED, blockedQuoteSave, defaultQuoteStatus } from "@/components/folderPricing/quoteRules";
 import type {
   DatosPrevisualizacion,
@@ -17,6 +18,11 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
+const canSaveAndPrint =
+  route.name === "newQuote"
+    ? can("newQuote", "NUEVO") && can("newQuote", "EXPORTAR")
+    : can("lstQuote", "MODIFICAR") && can("lstQuote", "EXPORTAR");
 
 // opcionesSeleccionadas: [{ listNotasQuote: [] }],
 const dialog = ref(false);
@@ -578,6 +584,7 @@ onMounted(() => {
           PREVIEW COTIZACIÓN(es)
         </v-btn>
         <v-btn
+          v-if="canSaveAndPrint"
           color="#FFD600"
           class="mx-1"
           @click="abrirDialogCotizacionRapida"
@@ -849,6 +856,7 @@ onMounted(() => {
             Abrir Carpeta
           </v-btn>
           <v-btn
+            v-if="canSaveAndPrint"
             color="#FFD600"
             class="mx-1"
             size="small"
@@ -857,6 +865,7 @@ onMounted(() => {
             <v-icon>mdi-folder-arrow-right</v-icon> Guardar En Folder
           </v-btn>
           <v-btn
+            v-if="canSaveAndPrint"
             color="#A43542"
             class="mx-1"
             size="small"

@@ -5,12 +5,14 @@ import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
+import { usePermissions } from "@/composables/usePermissions";
 
 const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 
 const id_quote = ref("");
 
@@ -104,6 +106,7 @@ async function unificar() {
         class="py-2"
       >
         <v-btn
+          v-if="can('lstQuote', 'MODIFICAR')"
           color="success"
           @click="unificar()"
           :disabled="unificarflag"

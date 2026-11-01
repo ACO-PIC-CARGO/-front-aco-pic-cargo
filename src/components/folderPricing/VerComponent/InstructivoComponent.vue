@@ -9,6 +9,7 @@ import FileSequenceInstructivo from "../../comun/FileSequenceInstructivo.vue";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { AprobacionCotizacion, ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -22,6 +23,7 @@ const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
+const { can } = usePermissions();
 
 const notaForm = useTemplateRef("nota");
 const frmSeleccionQuote = useTemplateRef("frmSeleccionQuote");
@@ -1048,6 +1050,7 @@ function getProveedor(element: OpcionCosto) {
         color="#FF4500"
         elevation="2"
         size="small"
+        v-if="can('lstQuote', 'EXPORTAR')"
         @click="imprimir()"
       >
         <v-icon color="white">
@@ -1060,7 +1063,7 @@ function getProveedor(element: OpcionCosto) {
         color="#01579B"
         elevation="2"
         size="small"
-        v-if="!mostrarBtnAprobar()"
+        v-if="!mostrarBtnAprobar() && can('lstQuote', 'MODIFICAR')"
         @click="dialogSequenceInstructivo = true"
       >
         <v-icon>mdi-email-outline</v-icon> Instructivo
@@ -1069,7 +1072,7 @@ function getProveedor(element: OpcionCosto) {
         class="mx-1"
         color="#004D40"
         elevation="2"
-        v-if="mostrarBtnAprobar()"
+        v-if="mostrarBtnAprobar() && can('lstQuote', 'MODIFICAR')"
         size="small"
         @click="abrirSeleccionDeQuoteAAprobar()"
       >
@@ -1251,6 +1254,7 @@ function getProveedor(element: OpcionCosto) {
               <v-btn
                 variant="text"
                 color="success"
+                v-if="can('lstQuote', 'MODIFICAR')"
                 @click="dialog = !dialog"
                 icon
               >

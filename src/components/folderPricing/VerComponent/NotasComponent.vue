@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import type {
   DatosPrevisualizacion,
   FilaServicioNota,
@@ -19,6 +20,7 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const canPrint = usePermissions().can("lstQuote", "EXPORTAR");
 
 // opcionesSeleccionadas: [{ listNotasQuote: [] }],
 const dialog = ref(false);
@@ -549,7 +551,7 @@ onMounted(() => {
             class="px-0"
             cols="6"
           >
-            <EnviarCotizacionWhatsapp />
+            <EnviarCotizacionWhatsapp v-if="canPrint" />
           </v-col>
           <v-col
             class="px-0"
@@ -811,6 +813,7 @@ onMounted(() => {
             Abrir Carpeta
           </v-btn>
           <v-btn
+            v-if="canPrint"
             color="#FFD600"
             class="mx-1"
             size="small"
@@ -819,6 +822,7 @@ onMounted(() => {
             <v-icon>mdi-folder-arrow-right</v-icon> Guardar En Folder
           </v-btn>
           <v-btn
+            v-if="canPrint"
             color="#A43542"
             class="mx-1"
             size="small"
