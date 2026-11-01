@@ -32,6 +32,7 @@ import type {
 } from "@/types/billingEntries";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { usePermissions } from "@/composables/usePermissions";
 import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 
@@ -65,6 +66,7 @@ const emit = defineEmits<{
 }>();
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const undeclaredAppState = appStore as typeof appStore & {
   controlgastos: { master_houses: ControlGastoHouse[] };
   master_houses: ControlGastoHouse[];
@@ -1958,7 +1960,7 @@ onMounted(async () => {
                     variant="text"
                     icon
                     color="success"
-                    v-if="egresoProveedor.code_tipo_proveedor === '01'"
+                    v-if="egresoProveedor.code_tipo_proveedor === '01' && can('listControlGastos', 'MODIFICAR')"
                     @click="abrirModalPorcentajeProveedor(egresoProveedor)"
                   >
                     <v-icon>mdi-percent-box-outline</v-icon>
@@ -1969,6 +1971,7 @@ onMounted(async () => {
                 <td>{{ egresoProveedor.monto_pagar_op }}</td>
                 <td v-if="editable">
                   <v-btn
+                    v-if="can('listControlGastos', 'NUEVO')"
                     color="info"
                     class="my-1 mx-1"
                     size="x-small"
@@ -1976,37 +1979,39 @@ onMounted(async () => {
                   >
                     Nuevo Concepto
                   </v-btn>
-                  <v-tooltip
-                    location="bottom"
-                    color="error"
-                    v-if="bloquearCopiarMontos(egresoProveedor.detalle)"
-                  >
-                    <template #activator="{ props }">
-                      <v-btn
-                        v-bind="props"
-                        color="info"
-                        size="x-small"
-                      >
-                        Copiar Montos Pr->Op
-                      </v-btn>
-                    </template>
-                    <span>
-                      No se Puede Copiar porqué ya existe Montos Facturados
-                    </span>
-                  </v-tooltip>
-                  <v-btn
-                    v-else
-                    color="success"
-                    size="x-small"
-                    @click="
-                      abriModalCopiar(
-                        egresoProveedor,
-                        bloquearCopiarMontos(egresoProveedor.detalle),
-                      )
-                    "
-                  >
-                    Copiar Montos Pr->Op
-                  </v-btn>
+                  <template v-if="can('listControlGastos', 'COPIAR')">
+                    <v-tooltip
+                      location="bottom"
+                      color="error"
+                      v-if="bloquearCopiarMontos(egresoProveedor.detalle)"
+                    >
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          color="info"
+                          size="x-small"
+                        >
+                          Copiar Montos Pr->Op
+                        </v-btn>
+                      </template>
+                      <span>
+                        No se Puede Copiar porqué ya existe Montos Facturados
+                      </span>
+                    </v-tooltip>
+                    <v-btn
+                      v-else
+                      color="success"
+                      size="x-small"
+                      @click="
+                        abriModalCopiar(
+                          egresoProveedor,
+                          bloquearCopiarMontos(egresoProveedor.detalle),
+                        )
+                      "
+                    >
+                      Copiar Montos Pr->Op
+                    </v-btn>
+                  </template>
                 </td>
                 <td v-if="editable">
                   <v-btn
@@ -2023,6 +2028,7 @@ onMounted(async () => {
                 </td>
                 <td v-if="editable">
                   <v-btn
+                    v-if="can('listControlGastos', 'NUEVO')"
                     variant="text"
                     size="small"
                     color="white"
@@ -2283,6 +2289,7 @@ onMounted(async () => {
                     </td>
                     <td v-if="editable">
                       <v-btn
+                        v-if="can('listControlGastos', 'MODIFICAR')"
                         variant="text"
                         icon
                         color="orange"
@@ -2298,7 +2305,7 @@ onMounted(async () => {
                         icon
                         color="red"
                         size="small"
-                        v-if="!item.statusadmin && item.pagado == 0"
+                        v-if="!item.statusadmin && item.pagado == 0 && can('listControlGastos', 'ELIMINAR')"
                         @click="_delEngreso(item, egresoProveedor)"
                       >
                         <v-icon>
@@ -2637,6 +2644,7 @@ onMounted(async () => {
           Facturas y Performance de {{ nameproveedor }}
           <v-spacer />
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             variant="outlined"
             @click="cargarFactura"
             color="primary"
@@ -2700,6 +2708,7 @@ onMounted(async () => {
             </template>
             <template #[`item.action`]="{ item }">
               <v-btn
+                v-if="can('listControlGastos', 'ELIMINAR')"
                 variant="text"
                 icon
                 size="small"
@@ -3216,7 +3225,7 @@ onMounted(async () => {
           </template>
           <template #[`item.accions`]="{ item }">
             <v-icon
-              v-if="item.status == 1"
+              v-if="item.status == 1 && can('listControlGastos', 'MODIFICAR')"
               class="mr-2"
               color="green"
               @click="sendAdmin(item.id)"
@@ -3224,7 +3233,7 @@ onMounted(async () => {
               mdi-send
             </v-icon>
             <v-icon
-              v-if="item.status != 3"
+              v-if="item.status != 3 && can('listControlGastos', 'ELIMINAR')"
               class="mr-2"
               color="red"
               @click="eliminar(item.id)"

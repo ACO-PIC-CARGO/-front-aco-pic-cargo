@@ -10,11 +10,13 @@ import { usePricingStore } from "@/stores/pricing";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type { MasterListadoControlGasto } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 defineProps<{ statusReport?: boolean }>();
 
 const appStore = useAppStore();
 const router = useRouter();
+const { can } = usePermissions();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -110,6 +112,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
     <v-card elevation="5">
       <v-card-title class="d-flex align-center flex-wrap">
         <v-btn
+          v-if="can('listControlGastos', 'NUEVO')"
           color="primary"
           elevation="0"
           rounded
@@ -181,6 +184,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
             mdi-folder
           </v-icon>
           <v-icon
+            v-if="can('listControlGastos', 'MODIFICAR')"
             size="large"
             color="orange"
             class="mr-2"
@@ -209,6 +213,7 @@ function verControlGasto(master: MasterListadoControlGasto) {
     <GuardarUrlMaster
       :dialog-url="dialogUrl"
       :master-editar="masterEditar"
+      :editable="can('listControlGastos', 'MODIFICAR')"
       @cerrar="cerrarDialog"
     />
   </div>

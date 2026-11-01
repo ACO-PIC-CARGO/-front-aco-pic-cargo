@@ -8,6 +8,7 @@ import { useBancosStore } from "@/stores/bancos";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { sessionBranchId } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { usePermissions } from "@/composables/usePermissions";
 
 withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 
@@ -15,6 +16,7 @@ const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const router = useRouter();
 const controlGastosStore = useControlGastosStore();
@@ -451,7 +453,7 @@ onMounted(async () => {
           class="my-1"
           block
           size="small"
-          v-if="!editable"
+          v-if="!editable && can('listControlGastos', 'MODIFICAR')"
           @click="irAEditar()"
         >
           <v-icon class="mx-1">
@@ -459,6 +461,7 @@ onMounted(async () => {
           </v-icon> EDITAR
         </v-btn>
         <v-btn
+          v-if="can('listControlGastos', 'EXPORTAR')"
           color="red"
           class="my-1"
           block
@@ -470,6 +473,7 @@ onMounted(async () => {
           </v-icon> CONTROL DETALLADO
         </v-btn>
         <v-btn
+          v-if="can('listControlGastos', 'EXPORTAR')"
           color="teal-darken-4"
           class="my-1"
           block

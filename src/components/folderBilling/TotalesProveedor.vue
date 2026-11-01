@@ -9,8 +9,10 @@ import type { ApiResponse } from "@/types/api";
 import type { ConceptoSolicitud, DocumentoProveedor, SolicitudPagoProveedor } from "@/types/billing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const actualizar = computed(() => appStore.actualizar);
 const itemsDataConceptos = computed<ConceptoSolicitud[]>(() => appStore.itemsDataConceptos);
@@ -1038,7 +1040,7 @@ onMounted(() => {
           </template>
           <template #[`item.accions`]="{ item }">
             <v-icon
-              v-if="item.status != 3"
+              v-if="item.status != 3 && can('listControlGastos', 'MODIFICAR')"
               class="mr-2"
               @click="sendAdmin(item.id)"
             >
@@ -1058,6 +1060,7 @@ onMounted(() => {
           Facturas y Performance de {{ nameproveedorSeleccionado }}
           <v-spacer />
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             variant="outlined"
             @click="dialogInvoice = true"
             color="primary"
@@ -1114,6 +1117,7 @@ onMounted(() => {
             </template>
             <template #[`item.action`]="{ item }">
               <v-icon
+                v-if="can('listControlGastos', 'ELIMINAR')"
                 class="btn_add mr-2"
                 size="large"
                 color="red"
@@ -1375,6 +1379,7 @@ onMounted(() => {
             </td>
             <td>
               <v-btn
+                v-if="can('listControlGastos', 'NUEVO')"
                 @click="
                   solicitar(
                     item.nameproveedor,

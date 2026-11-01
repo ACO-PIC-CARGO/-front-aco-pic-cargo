@@ -16,8 +16,10 @@ import type { ApiResponse } from "@/types/api";
 import type { AbonoCliente, DatosFactura, RespuestaFactura, SucursalFactura } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const enterprisesStore = useEnterprisesStore();
 
@@ -431,7 +433,7 @@ onMounted(() => {
         </v-col>
         <v-col>
           <v-btn
-            v-if="!route.params.id_control"
+            v-if="!route.params.id_control && can('listControlGastos', 'NUEVO')"
             block
             @click="_setControl"
             :disabled="appStore.dataControl_Numero != ''"
@@ -440,7 +442,7 @@ onMounted(() => {
             GENERAR CONTROL
           </v-btn>
           <v-btn
-            v-if="route.params.id_control"
+            v-if="route.params.id_control && can('listControlGastos', 'NUEVO')"
             block
             @click="_setControl"
             :disabled="appStore.dataControl_Numero != ''"
@@ -450,6 +452,7 @@ onMounted(() => {
           </v-btn>
 
           <v-btn
+            v-if="can('listControlGastos', 'EXPORTAR')"
             :disabled="!route.params.id_control"
             @click="_generatePDF()"
             block
@@ -469,6 +472,7 @@ onMounted(() => {
             CARGAR ABONOS DEL CLIENTE
           </v-btn>
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             :disabled="appStore.dataControl_Numero == ''"
             block
             color="pink"
@@ -562,6 +566,7 @@ onMounted(() => {
               Abonos del cliente
               <v-spacer />
               <v-btn
+                v-if="can('listControlGastos', 'NUEVO')"
                 variant="outlined"
                 color="primary"
                 @click="_newDebs()"
@@ -588,7 +593,7 @@ onMounted(() => {
                     class="btn_add mr-2"
                     size="large"
                     color="red"
-                    v-if="item.status == 1"
+                    v-if="item.status == 1 && can('listControlGastos', 'ELIMINAR')"
                     @click="_delDebsClient(item.id)"
                   >
                     mdi-delete

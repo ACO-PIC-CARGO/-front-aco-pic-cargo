@@ -31,6 +31,7 @@ import type {
 } from "@/types/billingEntries";
 import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+import { usePermissions } from "@/composables/usePermissions";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -58,6 +59,7 @@ const emit = defineEmits<{
 }>();
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const appRouter = useRouter();
 const controlGastosStore = useControlGastosStore();
@@ -1605,7 +1607,7 @@ onMounted(async () => {
                     variant="text"
                     color="default"
                     icon
-                    v-if="!houseIngreso.ruta_cotizacion"
+                    v-if="!houseIngreso.ruta_cotizacion && can('listControlGastos', 'MODIFICAR')"
                     @click="
                       abrirModalRegistroDocumentoHouse(
                         houseIngreso.datosinstructivomanual,
@@ -1621,64 +1623,68 @@ onMounted(async () => {
                 <td>{{ houseIngreso.total_total_op_ingresos }}</td>
                 <td>{{ getDeudaActual(houseIngreso) }}</td>
                 <td v-if="editable">
-                  <v-btn
-                    v-if="houseIngreso.id_orders"
-                    @click.stop="handleNuevoIngreso(index, houseIngreso)"
-                    color="blue"
-                    size="x-small"
-                  >
-                    Nuevo Concepto
+                  <template v-if="can('listControlGastos', 'NUEVO')">
+                    <v-btn
+                      v-if="houseIngreso.id_orders"
+                      @click.stop="handleNuevoIngreso(index, houseIngreso)"
+                      color="blue"
+                      size="x-small"
+                    >
+                      Nuevo Concepto
 
-                    <!-- <v-icon>mdi-plus</v-icon> -->
-                  </v-btn>
-                  <v-btn
-                    v-else
-                    size="small"
-                    @click="nuevoControlGasto(houseIngreso)"
-                    color="green-darken-3"
-                    @click.stop="abrirExpandIngreso(index)"
-                  >
-                    Nuevo Control de Gastos Ingresos
-                  </v-btn>
-                  <v-tooltip
-                    location="bottom"
-                    color="error"
-                    v-if="bloquearCopiarMontos(houseIngreso.ingresos)"
-                  >
-                    <template #activator="{ props }">
-                      <!-- @vue-expect-error the click passes the income rows where a house is expected -->
-                      <v-btn
-                       
-                        v-bind="props"
-                        color="success"
-                        size="x-small"
-                        @click="
-                          abriModalCopiar(
-                            houseIngreso.ingresos,
-                            bloquearCopiarMontos(houseIngreso.ingresos),
-                          )
-                        "
-                      >
-                        Copiar Montos Pr->Op
-                      </v-btn>
-                    </template>
-                    <span>
-                      No se Puede Copiar porqué ya existe Montos Facturados
-                    </span>
-                  </v-tooltip>
-                  <v-btn
-                    v-else
-                    color="success"
-                    size="x-small"
-                    @click="
-                      abriModalCopiar(
-                        houseIngreso,
-                        bloquearCopiarMontos(houseIngreso.ingresos),
-                      )
-                    "
-                  >
-                    Copiar Montos Pr->Op
-                  </v-btn>
+                      <!-- <v-icon>mdi-plus</v-icon> -->
+                    </v-btn>
+                    <v-btn
+                      v-else
+                      size="small"
+                      @click="nuevoControlGasto(houseIngreso)"
+                      color="green-darken-3"
+                      @click.stop="abrirExpandIngreso(index)"
+                    >
+                      Nuevo Control de Gastos Ingresos
+                    </v-btn>
+                  </template>
+                  <template v-if="can('listControlGastos', 'COPIAR')">
+                    <v-tooltip
+                      location="bottom"
+                      color="error"
+                      v-if="bloquearCopiarMontos(houseIngreso.ingresos)"
+                    >
+                      <template #activator="{ props }">
+                        <!-- @vue-expect-error the click passes the income rows where a house is expected -->
+                        <v-btn
+                         
+                          v-bind="props"
+                          color="success"
+                          size="x-small"
+                          @click="
+                            abriModalCopiar(
+                              houseIngreso.ingresos,
+                              bloquearCopiarMontos(houseIngreso.ingresos),
+                            )
+                          "
+                        >
+                          Copiar Montos Pr->Op
+                        </v-btn>
+                      </template>
+                      <span>
+                        No se Puede Copiar porqué ya existe Montos Facturados
+                      </span>
+                    </v-tooltip>
+                    <v-btn
+                      v-else
+                      color="success"
+                      size="x-small"
+                      @click="
+                        abriModalCopiar(
+                          houseIngreso,
+                          bloquearCopiarMontos(houseIngreso.ingresos),
+                        )
+                      "
+                    >
+                      Copiar Montos Pr->Op
+                    </v-btn>
+                  </template>
                 </td>
                 <!-- <td v-if="editable">
                   <v-btn
@@ -1701,7 +1707,7 @@ onMounted(async () => {
                 </td> -->
                 <td v-if="editable">
                   <v-btn
-                    v-if="houseIngreso.id_orders"
+                    v-if="houseIngreso.id_orders && can('listControlGastos', 'MODIFICAR')"
                     color="indigo"
                     size="small"
                     class="mb-1"
@@ -1733,7 +1739,7 @@ onMounted(async () => {
                     }}
                   </v-btn>
                   <v-btn
-                    v-if="houseIngreso.id_orders"
+                    v-if="houseIngreso.id_orders && can('listControlGastos', 'NUEVO')"
                     color="pink"
                     size="small"
                     class="mt-1"
@@ -1931,14 +1937,14 @@ onMounted(async () => {
                   <v-icon
                     color="orange"
                     @click="editIngreso(item)"
-                    v-if="item.pagado == 0 && !item.facturado"
+                    v-if="item.pagado == 0 && !item.facturado && can('listControlGastos', 'MODIFICAR')"
                   >
                     mdi-pencil
                   </v-icon>
 
                   <v-icon
                     color="red"
-                    v-if="item.facturado == false && item.pagado == 0"
+                    v-if="item.facturado == false && item.pagado == 0 && can('listControlGastos', 'ELIMINAR')"
                     @click="delIngreso(item, houseIngreso)"
                   >
                     mdi-delete
@@ -2851,6 +2857,7 @@ onMounted(async () => {
           Facturas y Proformas Fiscales de {{ house.consigner }}
           <v-spacer />
           <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
             variant="outlined"
             @click="cargarProformaFiscal"
             color="primary"
@@ -2914,6 +2921,7 @@ onMounted(async () => {
             </template>
             <template #[`item.action`]="{ item }">
               <v-btn
+                v-if="can('listControlGastos', 'ELIMINAR')"
                 variant="text"
                 icon
                 size="small"
@@ -3083,6 +3091,7 @@ onMounted(async () => {
                 </td>
                 <td>
                   <v-icon
+                    v-if="can('listControlGastos', 'ELIMINAR')"
                     color="red"
                     @click="eliminarFactura(item.id)"
                   >
