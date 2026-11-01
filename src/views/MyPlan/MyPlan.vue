@@ -11,6 +11,7 @@ import { stopCheckoutEvents } from "@/plugins/paddle";
 import type { PaddleCheckoutEvent } from "@/plugins/paddle";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
+import { usePermissions } from "@/composables/usePermissions";
 import type {
   Billing,
   CardAction,
@@ -47,6 +48,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
+const canManagePlan = usePermissions().can("miPlan", "MODIFICAR");
 const {
   plan,
   publicPackages: packages,
@@ -442,7 +444,7 @@ async function cancelPlan() {
         </div>
         <div class="plan-summary__actions">
           <v-btn
-            v-if="canChange && canUpgrade"
+            v-if="canManagePlan && canChange && canUpgrade"
             variant="text"
             class="plans-button plans-button--primary"
             :disabled="busy"
@@ -452,7 +454,7 @@ async function cancelPlan() {
             Mejorar plan
           </v-btn>
           <v-btn
-            v-if="plan!.scheduled_change_action === 'cancel'"
+            v-if="canManagePlan && plan!.scheduled_change_action === 'cancel'"
             variant="text"
             class="plans-button plans-button--secondary"
             :disabled="busy"
@@ -461,7 +463,7 @@ async function cancelPlan() {
             Mantener mi plan
           </v-btn>
           <v-btn
-            v-if="plan!.scheduled_change_action !== 'cancel'"
+            v-if="canManagePlan && plan!.scheduled_change_action !== 'cancel'"
             variant="text"
             class="plans-button plans-button--ghost"
             :disabled="busy"
@@ -552,6 +554,7 @@ async function cancelPlan() {
             @toggle-details="toggleDetails(pkg)"
           >
             <v-btn
+              v-if="canManagePlan"
               variant="text"
               class="plans-button plans-button--primary my-plan__buy"
               :disabled="busy || isUnavailableAction(cardActionOf(pkg))"
