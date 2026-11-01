@@ -2,10 +2,12 @@
 import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useBranchStore } from "@/stores/branch";
+import { usePermissions } from "@/composables/usePermissions";
 import type { SucursalListado } from "@/types/seguridad";
 import { confirmsCompanyName } from "./companyNameConfirmation";
 
 const branchStore = useBranchStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const header = [
@@ -107,7 +109,7 @@ async function eliminar(company: SucursalListado) {
 
             <template #[`item.action`]="{ item }">
               <v-btn
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('lstEnterpriseRegister', 'ELIMINAR')"
                 variant="text"
                 icon="mdi-cancel"
                 color="red"
@@ -116,6 +118,7 @@ async function eliminar(company: SucursalListado) {
               />
               <template v-else>
                 <v-btn
+                  v-if="can('lstEnterpriseRegister', 'MODIFICAR')"
                   variant="text"
                   icon="mdi-restore"
                   color="green"
@@ -123,6 +126,7 @@ async function eliminar(company: SucursalListado) {
                   @click="reactivar(item.id)"
                 />
                 <v-btn
+                  v-if="can('lstEnterpriseRegister', 'ELIMINAR')"
                   variant="text"
                   icon="mdi-delete"
                   color="red"
