@@ -9,13 +9,16 @@ import GuardarUrlMaster from "@/components/comun/GuardarUrlMaster.vue";
 import type { HouseListado } from "@/types/cotizacion";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
-defineProps<{ statusReport?: boolean; statusList?: string }>();
+const props = defineProps<{ statusReport?: boolean; statusList?: string }>();
 
 const appStore = useAppStore();
 const router = useRouter();
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
+const canEditFolder = can(props.statusList == "2" ? "listControlGastos" : "listHouse", "MODIFICAR");
 
 const search = ref("");
 const dialogUrl = ref(false);
@@ -228,7 +231,7 @@ onMounted(async () => {
         <template #[`item.actions`]="{ item }">
           <div class="d-flex">
             <v-icon
-              v-if="statusList != '2'"
+              v-if="statusList != '2' && can('listHouse', 'NUEVO')"
               color="secondary"
               class="mr-1"
               @click.stop="abrirModalComentario(item)"
@@ -255,7 +258,7 @@ onMounted(async () => {
             </v-icon>
 
             <v-icon
-              v-if="statusList != '2'"
+              v-if="statusList != '2' && can('listHouse', 'MODIFICAR')"
               color="orange"
               class="mr-1"
               @click.stop="editHouse(item.id)"
@@ -349,6 +352,7 @@ onMounted(async () => {
     <GuardarUrlMaster
       :dialog-url="dialogUrl"
       :master-editar="folderMaster"
+      :editable="canEditFolder"
       @cerrar="cerrarCarpeta"
     />
   </div>

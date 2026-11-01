@@ -20,6 +20,7 @@ import { notifySuccess } from "@/utils/request";
 import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
+import { usePermissions } from "@/composables/usePermissions";
 
 const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
 
@@ -32,7 +33,9 @@ const houseTrackingStore = useHouseTrackingStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
 const houseId = computed(() => Number(route.params.id));
 const houseEdit = useHouseEditStore();
-const isEditing = computed(() => route.name === "controlHouseEditar");
+const { can } = usePermissions();
+const isEditing = computed(() => route.name === "controlHouseEditar" && can("listHouse", "MODIFICAR"));
+const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can("listHouse", action));
 
 function showTitle() {
   appStore.mainTitle = `N° BL House ${housesStore.house?.nro_hbl || ""} - ${housesStore.house?.consigner || ""} [${isEditing.value ? "EDITAR" : "VER"}]`;
@@ -262,6 +265,7 @@ onMounted(async () => {
                     </v-btn>
                     <v-spacer />
                     <v-btn
+                      v-if="can('listHouse', 'ELIMINAR')"
                       color="error"
                       variant="text"
                       prepend-icon="mdi-delete-outline"
@@ -295,6 +299,7 @@ onMounted(async () => {
         </v-row>
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
           <v-speed-dial
+            v-if="hasHouseActions"
             v-model="fab"
             location="top end"
             transition="slide-y-reverse-transition"
@@ -316,6 +321,7 @@ onMounted(async () => {
             </template>
 
             <v-btn
+              v-if="can('listHouse', 'ELIMINAR')"
               key="eliminar"
               color="red"
               :loading="loadingBotonEliminarHouse"
@@ -327,6 +333,7 @@ onMounted(async () => {
               Eliminar
             </v-btn>
             <v-btn
+              v-if="can('listHouse', 'EXPORTAR')"
               key="imprimir"
               :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
               @click="abrirModalFormato()"
@@ -341,6 +348,7 @@ onMounted(async () => {
             </v-btn>
 
             <v-btn
+              v-if="can('listHouse', 'MODIFICAR')"
               key="notificaciones"
               color="deep-purple"
               @click="openNotificaciones"
@@ -354,7 +362,7 @@ onMounted(async () => {
               Notificaciones
             </v-btn>
             <v-btn
-              v-if="!isEditing"
+              v-if="!isEditing && can('listHouse', 'MODIFICAR')"
               key="editar"
               color="light-green-lighten-1"
               @click="startEditing"
