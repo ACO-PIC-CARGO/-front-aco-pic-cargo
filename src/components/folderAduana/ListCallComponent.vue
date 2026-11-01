@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import moment from "moment";
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { useAduanaStore } from "@/stores/aduana";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
@@ -12,6 +13,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
+const { can } = usePermissions();
 
 const search = "";
 const dialogRegistroNotaLlamada = ref(false);
@@ -187,6 +189,7 @@ onMounted(async () => {
           class="text-right"
         >
           <v-btn
+            v-if="can('lstQuoteAduanaAduana', 'EXPORTAR')"
             color="red"
             @click="printAduanaCalls()"
             class="mx-1"
@@ -229,6 +232,7 @@ onMounted(async () => {
                    
                     v-bind="props"
                     color="#A43542 "
+                    v-if="can('lstQuoteAduanaAduana', 'MODIFICAR')"
                     @click="registrarLlamada(row.item.id)"
                   >
                     <v-icon size="small">

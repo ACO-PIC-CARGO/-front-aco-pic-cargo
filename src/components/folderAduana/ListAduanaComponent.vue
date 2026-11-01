@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { useAduanaStore } from "@/stores/aduana";
 import { sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { CotizacionListado, FormNotaLlamada } from "@/types/cotizacion";
@@ -13,6 +14,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
+const { can } = usePermissions();
 
 const lstPricing = ref(true);
 const id_status = ref<number | string | null>(null);
@@ -311,6 +313,7 @@ onMounted(async () => {
           class="text-right"
         >
           <v-btn
+            v-if="can('lstQuoteAduanaAduana', 'EXPORTAR')"
             color="red"
             @click="printAduanaList()"
             class="mx-1"
@@ -321,6 +324,7 @@ onMounted(async () => {
             <v-icon>mdi-file-pdf-box</v-icon> REPORTE
           </v-btn>
           <v-btn
+            v-if="can('lstQuoteAduanaAduana', 'EXPORTAR')"
             color="teal-darken-4"
             @click="exportAduanaListExcel()"
             class="mx-1"
@@ -331,6 +335,7 @@ onMounted(async () => {
             <v-icon>mdi-file-excel</v-icon> REPORTE
           </v-btn>
           <v-btn
+            v-if="can('lstQuoteAduanaAduana', 'EXPORTAR')"
             color="red"
             @click="printAduanaMarketing()"
             class="mx-1"
@@ -399,7 +404,7 @@ onMounted(async () => {
                     v-bind="props"
                    
                     @click="ira('EditarAduana', item.id)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="!(item.statusmain == 0 || item.aprobadoflag) && can('lstQuoteAduanaAduana', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#FB9514"
@@ -421,7 +426,7 @@ onMounted(async () => {
                     v-bind="props"
                     size="x-small"
                     @click="abrirModal(item)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="!(item.statusmain == 0 || item.aprobadoflag) && can('lstQuoteAduanaAduana', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#E65100"
@@ -443,7 +448,7 @@ onMounted(async () => {
                     v-bind="props"
                     size="x-small"
                     @click="registrarLlamada(item.id)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="!(item.statusmain == 0 || item.aprobadoflag) && can('lstQuoteAduanaAduana', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#1A237E"
@@ -487,7 +492,7 @@ onMounted(async () => {
                    
                     v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag)"
+                    v-if="!(item.statusmain == 0 || item.aprobadoflag) && can('lstQuoteAduanaAduana', 'ELIMINAR')"
                   >
                     <v-icon
                       color="#A43542"

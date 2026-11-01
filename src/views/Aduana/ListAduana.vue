@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/app";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import type { ResumenEstadoCotizacion } from "@/types/cotizacion";
 
 const ListQuote = defineAsyncComponent(() =>
@@ -22,6 +23,7 @@ const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
+const { can } = usePermissions();
 
 const tabs = ref("quotes");
 const dialog = ref(false);
@@ -83,6 +85,7 @@ onMounted(() => {
 
         <v-spacer />
         <v-btn
+          v-if="can('lstQuoteAduanaAduana', 'NUEVO')"
           color="success"
           @click="redirect()"
           size="small"
