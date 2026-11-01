@@ -39,6 +39,9 @@ const PROVIDER_TOTAL = { id_proveedor: 8, nameproveedor: "Naviera", type: 2, doc
 const CONTROL = { id: 5, id_branch: 7, code_master: "M-5" };
 let wrapper: VueWrapper | undefined;
 
+// Each case mounts the 3,000-line income and expense screens several times; the full suite runs them under load.
+vi.setConfig({ testTimeout: 30000 });
+
 beforeEach(() => {
   vi.clearAllMocks();
   document.body.innerHTML = "";
