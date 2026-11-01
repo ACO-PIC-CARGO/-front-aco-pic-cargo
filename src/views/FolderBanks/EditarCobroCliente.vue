@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useBankStore } from "@/stores/bank";
@@ -16,6 +17,7 @@ import { sessionBranchId } from "@/utils/sesion";
 const props = defineProps<{ tipo?: string }>();
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const router = useRouter();
 const bankStore = useBankStore();
@@ -475,6 +477,7 @@ onMounted(async () => {
                 <v-btn
                   variant="text"
                   icon
+                  v-if="can('listBankCxC', 'ELIMINAR')"
                   @click="anularCobro(item)"
                 >
                   <v-icon
@@ -593,6 +596,7 @@ onMounted(async () => {
               <v-btn
                 :loading="loading"
                 color="success"
+                v-if="can('listBankCxC', 'MODIFICAR')"
                 @click="actualizarCobro()"
               >
                 Actualizar

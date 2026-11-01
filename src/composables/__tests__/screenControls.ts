@@ -21,6 +21,7 @@ export interface ControlledScreen {
   controls: ScreenControl[];
   props?: Record<string, unknown>;
   rows?: Record<string, unknown[]>;
+  before?: () => void;
   prepare?: (wrapper: VueWrapper) => Promise<void> | void;
 }
 
@@ -65,6 +66,7 @@ export async function shownControls(screen: ControlledScreen, actions: string[])
   answerRows(screen.rows ?? {});
   const pinia = createPinia();
   setActivePinia(pinia);
+  screen.before?.();
   const ScreenUnderTest = { ...screen.component, name: "ScreenUnderTest" };
   mounted = mount(
     defineComponent({ render: () => h(components.VApp, () => h(ScreenUnderTest, screen.props ?? {})) }),
