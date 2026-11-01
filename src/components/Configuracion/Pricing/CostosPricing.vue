@@ -20,7 +20,7 @@ const proveedorStore = useProveedorStore();
 const configuracionStore = useConfiguracionStore();
 const { lstCostos, lstIncoterms } = storeToRefs(configuracionStore);
 
-const loading = ref(false);
+const openingIncotermId = ref<number | string | null>(null);
 const cargandoTabla = ref(false);
 const incoterms = ref("");
 const modality = ref<Partial<Modalidad> | undefined>({});
@@ -89,10 +89,10 @@ async function cargarDatos() {
   });
 }
 async function abrirModal(id: number | string, incotermsName: string) {
-  if (!(await frmBuscar.value!.validate()).valid) {
+  if (openingIncotermId.value !== null || !(await frmBuscar.value!.validate()).valid) {
     return;
   }
-  loading.value = true;
+  openingIncotermId.value = id;
   id_incoterms.value = id;
   modality.value = pricingStore.listModality.find(
     (v: Modalidad) => v.id == id_modality.value,
@@ -104,7 +104,7 @@ async function abrirModal(id: number | string, incotermsName: string) {
 
   await cargarDatos();
   dialog.value = true;
-  loading.value = false;
+  openingIncotermId.value = null;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -236,7 +236,7 @@ watch(id_shipment, () => {
                 color="#E65100"
                 @click="abrirModal(item.id!, item.name!)"
                 icon
-                :loading="loading"
+                :loading="openingIncotermId === item.id"
               >
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
@@ -251,32 +251,30 @@ watch(id_shipment, () => {
       fullscreen
       persistent
     >
-      <v-card>
-        <ModelCostos
-          v-if="dialog"
-          :modality="
-            id_modality
-              ? pricingStore.listModality.find(
-                (v: Modalidad) => v.id == id_modality,
-              )!.name
-              : ''
-          "
-          :shipment="
-            id_shipment
-              ? pricingStore.listShipment.find(
-                (v: TipoCarga) => v.id == id_shipment,
-              )!.embarque
-              : ''
-          "
-          :incoterms="incoterms"
-          :id-modality="id_modality"
-          :id-shipment="id_shipment"
-          :id-incoterms="id_incoterms"
-          @cerrar-modal="dialog = false"
-          @cerrar-modal-guardar="obtenerDatos(), (dialog = false)"
-          @recargar-costos="cargarDatos()"
-        />
-      </v-card>
+      <ModelCostos
+        v-if="dialog"
+        :modality="
+          id_modality
+            ? pricingStore.listModality.find(
+              (v: Modalidad) => v.id == id_modality,
+            )!.name
+            : ''
+        "
+        :shipment="
+          id_shipment
+            ? pricingStore.listShipment.find(
+              (v: TipoCarga) => v.id == id_shipment,
+            )!.embarque
+            : ''
+        "
+        :incoterms="incoterms"
+        :id-modality="id_modality"
+        :id-shipment="id_shipment"
+        :id-incoterms="id_incoterms"
+        @cerrar-modal="dialog = false"
+        @cerrar-modal-guardar="obtenerDatos(), (dialog = false)"
+        @recargar-costos="cargarDatos()"
+      />
       <!-- <v-card>
         <v-card-title style="background: #b3e5fc">
           {{ modality.name }} | {{ shipment.embarque }} | {{ incoterms }}

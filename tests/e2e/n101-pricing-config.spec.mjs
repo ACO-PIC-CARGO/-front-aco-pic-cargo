@@ -59,6 +59,22 @@ test.describe("Costos predefinidos", () => {
     await acknowledge(page, "Registro Eliminado.");
     await expect.poll(() => inputsWithValue(page, concept)).toBe(0);
   });
+
+  test("Cancelar can be reached with the mouse wheel and closes the costs dialog", async ({ page }) => {
+    await page.goto("/home/configuracion/costos");
+    await waitForPageToSettle(page);
+    await pickOption(page, "Modalidad", "Importación");
+    await pickOption(page, "Tipo Mercancía", /\/ LCL$/);
+    await page.getByRole("button", { name: "Obtener Datos" }).click();
+    await openCostsOf(page, "CFR");
+
+    await page.mouse.move(720, 450);
+    await page.mouse.wheel(0, 20000);
+    const cancel = page.getByRole("button", { name: "Cancelar" });
+    await expect(cancel).toBeInViewport();
+    await cancel.click();
+    await expect(page.getByText("ACTUALIZAR COSTOS - Importación | Marítimo / LCL | CFR")).toBeHidden();
+  });
 });
 
 test.describe("Profit de costos", () => {
