@@ -60,7 +60,7 @@ const shownWith = async (screen: Component, actions: string[], props: Record<str
 const button = (text: string) => () =>
   [...document.body.querySelectorAll("button")].some((candidate) => candidate.textContent?.trim().toUpperCase() === text);
 const labelled = (label: string) => () => document.body.querySelector(`button[aria-label="${label}"]`) !== null;
-const FOLDER_DIALOG = { dialogUrl: true, masterEditar: { id: 6, url_folderonedrive: "https://onedrive.test/Q-6" } };
+const FOLDER_DIALOG: Record<string, unknown> = { dialogUrl: true, masterEditar: { id: 6, url_folderonedrive: "https://onedrive.test/Q-6" } };
 
 describe.each([
   ["Nueva cotización", ListPricing, button("NUEVA COTIZACIÓN"), "NUEVO"],
