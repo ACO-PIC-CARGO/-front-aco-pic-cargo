@@ -3,6 +3,7 @@ import { computed, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useDisplay } from "vuetify";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { usePermissions } from "@/composables/usePermissions";
 import type { PaddleSyncItem, PlanStatusView } from "@/types/suscripciones";
 
 const modelValue = defineModel<boolean>({ default: false });
@@ -19,6 +20,7 @@ const STATUSES: Record<"error" | "pending" | "synced", PlanStatusView> = {
 const subscriptionsStore = useSubscriptionsStore();
 const { paddleSyncReport: report } = storeToRefs(subscriptionsStore);
 const { xs } = useDisplay();
+const { can } = usePermissions();
 
 const loadState = ref("loading");
 const message = ref("");
@@ -190,7 +192,7 @@ function close() {
           Cerrar
         </v-btn>
         <v-btn
-          v-if="loadState === 'ready' && pendingCount"
+          v-if="loadState === 'ready' && pendingCount && can('lstPlanes', 'MODIFICAR')"
           variant="text"
           class="plans-button plans-button--primary"
           :disabled="applying"

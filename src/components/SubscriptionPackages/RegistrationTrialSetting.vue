@@ -2,9 +2,11 @@
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { usePermissions } from "@/composables/usePermissions";
 
 const subscriptionsStore = useSubscriptionsStore();
 const { registrationTrialDays: days, registrationTrialDaysError } = storeToRefs(subscriptionsStore);
+const { can } = usePermissions();
 
 const loadState = ref("loading");
 const errorMessage = ref("");
@@ -90,6 +92,7 @@ async function save() {
           density="compact"
         />
         <v-btn
+          v-if="can('lstPlanes', 'MODIFICAR')"
           variant="text"
           type="submit"
           class="plans-button plans-button--primary"

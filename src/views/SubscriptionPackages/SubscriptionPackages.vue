@@ -9,6 +9,7 @@ import PackageForm from "@/components/SubscriptionPackages/PackageForm.vue";
 import PaddleSyncDialog from "@/components/SubscriptionPackages/PaddleSyncDialog.vue";
 import RegistrationTrialSetting from "@/components/SubscriptionPackages/RegistrationTrialSetting.vue";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
+import { usePermissions } from "@/composables/usePermissions";
 import type { SubscriptionPackage } from "@/types/suscripciones";
 
 const BILLING_OPTIONS = [
@@ -32,6 +33,7 @@ const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const { packages, activePackageCount } = storeToRefs(subscriptionsStore);
 const { toPlanView } = subscriptionsStore;
+const { can } = usePermissions();
 
 const loadState = ref("loading");
 const errorMessage = ref("");
@@ -124,6 +126,7 @@ async function toggleActive(pkg: SubscriptionPackage) {
             <v-icon>mdi-sync</v-icon> Verificar Paddle
           </v-btn>
           <v-btn
+            v-if="can('lstPlanes', 'NUEVO')"
             variant="text"
             class="plans-button plans-button--primary"
             @click="openCreate"
@@ -249,6 +252,7 @@ async function toggleActive(pkg: SubscriptionPackage) {
         >
           <div class="card-actions">
             <v-btn
+              v-if="can('lstPlanes', 'MODIFICAR')"
               variant="text"
               class="plans-button plans-button--secondary"
               :aria-label="`Editar ACO ${pkg.name}`"
@@ -257,6 +261,7 @@ async function toggleActive(pkg: SubscriptionPackage) {
               <v-icon>mdi-pencil-outline</v-icon> Editar
             </v-btn>
             <v-btn
+              v-if="can('lstPlanes', 'ELIMINAR')"
               variant="text"
               class="plans-button plans-button--ghost"
               :aria-label="`${pkg.is_active ? 'Desactivar' : 'Activar'} ACO ${
