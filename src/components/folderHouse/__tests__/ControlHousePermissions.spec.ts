@@ -134,7 +134,7 @@ test("the house file locks its shipment and services sections without Modificar"
   const sectionsLocked = async (actions: string[]) => {
     await mountAs(ControlHouseComponent, actions, SECTIONS);
     return ["data-embar-stub", "services-stub"].map(
-      (stub) => wrapper!.find(stub).attributes("is-form-actions-disabled") === "true",
+      (stub) => wrapper!.find(stub).attributes("isformactionsdisabled") === "true",
     );
   };
 
