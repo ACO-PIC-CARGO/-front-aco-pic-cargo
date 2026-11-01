@@ -2,8 +2,10 @@
 import { onMounted } from "vue";
 import Editor from "@/components/comun/EditorHtml.vue";
 import { useConfigAvisoStore } from "@/stores/configAviso";
+import { usePermissions } from "@/composables/usePermissions";
 
 const configAvisoStore = useConfigAvisoStore();
+const canEdit = usePermissions().can("confAvisoLlegada", "MODIFICAR");
 
 onMounted(() => configAvisoStore.obtenerConfigAviso());
 
@@ -38,7 +40,7 @@ function guardarContenido() {
         </v-alert>
         <Editor />
       </v-card-text>
-      <v-card-actions>
+      <v-card-actions v-if="canEdit">
         <v-btn
           color="success"
           :loading="configAvisoStore.saving"
