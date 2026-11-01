@@ -242,6 +242,25 @@ describe("bank store", () => {
   });
 
   test.each([
+    ["setRegistroEgresos", "registro_egresos", "registroPayForProveedor", { v_id: 31 }],
+    ["setRegistroIgresos", "registro_ingresos", "registroPayForCliente", { v_id_pago: 41 }],
+  ] as const)("%s offers to print the voucher only with Exportar on its new-payment screen", async (name, path, screen, row) => {
+    respond({ [path]: accepted([row]) });
+    const grant = (actions: string[]) =>
+      sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: screen, actions }], controlled: [screen] }));
+
+    grant(["VER", "NUEVO"]);
+    await useBankStore()[name]({});
+    grant(["VER", "NUEVO", "EXPORTAR"]);
+    await useBankStore()[name]({});
+
+    expect(vi.mocked(Swal.fire).mock.calls.map(([options]) => (options as { showConfirmButton?: boolean }).showConfirmButton)).toEqual([
+      false,
+      true,
+    ]);
+  });
+
+  test.each([
     ["setRegistroEgresos", "registro_egresos"],
     ["setRegistroIgresos", "registro_ingresos"],
     ["updateRegistroEgresos", "actualizar_egresos"],

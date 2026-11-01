@@ -14,6 +14,7 @@ import type {
 import { sessionBranchId } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
 import { request } from "@/utils/request";
+import { usePermissions } from "@/composables/usePermissions";
 
 export const useBankStore = defineStore("bank", () => {
   const list = ref<BancoFila[]>([]);
@@ -493,6 +494,7 @@ export const useBankStore = defineStore("bank", () => {
     path: string,
     data: Record<string, unknown>,
     list: string,
+    screen: string,
     printVoucher: (row: Record<string, number>) => Promise<boolean>,
   ): Promise<boolean> {
     const answer = await paymentRequest("post", path, data);
@@ -503,6 +505,7 @@ export const useBankStore = defineStore("bank", () => {
     const choice = await Swal.fire({
       icon: "success",
       text: answer.mensaje,
+      showConfirmButton: usePermissions().can(screen, "EXPORTAR"),
       confirmButtonText: "Imprimir comprobante",
       cancelButtonText: "Ir al listado",
       showCancelButton: true,
@@ -534,14 +537,16 @@ export const useBankStore = defineStore("bank", () => {
   }
 
   const setRegistroEgresos = (data: Record<string, unknown>) =>
-    registerPayment("registro_egresos", data, "listBankCxP", (row) => imprimirComprobanteEgreso({ id: row.v_id }));
+    registerPayment("registro_egresos", data, "listBankCxP", "registroPayForProveedor", (row) =>
+      imprimirComprobanteEgreso({ id: row.v_id }));
 
   const updateRegistroEgresos = (data: Record<string, unknown>) => updatePayment("actualizar_egresos", data, "listBankCxP");
 
   const updateRegistroIgresos = (data: Record<string, unknown>) => updatePayment("actualizar_ingresos", data, "listBankCxC");
 
   const setRegistroIgresos = (data: Record<string, unknown>) =>
-    registerPayment("registro_ingresos", data, "listBankCxC", (row) => imprimirComprobanteIngreso({ id: row.v_id_pago }));
+    registerPayment("registro_ingresos", data, "listBankCxC", "registroPayForCliente", (row) =>
+      imprimirComprobanteIngreso({ id: row.v_id_pago }));
 
   async function getRegistroEgresos(data: Record<string, unknown>): Promise<void> {
     const config = {
