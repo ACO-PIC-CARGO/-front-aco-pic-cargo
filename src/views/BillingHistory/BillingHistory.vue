@@ -8,6 +8,7 @@ import { stopCheckoutEvents } from "@/plugins/paddle";
 import type { PaddleCheckoutEvent } from "@/plugins/paddle";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
+import { usePermissions } from "@/composables/usePermissions";
 import type { BillingRow } from "@/types/suscripciones";
 
 const EMPTY_MESSAGE =
@@ -23,6 +24,8 @@ const HEADERS = [
 const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
+const { can } = usePermissions();
+const canDownloadInvoice = can("billingHistory", "EXPORTAR");
 const { billingRows: rows, paymentCard } = storeToRefs(subscriptionsStore);
 
 const loadState = ref("loading");
@@ -33,7 +36,7 @@ const emptyMessage = EMPTY_MESSAGE;
 const headers = HEADERS;
 
 const canUpdatePaymentMethod = computed(
-  () => subscriptionsStore.billingHistory.can_update_payment_method,
+  () => subscriptionsStore.billingHistory.can_update_payment_method && can("billingHistory", "MODIFICAR"),
 );
 
 onMounted(() => {
@@ -196,7 +199,7 @@ function onCheckoutEvent(event: PaddleCheckoutEvent) {
             </template>
             <template #[`item.invoice`]="{ item }">
               <v-btn
-                v-if="item.hasInvoice"
+                v-if="item.hasInvoice && canDownloadInvoice"
                 variant="text"
                 class="plans-button plans-button--ghost"
                 :disabled="downloadingId === item.id"
@@ -211,7 +214,7 @@ function onCheckoutEvent(event: PaddleCheckoutEvent) {
                 Descargar
               </v-btn>
               <span
-                v-else
+                v-else-if="!item.hasInvoice"
                 class="payments__muted"
               >Sin factura</span>
             </template>
