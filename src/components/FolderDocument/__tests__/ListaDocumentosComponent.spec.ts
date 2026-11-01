@@ -64,6 +64,16 @@ const acceptButton = () =>
   )!;
 
 const inserts = () => httpMock.mock.calls.filter(([config]) => config.url.endsWith("insertar_documents"));
+const listRequests = () => httpMock.mock.calls.filter(([config]) => config.url.includes("listar_documents?")).length;
+
+test("opening Nuevo does not ask the server for the list again", async () => {
+  await mountScreen();
+  const before = listRequests();
+
+  await openNew();
+
+  expect(listRequests()).toBe(before);
+});
 
 test("Nuevo starts an empty, active document type even after viewing another one", async () => {
   await mountScreen();

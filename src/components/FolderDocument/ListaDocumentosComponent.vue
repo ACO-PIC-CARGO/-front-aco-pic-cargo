@@ -76,10 +76,10 @@ function resetFilter() {
 async function clear(option?: string) {
   if (option == "filter") {
     documents.value = { ...originalDocuments.value };
+    await documentStore.fetchDataDocument(documents.value);
   } else {
     document.value = emptyDocument();
   }
-  await documentStore.fetchDataDocument(documents.value);
   showFilterDrawer.value = false;
 }
 async function reset_records() {
