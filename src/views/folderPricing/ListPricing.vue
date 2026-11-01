@@ -6,6 +6,7 @@ import { useSecuritysStore } from "@/stores/securitys";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import type { ResumenEstadoCotizacion } from "@/types/cotizacion";
 
 const ListQuote = defineAsyncComponent(() =>
@@ -24,6 +25,7 @@ const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const masterusuariosStore = useMasterusuariosStore();
 const securitysStore = useSecuritysStore();
+const { can } = usePermissions();
 
 const tabs = ref("quotes");
 const dialog = ref(false);
@@ -94,6 +96,7 @@ onMounted(async () => {
 
           <v-spacer />
           <v-btn
+            v-if="can('lstQuote', 'NUEVO')"
             color="success"
             @click="redirect()"
             size="small"

@@ -4,11 +4,13 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
 
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const loading4 = ref(false);
@@ -654,6 +656,7 @@ async function guardarNota() {
       >
         <div class="text-right">
           <v-btn
+            v-if="can('lstQuote', 'EXPORTAR')"
             color="red"
             @click="imprimierCalls()"
             class="mx-1"

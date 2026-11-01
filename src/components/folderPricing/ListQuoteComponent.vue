@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import { APPROVED_QUOTE_MESSAGE, isApprovedQuote } from "@/utils/quoteApproval";
 import type { ApiResponse } from "@/types/api";
@@ -27,6 +28,7 @@ withDefaults(
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 
 const dialogUrl = ref(false);
 const search = ref("");
@@ -1010,7 +1012,7 @@ onMounted(async () => {
                    
                     @click="handleEditar(item)"
                     aria-label="Editar cotización"
-                    v-if="item.statusmain != 0"
+                    v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
                   >
                     <v-icon
                       :color="isApprovedQuote(item) ? 'grey' : '#FB9514'"
@@ -1035,7 +1037,7 @@ onMounted(async () => {
                     size="x-small"
                     @click="registrarLlamada(item)"
                     aria-label="Registrar llamada"
-                    v-if="item.statusmain != 0"
+                    v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#1A237E"
@@ -1112,7 +1114,7 @@ onMounted(async () => {
                     v-bind="props"
                     @click="eliminar(item.id, item.codigo)"
                     aria-label="Eliminar cotización"
-                    v-if="mostrarBoton(item)"
+                    v-if="mostrarBoton(item) && can('lstQuote', 'ELIMINAR')"
                   >
                     <v-icon
                       color="#A43542"
