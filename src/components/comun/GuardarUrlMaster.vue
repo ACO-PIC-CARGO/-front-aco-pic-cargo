@@ -5,8 +5,8 @@ import Swal from "sweetalert2";
 import { useMastersStore } from "@/stores/masters";
 
 const props = withDefaults(
-  defineProps<{ dialogUrl?: boolean; masterEditar?: RegistroConUrlCarpeta }>(),
-  { dialogUrl: false, masterEditar: () => ({}) },
+  defineProps<{ dialogUrl?: boolean; masterEditar?: RegistroConUrlCarpeta; editable?: boolean }>(),
+  { dialogUrl: false, masterEditar: () => ({}), editable: true },
 );
 const emit = defineEmits<{ cerrar: [] }>();
 
@@ -80,6 +80,7 @@ watch(url_folderonedrive, () => {
             </v-btn>
             <v-divider class="my-3" />
             <v-text-field
+              v-if="editable"
               label="Nueva URL"
               id="id"
               v-model="url_folderonedrive"
@@ -89,6 +90,7 @@ watch(url_folderonedrive, () => {
             <v-card-actions>
               <v-spacer />
               <v-btn
+                v-if="editable"
                 color="success"
                 @click="actualizarUrl"
               >

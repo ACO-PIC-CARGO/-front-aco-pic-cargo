@@ -11,6 +11,7 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import { useMastersStore } from "@/stores/masters";
+import { usePermissions } from "@/composables/usePermissions";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { MasterListado } from "@/types/operacionesMaster";
@@ -24,6 +25,7 @@ const pricingStore = usePricingStore();
 const mastersStore = useMastersStore();
 const masterusuariosStore = useMasterusuariosStore();
 const securitysStore = useSecuritysStore();
+const { can } = usePermissions();
 const itemsMasterList = computed(() => appStore.itemsMasterList);
 const itemsModality = computed(() => appStore.itemsModality);
 const frmQuote = useTemplateRef("frmQuote");
@@ -567,6 +569,7 @@ onMounted(async () => {
 
           <div class="d-flex justify-end mt-3">
             <v-btn
+              v-if="can('listMaster', 'NUEVO')"
               color="success"
               elevation="0"
               rounded
@@ -750,7 +753,7 @@ onMounted(async () => {
             <v-list>
               <v-list-item
                 class="itemMenu"
-                v-if="!isMasterClosed(item) && item.status == 1"
+                v-if="!isMasterClosed(item) && item.status == 1 && can('listMaster', 'MODIFICAR')"
               >
                 <v-list-item-title
                   small
@@ -784,88 +787,90 @@ onMounted(async () => {
                   Ir Control Gastos
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-if="!item.statuslock && item.status == 1"
-              >
-                <v-list-item-title
-                  icon
-                  small
-                  @click="_lockMaster(item.id)"
+              <template v-if="can('listMaster', 'MODIFICAR')">
+                <v-list-item
+                  class="itemMenu"
+                  v-if="!item.statuslock && item.status == 1"
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
+                  <v-list-item-title
+                    icon
+                    small
+                    @click="_lockMaster(item.id)"
                   >
-                    mdi-lock
-                  </v-icon> Cerrar
-                  Expediente Operativo
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-else
-              >
-                <v-list-item-title
-                  icon
-                  small
-                  @click="
-                    reactivarMaster({
-                      id: item.id,
-                      abriroperativo: true,
-                    })
-                  "
+                    <v-icon
+                      class="mx-1"
+                      color="#E65100"
+                    >
+                      mdi-lock
+                    </v-icon> Cerrar
+                    Expediente Operativo
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="itemMenu"
+                  v-else
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
+                  <v-list-item-title
+                    icon
+                    small
+                    @click="
+                      reactivarMaster({
+                        id: item.id,
+                        abriroperativo: true,
+                      })
+                    "
                   >
-                    mdi-lock-open-alert
-                  </v-icon>
-                  Abrir Expediente Operativo
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-if="!item.statuslockadm && item.status == 1"
-              >
-                <v-list-item-title
-                  icon
-                  @click="_lockMasterAdm(item.id)"
-                  small
+                    <v-icon
+                      class="mx-1"
+                      color="#E65100"
+                    >
+                      mdi-lock-open-alert
+                    </v-icon>
+                    Abrir Expediente Operativo
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="itemMenu"
+                  v-if="!item.statuslockadm && item.status == 1"
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
+                  <v-list-item-title
+                    icon
+                    @click="_lockMasterAdm(item.id)"
+                    small
                   >
-                    mdi-lock
-                  </v-icon>Cerrar
-                  Expediente Administrativo
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-else
-              >
-                <v-list-item-title
-                  icon
-                  @click="
-                    reactivarMaster({
-                      id: item.id,
-                      abriradministrativo: true,
-                    })
-                  "
-                  small
+                    <v-icon
+                      class="mx-1"
+                      color="#E65100"
+                    >
+                      mdi-lock
+                    </v-icon>Cerrar
+                    Expediente Administrativo
+                  </v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  class="itemMenu"
+                  v-else
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
+                  <v-list-item-title
+                    icon
+                    @click="
+                      reactivarMaster({
+                        id: item.id,
+                        abriradministrativo: true,
+                      })
+                    "
+                    small
                   >
-                    mdi-lock-open-alert
-                  </v-icon>
-                  Abrir Expediente Administrativo
-                </v-list-item-title>
-              </v-list-item>
+                    <v-icon
+                      class="mx-1"
+                      color="#E65100"
+                    >
+                      mdi-lock-open-alert
+                    </v-icon>
+                    Abrir Expediente Administrativo
+                  </v-list-item-title>
+                </v-list-item>
+              </template>
               <v-list-item
                 class="itemMenu"
                 v-if="item.status == 1"
@@ -887,11 +892,10 @@ onMounted(async () => {
 
               <v-list-item
                 class="itemMenu"
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listMaster', 'ELIMINAR')"
               >
                 <v-list-item-title
                   icon
-                  fab|
                   small
                   @click="_nullMaster(item.id)"
                 >
@@ -926,7 +930,7 @@ onMounted(async () => {
           </label> -->
           <v-btn
             color="red"
-            v-if="item.status == 0"
+            v-if="item.status == 0 && can('listMaster', 'MODIFICAR')"
             @click="
               reactivarMaster({
                 id: item.id,
@@ -942,7 +946,7 @@ onMounted(async () => {
             <template #activator="{ props }">
               <v-btn
                 variant="text"
-                v-if="!isMasterClosed(item) && item.status == 1"
+                v-if="!isMasterClosed(item) && item.status == 1 && can('listMaster', 'MODIFICAR')"
                 color="#212121"
                 size="small"
                 icon
@@ -1255,6 +1259,7 @@ onMounted(async () => {
     <GuardarUrlMaster
       :dialog-url="dialogUrl"
       :master-editar="masterEditar"
+      :editable="can('listMaster', 'MODIFICAR')"
       @cerrar="cerrarDialog"
     />
   </v-container>
