@@ -3,6 +3,7 @@ import { computed, nextTick, onMounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
+import { usePermissions } from "@/composables/usePermissions";
 import dataGen from "./DataGenMaster.vue";
 import houselist from "./HouseListMaster.vue";
 import dataEmbar from "./DataEmbarMaster.vue";
@@ -19,6 +20,7 @@ const SAVE_FAILED = "No pudimos guardar el expediente. Revisa tu conexión e int
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
 const route = useRoute();
+const { can } = usePermissions();
 const appRouter = useRouter();
 const itemsOperadorList = computed(() => appStore.itemsOperadorList);
 
@@ -648,7 +650,7 @@ onMounted(async () => {
           />
         </v-col>
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
-          <v-fab-transition v-if="formControlMasterReadonly">
+          <v-fab-transition v-if="formControlMasterReadonly && can('listMaster', 'MODIFICAR')">
             <v-btn
               icon
               size="large"
@@ -660,7 +662,7 @@ onMounted(async () => {
             </v-btn>
           </v-fab-transition>
           <v-speed-dial
-            v-else
+            v-else-if="!formControlMasterReadonly"
             v-model="fab"
             location="top end"
             :open-on-hover="hover"
@@ -694,7 +696,7 @@ onMounted(async () => {
               Carpeta
             </v-btn>
             <v-btn
-              v-if="mastersStore.statusData"
+              v-if="mastersStore.statusData && can('listMaster', 'NUEVO')"
               @click="addNewHouse()"
               color="primary"
               :loading="loadingBotonNuevoHouse"
@@ -707,7 +709,7 @@ onMounted(async () => {
             <v-btn
               color="light-green-lighten-1"
               @click="_putMaster()"
-              v-if="route.params.id"
+              v-if="route.params.id && can('listMaster', 'MODIFICAR')"
             >
               <v-icon start>
                 mdi-content-save
@@ -717,7 +719,7 @@ onMounted(async () => {
             <v-btn
               color="light-green-lighten-1"
               @click="_setMaster()"
-              v-if="!route.params.id"
+              v-if="!route.params.id && can('listMaster', 'NUEVO')"
             >
               <v-icon start>
                 mdi-content-save

@@ -6,6 +6,7 @@ import { useMastersStore } from "@/stores/masters";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
+import { usePermissions } from "@/composables/usePermissions";
 import type { HouseDeMaster } from "@/types/operacionesMaster";
 import { mastersToMoveHouseTo } from "@/utils/masters";
 
@@ -18,6 +19,7 @@ const mastersStore = useMastersStore();
 const route = useRoute();
 const router = useRouter();
 const housesStore = useHousesStore();
+const { can } = usePermissions();
 
 const openExpand = ref(0);
 const showAll = ref(false);
@@ -345,7 +347,7 @@ onMounted(async () => {
                           </v-icon>
                         </v-btn>
                         <v-btn
-                          v-if="!isViewMode"
+                          v-if="!isViewMode && can('listMaster', 'ELIMINAR')"
                           variant="text"
                           icon
                           color="red"
@@ -356,7 +358,7 @@ onMounted(async () => {
                           </v-icon>
                         </v-btn>
                         <v-btn
-                          v-if="!isViewMode"
+                          v-if="!isViewMode && can('listMaster', 'MODIFICAR')"
                           variant="text"
                           icon
                           color="#F57F17"
