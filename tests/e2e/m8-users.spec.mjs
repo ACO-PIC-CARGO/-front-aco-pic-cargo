@@ -1,35 +1,13 @@
 import { test, expect } from "./fixtures.mjs";
-import { outsideInert, pickFirstOption, pickOption, searchAndPick } from "./support/fields.mjs";
-import { waitForPageToSettle } from "./support/page.mjs";
+import { outsideInert, pickOption } from "./support/fields.mjs";
+import { acknowledge, waitForPageToSettle } from "./support/page.mjs";
+import { fillNewUserData } from "./support/users.mjs";
 
 const PASSWORD = "Clave-E2e-2026";
 const uniqueEmail = (label) => `e2e.m8.${label}.${Date.now()}@example.com`;
-const uniqueDocument = () => String(Date.now()).slice(-8);
 
 const rowWith = (page, text) => page.getByRole("row").filter({ hasText: text });
 const tab = (page, name) => page.getByRole("tab", { name });
-
-async function acknowledge(page, message) {
-  const alert = page.getByRole("dialog").filter({ hasText: message });
-  await expect(alert).toBeVisible();
-  await alert.getByRole("button", { name: /^ok$/i }).click();
-  await expect(alert).toBeHidden();
-}
-
-async function fillNewUserData(page, { email, password, confirmation = password }) {
-  await pickFirstOption(page, "Tipo de Documento (*)");
-  await page.getByLabel("Documento (*)", { exact: true }).fill(uniqueDocument());
-  await page.getByLabel("Nombres (*)", { exact: true }).fill("Usuario");
-  await page.getByLabel("Apellido Paterno (*)", { exact: true }).fill("Prueba");
-  await page.getByLabel("Apellido Materno (*)", { exact: true }).fill("Ocho");
-  await page.getByLabel("Teléfono (*)", { exact: true }).fill("999888777");
-  await page.getByLabel("Correo (*)", { exact: true }).fill(email);
-  await page.getByLabel("Clave*", { exact: true }).fill(password);
-  await page.getByLabel("Confirmar Clave*", { exact: true }).fill(confirmation);
-  await pickOption(page, "Sexo (*)", "Masculino");
-  await searchAndPick(page, "Pais (*)", "Peru");
-  await page.getByLabel("Dirección (*)", { exact: true }).fill("Av. Prueba 123");
-}
 
 async function addRole(page, label, role) {
   await pickOption(page, label, role);
