@@ -32,7 +32,7 @@ export const chooseSessionBranch = (branch: SucursalSesion): void => {
 export const sessionIsoPais = (): number | null =>
   JSON.parse(sessionStorage.getItem("iso_pais") as string) as number | null;
 
-const SESSION_KEYS = ["security", "auth-token", "dataUser", "dataBranch", "iso_pais", "menu", "ConfigEmpresa"];
+const SESSION_KEYS = ["security", "auth-token", "dataUser", "dataBranch", "iso_pais", "menu", "permissions", "ConfigEmpresa"];
 
 export const clearSession = (): void => {
   for (const storage of [sessionStorage, localStorage]) {

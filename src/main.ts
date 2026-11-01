@@ -73,6 +73,7 @@ function syncSessionFromLocalStorage() {
     "dataBranch",
     "iso_pais",
     "menu",
+    "permissions",
     "ConfigEmpresa",
     "version",
   ];
@@ -94,6 +95,7 @@ window.addEventListener("storage", (event) => {
     "dataBranch",
     "iso_pais",
     "menu",
+    "permissions",
     "ConfigEmpresa",
     "version",
   ];

@@ -42,6 +42,7 @@ const localOf = (key: string) => localStorage.getItem(key);
 const loginRow = { id: 7, id_entitie: 3, id_secutiry: 2, names: "Ana" };
 const branch = { id: 5, trade_name: "PIC", iso_pais: "PE", esnuevoflag: false, porcentaje_config: "0", dias_restantes: 30 };
 const menu = [{ id: 1, name: "Inicio", route: "Main" }];
+const permissions = { screens: [{ route: "listUser", actions: ["VER"] }], controlled: ["listUser"] };
 const config = { id: 9, nombre: "cfg" };
 
 function setup() {
@@ -67,7 +68,8 @@ describe("securitys store", () => {
     respond({
       singin: { estadoflag: true, mensaje: "", token: "tok", data: [{ ...loginRow }] },
       "CargarBranch/7": { data: [branch] },
-      getMenuModules: { data: menu },
+      menu_session: { data: menu },
+      my_permissions: { data: permissions },
       obtener_existe_datos_config: { estadoflag: true, data: [config] },
     });
     let menuWhenOpeningMain: unknown;
@@ -94,11 +96,15 @@ describe("securitys store", () => {
     });
     expect(httpMock).toHaveBeenNthCalledWith(3, {
       method: "post",
-      url: URL_MAIN + "getMenuModules",
+      url: URL_MAIN + "menu_session",
       headers: JSON_HEADERS,
-      data: JSON.stringify({ id_entitie: 7, id_branch: 5 }),
     });
     expect(httpMock).toHaveBeenNthCalledWith(4, {
+      method: "get",
+      url: URL_MAIN + "my_permissions",
+      headers: JSON_HEADERS,
+    });
+    expect(httpMock).toHaveBeenNthCalledWith(5, {
       method: "get",
       url: URL_MAIN + "obtener_existe_datos_config",
       params: { id_branch: 5 },
@@ -114,6 +120,7 @@ describe("securitys store", () => {
       expect(read("dataUser")).toBe(dataUser);
       expect(read("dataBranch")).toBe(JSON.stringify([branch]));
       expect(read("iso_pais")).toBe("PE");
+      expect(read("permissions")).toBe(JSON.stringify(permissions));
     }
     expect(vi.mocked(router.push).mock.calls[0]![0]).toEqual({ name: "Main" });
     expect(menuWhenOpeningMain).toEqual(menu);
@@ -123,11 +130,26 @@ describe("securitys store", () => {
     expect(localOf("ConfigEmpresa")).toBe(JSON.stringify(config));
   });
 
+  test("_getMenuItem drops the permissions of the previous branch when the new ones can't be read", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    sessionStorage.setItem("dataUser", JSON.stringify([{ id_user: 7, id_branch: 5 }]));
+    sessionStorage.setItem("permissions", JSON.stringify(permissions));
+    localStorage.setItem("permissions", JSON.stringify(permissions));
+    respond({ menu_session: { data: menu }, my_permissions: new Error("down") });
+
+    await setup().securitys._getMenuItem();
+
+    expect(sessionOf("permissions")).toBeNull();
+    expect(localOf("permissions")).toBeNull();
+    expect(sessionOf("menu")).toBe(JSON.stringify(menu));
+  });
+
   test("singin sends a new company with one branch to the initial configuration", async () => {
     respond({
       singin: { estadoflag: true, mensaje: "", token: "tok", data: [{ ...loginRow }] },
       "CargarBranch/7": { data: [{ ...branch, esnuevoflag: true }] },
-      getMenuModules: { data: menu },
+      menu_session: { data: menu },
+      my_permissions: { data: permissions },
       obtener_existe_datos_config: { estadoflag: true, data: [config] },
     });
     const { securitys } = setup();

@@ -54,7 +54,7 @@ describe("choosing the sucursal at login", () => {
 });
 
 describe("signing out", () => {
-  const sessionKeys = ["security", "auth-token", "dataUser", "dataBranch", "iso_pais", "menu", "ConfigEmpresa"];
+  const sessionKeys = ["security", "auth-token", "dataUser", "dataBranch", "iso_pais", "menu", "permissions", "ConfigEmpresa"];
 
   test("leaves no session data in either storage, so a new tab cannot restore it", () => {
     for (const storage of [sessionStorage, localStorage]) {

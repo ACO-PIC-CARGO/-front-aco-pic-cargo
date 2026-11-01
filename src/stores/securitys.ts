@@ -6,6 +6,7 @@ import axios from "@/api/http";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
+import type { MyPermissions } from "@/types/roles";
 import { request } from "@/utils/request";
 import type { ItemMenu, SucursalSesion, UsuarioLogin } from "@/types/sesion";
 
@@ -198,22 +199,34 @@ export const useSecuritysStore = defineStore("securitys", () => {
   // },
   async function _getMenuItem() {
     dataMenu.value = false;
-    const dataUser = readDataUser();
-    const data = JSON.stringify({
-      id_entitie: dataUser[0]!.id_user,
-      id_branch: readDataUser()[0]!.id_branch,
-    });
 
     await axios<ApiResponse<ItemMenu[]>>({
       method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "getMenuModules",
+      url: import.meta.env.VITE_URL_MAIN + "menu_session",
       headers: { "Content-Type": "application/json" },
-      data: data,
     })
       .then(function (response) {
         sessionStorage.setItem("menu", JSON.stringify(response.data.data));
         localStorage.setItem("menu", JSON.stringify(response.data.data));
         useAppStore()._setItemsMenu(response.data.data);
+      })
+      .catch(function (error) {
+        console.error(error);
+      });
+    await loadMyPermissions();
+  }
+
+  async function loadMyPermissions() {
+    for (const storage of [sessionStorage, localStorage]) storage.removeItem("permissions");
+    await axios<ApiResponse<MyPermissions>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "my_permissions",
+      headers: { "Content-Type": "application/json" },
+    })
+      .then(function (response) {
+        for (const storage of [sessionStorage, localStorage]) {
+          storage.setItem("permissions", JSON.stringify(response.data.data));
+        }
       })
       .catch(function (error) {
         console.error(error);
