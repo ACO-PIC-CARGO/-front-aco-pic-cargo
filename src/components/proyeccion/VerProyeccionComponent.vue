@@ -2,6 +2,7 @@
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
 import type {
@@ -13,6 +14,7 @@ import type {
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
@@ -491,7 +493,7 @@ onMounted(async () => {
       <v-btn
         size="small"
         class="mx-1"
-        v-if="!aprobado"
+        v-if="!aprobado && can('lstProyeccionCXP', 'MODIFICAR')"
         color="success"
         @click="editar()"
         rounded
@@ -502,6 +504,7 @@ onMounted(async () => {
         size="small"
         class="mx-1"
         color="success"
+        v-if="can('lstProyeccionCXP', 'EXPORTAR')"
         @click="exportar()"
         rounded
       >
@@ -519,7 +522,7 @@ onMounted(async () => {
       <v-btn
         size="small"
         class="mx-1"
-        v-if="!aprobado"
+        v-if="!aprobado && can('lstProyeccionCXP', 'MODIFICAR')"
         color="info"
         rounded
       >

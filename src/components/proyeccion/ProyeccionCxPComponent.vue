@@ -3,12 +3,14 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import type { FiltroProyeccion, ProyeccionListado } from "@/types/finanzas";
 import type { UsuarioSesionProyeccion } from "@/types/proyecciones";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const appRouter = useRouter();
 const proyeccionesStore = useProyeccionesStore();
 const frmCopy = useTemplateRef("frmCopy");
@@ -153,13 +155,14 @@ onMounted(async () => {
         @click="dialogn = !dialogn"
         size="small"
         rounded
-        v-if="generarflag"
+        v-if="generarflag && can('lstProyeccionCXP', 'NUEVO')"
       >
         GENERAR
       </v-btn>
       <v-btn
         color="success"
         class="mx-1"
+        v-if="can('lstProyeccionCXP', 'NUEVO')"
         @click="$router.push({ name: 'nuevaProyeccionCXP' })"
         size="small"
         rounded
@@ -198,7 +201,7 @@ onMounted(async () => {
             <v-btn
               variant="text"
               icon
-              v-if="!item.proyeccion_aprobadoflag"
+              v-if="!item.proyeccion_aprobadoflag && can('lstProyeccionCXP', 'MODIFICAR')"
               @click="editar(item.proyeccion_id)"
             >
               <v-icon
@@ -210,6 +213,7 @@ onMounted(async () => {
             <v-btn
               variant="text"
               icon
+              v-if="can('lstProyeccionCXP', 'COPIAR')"
               @click="copiar(item)"
             >
               <v-icon
@@ -221,7 +225,7 @@ onMounted(async () => {
             <v-btn
               variant="text"
               icon
-              v-if="!item.proyeccion_aprobadoflag && !!item.proyeccion_estado"
+              v-if="!item.proyeccion_aprobadoflag && !!item.proyeccion_estado && can('lstProyeccionCXP', 'ELIMINAR')"
               @click="eliminar(item.proyeccion_id)"
             >
               <v-icon color="red">

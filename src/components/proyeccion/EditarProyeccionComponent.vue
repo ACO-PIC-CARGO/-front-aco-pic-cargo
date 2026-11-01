@@ -2,6 +2,7 @@
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
@@ -15,6 +16,7 @@ import { detailsToSave } from "@/utils/projections";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
@@ -206,7 +208,7 @@ function seleccionEditar(): void {
     showConfirmButton: true,
     confirmButtonColor: "#1B5E20",
     confirmButtonText: "Actualizar proyección actual.",
-    showDenyButton: true,
+    showDenyButton: can("lstProyeccionCXP", "COPIAR"),
     denyButtonText: "Crear una nueva proyección.",
     denyButtonColor: "#E65100",
   }).then((result) => {
@@ -574,7 +576,7 @@ onMounted(async () => {
         size="small"
         class="mx-1"
         color="success"
-        v-if="!aprobado"
+        v-if="!aprobado && can('lstProyeccionCXP', 'MODIFICAR')"
         @click="seleccionEditar()"
         rounded
       >
@@ -584,7 +586,7 @@ onMounted(async () => {
       <v-btn
         size="small"
         class="mx-1"
-        v-if="!aprobado"
+        v-if="!aprobado && can('lstProyeccionCXP', 'MODIFICAR')"
         @click="validateAprobacion()"
         color="info"
         rounded

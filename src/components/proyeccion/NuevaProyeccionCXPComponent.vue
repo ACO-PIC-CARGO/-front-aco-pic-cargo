@@ -2,6 +2,7 @@
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import { useProyeccionesStore } from "@/stores/proyecciones";
 import { useBalancesStore } from "@/stores/balances";
 import type {
@@ -13,6 +14,7 @@ import type {
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const appRouter = useRouter();
 const balancesStore = useBalancesStore();
 const proyeccionesStore = useProyeccionesStore();
@@ -477,6 +479,7 @@ onMounted(async () => {
         size="small"
         class="mx-1"
         color="success"
+        v-if="can('lstProyeccionCXP', 'NUEVO')"
         @click="registrar()"
         rounded
       >
