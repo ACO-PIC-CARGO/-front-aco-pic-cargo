@@ -5,8 +5,10 @@ import { useEnterprisesStore } from "@/stores/enterprises";
 import type { EncabezadoTabla, FacturaListado } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
 import { hasFailed, request } from "@/utils/request";
+import { usePermissions } from "@/composables/usePermissions";
 
 const enterprisesStore = useEnterprisesStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const lstFac = ref<FacturaListado[]>([]);
@@ -176,7 +178,7 @@ async function anular(data: FacturaListado) {
           icon
           aria-label="Anular factura"
           title="Anular factura"
-          v-if="item.estatus == 1"
+          v-if="item.estatus == 1 && can('lstFacturacion', 'ELIMINAR')"
         >
           <v-icon>mdi-cancel</v-icon>
         </v-btn>
