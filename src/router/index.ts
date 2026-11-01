@@ -685,19 +685,30 @@ const routes = [
       {
         path: "posicion/listado",
         name: "lstPosition",
-        component: () => import("../views/Posicion/ListPosicion.vue"),
+        component: () => import("../views/Roles/RoleList.vue"),
+      },
+      {
+        path: "posicion/nuevo",
+        name: "nuevoPosicion",
+        meta: { menuRoute: "lstPosition" },
+        component: () => import("../views/Roles/RoleForm.vue"),
       },
       {
         path: "posicion/editar/:id",
         name: "editarPosicion",
         meta: { menuRoute: "lstPosition" },
-        component: () => import("../views/Posicion/EditarPosicion.vue"),
+        component: () => import("../views/Roles/RoleForm.vue"),
       },
       {
         path: "posicion/ver/:id",
         name: "verPosicion",
         meta: { menuRoute: "lstPosition" },
-        component: () => import("../views/Posicion/VerPosicion.vue"),
+        component: () => import("../views/Roles/RoleDetail.vue"),
+      },
+      {
+        path: "posicion/permisos",
+        name: "lstPermissions",
+        component: () => import("../views/Roles/PermissionList.vue"),
       },
       // {
       //   path: "/reporte/control_file",
