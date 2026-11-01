@@ -45,6 +45,7 @@ import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
+import { usePermissions } from "@/composables/usePermissions";
 
 const route = useRoute();
 const router = useRouter();
@@ -57,6 +58,8 @@ const townStore = useTownStore();
 const calculadorasStore = useCalculadorasStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
+// Read on every render: this layout stays mounted when the session reloads its permissions.
+const can = (screen: string, action: string) => usePermissions().can(screen, action);
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
@@ -1662,7 +1665,7 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'newQuote' && !!pricingStore.btnRegistrar"
+        v-if="getNameUrl() == 'newQuote' && !!pricingStore.btnRegistrar && can('newQuote', 'NUEVO')"
         @click="guardarCotizacion()"
         :disabled="pricingStore.bloquearBtnImprimir"
       >
@@ -1685,7 +1688,7 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'editQuote'"
+        v-if="getNameUrl() == 'editQuote' && can('lstQuote', 'MODIFICAR')"
         @click="editarCotizacion()"
       >
         <v-icon
@@ -1712,7 +1715,7 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'verQuote'"
+        v-if="getNameUrl() == 'verQuote' && can('lstQuote', 'MODIFICAR')"
         @click="handleEditarQuote()"
       >
         <v-icon
@@ -1774,7 +1777,7 @@ watch(idRole, async () => {
 
       <v-btn
         variant="elevated"
-        v-if="getNameUrl() == 'verQuote'"
+        v-if="getNameUrl() == 'verQuote' && can('lstQuote', 'COPIAR')"
         class="mx-1"
         color="light-blue-darken-3"
         @click="abrirModalCopiarCotizacion()"
@@ -1836,7 +1839,7 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'EditarAduana'"
+        v-if="getNameUrl() == 'EditarAduana' && can('lstQuoteAduanaAduana', 'MODIFICAR')"
         @click="editarCotizacionAduana()"
         size="small"
       >
@@ -1850,7 +1853,8 @@ watch(idRole, async () => {
         color="#009688"
         v-if="
           getNameUrl() == 'VerAduana' &&
-            aduanaStore.mostrarBtnActualizarFlag
+            aduanaStore.mostrarBtnActualizarFlag &&
+            can('lstQuoteAduanaAduana', 'MODIFICAR')
         "
         @click="ira('EditarAduana', route.params.id)"
       >
@@ -1861,7 +1865,7 @@ watch(idRole, async () => {
         variant="elevated"
         color="#009688"
         @click="abrirModalPilotoAutomatico()"
-        v-if="getNameUrl() == 'editQuote'"
+        v-if="getNameUrl() == 'editQuote' && can('lstQuote', 'MODIFICAR')"
       >
         <v-icon class="mx-1">
           mdi-send
