@@ -2,6 +2,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import moment from "moment";
@@ -13,6 +14,7 @@ import type { CuentaListado } from "@/types/modulesPays";
 
 const router = useRouter();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const securitysStore = useSecuritysStore();
 
 const itemsListInvoice = ref<CuentaListado[]>([]);
@@ -342,6 +344,7 @@ onMounted(async () => {
         </v-btn>
         <v-btn
           class="mx-1"
+          v-if="can('controlAccountPays', 'NUEVO')"
           @click="toPageAdd()"
           color="primary"
         >
@@ -447,7 +450,7 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('controlAccountPays', 'ELIMINAR')"
                 color="red"
                 @click="delPro(item.id)"
               >
@@ -457,7 +460,7 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('controlAccountPays', 'MODIFICAR')"
                 color="blue"
                 @click="penPro(item.id)"
               >
@@ -467,7 +470,7 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 2"
+                v-if="item.status == 2 && can('controlAccountPays', 'MODIFICAR')"
                 color="blue"
                 @click="penProConClaveAdmin(item.id)"
               >

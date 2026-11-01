@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
@@ -37,6 +38,7 @@ const props = defineProps<{
 const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const balancesStore = useBalancesStore();
 const housesStore = useHousesStore();
 const enterprisesStore = useEnterprisesStore();
@@ -978,7 +980,7 @@ onMounted(async () => {
               elevation="0"
               @click="_setInvoice()"
               color="primary"
-              v-if="tipo == 'nuevo'"
+              v-if="tipo == 'nuevo' && can('moduleAccountReceivable', 'NUEVO')"
               :loading="saving"
               :disabled="saving || activeConcepts(itemsproductos).length == 0"
             >
@@ -987,7 +989,7 @@ onMounted(async () => {
             <v-btn
               elevation="0"
               color="primary"
-              v-if="tipo == 'editar'"
+              v-if="tipo == 'editar' && can('moduleAccountReceivable', 'MODIFICAR')"
               @click="setUpdateInvoiceAdmin()"
               :loading="saving"
               :disabled="saving || activeConcepts(itemsproductos).length == 0"

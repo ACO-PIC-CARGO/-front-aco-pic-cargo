@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -36,6 +37,7 @@ const props = defineProps<{
 const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const balancesStore = useBalancesStore();
 const enterprisesStore = useEnterprisesStore();
 const InvoiceAdmin = computed(() => appStore.InvoiceAdmin);
@@ -953,7 +955,7 @@ onMounted(async () => {
               @click="_setInvoice()"
               color="primary"
               size="large"
-              v-if="tipo == 'nuevo'"
+              v-if="tipo == 'nuevo' && can('controlAccountPays', 'NUEVO')"
               :loading="saving"
               :disabled="saving || activeConcepts(itemsProductos).length == 0"
               class="font-weight-bold text-uppercase"
@@ -965,7 +967,7 @@ onMounted(async () => {
               elevation="0"
               color="primary"
               size="large"
-              v-if="tipo == 'editar'"
+              v-if="tipo == 'editar' && can('controlAccountPays', 'MODIFICAR')"
               @click="setUpdateInvoiceAdmin()"
               :loading="saving"
               :disabled="saving || activeConcepts(itemsProductos).length == 0"
