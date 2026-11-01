@@ -81,10 +81,11 @@ test("a bitácora entry is added with Nuevo, shown to the client with Modificar 
     await mountAs(BitacoraHouse, actions);
     useHousesStore().itemsBitacora = [BITACORA_ENTRY] as never;
     await flushPromises();
+    const switches = wrapper!.findAll<HTMLInputElement>('input[type="checkbox"]');
     return {
       agregar: shows("Agregar"),
       nuevoEstado: wrapper!.find(".mdi-plus").exists(),
-      visible: !wrapper!.findAll('input[type="checkbox"]').at(-1)!.element.disabled,
+      visible: !switches[switches.length - 1]!.element.disabled,
       eliminar: wrapper!.find("tbody .mdi-delete").exists(),
     };
   };
