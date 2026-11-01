@@ -2,6 +2,7 @@
 import { onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import moment from "moment";
 import ProgressBar from "@/components/comun/ProgressBar.vue";
 import TableDinamica from "@/components/comun/TableDinamica.vue";
@@ -14,6 +15,7 @@ import type { FiltroDetalleGanancia, FiltroDetalleGastos, TipoBalance } from "@/
 import { sessionBranchId } from "@/utils/sesion";
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const router = useRouter();
 const balancesStore = useBalancesStore();
 const proyeccionesStore = useProyeccionesStore();
@@ -2520,6 +2522,7 @@ onMounted(async () => {
               class="mx-1"
               size="small"
               color="success"
+              v-if="can('lstEstadoGanancias', 'EXPORTAR')"
               @click="exportar()"
             >
               Exportar
@@ -3926,8 +3929,8 @@ onMounted(async () => {
                   <template #[`item.editar`]="{ item }">
                     <v-icon
                       v-if="
-                        item.isoperativo ||
-                          (!item.isoperativo && item.editarflag)
+                        (item.isoperativo || item.editarflag) &&
+                          can('lstEstadoGanancias', 'MODIFICAR')
                       "
                       color="orange-darken-2"
                       class="mr-2"
@@ -3936,7 +3939,10 @@ onMounted(async () => {
                       mdi-pencil
                     </v-icon>
                     <v-icon
-                      v-if="!item.isoperativo && !item.editarflag"
+                      v-if="
+                        !can('lstEstadoGanancias', 'MODIFICAR') ||
+                          (!item.isoperativo && !item.editarflag)
+                      "
                       color="blue-grey-darken-2"
                       class="mr-2"
                       @click="redirectViewGanancia(item.id, item.isoperativo)"
@@ -3962,7 +3968,7 @@ onMounted(async () => {
                       mdi-eye
                     </v-icon>
                     <v-icon
-                      v-if="item.editarflag"
+                      v-if="item.editarflag && can('lstEstadoGanancias', 'MODIFICAR')"
                       color="orange-darken-2"
                       class="mr-2"
                       @click="redirectGasto(item.id)"
