@@ -18,6 +18,7 @@ import type { ServicioHouse } from "@/types/operaciones";
 import HouseArrivalNoticeDialog from "@/components/HouseFile/HouseArrivalNoticeDialog.vue";
 import { sessionBranchId } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
+import { usePermissions } from "@/composables/usePermissions";
 import type { HouseCopiaRaiz } from "@/types/app";
 
 //houselist,
@@ -29,6 +30,7 @@ const appRouter = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const { can } = usePermissions();
 const itemsModality = computed(() => appStore.itemsModality);
 const itemsShipment = computed(() => appStore.itemsShipment);
 
@@ -1000,7 +1002,7 @@ onMounted(async () => {
         </v-col>
       </v-row>
       <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
-        <v-fab-transition v-if="formControlHouseReadonly">
+        <v-fab-transition v-if="formControlHouseReadonly && can('listHouse', 'MODIFICAR')">
           <v-btn
             icon
             size="large"
@@ -1013,7 +1015,7 @@ onMounted(async () => {
           </v-btn>
         </v-fab-transition>
         <v-speed-dial
-          v-else
+          v-else-if="!formControlHouseReadonly"
           v-model="fab"
           location="top end"
           :transition="transition"
@@ -1036,6 +1038,7 @@ onMounted(async () => {
           </template>
 
           <v-btn
+            v-if="can('listHouse', 'ELIMINAR')"
             key="eliminar"
             color="red"
             :loading="loadingBotonEliminarHouse"
@@ -1058,6 +1061,7 @@ onMounted(async () => {
             Tracking
           </v-btn>
           <v-btn
+            v-if="can('listHouse', 'EXPORTAR')"
             key="imprimir"
             :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
             @click="abrirModalFormato()"
@@ -1085,6 +1089,7 @@ onMounted(async () => {
             Carpeta
           </v-btn>
           <v-btn
+            v-if="can('listHouse', 'MODIFICAR')"
             key="notificaciones"
             color="deep-purple"
             @click="openNotificaciones"
@@ -1098,6 +1103,7 @@ onMounted(async () => {
             Notificaciones
           </v-btn>
           <v-btn
+            v-if="can('listHouse', 'MODIFICAR')"
             key="guardar"
             color="light-green-lighten-1"
             @click="_setHouseEdit()"

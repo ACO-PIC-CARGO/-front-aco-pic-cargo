@@ -12,6 +12,7 @@ import type { CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse, ServicioHouse } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
+import { usePermissions } from "@/composables/usePermissions";
 import type { BegEndHouseRaiz, TipoEmbarqueRaiz } from "@/types/app";
 
 const SAVE_ERROR = "No pudimos guardar los cambios del house. Revisa tu conexión e intenta de nuevo.";
@@ -23,6 +24,7 @@ const appRouter = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const canAssociateQuote = usePermissions().can("listHouse", "MODIFICAR");
 const recargarClienteFlag = computed(() => appStore.recargarClienteFlag);
 
 const error = ref("");
@@ -731,7 +733,7 @@ onMounted(async () => {
           v-model="housesStore.house_cotizacion"
           @update:model-value="asignarDatos()"
           clearable
-          :disabled="bloquearQuote"
+          :disabled="bloquearQuote || !canAssociateQuote"
         />
       </v-col>
       <v-col
@@ -748,7 +750,7 @@ onMounted(async () => {
           @update:model-value="asignarDatosAduana()"
           clearable
           :item-props="(item) => ({ disabled: aduanaaprobada(item) })"
-          :disabled="bloquearQuote"
+          :disabled="bloquearQuote || !canAssociateQuote"
         />
       </v-col>
     </v-row>

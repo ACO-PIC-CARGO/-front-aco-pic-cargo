@@ -8,6 +8,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import { useStatushouseStore } from "@/stores/statushouse";
+import { usePermissions } from "@/composables/usePermissions";
 import type { ComentarioEstadoHouse } from "@/types/catalogos";
 import type { BitacoraLinealHouse, RegistroBitacoraHouse } from "@/types/operaciones";
 
@@ -21,6 +22,7 @@ const housesStore = useHousesStore();
 const route = useRoute();
 const pricingStore = usePricingStore();
 const statushouseStore = useStatushouseStore();
+const { can } = usePermissions();
 
 const date = ref(
   new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
@@ -512,7 +514,7 @@ onMounted(async () => {
           md="12"
         >
           <v-autocomplete
-            append-icon="mdi-plus"
+            :append-icon="can('listHouse', 'NUEVO') ? 'mdi-plus' : undefined"
             v-model="housesStore.bitacora_id_bitacora"
             @click:append="abrirRegistroBitacora"
             :items="housesStore.itemsBitacoraLineal"
@@ -645,6 +647,7 @@ onMounted(async () => {
           md="4"
         >
           <v-btn
+            v-if="can('listHouse', 'NUEVO')"
             color="primary"
             block
             :loading="loadingBotonBitacora"
@@ -697,11 +700,12 @@ onMounted(async () => {
                       v-model="item.visible_cliente"
                       :value-comparator="(value, checked) => Boolean(value) === checked"
                       @update:model-value="_changeStatusVisibleBitacora(item)"
-                      :disabled="isFormActionsDisabled"
+                      :disabled="isFormActionsDisabled || !can('listHouse', 'MODIFICAR')"
                     />
                   </td>
                   <td class="text-center">
                     <v-icon
+                      v-if="can('listHouse', 'ELIMINAR')"
                       class="btn_add"
                       size="small"
                       color="red"
@@ -790,11 +794,12 @@ onMounted(async () => {
                         v-model="item.visible_cliente"
                         :value-comparator="(value, checked) => Boolean(value) === checked"
                         @update:model-value="_changeStatusVisibleBitacora(item)"
-                        :disabled="isFormActionsDisabled"
+                        :disabled="isFormActionsDisabled || !can('listHouse', 'MODIFICAR')"
                       />
                     </td>
                     <td class="text-center">
                       <v-icon
+                        v-if="can('listHouse', 'ELIMINAR')"
                         class="btn_add"
                         size="small"
                         color="red"

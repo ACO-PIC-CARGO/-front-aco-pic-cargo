@@ -10,12 +10,14 @@ import { useHousesStore } from "@/stores/houses";
 import type { ApiResponse } from "@/types/api";
 import type { ServicioHouse, ServicioPorIncoterm } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
+import { usePermissions } from "@/composables/usePermissions";
 
 const componentProps = defineProps<{ isFormActionsDisabled?: boolean }>();
 
 const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
+const { can } = usePermissions();
 
 const loading = ref(false);
 const mostrarBtnTelex = ref(false);
@@ -662,7 +664,7 @@ onMounted(async () => {
           </v-col>
 
           <v-btn
-            v-if="mostrarBtnTelex"
+            v-if="mostrarBtnTelex && can('listHouse', 'MODIFICAR')"
             :loading="loading"
             color="success"
             @click="confirmarTelex()"
