@@ -129,3 +129,15 @@ test("a quote is associated to the house, which approves it, only with Modificar
   expect(await associates(["VER", "NUEVO", "ELIMINAR"])).toEqual([false, false]);
   expect(await associates(["VER", "MODIFICAR"])).toEqual([true, true]);
 });
+
+test("the house file locks its shipment and services sections without Modificar", async () => {
+  const sectionsLocked = async (actions: string[]) => {
+    await mountAs(ControlHouseComponent, actions, SECTIONS);
+    return ["data-embar-stub", "services-stub"].map(
+      (stub) => wrapper!.find(stub).attributes("is-form-actions-disabled") === "true",
+    );
+  };
+
+  expect(await sectionsLocked(["VER", "NUEVO", "ELIMINAR"])).toEqual([true, true]);
+  expect(await sectionsLocked(["VER", "MODIFICAR"])).toEqual([false, false]);
+});

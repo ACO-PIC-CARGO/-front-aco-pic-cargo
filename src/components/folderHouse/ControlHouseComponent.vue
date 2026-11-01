@@ -809,7 +809,7 @@ onMounted(async () => {
           </v-card>
           <v-card class="mt-3">
             <v-card-text>
-              <dataEmbar :is-form-actions-disabled="formControlHouseReadonly" />
+              <dataEmbar :is-form-actions-disabled="formControlHouseReadonly || !can('listHouse', 'MODIFICAR')" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -820,7 +820,7 @@ onMounted(async () => {
         >
           <v-card>
             <v-card-text>
-              <services :is-form-actions-disabled="formControlHouseReadonly" />
+              <services :is-form-actions-disabled="formControlHouseReadonly || !can('listHouse', 'MODIFICAR')" />
             </v-card-text>
           </v-card>
 
