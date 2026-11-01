@@ -1796,7 +1796,8 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoClientes' &&
-            entitiesStore.showBtnSaveFlag
+            entitiesStore.showBtnSaveFlag &&
+            can('listClientes', 'NUEVO')
         "
         color="success"
         class="ml-auto"
@@ -1810,7 +1811,8 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoProveedor' &&
-            entitiesStore.showBtnSaveFlag
+            entitiesStore.showBtnSaveFlag &&
+            can('listProveedor', 'NUEVO')
         "
         color="success"
         class="ml-auto"
