@@ -4,8 +4,10 @@ import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import type { Pais } from "@/types/catalogos";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const appStore = useAppStore();
+const editAllowed = entityEditAllowed("listClientes");
 const entitiesStore = useEntitiesStore();
 
 const isFormReadonly = computed(() => {
@@ -79,7 +81,7 @@ async function modificarCliente() {
       Datos para rótulos en la entrega del producto
       <v-spacer />
       <v-btn
-        v-if="!showNavigationButtons"
+        v-if="!showNavigationButtons && editAllowed"
         color="light-blue-darken-2"
         class="ma-2"
         size="small"

@@ -9,11 +9,13 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { RolProveedor } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 const emit = defineEmits<{ ObtenerProveedor: [id: number] }>();
 
 const router = useRouter();
+const editAllowed = entityEditAllowed("listProveedor");
 const appStore = useAppStore();
 const filesStore = useFilesStore();
 const entitiesStore = useEntitiesStore();
@@ -276,7 +278,7 @@ onMounted(() => {
     <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer />
       <v-btn
-        v-if="!showNavigationButtons"
+        v-if="!showNavigationButtons && editAllowed"
         color="light-blue-darken-2"
         class="ma-2"
         size="small"
@@ -705,7 +707,7 @@ onMounted(() => {
       </div>
     </v-card-text>
     <v-card-actions
-      v-if="!showNavigationButtons"
+      v-if="!showNavigationButtons && editAllowed"
       class="px-2 container-narrow"
     >
       <v-spacer />

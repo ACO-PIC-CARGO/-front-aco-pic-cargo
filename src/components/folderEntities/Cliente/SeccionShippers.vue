@@ -5,8 +5,10 @@ import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ProveedorShipper, ShipperCliente } from "@/types/entidades";
 import { removeRow } from "../removeRow";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const appStore = useAppStore();
+const editAllowed = entityEditAllowed("listClientes");
 const entitiesStore = useEntitiesStore();
 
 const loading = ref(false);
@@ -122,7 +124,7 @@ async function modificarCliente() {
       <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
         <v-spacer />
         <v-btn
-          v-if="!showNavigationButtons"
+          v-if="!showNavigationButtons && editAllowed"
           color="light-blue-darken-2"
           class="ma-2"
           size="small"

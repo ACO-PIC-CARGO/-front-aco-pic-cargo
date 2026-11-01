@@ -6,8 +6,10 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ContactoEntidad, EmailEntidad, TelefonoEntidad } from "@/types/entidades";
 import { removeRow } from "../removeRow";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const appStore = useAppStore();
+const editAllowed = entityEditAllowed("listProveedor");
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
@@ -190,7 +192,7 @@ async function validarFormulario() {
     <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer />
       <v-btn
-        v-if="!showNavigationButtons"
+        v-if="!showNavigationButtons && editAllowed"
         color="light-blue-darken-2"
         class="ma-2"
         size="small"

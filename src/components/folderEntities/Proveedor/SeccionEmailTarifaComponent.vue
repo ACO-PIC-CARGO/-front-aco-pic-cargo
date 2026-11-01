@@ -4,6 +4,7 @@ import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useEntitiesStore } from "@/stores/entities";
 import { request } from "@/utils/request";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const stepProps = withDefaults(
   defineProps<{
@@ -15,6 +16,7 @@ const stepProps = withDefaults(
 );
 
 const route = useRoute();
+const editAllowed = entityEditAllowed("listProveedor");
 const entitiesStore = useEntitiesStore();
 
 const headers = [
@@ -121,7 +123,7 @@ onMounted(async () => {
           color="success"
           @click="guardarContactos"
           size="small"
-          v-if="guardarFlag"
+          v-if="guardarFlag && editAllowed"
         >
           Guardar
         </v-btn>

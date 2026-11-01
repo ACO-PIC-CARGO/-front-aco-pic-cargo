@@ -8,8 +8,10 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useBankStore } from "@/stores/bank";
 import type { InformacionBancaria } from "@/types/entidades";
 import { removeRow } from "../removeRow";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const appStore = useAppStore();
+const editAllowed = entityEditAllowed("listProveedor");
 const bankStore = useBankStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -113,7 +115,7 @@ async function modificarProveedor() {
     <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer />
       <v-btn
-        v-if="!showNavigationButtons"
+        v-if="!showNavigationButtons && editAllowed"
         color="light-blue-darken-2"
         class="ma-2"
         size="small"

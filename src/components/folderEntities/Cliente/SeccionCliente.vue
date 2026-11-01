@@ -11,10 +11,12 @@ import type { DocumentoPais, Pais } from "@/types/catalogos";
 import type { TipoTransaccion } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
+import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
 
 const props = withDefaults(defineProps<{ isPricing?: boolean }>(), { isPricing: false });
 
 const router = useRouter();
+const editAllowed = entityEditAllowed("listClientes");
 const appStore = useAppStore();
 const filesStore = useFilesStore();
 const pricingStore = usePricingStore();
@@ -551,7 +553,7 @@ function isPricingOption() {
     <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
       <v-spacer />
       <v-btn
-        v-if="!showNavigationButtons"
+        v-if="!showNavigationButtons && editAllowed"
         color="light-blue-darken-2"
         class="ma-2"
         size="small"
@@ -960,7 +962,7 @@ function isPricingOption() {
       </div>
     </v-card-text>
     <v-card-actions
-      v-if="!showNavigationButtons"
+      v-if="!showNavigationButtons && editAllowed"
       class="px-2 container-narrow"
     >
       <v-spacer />
