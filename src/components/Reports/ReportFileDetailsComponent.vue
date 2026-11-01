@@ -6,7 +6,9 @@ import type { Numerico } from "@/types/cotizacion";
 import type { DetalleControlFile } from "@/types/reportes";
 import { hasFailed, request } from "@/utils/request";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { usePermissions } from "@/composables/usePermissions";
 
+const canExport = usePermissions().can("reportsControlFileDetails", "EXPORTAR");
 const dateDesde = ref(moment().startOf("month").format("YYYY-MM-DD"));
 const menuDesde = ref(false);
 const dateDesdeOnOpen = ref<string | null>(null);
@@ -245,6 +247,7 @@ async function _exportPdf(): Promise<boolean | undefined> {
           BUSCAR NUEVA FECHA
         </v-btn>
         <v-btn
+          v-if="canExport"
           @click="_exportPdf()"
           color="primary"
           elevation="0"

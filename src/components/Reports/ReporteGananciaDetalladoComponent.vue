@@ -8,11 +8,13 @@ import type {
   TotalesMasterGeneralAgrupadoReporte,
 } from "@/types/reportes";
 import { recentYears } from "@/utils/operationalReports";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
 const route = useRoute();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
+const canExport = usePermissions().can("ReporteGananciaDetallado", "EXPORTAR");
 
 const year = ref(new Date().getFullYear());
 const page = ref(1);
@@ -465,6 +467,7 @@ function shipmentClass(tipo: string): string {
             class="action-col mt-4 mx-10"
           >
             <v-btn
+              v-if="canExport"
               variant="outlined"
               block
               class="print-btn"

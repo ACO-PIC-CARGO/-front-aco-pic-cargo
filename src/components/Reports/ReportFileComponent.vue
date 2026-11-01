@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useReportesStore } from "@/stores/reportes";
 import { reportDay } from "@/utils/operationalReports";
+import { usePermissions } from "@/composables/usePermissions";
 import type {
   ExpedienteMasterReporte,
   FiltroControlFile,
@@ -20,6 +21,7 @@ defineProps<{
 const appStore = useAppStore();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
+const canExport = usePermissions().can("reportsControlFile", "EXPORTAR");
 
 const itemsReportFileAll = computed<ExpedienteMasterReporte[]>(
   () => appStore.itemsReportFileAll,
@@ -304,6 +306,7 @@ function getColor(color: string): string {
         >
           FILTRAR
         </v-btn><v-btn
+          v-if="canExport"
           @click="_generatePDF()"
           class="ml-4"
           rounded

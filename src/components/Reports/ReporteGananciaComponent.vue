@@ -5,10 +5,12 @@ import { useAppStore } from "@/stores/app";
 import { useReportesStore } from "@/stores/reportes";
 import type { TotalesMasterAgrupadoReporte, TotalMasterMesReporte } from "@/types/reportes";
 import { recentYears, yearMonths } from "@/utils/operationalReports";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
 const appRouter = useRouter();
 const reportesStore = useReportesStore();
+const canExport = usePermissions().can("ReporteGanancia", "EXPORTAR");
 
 const anioSeleccionado = ref(new Date().getFullYear());
 const fechaGeneracion = new Date().toLocaleDateString("es-ES", {
@@ -146,6 +148,7 @@ async function imprimir(): Promise<void> {
 
     <div class="filtro-anio">
       <v-btn
+        v-if="canExport"
         variant="outlined"
         class="print-btn mx-2"
         @click="imprimir"
