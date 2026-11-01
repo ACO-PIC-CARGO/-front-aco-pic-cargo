@@ -24,7 +24,8 @@ const appRouter = useRouter();
 const housesStore = useHousesStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
-const canAssociateQuote = usePermissions().can("listHouse", "MODIFICAR");
+const { can } = usePermissions();
+const canAssociateQuote = can("listHouse", "NUEVO") || can("listHouse", "MODIFICAR");
 const recargarClienteFlag = computed(() => appStore.recargarClienteFlag);
 
 const error = ref("");

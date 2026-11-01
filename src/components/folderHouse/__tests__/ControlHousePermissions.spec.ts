@@ -109,7 +109,7 @@ test("the telex release is confirmed only with Modificar", async () => {
   expect(await offersTelex(["VER", "MODIFICAR"])).toBe(true);
 });
 
-test("a quote is associated to the house, which approves it, only with Modificar", async () => {
+test("a quote is associated to the house, which approves it, only with Nuevo or Modificar", async () => {
   httpMock.mockImplementation(async (config) =>
     config.url.includes("listar_montos_finales")
       ? new Promise(() => {})
@@ -127,7 +127,8 @@ test("a quote is associated to the house, which approves it, only with Modificar
       .map((field) => !field.props("disabled"));
   };
 
-  expect(await associates(["VER", "NUEVO", "ELIMINAR"])).toEqual([false, false]);
+  expect(await associates(["VER", "ELIMINAR", "EXPORTAR"])).toEqual([false, false]);
+  expect(await associates(["VER", "NUEVO"])).toEqual([true, true]);
   expect(await associates(["VER", "MODIFICAR"])).toEqual([true, true]);
 });
 
