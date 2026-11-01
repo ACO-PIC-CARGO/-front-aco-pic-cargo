@@ -3,7 +3,6 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
-import { usePositionStore } from "@/stores/position";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
 import type { PosicionListado } from "@/types/seguridad";
@@ -12,7 +11,6 @@ import type { SucursalSesion } from "@/types/sesion";
 const route = useRoute();
 const appStore = useAppStore();
 const userStore = useUserStore();
-const positionStore = usePositionStore();
 const securitysStore = useSecuritysStore();
 
 const tab = ref("datos");
@@ -50,7 +48,6 @@ onMounted(async () => {
   await appStore._getDocumentsPais();
   await appStore._getPais();
   await appStore._getSex();
-  await positionStore.cargarPosition();
   await securitysStore.CargarBranch();
   await appStore._getState(userStore.model.id_pais);
   await appStore._getCity(userStore.model.id_state);

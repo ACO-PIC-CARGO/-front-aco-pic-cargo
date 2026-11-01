@@ -41,6 +41,7 @@ const userDetail = (extra: Record<string, unknown> = {}) => ({
   ...extra,
 });
 
+const roleOptions = [{ id: 6, name: "VENTAS", description: "Equipo comercial" }];
 const answer = (data: unknown[]) => ({ data: { estadoflag: true, mensaje: "ok", tipomensaje: "TMSGINF", data } });
 
 const mountEditor = async (detail: Record<string, unknown>) => {
@@ -48,6 +49,7 @@ const mountEditor = async (detail: Record<string, unknown>) => {
     const path = config.url.slice(URL_MAIN.length);
     if (path.startsWith("ver_usuario")) return answer([detail]);
     if (path.startsWith("CargarBranch")) return answer([branch]);
+    if (path.startsWith("roles/options")) return answer(roleOptions);
     return answer([]);
   }) as never);
   const pinia = createPinia();
@@ -128,5 +130,23 @@ test("a branch added in Editar is sent with its branch id, and removing it befor
   const row = wrapper.findAll("tr").find((tableRow) => tableRow.text().includes("PIC LOGISTICA SAC"))!;
   await row.find("button").trigger("click");
   expect(store.sucursales).toEqual([]);
+  wrapper.unmount();
+});
+
+test("the role picker offers the roles the user may assign, and a role added from it is saved active", async () => {
+  const wrapper = await mountEditor(userDetail());
+  await wrapper.findAll(".v-tab").find((tab) => tab.text().includes("Módulos a Usar"))!.trigger("click");
+  await flushPromises();
+  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Posición")!;
+
+  expect(picker.props("items")).toEqual(roleOptions);
+  picker.vm.$emit("update:modelValue", { ...roleOptions[0] });
+  await flushPromises();
+  await clickButton(wrapper, "Agregar");
+
+  expect(useUserStore().positions).toContainEqual(expect.objectContaining({ id_position: 6, status: true }));
+  expect(wrapper.findAll("tr").some((tableRow) => tableRow.text().includes("VENTAS"))).toBe(true);
+  const paths = vi.mocked(http).mock.calls.map(([config]) => (config as { url: string }).url);
+  expect(paths.some((url) => url.includes("cargar_posicion"))).toBe(false);
   wrapper.unmount();
 });

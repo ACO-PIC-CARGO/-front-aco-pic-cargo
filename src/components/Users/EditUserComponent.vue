@@ -3,17 +3,18 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
-import { usePositionStore } from "@/stores/position";
+import { useRolesStore } from "@/stores/roles";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
-import type { PosicionListado, UsuarioPosicion, UsuarioSucursal } from "@/types/seguridad";
+import type { RoleOption } from "@/types/roles";
+import type { UsuarioPosicion, UsuarioSucursal } from "@/types/seguridad";
 import type { SucursalSesion } from "@/types/sesion";
 import { matchesPassword, passwordRules } from "./passwordRules";
 
 const route = useRoute();
 const appStore = useAppStore();
 const userStore = useUserStore();
-const positionStore = usePositionStore();
+const rolesStore = useRolesStore();
 const securitysStore = useSecuritysStore();
 
 const tab = ref("datos");
@@ -28,7 +29,7 @@ const headersSucursal = [
   { title: "Nombre", key: "trade_name" },
   { title: "Acción", key: "action" },
 ] as const;
-const itemPositon = ref<PosicionListado | "">("");
+const itemPositon = ref<RoleOption | "">("");
 const errPosition = ref("");
 const errUsers = ref("");
 const errEmail = ref("");
@@ -57,7 +58,7 @@ onMounted(async () => {
   await appStore._getDocumentsPais();
   await appStore._getPais();
   await appStore._getSex();
-  await positionStore.cargarPosition();
+  await rolesStore.fetchRoleOptions();
   await securitysStore.CargarBranch();
   await appStore._getState(userStore.model.id_pais);
   await appStore._getCity(userStore.model.id_state);
@@ -168,7 +169,7 @@ async function agregarPosicion() {
   errPosition.value = "";
 
   if ((await frmPosicion.value!.validate()).valid) {
-    const selected = itemPositon.value as PosicionListado;
+    const selected = itemPositon.value as RoleOption;
     if (userStore.positions.some((v) => v.id_position == selected.id)) {
       if (userStore.positions.some((v) => v.id_position == selected.id && !v.status)) {
         userStore.positions.filter((v) => v.id_position == selected.id)[0]!.status = true;
@@ -176,9 +177,7 @@ async function agregarPosicion() {
         errPosition.value = "La posición ya se encuentra asignada.";
       }
     } else {
-      selected.id_position = selected.id;
-      selected.status = selected.estado;
-      userStore.positions.push(selected);
+      userStore.positions.push({ ...selected, id_position: selected.id, status: true });
     }
   }
   mostrarposicionesflag.value = false;
@@ -492,7 +491,7 @@ async function guardarUsuario() {
             >
               <!-- @vue-expect-error the value starts as an empty string -->
               <v-autocomplete
-                :items="positionStore.lstPosition"
+                :items="rolesStore.options"
                 item-title="name"
                 item-value="id"
                 v-model="itemPositon"
@@ -501,7 +500,6 @@ async function guardarUsuario() {
                 placeholder="Posición"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errPosition"
-                :item-props="(item) => ({ disabled: !item.estado })"
               />
             </v-col>
             <v-col

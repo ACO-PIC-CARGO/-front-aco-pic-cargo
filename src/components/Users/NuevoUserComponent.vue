@@ -2,16 +2,16 @@
 import { onMounted, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
-import { usePositionStore } from "@/stores/position";
+import { useRolesStore } from "@/stores/roles";
 import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
-import type { PosicionListado } from "@/types/seguridad";
+import type { RoleOption } from "@/types/roles";
 import type { SucursalSesion } from "@/types/sesion";
 import { matchesPassword, passwordRules } from "./passwordRules";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
-const positionStore = usePositionStore();
+const rolesStore = useRolesStore();
 const securitysStore = useSecuritysStore();
 
 const verClave = ref(false);
@@ -24,7 +24,7 @@ const headersPosition = [
   { title: "Acción", key: "action" },
 ] as const;
 
-const itemPositon = ref<PosicionListado | "">("");
+const itemPositon = ref<RoleOption | "">("");
 const errPosition = ref("");
 const errUsers = ref("");
 const errEmail = ref("");
@@ -45,7 +45,7 @@ onMounted(async () => {
     appStore._getDocumentsPais(),
     appStore._getPais(),
     appStore._getSex(),
-    positionStore.cargarPosition(),
+    rolesStore.fetchRoleOptions(),
     securitysStore.CargarBranch(),
   ]);
   mostrarflag.value = true;
@@ -169,10 +169,10 @@ async function agregarSucursal() {
 async function agregarPosicion() {
   errPosition.value = "";
   if ((await frmPosicion.value!.validate()).valid) {
-    if (userStore.positions.some((v) => v.id == (itemPositon.value as PosicionListado).id)) {
+    if (userStore.positions.some((v) => v.id == (itemPositon.value as RoleOption).id)) {
       errPosition.value = "La posición ya se encuentra asignada.";
     } else {
-      userStore.positions.push(itemPositon.value as PosicionListado);
+      userStore.positions.push(itemPositon.value as RoleOption);
     }
   }
 }
@@ -522,7 +522,7 @@ const vNoSpaces = (el: HTMLElement) => {
             >
               <!-- @vue-expect-error the value starts as an empty string -->
               <v-autocomplete
-                :items="positionStore.lstPosition"
+                :items="rolesStore.options"
                 item-title="name"
                 item-value="id"
                 v-model="itemPositon"
@@ -531,7 +531,6 @@ const vNoSpaces = (el: HTMLElement) => {
                 placeholder="Módulo"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errPosition"
-                :item-props="(item) => ({ disabled: !item.estado })"
               />
             </v-col>
 
