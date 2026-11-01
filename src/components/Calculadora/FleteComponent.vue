@@ -9,6 +9,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import { usePricingStore } from "@/stores/pricing";
 import { readFreightSheet } from "@/utils/freightSheet";
 import type { ApiResponse } from "@/types/api";
@@ -28,6 +29,7 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 
 const calculadorasStore = useCalculadorasStore();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const undeclaredAppState = appStore as typeof appStore & {
   calculadora: { contendedorCalc: unknown[]; navieraCalc: unknown[] };
   moneda: { moneda: unknown[] };
@@ -1380,6 +1382,7 @@ watch(excel, () => {
         </v-btn> -->
         <!-- @vue-expect-error compares the air item list with 0 -->
         <v-btn
+          v-if="can('ServiciosCostosFijosLCL', 'NUEVO')"
           color="success"
           class="mx-1"
           size="small"

@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/app";
 import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import type { OpcionCalculadora, TransporteCalculadora } from "@/types/calculadora";
 
 const props = withDefaults(defineProps<{ type?: string; idModality?: number }>(), {
@@ -13,6 +14,7 @@ const props = withDefaults(defineProps<{ type?: string; idModality?: number }>()
 
 const calculadorasStore = useCalculadorasStore();
 const appStore = useAppStore();
+const { can } = usePermissions();
 
 const id_state = null;
 const dialogEditar = ref(false);
@@ -301,6 +303,7 @@ async function registrarDatos() {
                 class="d-flex justify-end"
               >
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'NUEVO')"
                   color="success"
                   size="small"
                   @click="abrirModalNuevo"
@@ -315,6 +318,7 @@ async function registrarDatos() {
                 >
                   <template #[`item.action`]="{ item }">
                     <v-btn
+                      v-if="can('ServiciosCostosFijosLCL', 'MODIFICAR')"
                       variant="text"
                       color="#E65100"
                       icon
@@ -323,6 +327,7 @@ async function registrarDatos() {
                       <v-icon>mdi-pencil</v-icon>
                     </v-btn>
                     <v-btn
+                      v-if="can('ServiciosCostosFijosLCL', 'ELIMINAR')"
                       variant="text"
                       color="#D50000"
                       icon
@@ -387,6 +392,7 @@ async function registrarDatos() {
                 </v-btn>
                 <!-- <v-btn color="success" small @click="abrirModalNuevo">Nuevo</v-btn> -->
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'NUEVO')"
                   color="success"
                   size="small"
                   @click="registrarDatos"

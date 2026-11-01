@@ -3,11 +3,13 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import { usePricingStore } from "@/stores/pricing";
 
 const route = useRoute();
 const pricingStore = usePricingStore();
 const calculadorasStore = useCalculadorasStore();
+const { can } = usePermissions();
 
 const getNameUrl = computed(() => route.name);
 
@@ -73,7 +75,7 @@ async function enviarCotizacion({
       color="#01579B"
       class="ma-1 btnCalc"
       @click="enviarCotizacionAPricing"
-      v-if="getNameUrl == 'VerCotizacionCalculadora'"
+      v-if="getNameUrl == 'VerCotizacionCalculadora' && can('listUserCalc', 'MODIFICAR')"
     >
       <v-icon class="mx-1">
         mdi-invoice-text-send-outline

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import type { OpcionCalculadora } from "@/types/calculadora";
 
 const calculadorasStore = useCalculadorasStore();
+const { can } = usePermissions();
 
 const headers = [
   { width: "25%", title: "Nombre", key: "nombre" },
@@ -166,7 +168,7 @@ async function actualizarOpcion(item: OpcionCalculadora) {
       </template>
       <template #[`item.action`]="{ item }">
         <v-btn
-          v-if="!item.editarflag"
+          v-if="!item.editarflag && can('calcOpciones', 'MODIFICAR')"
           color="warning"
           size="small"
           @click="item.editarflag = true"

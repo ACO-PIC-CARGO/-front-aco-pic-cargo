@@ -4,11 +4,13 @@ import Swal from "sweetalert2";
 
 import FormatFechaVue from "../comun/FormatFecha.vue";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import type { FleteGrupal, GroupTariffKind } from "@/types/calculadora";
 
 const props = defineProps<{ type?: string }>();
 
 const calculadorasStore = useCalculadorasStore();
+const { can } = usePermissions();
 
 const tab = ref("resumen");
 const searchCosto = ref("");
@@ -250,6 +252,7 @@ onMounted(async () => {
                 style="text-align: end"
               >
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'NUEVO')"
                   color="success"
                   @click="
                     abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'costo' })
@@ -272,6 +275,7 @@ onMounted(async () => {
               </template>
               <template #[`item.action`]="{ item }">
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'ELIMINAR')"
                   variant="text"
                   color="error"
                   icon
@@ -281,6 +285,7 @@ onMounted(async () => {
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'MODIFICAR')"
                   variant="text"
                   color="warning"
                   icon
@@ -321,6 +326,7 @@ onMounted(async () => {
                 style="text-align: end"
               >
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'NUEVO')"
                   color="success"
                   @click="
                     abrirModal({ tipo: 'nuevo', item: {}, tipoCosto: 'venta' })
@@ -343,6 +349,7 @@ onMounted(async () => {
               </template>
               <template #[`item.action`]="{ item }">
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'ELIMINAR')"
                   variant="text"
                   color="error"
                   icon
@@ -352,6 +359,7 @@ onMounted(async () => {
                   <v-icon>mdi-delete</v-icon>
                 </v-btn>
                 <v-btn
+                  v-if="can('ServiciosCostosFijosLCL', 'MODIFICAR')"
                   variant="text"
                   color="warning"
                   icon

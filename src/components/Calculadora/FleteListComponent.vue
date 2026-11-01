@@ -2,11 +2,13 @@
 import { ref, useTemplateRef } from "vue";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import type { FleteCalculadora } from "@/types/calculadora";
 
 const emit = defineEmits<{ "flete-actualizado": [] }>();
 
 const calculadorasStore = useCalculadorasStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const dialog = ref(false);
@@ -66,6 +68,7 @@ async function guardarFlete() {
     >
       <template #item.action="{ item }">
         <v-btn
+          v-if="can('ServiciosCostosFijosLCL', 'MODIFICAR')"
           variant="text"
           color="warning"
           @click="editFlete(item)"

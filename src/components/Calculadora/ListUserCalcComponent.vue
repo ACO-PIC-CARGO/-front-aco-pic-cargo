@@ -3,6 +3,7 @@ import { onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
@@ -21,6 +22,7 @@ interface LlamadaCalculadora {
 
 const calculadorasStore = useCalculadorasStore();
 const appStore = useAppStore();
+const { can } = usePermissions();
 const pricingStore = usePricingStore();
 const router = useRouter();
 
@@ -961,6 +963,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
         md="6"
       >
         <v-btn
+          v-if="can('listUserCalc', 'EXPORTAR')"
           color="green"
           @click="exportar()"
           :loading="loading"
@@ -1030,6 +1033,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           </template>
           <template #[`item.action`]="{ item }">
             <v-btn
+              v-if="can('listUserCalc', 'MODIFICAR')"
               color="#1A237E"
               class="ma-1 btnCalc"
               block
@@ -1075,7 +1079,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               color="#01579B"
               class="ma-1 btnCalc"
               @click="enviarCotizacionAPricing(item)"
-              v-if="item.estadocotizacion == 1"
+              v-if="item.estadocotizacion == 1 && can('listUserCalc', 'MODIFICAR')"
             >
               <v-icon class="mx-1">
                 mdi-invoice-text-send-outline

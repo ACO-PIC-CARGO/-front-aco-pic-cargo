@@ -2,9 +2,11 @@
 import { nextTick, onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
+import { usePermissions } from "@/composables/usePermissions";
 import type { ConfiguracionCalculadora } from "@/types/calculadora";
 
 const calculadorasStore = useCalculadorasStore();
+const { can } = usePermissions();
 
 const config = ref<Partial<ConfiguracionCalculadora>>({});
 const headers = [
@@ -70,7 +72,7 @@ function activarEditar(item: ConfiguracionCalculadora, index: number) {
       </template>
       <template #[`item.action`]="{ item, index }">
         <v-btn
-          v-if="!item.editarflag"
+          v-if="!item.editarflag && can('ServiciosCostosFijosLCL', 'MODIFICAR')"
           @click="activarEditar(item, index)"
           color="#FFD600"
           size="small"
