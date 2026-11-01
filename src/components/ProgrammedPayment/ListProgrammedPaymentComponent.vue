@@ -2,6 +2,7 @@
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
+import { usePermissions } from "@/composables/usePermissions";
 import axios from '@/api/http';
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -21,6 +22,7 @@ import { sessionBranchId } from "@/utils/sesion";
 const emit = defineEmits<{ cerrar: [value: boolean] }>();
 
 const appStore = useAppStore();
+const { can } = usePermissions();
 const route = useRoute();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
@@ -657,7 +659,7 @@ onMounted(async () => {
                       icon
                       color="primary"
                       @click="payment(child, item.id)"
-                      v-if="child.status == false"
+                      v-if="child.status == false && can('listProgrammedPayment', 'NUEVO')"
                     >
                       <v-icon>mdi-hand-coin</v-icon>
                     </v-btn>
@@ -668,7 +670,7 @@ onMounted(async () => {
                       @click="
                         eliminar(item, child.id_proveedor, child.id_details)
                       "
-                      v-if="child.status == false"
+                      v-if="child.status == false && can('listProgrammedPayment', 'ELIMINAR')"
                     >
                       <v-icon>mdi-delete</v-icon>
                     </v-btn>
@@ -816,6 +818,7 @@ onMounted(async () => {
                     variant="text"
                     icon
                     color="red"
+                    v-if="can('listProgrammedPayment', 'ELIMINAR')"
                     @click="eliminarDetalle(item)"
                   >
                     <v-icon>mdi-delete</v-icon>
