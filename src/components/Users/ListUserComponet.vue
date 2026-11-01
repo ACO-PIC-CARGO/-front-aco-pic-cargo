@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import { usePermissions } from "@/composables/usePermissions";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useSubscriptionsStore } from "@/stores/subscriptions";
@@ -11,6 +12,7 @@ const router = useRouter();
 const appStore = useAppStore();
 const userStore = useUserStore();
 const subscriptionsStore = useSubscriptionsStore();
+const { can } = usePermissions();
 
 const search = ref("");
 const loading = ref(false);
@@ -116,6 +118,7 @@ onMounted(async () => {
           class="text-right my-auto"
         >
           <v-btn
+            v-if="can('listUser', 'NUEVO')"
             size="small"
             color="success"
             :loading="loadingNuevo"
@@ -208,7 +211,10 @@ onMounted(async () => {
                 </template>
                 <span>Ver</span>
               </v-tooltip>
-              <v-tooltip location="bottom">
+              <v-tooltip
+                v-if="can('listUser', 'MODIFICAR')"
+                location="bottom"
+              >
                 <template #activator="{ props }">
                   <v-icon
                     color="warning"
@@ -223,7 +229,7 @@ onMounted(async () => {
               </v-tooltip>
               <v-tooltip
                 location="bottom"
-                v-if="item.status == 1"
+                v-if="item.status == 1 && can('listUser', 'ELIMINAR')"
               >
                 <template #activator="{ props }">
                   <v-icon
