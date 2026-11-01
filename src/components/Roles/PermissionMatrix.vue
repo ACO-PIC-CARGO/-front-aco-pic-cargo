@@ -100,7 +100,7 @@ function toggle(cells: GrantCell[], on: boolean | null) {
               <strong>{{ module.name }}</strong>
               <v-checkbox-btn
                 v-if="!readonly"
-                class="ml-4 flex-grow-0"
+                class="ml-4 flex-0-0"
                 density="compact"
                 label="Seleccionar todo"
                 :model-value="allGranted(moduleCells(module))"
