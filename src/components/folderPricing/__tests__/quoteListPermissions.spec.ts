@@ -10,6 +10,8 @@ import * as directives from "vuetify/directives";
 import ListPricing from "@/views/folderPricing/ListPricing.vue";
 import ListQuoteComponent from "@/components/folderPricing/ListQuoteComponent.vue";
 import ListCallComponent from "@/components/folderPricing/ListCallComponent.vue";
+import FiltroQuote from "@/components/filtros/FiltroQuote.vue";
+import GuardarUrlPricing from "@/components/comun/GuardarUrlPricing.vue";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("vue-router", () => ({ useRouter: () => ({ push: vi.fn() }), useRoute: () => ({ params: {}, name: "lstQuote" }) }));
@@ -44,12 +46,12 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-const shownWith = async (screen: Component, actions: string[]) => {
+const shownWith = async (screen: Component, actions: string[], props: Record<string, unknown> = {}) => {
   wrapper?.unmount();
   sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: "lstQuote", actions }], controlled: ["lstQuote"] }));
   const pinia = createPinia();
   setActivePinia(pinia);
-  wrapper = mount(defineComponent({ render: () => h(components.VApp, () => h(screen)) }), {
+  wrapper = mount(defineComponent({ render: () => h(components.VApp, () => h(screen, props)) }), {
     global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
@@ -58,6 +60,7 @@ const shownWith = async (screen: Component, actions: string[]) => {
 const button = (text: string) => () =>
   [...document.body.querySelectorAll("button")].some((candidate) => candidate.textContent?.trim().toUpperCase() === text);
 const labelled = (label: string) => () => document.body.querySelector(`button[aria-label="${label}"]`) !== null;
+const FOLDER_DIALOG = { dialogUrl: true, masterEditar: { id: 6, url_folderonedrive: "https://onedrive.test/Q-6" } };
 
 describe.each([
   ["Nueva cotización", ListPricing, button("NUEVA COTIZACIÓN"), "NUEVO"],
@@ -65,15 +68,17 @@ describe.each([
   ["Registrar llamada", ListQuoteComponent, labelled("Registrar llamada"), "MODIFICAR"],
   ["Eliminar", ListQuoteComponent, labelled("Eliminar cotización"), "ELIMINAR"],
   ["Reporte de llamadas", ListCallComponent, button("REPORTE"), "EXPORTAR"],
-] as const)("%s on the quotes list", (_name, screen, shown, action) => {
+  ["Reporte de cotizaciones", FiltroQuote, button("REPORTE"), "EXPORTAR"],
+  ["Guardar la URL de la carpeta", GuardarUrlPricing, button("GUARDAR"), "MODIFICAR", FOLDER_DIALOG],
+] as const)("%s on the quotes list", (_name, screen, shown, action, props = {}) => {
   test(`is hidden without ${action}`, async () => {
-    await shownWith(screen, ["VER", "NUEVO", "MODIFICAR", "ELIMINAR", "COPIAR", "EXPORTAR"].filter((granted) => granted !== action));
+    await shownWith(screen, ["VER", "NUEVO", "MODIFICAR", "ELIMINAR", "COPIAR", "EXPORTAR"].filter((granted) => granted !== action), props);
 
     expect(shown()).toBe(false);
   });
 
   test(`shows with ${action}`, async () => {
-    await shownWith(screen, ["VER", action]);
+    await shownWith(screen, ["VER", action], props);
 
     expect(shown()).toBe(true);
   });

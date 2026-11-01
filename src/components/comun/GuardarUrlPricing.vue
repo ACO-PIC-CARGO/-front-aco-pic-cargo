@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 
 const props = withDefaults(
@@ -10,6 +11,7 @@ const props = withDefaults(
 const emit = defineEmits<{ cerrar: [] }>();
 
 const pricingStore = usePricingStore();
+const canEditUrl = usePermissions().can("lstQuote", "MODIFICAR");
 
 const url_folderonedrive = ref("");
 const err = ref("");
@@ -74,6 +76,7 @@ watch(url_folderonedrive, () => {
             </v-btn>
             <v-divider class="my-3" />
             <v-text-field
+              v-if="canEditUrl"
               label="Nueva URL"
               id="id"
               v-model="url_folderonedrive"
@@ -83,6 +86,7 @@ watch(url_folderonedrive, () => {
             <v-card-actions>
               <v-spacer />
               <v-btn
+                v-if="canEditUrl"
                 color="success"
                 @click="actualizarUrl"
               >

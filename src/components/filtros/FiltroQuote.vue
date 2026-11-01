@@ -6,9 +6,11 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
+import { usePermissions } from "@/composables/usePermissions";
 
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
+const canPrint = usePermissions().can("lstQuote", "EXPORTAR");
 const masterusuariosStore = useMasterusuariosStore();
 
 const errorFiltroFecha = ref("");
@@ -689,6 +691,7 @@ onMounted(async () => {
     <v-card-actions>
       <v-spacer />
       <v-btn
+        v-if="canPrint"
         class="mx-1"
         color="red"
         :loading="loadingReporte"
