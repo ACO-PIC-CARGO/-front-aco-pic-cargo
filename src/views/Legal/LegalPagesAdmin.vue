@@ -7,6 +7,7 @@ import { useAppStore } from "@/stores/app";
 import "@/styles/plans-theme.css";
 import LegalSectionEditor from "./LegalSectionEditor.vue";
 import { useLegalPagesStore } from "@/stores/legalPages";
+import { usePermissions } from "@/composables/usePermissions";
 import type { LegalDraftErrors, LegalSectionDraft } from "@/types/legal";
 
 interface PageView {
@@ -42,6 +43,7 @@ const focusById = (id: string) => {
 
 const appStore = useAppStore();
 const legalPagesStore = useLegalPagesStore();
+const { can } = usePermissions();
 const { pages, drafts, limits, dirtySlugs } = storeToRefs(legalPagesStore);
 const { formatUpdatedAt, draftErrors, hasDraftErrors, placeholders } = legalPagesStore;
 
@@ -378,6 +380,7 @@ function warnBeforeUnload(event: BeforeUnloadEvent) {
                 Descartar cambios
               </v-btn>
               <v-btn
+                v-if="can('legalPagesAdmin', 'MODIFICAR')"
                 variant="text"
                 type="submit"
                 class="plans-button plans-button--primary"
