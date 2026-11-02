@@ -41,6 +41,7 @@ export interface EncabezadoTabla {
   key: string;
   align?: "start" | "center" | "end";
   sortable?: boolean;
+  nowrap?: boolean;
 }
 
 export interface AbonoCliente {
