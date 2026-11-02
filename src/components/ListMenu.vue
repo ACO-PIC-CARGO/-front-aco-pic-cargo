@@ -30,7 +30,6 @@ const mostrarFlag = ref(true);
 const branch: SucursalSesion = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0];
 const sucursal: string = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0].trade_name;
 const initiallyOpen = ref<unknown[]>([]);
-const tree = ref<unknown[]>([]);
 const person: UsuarioSesion = JSON.parse(sessionStorage.getItem("dataUser") as string)[0];
 
 onMounted(() => {
@@ -128,14 +127,9 @@ function getRouteForItem(item: ItemMenu): { name?: string } {
   }
   return { name: item.route };
 }
-function handleClickTree(selected: unknown) {
-  const item = (selected as ItemMenu[])[0];
-  if (item && item.route) {
-    const route = getRouteForItem(item);
-    if (route && route.name) {
-      router.push(route).catch(() => {});
-    }
-  }
+function menuItemProps(item: ItemMenu) {
+  const route = getRouteForItem(item);
+  return route.name ? { to: route } : {};
 }
 
 watch(actualizarCostosFlag, () => {
@@ -228,15 +222,13 @@ watch(actualizarCostosFlag, () => {
     <v-divider />
 
     <v-treeview
-      v-model="tree"
       v-model:opened="initiallyOpen"
       :items="lstMenu"
-      activatable
+      :item-props="menuItemProps"
       item-title="name"
       item-value="id"
       open-on-click
       return-object
-      @update:activated="handleClickTree"
     >
       <!-- ÍCONOS DEL MENÚ -->
       <template #prepend="{ item, isOpen }">
@@ -250,11 +242,9 @@ watch(actualizarCostosFlag, () => {
 
       <!-- ENLACE NAVEGABLE DEL MENÚ -->
       <template #title="{ item }">
-        <router-link
+        <span
           v-if="item.route"
-          :to="getRouteForItem(item)"
           class="treeview-label full-width-link"
-          style="text-decoration: none; color: inherit"
         >
           {{ item.name }}
           <v-icon
@@ -264,7 +254,7 @@ watch(actualizarCostosFlag, () => {
           >
             mdi-lock-outline
           </v-icon>
-        </router-link>
+        </span>
         <span
           v-else
           class="treeview-label"
