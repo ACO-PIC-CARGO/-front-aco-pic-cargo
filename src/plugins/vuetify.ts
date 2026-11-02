@@ -26,6 +26,7 @@ export default createVuetify({
     VStepper: primaryColor,
     VTabs: { ...primaryColor, VTab: { baseColor: "rgba(0, 0, 0, 0.54)" } },
     VChip: { variant: "flat" },
+    VBtnToggle: { border: true, divided: true },
     VCardActions: { VBtn: { variant: "elevated" } },
   },
   theme: {
