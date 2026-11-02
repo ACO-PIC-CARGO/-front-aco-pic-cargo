@@ -632,9 +632,15 @@ function getProveedor(element: OpcionCosto) {
             v-if="mostrarAdvertencia"
             border="start"
             border-color="error"
-            type="error"
+            color="surface"
             elevation="2"
           >
+            <template #prepend>
+              <v-icon
+                color="error"
+                icon="$error"
+              />
+            </template>
             El Master seleccionado no coincide con
             {{ textValidacionCotizacionMaster.join(", ") }} asociados a la
             cotización.

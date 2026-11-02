@@ -955,9 +955,15 @@ function getProveedor(element: OpcionCosto) {
             v-if="mostrarAdvertencia"
             border="start"
             border-color="error"
-            type="error"
+            color="surface"
             elevation="2"
           >
+            <template #prepend>
+              <v-icon
+                color="error"
+                icon="$error"
+              />
+            </template>
             El Master seleccionado no coincide con
             {{ textValidacionCotizacionMaster.join(", ") }} asociados a la
             cotización.
@@ -1606,10 +1612,16 @@ function getProveedor(element: OpcionCosto) {
           v-if="mostrarMensajeClienteVariosExp"
           border="start"
           border-color="warning"
-          type="warning"
+          color="surface"
           elevation="2"
           class="mx-5"
         >
+          <template #prepend>
+            <v-icon
+              color="warning"
+              icon="$warning"
+            />
+          </template>
           No puede reemplazar los costos, porqué es un expediente grupal.
         </v-alert>
         
@@ -1617,10 +1629,16 @@ function getProveedor(element: OpcionCosto) {
           v-if="textValidacionPago"
           border="start"
           border-color="error"
-          type="error"
+          color="surface"
           elevation="2"
           class="mx-5"
         >
+          <template #prepend>
+            <v-icon
+              color="error"
+              icon="$error"
+            />
+          </template>
           {{ textValidacionPago }}
         </v-alert>
         
