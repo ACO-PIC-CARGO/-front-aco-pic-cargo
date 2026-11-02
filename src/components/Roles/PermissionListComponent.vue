@@ -83,6 +83,7 @@ onMounted(async () => {
           :key="role.id"
           class="ma-1"
           size="small"
+          variant="tonal"
         >
           {{ role.name }}
         </v-chip>

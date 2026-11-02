@@ -1125,6 +1125,7 @@ onMounted(async () => {
                             v-for="(item, index) in operacionesSimilares"
                             :key="index"
                             size="small"
+                            variant="tonal"
                             class="mr-1 mb-1"
                           >
                             {{ item.numerooperacion }}
