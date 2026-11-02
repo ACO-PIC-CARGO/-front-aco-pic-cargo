@@ -430,7 +430,8 @@ onMounted(() => {
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"
-                    v-model="entitiesStore.proveedor.id_ciudad"
+                    :model-value="entitiesStore.proveedor.id_ciudad || null"
+                    @update:model-value="(id) => (entitiesStore.proveedor.id_ciudad = id)"
                   />
                 </v-col>
               </v-row>

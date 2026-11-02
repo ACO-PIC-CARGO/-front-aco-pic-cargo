@@ -722,7 +722,8 @@ function isPricingOption() {
                     item-title="name"
                     item-value="id"
                     label="Región / Estado"
-                    v-model="entitiesStore.cliente.id_ciudad"
+                    :model-value="entitiesStore.cliente.id_ciudad || null"
+                    @update:model-value="(id) => (entitiesStore.cliente.id_ciudad = id)"
                   />
                 </v-col>
               </v-row>
