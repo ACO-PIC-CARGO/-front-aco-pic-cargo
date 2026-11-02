@@ -24,6 +24,8 @@ export default createVuetify({
     VRadioGroup: primaryColor,
     VSwitch: primaryColor,
     VStepper: primaryColor,
+    // VStepper does not hand its color to its items; an empty edit icon keeps the number on the current step, as Vuetify 2 did.
+    VStepperItem: { ...primaryColor, editIcon: "" },
     VTabs: { ...primaryColor, VTab: { baseColor: "rgba(0, 0, 0, 0.54)" } },
     VChip: { variant: "flat" },
     VBtnToggle: { border: true, divided: true },
