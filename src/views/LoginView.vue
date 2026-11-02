@@ -52,11 +52,12 @@ async function iraHome() {
   await securitysStore._getMenuItem();
   appStore.lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
   // await this.ListProgrammedPayment();
-  setTimeout(() => {
+  try {
+    await securitysStore.ObtenerDatosConfig();
+  } finally {
     router.push({ name: "Main" });
     loading.value = false;
-  }, 1000 * 2);
-  securitysStore.ObtenerDatosConfig();
+  }
 }
 function registroEmpresa() {
   router.push({
