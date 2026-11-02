@@ -327,7 +327,7 @@ onMounted(async () => {
       elevation="0"
       class="mx-auto"
     >
-      <v-card-subtitle>
+      <v-card-text>
         <v-text-field
           v-model="search"
           append-inner-icon="mdi-magnify"
@@ -335,7 +335,7 @@ onMounted(async () => {
           single-line
           hide-details
         />
-      </v-card-subtitle>
+      </v-card-text>
 
       <v-data-table
         :headers="headersdebs"

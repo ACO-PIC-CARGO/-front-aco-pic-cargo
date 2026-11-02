@@ -346,7 +346,7 @@ onMounted(async () => {
       <v-card-title>
         <h3>Solicitudes de Pago</h3>
       </v-card-title>
-      <v-card-subtitle>
+      <v-card-text>
         <v-row>
           <v-col cols="6">
             <v-text-field
@@ -369,7 +369,7 @@ onMounted(async () => {
             </v-btn>
           </v-col>
         </v-row>
-      </v-card-subtitle>
+      </v-card-text>
       <v-container
         v-if="!dataList"
         style="height: 400px"
