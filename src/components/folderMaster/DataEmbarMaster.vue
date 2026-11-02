@@ -184,7 +184,8 @@ onMounted(async () => {
             item-title="name"
             item-value="id"
             label="Motonave"
-            v-model="mastersStore.master_id_motonave"
+            :model-value="mastersStore.master_id_motonave || null"
+            @update:model-value="(id) => (mastersStore.master_id_motonave = id)"
           />
         </template>
         <template v-else-if="isAereo()">
@@ -313,7 +314,8 @@ onMounted(async () => {
           item-title="name"
           item-value="id"
           label="Condición"
-          v-model="mastersStore.master_id_condicion"
+          :model-value="mastersStore.master_id_condicion || null"
+          @update:model-value="(id) => (mastersStore.master_id_condicion = id)"
         />
       </v-col>
       <v-col

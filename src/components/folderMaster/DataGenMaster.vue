@@ -611,7 +611,8 @@ onMounted(async () => {
           item-title="namelong"
           item-value="id"
           label="Operador"
-          v-model="mastersStore.master_id_operador"
+          :model-value="mastersStore.master_id_operador || null"
+          @update:model-value="(id) => (mastersStore.master_id_operador = id)"
         />
       </v-col>
       <v-col
@@ -624,7 +625,8 @@ onMounted(async () => {
           item-title="namelong"
           item-value="id"
           label="Agente"
-          v-model="appStore.master_id_agente"
+          :model-value="appStore.master_id_agente || null"
+          @update:model-value="(id) => (appStore.master_id_agente = id)"
         />
       </v-col>
       <v-col
@@ -637,7 +639,8 @@ onMounted(async () => {
           item-title="namelong"
           item-value="id"
           label="Coloader"
-          v-model="mastersStore.master_id_coloader"
+          :model-value="mastersStore.master_id_coloader || null"
+          @update:model-value="(id) => (mastersStore.master_id_coloader = id)"
         />
       </v-col>
       <v-col
@@ -650,7 +653,8 @@ onMounted(async () => {
           item-title="namelong"
           item-value="id"
           label="Naviera"
-          v-model="mastersStore.master_id_naviera"
+          :model-value="mastersStore.master_id_naviera || null"
+          @update:model-value="(id) => (mastersStore.master_id_naviera = id)"
         />
       </v-col>
       <!--
