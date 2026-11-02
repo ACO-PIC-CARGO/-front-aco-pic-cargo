@@ -1,3 +1,54 @@
+/* Vuetify 4 dropped its global reset and padding-based gutters; the templates still space themselves on both. */
+@layer vuetify-core.reset {
+  * { padding: 0; margin: 0; }
+  a:active, a:hover { outline-width: 0; }
+  code, kbd, pre, samp { font-family: monospace; }
+  pre { font-size: 1em; }
+  small { font-size: 80%; }
+  sub, sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+  }
+  sub { bottom: -0.25em; }
+  sup { top: -0.5em; }
+  textarea { resize: vertical; }
+  button,
+  input,
+  select,
+  textarea {
+    background-color: transparent;
+    border-style: none;
+  }
+  select {
+    -moz-appearance: none;
+    -webkit-appearance: none;
+  }
+  legend {
+    display: table;
+    max-width: 100%;
+    white-space: normal;
+  }
+}
+
+@layer vuetify-overrides {
+  .v-row {
+    gap: unset;
+    margin: calc(var(--v-col-gap-y) * -.5) calc(var(--v-col-gap-x) * -.5);
+  }
+  .v-row + .v-row {
+    margin-top: calc(var(--v-col-gap-y) * .5);
+  }
+  .v-col {
+    padding: calc(var(--v-col-gap-y) * .5) calc(var(--v-col-gap-x) * .5);
+    flex-basis: var(--v-col-is-size, calc(100% * var(--v-col-size) / var(--v-col-size-columns))) var(--v-col-is-auto, auto) var(--v-col-is-grow, 0);
+  }
+  .v-col:where([class*='v-col--offset-']) {
+    margin-inline-start: calc(100% * var(--v-col-offset) / var(--v-col-size-columns));
+  }
+}
+
 @layer vuetify-overrides {
   .row {
     display: flex;
