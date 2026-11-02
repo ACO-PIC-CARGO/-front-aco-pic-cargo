@@ -72,7 +72,7 @@ const headers = ref<EncabezadoTabla[]>([
     align: "center",
     sortable: false,
   },
-  { title: "Acciones", key: "url", align: "start", sortable: false },
+  { title: "Acciones", key: "url", align: "start", sortable: false, nowrap: true },
 ]);
 
 onMounted(async () => {
@@ -168,6 +168,8 @@ async function anular(data: FacturaListado) {
           color="red"
           @click="verFactura(item.url)"
           icon
+
+          density="comfortable"
         >
           <v-icon>mdi-file-pdf-box</v-icon>
         </v-btn>
@@ -176,6 +178,8 @@ async function anular(data: FacturaListado) {
           color="red"
           @click="anular(item)"
           icon
+
+          density="comfortable"
           aria-label="Anular factura"
           title="Anular factura"
           v-if="item.estatus == 1 && can('lstFacturacion', 'ELIMINAR')"

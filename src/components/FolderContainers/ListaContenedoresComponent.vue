@@ -23,7 +23,7 @@ const headers = [
   { title: "Creación", key: "created_at" },
 
   { title: "Última Actualización", key: "updated_at" },
-  { title: "Acciones", key: "action" },
+  { title: "Acciones", key: "action", nowrap: true },
 ] as const;
 const loading = ref(true);
 const loading_as = ref(true);
@@ -288,6 +288,8 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
         <v-btn
           variant="text"
           icon
+
+          density="comfortable"
           @click="open_read(item.id)"
         >
           <v-icon
@@ -300,6 +302,8 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
           v-if="can('listContainers', 'MODIFICAR')"
           variant="text"
           icon
+
+          density="comfortable"
           @click="open_update(item.id)"
         >
           <v-icon
@@ -312,6 +316,8 @@ function validateFieldTextInForm(v: string | null, length: number, isOptional: b
         <v-btn
           variant="text"
           icon
+
+          density="comfortable"
           color="red"
           @click="switch_status(item)"
           v-if="item.status && can('listContainers', 'ELIMINAR')"
