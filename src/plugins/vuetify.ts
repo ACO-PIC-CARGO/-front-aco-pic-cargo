@@ -24,7 +24,8 @@ export default createVuetify({
     VRadioGroup: primaryColor,
     VSwitch: primaryColor,
     VStepper: primaryColor,
-    VTabs: primaryColor,
+    VTabs: { ...primaryColor, VTab: { baseColor: "rgba(0, 0, 0, 0.54)" } },
+    VChip: { variant: "flat" },
     VCardActions: { VBtn: { variant: "elevated" } },
   },
   theme: {
@@ -39,6 +40,13 @@ export default createVuetify({
           success: "#26A69A",
           warning: "#FFD54F",
           error: "#E57373",
+          "on-primary": "#FFFFFF",
+          "on-secondary": "#FFFFFF",
+          "on-accent": "#FFFFFF",
+          "on-info": "#FFFFFF",
+          "on-success": "#FFFFFF",
+          "on-warning": "#FFFFFF",
+          "on-error": "#FFFFFF",
         },
       },
       aco: {
