@@ -170,7 +170,7 @@ async function imprimir(): Promise<void> {
         variant="outlined"
         density="compact"
         hide-details
-        prepend-inner-icon="far fa-calendar-alt"
+        prepend-inner-icon="class:far fa-calendar-alt"
         class="select-anio"
         @update:model-value="cambiarAnio"
       />
