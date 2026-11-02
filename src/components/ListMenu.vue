@@ -121,13 +121,13 @@ function isLockedItem(item: ItemMenu) {
     subscriptionsStore.lockedModuleForRoute(appStore.lstMenu, item.route),
   );
 }
-function getRouteForItem(item: ItemMenu): { name?: string } {
+function getRouteForItem(item: Pick<ItemMenu, "route">): { name?: string } {
   if (!item || !item.route || !router.hasRoute(item.route)) {
     return {};
   }
   return { name: item.route };
 }
-function menuItemProps(item: ItemMenu) {
+function menuItemProps(item: Pick<ItemMenu, "route">) {
   const route = getRouteForItem(item);
   return route.name ? { to: route } : {};
 }
