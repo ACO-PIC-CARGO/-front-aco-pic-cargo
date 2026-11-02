@@ -1,5 +1,6 @@
 import moment from "moment-timezone";
-import { SHORT_MONTHS, inTimeZone, shortDate } from "@/utils/dates";
+import { SHORT_MONTHS, shortDate } from "@/utils/dates";
+import { inTimeZone } from "@/utils/timeZone";
 import type { HouseTrackingComment, HouseTrackingPhase, HouseTrackingStep, SendState, StepDialogMode } from "@/types/houseTracking";
 
 export const dayMonth = (iso: string, timeZone: string) => {

@@ -1,5 +1,6 @@
 import { expect, test, vi } from "vitest";
-import { currentMonthToDate, inTimeZone, shortDate } from "@/utils/dates";
+import { currentMonthToDate, shortDate } from "@/utils/dates";
+import { inTimeZone } from "@/utils/timeZone";
 
 test("currentMonthToDate runs from the first day of this month to today", () => {
   vi.useFakeTimers({ toFake: ["Date"] });

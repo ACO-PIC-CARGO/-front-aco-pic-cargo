@@ -1,4 +1,5 @@
-import { inTimeZone, shortDate } from "@/utils/dates";
+import { shortDate } from "@/utils/dates";
+import { inTimeZone } from "@/utils/timeZone";
 import type { PublicTrackingPhase } from "@/types/publicTracking";
 
 export interface TrackingUpdate {
