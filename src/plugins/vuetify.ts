@@ -5,9 +5,28 @@ import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import { en, es } from "vuetify/locale";
 
+const primaryColor = { color: "primary" };
+const fieldDefaults = { variant: "underlined", ...primaryColor };
+
 export default createVuetify({
   icons: { defaultSet: "mdi", aliases, sets: { mdi } },
   locale: { locale: "en", fallback: "en", messages: { en, es } },
+  defaults: {
+    VTextField: fieldDefaults,
+    VTextarea: fieldDefaults,
+    VSelect: fieldDefaults,
+    VAutocomplete: fieldDefaults,
+    VCombobox: fieldDefaults,
+    VFileInput: fieldDefaults,
+    VCheckbox: primaryColor,
+    VCheckboxBtn: primaryColor,
+    VRadio: primaryColor,
+    VRadioGroup: primaryColor,
+    VSwitch: primaryColor,
+    VStepper: primaryColor,
+    VTabs: primaryColor,
+    VCardActions: { VBtn: { variant: "elevated" } },
+  },
   theme: {
     defaultTheme: "light",
     themes: {
