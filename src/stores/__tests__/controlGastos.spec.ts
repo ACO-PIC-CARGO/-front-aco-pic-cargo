@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
-import router from "@/router";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { useSecuritysStore } from "@/stores/securitys";
 import { URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";

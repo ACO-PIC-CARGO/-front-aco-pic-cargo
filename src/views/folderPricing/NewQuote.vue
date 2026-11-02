@@ -1212,8 +1212,14 @@ function formatearCostoTotal(valor: Costo) {
 </script>
 
 <template>
-  <v-container fluid class="pt-0 px-0">
-    <v-stepper v-model="step" class="pt-0">
+  <v-container
+    fluid
+    class="pt-0 px-0"
+  >
+    <v-stepper
+      v-model="step"
+      class="pt-0"
+    >
       <v-stepper-header>
         <v-stepper-item
           :complete="step > 1"
@@ -1239,16 +1245,29 @@ function formatearCostoTotal(valor: Costo) {
           :editable="editableStep3"
         />
         <v-divider />
-        <v-stepper-item :value="4" title="Notas de Costos" />
+        <v-stepper-item
+          :value="4"
+          title="Notas de Costos"
+        />
       </v-stepper-header>
 
       <v-stepper-window>
-        <v-stepper-window-item :value="1" eager>
+        <v-stepper-window-item
+          :value="1"
+          eager
+        >
           <v-row class="my-1">
             <!-- <v-col cols="12" md="6" class="pt-0"> -->
-            <v-col cols="12" md="6" class="pt-0">
+            <v-col
+              cols="12"
+              md="6"
+              class="pt-0"
+            >
               <v-row>
-                <v-col cols="12" class="my-0 py-0">
+                <v-col
+                  cols="12"
+                  class="my-0 py-0"
+                >
                   <DatosPrincipales
                     @recargar-servicios-costos="recargar"
                     @activar-datos-carga="activarDatosCarga"
@@ -1257,7 +1276,12 @@ function formatearCostoTotal(valor: Costo) {
                 </v-col>
               </v-row>
             </v-col>
-            <v-col cols="12" md="6" class="my-0 py-0" id="DatosCargaComponent">
+            <v-col
+              cols="12"
+              md="6"
+              class="my-0 py-0"
+              id="DatosCargaComponent"
+            >
               <DatosCargaComponent
                 v-if="DatosCargaComponentFlag"
                 @activar-servicios="activarServicios()"
@@ -1265,7 +1289,10 @@ function formatearCostoTotal(valor: Costo) {
                 :services-component-flag="ServicesComponentFlag"
               />
             </v-col>
-            <v-col cols="12" id="ServicesComponent">
+            <v-col
+              cols="12"
+              id="ServicesComponent"
+            >
               <ServicesComponent
                 v-if="ServicesComponentFlag"
                 @activar-llenado-costos="activarLlenadoCostos()"
@@ -1279,7 +1306,10 @@ function formatearCostoTotal(valor: Costo) {
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item :value="2" eager>
+        <v-stepper-window-item
+          :value="2"
+          eager
+        >
           <DatosCostosComponent
             :key="indexCostos"
             @anadir-nueva-opcion="anadirNuevaOpcion"
@@ -1289,26 +1319,47 @@ function formatearCostoTotal(valor: Costo) {
           />
         </v-stepper-window-item>
 
-        <v-stepper-window-item :value="3" eager>
+        <v-stepper-window-item
+          :value="3"
+          eager
+        >
           <ComparativaComponent @ir-venta-cliente="irVentaCliente" />
         </v-stepper-window-item>
-        <v-stepper-window-item :value="4" eager>
+        <v-stepper-window-item
+          :value="4"
+          eager
+        >
           <NotasComponent :editable="editableStep4" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
-    <v-dialog v-model="dialogPesoVolumen" max-width="30%" persistent>
-      <v-card class="alert-card text-center" elevation="0">
+    <v-dialog
+      v-model="dialogPesoVolumen"
+      max-width="30%"
+      persistent
+    >
+      <v-card
+        class="alert-card text-center"
+        elevation="0"
+      >
         <div class="alert-illustration">
-          <v-img src="/img/jpg/transporte.jpg" max-width="250" height="225" />
+          <v-img
+            src="/img/jpg/transporte.jpg"
+            max-width="250"
+            height="225"
+          />
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title">NO EXISTE TARIFA DE</div>
+          <div class="alert-title">
+            NO EXISTE TARIFA DE
+          </div>
 
-          <div class="alert-banner">TRANSPORTE</div>
+          <div class="alert-banner">
+            TRANSPORTE
+          </div>
         </div>
 
         <div class="alert-description">
@@ -1333,16 +1384,31 @@ function formatearCostoTotal(valor: Costo) {
     </v-dialog>
 
     <!-- DIÁLOGO: DISTRITO SIN TARIFA -->
-    <v-dialog v-model="dialogDistrito" max-width="30%" persistent>
-      <v-card class="alert-card text-center" elevation="0">
+    <v-dialog
+      v-model="dialogDistrito"
+      max-width="30%"
+      persistent
+    >
+      <v-card
+        class="alert-card text-center"
+        elevation="0"
+      >
         <div class="alert-illustration">
-          <v-img src="/img/jpg/map.jpg" max-width="250" height="225" />
+          <v-img
+            src="/img/jpg/map.jpg"
+            max-width="250"
+            height="225"
+          />
         </div>
 
         <div class="alert-heading">
-          <div class="alert-title alert-title-single">DISTRITO</div>
+          <div class="alert-title alert-title-single">
+            DISTRITO
+          </div>
 
-          <div class="alert-banner">SIN TARIFA</div>
+          <div class="alert-banner">
+            SIN TARIFA
+          </div>
         </div>
 
         <div class="alert-description">

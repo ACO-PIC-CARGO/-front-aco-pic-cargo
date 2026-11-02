@@ -45,6 +45,12 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount());
 
+const mountInApp = (component: unknown, pinia: ReturnType<typeof createPinia>, config = {}) =>
+  mount(defineComponent({ components: { component }, template: "<v-app><component /></v-app>" }), {
+    global: { plugins: [createVuetify({ components, directives }), pinia], config },
+    attachTo: document.body,
+  });
+
 describe.each(FORMS)("$form", ({ component, kind, parentKey, useStore, useParents }) => {
   const answerCodeCheck = (answer: unknown, delayMs = 0) =>
     httpMock.mockImplementation(async (config) => {
@@ -63,10 +69,7 @@ describe.each(FORMS)("$form", ({ component, kind, parentKey, useStore, useParent
     store.tipo = "nuevo";
     store.drawer = true;
     store.model = { [parentKey]: 1, code, description: "Subtipo nuevo", status: true, calculoflag: true, mostrarflag: true };
-    wrapper = mount(defineComponent({ components: { component }, template: "<v-app><component /></v-app>" }), {
-      global: { plugins: [createVuetify({ components, directives }), pinia] },
-      attachTo: document.body,
-    });
+    wrapper = mountInApp(component, pinia);
     await flushPromises();
     return store;
   };
@@ -96,10 +99,7 @@ describe.each(FORMS)("$form", ({ component, kind, parentKey, useStore, useParent
     const pinia = createPinia();
     setActivePinia(pinia);
     const errorHandler = vi.fn();
-    wrapper = mount(defineComponent({ components: { component }, template: "<v-app><component /></v-app>" }), {
-      global: { plugins: [createVuetify({ components, directives }), pinia], config: { errorHandler } },
-      attachTo: document.body,
-    });
+    wrapper = mountInApp(component, pinia, { errorHandler });
     await flushPromises();
 
     useStore().drawer = true;

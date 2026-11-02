@@ -293,7 +293,7 @@ onMounted(async () => {
       color="warning"
       :timeout="-1"
     >
-       Está cotización no había Tarifa de Flete predefinida.
+      Está cotización no había Tarifa de Flete predefinida.
       <template #actions>
         <v-btn
           variant="text"
