@@ -47,6 +47,17 @@
   .v-col:where([class*='v-col--offset-']) {
     margin-inline-start: calc(100% * var(--v-col-offset) / var(--v-col-size-columns));
   }
+  /* Vuetify 2 card titles were a wrapping flex row that never clipped; Vuetify 4 cuts the fields, buttons and rows placed in them. */
+  .v-card-title:has(> :is(.v-row, .v-spacer, .v-input, .v-btn)) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    overflow: visible;
+    white-space: normal;
+  }
+  .v-card-title:has(> .v-row) {
+    padding: 16px;
+  }
 }
 
 @layer vuetify-overrides {
