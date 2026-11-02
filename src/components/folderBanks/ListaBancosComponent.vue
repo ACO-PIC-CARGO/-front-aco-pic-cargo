@@ -278,9 +278,11 @@ watch(() => bankStore.loading, (newList) => {
 
 originalRecords.value = { ...records.value };
 onMounted(async () => {
-  await bankStore.fetchDataBank(records.value);
   appStore.mainTitle = `Banco`;
-  await (appStore._getCoinsList as (records: unknown) => Promise<void>)(records.value);
+  await Promise.all([
+    bankStore.fetchDataBank(records.value),
+    (appStore._getCoinsList as (records: unknown) => Promise<void>)(records.value),
+  ]);
 });
 </script>
 

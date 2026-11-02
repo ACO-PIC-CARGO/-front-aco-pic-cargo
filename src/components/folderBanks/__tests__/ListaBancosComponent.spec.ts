@@ -183,3 +183,13 @@ test("cancelling a bank's inactivation keeps it active and saves nothing", { tim
   expect(document.body.querySelector(".mdi-delete")).not.toBeNull();
   expect((useBankStore().list as { status: unknown }[])[0]?.status).toBe(1);
 });
+
+test("asks for the currencies without waiting for the bank list", { timeout: 15_000 }, async () => {
+  httpMock.mockImplementation((config) =>
+    /listar_bank/.test(config.url) ? new Promise(() => {}) : Promise.resolve({ data: accepted([]) }),
+  );
+
+  await mountScreen();
+
+  expect(requestsTo("getCoinsList?id_branch=7")).toHaveLength(1);
+});
