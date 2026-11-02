@@ -38,10 +38,16 @@ function guardarContenido() {
         <v-alert
           border="start"
           border-color="info"
-          type="info"
+          color="surface"
           elevation="2"
           rounded="shaped"
         >
+          <template #prepend>
+            <v-icon
+              color="info"
+              icon="$info"
+            />
+          </template>
           Los valores entre corchetes representan los datos que serán
           reemplazados automáticamente con la información correspondiente al
           house. Por favor, no modifique ni elimine el contenido dentro de los
