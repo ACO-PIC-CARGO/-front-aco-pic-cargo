@@ -44,11 +44,11 @@ const newProgrammedPayment = defineAsyncComponent(() =>
   import("../ProgrammedPayment/NewProgrammedPaymentComponent.vue"));
 
 const moneda = ref("");
-const gasto = ref<number[] | string>("");
-const subgasto = ref<number[] | string>("");
+const gasto = ref<number[]>([]);
+const subgasto = ref<number[]>([]);
 const nuevaFechaFlag = ref(false);
 const nameProveedor = ref("");
-const proveedorOp = ref<number[] | string>("");
+const proveedorOp = ref<number[]>([]);
 const llegadaOp = ref("");
 const fechaOp = ref("");
 const nro_expediente = ref("");
@@ -533,7 +533,7 @@ async function filtrar() {
 }
 async function limpiar() {
   appStore.spiner = true;
-  proveedorOp.value = "";
+  proveedorOp.value = [];
   llegadaOp.value = "";
   fechaOp.value = "";
   nro_expediente.value = "";

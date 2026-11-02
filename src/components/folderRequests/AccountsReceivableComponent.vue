@@ -35,13 +35,13 @@ const frmComentario = useTemplateRef("frmComentario");
 
 const moneda = ref("");
 const offcanvas = ref(false);
-const proveedorOp = ref<number[] | string>("");
+const proveedorOp = ref<number[]>([]);
 const llegadaOp = ref("");
 const fechaOp = ref("");
 const exportandopdf = ref(false);
 const nro_expediente = ref("");
-const ingreso = ref<number[] | string>("");
-const subingreso = ref<number[] | string>("");
+const ingreso = ref<number[]>([]);
+const subingreso = ref<number[]>([]);
 const filtroOp = ref<{ proveedorOp: number[] | string; llegadaOp: string; fechaOp: string }>({
   proveedorOp: "",
   llegadaOp: "",
@@ -341,12 +341,12 @@ async function limpiar() {
     llegadaOp: "",
     fechaOp: "",
   };
-  proveedorOp.value = "";
+  proveedorOp.value = [];
   llegadaOp.value = "";
   fechaOp.value = "";
   nro_expediente.value = "";
-  ingreso.value = "";
-  subingreso.value = "";
+  ingreso.value = [];
+  subingreso.value = [];
   await _getDebsToPay();
   await _getInvoiceAdminCxCAdmin();
   offcanvas.value = false;
