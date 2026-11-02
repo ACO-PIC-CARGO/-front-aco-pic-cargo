@@ -1204,7 +1204,6 @@ onMounted(async () => {
               cols="12"
               class="py-0 my-0"
             >
-              <!-- @vue-expect-error the model starts as an empty string -->
               <v-autocomplete
                 clearable
                 v-model="proveedorOp"
@@ -1235,7 +1234,6 @@ onMounted(async () => {
               cols="12"
               class="py-0 my-0"
             >
-              <!-- @vue-expect-error the model starts as an empty string -->
               <v-autocomplete
                 clearable
                 v-model="gasto"
@@ -1253,7 +1251,6 @@ onMounted(async () => {
               cols="12"
               class="py-0 my-0"
             >
-              <!-- @vue-expect-error the model starts as an empty string -->
               <v-autocomplete
                 clearable
                 v-model="subgasto"
