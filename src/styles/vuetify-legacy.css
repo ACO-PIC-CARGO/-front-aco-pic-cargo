@@ -637,6 +637,15 @@
   }
 }
 
+/* The bg-* color utilities live in a later layer than components, so they hid Vuetify's grey disabled look on colored buttons. */
+@layer vuetify-final {
+  .v-btn--disabled.v-btn--variant-elevated,
+  .v-btn--disabled.v-btn--variant-flat {
+    background: rgb(var(--v-theme-surface));
+    color: color-mix(in srgb, rgb(var(--v-theme-on-surface)) 26%, transparent);
+  }
+}
+
 /* Vuetify 4 overlays start at z-index 2000; Vuetify 2 dialogs stayed under SweetAlert2 (1060). */
 .swal2-container {
   z-index: 2500;
