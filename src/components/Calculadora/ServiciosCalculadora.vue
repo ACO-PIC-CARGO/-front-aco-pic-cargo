@@ -241,6 +241,7 @@ async function anadirServ() {
       <v-btn
         block
         color="red"
+        variant="elevated"
         @click="snackbar = false"
       >
         Close
