@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
+import "@/styles/accounts-report-headers.css";
 import moment from "moment";
 import { useGastosStore } from "@/stores/gastos";
 import { useBalancesStore } from "@/stores/balances";
@@ -1337,30 +1338,5 @@ onMounted(async () => {
 .v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up),
 .v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up) + tr {
   background: #ffccab;
-}
-
-.hProveedor {
-  font-size: 18px;
-  text-align: center;
-  font: bold;
-  background: #a8aee5;
-}
-.hNoLlegada {
-  font-size: 18px;
-  text-align: center;
-  font: bold;
-  background: #c3fbef;
-}
-.hLlegada {
-  font-size: 18px;
-  text-align: center;
-  font: bold;
-  background: #fbc3c3;
-}
-.hGeneral {
-  font-size: 18px;
-  text-align: center;
-  font: bold;
-  background: #e9e9e9;
 }
 </style>

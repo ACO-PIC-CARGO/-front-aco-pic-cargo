@@ -4,6 +4,7 @@ import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
 import moment from "moment";
+import "@/styles/accounts-report-headers.css";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
