@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { defineComponent } from "vue";
+import type { Component } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -45,7 +46,7 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount());
 
-const mountInApp = (component: unknown, pinia: ReturnType<typeof createPinia>, config = {}) =>
+const mountInApp = (component: Component, pinia: ReturnType<typeof createPinia>, config = {}) =>
   mount(defineComponent({ components: { component }, template: "<v-app><component /></v-app>" }), {
     global: { plugins: [createVuetify({ components, directives }), pinia], config },
     attachTo: document.body,
