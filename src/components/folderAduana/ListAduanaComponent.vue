@@ -371,7 +371,6 @@ onMounted(async () => {
             isExpanded(internalItem) ? 'filaActivda' : '',
           ]"
         >
-          <td />
           <td>
             <v-btn-toggle>
               <v-tooltip location="top">
