@@ -45,3 +45,5 @@ export async function askAdminCredentials(reason: string): Promise<AdminCredenti
   });
   return value;
 }
+
+export const withAuthorization = (admin: AdminCredentials | null | undefined) => (admin ? { autorizacion: admin } : {});
