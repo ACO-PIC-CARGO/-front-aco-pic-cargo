@@ -178,6 +178,15 @@ describe("controlGastos store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
+  test("eliminarIngreso sends the administrator's credentials as autorizacion", async () => {
+    respond({ "delIngresos/9": accepted([]) });
+    const admin = { usuario: "admin", clave: "secreta" };
+
+    expect(await useControlGastosStore().eliminarIngreso({ id: 9 }, admin)).toBe(true);
+
+    expect(httpMock.mock.calls[0]![0]).toMatchObject({ method: "post", url: URL_MAIN + "delIngresos/9", data: { autorizacion: admin } });
+  });
+
   test("CargaMasivaControlDeGastos hands the answer to its own response and then to securitys, and returns it", async () => {
     respond({ carga_masiva_controldegasto: accepted([{ id_master: 3 }]) });
     const store = useControlGastosStore();

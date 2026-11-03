@@ -15,6 +15,8 @@ import type {
   ListadoControlGastoHouses,
   RespuestaControlGasto,
 } from "@/types/finanzas";
+import type { AdminCredentials } from "@/types/seguridad";
+import { withAuthorization } from "@/utils/adminCredentials";
 import { downloadExcel } from "@/utils/pdfDownload";
 import { hasFailed, request } from "@/utils/request";
 
@@ -159,8 +161,8 @@ export const useControlGastosStore = defineStore("controlGastos", () => {
       });
     return nombreCampania.value;
   }
-  async function eliminarIngreso(data: { id: number | string; [campo: string]: unknown }): Promise<boolean> {
-    const response = await request({ method: "post", url: URL_MAIN + "delIngresos/" + data.id });
+  async function eliminarIngreso(data: { id: number | string; [campo: string]: unknown }, admin?: AdminCredentials): Promise<boolean> {
+    const response = await request({ method: "post", url: URL_MAIN + "delIngresos/" + data.id, data: withAuthorization(admin) });
     warnIfFailed(response);
     return response.estadoflag;
   }

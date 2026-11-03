@@ -14,6 +14,7 @@ import ListControlGastosComponent from "@/components/folderBilling/ListControlGa
 import TotalesProveedor from "@/components/folderBilling/TotalesProveedor.vue";
 import { useAppStore } from "@/stores/app";
 import { useControlGastosStore } from "@/stores/controlGastos";
+import Swal from "sweetalert2";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 const route = vi.hoisted(() => ({ name: "editControlGasto", params: { id: "5", id_branch: "7" } as Record<string, string> }));
@@ -108,16 +109,14 @@ test("each income action shows only with its own permission", async () => {
       nuevo: shows("Nuevo Concepto") && shows("EMITIR PROFORMA"),
       copiar: shows("Copiar Montos"),
       modificar: shows("Cambiar expediente") && hasIcon(".v-expansion-panel-text .mdi-pencil"),
-      eliminar: hasIcon(".v-expansion-panel-text .mdi-delete"),
     };
   };
-  const NONE = { nuevo: false, copiar: false, modificar: false, eliminar: false };
+  const NONE = { nuevo: false, copiar: false, modificar: false };
 
   expect(await incomeControls(["VER"])).toEqual(NONE);
   expect(await incomeControls(["VER", "NUEVO"])).toEqual({ ...NONE, nuevo: true });
   expect(await incomeControls(["VER", "COPIAR"])).toEqual({ ...NONE, copiar: true });
   expect(await incomeControls(["VER", "MODIFICAR"])).toEqual({ ...NONE, modificar: true });
-  expect(await incomeControls(["VER", "ELIMINAR"])).toEqual({ ...NONE, eliminar: true });
 });
 
 test("each expense action shows only with its own permission", async () => {
@@ -197,4 +196,68 @@ test("a new bank account for a payment request is registered only with Nuevo", a
 
   expect(await offersAccount(["VER", "MODIFICAR", "ELIMINAR", "EXPORTAR"])).toBe(false);
   expect(await offersAccount(["VER", "NUEVO"])).toBe(true);
+});
+
+const EXPENSE = { id: 12, concepto: "Flete", nombre_proveedor: "Naviera", monto_pr: 10, monto_op: 10, statusadmin: 0, pagado: 0 };
+const INVOICE = { id: 31, nro_factura: "F-31" };
+const ADMIN = { usuario: "admin", clave: "secreta" };
+
+const incomeDelete = async (actions: string[]) => {
+  await mountAs(IngresosControlGastos, actions, { props: { master_houses: [HOUSE_INCOME] } });
+  document.body.querySelector<HTMLElement>(".v-expansion-panel-title")?.click();
+  await flushPromises();
+  return document.body.querySelector<HTMLElement>(".v-expansion-panel-text .mdi-delete");
+};
+const expenseDelete = async (actions: string[]) => {
+  await mountAs(EgresosControlGastos, actions, { props: { master_egresos: [{ ...PROVIDER_EXPENSE, detalle: [EXPENSE] }] } });
+  for (const toggle of [".v-expansion-panel-title", "tr.bg-blue-lighten-5"]) {
+    document.body.querySelector<HTMLElement>(toggle)?.click();
+    await flushPromises();
+  }
+  return document.body.querySelector<HTMLElement>(".mdi-delete");
+};
+const invoiceVoid = async (actions: string[]) => {
+  await mountAs(IngresosControlGastos, actions, { props: { master_houses: [HOUSE_INCOME] } });
+  await openDialogs({ dialogFacturaEmitidas: true, lstFacturasEmitidas: [INVOICE] });
+  return document.body.querySelector<HTMLElement>(".v-dialog .mdi-delete");
+};
+const clickWithAnswers = async (button: HTMLElement | null, answers: object[] = []) => {
+  vi.mocked(Swal.fire).mockClear();
+  httpMock.mockClear();
+  answers.forEach((answer) => vi.mocked(Swal.fire).mockResolvedValueOnce(answer as never));
+  button!.click();
+  await flushPromises();
+};
+const askedForAdmin = () =>
+  vi.mocked(Swal.fire).mock.calls.some(([options]) => (options as { title?: string }).title === "Se necesita un administrador");
+const sentTo = (path: string) => httpMock.mock.calls.find(([config]) => config.url === URL_MAIN + path)?.[0].data;
+
+test("deleting a concept or voiding an invoice shows to anyone who can open the list, since an administrator authorizes it", async () => {
+  expect(await incomeDelete(["VER"])).not.toBeNull();
+  expect(await expenseDelete(["VER"])).not.toBeNull();
+  expect(await invoiceVoid(["VER"])).not.toBeNull();
+});
+
+test("deleting an unpaid concept asks for an administrator only when the session lacks Eliminar", async () => {
+  const asks = async (deleteButton: Promise<HTMLElement | null>) => {
+    await clickWithAnswers(await deleteButton);
+    return askedForAdmin();
+  };
+
+  expect(await asks(incomeDelete(["VER"]))).toBe(true);
+  expect(await asks(incomeDelete(["VER", "ELIMINAR"]))).toBe(false);
+  expect(await asks(expenseDelete(["VER"]))).toBe(true);
+  expect(await asks(expenseDelete(["VER", "ELIMINAR"]))).toBe(false);
+  expect(await asks(invoiceVoid(["VER", "ELIMINAR"]))).toBe(true);
+});
+
+test("the administrator's credentials travel as autorizacion with the deletion or the voiding", async () => {
+  await clickWithAnswers(await incomeDelete(["VER"]), [{ value: ADMIN }, { isConfirmed: true }]);
+  expect(sentTo("delIngresos/11")).toEqual({ autorizacion: ADMIN });
+
+  await clickWithAnswers(await expenseDelete(["VER"]), [{ value: ADMIN }, { isConfirmed: true }]);
+  expect(sentTo("delEgregso/12")).toEqual({ autorizacion: ADMIN });
+
+  await clickWithAnswers(await invoiceVoid(["VER"]), [{ value: ADMIN }, { value: "Datos del cliente errados" }]);
+  expect(sentTo("anular_factura")).toEqual({ id: 31, motivo: "Datos del cliente errados", autorizacion: ADMIN });
 });

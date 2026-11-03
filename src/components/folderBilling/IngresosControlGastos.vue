@@ -5,7 +5,6 @@ import { useAppStore } from "@/stores/app";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
-import { useSecuritysStore } from "@/stores/securitys";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import ArrastraYSolarComponent2 from "../comun/ArrastraYSolarComponentFile.vue";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -32,6 +31,8 @@ import type {
 import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { usePermissions } from "@/composables/usePermissions";
+import type { AdminCredentials } from "@/types/seguridad";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -68,7 +69,6 @@ const filesStore = useFilesStore();
 const housesStore = useHousesStore();
 const enterprisesStore = useEnterprisesStore();
 const pricingStore = usePricingStore();
-const securitysStore = useSecuritysStore();
 const frmCopiar = useTemplateRef("frmCopiar");
 const frmIngreso = useTemplateRef("frmIngreso");
 const frmNuevoAbono = useTemplateRef("frmNuevoAbono");
@@ -818,8 +818,10 @@ async function editIngresos() {
 }
 async function delIngreso(item: IngresoDetalle, house: HouseIngreso) {
   const deuda = getDeudaActual(house);
-  if ((house.total_total_op_ingresos as number) > (deuda as number)) {
-    Swal.fire({
+  const hasPayment = (house.total_total_op_ingresos as number) > (deuda as number);
+  if (!hasPayment && can("listControlGastos", "ELIMINAR")) return continuarEliminar(item.id);
+  if (hasPayment) {
+    const { isConfirmed } = await Swal.fire({
       width: "430px",
       padding: "18px 22px 16px",
       background: "#ffffff",
@@ -911,80 +913,14 @@ async function delIngreso(item: IngresoDetalle, house: HouseIngreso) {
           popup.style.boxShadow = "0 18px 50px rgba(15, 23, 42, 0.18)";
         }
       },
-    }).then(async (respuesta) => {
-      if (respuesta.isConfirmed) {
-        let val = true;
-        let msg = "";
-
-        await Swal.fire({
-          title: "Ingrese sus datos Administrador",
-          html:
-            '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-            '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-          focusConfirm: false,
-          showCancelButton: true,
-          confirmButtonText: "Aceptar",
-          cancelButtonText: "Cancelar",
-          preConfirm: () => {
-            const input1 = (
-              document.getElementById("swal-input1") as HTMLInputElement
-            ).value.trim();
-            const input2 = (
-              document.getElementById("swal-input2") as HTMLInputElement
-            ).value.trim();
-            if (!input1 || !input2) {
-              Swal.showValidationMessage(
-                "Por favor, complete ambos campos",
-              );
-              return false;
-            }
-            return { usuario: input1, clave: input2 };
-          },
-        }).then(async (result) => {
-          if (!result.isConfirmed) {
-            val = false;
-            msg = "Operación cancelada";
-
-            return;
-          }
-
-          if (result.value) {
-            const res = await securitysStore.validarUsuarioAdmin({
-              usuario: result.value.usuario,
-              clave: result.value.clave,
-            });
-
-            if (res && res.estadoflag) {
-              val = true;
-            } else {
-              val = false;
-              msg = res?.mensaje || "Credenciales incorrectas";
-            }
-          } else {
-            val = false;
-            msg = "Debe ingresar las credenciales";
-          }
-        });
-
-        if (!val) {
-          await Swal.fire({
-            icon: "error",
-            title: "No autorizado",
-            text: msg,
-            confirmButtonColor: "#0878dc",
-          });
-
-          return false;
-        }
-
-        await continuarEliminar(item.id);
-      }
     });
-  } else {
-    continuarEliminar(item.id);
+    if (!isConfirmed) return;
   }
+  const admin = await askAdminCredentials("Para eliminar este ingreso, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  await continuarEliminar(item.id, admin);
 }
-async function continuarEliminar(id: number | undefined) {
+async function continuarEliminar(id: number | undefined, admin?: AdminCredentials) {
   Swal.fire({
     icon: "question",
     title: "Eliminar",
@@ -998,7 +934,7 @@ async function continuarEliminar(id: number | undefined) {
         code_master: route.params.code_master as string,
         id: id as number,
       };
-      if (!(await controlGastosStore.eliminarIngreso(data))) return;
+      if (!(await controlGastosStore.eliminarIngreso(data, admin))) return;
       await controlGastosStore.getListControlGastosHouses(route.params.id as string);
       emit("recalcularProfit");
     }
@@ -1406,50 +1342,8 @@ async function aplicarCambioExpediente() {
 }
 async function eliminarFactura(item: number) {
   dialogFacturaEmitidas.value = false;
-  let val = false;
-  let msg = "";
-
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    focusConfirm: false,
-    didOpen: () => {
-      // Aquí forzamos el foco manualmente
-      document.getElementById("swal-input1")!.focus();
-    },
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value;
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value;
-
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-
-      return {
-        usuario: input1,
-        clave: input2,
-      };
-    },
-  }).then(async (result) => {
-    if (result.isConfirmed && result.value) {
-      const res = await securitysStore.validarUsuarioAdmin(result.value);
-      val = res!.estadoflag === true;
-      msg = res!.mensaje;
-    }
-  });
-
-  if (!val) {
-    if (msg) {
-      await Swal.fire({ icon: "error", text: msg });
-    }
-    return;
-  }
+  const admin = await askAdminCredentials("Para anular esta factura, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
 
   const { value: motivo } = await Swal.fire({
     title: "Anular factura",
@@ -1466,7 +1360,7 @@ async function eliminarFactura(item: number) {
   const response = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "anular_factura",
-    data: { id: item, motivo },
+    data: { id: item, motivo, ...withAuthorization(admin) },
   });
   if (warnIfRefused(response)) return;
   await Swal.fire({ icon: "success", title: "Factura anulada", text: response.mensaje });
@@ -1944,7 +1838,7 @@ onMounted(async () => {
 
                   <v-icon
                     color="red"
-                    v-if="item.facturado == false && item.pagado == 0 && can('listControlGastos', 'ELIMINAR')"
+                    v-if="item.facturado == false && item.pagado == 0"
                     @click="delIngreso(item, houseIngreso)"
                   >
                     mdi-delete
@@ -3094,7 +2988,6 @@ onMounted(async () => {
                 </td>
                 <td>
                   <v-icon
-                    v-if="can('listControlGastos', 'ELIMINAR')"
                     color="red"
                     @click="eliminarFactura(item.id)"
                   >
