@@ -1005,7 +1005,7 @@ onMounted(async () => {
                    
                     @click="ira('editQuote', item.id)"
                     aria-label="Editar cotización"
-                    v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
+                    v-if="item.statusmain != 0 && (isApprovedQuote(item) || can('lstQuote', 'MODIFICAR'))"
                   >
                     <v-icon
                       color="#FB9514"

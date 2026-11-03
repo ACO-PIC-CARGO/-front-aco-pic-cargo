@@ -83,3 +83,14 @@ describe.each([
     expect(shown()).toBe(true);
   });
 });
+
+test("Editar shows on an approved quote to anyone who can open the list, since an administrator authorizes it", async () => {
+  httpMock.mockImplementation(async (config) => {
+    const path = config.url.slice(URL_MAIN.length).split("?")[0];
+    return { data: accepted(path === "getQuoteList" ? [{ ...DRAFT, aprobadoflag: true }] : []) };
+  });
+
+  await shownWith(ListQuoteComponent, ["VER"]);
+
+  expect(labelled("Editar cotización")()).toBe(true);
+});

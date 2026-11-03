@@ -87,3 +87,14 @@ describe.each([
     expect(shown()).toBe(true);
   });
 });
+
+test("Editar shows on an approved aduana to anyone who can open the list, since an administrator authorizes it", async () => {
+  httpMock.mockImplementation(async (config) => {
+    const path = config.url.slice(URL_MAIN.length).split("?")[0];
+    return { data: accepted(path === "listar_aduana" ? [{ ...PENDING, aprobadoflag: true }] : []) };
+  });
+
+  await shownWith(ListAduanaComponent, ["VER"]);
+
+  expect(icon("mdi-pencil-lock")()).toBe(true);
+});

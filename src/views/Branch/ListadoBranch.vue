@@ -129,7 +129,6 @@ async function eliminar(company: SucursalListado) {
                   @click="reactivar(item.id)"
                 />
                 <v-btn
-                  v-if="can('lstEnterpriseRegister', 'ELIMINAR')"
                   variant="text"
                   icon="mdi-delete"
                   color="red"

@@ -404,7 +404,7 @@ onMounted(async () => {
                    
                     @click="ira('EditarAduana', item.id)"
                     aria-label="Editar cotización de aduana"
-                    v-if="item.statusmain != 0 && can('lstQuoteAduanaAduana', 'MODIFICAR')"
+                    v-if="item.statusmain != 0 && (item.aprobadoflag || can('lstQuoteAduanaAduana', 'MODIFICAR'))"
                   >
                     <v-icon
                       color="#FB9514"

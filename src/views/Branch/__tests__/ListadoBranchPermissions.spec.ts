@@ -52,7 +52,6 @@ const labelled = (label: string) => document.body.querySelector(`button[aria-lab
 describe.each([
   ["Inactivar empresa", "ELIMINAR"],
   ["Reactivar empresa", "MODIFICAR"],
-  ["Eliminar empresa", "ELIMINAR"],
 ])("%s on the registered companies list", (label, action) => {
   test(`is hidden without ${action}`, async () => {
     await shownWith(ALL_ACTIONS.filter((granted) => granted !== action));
@@ -65,4 +64,10 @@ describe.each([
 
     expect(labelled(label)).toBe(true);
   });
+});
+
+test("Eliminar empresa shows to anyone who can open the list, since an administrator authorizes it", async () => {
+  await shownWith(["VER"]);
+
+  expect(labelled("Eliminar empresa")).toBe(true);
 });
