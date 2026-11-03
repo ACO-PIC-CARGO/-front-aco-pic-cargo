@@ -403,17 +403,18 @@ onMounted(async () => {
                     v-bind="props"
                    
                     @click="ira('EditarAduana', item.id)"
-                    v-if="!(item.statusmain == 0 || item.aprobadoflag) && can('lstQuoteAduanaAduana', 'MODIFICAR')"
+                    aria-label="Editar cotización de aduana"
+                    v-if="item.statusmain != 0 && can('lstQuoteAduanaAduana', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#FB9514"
                       size="small"
                     >
-                      mdi-pencil
+                      {{ item.aprobadoflag ? "mdi-pencil-lock" : "mdi-pencil" }}
                     </v-icon>
                   </v-btn>
                 </template>
-                <span>Editar</span>
+                <span>{{ item.aprobadoflag ? "Editar con autorización de un administrador" : "Editar" }}</span>
               </v-tooltip>
               <!--  -->
               <v-tooltip location="top">

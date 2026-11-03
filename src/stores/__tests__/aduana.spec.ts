@@ -589,6 +589,21 @@ describe("aduana store", () => {
       expect((data.opcionCostos as { listImpuestos: unknown[] }[])[0]!.listImpuestos).toEqual([]);
     });
 
+    test("actualizarQuoteAduana sends the administrator who authorized editing an approved aduana", async () => {
+      respond({ actualizar_aduana: { estadoflag: true, mensaje: "Actualizado" } });
+      const aduana = cotizacion();
+      const admin = { usuario: "jefa@empresa.com", clave: "Clave-1" };
+      aduana.approvedEditAdmin = admin;
+
+      await aduana.actualizarQuoteAduana();
+      aduana.approvedEditAdmin = null;
+      await aduana.actualizarQuoteAduana();
+
+      const [authorized, unauthorized] = httpMock.mock.calls.map(([config]) => config.data as Record<string, unknown>);
+      expect(authorized).toMatchObject(admin);
+      expect(unauthorized).not.toHaveProperty("usuario");
+    });
+
     test("actualizarQuoteAduana puts the edited quote with the edit formatter and shows the answer", async () => {
       respond({ actualizar_aduana: { estadoflag: true, mensaje: "Actualizado" } });
       const aduana = cotizacion();

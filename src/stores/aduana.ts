@@ -49,6 +49,7 @@ import type {
 } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import type { ProveedorPricing } from "@/types/entidades";
+import type { AdminCredentials } from "@/types/seguridad";
 import {
   calcularImpuestos,
   calcularValor,
@@ -186,6 +187,7 @@ export const useAduanaStore = defineStore("aduana", () => {
   const listEjecutivo = ref<EjecutivoCotizacion[]>([]);
   const totalVenta = ref(0);
   const id = ref<number | string>();
+  const approvedEditAdmin = ref<AdminCredentials | null>(null);
   const vendedor = ref<string>();
   const totalFlete = ref<Numerico>();
   const tiporeporte = ref<string>();
@@ -2518,6 +2520,7 @@ export const useAduanaStore = defineStore("aduana", () => {
 
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
+      ...approvedEditAdmin.value,
     };
     const config = {
       method: "put",
@@ -6155,6 +6158,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     getPersonalPricingAduana,
     aprobarCotizacionAduana,
     resetAduanaNew,
+    approvedEditAdmin,
     getServicesAduana,
     cargarListadoQuoteAduana,
     getCotizacionUnificar,

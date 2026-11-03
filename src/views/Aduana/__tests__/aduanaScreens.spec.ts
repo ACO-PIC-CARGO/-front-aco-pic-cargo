@@ -15,7 +15,8 @@ import { useAppStore } from "@/stores/app";
 import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected } from "@/stores/__tests__/catalogHttp";
-import { ADUANA_APPROVED_MESSAGE, ADUANA_NOT_FOUND_MESSAGE } from "@/utils/aduanaScreen";
+import { ADUANA_NOT_FOUND_MESSAGE } from "@/utils/aduanaScreen";
+import { askAdminCredentials } from "@/utils/adminCredentials";
 import type { AprobacionCotizacion } from "@/types/cotizacion";
 
 const push = vi.hoisted(() => vi.fn());
@@ -23,6 +24,7 @@ vi.mock("vue-router", () => ({ useRoute: () => ({ params: { id: "14" } }), useRo
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn(), get: vi.fn() }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
+vi.mock("@/utils/adminCredentials", () => ({ askAdminCredentials: vi.fn() }));
 
 const ADUANA = {
   id: 14,
@@ -126,13 +128,39 @@ describe("Ver", () => {
 });
 
 describe("Editar", () => {
-  test("refuses an approved aduana opened by its address and offers the way back to the list", async () => {
-    answerWith({ ver_aduana: accepted([{ ...ADUANA, aprobadoflag: true }]) });
+  const admin = { usuario: "jefa@empresa.com", clave: "Clave-1" };
+  const shipments = { getShipment: accepted([{ id: 3, id_transport: 1 }]) };
 
-    await openScreen(EditarAduana);
+  test("opens an approved aduana once an administrator authorizes it, and keeps who did for the save", async () => {
+    answerWith({ ver_aduana: accepted([{ ...ADUANA, aprobadoflag: true }]), ...shipments });
+    vi.mocked(askAdminCredentials).mockResolvedValue(admin);
 
-    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: ADUANA_APPROVED_MESSAGE, confirmButtonText: "Volver al listado" }));
+    const { aduana, wrapper } = await openScreen(EditarAduana);
+
+    expect(aduana.approvedEditAdmin).toEqual(admin);
+    expect(push).not.toHaveBeenCalled();
+    wrapper.unmount();
+    expect(aduana.approvedEditAdmin).toBeNull();
+  });
+
+  test("goes back to the list when nobody authorizes editing an approved aduana", async () => {
+    answerWith({ ver_aduana: accepted([{ ...ADUANA, aprobadoflag: true }]), ...shipments });
+    vi.mocked(askAdminCredentials).mockResolvedValue(undefined);
+
+    const { aduana } = await openScreen(EditarAduana);
+
     expect(push).toHaveBeenCalledWith(LIST);
+    expect(aduana.approvedEditAdmin).toBeNull();
+  });
+
+  test("opens an aduana that is not approved without asking for an administrator", async () => {
+    answerWith({ ver_aduana: accepted([ADUANA]), ...shipments });
+
+    const { wrapper } = await openScreen(EditarAduana);
+
+    expect(askAdminCredentials).not.toHaveBeenCalled();
+    expect(push).not.toHaveBeenCalled();
+    wrapper.unmount();
   });
 });
 

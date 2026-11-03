@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -13,7 +13,9 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
-import { ADUANA_APPROVED_MESSAGE, ADUANA_NOT_FOUND_MESSAGE, returnToAduanaList } from "@/utils/aduanaScreen";
+import { ADUANA_NOT_FOUND_MESSAGE, returnToAduanaList } from "@/utils/aduanaScreen";
+import { askAdminCredentials } from "@/utils/adminCredentials";
+import router from "@/router";
 import type { Costo, OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 const route = useRoute();
@@ -37,6 +39,10 @@ watch(step, () => {
   aduanaStore.step = step.value;
 });
 
+onBeforeUnmount(() => {
+  aduanaStore.approvedEditAdmin = null;
+});
+
 onMounted(async () => {
   appStore.spiner = true;
   const [opened] = await Promise.all([
@@ -45,7 +51,13 @@ onMounted(async () => {
   ]);
   appStore.spiner = false;
   if (!opened) return returnToAduanaList(ADUANA_NOT_FOUND_MESSAGE);
-  if (aduanaStore.aprobadoflag) return returnToAduanaList(ADUANA_APPROVED_MESSAGE);
+  if (aduanaStore.aprobadoflag) {
+    const admin = await askAdminCredentials(
+      "Esta cotización de aduana ya está aprobada. Para editarla, escribe el usuario y la clave de un administrador.",
+    );
+    if (!admin) return router.push({ name: "lstQuoteAduanaAduana" });
+    aduanaStore.approvedEditAdmin = admin;
+  }
 
   appStore.mainTitle = `EDITAR  COTIZACIÓN - ${aduanaStore.nro_quote}`;
   mostrar.value = true;

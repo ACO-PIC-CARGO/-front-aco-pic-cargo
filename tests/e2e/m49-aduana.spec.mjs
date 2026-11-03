@@ -3,7 +3,7 @@ import { waitForPageToSettle } from "./support/page.mjs";
 
 const LIST = "/home/lstQuoteAduanaAduana";
 const NOT_FOUND = "No encontramos esta cotización de aduana. Vuelve al listado e inténtalo de nuevo.";
-const APPROVED = "Esta cotización de aduana ya está aprobada y no se puede modificar. Puedes verla desde el listado.";
+const NEEDS_ADMIN = "Se necesita un administrador";
 const CONFIRM_DELETE = "DESEA ELIMINAR LA COTIZACIÓN CON CÓDIGO: 00000001";
 const MISSING_ID = 999999999;
 const ADUANA = {
@@ -55,7 +55,7 @@ test.describe("aduana", () => {
     expect(writes).toEqual([]);
   });
 
-  test("Editar of an approved aduana returns to the list without saving", async ({ page }) => {
+  test("Editar of an approved aduana asks for an administrator, and cancelling returns to the list without saving", async ({ page }) => {
     const writes = await refuseWrites(page);
     await page.route(/\/ver_aduana(\?|$)/, (route) => route.fulfill(answer(route, [{ ...ADUANA, aprobadoflag: true }])));
     await page.route(/\/actualizar_aduana(\?|$)/, (route) => {
@@ -65,8 +65,8 @@ test.describe("aduana", () => {
 
     await page.goto(`/home/EditarAduana/${MISSING_ID}`);
 
-    await expect(dialogWith(page, APPROVED)).toBeVisible({ timeout: 30_000 });
-    await page.locator(".swal2-confirm").click();
+    await expect(dialogWith(page, NEEDS_ADMIN)).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Cancelar" }).click();
     await expect(page).toHaveURL(new RegExp(`${LIST}$`));
     expect(writes).toEqual([]);
   });
