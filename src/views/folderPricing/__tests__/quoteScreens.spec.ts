@@ -9,7 +9,7 @@ import NotasComponent from "@/components/folderPricing/VerComponent/NotasCompone
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected } from "@/stores/__tests__/catalogHttp";
-import { APPROVED_QUOTE_MESSAGE } from "@/utils/quoteApproval";
+import { askAdminCredentials } from "@/utils/adminCredentials";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
 
 const push = vi.hoisted(() => vi.fn());
@@ -17,6 +17,7 @@ vi.mock("vue-router", () => ({ useRoute: () => ({ params: { id: "77" }, name: "v
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn(), get: vi.fn() }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
+vi.mock("@/utils/adminCredentials", () => ({ askAdminCredentials: vi.fn() }));
 
 const QUOTE = {
   id: 77,
@@ -148,15 +149,41 @@ describe("Ver", () => {
 });
 
 describe("Editar", () => {
-  test("refuses an approved quote opened by its address and offers the way back to the list", async () => {
-    answerWith({ getQuoteId: accepted([{ ...QUOTE, aprobadoflag: true }]) });
+  const admin = { usuario: "jefa@empresa.com", clave: "Clave-1" };
 
-    const { app } = await openScreen(EditarPricing);
+  test("opens an approved quote once an administrator authorizes it, and keeps who did for the save", async () => {
+    answerWith({ getQuoteId: accepted([{ ...QUOTE, aprobadoflag: true }]) });
+    vi.mocked(askAdminCredentials).mockResolvedValue(admin);
+
+    const { pricing, wrapper } = await openScreen(EditarPricing);
+
+    expect(pricing.approvedEditAdmin).toEqual(admin);
+    expect(requestsTo("getMarketingList")).toHaveLength(1);
+    expect(push).not.toHaveBeenCalled();
+    wrapper.unmount();
+    expect(pricing.approvedEditAdmin).toBeNull();
+  });
+
+  test("goes back to the list when nobody authorizes editing an approved quote", async () => {
+    answerWith({ getQuoteId: accepted([{ ...QUOTE, aprobadoflag: true }]) });
+    vi.mocked(askAdminCredentials).mockResolvedValue(undefined);
+
+    const { app, pricing } = await openScreen(EditarPricing);
 
     expect(app.spiner).toBe(false);
-    expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: APPROVED_QUOTE_MESSAGE, confirmButtonText: "Volver al listado" }));
     expect(push).toHaveBeenCalledWith({ name: "lstQuote" });
+    expect(pricing.approvedEditAdmin).toBeNull();
     expect(requestsTo("getMarketingList")).toHaveLength(0);
+  });
+
+  test("opens a quote that is not approved without asking for an administrator", async () => {
+    answerWith({ getQuoteId: accepted([QUOTE]) });
+
+    const { wrapper } = await openScreen(EditarPricing);
+
+    expect(askAdminCredentials).not.toHaveBeenCalled();
+    expect(requestsTo("getMarketingList")).toHaveLength(1);
+    wrapper.unmount();
   });
 });
 

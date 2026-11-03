@@ -10,7 +10,7 @@ import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
-import { APPROVED_QUOTE_MESSAGE, isApprovedQuote } from "@/utils/quoteApproval";
+import { isApprovedQuote } from "@/utils/quoteApproval";
 import type { ApiResponse } from "@/types/api";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type {
@@ -240,13 +240,6 @@ function displayMarketing(item: CotizacionListado) {
     (v) => String(v.id) === String(id),
   );
   return m ? m.name : "";
-}
-function handleEditar(item: CotizacionListado) {
-  if (isApprovedQuote(item)) {
-    Swal.fire({ icon: "info", text: APPROVED_QUOTE_MESSAGE });
-    return;
-  }
-  ira("editQuote", item.id);
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function fecha(fecha: string) {
@@ -1010,21 +1003,21 @@ onMounted(async () => {
                     icon
                     v-bind="props"
                    
-                    @click="handleEditar(item)"
+                    @click="ira('editQuote', item.id)"
                     aria-label="Editar cotización"
                     v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
                   >
                     <v-icon
-                      :color="isApprovedQuote(item) ? 'grey' : '#FB9514'"
+                      color="#FB9514"
                       size="small"
                       readonly
                       hide-details
                     >
-                      {{ isApprovedQuote(item) ? "mdi-pencil-off" : "mdi-pencil" }}
+                      {{ isApprovedQuote(item) ? "mdi-pencil-lock" : "mdi-pencil" }}
                     </v-icon>
                   </v-btn>
                 </template>
-                <span>{{ isApprovedQuote(item) ? APPROVED_QUOTE_MESSAGE : "Editar" }}</span>
+                <span>{{ isApprovedQuote(item) ? "Editar con autorización de un administrador" : "Editar" }}</span>
               </v-tooltip>
 
               <v-tooltip location="top">

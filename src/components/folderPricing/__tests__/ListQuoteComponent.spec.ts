@@ -114,19 +114,12 @@ test("a deleted quote can only be looked at: it says it was deleted and offers n
   expect(actionIn(rowOf("BORRADOR SAC"), "Ver cotización")).not.toBeNull();
 });
 
-test("editing an approved quote explains it must be copied instead of opening the editor", async () => {
+test("editing an approved quote opens the editor, which asks for an administrator", async () => {
   await mountList();
 
   await click(actionIn(rowOf("APROBADA SAC"), "Editar cotización")!);
 
-  expect(push).not.toHaveBeenCalled();
-  expect(Swal.fire).toHaveBeenCalledWith(
-    expect.objectContaining({ text: "Esta cotización ya está aprobada. Cópiala para hacer cambios." }),
-  );
-
-  await click(actionIn(rowOf("BORRADOR SAC"), "Editar cotización")!);
-
-  expect(push).toHaveBeenCalledWith({ name: "editQuote", params: { id: 6 } });
+  expect(push).toHaveBeenCalledWith({ name: "editQuote", params: { id: 5 } });
 });
 
 test("an approved quote offers no delete", async () => {

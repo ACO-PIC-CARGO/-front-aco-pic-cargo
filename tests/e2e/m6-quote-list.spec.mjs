@@ -1,11 +1,12 @@
 import { readFileSync } from "node:fs";
 import { test, expect } from "./fixtures.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
+import { credentials } from "./support/env.mjs";
 
 const LIST = "/home/folderPricing/lstQuote";
 const EMPTY_RANGE = "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.";
 const CONNECTION_ERROR = "No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.";
-const APPROVED = "Esta cotización ya está aprobada. Cópiala para hacer cambios.";
+const NEEDS_ADMIN = "Se necesita un administrador";
 const NOT_FOUND = "No encontramos esta cotización. Vuelve al listado e inténtalo de nuevo.";
 const MISSING_QUOTE_ID = 999999999;
 
@@ -149,18 +150,19 @@ test.describe("quote list", () => {
     expect(writes).toEqual([]);
   });
 
-  test("an approved quote explains it must be copied, and offers no delete", async ({ page }) => {
+  test("editing an approved quote asks for an administrator, cancelling goes back, and the list offers no delete", async ({ page }) => {
     await openList(page);
     const { approved } = await quotesOnList(page);
     test.skip(!approved, "no approved quote in this year's range");
     await page.getByLabel("Buscar").fill(approved.codigo);
     const row = rowOf(page, approved.codigo);
+    await expect(row.getByRole("button", { name: "Eliminar cotización" })).toHaveCount(0);
 
     await row.getByRole("button", { name: "Editar cotización" }).click();
 
-    await expect(dialogWith(page, APPROVED)).toBeVisible();
+    await expect(dialogWith(page, NEEDS_ADMIN)).toBeVisible();
+    await page.getByRole("button", { name: "Cancelar" }).click();
     await expect(page).toHaveURL(/\/lstQuote$/);
-    await expect(row.getByRole("button", { name: "Eliminar cotización" })).toHaveCount(0);
   });
 
   test("a refused delete is not reported as done and the list and its totals reload", async ({ page }) => {
@@ -258,17 +260,27 @@ test.describe("quote screens", () => {
     });
   }
 
-  test("Editar refuses an approved quote opened by its address", async ({ page }) => {
+  test("Editar opens an approved quote by its address only after an administrator's user and password", async ({ page }) => {
     await openList(page);
     const { approved } = await quotesOnList(page);
     test.skip(!approved, "no approved quote in this year's range");
+    const writes = [];
+    page.on("request", (r) => QUOTE_WRITES.test(new URL(r.url()).pathname) && writes.push(r.url()));
+    const authorize = async (clave) => {
+      await page.getByLabel("Usuario del administrador").fill(credentials().user);
+      await page.getByLabel("Contraseña del administrador").fill(clave);
+      await page.getByRole("button", { name: "Autorizar" }).click();
+    };
 
     await page.goto(`/home/folderPricing/editQuote/${approved.id}`);
-    await waitForPageToSettle(page);
+    await expect(dialogWith(page, NEEDS_ADMIN)).toBeVisible();
+    await authorize("Clave-Equivocada-9");
+    await expect(dialogWith(page, "Datos Incorrectos.")).toBeVisible();
+    await authorize(credentials().password);
 
-    await expect(dialogWith(page, APPROVED)).toBeVisible();
-    await page.getByRole("button", { name: "Volver al listado" }).click();
-    await expect(page).toHaveURL(/\/lstQuote$/);
+    await expect(page.getByText("Datos de la Carga").first()).toBeVisible();
+    await expect(page).toHaveURL(new RegExp(`/editQuote/${approved.id}$`));
+    expect(writes).toEqual([]);
   });
 
   test("opening Ver lists the quote's files by quote", async ({ page }) => {

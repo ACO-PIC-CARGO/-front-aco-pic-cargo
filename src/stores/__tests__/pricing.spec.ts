@@ -1082,6 +1082,22 @@ describe("pricing store", () => {
       expect(pricing.id).toBe(503);
     });
 
+    test("updateQuote sends the administrator who authorized editing an approved quote, and nobody after a reset", async () => {
+      httpMock.mockResolvedValue({ data: accepted([]) });
+      const pricing = cotizacion();
+      const admin = { usuario: "jefa@empresa.com", clave: "Clave-1" };
+      pricing.approvedEditAdmin = admin;
+
+      await pricing.updateQuote();
+      pricing.SET_RESET();
+      await pricing.updateQuote();
+
+      const [authorized, afterReset] = httpMock.mock.calls.map(([config]) => config.data as Record<string, unknown>);
+      expect(authorized).toMatchObject(admin);
+      expect(afterReset).not.toHaveProperty("usuario");
+      expect(afterReset).not.toHaveProperty("clave");
+    });
+
     test("updateQuote puts the edited quote with the edit formatter and shows the answer", async () => {
       httpMock.mockResolvedValue({ data: accepted([]) });
       const pricing = cotizacion();

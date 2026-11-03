@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
+import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import moment from "moment";
@@ -17,7 +18,8 @@ import { useProveedorStore } from "@/stores/proveedor";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
-import { APPROVED_QUOTE_MESSAGE, isApprovedQuote } from "@/utils/quoteApproval";
+import { isApprovedQuote } from "@/utils/quoteApproval";
+import { askAdminCredentials } from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
@@ -54,6 +56,10 @@ watch(step, () => {
   pricingStore.step = step.value;
 });
 
+onBeforeUnmount(() => {
+  pricingStore.approvedEditAdmin = null;
+});
+
 onMounted(async () => {
   pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
 
@@ -68,12 +74,19 @@ onMounted(async () => {
   } finally {
     appStore.spiner = false;
   }
-  if (!quoteProblem && isApprovedQuote({ aprobadoflag: pricingStore.aprobadoflag })) {
-    quoteProblem = APPROVED_QUOTE_MESSAGE;
-  }
   if (quoteProblem) {
     await returnToQuoteList(quoteProblem);
     return;
+  }
+  if (isApprovedQuote({ aprobadoflag: pricingStore.aprobadoflag })) {
+    const admin = await askAdminCredentials(
+      "Esta cotización ya está aprobada. Para editarla, escribe el usuario y la clave de un administrador. Al guardar quedará pendiente de aprobar otra vez.",
+    );
+    if (!admin) {
+      await router.push({ name: "lstQuote" });
+      return;
+    }
+    pricingStore.approvedEditAdmin = admin;
   }
 
   appStore.mainTitle = `EDITAR  COTIZACIÓN - ${pricingStore.nro_quote}`;

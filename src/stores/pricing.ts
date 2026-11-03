@@ -66,6 +66,7 @@ import type {
 } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import type { ProveedorPricing, TipoTransaccion } from "@/types/entidades";
+import type { AdminCredentials } from "@/types/seguridad";
 import {
   calcularImpuestos,
   calcularValor,
@@ -167,6 +168,7 @@ export const usePricingStore = defineStore("pricing", () => {
   const errfecha_fin = ref("");
   const errtiempo_transito = ref("");
   const id = ref<number | string>("");
+  const approvedEditAdmin = ref<AdminCredentials | null>(null);
   const nro_quote = ref("");
   const urlFolder = ref("");
   const mensaje = ref("");
@@ -271,6 +273,7 @@ export const usePricingStore = defineStore("pricing", () => {
   const fullflag = ref<boolean | number>();
 
   function SET_RESET(): void {
+    approvedEditAdmin.value = null;
     preServices.value = [];
     preCostos.value = [];
     itemsDataRoleList.value = [];
@@ -3289,6 +3292,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }),
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
+      ...approvedEditAdmin.value,
     };
     const response = await request({
       method: "put",
@@ -6960,6 +6964,7 @@ export const usePricingStore = defineStore("pricing", () => {
     begEndList,
     fullflag,
     SET_RESET,
+    approvedEditAdmin,
     SET_LIST_QUOTES,
     SET_LIST_CALLS,
     SET_LIST_MARKETING,
