@@ -1,3 +1,8 @@
+export interface AdminCredentials {
+  usuario: string;
+  clave: string;
+}
+
 export interface SucursalListado {
   id: number;
   trade_name: string;

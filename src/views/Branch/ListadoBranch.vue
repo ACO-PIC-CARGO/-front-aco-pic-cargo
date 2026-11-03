@@ -3,7 +3,7 @@ import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { useBranchStore } from "@/stores/branch";
 import { usePermissions } from "@/composables/usePermissions";
-import type { SucursalListado } from "@/types/seguridad";
+import type { AdminCredentials, SucursalListado } from "@/types/seguridad";
 import { confirmsCompanyName } from "./companyNameConfirmation";
 
 const branchStore = useBranchStore();
@@ -53,7 +53,31 @@ const reactivar = (id: number) =>
     () => branchStore.reactivarSucursal(id),
   );
 
+async function askAdminCredentials() {
+  const { value } = await Swal.fire<AdminCredentials>({
+    title: "Autoriza con un administrador",
+    html:
+      "<p>Para eliminar una empresa, escribe el usuario y la clave de un administrador.</p>" +
+      '<input id="admin-usuario" class="swal2-input" placeholder="Usuario" aria-label="Usuario del administrador" autocomplete="off">' +
+      '<input id="admin-clave" type="password" class="swal2-input" placeholder="Clave" aria-label="Clave del administrador" autocomplete="new-password">',
+    focusConfirm: false,
+    showCancelButton: true,
+    confirmButtonText: "Continuar",
+    cancelButtonText: "Cancelar",
+    preConfirm: () => {
+      const usuario = (document.getElementById("admin-usuario") as HTMLInputElement).value.trim();
+      const clave = (document.getElementById("admin-clave") as HTMLInputElement).value;
+      if (usuario && clave) return { usuario, clave };
+      Swal.showValidationMessage("Escribe el usuario y la clave del administrador.");
+      return false;
+    },
+  });
+  return value;
+}
+
 async function eliminar(company: SucursalListado) {
+  const admin = await askAdminCredentials();
+  if (!admin) return;
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
     title: "Eliminar empresa",
@@ -66,7 +90,7 @@ async function eliminar(company: SucursalListado) {
     inputValidator: (typed) =>
       confirmsCompanyName(typed, company.trade_name) ? null : "Escribe el nombre exacto de la empresa para eliminarla.",
   });
-  if (isConfirmed && (await branchStore.eliminarSucursal(company.id))) {
+  if (isConfirmed && (await branchStore.eliminarSucursal(company.id, admin))) {
     await branchStore.ListadoSucursal();
   }
 }

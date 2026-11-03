@@ -87,19 +87,26 @@ describe("branch store", () => {
     expect(done).toBe(true);
   });
 
-  test("eliminarSucursal deletes the company and reports success", async () => {
+  const admin = { usuario: "admin@example.com", clave: "Clave-1" };
+
+  test("eliminarSucursal sends the company with the administrator's credentials and reports success", async () => {
     respond({ eliminar_sucursal: accepted([]) });
 
-    const done = await useBranchStore().eliminarSucursal(3);
+    const done = await useBranchStore().eliminarSucursal(3, admin);
 
-    expect(httpMock).toHaveBeenCalledWith({ method: "delete", url: URL_MAIN + "eliminar_sucursal", data: { id: 3 }, headers: JSON_HEADERS });
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "delete",
+      url: URL_MAIN + "eliminar_sucursal",
+      data: { id: 3, ...admin },
+      headers: JSON_HEADERS,
+    });
     expect(done).toBe(true);
   });
 
   test("eliminarSucursal shows why a company was not deleted", async () => {
     respond({ eliminar_sucursal: { ...rejected("Inactiva la empresa antes de eliminarla."), tipomensaje: "TMSGADV" } });
 
-    const done = await useBranchStore().eliminarSucursal(3);
+    const done = await useBranchStore().eliminarSucursal(3, admin);
 
     expect(done).toBe(false);
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({

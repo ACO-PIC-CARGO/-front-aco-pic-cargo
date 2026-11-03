@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { test, expect } from "./fixtures.mjs";
 import { outsideInert, pickFirstOption, pickOption } from "./support/fields.mjs";
 import { waitForPageToSettle } from "./support/page.mjs";
-import { SESSION_FILE } from "./support/env.mjs";
+import { credentials, SESSION_FILE } from "./support/env.mjs";
 
 const API = process.env.E2E_API_URL ?? "http://localhost:9200/";
 const uniqueName = (label) => `E2E M8 ${label} ${Date.now()}`;
@@ -153,4 +153,29 @@ test("the registered-companies list keeps an inactivated company and reactivates
   await acknowledge(page, "Reactivamos la empresa.");
   await expect(row).toContainText("Activo");
   await expect(row.getByRole("button", { name: "Inactivar empresa" })).toBeVisible();
+});
+
+test("deleting a registered company needs an administrator's user and password", async ({ page, request }) => {
+  const company = await createThrowawayCompany(request, "eliminar");
+  await apiData(await request.put(API + "inactivar_sucursal", { headers: apiSession(), data: { id: company.id } }));
+  await page.goto("/home/lstEnterpriseRegister");
+  await waitForPageToSettle(page);
+  await page.getByRole("textbox").first().fill(company.name);
+  const row = page.getByRole("row").filter({ hasText: company.name });
+  const deleteAuthorizedWith = async (clave) => {
+    await row.getByRole("button", { name: "Eliminar empresa" }).click();
+    await page.getByLabel("Usuario del administrador").fill(credentials().user);
+    await page.getByLabel("Clave del administrador").fill(clave);
+    await confirm(page, "Continuar");
+    await page.getByPlaceholder(company.name).fill(company.name);
+    await confirm(page, "Eliminar para siempre");
+  };
+
+  await deleteAuthorizedWith("Clave-Equivocada-9");
+  await acknowledge(page, "No pudimos validar al administrador.");
+  await expect(row).toContainText("Inactivo");
+
+  await deleteAuthorizedWith(credentials().password);
+  await acknowledge(page, "Eliminamos la empresa y todos sus datos.");
+  await expect(row).toHaveCount(0);
 });
