@@ -97,7 +97,7 @@ describe("branch store", () => {
     expect(httpMock).toHaveBeenCalledWith({
       method: "delete",
       url: URL_MAIN + "eliminar_sucursal",
-      data: { id: 3, ...admin },
+      data: { id: 3, autorizacion: admin },
       headers: JSON_HEADERS,
     });
     expect(done).toBe(true);

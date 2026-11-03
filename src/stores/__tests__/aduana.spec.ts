@@ -600,8 +600,8 @@ describe("aduana store", () => {
       await aduana.actualizarQuoteAduana();
 
       const [authorized, unauthorized] = httpMock.mock.calls.map(([config]) => config.data as Record<string, unknown>);
-      expect(authorized).toMatchObject(admin);
-      expect(unauthorized).not.toHaveProperty("usuario");
+      expect(authorized).toMatchObject({ autorizacion: admin });
+      expect(unauthorized).not.toHaveProperty("autorizacion");
     });
 
     test("actualizarQuoteAduana puts the edited quote with the edit formatter and shows the answer", async () => {

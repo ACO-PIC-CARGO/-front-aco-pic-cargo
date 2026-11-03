@@ -2520,7 +2520,7 @@ export const useAduanaStore = defineStore("aduana", () => {
 
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
-      ...approvedEditAdmin.value,
+      ...(approvedEditAdmin.value && { autorizacion: approvedEditAdmin.value }),
     };
     const config = {
       method: "put",

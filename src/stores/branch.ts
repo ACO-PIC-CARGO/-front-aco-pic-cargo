@@ -23,7 +23,7 @@ export const useBranchStore = defineStore("branch", () => {
     }
   }
 
-  async function changeCompany(method: "put" | "delete", path: string, body: { id: number }): Promise<boolean> {
+  async function changeCompany(method: "put" | "delete", path: string, body: { id: number; autorizacion?: AdminCredentials }): Promise<boolean> {
     const data = await request({
       method,
       url: `${import.meta.env.VITE_URL_MAIN}${path}`,
@@ -37,7 +37,7 @@ export const useBranchStore = defineStore("branch", () => {
   const inactivarSucursal = (id: number) => changeCompany("put", "inactivar_sucursal", { id });
   const reactivarSucursal = (id: number) => changeCompany("put", "reactivar_sucursal", { id });
   const eliminarSucursal = (id: number, admin: AdminCredentials) =>
-    changeCompany("delete", "eliminar_sucursal", { id, ...admin });
+    changeCompany("delete", "eliminar_sucursal", { id, autorizacion: admin });
 
   return { lstBranch, ListadoSucursal, inactivarSucursal, reactivarSucursal, eliminarSucursal };
 });

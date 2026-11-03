@@ -3292,7 +3292,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }),
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
-      ...approvedEditAdmin.value,
+      ...(approvedEditAdmin.value && { autorizacion: approvedEditAdmin.value }),
     };
     const response = await request({
       method: "put",
