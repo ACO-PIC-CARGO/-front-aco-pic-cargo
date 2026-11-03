@@ -8,14 +8,15 @@ import axios from "@/api/http";
 import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
-import { useSecuritysStore } from "@/stores/securitys";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
 import { hasFailed, request } from "@/utils/request";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import type { CuentaListado } from "@/types/modulesPays";
+import type { AdminCredentials } from "@/types/seguridad";
 
 const router = useRouter();
 const appStore = useAppStore();
 const { can } = usePermissions();
-const securitysStore = useSecuritysStore();
 
 const itemsListInvoice = ref<CuentaListado[]>([]);
 const searchFactura = ref("");
@@ -124,59 +125,9 @@ function penPro(id: number) {
   router.push({ name: "EditAccountPays", params: { id: id } });
 }
 async function penProConClaveAdmin(id: number) {
-  let val = true;
-  let msg = "";
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-        msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    await Swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
+  const admin = await askAdminCredentials("Para editar esta cuenta pagada, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  useAdminAuthorizationStore().credentials = admin;
   router.push({ name: "EditAccountPays", params: { id: id } });
 }
 function limpiar() {
@@ -228,67 +179,15 @@ async function _getInvoiceAdmin() {
   filtroflag.value = false;
 }
 async function delPro(id: number) {
-  let val = true;
-  let msg = "";
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-          msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    await Swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-
-  await EliminarCuenta(id);
+  const admin = await askAdminCredentials("Para eliminar esta cuenta, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  await EliminarCuenta(id, admin);
 }
-async function EliminarCuenta(id: number) {
+async function EliminarCuenta(id: number, admin: AdminCredentials) {
   const answer = await request({
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "delPro",
-    data: { id },
+    data: { id, ...withAuthorization(admin) },
   });
   Swal.fire({
     icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info",
@@ -450,7 +349,7 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 1 && can('controlAccountPays', 'ELIMINAR')"
+                v-if="item.status == 1"
                 color="red"
                 @click="delPro(item.id)"
               >
@@ -470,7 +369,7 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 2 && can('controlAccountPays', 'MODIFICAR')"
+                v-if="item.status == 2"
                 color="blue"
                 @click="penProConClaveAdmin(item.id)"
               >

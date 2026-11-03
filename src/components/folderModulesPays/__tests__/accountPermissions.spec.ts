@@ -3,8 +3,9 @@ import ModuleAccountPaysComponent from "@/components/folderModulesPays/ModuleAcc
 import ControlAccountPaysComponent from "@/components/folderModulesPays/ControlAccountPaysComponent.vue";
 import ModuleAccountReceivableComponent from "@/components/folderModulesPays/ModuleAccountReceivableComponent.vue";
 import ControlAccountReceivableComponent from "@/components/folderModulesPays/ControlAccountReceivableComponent.vue";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
 import { actionsOf, button, controlsFor, icon, shownControls } from "@/composables/__tests__/screenControls";
-import type { ControlledScreen } from "@/composables/__tests__/screenControls";
+import type { ControlledScreen, ScreenControl } from "@/composables/__tests__/screenControls";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), go: vi.fn() } }));
@@ -14,10 +15,8 @@ vi.mock("vue-router", () => ({
 }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: false }) } }));
 
-const openAndClosed = [
-  { id: 1, status: 1, paymentname: "Contado" },
-  { id: 2, status: 2, paymentname: "Contado" },
-];
+const open = { id: 1, status: 1, paymentname: "Contado" };
+const paid = { id: 2, status: 2, paymentname: "Contado" };
 const account = { id: 5, fecha: "2026-10-01", details: [{ id: 1, concepto: "Flete", monto: 10, status: true }] };
 
 const SCREENS: ControlledScreen[] = [
@@ -25,11 +24,10 @@ const SCREENS: ControlledScreen[] = [
     name: "Cuentas por pagar",
     route: "controlAccountPays",
     component: ModuleAccountPaysComponent,
-    rows: { getInvoiceAdmin: openAndClosed },
+    rows: { getInvoiceAdmin: [open] },
     controls: [
       { name: "Nueva factura", action: "NUEVO", shown: button("NUEVA FACTURA") },
       { name: "Editar", action: "MODIFICAR", shown: icon("mdi-pencil") },
-      { name: "Eliminar", action: "ELIMINAR", shown: icon("mdi-delete") },
     ],
   },
   {
@@ -51,11 +49,10 @@ const SCREENS: ControlledScreen[] = [
     name: "Cuentas por cobrar",
     route: "moduleAccountReceivable",
     component: ModuleAccountReceivableComponent,
-    rows: { getInvoiceAdminCxC: openAndClosed },
+    rows: { getInvoiceAdminCxC: [open] },
     controls: [
       { name: "Nuevo cobro", action: "NUEVO", shown: button("NUEVO COBRO") },
       { name: "Editar", action: "MODIFICAR", shown: icon("mdi-pencil") },
-      { name: "Eliminar", action: "ELIMINAR", shown: icon("mdi-delete") },
     ],
   },
   {
@@ -82,5 +79,32 @@ describe.each(SCREENS)("$name", (screen) => {
 
   test.each(actionsOf(screen))("with %s it shows exactly the controls of that action", async (action) => {
     expect(await shownControls(screen, ["VER", action])).toEqual(controlsFor(screen, action));
+  });
+});
+
+const ADMIN_AUTHORIZED: ScreenControl[] = [
+  { name: "Eliminar", action: "VER", shown: icon("mdi-delete") },
+  { name: "Editar pagada", action: "VER", shown: icon("mdi-pencil") },
+];
+
+describe.each<Omit<ControlledScreen, "controls">>([
+  { name: "Cuentas por pagar", route: "controlAccountPays", component: ModuleAccountPaysComponent, rows: { getInvoiceAdmin: [open, paid] } },
+  { name: "Cuentas por cobrar", route: "moduleAccountReceivable", component: ModuleAccountReceivableComponent, rows: { getInvoiceAdminCxC: [open, paid] } },
+])("$name", (list) => {
+  test("Eliminar and Editar on a paid account show to anyone who can open the list, since an administrator authorizes them", async () => {
+    expect(await shownControls({ ...list, controls: ADMIN_AUTHORIZED }, ["VER"])).toEqual(["Eliminar", "Editar pagada"]);
+  });
+});
+
+describe.each(SCREENS.filter((screen) => screen.props?.tipo === "editar"))("$name", (screen) => {
+  test("saving shows without Modificar while an administrator's authorization is open", async () => {
+    const authorized = {
+      ...screen,
+      before: () => {
+        useAdminAuthorizationStore().credentials = { usuario: "jefa@empresa.com", clave: "Clave-1" };
+      },
+    };
+
+    expect(await shownControls(authorized, ["VER"])).toEqual(controlsFor(screen, "MODIFICAR"));
   });
 });

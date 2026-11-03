@@ -73,25 +73,26 @@ const controls = () => ({
 });
 
 const NONE = { nuevo: false, editar: false, fechas: false, cerrar: false, abrir: false, activar: false, anular: false };
+const ADMIN_AUTHORIZED = { ...NONE, abrir: true, activar: true };
 
-test("a user who may only look at masters sees no control that changes them", async () => {
+test("a user who may only look at masters sees only the reopen controls, which an administrator authorizes", async () => {
   await mountList(["VER"]);
 
-  expect(controls()).toEqual(NONE);
+  expect(controls()).toEqual(ADMIN_AUTHORIZED);
   expect(document.body.querySelector(".mdi-eye")).not.toBeNull();
 });
 
 test("each master action shows only with its own permission", async () => {
   await mountList(["VER", "NUEVO"]);
-  expect(controls()).toEqual({ ...NONE, nuevo: true });
+  expect(controls()).toEqual({ ...ADMIN_AUTHORIZED, nuevo: true });
   wrapper!.unmount();
 
   await mountList(["VER", "MODIFICAR"]);
-  expect(controls()).toEqual({ ...NONE, editar: true, fechas: true, cerrar: true, abrir: true, activar: true });
+  expect(controls()).toEqual({ ...ADMIN_AUTHORIZED, editar: true, fechas: true, cerrar: true });
   wrapper!.unmount();
 
   await mountList(["VER", "ELIMINAR"]);
-  expect(controls()).toEqual({ ...NONE, anular: true });
+  expect(controls()).toEqual({ ...ADMIN_AUTHORIZED, anular: true });
 });
 
 test("the folder dialog opens the folder for everyone and saves a new URL only with Modificar", async () => {

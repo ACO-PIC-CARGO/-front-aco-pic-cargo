@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import { useRoute, useRouter } from "vue-router";
@@ -9,7 +9,9 @@ import CustomTreeSelect from "./../comun/CustomTreeSelect.vue";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useEnterprisesStore } from "@/stores/enterprises";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
 import { hasFailed, request } from "@/utils/request";
+import { withAuthorization } from "@/utils/adminCredentials";
 import {
   activeConcepts,
   conceptTotals,
@@ -40,6 +42,7 @@ const appStore = useAppStore();
 const { can } = usePermissions();
 const balancesStore = useBalancesStore();
 const enterprisesStore = useEnterprisesStore();
+const adminAuthorization = useAdminAuthorizationStore();
 const InvoiceAdmin = computed(() => appStore.InvoiceAdmin);
 const frmFactura = useTemplateRef("frmFactura");
 const validacionConcepto = useTemplateRef("validacionConcepto");
@@ -355,7 +358,7 @@ async function setUpdateInvoiceAdmin() {
   errorGasto.value = "";
   if (saving.value) return;
   saving.value = true;
-  const saved = await saveAccount("put", "setUpdateInvoiceAdmin", { id: route.params.id });
+  const saved = await saveAccount("put", "setUpdateInvoiceAdmin", { id: route.params.id, ...withAuthorization(adminAuthorization.credentials) });
   saving.value = false;
   if (saved) {
     Swal.fire({
@@ -489,6 +492,10 @@ watch(radio, async () => {
     await _getMasterList();
     appStore.spiner = false;
   }
+});
+
+onBeforeUnmount(() => {
+  adminAuthorization.credentials = null;
 });
 
 onMounted(async () => {
@@ -967,7 +974,7 @@ onMounted(async () => {
               elevation="0"
               color="primary"
               size="large"
-              v-if="tipo == 'editar' && can('controlAccountPays', 'MODIFICAR')"
+              v-if="tipo == 'editar' && (can('controlAccountPays', 'MODIFICAR') || adminAuthorization.credentials)"
               @click="setUpdateInvoiceAdmin()"
               :loading="saving"
               :disabled="saving || activeConcepts(itemsProductos).length == 0"

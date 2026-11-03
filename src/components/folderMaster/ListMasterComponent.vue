@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import { useSecuritysStore } from "@/stores/securitys";
 import axios from "@/api/http";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -17,6 +16,7 @@ import type { CotizacionListado } from "@/types/cotizacion";
 import type { MasterListado } from "@/types/operacionesMaster";
 import { isEtaBeforeEtd, isMasterClosed, masterRowClass } from "@/utils/masters";
 import { hasFailed, request } from "@/utils/request";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 const appStore = useAppStore();
@@ -24,7 +24,6 @@ const appRouter = useRouter();
 const pricingStore = usePricingStore();
 const mastersStore = useMastersStore();
 const masterusuariosStore = useMasterusuariosStore();
-const securitysStore = useSecuritysStore();
 const { can } = usePermissions();
 const itemsMasterList = computed(() => appStore.itemsMasterList);
 const itemsModality = computed(() => appStore.itemsModality);
@@ -92,65 +91,15 @@ async function reactivarMaster({
   abriroperativo?: boolean | null;
   abriradministrativo?: boolean | null;
 }) {
-  let val = true as boolean;
-  let msg = null as string | null;
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-        msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    await Swal.fire({
-      icon: "error",
-      text: msg!,
-    });
-    return false;
-  }
+  const admin = await askAdminCredentials("Para reactivar este master, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
   appStore.spiner = true;
   const answer = await mastersStore.controlGastosReactivar({
     id: id,
     activaranulado: activaranulado,
     abriroperativo: abriroperativo,
     abriradministrativo: abriradministrativo,
+    ...withAuthorization(admin),
   });
   await appStore._getMasterList();
   appStore.spiner = false;
@@ -787,10 +736,10 @@ onMounted(async () => {
                   Ir Control Gastos
                 </v-list-item-title>
               </v-list-item>
-              <template v-if="can('listMaster', 'MODIFICAR')">
+              <template v-if="!item.statuslock && item.status == 1">
                 <v-list-item
                   class="itemMenu"
-                  v-if="!item.statuslock && item.status == 1"
+                  v-if="can('listMaster', 'MODIFICAR')"
                 >
                   <v-list-item-title
                     icon
@@ -806,32 +755,34 @@ onMounted(async () => {
                     Expediente Operativo
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item
-                  class="itemMenu"
-                  v-else
+              </template>
+              <v-list-item
+                class="itemMenu"
+                v-else
+              >
+                <v-list-item-title
+                  icon
+                  small
+                  @click="
+                    reactivarMaster({
+                      id: item.id,
+                      abriroperativo: true,
+                    })
+                  "
                 >
-                  <v-list-item-title
-                    icon
-                    small
-                    @click="
-                      reactivarMaster({
-                        id: item.id,
-                        abriroperativo: true,
-                      })
-                    "
+                  <v-icon
+                    class="mx-1"
+                    color="#E65100"
                   >
-                    <v-icon
-                      class="mx-1"
-                      color="#E65100"
-                    >
-                      mdi-lock-open-alert
-                    </v-icon>
-                    Abrir Expediente Operativo
-                  </v-list-item-title>
-                </v-list-item>
+                    mdi-lock-open-alert
+                  </v-icon>
+                  Abrir Expediente Operativo
+                </v-list-item-title>
+              </v-list-item>
+              <template v-if="!item.statuslockadm && item.status == 1">
                 <v-list-item
                   class="itemMenu"
-                  v-if="!item.statuslockadm && item.status == 1"
+                  v-if="can('listMaster', 'MODIFICAR')"
                 >
                   <v-list-item-title
                     icon
@@ -847,30 +798,30 @@ onMounted(async () => {
                     Expediente Administrativo
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item
-                  class="itemMenu"
-                  v-else
-                >
-                  <v-list-item-title
-                    icon
-                    @click="
-                      reactivarMaster({
-                        id: item.id,
-                        abriradministrativo: true,
-                      })
-                    "
-                    small
-                  >
-                    <v-icon
-                      class="mx-1"
-                      color="#E65100"
-                    >
-                      mdi-lock-open-alert
-                    </v-icon>
-                    Abrir Expediente Administrativo
-                  </v-list-item-title>
-                </v-list-item>
               </template>
+              <v-list-item
+                class="itemMenu"
+                v-else
+              >
+                <v-list-item-title
+                  icon
+                  @click="
+                    reactivarMaster({
+                      id: item.id,
+                      abriradministrativo: true,
+                    })
+                  "
+                  small
+                >
+                  <v-icon
+                    class="mx-1"
+                    color="#E65100"
+                  >
+                    mdi-lock-open-alert
+                  </v-icon>
+                  Abrir Expediente Administrativo
+                </v-list-item-title>
+              </v-list-item>
               <v-list-item
                 class="itemMenu"
                 v-if="item.status == 1"
@@ -930,7 +881,7 @@ onMounted(async () => {
           </label> -->
           <v-btn
             color="red"
-            v-if="item.status == 0 && can('listMaster', 'MODIFICAR')"
+            v-if="item.status == 0"
             @click="
               reactivarMaster({
                 id: item.id,
