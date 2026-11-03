@@ -2,14 +2,13 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import { usePermissions } from "@/composables/usePermissions";
 import moment from "moment";
-import Swal from "sweetalert2";
 import axios from "@/api/http";
 import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useReportesStore } from "@/stores/reportes";
-import { useSecuritysStore } from "@/stores/securitys";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
+import { askAdminCredentials } from "@/utils/adminCredentials";
 import type { BancoGastoDetalle } from "@/types/finanzas";
 import type { CuentaBancariaPic } from "@/types/operaciones";
 import type { FiltroPagoProveedorDetallado } from "@/types/banksProveedor";
@@ -17,9 +16,8 @@ import { sessionBranchId } from "@/utils/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
-const { can } = usePermissions();
 const reportesStore = useReportesStore();
-const securitysStore = useSecuritysStore();
+const adminAuthorization = useAdminAuthorizationStore();
 
 const search = ref("");
 const headersCabecera = [
@@ -64,64 +62,9 @@ async function ver(pago: BancoGastoDetalle) {
   });
 }
 async function editar(item: BancoGastoDetalle) {
-  let val = false;
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      // @ts-expect-error msg is not declared
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-        // @ts-expect-error msg is not declared
-        msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      // @ts-expect-error msg is not declared
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    // @ts-expect-error swal is not defined
-    await swal.fire({
-      icon: "error",
-      // @ts-expect-error msg is not declared
-      text: msg,
-    });
-    return false;
-  }
-
+  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  adminAuthorization.credentials = admin;
   router.push({
     name: "editarPagosPorProveedor",
     params: { id: item.id_pago as number },
@@ -277,7 +220,6 @@ onMounted(async () => {
                 size="small"
                 icon
                 color="warning"
-                v-if="can('listBankCxP', 'MODIFICAR')"
                 @click="editar(item)"
               >
                 <v-icon>mdi-pencil</v-icon>

@@ -2,7 +2,6 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
-import { usePermissions } from "@/composables/usePermissions";
 import axios from "@/api/http";
 import swal from "sweetalert2";
 import moment from "moment";
@@ -11,7 +10,8 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useIngresosStore } from "@/stores/ingresos";
-import { useSecuritysStore } from "@/stores/securitys";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
+import { askAdminCredentials } from "@/utils/adminCredentials";
 import type {
   CuentaDestinoCliente,
   DatoIngresoCliente,
@@ -23,11 +23,10 @@ import type { TipoBalance } from "@/types/finanzas";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 const appStore = useAppStore();
-const { can } = usePermissions();
 const router = useRouter();
 const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
-const securitysStore = useSecuritysStore();
+const adminAuthorization = useAdminAuthorizationStore();
 const formInvoice = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 let tiposubingresoFilter: TipoBalance[] | undefined;
 
@@ -458,64 +457,11 @@ async function ActualizarIngreso() {
   EditarIngresoFlag.value = false;
 }
 async function editar(item: IngresoCliente) {
-  let val = true;
-  let msg = "";
   payfile.value = null;
   Ingreso.value.id_path = null;
-  await swal
-    .fire({
-      title: "Ingrese sus datos Administrador",
-      html:
-        '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-        '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: "Aceptar",
-      cancelButtonText: "Cancelar",
-      preConfirm: () => {
-        const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-        const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-        if (!input1 || !input2) {
-          Swal.showValidationMessage("Por favor, complete ambos campos");
-          return false;
-        }
-        return { usuario: input1, clave: input2 };
-      },
-    })
-    .then(async (result) => {
-      if (!result.isConfirmed) {
-        // Usuario canceló
-        val = false;
-        msg = "Operación cancelada";
-        return;
-      }
-
-      if (result.value) {
-        const res = await securitysStore.validarUsuarioAdmin({
-          usuario: result.value.usuario,
-          clave: result.value.clave,
-        });
-
-        if (res && res.estadoflag) {
-          val = true;
-        } else {
-          val = false;
-          msg = res?.mensaje || "Credenciales incorrectas";
-        }
-      } else {
-        val = false;
-        msg = "Debe ingresar las credenciales";
-      }
-    });
-
-  if (!val) {
-    await swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-
+  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  adminAuthorization.credentials = admin;
   router.push({
     name: "editarPagosPorCliente",
     params: { id: item.id_pago },
@@ -681,7 +627,6 @@ onMounted(async () => {
               size="small"
               icon
               color="warning"
-              v-if="can('listBankCxC', 'MODIFICAR')"
               @click="editar(item)"
             >
               <v-icon>mdi-pencil</v-icon>

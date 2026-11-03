@@ -11,7 +11,8 @@ import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useBankStore } from "@/stores/bank";
 import { useIngresosStore } from "@/stores/ingresos";
-import { useSecuritysStore } from "@/stores/securitys";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import type {
   CuentaDestinoCliente,
   DatoIngresoCliente,
@@ -28,7 +29,7 @@ const router = useRouter();
 const bankStore = useBankStore();
 const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
-const securitysStore = useSecuritysStore();
+const adminAuthorization = useAdminAuthorizationStore();
 const formInvoice = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 const registrosIngreso = computed(() => bankStore.list as unknown as RegistroIngreso[]);
 let tiposubingresoFilter: TipoBalance[] | undefined;
@@ -151,65 +152,11 @@ function confirmarEliminar(pago: RegistroIngreso) {
     });
 }
 async function eliminar(pago: RegistroIngreso) {
-  let val = true;
-  let msg = "";
   payfile.value = null;
   Ingreso.value.id_path = null;
-  await swal
-    .fire({
-      title: "Ingrese sus datos Administrador",
-      html:
-        '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-        '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: "Aceptar",
-      cancelButtonText: "Cancelar",
-      preConfirm: () => {
-        const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-        const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-        if (!input1 || !input2) {
-          // @ts-expect-error Swal is not defined in this scope
-          Swal.showValidationMessage("Por favor, complete ambos campos");
-          return false;
-        }
-        return { usuario: input1, clave: input2 };
-      },
-    })
-    .then(async (result) => {
-      if (!result.isConfirmed) {
-        // Usuario canceló
-        val = false;
-        msg = "Operación cancelada";
-        return;
-      }
-
-      if (result.value) {
-        const res = await securitysStore.validarUsuarioAdmin({
-          usuario: result.value.usuario,
-          clave: result.value.clave,
-        });
-
-        if (res && res.estadoflag) {
-          val = true;
-        } else {
-          val = false;
-          msg = res?.mensaje || "Credenciales incorrectas";
-        }
-      } else {
-        val = false;
-        msg = "Debe ingresar las credenciales";
-      }
-    });
-
-  if (!val) {
-    await swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-  await bankStore.eliminarRegistroIngresos(pago);
+  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  await bankStore.eliminarRegistroIngresos({ ...pago, ...withAuthorization(admin) });
   await bankStore.getRegistroIngresos(filtro.value);
 }
 
@@ -248,65 +195,11 @@ function nuevo() {
   router.push({ name: "registroPayForCliente" });
 }
 async function editar(item: RegistroIngreso) {
-  let val = true;
-  let msg = "";
   payfile.value = null;
   Ingreso.value.id_path = null;
-  await swal
-    .fire({
-      title: "Ingrese sus datos Administrador",
-      html:
-        '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-        '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: "Aceptar",
-      cancelButtonText: "Cancelar",
-      preConfirm: () => {
-        const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-        const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-        if (!input1 || !input2) {
-          // @ts-expect-error Swal is not defined in this scope
-          Swal.showValidationMessage("Por favor, complete ambos campos");
-          return false;
-        }
-        return { usuario: input1, clave: input2 };
-      },
-    })
-    .then(async (result) => {
-      if (!result.isConfirmed) {
-        // Usuario canceló
-        val = false;
-        msg = "Operación cancelada";
-        return;
-      }
-
-      if (result.value) {
-        const res = await securitysStore.validarUsuarioAdmin({
-          usuario: result.value.usuario,
-          clave: result.value.clave,
-        });
-
-        if (res && res.estadoflag) {
-          val = true;
-        } else {
-          val = false;
-          msg = res?.mensaje || "Credenciales incorrectas";
-        }
-      } else {
-        val = false;
-        msg = "Debe ingresar las credenciales";
-      }
-    });
-
-  if (!val) {
-    await swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-
+  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  adminAuthorization.credentials = admin;
   router.push({
     name: "editarPagosPorCliente",
     params: { id: item.id },
@@ -647,7 +540,6 @@ onMounted(async () => {
             size="small"
             icon
             color="orange"
-            v-if="can('listBankCxC', 'MODIFICAR')"
             @click="editar(item)"
           >
             <v-icon>mdi-pencil</v-icon>
@@ -657,7 +549,6 @@ onMounted(async () => {
             size="small"
             icon
             color="red"
-            v-if="can('listBankCxC', 'ELIMINAR')"
             @click="confirmarEliminar(item)"
           >
             <v-icon>mdi-delete</v-icon>

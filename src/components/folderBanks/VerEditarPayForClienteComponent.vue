@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, mergeProps, onMounted, ref, watch } from "vue";
+import { computed, defineAsyncComponent, mergeProps, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -8,7 +8,8 @@ import Swal from "sweetalert2";
 import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
-import { useSecuritysStore } from "@/stores/securitys";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import { depositMatches, depositTotal } from "@/utils/bankDeposit";
 import type {
   CuentaIngreso,
@@ -26,7 +27,7 @@ const router = useRouter();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
-const securitysStore = useSecuritysStore();
+const adminAuthorization = useAdminAuthorizationStore();
 const clientes = computed(() => appStore.clientes);
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
 const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
@@ -163,60 +164,9 @@ function confirmarEliminar() {
   });
 }
 async function eliminar() {
-  let val = true;
-  let msg = "";
-  await Swal.fire({
-    title: "Ingrese sus datos Administrador",
-    html:
-      '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-      '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-    focusConfirm: false,
-    showCancelButton: true,
-    confirmButtonText: "Aceptar",
-    cancelButtonText: "Cancelar",
-    preConfirm: () => {
-      const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-      const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-      if (!input1 || !input2) {
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-        return false;
-      }
-      return { usuario: input1, clave: input2 };
-    },
-  }).then(async (result) => {
-    if (!result.isConfirmed) {
-      // Usuario canceló
-      val = false;
-      msg = "Operación cancelada";
-      return;
-    }
-
-    if (result.value) {
-      const res = await securitysStore.validarUsuarioAdmin({
-        usuario: result.value.usuario,
-        clave: result.value.clave,
-      });
-
-      if (res && res.estadoflag) {
-        val = true;
-      } else {
-        val = false;
-        msg = res?.mensaje || "Credenciales incorrectas";
-      }
-    } else {
-      val = false;
-      msg = "Debe ingresar las credenciales";
-    }
-  });
-
-  if (!val) {
-    await Swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-  if (await bankStore.eliminarRegistroIngresos({ id: route.params.id })) {
+  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  if (await bankStore.eliminarRegistroIngresos({ id: route.params.id, ...withAuthorization(admin) })) {
     router.push({ name: "listBankCxC" });
   }
 }
@@ -417,6 +367,7 @@ async function finalizarOperacion() {
     montogastobancario: montogastobancario.value,
     detalle: selected.value,
     id_soporte: id_path.value,
+    ...withAuthorization(adminAuthorization.credentials),
   };
 
   loading.value = true;
@@ -458,6 +409,10 @@ watch(selected, () => {
   calcularTotal();
 }, {
   deep: true, // Esto detecta cambios en las propiedades internas de los items
+});
+
+onBeforeUnmount(() => {
+  adminAuthorization.credentials = null;
 });
 
 onMounted(async () => {
@@ -618,7 +573,7 @@ onMounted(async () => {
           <v-btn
             class="mt-5 ml-3"
             color="success"
-            v-if="!verflag && can('listBankCxC', 'MODIFICAR')"
+            v-if="!verflag && (can('listBankCxC', 'MODIFICAR') || adminAuthorization.credentials)"
             :loading="loading"
             @click="finalizarOperacion()"
           >
@@ -628,7 +583,7 @@ onMounted(async () => {
           <v-btn
             class="mt-5 mx-3"
             color="red"
-            v-if="!verflag && can('listBankCxC', 'ELIMINAR')"
+            v-if="!verflag"
             :loading="loading"
             @click="confirmarEliminar()"
           >

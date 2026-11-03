@@ -12,7 +12,7 @@ import { useBalancesStore } from "@/stores/balances";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
 import { useIngresosStore } from "@/stores/ingresos";
-import { useSecuritysStore } from "@/stores/securitys";
+import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import type { CuentaBancariaPic } from "@/types/operaciones";
 import type { TipoBalance } from "@/types/finanzas";
 import type {
@@ -31,7 +31,6 @@ const bankStore = useBankStore();
 const balancesStore = useBalancesStore();
 const filesStore = useFilesStore();
 const ingresosStore = useIngresosStore();
-const securitysStore = useSecuritysStore();
 const formInvoice = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 let tipogastos: number | string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -148,65 +147,11 @@ function confirmarEliminar(pago: PagoEgresoFila) {
     });
 }
 async function eliminar(pago: PagoEgresoFila) {
-  let val = true;
-  let msg = "";
   payfile.value = null;
   Ingreso.value.id_path = null;
-  await swal
-    .fire({
-      title: "Ingrese sus datos Administrador",
-      html:
-        '<input id="swal-input1" class="swal2-input" placeholder="Nombre">' +
-        '<input id="swal-input2" type="password" class="swal2-input" placeholder="Clave">',
-      focusConfirm: false,
-      showCancelButton: true,
-      confirmButtonText: "Aceptar",
-      cancelButtonText: "Cancelar",
-      preConfirm: () => {
-        const input1 = (document.getElementById("swal-input1") as HTMLInputElement).value.trim();
-        const input2 = (document.getElementById("swal-input2") as HTMLInputElement).value.trim();
-        if (!input1 || !input2) {
-          // @ts-expect-error Swal is not defined in this scope
-        Swal.showValidationMessage("Por favor, complete ambos campos");
-          return false;
-        }
-        return { usuario: input1, clave: input2 };
-      },
-    })
-    .then(async (result) => {
-      if (!result.isConfirmed) {
-        // Usuario canceló
-        val = false;
-        msg = "Operación cancelada";
-        return;
-      }
-
-      if (result.value) {
-        const res = await securitysStore.validarUsuarioAdmin({
-          usuario: result.value.usuario,
-          clave: result.value.clave,
-        });
-
-        if (res && res.estadoflag) {
-          val = true;
-        } else {
-          val = false;
-          msg = res?.mensaje || "Credenciales incorrectas";
-        }
-      } else {
-        val = false;
-        msg = "Debe ingresar las credenciales";
-      }
-    });
-
-  if (!val) {
-    await swal.fire({
-      icon: "error",
-      text: msg,
-    });
-    return false;
-  }
-  await bankStore.eliminarRegistroEgresos(pago);
+  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  if (!admin) return;
+  await bankStore.eliminarRegistroEgresos({ ...pago, ...withAuthorization(admin) });
   await bankStore.getRegistroEgresos(filtro.value);
 }
 async function editar(pago: PagoEgresoFila) {
@@ -655,7 +600,6 @@ onMounted(async () => {
             size="small"
             icon
             color="red"
-            v-if="can('listBankCxP', 'ELIMINAR')"
             @click="confirmarEliminar(item)"
           >
             <v-icon>mdi-delete</v-icon>
