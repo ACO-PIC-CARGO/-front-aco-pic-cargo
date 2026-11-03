@@ -162,20 +162,18 @@ test("deleting a registered company needs an administrator's user and password",
   await waitForPageToSettle(page);
   await page.getByRole("textbox").first().fill(company.name);
   const row = page.getByRole("row").filter({ hasText: company.name });
-  const deleteAuthorizedWith = async (clave) => {
-    await row.getByRole("button", { name: "Eliminar empresa" }).click();
+  const authorize = async (clave) => {
     await page.getByLabel("Usuario del administrador").fill(credentials().user);
-    await page.getByLabel("Clave del administrador").fill(clave);
-    await confirm(page, "Continuar");
-    await page.getByPlaceholder(company.name).fill(company.name);
-    await confirm(page, "Eliminar para siempre");
+    await page.getByLabel("Contraseña del administrador").fill(clave);
+    await confirm(page, "Autorizar");
   };
 
-  await deleteAuthorizedWith("Clave-Equivocada-9");
-  await acknowledge(page, "No pudimos validar al administrador.");
-  await expect(row).toContainText("Inactivo");
-
-  await deleteAuthorizedWith(credentials().password);
+  await row.getByRole("button", { name: "Eliminar empresa" }).click();
+  await authorize("Clave-Equivocada-9");
+  await expect(page.getByRole("dialog")).toContainText("Datos Incorrectos.");
+  await authorize(credentials().password);
+  await page.getByPlaceholder(company.name).fill(company.name);
+  await confirm(page, "Eliminar para siempre");
   await acknowledge(page, "Eliminamos la empresa y todos sus datos.");
   await expect(row).toHaveCount(0);
 });

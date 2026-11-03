@@ -30,16 +30,14 @@ import type {
 } from "@/types/entidades";
 import type { PersonaRol } from "@/types/seguridad";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
-import { useSecuritysStore } from "@/stores/securitys";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
+import { ADMIN_CREDENTIAL_INPUTS, verifiedAdminCredentials } from "@/utils/adminCredentials";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 // import { isReadonly } from "vue";
 // console.log(router )
 
 const CLIENT_HAS_MOVEMENTS = "warning";
-const ADMIN_USER_INPUT = "swal-admin-user";
-const ADMIN_PASSWORD_INPUT = "swal-admin-password";
 
 const EMAIL_PATTERN =
   /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -1082,21 +1080,6 @@ export const useEntitiesStore = defineStore("entities", () => {
     });
   }
 
-  async function confirmAdministrator(): Promise<boolean> {
-    const usuario = (document.getElementById(ADMIN_USER_INPUT) as HTMLInputElement).value.trim();
-    const clave = (document.getElementById(ADMIN_PASSWORD_INPUT) as HTMLInputElement).value;
-    if (!usuario || !clave) {
-      Swal.showValidationMessage("Ingresa el usuario y la contraseña del administrador.");
-      return false;
-    }
-    const answer = await useSecuritysStore().validarUsuarioAdmin({ usuario, clave });
-    if (!answer || !answer.estadoflag) {
-      Swal.showValidationMessage((answer && answer.mensaje) || CONNECTION_ERROR_MESSAGE);
-      return false;
-    }
-    return true;
-  }
-
   async function approveClientEdit(idCliente: number): Promise<boolean> {
     const movements = await validarClienteTieneMovimientos({ id: idCliente });
     if (movements.estadoflag) return true;
@@ -1111,14 +1094,13 @@ export const useEntitiesStore = defineStore("entities", () => {
       html:
         `<p>${movements.mensaje}</p>` +
         "<p>Este cliente ya tiene movimientos. Para editarlo, pide a un administrador que ingrese su usuario y contraseña.</p>" +
-        `<input id="${ADMIN_USER_INPUT}" class="swal2-input" placeholder="Usuario o correo del administrador" autocomplete="off">` +
-        `<input id="${ADMIN_PASSWORD_INPUT}" type="password" class="swal2-input" placeholder="Contraseña" autocomplete="new-password">`,
+        ADMIN_CREDENTIAL_INPUTS,
       showCancelButton: true,
       confirmButtonText: "Autorizar",
       cancelButtonText: "Cancelar",
       allowOutsideClick: false,
       focusConfirm: false,
-      preConfirm: confirmAdministrator,
+      preConfirm: verifiedAdminCredentials,
     });
     return isConfirmed;
   }
