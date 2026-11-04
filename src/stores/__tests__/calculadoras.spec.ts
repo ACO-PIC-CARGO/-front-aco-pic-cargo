@@ -413,6 +413,16 @@ describe("calculadoras store", () => {
     expect(sentUrls()).toEqual(["calc/costo/eliminar", "calc/costos"]);
   });
 
+  test("GetCalcMultiplicador keeps the multipliers only when the backend finds some", async () => {
+    respond({ "calc/multiplicador": accepted([{ id: 1, name: "PESO" }]) });
+    const c = calc();
+    await c.GetCalcMultiplicador!({});
+    respond({ "calc/multiplicador": { estadoflag: false, mensaje: "No se encontraron registros", tipomensaje: "TMSGINF", data: [{ id: null, name: null }] } });
+    await c.GetCalcMultiplicador!({});
+
+    expect(c.lstMultiplicador).toEqual([]);
+  });
+
   test("getOpciones keeps the options only when the backend accepts", async () => {
     respond({ "calc/cargar/opciones": accepted([{ id: "1", nombre: "OPCIÓN INDIVIDUAL" }]) });
     const c = calc();

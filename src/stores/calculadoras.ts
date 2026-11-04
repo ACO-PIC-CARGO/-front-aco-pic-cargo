@@ -305,7 +305,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
       params: data,
     });
 
-    lstMultiplicador.value = response.data.data;
+    lstMultiplicador.value = response.data.estadoflag ? response.data.data : [];
   }
 
   async function PostCalcServicio(data: ServicioCalculadora): Promise<void> {
