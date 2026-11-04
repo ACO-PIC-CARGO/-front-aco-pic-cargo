@@ -3,7 +3,6 @@ import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
-import Swal from "sweetalert2";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useSpecialCostAmounts } from "@/composables/useSpecialCostAmounts";
 import { useProveedorStore } from "@/stores/proveedor";
@@ -127,17 +126,6 @@ function isDateValid(date: string) {
 
   return selectedDate.isAfter(today);
 }
-function hasCostsAtZero() {
-  return valores.some(
-    (v) =>
-      v.status == 1 &&
-      isNotPorcentaje(v, v.id_multiplicador) &&
-      !isITBM(v.code_cost) &&
-      !isConfeccion(v.code_cost) &&
-      !isNotaCredito(v.code_cost) &&
-      !(Number(v.costounitario) > 0),
-  );
-}
 function profitLine(): Costo {
   return {
     id: "",
@@ -162,10 +150,6 @@ function profitLine(): Costo {
 }
 async function continuar(step: number) {
   if (step == 2 && !(await frmFecha.value!.validate()).valid) {
-    return;
-  }
-  if (step == 3 && hasCostsAtZero()) {
-    Swal.fire({ icon: "warning", text: "Completa los costos que están en 0 antes de continuar." });
     return;
   }
   e6.value = step;

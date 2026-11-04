@@ -108,19 +108,14 @@ test("the wizard works on the option being edited", async () => {
   expect(profitLines(pricing.opcionCostos[1]!)).toHaveLength(1);
 });
 
-test("the wizard does not leave the costs step while a cost is still 0", async () => {
-  const { pricing, wizard } = await openWizard();
+test("the wizard leaves the costs step even while a cost is 0, as a template line can be", async () => {
+  const { wizard } = await openWizard();
   wizard.e6 = 2;
 
   await wizard.continuar(3);
 
-  expect(wizard.e6).toBe(2);
-  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "warning" }));
-
-  pricing.opcionCostos[0]!.listCostos[0]!.costounitario = 120;
-  await wizard.continuar(3);
-
   expect(wizard.e6).toBe(3);
+  expect(Swal.fire).not.toHaveBeenCalled();
 });
 
 test("moving through the wizard keeps the quote's report type", async () => {
