@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -10,6 +10,8 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { usePermissions } from "@/composables/usePermissions";
+import { useQuoteTrafficSend, type ApprovalAmounts } from "@/composables/useQuoteTrafficSend";
+import { SEND_TARGET_LABELS } from "@/utils/trafficSend";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import type { AprobacionCotizacion, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -24,6 +26,13 @@ const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
 const { can } = usePermissions();
+const quoteTraffic = useQuoteTrafficSend({
+  quoteKind: "ADUANA",
+  quoteId: () => route.params.id as string,
+  approved: () => Boolean(aduanaStore.aprobadoflag),
+});
+const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
+const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
 
 const frmAprobar = useTemplateRef("frmAprobar");
 const masterForm = useTemplateRef("masterForm");
@@ -69,6 +78,7 @@ const id_opcion = ref<number | string>("0");
 const id_opcion_house = ref<number | string>("0");
 
 onMounted(async () => {
+  quoteTraffic.load();
   // console.log("generaInstructivoparaguardataAduana");
   nextTick(async () => {
     setTimeout(async () => {
@@ -138,6 +148,14 @@ function verificarMaster() {
   console.log(textValidacionCotizacionMaster.value);
 }
 async function approveAduana(details: AprobacionCotizacion) {
+  if (pendingTrafficFile.value) {
+    await quoteTraffic.sendToOperations({
+      nuevoexpediente: Boolean(details.nuevoexpediente),
+      id_exp: (details.id_exp as number | string | null) || null,
+      fecha_validez: (details.fecha_validez as string | null) || null,
+    });
+    return;
+  }
   Swal.fire({
     icon: "info",
     title: "Aprobando Cotizacion",
@@ -162,7 +180,19 @@ async function abrirSeleccionDeQuoteAAprobar() {
   seleccionQuoteAprobar.value = true;
 }
 function mostrarBtnAprobar() {
-  return !aduanaStore.aprobadoflag;
+  return sendTargets.value.length > 0;
+}
+function approvalAmounts(): ApprovalAmounts {
+  const approval = aduanaStore.listIngresosInstructivoAprobar.find((v) => v.nro_propuesta == nro_propuesta.value)!;
+  const total = approval.dataIngresos.find((v) => v.descripcion === "TOTAL")!;
+  return {
+    totalIngreso: total.valor,
+    igvIngreso: total.igv,
+    valorIngreso: total.valor,
+    id_opcion: id_opcion.value,
+    listCostosInstructivo: approval.dataCostos,
+    listVentasInstructivo: approval.dataVentas,
+  };
 }
 async function abrirModalAprobar() {
   await aduanaStore.generaInstructivoparaguardataAduana();
@@ -177,6 +207,9 @@ async function abrirModalAprobar() {
         title: "Advertencia",
         text: "No se puede aprobar ya que la validez ya expiró.",
       }).then(() => false);
+    }
+    if (quoteTraffic.goesToTraffic.value) {
+      return quoteTraffic.sendQuote(approvalAmounts());
     }
     esValida = moment(fechaValidezOpcion, "YYYY-MM-DD").isSameOrAfter(
       moment().add(15, "days").startOf("day")
@@ -507,6 +540,10 @@ async function buscarHouseAsociadosAMaster() {
   dialogHouse.value = true;
 }
 function continuarAprobar() {
+  if (pendingTrafficFile.value) {
+    aprobarflag.value = false;
+    return quoteTraffic.sendToOperations({ nuevoexpediente: false, id_exp: id_exp.value || null, fecha_validez: null });
+  }
   id_opcion.value = "";
   aprobarflag.value = false;
   dialogCostos.value = true;
@@ -680,9 +717,18 @@ function getProveedor(element: OpcionCosto) {
     >
       <v-card class="pa-5">
         <h2 class="text-blue">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A OPERACIONES
+          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}
         </h2>
-        Seleccione la opción aprobada por el cliente:
+        <v-select
+          id="send-target"
+          v-model="sendTarget"
+          :items="sendTargetItems"
+          label="¿A dónde envías la cotización?"
+          class="mt-4"
+          density="compact"
+          hide-details
+        />
+        <p class="mt-4">Seleccione la opción aprobada por el cliente:</p>
 
         <v-card-text>
           <v-form ref="frmAprobar">
@@ -710,7 +756,7 @@ function getProveedor(element: OpcionCosto) {
             @click="abrirModalAprobar()"
             color="success"
           >
-            Enviar a Operaciones - Tráfico
+            Continuar
           </v-btn>
           <v-btn
             class="mx-1"
