@@ -257,6 +257,7 @@ async function modificarProveedor() {
     });
     return;
   }
+  if (entitiesStore.rejectInvalidProvider()) return;
 
   appStore.spiner = true;
   const saved = await entitiesStore.actualizarProveedor();

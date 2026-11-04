@@ -562,7 +562,6 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
       return false;
     }
-    if (rejectInvalidProvider()) return false;
     proveedor.value.id_branch = sessionBranchId();
     proveedor.value.lstTelefonos = lstTelefonos.value;
     proveedor.value.lstContactos = lstContactos.value;
@@ -1155,6 +1154,7 @@ export const useEntitiesStore = defineStore("entities", () => {
     getValidaDocument,
     getVerProveedor,
     guardarProveedor,
+    rejectInvalidProvider,
     actualizarProveedor,
     eliminarPersona,
     telConctactoProveedor,

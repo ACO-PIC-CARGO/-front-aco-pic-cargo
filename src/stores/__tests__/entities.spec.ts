@@ -455,18 +455,29 @@ describe("entities store", () => {
       { proveedor: { id_tipotransaccion: 57 }, lstInformacionBancaria: [{ nro_cuenta: "1", cci: "2", id_banco: 3, id_coins: 4 }] },
       "isStep4Valid",
     ],
-  ] as const)("actualizarProveedor does not save %s and marks its step", async (_, changes, step) => {
+  ] as const)("saving step 1 rejects %s and marks its step", async (_, changes, step) => {
     respond({ actualizar_proveedor: accepted([]) });
     const entities = useEntitiesStore();
     useMasterusuariosStore().lstTipoTransaccion = [{ id: 57, codigo: "02", descripcion: "Extranjero" }] as never;
     Object.assign(entities.proveedor, completeProvider, "proveedor" in changes ? changes.proveedor : {});
     Object.assign(entities, { ...changes, proveedor: entities.proveedor });
 
-    expect(await entities.actualizarProveedor()).toBe(false);
+    expect(entities.rejectInvalidProvider()).toBe(true);
 
-    expect(httpMock).not.toHaveBeenCalled();
     expect(entities[step]).toBe(false);
     expect(swalCall()).toMatchObject({ icon: "warning" });
+  });
+
+  test("actualizarProveedor saves a step of a provider whose step 1 is incomplete", async () => {
+    respond({ actualizar_proveedor: accepted([]) });
+    const entities = useEntitiesStore();
+    Object.assign(entities.proveedor, { nombrecompleto: "MSL DEL PERU S.A.C.", id_tipoproveedor: "", id_tipotransaccion: null, id_pais: null });
+    entities.lstTelefonos = [{ id_tipotelefono: "2", telefono: "999" }];
+    entities.lstInformacionBancaria = [{ nro_cuenta: "1" }] as never;
+
+    expect(await entities.actualizarProveedor()).toBe(true);
+
+    expect(sentUrls()).toEqual(["actualizar_proveedor"]);
   });
 
   test("eliminarPersona removes a provider, shows the result and leaves the list to the caller", async () => {
