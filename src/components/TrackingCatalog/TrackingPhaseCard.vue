@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
 const store = useTrackingCatalogStore();
 const { can } = usePermissions();
-const { validations, dateDefaults } = storeToRefs(store);
+const { validations, dateDefaults, busy } = storeToRefs(store);
 const validationName = (id: number | null) => validations.value.find((item) => item.id === id)?.name;
 const dateDefaultName = (id: number | null) => dateDefaults.value.find((item) => item.id === id)?.name;
 const titleId = computed(() => `tracking-phase-${props.phase.id}`);
@@ -68,6 +68,7 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
           :label="`fase ${phase.name}`"
           :is-first="isFirst"
           :is-last="isLast"
+          :busy="busy"
           @move="(direction) => store.movePhase(phase.id, direction)"
         />
         <v-btn
@@ -139,6 +140,7 @@ function toggleCommentsFromRow(step: TrackingStep, event: MouseEvent) {
               :label="`paso ${step.name}`"
               :is-first="index === 0"
               :is-last="index === phase.steps.length - 1"
+              :busy="busy"
               @move="(direction) => store.moveStep(step.id, direction)"
             />
             <v-btn
