@@ -832,33 +832,29 @@ onMounted(async () => {
               />
             </template>
             <template #[`item.action`]="{ item }">
-              <v-row>
-                <v-col>
-                  <v-btn
-                    v-if="can('bankList', 'MODIFICAR')"
-                    variant="text"
-                    icon
-                    @click="abrirCuenta(item)"
+              <div class="d-flex">
+                <v-btn
+                  v-if="can('bankList', 'MODIFICAR')"
+                  variant="text"
+                  icon
+                  @click="abrirCuenta(item)"
+                >
+                  <v-icon
+                    color="warning"
                   >
-                    <v-icon
-                      color="warning"
-                    >
-                      mdi-pencil
-                    </v-icon>
-                  </v-btn>
-                </v-col>
-                <v-col>
-                  <v-btn
-                    v-if="can('bankList', 'ELIMINAR')"
-                    variant="text"
-                    color="error"
-                    icon
-                    @click="EliminarCuenta(item)"
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </v-col>
-              </v-row>
+                    mdi-pencil
+                  </v-icon>
+                </v-btn>
+                <v-btn
+                  v-if="can('bankList', 'ELIMINAR')"
+                  variant="text"
+                  color="error"
+                  icon
+                  @click="EliminarCuenta(item)"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
             </template>
             <template #[`item.esprincipalflag`]="{ item }">
               {{ item.esprincipalflag == 1 ? "Si" : "No" }}
