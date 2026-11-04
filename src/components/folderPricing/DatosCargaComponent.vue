@@ -193,7 +193,7 @@ const proxyIndividual = computed({
     return pricingStore.datosPrincipales.esindividualflag;
   },
   set(valor) {
-    if (pricingStore.datosPrincipales.id) {
+    if (pricingStore.datosPrincipales.id || valor) {
       confirmarCambio("individual", valor);
     } else {
       const cambioDesdeGrupal = pricingStore.datosPrincipales.esgrupalflag;
@@ -222,7 +222,7 @@ const proxyGrupal = computed({
     return pricingStore.datosPrincipales.esgrupalflag;
   },
   set(valor) {
-    if (pricingStore.datosPrincipales.id) {
+    if (pricingStore.datosPrincipales.id || valor) {
       confirmarCambio("grupal", valor);
     } else {
       const percepcionAduana = masterusuariosStore.lstPercepcionAduana.find(
