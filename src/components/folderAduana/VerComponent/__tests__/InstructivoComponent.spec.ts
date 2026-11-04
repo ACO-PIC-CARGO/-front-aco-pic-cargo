@@ -14,6 +14,10 @@ vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), 
 
 interface InstructivoState {
   id_exp: number;
+  id_house: number | string;
+  textValidacionPago: string;
+  activarBtnContinuar: boolean;
+  validarExistePagosHouse(): Promise<void>;
   seleccionQuoteAprobar: boolean;
   continuarAprobar(): Promise<void>;
   approveAduana(details: AprobacionCotizacion): Promise<void>;
@@ -71,4 +75,16 @@ test("with a pending Tráfico file, creating a new master sends the aduana file 
 
   expect(approve).not.toHaveBeenCalled();
   expect(sentToOperations()!.data).toEqual({ nuevoexpediente: true, id_exp: null, fecha_validez: "2026-12-01" });
+});
+
+test.each([0, ""])("creating a new house (%o) needs no payment check, shows no error and lets the user continue", async (noHouse) => {
+  const { screen } = await mountInstructivo();
+  screen.id_house = noHouse;
+
+  await screen.validarExistePagosHouse();
+
+  const checks = vi.mocked(http).mock.calls.filter(([config]) => (config as unknown as { url: string }).url.endsWith("validar_existe_pago_house"));
+  expect(checks).toHaveLength(0);
+  expect(screen.textValidacionPago).toBe("");
+  expect(screen.activarBtnContinuar).toBe(false);
 });

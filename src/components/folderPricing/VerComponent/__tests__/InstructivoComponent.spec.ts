@@ -15,6 +15,10 @@ vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), 
 interface InstructivoState {
   nro_propuesta: number;
   id_exp: number;
+  id_house: number | string;
+  textValidacionPago: string;
+  activarBtnContinuar: boolean;
+  validarExistePagosHouse(): Promise<void>;
   seleccionQuoteAprobar: boolean;
   continuarAprobarHouses(): Promise<void>;
   continuarAprobar(): Promise<void>;
@@ -71,6 +75,19 @@ test("a failed approval is retried with a new key and the approved quote's final
   expect(retryKey).toBeTruthy();
   expect(retryKey).not.toBe(firstKey);
   expect(saveFinalAmounts).not.toHaveBeenCalled();
+});
+
+test.each([0, ""])("creating a new house (%o) needs no payment check, shows no error and lets the user continue", async (noHouse) => {
+  vi.mocked(http).mockResolvedValue({ data: { estadoflag: false, mensaje: "No encontramos ese expediente.", data: [] } } as never);
+  const { screen } = await mountInstructivo();
+  screen.id_house = noHouse;
+
+  await screen.validarExistePagosHouse();
+
+  const checks = vi.mocked(http).mock.calls.filter(([config]) => (config as unknown as { url: string }).url.endsWith("validar_existe_pago_house"));
+  expect(checks).toHaveLength(0);
+  expect(screen.textValidacionPago).toBe("");
+  expect(screen.activarBtnContinuar).toBe(false);
 });
 
 const pendingTrafficFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };

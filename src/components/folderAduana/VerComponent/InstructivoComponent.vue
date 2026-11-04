@@ -491,6 +491,10 @@ async function validarExistePagosMaster() {
 async function validarExistePagosHouse() {
   activarBtnContinuar.value = true;
   textValidacionPago.value = "";
+  if (!Number(id_house.value)) {
+    activarBtnContinuar.value = false;
+    return;
+  }
   loading.value = true;
   const config = {
     method: "get",
