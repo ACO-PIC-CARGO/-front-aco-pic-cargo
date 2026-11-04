@@ -9,9 +9,10 @@ import { showEmptyStringAsNoSelection } from "@/plugins/emptySelectValue";
 showEmptyStringAsNoSelection();
 
 const primaryColor = { color: "primary" };
-const compactDetails = { hideDetails: "auto" };
-const fieldDefaults = { variant: "underlined", ...primaryColor, ...compactDetails };
-const selectionDefaults = { ...primaryColor, ...compactDetails };
+// As in Vuetify 2, a field shows its errors once the user leaves it or the form is validated, not when code fills it.
+const vuetify2FieldBehavior = { hideDetails: "auto", validateOn: "invalid-input" };
+const fieldDefaults = { variant: "underlined", ...primaryColor, ...vuetify2FieldBehavior };
+const selectionDefaults = { ...primaryColor, ...vuetify2FieldBehavior };
 
 export default createVuetify({
   icons: { defaultSet: "mdi", aliases, sets: { mdi } },
