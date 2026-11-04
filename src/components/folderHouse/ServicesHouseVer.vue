@@ -641,58 +641,6 @@ onBeforeUnmount(() => {
       </template>
     </v-table>
 
-    <!-- Campos de Aduana (solo lectura) -->
-    <v-card
-      class="mt-4"
-      border
-    >
-      <v-card-title class="py-2 d-flex align-center flex-wrap">
-        <v-icon
-          start
-          color="indigo"
-        >
-          mdi-ferry
-        </v-icon>
-        Datos de Aduana
-        <v-spacer />
-        <span class="text-body-small text-grey-darken-1">Información SUNAT</span>
-      </v-card-title>
-      <v-card-text class="pt-0">
-        <v-row density="compact">
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              :model-value="housesStore.house_nro_declaracion_aduana"
-              label="N° Declaración de Aduana"
-              prepend-icon="mdi-file-document-outline"
-              readonly
-              disabled
-              variant="outlined"
-              density="compact"
-              hide-details="auto"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
-            <v-text-field
-              :model-value="housesStore.house_canal_aduana"
-              label="Canal de Aduana"
-              prepend-icon="mdi-traffic-light"
-              readonly
-              disabled
-              variant="outlined"
-              density="compact"
-              hide-details="auto"
-            />
-          </v-col>
-        </v-row>
-      </v-card-text>
-    </v-card>
-
     <v-dialog
       v-model="dialogFormato"
       max-width="30%"
