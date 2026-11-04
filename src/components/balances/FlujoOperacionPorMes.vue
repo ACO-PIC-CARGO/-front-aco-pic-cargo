@@ -23,8 +23,8 @@ const fechas = ref<string[]>([]);
 const flujo = ref<RegistroFlujoMes[]>([]);
 const filtroFlag = ref(false);
 const filtro = ref<FiltroFlujoMes>({
-  id_proveedor: "",
-  id_cliente: "",
+  id_proveedor: null,
+  id_cliente: null,
   nro_expediente: "",
 });
 //
@@ -181,8 +181,8 @@ async function Formatear() {
   appStore.spiner = true;
   items.value = [];
   cantidadmes.value = 0;
-  filtro.value.id_proveedor = "";
-  filtro.value.id_cliente = "";
+  filtro.value.id_proveedor = null;
+  filtro.value.id_cliente = null;
   filtro.value.nro_expediente = "";
   const data = {
     cantidadmes: cantidadmes.value,

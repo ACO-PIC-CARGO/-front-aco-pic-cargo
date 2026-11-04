@@ -66,3 +66,13 @@ test("finishes loading without breaking when the cash flow is refused", async ()
   expect(useAppStore().spiner).toBe(false);
   expect(Swal.fire).toHaveBeenCalledWith({ icon: "error", text: "Escribe solo el número del expediente." });
 });
+
+test("the Proveedor and Cliente filters start with nothing chosen and the flow asks for every provider and client", async () => {
+  answerCashFlowWith(accepted([]));
+  await mountScreen();
+  const field = (label: string) => wrapper!.findAllComponents({ name: "VAutocomplete" }).find((input) => input.props("label") === label)!;
+  const cashFlowUrl = httpMock.mock.calls.map(([config]) => config.url).find((url) => url.includes("flujo_dinero_por_mes"))!;
+
+  expect([field("Proveedor").props("modelValue"), field("Cliente").props("modelValue")]).toEqual([null, null]);
+  expect(cashFlowUrl).toContain("id_proveedor=&id_cliente=&");
+});
