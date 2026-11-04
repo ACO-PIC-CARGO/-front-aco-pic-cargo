@@ -31,6 +31,14 @@ describe("traffic store", () => {
     expect(await useTrafficStore().fileOfQuote("ADUANA", 8)).toBeNull();
   });
 
+  test("fileOfHouse returns the house's Tráfico file with its quote", async () => {
+    const file = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, quote_kind: "ADUANA", id_quote: 31, sent: false };
+    respond({ traffic_by_house: accepted([file]) });
+
+    expect(await useTrafficStore().fileOfHouse(90)).toEqual(file);
+    expect(sentConfig("traffic_by_house")!.params).toEqual({ id_house: 90 });
+  });
+
   test("sendQuote posts the approval data with the idempotency key", async () => {
     respond({ traffic_send: accepted([{ id_traffic: 4, code_traffic: "TR-00004", id_house: 90 }]) });
     const payload = {

@@ -1,3 +1,5 @@
+import type { QuoteKind } from "@/types/traffic";
+
 export type SendTarget = "OPERATIONS" | "TRAFFIC";
 
 export interface TrafficFileOfQuote {
@@ -30,3 +32,8 @@ export const monthsToRange = (months: string[]): { desde: string | null; hasta: 
   const sorted = [...months].sort();
   return { desde: `${sorted[0]}-01`, hasta: lastDayOf(sorted[sorted.length - 1]!) };
 };
+
+export const quoteRouteOf = ({ quote_kind, id_quote }: { quote_kind: QuoteKind; id_quote: number }, step?: number) => ({
+  name: quote_kind === "ADUANA" ? "VerAduana" : "verQuote",
+  params: step ? { id: id_quote, step } : { id: id_quote },
+});

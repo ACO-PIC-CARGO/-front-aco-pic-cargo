@@ -76,3 +76,12 @@ export interface TrafficToOperations {
   id_master: number;
   id_house: number;
 }
+
+export interface TrafficFileOfHouse {
+  id_traffic: number;
+  code_traffic: string;
+  id_house: number;
+  quote_kind: QuoteKind;
+  id_quote: number;
+  sent: boolean;
+}

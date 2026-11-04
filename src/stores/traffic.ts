@@ -5,6 +5,7 @@ import type {
   QuoteKind,
   TrafficCorrelative,
   TrafficFile,
+  TrafficFileOfHouse,
   TrafficFilters,
   TrafficSendPayload,
   TrafficSent,
@@ -34,6 +35,12 @@ export const useTrafficStore = defineStore("traffic", () => {
         headers: JSON_HEADERS,
         params: { quote_kind: quoteKind, id_quote: idQuote },
       }),
+    );
+  }
+
+  async function fileOfHouse(idHouse: number): Promise<TrafficFileOfHouse | null> {
+    return firstRowOf(
+      await request<TrafficFileOfHouse>({ method: "get", url: url("traffic_by_house"), headers: JSON_HEADERS, params: { id_house: idHouse } }),
     );
   }
 
@@ -84,6 +91,7 @@ export const useTrafficStore = defineStore("traffic", () => {
     files,
     statuses,
     fileOfQuote,
+    fileOfHouse,
     sendQuote,
     sendToOperations,
     loadFiles,

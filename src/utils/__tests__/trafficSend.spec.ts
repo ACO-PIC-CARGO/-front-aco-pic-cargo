@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { monthsToRange, sendTargetsFor, trafficStatusLabel } from "@/utils/trafficSend";
+import { monthsToRange, quoteRouteOf, sendTargetsFor, trafficStatusLabel } from "@/utils/trafficSend";
 
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
 
@@ -44,5 +44,16 @@ describe("Meses completos del reporte", () => {
 
   test("no month means no range", () => {
     expect(monthsToRange([])).toEqual({ desde: null, hasta: null });
+  });
+});
+
+describe("Cotización de un expediente de tráfico", () => {
+  test("a pricing quote opens in Pricing, on its send step when asked", () => {
+    expect(quoteRouteOf({ quote_kind: "PRICING", id_quote: 15376 }, 5)).toEqual({ name: "verQuote", params: { id: 15376, step: 5 } });
+    expect(quoteRouteOf({ quote_kind: "PRICING", id_quote: 15376 })).toEqual({ name: "verQuote", params: { id: 15376 } });
+  });
+
+  test("an aduana quote opens in Aduana", () => {
+    expect(quoteRouteOf({ quote_kind: "ADUANA", id_quote: 31 }, 5)).toEqual({ name: "VerAduana", params: { id: 31, step: 5 } });
   });
 });
