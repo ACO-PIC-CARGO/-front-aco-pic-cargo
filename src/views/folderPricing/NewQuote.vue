@@ -296,9 +296,12 @@ async function continuarLlenadoCostos() {
   }
 }
 function textoPasarACotizar() {
+  const { idtipocarga } = pricingStore.datosPrincipales;
+  const idTipoCarga = typeof idtipocarga === "object" ? idtipocarga.id : idtipocarga;
   const sinFlete = missingCalculatorFreight(
     calculadorasStore.fletePricing,
     pricingStore.datosPrincipales.esgrupalflag,
+    pricingStore.listShipment.find((v) => v.id == idTipoCarga)?.code,
   );
   return `${sinFlete ? `${NO_CALCULATOR_FREIGHT} ` : ""}¿Desea pasar a Cotizar?`;
 }

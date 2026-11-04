@@ -187,14 +187,19 @@ describe("blockedQuoteSave", () => {
 });
 
 describe("missingCalculatorFreight", () => {
-  test("an individual quote needs the individual freight", () => {
-    expect(missingCalculatorFreight({ monto_flete: "120.00" }, false)).toBe(false);
-    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, false)).toBe(true);
-    expect(missingCalculatorFreight({}, undefined)).toBe(true);
+  test("an individual LCL quote needs the individual freight", () => {
+    expect(missingCalculatorFreight({ monto_flete: "120.00" }, false, "LCL")).toBe(false);
+    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, false, "LCL")).toBe(true);
+    expect(missingCalculatorFreight({}, undefined, "LCL")).toBe(true);
   });
 
-  test("a group quote needs the group freight", () => {
-    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, true)).toBe(false);
-    expect(missingCalculatorFreight({ monto_flete: "120.00" }, true)).toBe(true);
+  test("a group LCL quote needs the group freight", () => {
+    expect(missingCalculatorFreight({ monto_flete_grupal: "80.00" }, true, "LCL")).toBe(false);
+    expect(missingCalculatorFreight({ monto_flete: "120.00" }, true, "LCL")).toBe(true);
+  });
+
+  test.each(["FCL", "Aéreo", undefined])("a %s quote is never told the calculator has no freight: it only has LCL freight", (code) => {
+    expect(missingCalculatorFreight({}, false, code)).toBe(false);
+    expect(missingCalculatorFreight({}, true, code)).toBe(false);
   });
 });

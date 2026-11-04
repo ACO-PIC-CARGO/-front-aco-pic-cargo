@@ -16,8 +16,11 @@ export const NO_DEFAULT_STATUS =
 export const NO_CALCULATOR_FREIGHT =
   "No hay flete de la calculadora para esta ruta. Escribe el flete en los costos de la cotización.";
 
-export const missingCalculatorFreight = (flete: FletePricingCalculadora, esGrupal: boolean | undefined): boolean =>
-  !(esGrupal ? flete.monto_flete_grupal : flete.monto_flete);
+export const missingCalculatorFreight = (
+  flete: FletePricingCalculadora,
+  esGrupal: boolean | undefined,
+  shipmentCode: string | undefined,
+): boolean => shipmentCode === "LCL" && !(esGrupal ? flete.monto_flete_grupal : flete.monto_flete);
 
 export const FOLDER_NOT_CREATED =
   "No pudimos crear la carpeta de la cotización en OneDrive. Puedes seguir trabajando y pedir a soporte que la cree.";
