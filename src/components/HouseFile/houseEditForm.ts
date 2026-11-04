@@ -1,3 +1,4 @@
+import moment from "moment";
 import type { HouseDetalle, ServicioHouse } from "@/types/operaciones";
 
 export interface HouseEditForm {
@@ -113,4 +114,9 @@ export const editFormError = (form: HouseEditForm): string | null => {
   if (!form.id_consigner || !form.id_proveedor) return MISSING_PARTIES;
   if ([form.bultos, form.peso, form.volumen, form.monto].some(isNegative)) return NEGATIVE_QUANTITIES;
   return null;
+};
+
+export const isoFromDayMonthYear = (value?: string | null): string | null => {
+  const date = moment(value ?? "", ["DD-MM-YYYY", "YYYY-MM-DD"], true);
+  return date.isValid() ? date.format("YYYY-MM-DD") : null;
 };

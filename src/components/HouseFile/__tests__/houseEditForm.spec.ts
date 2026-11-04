@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { editFormError, editFormFromHouse, houseEditPayload } from "@/components/HouseFile/houseEditForm";
+import { editFormError, editFormFromHouse, houseEditPayload, isoFromDayMonthYear } from "@/components/HouseFile/houseEditForm";
 import type { HouseDetalle, ServicioHouse } from "@/types/operaciones";
 
 const house = {
@@ -81,4 +81,11 @@ test("a house cannot be saved with a negative quantity, weight, volume or amount
     expect(editFormError({ ...form, [field]: -1 })).toBe("Revisa bultos, peso, volumen y monto: no pueden ser negativos.");
     expect(editFormError({ ...form, [field]: 0 })).toBeNull();
   }
+});
+
+test("a day-month-year date from the house becomes the ISO date the date picker and the API use, and no date stays empty", () => {
+  expect(isoFromDayMonthYear("25-11-2026")).toBe("2026-11-25");
+  expect(isoFromDayMonthYear("2026-11-25")).toBe("2026-11-25");
+  expect(isoFromDayMonthYear(null)).toBeNull();
+  expect(isoFromDayMonthYear("")).toBeNull();
 });

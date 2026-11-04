@@ -14,6 +14,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { usePermissions } from "@/composables/usePermissions";
 import type { BegEndHouseRaiz, TipoEmbarqueRaiz } from "@/types/app";
+import { isoFromDayMonthYear } from "@/components/HouseFile/houseEditForm";
 
 const SAVE_ERROR = "No pudimos guardar los cambios del house. Revisa tu conexión e intenta de nuevo.";
 
@@ -381,7 +382,7 @@ async function _validaData() {
     housesStore.copy_house = house;
     housesStore.id_master = house.id_master;
     housesStore.telexconfirmado = house.telexconfirmado;
-    housesStore.fechaconfirmaciontelex = house.fechaconfirmaciontelex;
+    housesStore.fechaconfirmaciontelex = isoFromDayMonthYear(house.fechaconfirmaciontelex);
     housesStore.dataHouse_transporte = house.id_transport;
     housesStore.house_origen = house.id_port_begin;
     housesStore.house_destino = house.id_port_end;

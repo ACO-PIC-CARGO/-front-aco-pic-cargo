@@ -52,3 +52,24 @@ test("a house saved without a coloader shows no coloader chosen", async () => {
   expect(useHousesStore().house_id_coloader).toBeNull();
   wrapper.unmount();
 });
+
+test("a confirmed telex keeps its confirmation date when confirmed again", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 22 }]));
+  httpMock.mockImplementation((config) => {
+    const url = String(config?.url);
+    if (url.includes("house_ver"))
+      return Promise.resolve({
+        data: { estadoflag: true, data: [{ id: 2892, id_cot: 1, telexconfirmado: true, fechaconfirmaciontelex: "25-11-2026" }] },
+      });
+    return Promise.resolve({ data: { estadoflag: false, data: [] } });
+  });
+
+  const wrapper = shallowMount(DataGen, { global: { plugins: [pinia] } });
+  await flushPromises();
+  const { useHousesStore } = await import("@/stores/houses");
+
+  expect(useHousesStore().fechaconfirmaciontelex).toBe("2026-11-25");
+  wrapper.unmount();
+});
