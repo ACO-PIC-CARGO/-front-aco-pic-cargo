@@ -202,6 +202,23 @@ const routes = [
         component: () => import("../views/folderHouse/VerHouse.vue"),
       },
       {
+        path: "folderTraffic/list",
+        name: "lstTraffic",
+        component: () => import("../views/folderTraffic/ListTraffic.vue"),
+      },
+      {
+        path: "folderTraffic/ver/:id",
+        name: "trafficVer",
+        meta: { menuRoute: "lstTraffic", permissionScreen: "lstTraffic" },
+        component: () => import("../views/folderHouse/VerHouse.vue"),
+      },
+      {
+        path: "folderTraffic/editar/:id/:activar?",
+        name: "trafficEditar",
+        meta: { menuRoute: "lstTraffic", permissionScreen: "lstTraffic" },
+        component: () => import("../views/folderHouse/VerHouse.vue"),
+      },
+      {
         path: "folderHouse/control/:id",
         name: "controlHouseId",
         meta: { menuRoute: "listHouse" },
@@ -211,6 +228,11 @@ const routes = [
         path: "folderReports/list",
         name: "reportsControlFile",
         component: () => import("../views/folderReports/ReportsControlFileView.vue"),
+      },
+      {
+        path: "folderReports/traffic",
+        name: "reportsTraffic",
+        component: () => import("../views/folderTraffic/ReportTrafficView.vue"),
       },
       {
         path: "folderReports/listDetails",
