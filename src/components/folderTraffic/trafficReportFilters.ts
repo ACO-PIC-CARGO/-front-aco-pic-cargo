@@ -4,6 +4,8 @@ import { monthsToRange } from "@/utils/trafficSend";
 export interface TrafficReportForm {
   state: TrafficState | null;
   status: number | null;
+  sentido: number | null;
+  id_operador: number | null;
   months: string[];
   desde: string | null;
   hasta: string | null;

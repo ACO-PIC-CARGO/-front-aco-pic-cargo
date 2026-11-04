@@ -12,16 +12,26 @@ describe("recentMonths", () => {
 });
 
 describe("toTrafficFilters", () => {
-  const form = { state: "PENDING" as const, status: 5, months: [] as string[], desde: "2026-01-05", hasta: "2026-01-20" };
+  const form = {
+    state: "PENDING" as const,
+    status: 5,
+    sentido: null,
+    id_operador: null,
+    months: [] as string[],
+    desde: "2026-01-05",
+    hasta: "2026-01-20",
+  };
 
   test("sends the typed range when no month is chosen", () => {
-    expect(toTrafficFilters(form)).toEqual({ state: "PENDING", status: 5, desde: "2026-01-05", hasta: "2026-01-20" });
+    expect(toTrafficFilters(form)).toEqual({ state: "PENDING", status: 5, sentido: null, id_operador: null, desde: "2026-01-05", hasta: "2026-01-20" });
   });
 
   test("chosen months win over the typed range", () => {
     expect(toTrafficFilters({ ...form, months: ["2026-10", "2026-08"] })).toEqual({
       state: "PENDING",
       status: 5,
+      sentido: null,
+      id_operador: null,
       desde: "2026-08-01",
       hasta: "2026-10-31",
     });

@@ -5,7 +5,7 @@ import { createPinia } from "pinia";
 import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
-import { VBtn, VRadio, VRadioGroup, VSelect } from "vuetify/components";
+import { VAutocomplete, VBtn, VRadio, VRadioGroup, VSelect } from "vuetify/components";
 import * as directives from "vuetify/directives";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import TrafficReport from "@/components/folderTraffic/TrafficReport.vue";
@@ -25,6 +25,7 @@ Object.defineProperty(window, "visualViewport", {
 });
 
 const IN_REVIEW = { id: 5, name: "En revisión", position: 1 };
+const OPERATOR = { id: 33, namelong: "LUIS OPERADOR" };
 let wrapper: VueWrapper | undefined;
 
 beforeEach(() => {
@@ -35,6 +36,7 @@ beforeEach(() => {
   respond({
     traffic_list: accepted([]),
     traffic_status: accepted([IN_REVIEW]),
+    getEntitiesList: accepted([OPERATOR]),
     traffic_report_pdf: new Blob([JSON.stringify(rejected())], { type: "application/json" }),
   });
 });
@@ -48,6 +50,7 @@ afterEach(() => {
 
 async function mountReport(actions = ["VER", "EXPORTAR"]) {
   sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: "reportsTraffic", actions }], controlled: ["reportsTraffic"] }));
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1 }]));
   wrapper = mount(TrafficReport, {
     global: { plugins: [createVuetify({ components, directives }), createPinia()] },
     attachTo: document.body,
@@ -62,8 +65,14 @@ async function click(label: string) {
   await flushPromises();
 }
 
+interface ChoiceField {
+  props(key: string): unknown;
+  setValue(value: unknown): Promise<void>;
+}
+
 async function choose(id: string, ...titles: string[]) {
-  const select = wrapper!.findAllComponents(VSelect).find((candidate) => candidate.props("id") === id)!;
+  const fields = [...wrapper!.findAllComponents(VSelect), ...wrapper!.findAllComponents(VAutocomplete)] as unknown as ChoiceField[];
+  const select = fields.find((candidate) => candidate.props("id") === id)!;
   const titleKey = select.props("itemTitle") as string;
   const valueKey = select.props("itemValue") as string;
   const items = select.props("items") as Record<string, unknown>[];
@@ -136,6 +145,18 @@ test("the PDF is exported with the same filters the screen searched", async () =
 
   expect(lastSent("traffic_report_pdf").data).toEqual(lastSent("traffic_list").params);
   expect(lastSent("traffic_report_pdf").data).toMatchObject({ state: "SENT", desde: "2026-09-01", hasta: "2026-09-30" });
+});
+
+test("a sentido and a master's operator are searched and exported", async () => {
+  await mountReport();
+  await click("Filtrar");
+  await choose("traffic-report-sentido", "Exportación");
+  await choose("traffic-report-operator", "LUIS OPERADOR");
+  await click("Buscar");
+  await click("Exportar PDF");
+
+  expect(lastSent("traffic_list").params).toMatchObject({ sentido: 2, id_operador: 33 });
+  expect(lastSent("traffic_report_pdf").data).toMatchObject({ sentido: 2, id_operador: 33 });
 });
 
 test("the PDF is offered only with the Exportar permission", async () => {

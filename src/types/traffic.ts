@@ -15,6 +15,7 @@ export interface TrafficFile {
   nameportend: string | null;
   nameconsigner: string | null;
   namepricing: string | null;
+  nameoperador: string | null;
   id_status: number | null;
   status_name: string | null;
   created_at: string;
@@ -28,6 +29,8 @@ export interface TrafficFilters {
   status?: number | null;
   desde?: string | null;
   hasta?: string | null;
+  sentido?: number | null;
+  id_operador?: number | null;
 }
 
 export interface TrafficStatus {

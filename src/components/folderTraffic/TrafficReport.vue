@@ -3,6 +3,7 @@ import { computed, onMounted, ref, shallowRef } from "vue";
 import Swal from "sweetalert2";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { usePermissions } from "@/composables/usePermissions";
+import { useAppStore } from "@/stores/app";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficFilters } from "@/types/traffic";
 import { reportDay } from "@/utils/operationalReports";
@@ -15,6 +16,11 @@ const STATE_OPTIONS = [
   { label: "Pendientes", value: "PENDING" },
   { label: "Enviados a operaciones", value: "SENT" },
 ] as const;
+const SENTIDO_OPTIONS = [
+  { title: "Todos", value: null },
+  { title: "Importación", value: 1 },
+  { title: "Exportación", value: 2 },
+];
 const MONTH_OPTIONS = recentMonths();
 const HEADERS = [
   { title: "N° Tráfico", key: "code_traffic" },
@@ -27,12 +33,14 @@ const HEADERS = [
   { title: "Pricing", key: "namepricing" },
   { title: "Estatus", key: "status_name", value: trafficStatusLabel },
   { title: "Master", key: "code_master" },
+  { title: "Operador", key: "nameoperador" },
 ];
 
 const trafficStore = useTrafficStore();
+const appStore = useAppStore();
 const canExport = usePermissions().can("reportsTraffic", "EXPORTAR");
 
-const form = ref<TrafficReportForm>({ state: null, status: null, months: [], desde: null, hasta: null });
+const form = ref<TrafficReportForm>({ state: null, status: null, sentido: null, id_operador: null, months: [], desde: null, hasta: null });
 const appliedFilters = shallowRef<TrafficFilters>({});
 const filtersOpen = shallowRef(false);
 const loading = shallowRef(false);
@@ -56,6 +64,7 @@ const exportPdf = () => trafficStore.exportReport(appliedFilters.value);
 
 onMounted(() => {
   trafficStore.loadStatuses();
+  appStore._getOperador();
   search();
 });
 </script>
@@ -95,6 +104,25 @@ onMounted(() => {
             item-title="name"
             item-value="id"
             label="Estatus"
+            clearable
+            density="compact"
+          />
+          <v-select
+            id="traffic-report-sentido"
+            v-model="form.sentido"
+            :items="SENTIDO_OPTIONS"
+            label="Sentido"
+            density="compact"
+          />
+          <v-autocomplete
+            id="traffic-report-operator"
+            v-model="form.id_operador"
+            :items="appStore.itemsOperadorList"
+            item-title="namelong"
+            item-value="id"
+            label="Operador"
+            hint="El operador del master: solo aparecen expedientes ya enviados a Operaciones."
+            persistent-hint
             clearable
             density="compact"
           />
