@@ -60,7 +60,8 @@ test("choosing another state lists those files", async () => {
   (wrapper!.vm as unknown as { state: string | null }).state = "SENT";
   await flushPromises();
 
-  expect(listParams().at(-1)).toEqual({ state: "SENT", status: null });
+  const calls = listParams();
+  expect(calls[calls.length - 1]).toEqual({ state: "SENT", status: null });
 });
 
 test("a file opens on its house screen", async () => {

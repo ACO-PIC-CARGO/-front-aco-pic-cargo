@@ -95,7 +95,7 @@ test("a start already used shows the server's reason and stays open", async () =
   await flushPromises();
 
   expect(document.body.textContent).toContain("El último expediente es TR-00004. El número inicial debe ser mayor.");
-  expect(wrapper!.props("modelValue")).toBe(true);
+  expect((wrapper!.props() as { modelValue: boolean }).modelValue).toBe(true);
 });
 
 test("a start of zero is refused without asking the server", async () => {

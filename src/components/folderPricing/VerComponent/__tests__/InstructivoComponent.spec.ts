@@ -84,7 +84,7 @@ function answerAsQuoteInTraffic() {
 }
 
 const sentToOperations = () =>
-  vi.mocked(http).mock.calls.map(([config]) => config as { url: string; data: unknown }).find((config) => config.url.endsWith("send_to_operations"));
+  vi.mocked(http).mock.calls.map(([config]) => config as unknown as { url: string; data: unknown }).find((config) => config.url.endsWith("send_to_operations"));
 
 test("with a pending Tráfico file, choosing an existing master sends the file to Operaciones instead of approving again", async () => {
   answerAsQuoteInTraffic();
