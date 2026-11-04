@@ -369,7 +369,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
                 density="compact"
                 variant="outlined"
                 label="Distrito"
-                class="pr-10"
+                class="mt-3 pr-10"
                 v-model="pricingStore.datosPrincipales.id_town"
                 :error-messages="errorIdTown"
                 @update:model-value="
