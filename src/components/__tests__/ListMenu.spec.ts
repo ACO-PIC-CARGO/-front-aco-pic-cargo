@@ -60,6 +60,7 @@ beforeEach(async () => {
       { path: "/proveedores", name: "listProveedor", component: { template: "<div />" } },
       { path: "/cotizacion/:id", name: "editQuote", component: { template: "<div />" } },
       { path: "/cotizacion/nueva", name: "newQuote", component: { template: "<div />" } },
+      { path: "/calculadora/ver_cotizacion", name: "VerCotizacionCalculadora", component: { template: "<div />" } },
     ],
   });
   await router.push("/");
@@ -101,4 +102,13 @@ test("the quote summary does not flag the ports as missing when a new quote clea
   await settle();
 
   expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
+});
+
+test("the quote summary shows nothing, not raw ids, for data whose options are not loaded", async () => {
+  Object.assign(usePricingStore().datosPrincipales, { idsentido: 0, idtipocarga: 0, idincoterms: 0, idorigen: 0, iddestino: 0 });
+  await router.push({ name: "VerCotizacionCalculadora" });
+  await settle();
+
+  const shown = [...document.querySelectorAll(".datosPricing .v-select__selection, .datosPricing .v-autocomplete__selection")].map((el) => el.textContent?.trim());
+  expect(shown.filter(Boolean)).toEqual([]);
 });

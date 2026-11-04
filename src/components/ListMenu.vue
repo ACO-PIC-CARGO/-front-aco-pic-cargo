@@ -8,6 +8,7 @@ import { useSubscriptionsStore } from "@/stores/subscriptions";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { clearSession } from "@/utils/sesion";
+import { chosenOptionTitle } from "@/utils/selectOptions";
 
 const route = useRoute();
 const router = useRouter();
@@ -303,7 +304,9 @@ watch(actualizarCostosFlag, () => {
                 item-value="id"
                 v-model="pricingStore.datosPrincipales.idsentido"
                 readonly
-              />
+              >
+                <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+              </v-select>
 
               <!-- @vue-expect-error idtipocarga holds the shipment id or, from this return-object select, the shipment row. -->
               <v-select
@@ -316,7 +319,9 @@ watch(actualizarCostosFlag, () => {
                 v-model="pricingStore.datosPrincipales.idtipocarga"
                 readonly
                 return-object
-              />
+              >
+                <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+              </v-select>
 
               <v-select
                 label="Incoterms"
@@ -329,7 +334,7 @@ watch(actualizarCostosFlag, () => {
                 readonly
               >
                 <template #selection="data">
-                  {{ data.item.name }} - {{ data.item.description }}
+                  {{ chosenOptionTitle(data.internalItem) && `${data.item.name} - ${data.item.description}` }}
                 </template>
               </v-select>
 
@@ -343,7 +348,9 @@ watch(actualizarCostosFlag, () => {
                 item-title="name"
                 item-value="id_port"
                 v-model="pricingStore.datosPrincipales.idorigen"
-              />
+              >
+                <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+              </v-autocomplete>
 
               <v-autocomplete
                 label="Puerto Destino"
@@ -355,7 +362,9 @@ watch(actualizarCostosFlag, () => {
                 item-title="name"
                 item-value="id_port"
                 v-model="pricingStore.datosPrincipales.iddestino"
-              />
+              >
+                <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+              </v-autocomplete>
 
               <v-text-field
                 class="my-1 px-5 text-resumen"
