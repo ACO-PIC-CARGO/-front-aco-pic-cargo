@@ -9,6 +9,7 @@ import { io } from "socket.io-client";
 import axios from "@/api/http";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
+import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
 import FormatFecha from "../../components/comun/FormatFecha.vue";
 import LoadingComponent from "../../components/comun/LoadingComponent.vue";
 import BtnIrAlListado from "../../components/comun/BtnIrAlListado.vue";
@@ -284,14 +285,16 @@ function abrirSwalConfigFlete() {
   }
 }
 async function guardarCotizacion() {
-  const validacion = validarRegistro();
+  const validacion = validarRegistro() && !blockedQuoteSave(pricingStore);
   if (!!validacion) {
     appStore.spiner = true;
-    await pricingStore.registrarQuote({ fullflag: true }).catch((err: unknown) => {
-      console.error("registrarQuote", err);
+    const respuesta = await pricingStore.registrarQuote({ fullflag: true }).finally(() => {
+      appStore.spiner = false;
     });
-
-    appStore.spiner = false;
+    if (!respuesta.estadoflag) {
+      Swal.fire({ icon: "error", title: "No se guardó la cotización", text: respuesta.mensaje });
+      return;
+    }
     Swal.fire({
       icon: "info",
       title: "Aviso",
@@ -340,7 +343,7 @@ async function editarCotizacion() {
   // // -----------------------------------------------------
   if (val) {
     appStore.spiner = false;
-    await pricingStore.updateQuote();
+    if (!(await pricingStore.updateQuote())) return;
 
     const destino = {
       name: "verQuote",
