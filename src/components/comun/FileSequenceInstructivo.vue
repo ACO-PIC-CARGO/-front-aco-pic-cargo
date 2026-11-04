@@ -27,6 +27,7 @@ const props = withDefaults(
     verPrevisualizacion?: boolean;
     verDatosPreview?: boolean;
     destino?: SendTarget;
+    quoteId?: number | string;
   }>(),
   {
     aprobadoflag: false,
@@ -339,7 +340,7 @@ function setDatosInstructivo() {
   }
 
   pricingStore.guardarDatosInstructivo({
-    id: route.params.id,
+    id: props.quoteId ?? route.params.id,
     datosInstructivoManual: {
       ...datosManuales.value,
       listaDocumentos: listaDocumentos.value,
@@ -398,7 +399,7 @@ async function _uploadFile(file: File) {
 function guardarYGenenarCorreo() {
   Promise.all([
     pricingStore.guardarDatosInstructivo({
-      id: route.params.id,
+      id: props.quoteId ?? route.params.id,
       datosInstructivoManual: {
         ...datosManuales.value,
         listaDocumentos: listaDocumentos.value,

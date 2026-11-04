@@ -4,11 +4,11 @@ import { useRouter } from "vue-router";
 import { usePermissions } from "@/composables/usePermissions";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
-import { quoteRouteOf, trafficStatusLabel } from "@/utils/trafficSend";
+import { trafficStatusLabel } from "@/utils/trafficSend";
 import TrafficCorrelativeDialog from "./TrafficCorrelativeDialog.vue";
+import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 import TrafficStatusDialog from "./TrafficStatusDialog.vue";
 
-const SEND_STEP = 5;
 const STATE_OPTIONS = [
   { title: "Pendientes", value: "PENDING" },
   { title: "Enviados a operaciones", value: "SENT" },
@@ -35,6 +35,7 @@ const status = shallowRef<number | null>(null);
 const loading = shallowRef(false);
 const numbering = shallowRef(false);
 const relabelling = ref<TrafficFile | null>(null);
+const sending = ref<TrafficFile | null>(null);
 
 const statusOptions = computed(() => [
   { title: "Todos los estatus", value: null },
@@ -53,10 +54,14 @@ async function load() {
 }
 
 const openFile = (file: TrafficFile) => router.push({ name: "trafficVer", params: { id: file.id_house } });
-const sendToOperations = (file: TrafficFile) => router.push(quoteRouteOf(file, SEND_STEP));
 
 async function onRelabelled() {
   relabelling.value = null;
+  await load();
+}
+
+async function onSent() {
+  sending.value = null;
   await load();
 }
 
@@ -139,7 +144,7 @@ onMounted(() => {
             variant="text"
             color="primary"
             :aria-label="`Enviar ${item.code_traffic} a Operaciones`"
-            @click="sendToOperations(item)"
+            @click="sending = item"
           />
         </template>
       </template>
@@ -150,6 +155,12 @@ onMounted(() => {
     :file="relabelling"
     @close="relabelling = null"
     @saved="onRelabelled"
+  />
+  <TrafficSendToOperations
+    v-if="sending"
+    :file="sending"
+    @close="sending = null"
+    @sent="onSent"
   />
   <TrafficCorrelativeDialog v-model="numbering" />
 </template>

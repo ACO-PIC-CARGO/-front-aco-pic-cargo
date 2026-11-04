@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { usePermissions } from "@/composables/usePermissions";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFileOfHouse } from "@/types/traffic";
 import { quoteRouteOf } from "@/utils/trafficSend";
-
-const SEND_STEP = 5;
+import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 
 const props = defineProps<{ houseId: number }>();
 
@@ -14,17 +13,20 @@ const router = useRouter();
 const trafficStore = useTrafficStore();
 const canSend = usePermissions().can("lstTraffic", "MODIFICAR");
 const file = ref<TrafficFileOfHouse | null>(null);
+const sending = shallowRef(false);
 
-watch(
-  () => props.houseId,
-  async (houseId) => {
-    file.value = await trafficStore.fileOfHouse(houseId);
-  },
-  { immediate: true },
-);
+async function loadFile() {
+  file.value = await trafficStore.fileOfHouse(props.houseId);
+}
+
+async function onSent() {
+  sending.value = false;
+  await loadFile();
+}
+
+watch(() => props.houseId, loadFile, { immediate: true });
 
 const openQuote = () => router.push(quoteRouteOf(file.value!));
-const sendToOperations = () => router.push(quoteRouteOf(file.value!, SEND_STEP));
 const openExpenses = () => router.push({ name: "billControlGastos", params: { id_house: props.houseId } });
 </script>
 
@@ -63,10 +65,16 @@ const openExpenses = () => router.push({ name: "billControlGastos", params: { id
         v-if="!file.sent && canSend"
         size="small"
         color="primary"
-        @click="sendToOperations"
+        @click="sending = true"
       >
         Enviar a Operaciones
       </v-btn>
     </div>
   </v-alert>
+  <TrafficSendToOperations
+    v-if="file && sending"
+    :file="file"
+    @close="sending = false"
+    @sent="onSent"
+  />
 </template>

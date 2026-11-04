@@ -17,6 +17,7 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 
+const SendStub = { name: "TrafficSendToOperations", props: ["file"], template: "<div />" };
 const pending = {
   id_traffic: 4,
   code_traffic: "TR-00004",
@@ -38,7 +39,9 @@ async function mountAs(actions: string[], rows: unknown[] = [pending]) {
   respond({ traffic_list: accepted(rows), traffic_status: accepted([]) });
   const pinia = createPinia();
   setActivePinia(pinia);
-  wrapper = mount(TrafficList, { global: { plugins: [createVuetify({ components, directives }), pinia] } });
+  wrapper = mount(TrafficList, {
+    global: { plugins: [createVuetify({ components, directives }), pinia], stubs: { TrafficSendToOperations: SendStub } },
+  });
   await flushPromises();
   return wrapper;
 }
@@ -72,12 +75,13 @@ test("a file opens on its house screen", async () => {
   expect(push).toHaveBeenCalledWith({ name: "trafficVer", params: { id: 90 } });
 });
 
-test("a pending file is sent on from its quote's send step", async () => {
+test("sending a pending file to Operaciones opens the send flow without leaving the list", async () => {
   await mountAs(["VER", "MODIFICAR"]);
 
   await labelled("Enviar TR-00004 a Operaciones").trigger("click");
 
-  expect(push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 15376, step: 5 } });
+  expect(push).not.toHaveBeenCalled();
+  expect(wrapper!.findComponent({ name: "TrafficSendToOperations" }).props("file")).toMatchObject({ id_traffic: 4, id_quote: 15376 });
 });
 
 test("a file already sent is not offered to be sent or re-labelled", async () => {
