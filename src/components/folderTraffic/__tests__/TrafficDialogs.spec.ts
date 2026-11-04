@@ -72,7 +72,7 @@ async function openNumbering() {
 }
 
 test("the numbering dialog tells the next file code", async () => {
-  respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005" }]) });
+  respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005", manual: false }]) });
 
   await openNumbering();
 
@@ -81,17 +81,17 @@ test("the numbering dialog tells the next file code", async () => {
 
 test("a start already used shows the server's reason and stays open", async () => {
   respond({
-    traffic_correlative: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005" }]),
+    traffic_correlative: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005", manual: false }]),
   });
   await openNumbering();
   httpMock.mockImplementation(async (config) =>
     config.method === "put"
       ? { data: rejected("El último expediente es TR-00004. El número inicial debe ser mayor.", "TMSGADV") }
-      : { data: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005" }]) },
+      : { data: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005", manual: false }]) },
   );
   (wrapper!.vm as unknown as { start: number }).start = 3;
 
-  buttonNamed("Guardar número inicial").click();
+  buttonNamed("Guardar").click();
   await flushPromises();
 
   expect(document.body.textContent).toContain("El último expediente es TR-00004. El número inicial debe ser mayor.");
@@ -99,13 +99,30 @@ test("a start already used shows the server's reason and stays open", async () =
 });
 
 test("a start of zero is refused without asking the server", async () => {
-  respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 0, next_code: "TR-00001" }]) });
+  respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 0, next_code: "TR-00001", manual: false }]) });
   await openNumbering();
   (wrapper!.vm as unknown as { start: number }).start = 0;
 
-  buttonNamed("Guardar número inicial").click();
+  buttonNamed("Guardar").click();
   await flushPromises();
 
   expect(httpMock.mock.calls.some(([config]) => config.method === "put")).toBe(false);
   expect(document.body.textContent).toContain("Escribe un número mayor que cero.");
+});
+
+test("with manual numbering on, the starting number is not asked and the choice is saved", async () => {
+  respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005", manual: true }]) });
+  await openNumbering();
+  httpMock.mockImplementation(async (config) =>
+    config.method === "put" ? { data: accepted([]) } : { data: accepted([{ correlativo: null, last_used: 4, next_code: "TR-00005", manual: true }]) },
+  );
+
+  const startField = document.body.querySelector("#traffic-start-number");
+  buttonNamed("Guardar").click();
+  await flushPromises();
+
+  expect(startField).toBeNull();
+  expect(httpMock.mock.calls.filter(([config]) => config.method === "put").map(([config]) => config.data)).toEqual([
+    { correlativo: null, manual: true },
+  ]);
 });

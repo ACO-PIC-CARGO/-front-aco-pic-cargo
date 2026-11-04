@@ -111,6 +111,14 @@ describe("traffic store", () => {
     ]);
   });
 
+  test("setCorrelative saves the starting number and the manual choice", async () => {
+    respond({ traffic_correlative: accepted([]) });
+
+    await useTrafficStore().setCorrelative(null, true);
+
+    expect(sentConfig("traffic_correlative")).toMatchObject({ method: "put", data: { correlativo: null, manual: true } });
+  });
+
   test("correlative returns the next file code", async () => {
     respond({ traffic_correlative: accepted([{ correlativo: null, last_used: 3, next_code: "TR-00004" }]) });
 

@@ -6,7 +6,7 @@ import type { QuoteKind, TrafficSendPayload, TrafficToOperationsPayload } from "
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { sendTargetsFor, type SendTarget, type TrafficFileOfQuote } from "@/utils/trafficSend";
 
-export type ApprovalAmounts = Omit<TrafficSendPayload, "quote_kind" | "id_quote">;
+export type ApprovalAmounts = Omit<TrafficSendPayload, "quote_kind" | "id_quote" | "nro_traffic">;
 
 interface QuoteTrafficOptions {
   quoteKind: QuoteKind;
@@ -37,9 +37,32 @@ export function useQuoteTrafficSend({ quoteKind, quoteId, approved }: QuoteTraff
     return false;
   };
 
+  async function askTrafficNumber(): Promise<number | null | undefined> {
+    const correlative = await trafficStore.correlative();
+    if (!correlative?.manual) return null;
+    const answer = await Swal.fire({
+      title: "Número de tráfico",
+      input: "number",
+      inputLabel: `Escribe el número del expediente. El siguiente libre es ${correlative.next_code}.`,
+      inputAttributes: { min: "1", step: "1" },
+      showCancelButton: true,
+      confirmButtonText: "Enviar a Tráfico",
+      cancelButtonText: "Cancelar",
+      inputValidator: (value: string) =>
+        Number.isInteger(Number(value)) && Number(value) > 0 ? null : "Escribe un número mayor que cero.",
+    });
+    return answer.isConfirmed ? Number(answer.value) : undefined;
+  }
+
   async function sendQuote(amounts: ApprovalAmounts): Promise<boolean> {
+    const trafficNumber = await askTrafficNumber();
+    if (trafficNumber === undefined) return false;
+
     showWorking("Enviando a Tráfico");
-    const answer = await trafficStore.sendQuote({ quote_kind: quoteKind, id_quote: quoteId(), ...amounts }, idempotencyKey);
+    const answer = await trafficStore.sendQuote(
+      { quote_kind: quoteKind, id_quote: quoteId(), ...amounts, nro_traffic: trafficNumber },
+      idempotencyKey,
+    );
     if (!answer.estadoflag || !answer.data[0]) return refuse(answer.mensaje);
 
     const { id_house } = answer.data[0];

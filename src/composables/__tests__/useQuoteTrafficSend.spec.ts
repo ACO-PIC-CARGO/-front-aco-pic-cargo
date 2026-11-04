@@ -9,6 +9,8 @@ vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn() } }));
 
+const automatic = { correlativo: null, last_used: 3, next_code: "TR-00004", manual: false };
+const manual = { ...automatic, manual: true };
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
 const amounts = {
   totalIngreso: 100,
@@ -53,7 +55,7 @@ describe("useQuoteTrafficSend", () => {
   });
 
   test("a refused send shows the server's reason and the retry uses a new key", async () => {
-    respond({ traffic_send: rejected("Esta cotización ya fue aprobada.", "TMSGADV") });
+    respond({ traffic_correlative: accepted([automatic]), traffic_send: rejected("Esta cotización ya fue aprobada.", "TMSGADV") });
     const send = sendFor(false);
 
     expect(await send.sendQuote(amounts)).toBe(false);
@@ -66,6 +68,7 @@ describe("useQuoteTrafficSend", () => {
 
   test("after sending to Tráfico the user can open the new file", async () => {
     respond({
+      traffic_correlative: accepted([automatic]),
       traffic_send: accepted([{ id_traffic: 4, code_traffic: "TR-00004", id_house: 90 }]),
       traffic_by_quote: accepted([pendingFile]),
     });
@@ -73,6 +76,25 @@ describe("useQuoteTrafficSend", () => {
     expect(await sendFor(false).sendQuote(amounts)).toBe(true);
 
     expect(router.push).toHaveBeenCalledWith({ name: "trafficVer", params: { id: 90 } });
+  });
+
+  test("with manual numbering the typed number goes with the quote", async () => {
+    respond({ traffic_correlative: accepted([manual]), traffic_send: accepted([{ id_traffic: 9, code_traffic: "TR-00057", id_house: 91 }]) });
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true, value: "57" } as never);
+
+    await sendFor(false).sendQuote(amounts);
+
+    const sent = httpMock.mock.calls.find(([config]) => config.url === URL_MAIN + "traffic_send")![0];
+    expect(sent.data).toMatchObject({ nro_traffic: 57 });
+  });
+
+  test("cancelling the manual number sends nothing", async () => {
+    respond({ traffic_correlative: accepted([manual]) });
+    vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: false, isDismissed: true } as never);
+
+    expect(await sendFor(false).sendQuote(amounts)).toBe(false);
+
+    expect(keysSentTo("traffic_send")).toEqual([]);
   });
 
   test("after sending to Operaciones the user can open the house", async () => {

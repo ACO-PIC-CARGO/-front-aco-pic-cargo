@@ -46,6 +46,7 @@ export interface TrafficCorrelative {
   correlativo: number | null;
   last_used: number;
   next_code: string;
+  manual: boolean;
 }
 
 export interface TrafficSendPayload {
@@ -57,6 +58,7 @@ export interface TrafficSendPayload {
   id_opcion: unknown;
   listCostosInstructivo: unknown[];
   listVentasInstructivo: unknown[];
+  nro_traffic?: number | null;
 }
 
 export interface TrafficSent {

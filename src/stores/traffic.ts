@@ -87,8 +87,8 @@ export const useTrafficStore = defineStore("traffic", () => {
     return firstRowOf(await request<TrafficCorrelative>({ method: "get", url: url("traffic_correlative"), headers: JSON_HEADERS }));
   }
 
-  const setCorrelative = (correlativo: number) =>
-    request({ method: "put", url: url("traffic_correlative"), headers: JSON_HEADERS, data: { correlativo } });
+  const setCorrelative = (correlativo: number | null, manual: boolean) =>
+    request({ method: "put", url: url("traffic_correlative"), headers: JSON_HEADERS, data: { correlativo, manual } });
 
   const exportReport = (filters: TrafficFilters) =>
     downloadPdf({ method: "post", url: url("traffic_report_pdf"), data: filters }, "REPORTE_CONTROL_TRAFICO.pdf");
