@@ -323,9 +323,9 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
-    <v-list-subheader class="mt-0">
-      <h4>Desmarque los servicios que NO desea utilizar.</h4>
-    </v-list-subheader>
+    <v-card-subtitle class="text-wrap font-weight-bold">
+      Desmarque los servicios que NO desea utilizar.
+    </v-card-subtitle>
 
     <!-- Lista de Servicios por Categoría -->
     <v-card-text>
@@ -343,6 +343,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
           <div
             v-for="service in getServicesByCode(cat.code)"
             :key="service.id"
+            class="mb-2"
           >
             <v-checkbox
               density="compact"
