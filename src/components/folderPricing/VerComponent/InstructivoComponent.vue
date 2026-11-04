@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, shallowRef, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -10,6 +10,8 @@ import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
+import { useQuoteTrafficSend, type ApprovalAmounts } from "@/composables/useQuoteTrafficSend";
+import { SEND_TARGET_LABELS, type SendTarget } from "@/utils/trafficSend";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { AprobacionCotizacion, ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -24,6 +26,22 @@ const pricingStore = usePricingStore();
 const configEmpresaStore = useConfigEmpresaStore();
 const securitysStore = useSecuritysStore();
 const { can } = usePermissions();
+const quoteTraffic = useQuoteTrafficSend({
+  quoteKind: "PRICING",
+  quoteId: () => route.params.id as string,
+  approved: () => pricingStore.aprobadoflag,
+});
+const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
+const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
+const sendingInstructivo = shallowRef(false);
+const instructivoDestino = computed<SendTarget>(() => {
+  if (sendingInstructivo.value) return sendTarget.value;
+  return pendingTrafficFile.value ? "TRAFFIC" : "OPERATIONS";
+});
+const approvalState = computed(() => {
+  if (pendingTrafficFile.value) return `EN TRÁFICO ${pendingTrafficFile.value.code_traffic}`;
+  return pricingStore.aprobadoflag ? "APROBADO" : "POR APROBAR";
+});
 
 const notaForm = useTemplateRef("nota");
 const frmSeleccionQuote = useTemplateRef("frmSeleccionQuote");
@@ -163,6 +181,7 @@ const correlativosSecundarios = computed(() => {
 
 onMounted(async () => {
   IdempotencyKey.value = generateIdempotencyKey();
+  quoteTraffic.load();
   stepAprobado = route.params.step
     ? parseInt(route.params.step as string)
     : 1;
@@ -240,9 +259,26 @@ function cerrarDialogoSequenceInstructivo() {
   }).then((res) => {
     if (res.isConfirmed) {
       dialogSequenceInstructivo.value = false;
+      sendingInstructivo.value = false;
     }
   });
   // dialogSequenceInstructivo
+}
+function abrirInstructivoAprobado() {
+  sendingInstructivo.value = false;
+  dialogSequenceInstructivo.value = true;
+}
+function approvalAmounts(): ApprovalAmounts {
+  const approval = pricingStore.listIngresosInstructivoAprobar.find((v) => v.nro_propuesta == nro_propuesta.value)!;
+  const total = approval.dataIngresos.find((v) => v.descripcion === "TOTAL")!;
+  return {
+    totalIngreso: total.valor,
+    igvIngreso: total.igv,
+    valorIngreso: total.valor,
+    id_opcion: id_opcion.value,
+    listCostosInstructivo: approval.dataCostos,
+    listVentasInstructivo: approval.dataVentas,
+  };
 }
 function getIconFile(item: ArchivoDrive) {
   if (item.folder) return "mdi-folder";
@@ -357,6 +393,14 @@ async function imprimir() {
     });
 }
 async function approveQuote(details: AprobacionCotizacion) {
+  if (pendingTrafficFile.value) {
+    await quoteTraffic.sendToOperations({
+      nuevoexpediente: Boolean(details.nuevoexpediente),
+      id_exp: (details.id_exp as number | string | null) || null,
+      fecha_validez: (details.fecha_validez as string | null) || null,
+    });
+    return;
+  }
   Swal.fire({
     icon: "info",
     title: "Aprobando cotización",
@@ -432,7 +476,7 @@ async function abrirSeleccionDeQuoteAAprobar() {
   seleccionQuoteAprobar.value = true;
 }
 function mostrarBtnAprobar() {
-  return !pricingStore.aprobadoflag;
+  return sendTargets.value.length > 0;
 }
 function abrirModalListadoArchivos() {
   dialogFiles.value = true;
@@ -450,6 +494,7 @@ function abrirSeleccionCorreo() {
   }).then((confirmacion) => {
     if (confirmacion.isConfirmed) {
       dialogFiles.value = false;
+      sendingInstructivo.value = true;
       dialogSequenceInstructivo.value = true;
     }
   });
@@ -474,6 +519,9 @@ async function abrirModalAprobar() {
         title: "Advertencia",
         text: "No se puede aprobar ya que la validez ya expiró.",
       }).then(() => false);
+    }
+    if (quoteTraffic.goesToTraffic.value) {
+      return quoteTraffic.sendQuote(approvalAmounts());
     }
     esValida = moment(fechaValidezOpcion, "YYYY-MM-DD").isSameOrAfter(
       moment().add(15, "days").startOf("day"),
@@ -813,6 +861,10 @@ async function buscarHouseAsociadosAMaster() {
   dialogHouse.value = true;
 }
 function continuarAprobar() {
+  if (pendingTrafficFile.value) {
+    aprobarflag.value = false;
+    return quoteTraffic.sendToOperations({ nuevoexpediente: false, id_exp: id_exp.value || null, fecha_validez: null });
+  }
   id_opcion.value = "";
   aprobarflag.value = false;
   dialogCostos.value = true;
@@ -1003,9 +1055,18 @@ function getProveedor(element: OpcionCosto) {
     >
       <v-card class="pa-5">
         <h2 class="text-blue justify--text">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A OPERACIONES
+          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}
         </h2>
-        Seleccione la opción aprobada por el cliente:
+        <v-select
+          id="send-target"
+          v-model="sendTarget"
+          :items="sendTargetItems"
+          label="¿A dónde envías la cotización?"
+          class="mt-4"
+          density="compact"
+          hide-details
+        />
+        <p class="mt-4">Seleccione la opción aprobada por el cliente:</p>
 
         <v-card-text>
           <v-form ref="frmSeleccionQuote">
@@ -1035,7 +1096,7 @@ function getProveedor(element: OpcionCosto) {
             @click="abrirModalListadoArchivos()"
             color="success"
           >
-            Enviar a Operaciones - Tráfico
+            Continuar
           </v-btn>
           <v-btn
             class="mx-1"
@@ -1069,8 +1130,8 @@ function getProveedor(element: OpcionCosto) {
         color="#01579B"
         elevation="2"
         size="small"
-        v-if="!mostrarBtnAprobar() && can('lstQuote', 'MODIFICAR')"
-        @click="dialogSequenceInstructivo = true"
+        v-if="pricingStore.aprobadoflag && can('lstQuote', 'MODIFICAR')"
+        @click="abrirInstructivoAprobado()"
       >
         <v-icon>mdi-email-outline</v-icon> Instructivo
       </v-btn>
@@ -1093,11 +1154,7 @@ function getProveedor(element: OpcionCosto) {
         </h3>
 
         <h3 class="mb-1 ml-1">
-          {{
-            pricingStore.aprobadoflag == true
-              ? "APROBADO"
-              : "POR APROBAR"
-          }}
+          {{ approvalState }}
           |
           <v-btn
             v-if="pricingStore.listInstructivo[0]!.code_master"
@@ -1829,7 +1886,8 @@ function getProveedor(element: OpcionCosto) {
               <v-col cols="12">
                 <FileSequenceInstructivo
                   @continuar="abrirModalAprobar"
-                  :aprobadoflag="pricingStore.aprobadoflag"
+                  :aprobadoflag="pricingStore.aprobadoflag && !sendingInstructivo"
+                  :destino="instructivoDestino"
                   :ver-previsualizacion="verPrevisualizacion"
                   :ver-datos-preview="verDatosPreview"
                   @cerrar-dialogo="cerrarDialogoSequenceInstructivo"

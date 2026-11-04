@@ -12,6 +12,7 @@ import type { ArchivoInicial } from "@/types/archivos";
 import type { Modalidad } from "@/types/catalogos";
 import type { ProveedorPricing } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
+import type { SendTarget } from "@/utils/trafficSend";
 import type {
   DatosManualesInstructivo,
   DocumentoInstructivo,
@@ -25,11 +26,13 @@ const props = withDefaults(
     aprobadoflag?: boolean;
     verPrevisualizacion?: boolean;
     verDatosPreview?: boolean;
+    destino?: SendTarget;
   }>(),
   {
     aprobadoflag: false,
     verPrevisualizacion: true,
     verDatosPreview: true,
+    destino: "OPERATIONS",
   },
 );
 const emit = defineEmits<{ cerrarDialogo: []; continuar: [] }>();
@@ -432,6 +435,7 @@ async function generarHTMLPDF(guardarFlag?: boolean) {
   await pricingStore.quotePreviewInstructivoManual({
     ...datosManuales.value,
 
+    destino: props.destino,
     guardarFlag: guardarFlag,
     subject: subject,
     asesor: asesor.value.name || "",
