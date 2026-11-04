@@ -344,7 +344,7 @@ onMounted(async () => {
               >
                 mdi-printer
               </v-icon>
-              Imprimir
+              Imprimir BL
             </v-btn>
 
             <v-btn

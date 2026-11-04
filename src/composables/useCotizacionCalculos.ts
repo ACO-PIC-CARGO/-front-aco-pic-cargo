@@ -7,7 +7,12 @@ import type {
   Numerico,
   Servicio,
 } from "@/types/cotizacion";
-import { calcularValor, numeroSeguro } from "@/utils/cotizacion";
+import {
+  aplicarMinimoDescargaPeru,
+  calcularValor,
+  numeroSeguro,
+} from "@/utils/cotizacion";
+import { sessionIsoPais } from "@/utils/sesion";
 
 type CodigoMultiplicador = number | string | null | undefined;
 
@@ -153,8 +158,13 @@ export function useCotizacionCalculos() {
     if (costo.code_cost == 4 && numeroSeguro(datosPrincipales.volumen) < 1) {
       factor = Math.max(factor, 1);
     }
-    const subtotal =
-      numeroSeguro(multiplicador.valor) * numeroSeguro(costo.costounitario) * factor;
+    const subtotal = aplicarMinimoDescargaPeru(
+      code,
+      datosPrincipales.peso,
+      sessionIsoPais(),
+      costo.costounitario,
+      numeroSeguro(multiplicador.valor) * numeroSeguro(costo.costounitario) * factor,
+    );
     return costo.considerarvalorminimoflag && costo.costounitario != 0
       ? Math.max(numeroSeguro(costo.minimo), subtotal)
       : subtotal;
@@ -245,6 +255,7 @@ export function useCotizacionCalculos() {
   return {
     calcularFac,
     calcularTotalFleteVentaPorOpcion,
+    aplicarMinimoDescargaPeru,
     formatearCostos,
     formatearCostosEditar,
   };

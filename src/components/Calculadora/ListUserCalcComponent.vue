@@ -8,7 +8,10 @@ import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
-import type { ConceptoCotizacionCalculadora, UsuarioCalculadora } from "@/types/calculadora";
+import type {
+  ConceptoCotizacionCalculadora,
+  UsuarioCalculadora,
+} from "@/types/calculadora";
 
 interface LlamadaCalculadora {
   iduser?: string;
@@ -53,6 +56,11 @@ const headers = [
   { title: "Teléfono", key: "telefono" },
   // { title: "Estado", key: "estadocotizacion" },
 ];
+
+function contarAcciones(item: UsuarioCalculadora): number {
+  const modifica = Number(can("listUserCalc", "MODIFICAR"));
+  return modifica + Number(Boolean(item.capture_cotizacion)) + (item.estadocotizacion == 1 ? 1 + modifica : 0);
+}
 
 const datos = ref<Record<string, unknown>>({
   desgloseKey: [],
@@ -184,9 +192,14 @@ async function registrarLlamada() {
       comentario: call!.comentario,
       identities: call!.identities!.id_entitie
         ? call!.identities!.name
-        : `${JSON.parse(sessionStorage.getItem("dataUser") as string)[0].surname} ${
-            JSON.parse(sessionStorage.getItem("dataUser") as string)[0].second_surname
-          } ${JSON.parse(sessionStorage.getItem("dataUser") as string)[0].names}`,
+        : `${
+            JSON.parse(sessionStorage.getItem("dataUser") as string)[0].surname
+          } ${
+            JSON.parse(sessionStorage.getItem("dataUser") as string)[0]
+              .second_surname
+          } ${
+            JSON.parse(sessionStorage.getItem("dataUser") as string)[0].names
+          }`,
     };
     calculadorasStore.overlay = true;
     await calculadorasStore.SetCall(data);
@@ -396,13 +409,16 @@ function calculo(tipoCon: string) {
     });
 
   if (preServiciologistico.length > 1) {
-    Serviciologistico = ((preServiciologistico as unknown[])
-      .reduce(function (accumulator, current) {
+    Serviciologistico = (
+      (preServiciologistico as unknown[]).reduce(function (
+        accumulator,
+        current,
+      ) {
         return [+(accumulator as number) + +(current as number)];
-      }) as number[])
-      .map(function (duration) {
-        return duration.toFixed(2);
-      });
+      }) as number[]
+    ).map(function (duration) {
+      return duration.toFixed(2);
+    });
   } else {
     Serviciologistico = preServiciologistico;
   }
@@ -575,7 +591,8 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
     }
   });
 
-  let PretotalIGVCostos: ConceptoCotizacionCalculadora[], totalIGVCostos: unknown[] | undefined;
+  let PretotalIGVCostos: ConceptoCotizacionCalculadora[],
+    totalIGVCostos: unknown[] | undefined;
 
   switch (flete[0]!.detalles_calculos.pais_destino) {
     case "PERU":
@@ -601,15 +618,17 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
       totalIGVCostos = [0];
 
       if (PretotalIGVCostos.length > 1) {
-        totalIGVCostos = ((PretotalIGVCostos.map(function (duration) {
-          return (duration.valor * 0.18).toFixed(2);
-        }) as unknown[])
-          .reduce(function (accumulator, current) {
+        totalIGVCostos = (
+          (
+            PretotalIGVCostos.map(function (duration) {
+              return (duration.valor * 0.18).toFixed(2);
+            }) as unknown[]
+          ).reduce(function (accumulator, current) {
             return [+(accumulator as number) + +(current as number)];
-          }) as number[])
-          .map(function (duration) {
-            return duration.toFixed(2);
-          });
+          }) as number[]
+        ).map(function (duration) {
+          return duration.toFixed(2);
+        });
       }
 
       break;
@@ -624,15 +643,17 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
       totalIGVCostos = [0];
 
       if (PretotalIGVCostos.length > 1) {
-        totalIGVCostos = ((PretotalIGVCostos.map(function (duration) {
-          return (duration.valor * 0.07).toFixed(2);
-        }) as unknown[])
-          .reduce(function (accumulator, current) {
+        totalIGVCostos = (
+          (
+            PretotalIGVCostos.map(function (duration) {
+              return (duration.valor * 0.07).toFixed(2);
+            }) as unknown[]
+          ).reduce(function (accumulator, current) {
             return [+(accumulator as number) + +(current as number)];
-          }) as number[])
-          .map(function (duration) {
-            return duration.toFixed(2);
-          });
+          }) as number[]
+        ).map(function (duration) {
+          return duration.toFixed(2);
+        });
       }
 
       break;
@@ -643,27 +664,28 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
     default:
   }
 
-  const desgloseTotal = (response
-    .filter(function (item) {
-      if (
-        item.tipo !== "IMPUESTOS DE ADUANA BAJOS" &&
-        item.tipo !== "IMPUESTOS DE ADUANA ALTOS" &&
-        item.tipo !== "IMPUESTOS DE ADUANA MEDIOS" &&
-        item.tipo !== "SERVICIO LOGÍSTICO" &&
-        item.tipo !== "GANANCIA - SERVICIO LOGÍSTICO" &&
-        item.detalles !== "Ganancia"
-      ) {
-        if (item.valor > 0) {
-          return item;
+  const desgloseTotal = (
+    response
+      .filter(function (item) {
+        if (
+          item.tipo !== "IMPUESTOS DE ADUANA BAJOS" &&
+          item.tipo !== "IMPUESTOS DE ADUANA ALTOS" &&
+          item.tipo !== "IMPUESTOS DE ADUANA MEDIOS" &&
+          item.tipo !== "SERVICIO LOGÍSTICO" &&
+          item.tipo !== "GANANCIA - SERVICIO LOGÍSTICO" &&
+          item.detalles !== "Ganancia"
+        ) {
+          if (item.valor > 0) {
+            return item;
+          }
         }
-      }
-    })
-    .map(function (duration) {
-      return duration.valor.toFixed(2);
-    }) as unknown[])
-    .reduce(function (accumulator, current) {
-      return [+(accumulator as number) + +(current as number)];
-    }) as number[];
+      })
+      .map(function (duration) {
+        return duration.valor.toFixed(2);
+      }) as unknown[]
+  ).reduce(function (accumulator, current) {
+    return [+(accumulator as number) + +(current as number)];
+  }) as number[];
 
   const preservicioLogisticoTotal = response
     .filter(function (item) {
@@ -680,12 +702,11 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
     });
   let servicioLogisticoTotal;
   if (preservicioLogisticoTotal.length > 1) {
-    servicioLogisticoTotal = (preservicioLogisticoTotal as unknown[]).reduce(function (
-      accumulator,
-      current,
-    ) {
-      return [+(accumulator as number) + +(current as number)];
-    }) as number[];
+    servicioLogisticoTotal = (preservicioLogisticoTotal as unknown[]).reduce(
+      function (accumulator, current) {
+        return [+(accumulator as number) + +(current as number)];
+      },
+    ) as number[];
   } else {
     servicioLogisticoTotal = preservicioLogisticoTotal;
   }
@@ -737,7 +758,11 @@ function calculoPrincpipal(transportes: string, tipoCon: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function igv(item: ConceptoCotizacionCalculadora, pais: string, totalIGVCostos: number) {
+function igv(
+  item: ConceptoCotizacionCalculadora,
+  pais: string,
+  totalIGVCostos: number,
+) {
   let valor;
   switch (pais) {
     case "PERU":
@@ -783,7 +808,11 @@ function igv(item: ConceptoCotizacionCalculadora, pais: string, totalIGVCostos: 
   return valor;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function igvMasTotal(item: ConceptoCotizacionCalculadora, pais: string, totalIGVCostos: number) {
+function igvMasTotal(
+  item: ConceptoCotizacionCalculadora,
+  pais: string,
+  totalIGVCostos: number,
+) {
   let valor;
   switch (pais) {
     case "PERU":
@@ -847,7 +876,12 @@ function totalGeneralCostos(item: unknown, pais: string) {
   return valor;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function totalGeneralMasIGVGanancias(item: unknown, item2: unknown, pais: string, totalIGVCostos: number) {
+function totalGeneralMasIGVGanancias(
+  item: unknown,
+  item2: unknown,
+  pais: string,
+  totalIGVCostos: number,
+) {
   let valor;
   switch (pais) {
     case "PERU":
@@ -889,8 +923,7 @@ function totalGeneralMasIgvVEnta(
         valor = (
           Number(totalIGVFleteCostos) +
           Number(
-            (servicioLogisticoTotal / 3) * 2 * 0.18 +
-              servicioLogisticoTotal,
+            (servicioLogisticoTotal / 3) * 2 * 0.18 + servicioLogisticoTotal,
           )
         ).toFixed(2);
       } else {
@@ -944,10 +977,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
 <template>
   <v-container fluid>
     <v-row>
-      <v-col
-        cols="12"
-        md="6"
-      >
+      <v-col cols="12" md="6">
         <v-text-field
           v-model="search"
           append-inner-icon="mdi-magnify"
@@ -958,10 +988,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           density="compact"
         />
       </v-col>
-      <v-col
-        cols="12"
-        md="6"
-      >
+      <v-col cols="12" md="6">
         <v-btn
           v-if="can('listUserCalc', 'EXPORTAR')"
           color="green"
@@ -971,10 +998,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           Exportar
         </v-btn>
       </v-col>
-      <v-col
-        cols="12"
-        md="12"
-      >
+      <v-col cols="12" md="12">
         <v-data-table
           :headers="headers"
           :items="calculadorasStore.listUser"
@@ -1001,10 +1025,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
                     </tr>
                   </thead>
                   <tbody v-if="item.detalle!.length > 0">
-                    <tr
-                      v-for="(i, index) in item.detalle"
-                      :key="i.id || index"
-                    >
+                    <tr v-for="(i, index) in item.detalle" :key="i.id || index">
                       <td>{{ i.fecha }}</td>
                       <td>{{ i.comentario }}</td>
                       <td>{{ i.nombrecompleto }}</td>
@@ -1032,61 +1053,80 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
             </v-chip>
           </template>
           <template #[`item.action`]="{ item }">
-            <v-btn
-              v-if="can('listUserCalc', 'MODIFICAR')"
-              color="#1A237E"
-              class="ma-1 btnCalc"
-              block
-              @click="abrirModalCambiarEstado(item)"
+            <v-btn-toggle
+              :class="{ 'acciones-dos-filas': contarAcciones(item) >= 4 }"
             >
-              <v-icon
-                size="small"
-                readonly
-                hide-details
-                outlined
-                class="mr-1"
-              >
-                mdi-phone-plus
-              </v-icon>
-              Registro Llamada
-            </v-btn>
-            <v-btn
-              color="#B71C1C"
-              v-if="item.capture_cotizacion"
-              block
-              class="ma-1 btnCalc"
-              @click="abrirImg(item)"
-            >
-              <v-icon class="mx-1">
-                mdi-image-area
-              </v-icon> Ver Capture
-            </v-btn>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                    @click="abrirModalCambiarEstado(item)"
+                    aria-label="Registro Llamada"
+                    v-if="can('listUserCalc', 'MODIFICAR')"
+                  >
+                    <v-icon color="primary">mdi-phone-plus</v-icon>
+                  </v-btn>
+                </template>
+                <span>Registro Llamada</span>
+              </v-tooltip>
 
-            <v-btn
-              block
-              color="#4A148C"
-              class="ma-1 btnCalc"
-              @click="abrirModalPreview(item)"
-              v-if="item.estadocotizacion == 1"
-            >
-              <v-icon class="mx-1">
-                mdi-eye
-              </v-icon> Ver Costos
-            </v-btn>
-            <v-btn
-              block
-              size="small"
-              color="#01579B"
-              class="ma-1 btnCalc"
-              @click="enviarCotizacionAPricing(item)"
-              v-if="item.estadocotizacion == 1 && can('listUserCalc', 'MODIFICAR')"
-            >
-              <v-icon class="mx-1">
-                mdi-invoice-text-send-outline
-              </v-icon> Enviar
-              Pricing
-            </v-btn>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                    @click="abrirImg(item)"
+                    aria-label="Ver Capture"
+                    v-if="item.capture_cotizacion"
+                  >
+                    <v-icon color="#B71C1C">mdi-image-area</v-icon>
+                  </v-btn>
+                </template>
+                <span>Ver Capture</span>
+              </v-tooltip>
 
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                    @click="abrirModalPreview(item)"
+                    aria-label="Ver Costos"
+                    v-if="item.estadocotizacion == 1"
+                  >
+                    <v-icon color="#4A148C">mdi-eye</v-icon>
+                  </v-btn>
+                </template>
+                <span> Ver Costos</span>
+              </v-tooltip>
+
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    variant="text"
+                    icon
+                    size="x-small"
+                    v-bind="props"
+                    class="ma-1 btnCalc"
+                    @click="enviarCotizacionAPricing(item)"
+                    aria-label="Enviar Pricing"
+                    v-if="item.estadocotizacion == 1 && can('listUserCalc', 'MODIFICAR')"
+                  >
+                    <v-icon color="#01579B">
+                      mdi-invoice-text-send-outline
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Enviar Pricing</span>
+              </v-tooltip>
+            </v-btn-toggle>
             <!-- <v-btn x-small icon color="primary" @click="openCall(item)">
             <v-icon>mdi-phone</v-icon>
           </v-btn>
@@ -1097,14 +1137,8 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
         </v-data-table>
       </v-col>
     </v-row>
-    <PreviewQuote
-      :dialog="dialog"
-      :data="dataCotizacion"
-    />
-    <v-dialog
-      v-model="dialogEditarEstado"
-      max-width="30%"
-    >
+    <PreviewQuote :dialog="dialog" :data="dataCotizacion" />
+    <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
         <v-card-title class="text-headline-medium pb-0">
           <p>Detalle de Nota de llamada</p>
@@ -1113,7 +1147,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           <v-card-subtitle class="pt-0">
             {{ dataCotizacion.nombre }} | {{ dataCotizacion.telefono }}
           </v-card-subtitle>
-          <br>
+          <br />
           <v-form ref="frmComentario">
             <v-text-field
               label="Fecha "
@@ -1149,17 +1183,10 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="success"
-            @click="guardarEstadoCotizacion()"
-          >
+          <v-btn color="success" @click="guardarEstadoCotizacion()">
             Guardar
           </v-btn>
-          <v-btn
-            color="red"
-            variant="text"
-            @click="dialogEditarEstado = false"
-          >
+          <v-btn color="red" variant="text" @click="dialogEditarEstado = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -1169,6 +1196,11 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
 </template>
 
 <style scoped>
+.acciones-dos-filas {
+  display: grid;
+  grid-template-columns: repeat(3, max-content);
+}
+
 #tblListUser tbody tr:nth-child(odd) {
   background-color: #f9f9f9; /* Color suave para impares */
 }

@@ -104,6 +104,7 @@ export const usePricingStore = defineStore("pricing", () => {
   const {
     calcularFac,
     calcularTotalFleteVentaPorOpcion: calcularTotalFleteVenta,
+    aplicarMinimoDescargaPeru,
     formatearCostos,
     formatearCostosEditar,
   } = useCotizacionCalculos();
@@ -1812,7 +1813,7 @@ export const usePricingStore = defineStore("pricing", () => {
 
     let totalFleteVentas = 0;
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const iso = sessionIsoPais();
+    const iso = datosEmpresa.value[0]?.pais || datosEmpresa.value[0]?.iso_pais || sessionIsoPais();
     const TipoCostos = namesection.value.map((v) => ({
       name: v.name,
       codigo: v.codigo,
@@ -2003,6 +2004,13 @@ export const usePricingStore = defineStore("pricing", () => {
                 Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
             }
           }
+          operacionFinal = aplicarMinimoDescargaPeru(
+            listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+            datosPrincipales.value.peso,
+            iso,
+            element.costounitario,
+            operacionFinal,
+          );
 
           if (element.esfleteflag == 1) {
             datosFlete.push({
@@ -2301,6 +2309,13 @@ export const usePricingStore = defineStore("pricing", () => {
                 Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
             }
           }
+          operacionFinal = aplicarMinimoDescargaPeru(
+            listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+            datosPrincipales.value.peso,
+            iso,
+            element.costounitario,
+            operacionFinal,
+          );
           if (element.esfleteflag == 1) {
             if (
               listMultiplicador.value.some((v) => v.id == element.id_multiplicador)
@@ -2652,6 +2667,13 @@ export const usePricingStore = defineStore("pricing", () => {
                 Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
             }
           }
+          operacionFinal = aplicarMinimoDescargaPeru(
+            listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+            datosPrincipales.value.peso,
+            iso,
+            element.costounitario,
+            operacionFinal,
+          );
 
           if (element.esfleteflag == 1) {
             datosFlete.push({
@@ -3315,7 +3337,7 @@ export const usePricingStore = defineStore("pricing", () => {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return new Promise(async (resolve, reject) => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const iso = sessionIsoPais();
+      const iso = datosEmpresa.value[0]?.pais || datosEmpresa.value[0]?.iso_pais || sessionIsoPais();
       const TipoCostos = namesection.value.map((v) => ({
         name: v.name,
         codigo: v.codigo,
@@ -3521,6 +3543,13 @@ export const usePricingStore = defineStore("pricing", () => {
                         Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
                     }
                   }
+                  operacionFinal = aplicarMinimoDescargaPeru(
+                    listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+                    datosPrincipales.value.peso,
+                    iso,
+                    element.costounitario,
+                    operacionFinal,
+                  );
 
                   if (element.esfleteflag == 1) {
                     datosFlete.push({
@@ -3819,6 +3848,13 @@ export const usePricingStore = defineStore("pricing", () => {
                         Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
                     }
                   }
+                  operacionFinal = aplicarMinimoDescargaPeru(
+                    listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+                    datosPrincipales.value.peso,
+                    iso,
+                    element.costounitario,
+                    operacionFinal,
+                  );
                   if (element.esfleteflag == 1) {
                     if (
                       listMultiplicador.value.some((v) => v.id == element.id_multiplicador)
@@ -4170,7 +4206,13 @@ export const usePricingStore = defineStore("pricing", () => {
                         Number(element.minimo || 0) > Number(operacionFinal) ? Number(element.minimo) : operacionFinal;
                     }
                   }
-
+                  operacionFinal = aplicarMinimoDescargaPeru(
+                    listMultiplicador.value.find((v) => v.id == element.id_multiplicador)?.code,
+                    datosPrincipales.value.peso,
+                    iso,
+                    element.costounitario,
+                    operacionFinal,
+                  );
                   if (element.esfleteflag == 1) {
                     datosFlete.push({
                       name: element.nameservice,
