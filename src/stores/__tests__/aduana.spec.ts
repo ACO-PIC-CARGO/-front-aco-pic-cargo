@@ -665,6 +665,7 @@ describe("aduana store", () => {
         quote: "1-A",
         id_marketing: 8,
         statusquote: 7,
+        namestatusquote: "APROBADA",
         id_vendedor: 9245,
         id_pricing: 9245,
         nombre: "PRUEBA",

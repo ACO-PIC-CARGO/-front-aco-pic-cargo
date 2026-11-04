@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { withChosenOption } from "@/utils/selectOptions";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
@@ -27,24 +28,13 @@ const buscarClienteDialog = ref(false);
 const form = useTemplateRef("form");
 
 const registroClienteFlag = computed(() => appStore.registroClienteFlag);
-const estadoCotizacionItems = computed(() => {
-  const list = pricingStore.listQuoteStatus || [];
-  const idStatus = pricingStore.datosPrincipales.id_status;
-  const nameStatus = pricingStore.datosPrincipales.nameStatusQuote;
-
-  const exists = list.some((v) => v.id == idStatus);
-  if (exists || !idStatus || !nameStatus) {
-    return list;
-  }
-
-  return [
-    ...list,
-    {
-      id: idStatus,
-      name: nameStatus,
-    },
-  ];
-});
+const estadoCotizacionItems = computed(() =>
+  withChosenOption(
+    pricingStore.listQuoteStatus || [],
+    pricingStore.datosPrincipales.id_status,
+    pricingStore.datosPrincipales.nameStatusQuote,
+  ),
+);
 
 watch(registroClienteFlag, async () => {
   appStore.spiner = true;

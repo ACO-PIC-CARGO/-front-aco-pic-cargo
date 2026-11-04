@@ -1331,7 +1331,7 @@ exports[`aduana store > quote > getAdunaVer loads the quote into the form, its o
   "idsentido": 1,
   "idtipocarga": 3,
   "monto": "",
-  "nameStatusQuote": "",
+  "nameStatusQuote": "APROBADA",
   "nombre": "PRUEBA",
   "numerobultos": 1,
   "peso": 100,
