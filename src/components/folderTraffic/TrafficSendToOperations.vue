@@ -117,13 +117,16 @@ onMounted(async () => {
         :title="`Instructivo Tráfico → Operaciones · ${file.code_traffic}`"
       />
       <v-card-text class="pa-0">
-        <FileSequenceInstructivo
-          :quote-id="file.id_quote"
-          :aprobadoflag="false"
-          destino="OPERATIONS"
-          @continuar="step = 'master'"
-          @cerrar-dialogo="emit('close')"
-        />
+        <!-- Own form, so a read-only host form (the house screen) cannot make these fields read-only. -->
+        <v-form>
+          <FileSequenceInstructivo
+            :quote-id="file.id_quote"
+            :aprobadoflag="false"
+            destino="OPERATIONS"
+            @continuar="step = 'master'"
+            @cerrar-dialogo="emit('close')"
+          />
+        </v-form>
       </v-card-text>
     </v-card>
   </v-dialog>
@@ -136,40 +139,42 @@ onMounted(async () => {
   >
     <v-card :title="`Enviar ${file.code_traffic} a Operaciones`">
       <v-card-text>
-        <v-radio-group
-          v-model="isNew"
-          hide-details
-        >
-          <v-radio
-            :value="true"
-            label="Crear un master nuevo"
+        <v-form>
+          <v-radio-group
+            v-model="isNew"
+            hide-details
+          >
+            <v-radio
+              :value="true"
+              label="Crear un master nuevo"
+            />
+            <v-radio
+              :value="false"
+              label="Enlazar a un master existente"
+            />
+          </v-radio-group>
+          <v-text-field
+            v-if="isNew"
+            id="traffic-master-availability"
+            v-model="availability"
+            type="date"
+            class="mt-4"
+            label="Fecha de disponibilidad del master"
+            hint="Si es importación, la ETA; si es exportación, la ETD."
+            persistent-hint
           />
-          <v-radio
-            :value="false"
-            label="Enlazar a un master existente"
+          <v-autocomplete
+            v-else
+            id="traffic-master"
+            v-model="masterId"
+            :items="masters"
+            item-title="code_master"
+            item-value="id"
+            class="mt-4"
+            label="Master"
+            no-data-text="No hay masters de tu empresa con la misma ruta. Crea uno nuevo."
           />
-        </v-radio-group>
-        <v-text-field
-          v-if="isNew"
-          id="traffic-master-availability"
-          v-model="availability"
-          type="date"
-          class="mt-4"
-          label="Fecha de disponibilidad del master"
-          hint="Si es importación, la ETA; si es exportación, la ETD."
-          persistent-hint
-        />
-        <v-autocomplete
-          v-else
-          id="traffic-master"
-          v-model="masterId"
-          :items="masters"
-          item-title="code_master"
-          item-value="id"
-          class="mt-4"
-          label="Master"
-          no-data-text="No hay masters de tu empresa con la misma ruta. Crea uno nuevo."
-        />
+        </v-form>
         <v-alert
           v-if="problem"
           type="error"

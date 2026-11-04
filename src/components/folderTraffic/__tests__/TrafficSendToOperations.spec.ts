@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { defineComponent, h } from "vue";
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
@@ -140,4 +141,25 @@ test("a refused send shows the server's reason and the retry uses a new key", as
   expect(flow.problem).toBe("Este expediente ya se envió a Operaciones.");
   expect(retry).not.toBe(first);
   expect(wrapper!.emitted("sent")).toBeUndefined();
+});
+
+test("inside a read-only host form, like the house screen, the instructivo and the master choice stay editable", async () => {
+  respond({ "traffic/4/masters": accepted([{ id: 3831, code_master: "2026MBL01741" }]) });
+  vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  const InstructivoWithField = { ...InstructivoStub, template: "<v-text-field id='instructivo-field' />" };
+  const ReadOnlyHouseForm = defineComponent(() => () => h(components.VForm, { readonly: true }, () => h(TrafficSendToOperations, { file: pricingFile })));
+  wrapper = mount(ReadOnlyHouseForm, {
+    global: { plugins: [createVuetify({ components, directives })], stubs: { FileSequenceInstructivo: InstructivoWithField } },
+    attachTo: document.body,
+  });
+  await flushPromises();
+  const field = (selector: string) => document.querySelector<HTMLInputElement>(selector)!;
+
+  expect(field("#instructivo-field").readOnly).toBe(false);
+  wrapper.findComponent({ name: "FileSequenceInstructivo" }).vm.$emit("continuar");
+  await flushPromises();
+  expect(field("#traffic-master-availability").readOnly).toBe(false);
+  field("input[aria-label='Enlazar a un master existente']").click();
+  await flushPromises();
+  expect(document.querySelector("#traffic-master")).not.toBeNull();
 });
