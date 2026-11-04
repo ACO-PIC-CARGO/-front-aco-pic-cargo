@@ -102,3 +102,17 @@ test("the rate-contact step of a new provider starts empty and loads nothing, ev
   expect(vi.mocked(http)).not.toHaveBeenCalled();
   wrapper.unmount();
 });
+
+test("a new client form opens without required-field errors", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const SeccionCliente = (await import("@/components/folderEntities/Cliente/SeccionCliente.vue")).default;
+  const wrapper = mount(SeccionCliente, {
+    global: { plugins: [createVuetify({ components, directives }), pinia], stubs: { VOverlay: true } },
+    attachTo: document.body,
+  });
+  await flushPromises();
+
+  expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
+  wrapper.unmount();
+});
