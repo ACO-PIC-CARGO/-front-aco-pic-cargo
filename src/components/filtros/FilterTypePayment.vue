@@ -185,13 +185,13 @@ async function validate() {
     <v-card-text v-else>
       <v-form ref="frmDML">
         <v-col
+          v-if="typepaymentStore.tipo != 'nuevo'"
           cols="12"
           class="py-1"
         >
           <v-text-field
             v-model="typepaymentStore.model.code"
             readonly
-            v-if="typepaymentStore.tipo != 'nuevo'"
             label="Código"
           />
         </v-col>

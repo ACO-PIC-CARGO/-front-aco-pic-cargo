@@ -159,6 +159,7 @@ async function Aceptar() {
     <v-card-text v-else>
       <v-form ref="frmDML">
         <v-col
+          v-if="masterusuariosStore.tipo != 'nuevo'"
           cols="12"
           class="py-1"
         >
@@ -166,7 +167,6 @@ async function Aceptar() {
             v-model="masterusuariosStore.model.valorcodigo"
             :readonly="masterusuariosStore.tipo != 'nuevo'"
             label="Código"
-            v-if="masterusuariosStore.tipo != 'nuevo'"
           />
         </v-col>
 

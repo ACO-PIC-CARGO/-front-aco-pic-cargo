@@ -344,11 +344,11 @@ async function Aceptar() {
         <div class="container">
           <v-row>
             <v-col
+              v-if="QuoteStatusStore.tipo != 'nuevo'"
               cols="12"
               class="py-0"
             >
               <v-text-field
-                v-if="QuoteStatusStore.tipo != 'nuevo'"
                 readonly
                 v-model="QuoteStatusStore.StatusModel.code"
                 density="compact"
