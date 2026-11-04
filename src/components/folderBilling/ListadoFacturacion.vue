@@ -125,6 +125,10 @@ async function anular(data: FacturaListado) {
   Swal.fire({ icon: "success", title: "Factura anulada", text: response.mensaje });
   await listadoFacturacion();
 }
+
+function verMotivoAnulacion(data: FacturaListado) {
+  Swal.fire({ icon: "info", title: `Motivo de anulación de la factura ${data.correlativo}`, text: data.motivo_anulacion! });
+}
 </script>
 
 <template>
@@ -185,6 +189,18 @@ async function anular(data: FacturaListado) {
           v-if="item.estatus == 1 && can('lstFacturacion', 'ELIMINAR')"
         >
           <v-icon>mdi-cancel</v-icon>
+        </v-btn>
+        <v-btn
+          v-if="item.motivo_anulacion"
+          variant="text"
+          color="grey-darken-1"
+          icon
+          density="comfortable"
+          aria-label="Ver motivo de anulación"
+          title="Ver motivo de anulación"
+          @click="verMotivoAnulacion(item)"
+        >
+          <v-icon>mdi-comment-text-outline</v-icon>
         </v-btn>
       </template>
     </v-data-table>

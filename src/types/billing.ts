@@ -34,6 +34,7 @@ export interface FacturaListado {
   url: string;
   estatus: number;
   existe_fiscal?: boolean;
+  motivo_anulacion?: string | null;
 }
 
 export interface EncabezadoTabla {
