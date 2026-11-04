@@ -2878,7 +2878,9 @@ export const usePricingStore = defineStore("pricing", () => {
       (isAlmacen == true ? totalAlmacenes : 0) +
       (isGastosTercero == true ? totalGastosTercero : 0);
     /* GENERAR ---------------------------------*/
-    const shipment = listShipment.value.find((v) => v.id == datosPrincipales.value.idtipocarga);
+    const tipoCarga = datosPrincipales.value.idtipocarga;
+    const idTipoCarga = typeof tipoCarga === "object" && tipoCarga ? tipoCarga.id : tipoCarga;
+    const shipment = listShipment.value.find((v) => v.id == idTipoCarga);
 
     if (!nombrePdfEnviarCliente) {
       nombrePdfEnviarCliente = "COTIZACION_";
@@ -2892,7 +2894,6 @@ export const usePricingStore = defineStore("pricing", () => {
           nombrePdfEnviarCliente += "GRUPAL";
         }
 
-        const shipment = listShipment.value.find((v) => v.id == datosPrincipales.value.idtipocarga);
         if (shipment!.code == "FCL") {
           nombrePdfEnviarCliente = contenedor
             .map((v) => {

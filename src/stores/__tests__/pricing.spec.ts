@@ -1561,6 +1561,16 @@ describe("pricing store", () => {
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
     });
 
+    test("generarReporte prints a new quote, whose shipment holds the chosen row instead of its id", async () => {
+      const pricing = cotizacion();
+      pricing.datosPrincipales.idtipocarga = { id: 2, code: "FCL", embarque: "FCL" };
+
+      await pricing.generarReporte({ tipo: "TOTAL" });
+
+      expect((postedBody("quote_preview_totales") as Record<string, unknown>).isFCL).toBe(true);
+      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
+    });
+
     test("generarReporte tells the backend which quote the PDF belongs to so it lands in the quote's folder", async () => {
       const pricing = cotizacion();
       pricing.id = 77;
