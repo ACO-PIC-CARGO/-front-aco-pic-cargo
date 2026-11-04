@@ -133,7 +133,7 @@ test.describe("new quote", () => {
     await expect(page.getByRole("button", { name: /GUARDAR COSTOS OPCIÓN 1/ })).toBeHidden();
   });
 
-  test("cost lines whose multiplier is not active for the shipment block the save and are named", async ({ page }) => {
+  test("cost lines whose multiplier is not active for the shipment do not block the save, as the original did", async ({ page }) => {
     const saves = [];
     await page.route("**/setQuote", (route) => {
       saves.push(route.request().postDataJSON());
@@ -156,9 +156,8 @@ test.describe("new quote", () => {
 
     await page.getByRole("button", { name: "Guardar Borrador" }).click();
 
-    const warning = page.getByRole("dialog").filter({ hasText: "Revisa la cotización antes de guardar" });
-    for (const name of invalid) await expect(warning).toContainText(name);
-    expect(saves).toEqual([]);
+    await expect.poll(() => saves.length).toBe(1);
+    await expect(page.getByRole("dialog").filter({ hasText: "Revisa la cotización antes de guardar" })).toHaveCount(0);
   });
 
   test("Nuevo Cliente creates a client even after a House left its consignee loaded", async ({ page }) => {
