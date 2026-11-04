@@ -9,6 +9,7 @@ import { accepted, respond } from "@/stores/__tests__/catalogHttp";
 
 const push = vi.fn();
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
+vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 
 const SendStub = { name: "TrafficSendToOperations", props: ["file"], template: "<div />" };

@@ -9,6 +9,7 @@ import { URL_MAIN, accepted, httpMock, respond } from "@/stores/__tests__/catalo
 
 const push = vi.fn();
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
+vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 globalThis.ResizeObserver ??= class {
