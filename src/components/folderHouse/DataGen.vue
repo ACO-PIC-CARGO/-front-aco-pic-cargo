@@ -402,7 +402,7 @@ async function _validaData() {
     appStore.house_id_consigner = house.id_consigner;
     housesStore.house_id_notify = house.id_notify;
     housesStore.house_id_airlines = house.id_aerolinea;
-    housesStore.house_id_coloader = house.id_coloader;
+    housesStore.house_id_coloader = house.id_coloader || null;
     housesStore.house_id_vendedor = house.id_vendedor;
     housesStore.house_id_pricing = house.id_pricing;
     //this.$store.state.house_id_agente = house.id_agent;

@@ -34,3 +34,21 @@ test("a house without quotes asks for the pending quotes and customs quotes at t
   expect(requestedUrls().some((url) => url.includes("listar_montos_finales_aduana"))).toBe(true);
   wrapper.unmount();
 });
+
+test("a house saved without a coloader shows no coloader chosen", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 22 }]));
+  httpMock.mockImplementation((config) => {
+    const url = String(config?.url);
+    if (url.includes("house_ver")) return Promise.resolve({ data: { estadoflag: true, data: [{ id: 2892, id_cot: 1, id_coloader: 0 }] } });
+    return Promise.resolve({ data: { estadoflag: false, data: [] } });
+  });
+
+  const wrapper = shallowMount(DataGen, { global: { plugins: [pinia] } });
+  await flushPromises();
+  const { useHousesStore } = await import("@/stores/houses");
+
+  expect(useHousesStore().house_id_coloader).toBeNull();
+  wrapper.unmount();
+});
