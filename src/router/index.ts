@@ -212,13 +212,13 @@ const routes = [
         path: "folderTraffic/ver/:id",
         name: "trafficVer",
         meta: { menuRoute: "lstTraffic", permissionScreen: "lstTraffic" },
-        component: () => import("../views/folderHouse/VerHouse.vue"),
+        component: () => import("../views/folderTraffic/TrafficFile.vue"),
       },
       {
         path: "folderTraffic/editar/:id/:activar?",
         name: "trafficEditar",
         meta: { menuRoute: "lstTraffic", permissionScreen: "lstTraffic" },
-        component: () => import("../views/folderHouse/VerHouse.vue"),
+        component: () => import("../views/folderTraffic/TrafficFile.vue"),
       },
       {
         path: "folderHouse/control/:id",
