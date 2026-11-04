@@ -180,7 +180,7 @@ export const useHousesStore = defineStore("houses", () => {
       .then(function (response) {
         sessionStorage.setItem("auth-token", response.data.token!);
 
-        if (!!response.data.data[0]!.estadoflag) {
+        if (response.data.estadoflag) {
           lstFacturasFiscales.value = response.data.data;
         } else {
           lstFacturasFiscales.value = [];

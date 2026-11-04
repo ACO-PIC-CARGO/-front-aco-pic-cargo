@@ -99,13 +99,13 @@ describe("houses store", () => {
     expect(houses.listHouse).toEqual([{ id: 3 }]);
   });
 
-  test("getFacturasFiscales clears the list first and keeps the rows only when the first one is accepted", async () => {
+  test("getFacturasFiscales clears the list first and keeps the rows only when the answer is accepted", async () => {
     const houses = useHousesStore();
     houses.lstFacturasFiscales = [{ estadoflag: true }];
     let during: unknown;
     httpMock.mockImplementation(async () => {
       during = houses.lstFacturasFiscales;
-      return { data: { token: "tok-1", data: [{ estadoflag: true, originalname: "f.pdf" }] } };
+      return { data: { token: "tok-1", estadoflag: true, data: [{ estadoflag: true, originalname: "f.pdf" }] } };
     });
 
     await houses.getFacturasFiscales({ id_house: 4, id_correlativo: 9 });
@@ -120,20 +120,21 @@ describe("houses store", () => {
     expect(sessionStorage.getItem("auth-token")).toBe("tok-1");
     expect(houses.lstFacturasFiscales).toEqual([{ estadoflag: true, originalname: "f.pdf" }]);
 
-    httpMock.mockResolvedValue({ data: { token: "tok-2", data: [{ estadoflag: false }] } });
+    httpMock.mockResolvedValue({ data: { token: "tok-2", estadoflag: false, data: [] } });
     await houses.getFacturasFiscales({ id_house: 4 });
     expect(houses.lstFacturasFiscales).toEqual([]);
   });
 
-  test("getFacturasFiscales leaves the list empty when the answer has no rows", async () => {
-    httpMock.mockResolvedValue({ data: { token: "t", data: [] } });
-    vi.spyOn(console, "error").mockImplementation(() => {});
+  test("getFacturasFiscales leaves the list empty without an error when the house has no fiscal invoices", async () => {
+    httpMock.mockResolvedValue({ data: { token: "t", estadoflag: false, mensaje: "No se encontraron registros", data: [] } });
+    const logged = vi.spyOn(console, "error").mockImplementation(() => {});
     const houses = useHousesStore();
     houses.lstFacturasFiscales = [{ estadoflag: true }];
 
     await houses.getFacturasFiscales();
 
     expect(houses.lstFacturasFiscales).toEqual([]);
+    expect(logged).not.toHaveBeenCalled();
   });
 
   test("setConfirmarTelex thanks the user only when the backend accepts", async () => {
