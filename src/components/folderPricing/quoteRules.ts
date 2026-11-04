@@ -41,12 +41,10 @@ export function quoteSaveProblem({
   idStatus,
   opcionCostos,
   containers,
-  multiplicadores,
 }: {
   idStatus: DatosPrincipales["id_status"];
   opcionCostos: OpcionCosto[];
   containers: ContenedorCantidad[];
-  multiplicadores: Multiplicador[];
 }): string | null {
   if (!idStatus) {
     return `Falta el estado de la cotización. ${NO_DEFAULT_STATUS}`;
@@ -66,30 +64,14 @@ export function quoteSaveProblem({
     return `La cantidad de ${contenedoresInvalidos.join(", ")} debe ser un número entero mayor que 0. Corrígela en los datos de la carga y vuelve a guardar.`;
   }
 
-  const lineasInvalidas = new Set(
-    opcionCostos.flatMap((opcion) =>
-      opcion.listCostos
-        .filter((costo) => costo.status == 1 && hasInvalidMultiplier(costo, multiplicadores))
-        .map((costo) => costo.nameservice),
-    ),
-  );
-  if (lineasInvalidas.size > 0) {
-    return `Estas líneas de costo tienen un multiplicador que no está activo para este tipo de embarque: ${[...lineasInvalidas].join(", ")}. Elige otro multiplicador en cada línea marcada en rojo o quítala; si vienen de la plantilla de costos, corrígela en Configuración.`;
-  }
-
   return null;
 }
 
-export function blockedQuoteSave(pricing: {
-  opcionCostos: OpcionCosto[];
-  datosPrincipales: DatosPrincipales;
-  listMultiplicador: Multiplicador[];
-}): boolean {
+export function blockedQuoteSave(pricing: { opcionCostos: OpcionCosto[]; datosPrincipales: DatosPrincipales }): boolean {
   const problem = quoteSaveProblem({
     idStatus: pricing.datosPrincipales.id_status,
     opcionCostos: pricing.opcionCostos,
     containers: pricing.datosPrincipales.containers ?? [],
-    multiplicadores: pricing.listMultiplicador,
   });
   if (problem) Swal.fire({ icon: "warning", title: "Revisa la cotización antes de guardar", text: problem });
   return !!problem;

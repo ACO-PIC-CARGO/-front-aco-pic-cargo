@@ -45,7 +45,6 @@ describe("hasInvalidMultiplier", () => {
 });
 
 describe("quoteSaveProblem", () => {
-  const multiplicadores = [{ id: 1 }];
   const opcion = (patch: Partial<OpcionCosto> = {}): OpcionCosto => ({
     nro_propuesta: 1,
     tiempo_transito: 35,
@@ -56,11 +55,11 @@ describe("quoteSaveProblem", () => {
   });
 
   test("a complete quote has no problem", () => {
-    expect(quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion()], containers: [], multiplicadores })).toBeNull();
+    expect(quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion()], containers: [] })).toBeNull();
   });
 
   test.each(["", undefined])("a quote without a status (%p) asks for one and points to the default status setting", (idStatus) => {
-    const problem = quoteSaveProblem({ idStatus, opcionCostos: [opcion()], containers: [], multiplicadores });
+    const problem = quoteSaveProblem({ idStatus, opcionCostos: [opcion()], containers: [] });
     expect(problem).toContain("estado");
     expect(problem).toContain("Configuración");
   });
@@ -70,7 +69,6 @@ describe("quoteSaveProblem", () => {
       idStatus: 454,
       opcionCostos: [opcion(), opcion({ nro_propuesta: 2, tiempo_transito: 2.5 })],
       containers: [],
-      multiplicadores,
     });
     expect(problem).toContain("opción 2");
     expect(problem).not.toContain("opción 1");
@@ -84,26 +82,16 @@ describe("quoteSaveProblem", () => {
         { description: "20 ST", cantidad: 2 },
         { description: "40 HC", cantidad: 1.5 as never },
       ],
-      multiplicadores,
     });
     expect(problem).toContain("40 HC");
     expect(problem).not.toContain("20 ST");
   });
 
-  test("lists each active line whose multiplier is not valid once, across options", () => {
-    const invalid = { nameservice: "HANDLING", status: 1, id_multiplicador: 37 };
-    const problem = quoteSaveProblem({
-      idStatus: 454,
-      opcionCostos: [
-        opcion({ listCostos: [invalid, { ...invalid, esventaflag: 1 }] }),
-        opcion({ nro_propuesta: 2, listCostos: [invalid, { nameservice: "REMOVED", status: 0, id_multiplicador: 37 }] }),
-      ],
-      containers: [],
-      multiplicadores,
-    });
-    expect(problem).toContain("HANDLING");
-    expect(problem!.match(/HANDLING/g)).toHaveLength(1);
-    expect(problem).not.toContain("REMOVED");
+  test("a line whose multiplier is not active for the shipment type does not block saving", () => {
+    const templateLine = { nameservice: "ADUANA EN ORIGEN", status: 1, id_multiplicador: 37 };
+    expect(
+      quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion({ listCostos: [templateLine] })], containers: [] }),
+    ).toBeNull();
   });
 });
 
@@ -170,7 +158,6 @@ describe("blockedQuoteSave", () => {
   const pricing = (tiempo_transito: number) => ({
     opcionCostos: [{ nro_propuesta: 1, tiempo_transito, listCostos: [], listImpuestos: [], listNotasQuote: [] }],
     datosPrincipales: { id_status: 454, containers: null },
-    listMultiplicador: [],
   });
 
   test("lets a valid quote through without a warning", () => {
