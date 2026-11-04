@@ -75,6 +75,10 @@
   .v-switch .v-selection-control {
     min-height: var(--v-selection-control-size);
   }
+  .v-checkbox > .v-input__details--hidden,
+  .v-switch > .v-input__details--hidden {
+    min-height: 0;
+  }
 }
 
 @layer vuetify-overrides {
