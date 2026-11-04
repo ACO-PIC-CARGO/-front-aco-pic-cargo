@@ -21,9 +21,9 @@ describe("master form values", () => {
     expect(isEtaBeforeEtd("2026-03-01", null)).toBe(false);
   });
 
-  test("availability starts from the arrival in an import and from the departure in an export", () => {
-    expect(availabilityBaseDate("I", "2026-03-01", "2026-03-15")).toBe("2026-03-15");
-    expect(availabilityBaseDate("E", "2026-03-01", "2026-03-15")).toBe("2026-03-01");
+  test("availability starts from the departure in an import and from the arrival in an export", () => {
+    expect(availabilityBaseDate("I", "2026-03-01", "2026-03-15")).toBe("2026-03-01");
+    expect(availabilityBaseDate("E", "2026-03-01", "2026-03-15")).toBe("2026-03-15");
     expect(availabilityBaseDate(undefined, "2026-03-01", "2026-03-15")).toBeNull();
   });
 });

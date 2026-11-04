@@ -18,8 +18,8 @@ export const blankToNull = <T>(value: T | "" | null | undefined): T | null =>
 export const isEtaBeforeEtd = (etd?: string | null, eta?: string | null): boolean => Boolean(etd && eta && eta < etd);
 
 export const availabilityBaseDate = (modalityCode: string | undefined, etd: string | null, eta: string | null) => {
-  if (modalityCode === "I") return eta;
-  if (modalityCode === "E") return etd;
+  if (modalityCode === "I") return etd;
+  if (modalityCode === "E") return eta;
   return null;
 };
 

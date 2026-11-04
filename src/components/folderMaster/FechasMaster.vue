@@ -75,8 +75,8 @@ function _validaDate() {
       icon: "warning",
       text:
         modalityCode() === "I"
-          ? "La fecha de disponibilidad no puede ser anterior a la llegada (ETA)."
-          : "La fecha de disponibilidad no puede ser anterior a la salida (ETD).",
+          ? "La fecha de disponibilidad no puede ser anterior a la salida (ETD)."
+          : "La fecha de disponibilidad no puede ser anterior a la llegada (ETA).",
     });
   }
 }
