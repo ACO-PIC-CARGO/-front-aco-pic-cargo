@@ -119,6 +119,20 @@ test("each income action shows only with its own permission", async () => {
   expect(await incomeControls(["VER", "MODIFICAR"])).toEqual({ ...NONE, modificar: true });
 });
 
+test("an invoiced income stays editable until it is paid", async () => {
+  const editable = async (income: object) => {
+    await mountAs(IngresosControlGastos, ["VER", "MODIFICAR"], {
+      props: { master_houses: [{ ...HOUSE_INCOME, ingresos: [{ ...INCOME, ...income }] }] },
+    });
+    document.body.querySelector<HTMLElement>(".v-expansion-panel-title")?.click();
+    await flushPromises();
+    return hasIcon(".v-expansion-panel-text .mdi-pencil");
+  };
+
+  expect(await editable({ facturado: true, pagado: 0 })).toBe(true);
+  expect(await editable({ facturado: true, pagado: 1 })).toBe(false);
+});
+
 test("each expense action shows only with its own permission", async () => {
   const expenseControls = async (actions: string[]) => {
     await mountAs(EgresosControlGastos, actions, { props: { master_egresos: [PROVIDER_EXPENSE] } });

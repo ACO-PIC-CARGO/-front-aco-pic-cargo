@@ -1831,7 +1831,7 @@ onMounted(async () => {
                   <v-icon
                     color="orange"
                     @click="editIngreso(item)"
-                    v-if="item.pagado == 0 && !item.facturado && can('listControlGastos', 'MODIFICAR')"
+                    v-if="item.pagado == 0 && can('listControlGastos', 'MODIFICAR')"
                   >
                     mdi-pencil
                   </v-icon>
