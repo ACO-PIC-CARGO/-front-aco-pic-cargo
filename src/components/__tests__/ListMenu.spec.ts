@@ -9,6 +9,7 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import ListMenu from "@/components/ListMenu.vue";
+import { usePricingStore } from "@/stores/pricing";
 
 vi.mock("@/api/http", () => ({ default: vi.fn().mockResolvedValue({ data: { estadoflag: true, data: [] } }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: {} } } }));
@@ -57,6 +58,8 @@ beforeEach(async () => {
       { path: "/", name: "Main", component: { template: "<div />" } },
       { path: "/clientes", name: "listClientes", component: { template: "<div />" } },
       { path: "/proveedores", name: "listProveedor", component: { template: "<div />" } },
+      { path: "/cotizacion/:id", name: "editQuote", component: { template: "<div />" } },
+      { path: "/cotizacion/nueva", name: "newQuote", component: { template: "<div />" } },
     ],
   });
   await router.push("/");
@@ -85,4 +88,17 @@ test("a menu item opened before leaving its screen another way still opens it wi
   await openMenuItem("CLIENTES");
 
   expect(router.currentRoute.value.name).toBe("listClientes");
+});
+
+test("the quote summary does not flag the ports as missing when a new quote clears them", async () => {
+  const pricing = usePricingStore();
+  Object.assign(pricing.datosPrincipales, { idorigen: 346, iddestino: 207 });
+  await router.push({ name: "editQuote", params: { id: 1 } });
+  await settle();
+
+  await router.push({ name: "newQuote" });
+  Object.assign(pricing.datosPrincipales, { idorigen: "", iddestino: "" });
+  await settle();
+
+  expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
 });
