@@ -10,6 +10,7 @@ import HouseStepComments from "@/components/HouseFile/HouseStepComments.vue";
 import HouseStepItem from "@/components/HouseFile/HouseStepItem.vue";
 import SendToTrackingButton from "@/components/HouseFile/SendToTrackingButton.vue";
 import type { HouseTrackingStep } from "@/types/houseTracking";
+import { HOUSE_SCREEN } from "@/composables/useHouseScreen";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
@@ -105,4 +106,26 @@ test("a comment is sent to or withdrawn from the client tracking only with Modif
   expect(buttonNamed("Enviar a tracking")).toBeDefined();
   mountAs(["VER", "MODIFICAR"], SendToTrackingButton, sendProps("2026-10-01T10:00:00Z"));
   expect(buttonNamed("Retirar")).toBeDefined();
+});
+
+test("inside a Tráfico file the steps follow the Tráfico permissions, not the House ones", () => {
+  sessionStorage.setItem(
+    "permissions",
+    JSON.stringify({
+      screens: [
+        { route: "lstTraffic", actions: ["VER", "MODIFICAR"] },
+        { route: "listHouse", actions: ["VER"] },
+      ],
+      controlled: ["lstTraffic", "listHouse"],
+    }),
+  );
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  wrapper?.unmount();
+  wrapper = mount(HouseStepItem, {
+    props: { houseId: 1, step: confirmedStep, blockedBy: null },
+    global: { plugins: [createVuetify({ components, directives }), pinia], provide: { [HOUSE_SCREEN as symbol]: () => "lstTraffic" } },
+  });
+
+  expect(wrapper.find('input[type="checkbox"]').exists()).toBe(true);
 });

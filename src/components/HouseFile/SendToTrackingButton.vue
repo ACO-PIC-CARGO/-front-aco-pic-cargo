@@ -5,6 +5,7 @@ import Swal from "sweetalert2";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { stepDateTimeLabel } from "./houseTrackingFormat";
 import { usePermissions } from "@/composables/usePermissions";
+import { useHouseScreen } from "@/composables/useHouseScreen";
 import type { SendState } from "@/types/houseTracking";
 
 const props = defineProps<{
@@ -19,7 +20,7 @@ const props = defineProps<{
 
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
 const busy = ref(false);
-const canSend = usePermissions().can("listHouse", "MODIFICAR");
+const canSend = usePermissions().can(useHouseScreen(), "MODIFICAR");
 const sentLabel = computed(() => (props.sentAt ? `Enviado el ${stepDateTimeLabel(props.sentAt, timeZone.value)}` : ""));
 
 async function confirmAndRun(titleText: string, confirmButtonText: string, action: () => Promise<string | null>) {

@@ -8,13 +8,14 @@ import { dateLabel, stepDateTimeLabel } from "./houseTrackingFormat";
 import { stepValidationLines } from "./stepValidation";
 import { isClickOnControl } from "@/utils/clickTarget";
 import { usePermissions } from "@/composables/usePermissions";
+import { useHouseScreen } from "@/composables/useHouseScreen";
 import type { HouseTrackingStep } from "@/types/houseTracking";
 
 const props = defineProps<{ houseId: number; step: HouseTrackingStep; blockedBy: string | null }>();
 const emit = defineEmits<{ confirm: []; unconfirm: []; "edit-date": [] }>();
 
 const { timeZone } = storeToRefs(useBranchTimeZoneStore());
-const canEdit = usePermissions().can("listHouse", "MODIFICAR");
+const canEdit = usePermissions().can(useHouseScreen(), "MODIFICAR");
 const expanded = ref(false);
 const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
