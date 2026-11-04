@@ -20,7 +20,7 @@ const dialog = ref(false);
 const mostrarContinuarFlag = ref(true);
 const servicio = ref<Servicio>({
   codebegend: "OP",
-  id_begend: "0",
+  id_begend: undefined,
   service: "",
   status: true,
 });
@@ -119,7 +119,7 @@ function guardarServicio() {
     servicio.value.codebegend = selectedCategory.code;
   }
 
-  listServices.value.push({ ...servicio.value });
+  listServices.value.push({ ...servicio.value, id_begend: servicio.value.id_begend ?? "0" });
   dialog.value = false;
   resetFormularioServicio();
 }
@@ -127,7 +127,7 @@ function guardarServicio() {
 function resetFormularioServicio() {
   servicio.value = {
     codebegend: "OP",
-    id_begend: "0",
+    id_begend: undefined,
     service: "",
     status: true,
   };
