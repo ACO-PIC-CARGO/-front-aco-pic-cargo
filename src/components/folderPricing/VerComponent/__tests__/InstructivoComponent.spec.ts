@@ -15,6 +15,7 @@ vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), 
 interface InstructivoState {
   nro_propuesta: number;
   id_exp: number;
+  seleccionQuoteAprobar: boolean;
   continuarAprobarHouses(): Promise<void>;
   continuarAprobar(): Promise<void>;
   approveQuote(details: AprobacionCotizacion): Promise<void>;
@@ -58,6 +59,7 @@ test("a failed approval is retried with a new key and the approved quote's final
   ];
   screen.nro_propuesta = 1;
   screen.id_exp = 5;
+  screen.seleccionQuoteAprobar = true;
   const approve = vi.spyOn(pricing, "aprobarCotizacion").mockResolvedValueOnce(false).mockResolvedValueOnce(true);
   const saveFinalAmounts = vi.spyOn(pricing, "GuardaCostosFinalesQuote").mockResolvedValue(undefined);
 
@@ -96,6 +98,7 @@ test("with a pending Tráfico file, choosing an existing master sends the file t
 
   expect(approve).not.toHaveBeenCalled();
   expect(sentToOperations()!.data).toEqual({ nuevoexpediente: false, id_exp: 5, fecha_validez: null });
+  expect(screen.seleccionQuoteAprobar).toBe(false);
 });
 
 test("with a pending Tráfico file, creating a new master sends the file to Operaciones with the master's date", async () => {

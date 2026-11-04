@@ -394,6 +394,7 @@ async function imprimir() {
 }
 async function approveQuote(details: AprobacionCotizacion) {
   if (pendingTrafficFile.value) {
+    seleccionQuoteAprobar.value = false;
     await quoteTraffic.sendToOperations({
       nuevoexpediente: Boolean(details.nuevoexpediente),
       id_exp: (details.id_exp as number | string | null) || null,
@@ -521,6 +522,7 @@ async function abrirModalAprobar() {
       }).then(() => false);
     }
     if (quoteTraffic.goesToTraffic.value) {
+      seleccionQuoteAprobar.value = false;
       return quoteTraffic.sendQuote(approvalAmounts());
     }
     esValida = moment(fechaValidezOpcion, "YYYY-MM-DD").isSameOrAfter(
@@ -863,6 +865,7 @@ async function buscarHouseAsociadosAMaster() {
 function continuarAprobar() {
   if (pendingTrafficFile.value) {
     aprobarflag.value = false;
+    seleccionQuoteAprobar.value = false;
     return quoteTraffic.sendToOperations({ nuevoexpediente: false, id_exp: id_exp.value || null, fecha_validez: null });
   }
   id_opcion.value = "";

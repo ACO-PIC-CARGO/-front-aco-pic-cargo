@@ -14,6 +14,7 @@ vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), 
 
 interface InstructivoState {
   id_exp: number;
+  seleccionQuoteAprobar: boolean;
   continuarAprobar(): Promise<void>;
   approveAduana(details: AprobacionCotizacion): Promise<void>;
 }
@@ -52,12 +53,14 @@ const sentToOperations = () =>
 test("with a pending Tráfico file, choosing an existing master sends the aduana file to Operaciones instead of approving again", async () => {
   const { aduana, screen } = await mountInstructivo();
   screen.id_exp = 5;
+  screen.seleccionQuoteAprobar = true;
   const approve = vi.spyOn(aduana, "aprobarCotizacionAduana");
 
   await screen.continuarAprobar();
 
   expect(approve).not.toHaveBeenCalled();
   expect(sentToOperations()!.data).toEqual({ nuevoexpediente: false, id_exp: 5, fecha_validez: null });
+  expect(screen.seleccionQuoteAprobar).toBe(false);
 });
 
 test("with a pending Tráfico file, creating a new master sends the aduana file to Operaciones with the master's date", async () => {
