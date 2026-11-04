@@ -780,8 +780,8 @@ async function guardar() {
 }
 async function crearCarpetaCotizacion() {
   if (![1, 2].includes(sessionBranchId())) return "";
-  const url = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
-  if (!url) return FOLDER_NOT_CREATED;
+  const { url, motivo } = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
+  if (!url) return motivo ?? FOLDER_NOT_CREATED;
   await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
   return "";
 }

@@ -77,7 +77,7 @@ test("cancelling a new incoterm right after the quote opens puts back the quote'
   expect(pricing.datosPrincipales.idincoterms).toBe(9);
 });
 
-async function changeIncotermInEdit({ saved, folderUrl }: { saved: boolean; folderUrl: string | null }) {
+async function changeIncotermInEdit({ saved, folderUrl, motivo = null }: { saved: boolean; folderUrl: string | null; motivo?: string | null }) {
   const pricing = await openQuoteInEdit();
   vi.spyOn(pricing, "registrarQuotePorCambioIncoterms").mockImplementation(async () => {
     if (!saved) return rejected("El puerto de origen elegido no pertenece a tu empresa. Elige uno de la lista e intenta de nuevo.");
@@ -85,7 +85,7 @@ async function changeIncotermInEdit({ saved, folderUrl }: { saved: boolean; fold
     pricing.mensaje = "Cotización ingresada con el número 16000-P";
     return accepted([]);
   });
-  const crearCarpeta = vi.spyOn(pricing, "crearCarpetaOneDrive").mockResolvedValue(folderUrl);
+  const crearCarpeta = vi.spyOn(pricing, "crearCarpetaOneDrive").mockResolvedValue({ url: folderUrl, motivo });
   vi.spyOn(pricing, "actualizarURLEnElQuote").mockResolvedValue();
 
   await chooseIncoterm(pricing, 10);
@@ -108,6 +108,12 @@ test("a new incoterm whose folder could not be created says so and opens the new
   expect(swalCalls().some((options) => String(options.text).includes(FOLDER_NOT_CREATED))).toBe(true);
   expect(document.body.textContent).not.toContain("Archivos a Copiar");
   expect(routerPush).toHaveBeenCalledWith({ name: "editQuote", params: { id: 610 } });
+});
+
+test("a new incoterm whose folder the server did not create says why", { timeout: 15_000 }, async () => {
+  await changeIncotermInEdit({ saved: true, folderUrl: null, motivo: "Las carpetas de OneDrive solo se crean en producción." });
+
+  expect(swalCalls().some((options) => String(options.text).includes("Las carpetas de OneDrive solo se crean en producción."))).toBe(true);
 });
 
 test("a new incoterm the backend refuses shows why, keeps the edited quote and its incoterm", { timeout: 15_000 }, async () => {

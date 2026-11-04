@@ -264,7 +264,7 @@ async function generar() {
       if (branchCreacion.includes(id_branch) && name == "newQuote") {
         console.log("Iniciando creación de carpeta...");
 
-        const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        const { url: urlGenerada, motivo } = await pricingStore.crearCarpetaOneDrive({
           id_quote: pricingStore.id,
         });
 
@@ -274,7 +274,7 @@ async function generar() {
             url: urlGenerada,
           });
         } else {
-          Swal.fire({ icon: "warning", title: "Cotización guardada sin carpeta", text: FOLDER_NOT_CREATED });
+          Swal.fire({ icon: "warning", title: "Cotización guardada sin carpeta", text: motivo ?? FOLDER_NOT_CREATED });
         }
       }
 

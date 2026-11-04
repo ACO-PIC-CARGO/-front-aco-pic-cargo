@@ -228,7 +228,7 @@ async function generar() {
         console.log("Iniciando creación de carpeta...");
 
         // Aquí recibimos el return de la función anterior
-        const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        const { url: urlGenerada } = await pricingStore.crearCarpetaOneDrive({
           nro_quote: pricingStore.nro_quote,
           nombre: pricingStore.datosPrincipales.nombre,
         });

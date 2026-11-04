@@ -1592,13 +1592,14 @@ export const usePricingStore = defineStore("pricing", () => {
     id_quote?: number | string;
     nro_quote?: string;
     nombre?: string;
-  } = {}): Promise<string | null> {
+  } = {}): Promise<{ url: string | null; motivo: string | null }> {
     const response = (await request({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "crear-carpeta-cotizacion",
       params: { id_quote },
     })) as unknown as ApiResponse<string | null>;
-    return response.estadoflag && response.data ? response.data : null;
+    if (response.estadoflag && response.data) return { url: response.data, motivo: null };
+    return { url: null, motivo: response.mensaje || null };
   }
   async function actualizarURLEnElQuote({
     id = "",
