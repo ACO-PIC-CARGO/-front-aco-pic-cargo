@@ -29,6 +29,8 @@ export const positiveInteger = (value: unknown): true | string =>
   (/^\d+$/.test(String(value ?? "").trim()) && Number(value) > 0) ||
   "Ingresa un número entero mayor que 0.";
 
+const isStorableTransitTime = (value: unknown): boolean => value == null || /^\d+$/.test(String(value));
+
 export const hasInvalidMultiplier = (costo: Costo, multiplicadores: Multiplicador[]): boolean =>
   !!costo.id_multiplicador && !multiplicadores.some((m) => m.id == costo.id_multiplicador);
 
@@ -51,10 +53,10 @@ export function quoteSaveProblem({
   }
 
   const transitoInvalido = opcionCostos
-    .filter((opcion) => positiveInteger(opcion.tiempo_transito) !== true)
+    .filter((opcion) => !isStorableTransitTime(opcion.tiempo_transito))
     .map((opcion) => opcion.nro_propuesta);
   if (transitoInvalido.length > 0) {
-    return `El tiempo de tránsito de la opción ${transitoInvalido.join(", ")} debe ser un número entero de días mayor que 0. Corrígelo en los costos de la cotización y vuelve a guardar.`;
+    return `El tiempo de tránsito de la opción ${transitoInvalido.join(", ")} debe ser un número entero de días, por ejemplo 15. Corrígelo en los costos de la cotización y vuelve a guardar.`;
   }
 
   const contenedoresInvalidos = containers

@@ -64,7 +64,7 @@ describe("quoteSaveProblem", () => {
     expect(problem).toContain("Configuración");
   });
 
-  test("names the option whose transit time is not a positive whole number", () => {
+  test("names the option whose transit time is not a whole number of days", () => {
     const problem = quoteSaveProblem({
       idStatus: 454,
       opcionCostos: [opcion(), opcion({ nro_propuesta: 2, tiempo_transito: 2.5 })],
@@ -72,6 +72,14 @@ describe("quoteSaveProblem", () => {
     });
     expect(problem).toContain("opción 2");
     expect(problem).not.toContain("opción 1");
+  });
+
+  test.each([null, undefined, 0, "0"])("an option without a transit time (%s), as old quotes have, can be saved", (tiempo_transito) => {
+    expect(quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion({ tiempo_transito })], containers: [] })).toBeNull();
+  });
+
+  test.each(["2.5", -2, "", "abc", "1e3"])("a transit time of %s, which the quote cannot store, is refused", (tiempo_transito) => {
+    expect(quoteSaveProblem({ idStatus: 454, opcionCostos: [opcion({ tiempo_transito })], containers: [] })).toContain("opción 1");
   });
 
   test("names the container whose quantity is not a positive whole number", () => {
