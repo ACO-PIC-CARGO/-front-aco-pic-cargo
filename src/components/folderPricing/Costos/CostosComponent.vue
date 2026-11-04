@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { Ref } from "vue";
@@ -260,7 +261,7 @@ const recargarProveedores = useDebouncedSearch(async (e: string | null) => {
   });
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, proveedorStore.lstProveedores, (proveedor) => proveedor.namelong),
   });
 });
 function isITBM(code: Numerico) {

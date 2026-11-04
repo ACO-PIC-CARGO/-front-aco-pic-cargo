@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onBeforeUnmount, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -604,7 +605,7 @@ async function buscarPuertoOrigen(textoBuscar: string) {
   await pricingStore.getPortBegin({
     id_transport: id_transport[0]!.id_transport!,
     id: pricingStore.datosPrincipales.idorigen,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, pricingStore.listPortBegin, (port) => port.name),
   });
 }
 
@@ -627,7 +628,7 @@ async function buscarPuertoDestino(textoBuscar: string) {
   await pricingStore.getPortEnd({
     id_transport: id_transport[0]!.id_transport!,
     id: pricingStore.datosPrincipales.iddestino,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, pricingStore.listPortEnd, (port) => port.name),
   });
 }
 async function buscarTownPorDestino(idDestino: number | string | undefined) {
