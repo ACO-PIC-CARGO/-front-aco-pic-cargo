@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { onBeforeMount, onMounted, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useRolesStore } from "@/stores/roles";
@@ -39,16 +39,7 @@ const frmPosicion = useTemplateRef("frmPosicion");
 // Not bound to the template.
 const frmSucursal = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
 
-onMounted(async () => {
-  appStore.spiner = true;
-  await Promise.all([
-    appStore._getDocumentsPais(),
-    appStore._getPais(),
-    appStore._getSex(),
-    rolesStore.fetchRoleOptions(),
-    securitysStore.CargarBranch(),
-  ]);
-  mostrarflag.value = true;
+onBeforeMount(() => {
   userStore.model = {
     id: "",
     id_entitie: "",
@@ -74,6 +65,18 @@ onMounted(async () => {
   };
   userStore.sucursales = [];
   userStore.positions = [];
+});
+
+onMounted(async () => {
+  appStore.spiner = true;
+  await Promise.all([
+    appStore._getDocumentsPais(),
+    appStore._getPais(),
+    appStore._getSex(),
+    rolesStore.fetchRoleOptions(),
+    securitysStore.CargarBranch(),
+  ]);
+  mostrarflag.value = true;
   appStore.spiner = false;
   frmDatos.value!.resetValidation();
 });

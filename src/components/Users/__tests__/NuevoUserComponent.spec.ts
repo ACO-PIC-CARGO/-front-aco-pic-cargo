@@ -61,3 +61,15 @@ test("the role picker offers every role the user may assign, ready to choose", a
   expect(options.filter((option) => option.classList.contains("v-list-item--disabled"))).toEqual([]);
   expect(httpMock.mock.calls.some(([config]) => config.url.includes("cargar_posicion"))).toBe(false);
 });
+
+test("a new user form opens without required-field errors", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  wrapper = mount(
+    defineComponent({ components: { NuevoUserComponent }, template: "<v-app><NuevoUserComponent /></v-app>" }),
+    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
+  );
+  await flushPromises();
+
+  expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
+});
