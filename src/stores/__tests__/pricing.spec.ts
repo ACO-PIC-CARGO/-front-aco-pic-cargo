@@ -14,6 +14,7 @@ import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
+import { currencyFormat } from "@/utils/cotizacion";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
@@ -1635,6 +1636,33 @@ describe("pricing store", () => {
       await vi.advanceTimersByTimeAsync(1100);
 
       expect(await pending).toMatchSnapshot();
+    });
+
+    test("predata applies the Peru discharge minimum to detailed preview rows", async () => {
+      vi.useFakeTimers();
+      const pricing = cotizacion();
+      pricing.datosPrincipales.peso = 866;
+      pricing.datosEmpresa = [{ pais: "PERU" }];
+      sessionStorage.removeItem("iso_pais");
+      pricing.listMultiplicador.push({ id: 42, code: 24, valor: 1 });
+      pricing.opcionCostos[0]!.listCostos.push({
+        nameservice: "DESCARGA",
+        eslocalflag: 1,
+        esventaflag: 1,
+        status: 1,
+        id_multiplicador: 42,
+        costounitario: 30,
+      });
+
+      const pending = pricing.predata({ tipo: "DETALLE" });
+      await vi.advanceTimersByTimeAsync(1100);
+      const preview = await pending;
+      const opcionesPreview = preview.OpcionesSelecciondas as {
+        datosLocales: { name?: string; valor?: string }[];
+      }[];
+      const descarga = opcionesPreview[0]!.datosLocales.find((linea) => linea.name === "DESCARGA");
+
+      expect(descarga?.valor).toBe(currencyFormat(30));
     });
 
     test("imprimiReporteListado posts the filters and opens the PDF", async () => {

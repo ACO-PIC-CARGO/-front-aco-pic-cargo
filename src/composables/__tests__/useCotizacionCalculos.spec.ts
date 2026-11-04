@@ -279,6 +279,19 @@ describe("formatearCostos", () => {
     });
   });
 
+  test("applies the Peru discharge minimum to multiplier 24 subtotals below 1000 kg", () => {
+    sessionStorage.setItem("iso_pais", "9589");
+    const multiplicadorDescarga = { id: 24, code: 24, valor: 1, length: 1 };
+
+    const [cost] = formatearCostos({
+      costos: [{ ...baseCost, id_multiplicador: 24, costounitario: 30 }],
+      multiplicadores: [multiplicadorDescarga],
+      datosPrincipales: { peso: 866, kg: 866, metroscc: 2.5 },
+    });
+
+    expect(cost!.subtotal).toBe(30);
+  });
+
   test("keeps a cost without a multiplier id", () => {
     const costs = formatearCostos({
       costos: [{ ...baseCost, id_multiplicador: undefined }],

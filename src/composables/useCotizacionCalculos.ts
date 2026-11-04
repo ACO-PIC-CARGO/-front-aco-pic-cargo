@@ -7,7 +7,12 @@ import type {
   Numerico,
   Servicio,
 } from "@/types/cotizacion";
-import { calcularValor, numeroSeguro } from "@/utils/cotizacion";
+import {
+  aplicarMinimoDescargaPeru,
+  calcularValor,
+  numeroSeguro,
+} from "@/utils/cotizacion";
+import { sessionIsoPais } from "@/utils/sesion";
 
 type CodigoMultiplicador = number | string | null | undefined;
 type MultiplicadorBuscado = Multiplicador & { length?: number };
@@ -144,7 +149,7 @@ export function useCotizacionCalculos() {
     const esPorcentaje =
       code == 5 || code == 13 || code == 14;
     if (!esPorcentaje) {
-      return (
+      const importe = (
         Number(codemultiplicador.valor) *
         Number(costo.costounitario) *
         Number(
@@ -156,6 +161,13 @@ export function useCotizacionCalculos() {
             datosPrincipales.amount,
           ),
         )
+      );
+      return aplicarMinimoDescargaPeru(
+        code,
+        datosPrincipales.peso,
+        sessionIsoPais(),
+        costo.costounitario,
+        importe,
       );
     }
     calcularValor(
@@ -284,6 +296,7 @@ export function useCotizacionCalculos() {
   return {
     calcularFac,
     calcularTotalFleteVentaPorOpcion,
+    aplicarMinimoDescargaPeru,
     formatearCostos,
     formatearCostosEditar,
   };

@@ -3,7 +3,12 @@ import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import CboMultiplicador from "@/components/comun/CboMultiplicador.vue";
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { usePricingStore } from "@/stores/pricing";
-import { calcularValor, currencyFormat } from "@/utils/cotizacion";
+import {
+  aplicarMinimoDescargaPeru,
+  calcularValor,
+  currencyFormat,
+} from "@/utils/cotizacion";
+import { sessionIsoPais } from "@/utils/sesion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 
@@ -237,7 +242,13 @@ function obtenerCostoElemento(element: Costo) {
             : operacionFinal;
       }
     }
-    return operacionFinal;
+    return aplicarMinimoDescargaPeru(
+      codigoMultiplicador,
+      datosPrincipales.peso,
+      sessionIsoPais(),
+      element.costounitario,
+      operacionFinal,
+    );
   }
 
   // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
@@ -543,6 +554,14 @@ function formatearCostoTotal(valor: Costo) {
           : operacionFinal;
     }
   }
+
+  operacionFinal = aplicarMinimoDescargaPeru(
+    codigoMultiplicador,
+    datosPrincipales.peso,
+    sessionIsoPais(),
+    valor.costounitario,
+    operacionFinal,
+  );
 
   // 6. Retornamos el valor con su respectivo formato de moneda
   return currencyFormat(operacionFinal);

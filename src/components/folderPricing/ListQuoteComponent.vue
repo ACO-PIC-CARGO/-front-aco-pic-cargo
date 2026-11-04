@@ -1016,7 +1016,7 @@ onMounted(async () => {
             <v-icon>mdi-filter</v-icon>
             Filtrar /
             <v-icon>mdi-file-pdf-box</v-icon>
-            Imprimir
+            Reporte
           </v-btn>
 
           <v-btn

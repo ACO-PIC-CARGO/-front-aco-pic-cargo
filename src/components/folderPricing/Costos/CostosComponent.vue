@@ -8,7 +8,13 @@ import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useEntitiesStore } from "@/stores/entities";
 import { useProveedorStore } from "@/stores/proveedor";
 import { usePricingStore } from "@/stores/pricing";
-import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
+import {
+  aplicarMinimoDescargaPeru,
+  calcularValor,
+  comienzaNoConCaracter,
+  currencyFormat,
+} from "@/utils/cotizacion";
+import { sessionIsoPais } from "@/utils/sesion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 
@@ -598,7 +604,13 @@ function obtenerCostoElemento(element: Costo) {
             : operacionFinal;
       }
     }
-    return operacionFinal;
+    return aplicarMinimoDescargaPeru(
+      codigoMultiplicador,
+      datosPrincipales.peso,
+      sessionIsoPais(),
+      element.costounitario,
+      operacionFinal,
+    );
   }
 
   // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
@@ -920,6 +932,14 @@ function formatearCostoTotal(valor: Costo) {
         : operacionFinal;
      }
   }
+
+  operacionFinal = aplicarMinimoDescargaPeru(
+    codigoMultiplicador,
+    datosPrincipales.peso,
+    sessionIsoPais(),
+    valor.costounitario,
+    operacionFinal,
+  );
 
   // 6. Retornamos el valor con su respectivo formato de moneda
   return currencyFormat(operacionFinal);

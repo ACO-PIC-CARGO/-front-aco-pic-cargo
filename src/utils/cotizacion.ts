@@ -21,6 +21,35 @@ export function numeroSeguro(value: unknown): number {
   return Number.isFinite(number) ? number : 0;
 }
 
+export function aplicarMinimoDescargaPeru(
+  codigoMultiplicador: number | string | null | undefined,
+  peso: Numerico,
+  pais: number | string | null | undefined,
+  costoUnitario: Numerico,
+  importe: number,
+): number {
+  const paisNormalizado = String(pais ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toUpperCase();
+  const pesoInformado = peso !== null && peso !== undefined && peso !== "";
+  const pesoKg = numeroSeguro(peso);
+
+  if (
+    Number(codigoMultiplicador) === 24 &&
+    (Number(pais) === 9589 || paisNormalizado === "PERU") &&
+    pesoInformado &&
+    pesoKg > 0 &&
+    pesoKg < 1000 &&
+    numeroSeguro(costoUnitario) !== 0
+  ) {
+    return Math.max(30, importe);
+  }
+
+  return importe;
+}
+
 export function probarFunction(): number {
   return 1;
 }
