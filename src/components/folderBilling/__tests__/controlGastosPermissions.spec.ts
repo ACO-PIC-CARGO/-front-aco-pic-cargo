@@ -150,6 +150,24 @@ test("each expense action shows only with its own permission", async () => {
   expect(await expenseControls(["VER", "MODIFICAR"])).toEqual({ ...NONE, cuotas: true });
 });
 
+test("a provider's expenses move to another master from Cambiar expediente, with Modificar", async () => {
+  const moving = { ...PROVIDER_EXPENSE, id_master: 5, id_correlativo: 1 };
+  await mountAs(EgresosControlGastos, ["VER"], { props: { master_egresos: [moving] } });
+  expect(shows("Cambiar expediente")).toBe(false);
+
+  await mountAs(EgresosControlGastos, ["VER", "MODIFICAR"], { props: { master_egresos: [moving] } });
+  const button = (selector: string, label: string) =>
+    [...document.body.querySelectorAll<HTMLElement>(selector)].find((element) => element.textContent?.trim() === label)!;
+  button("button", "Cambiar expediente").click();
+  await openDialogs({ selectedNuevoExpediente: 9 });
+  httpMock.mockClear();
+  button(".v-dialog button", "Guardar").click();
+  await flushPromises();
+
+  expect(sentTo("cambiar_expediente_asociado_a_master")).toEqual({ id_master: 5, id_proveedor: 8, id_correlativo: 1, id_nuevo_master: 9 });
+  expect(wrapper!.emitted("recargarDatos")).toHaveLength(1);
+});
+
 test("the house control generates a control or an invoice with Nuevo and prints it with Exportar", async () => {
   const billControls = async (actions: string[]) => {
     route.params = { id_house: "3", id_control: "2" };
