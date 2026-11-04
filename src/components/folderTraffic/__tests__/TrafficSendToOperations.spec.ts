@@ -8,6 +8,7 @@ import * as directives from "vuetify/directives";
 import TrafficSendToOperations from "@/components/folderTraffic/TrafficSendToOperations.vue";
 import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected, respond } from "@/stores/__tests__/catalogHttp";
+import type { QuoteKind } from "@/types/traffic";
 
 const push = vi.fn();
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }), useRoute: () => ({ params: {} }) }));
@@ -33,8 +34,16 @@ interface FlowState {
   send(): Promise<void>;
 }
 
-const pricingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, quote_kind: "PRICING" as const, id_quote: 15376 };
-const aduanaFile = { ...pricingFile, quote_kind: "ADUANA" as const, id_quote: 31 };
+interface FileToSend {
+  id_traffic: number;
+  code_traffic: string;
+  id_house: number;
+  quote_kind: QuoteKind;
+  id_quote: number;
+}
+
+const pricingFile: FileToSend = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, quote_kind: "PRICING", id_quote: 15376 };
+const aduanaFile: FileToSend = { ...pricingFile, quote_kind: "ADUANA", id_quote: 31 };
 const InstructivoStub = { name: "FileSequenceInstructivo", template: "<div class='instructivo-stub' />", emits: ["continuar", "cerrarDialogo"] };
 let wrapper: VueWrapper | undefined;
 
@@ -45,7 +54,7 @@ beforeEach(() => {
 });
 afterEach(() => wrapper?.unmount());
 
-async function mountFlow(file = pricingFile) {
+async function mountFlow(file: FileToSend = pricingFile) {
   wrapper = mount(TrafficSendToOperations, {
     props: { file },
     global: { plugins: [createVuetify({ components, directives })], stubs: { FileSequenceInstructivo: InstructivoStub } },
@@ -63,7 +72,7 @@ const sentPayloads = () =>
 
 test("a pricing file opens its quote's instructivo before choosing the master", async () => {
   respond({ "traffic/4/masters": accepted([]) });
-  const getQuote = vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(undefined);
+  const getQuote = vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
 
   const flow = await mountFlow();
 
