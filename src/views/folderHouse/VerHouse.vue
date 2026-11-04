@@ -21,6 +21,8 @@ import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
 import { usePermissions } from "@/composables/usePermissions";
+import { provideHouseScreen } from "@/composables/useHouseScreen";
+import TrafficFileBar from "@/components/folderTraffic/TrafficFileBar.vue";
 
 const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
 
@@ -32,13 +34,19 @@ const pricingStore = usePricingStore();
 const houseTrackingStore = useHouseTrackingStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
 const houseId = computed(() => Number(route.params.id));
+const isTrafficFile = route.meta?.permissionScreen === "lstTraffic";
+const permissionScreen = isTrafficFile ? "lstTraffic" : "listHouse";
+const viewRoute = isTrafficFile ? "trafficVer" : "controlHouseVer";
+const editRoute = isTrafficFile ? "trafficEditar" : "controlHouseEditar";
+provideHouseScreen(() => permissionScreen);
 const houseEdit = useHouseEditStore();
 const { can } = usePermissions();
-const isEditing = computed(() => route.name === "controlHouseEditar" && can("listHouse", "MODIFICAR"));
-const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can("listHouse", action));
+const isEditing = computed(() => route.name === editRoute && can(permissionScreen, "MODIFICAR"));
+const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can(permissionScreen, action));
 
 function showTitle() {
-  appStore.mainTitle = `N° BL House ${housesStore.house?.nro_hbl || ""} - ${housesStore.house?.consigner || ""} [${isEditing.value ? "EDITAR" : "VER"}]`;
+  const heading = isTrafficFile ? "Expediente de tráfico" : `N° BL House ${housesStore.house?.nro_hbl || ""}`;
+  appStore.mainTitle = `${heading} - ${housesStore.house?.consigner || ""} [${isEditing.value ? "EDITAR" : "VER"}]`;
 }
 
 async function reloadHouse() {
@@ -46,12 +54,12 @@ async function reloadHouse() {
 }
 
 function startEditing() {
-  appRouter.replace({ name: "controlHouseEditar", params: { id: houseId.value } });
+  appRouter.replace({ name: editRoute, params: { id: houseId.value } });
 }
 
 async function finishEditing() {
   await reloadHouse();
-  await appRouter.replace({ name: "controlHouseVer", params: { id: houseId.value } });
+  await appRouter.replace({ name: viewRoute, params: { id: houseId.value } });
 }
 
 async function saveChanges() {
@@ -202,6 +210,10 @@ onMounted(async () => {
       :readonly="!isEditing"
     >
       <v-container fluid>
+        <TrafficFileBar
+          v-if="isTrafficFile"
+          :house-id="houseId"
+        />
         <v-row density="compact">
           <v-col
             cols="12"
@@ -225,6 +237,7 @@ onMounted(async () => {
                       <dataGen :editing="isEditing" />
                     </v-card>
                     <v-card
+                      v-if="housesStore.house.id_master"
                       variant="flat"
                       border
                       rounded="lg"
@@ -265,7 +278,7 @@ onMounted(async () => {
                     </v-btn>
                     <v-spacer />
                     <v-btn
-                      v-if="can('listHouse', 'ELIMINAR')"
+                      v-if="can(permissionScreen, 'ELIMINAR')"
                       color="error"
                       variant="text"
                       prepend-icon="mdi-delete-outline"
@@ -321,7 +334,7 @@ onMounted(async () => {
             </template>
 
             <v-btn
-              v-if="can('listHouse', 'ELIMINAR')"
+              v-if="can(permissionScreen, 'ELIMINAR')"
               key="eliminar"
               color="red"
               :loading="loadingBotonEliminarHouse"
@@ -333,7 +346,7 @@ onMounted(async () => {
               Eliminar
             </v-btn>
             <v-btn
-              v-if="can('listHouse', 'EXPORTAR')"
+              v-if="can(permissionScreen, 'EXPORTAR')"
               key="imprimir"
               :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
               @click="abrirModalFormato()"
@@ -348,7 +361,7 @@ onMounted(async () => {
             </v-btn>
 
             <v-btn
-              v-if="can('listHouse', 'MODIFICAR')"
+              v-if="can(permissionScreen, 'MODIFICAR')"
               key="notificaciones"
               color="deep-purple"
               @click="openNotificaciones"
@@ -362,7 +375,7 @@ onMounted(async () => {
               Notificaciones
             </v-btn>
             <v-btn
-              v-if="!isEditing && can('listHouse', 'MODIFICAR')"
+              v-if="!isEditing && can(permissionScreen, 'MODIFICAR')"
               key="editar"
               color="light-green-lighten-1"
               @click="startEditing"
