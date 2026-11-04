@@ -125,14 +125,14 @@ test.describe("accounts receivable", () => {
 
     const askAdmin = async () => {
       await row.locator(".mdi-delete").click();
-      await page.locator("#swal-input1").fill("admin");
-      await page.locator("#swal-input2").fill("clave");
-      await page.getByRole("button", { name: "Aceptar" }).click();
+      await page.getByRole("textbox", { name: "Usuario del administrador" }).fill("admin");
+      await page.getByRole("textbox", { name: "Contraseña del administrador" }).fill("clave");
+      await page.getByRole("button", { name: "Autorizar" }).click();
     };
 
     await askAdmin();
     await expect(dialogWith(page, "Usuario o clave de administrador incorrectos.")).toBeVisible();
-    await page.getByRole("button", { name: "OK" }).click();
+    await page.getByRole("button", { name: "Cancelar" }).click();
     expect(deletes).toBe(0);
 
     adminValid = true;

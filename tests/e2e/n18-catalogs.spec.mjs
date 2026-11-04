@@ -24,9 +24,9 @@ async function leaveThroughMenuAndComeBack(page, { to, backTo }) {
   await page.getByRole("button", { name: "Abrir menú" }).click();
   await page.getByRole("treeitem", { name: "FICHEROS" }).click();
   await page.getByRole("treeitem", { name: "CLIENTES Y PROVEEDORES" }).click();
-  await page.getByRole("link", { name: to, exact: true }).click();
+  await page.getByRole("treeitem", { name: to, exact: true }).click();
   await waitForPageToSettle(page);
-  await page.getByRole("link", { name: backTo, exact: true }).click();
+  await page.getByRole("treeitem", { name: backTo, exact: true }).click();
   await waitForPageToSettle(page);
 }
 

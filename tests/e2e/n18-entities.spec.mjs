@@ -40,9 +40,12 @@ async function leaveFirstStepFor(page, title) {
 
 async function openNuevoFromMenu(page, { link, listPath }) {
   await page.getByRole("button", { name: "Abrir menú" }).click();
-  await page.getByRole("treeitem", { name: "FICHEROS" }).click();
-  await page.getByRole("treeitem", { name: "CLIENTES Y PROVEEDORES" }).click();
-  await page.getByRole("link", { name: link, exact: true }).click();
+  const group = page.getByRole("treeitem", { name: "CLIENTES Y PROVEEDORES" });
+  const target = page.getByRole("treeitem", { name: link, exact: true });
+  // The sidebar opens the active screen's branch by itself, so a group is only clicked when still closed.
+  if (!(await group.isVisible())) await page.getByRole("treeitem", { name: "FICHEROS" }).click();
+  if (!(await target.isVisible())) await group.click();
+  await target.click();
   await expect(page).toHaveURL(new RegExp(`${listPath}$`));
   await waitForPageToSettle(page);
   await page.getByRole("button", { name: "NUEVO", exact: true }).click();
@@ -347,7 +350,7 @@ test.describe("Proveedores", () => {
     expect(searchesByCorrelativo).toEqual([]);
   });
 
-  test("the edit steps refuse to save a provider without a name", async ({ page }) => {
+  test("an edit step saves without re-checking step 1, as the original did", async ({ page }) => {
     test.slow();
     const name = uniqueName("PROVEEDOR");
     await page.goto("/home/folderEntities/nuevo-proveedor");
@@ -356,19 +359,17 @@ test.describe("Proveedores", () => {
     await saveNewProvider(page);
     await openListedEntity(page, name, ".mdi-pencil");
     const updates = [];
-    page.on("request", (request) => {
-      if (request.url().includes("actualizar_proveedor")) updates.push(request.url());
+    await page.route("**/actualizar_proveedor", (route) => {
+      updates.push(route.request().url());
+      return route.fulfill({ json: { status: 200, statusBol: true, estadoflag: true, mensaje: "E2E stub", tipomensaje: "TMSGSUC", data: [] } });
     });
 
     await main(page).getByRole("textbox", { name: "Nombre Comercial o Razón Social" }).fill("");
     await leaveFirstStepFor(page, "Teléfonos y Contactos");
     await visible(main(page).getByRole("button", { name: "GUARDAR CAMBIOS" })).click();
 
-    await acknowledge(page, "Completa el nombre, el tipo de proveedor");
-    expect(updates).toEqual([]);
-    await page.reload();
-    await waitForPageToSettle(page);
-    await expect(main(page).getByRole("textbox", { name: "Nombre Comercial o Razón Social" })).toHaveValue(new RegExp(`^${name}$`, "i"));
+    await expect.poll(() => updates.length).toBe(1);
+    await expect(page.getByRole("dialog").filter({ hasText: "Completa el nombre, el tipo de proveedor" })).toHaveCount(0);
   });
 
   test("Nuevo starts without the last provider's emails and rate contacts", async ({ page }) => {

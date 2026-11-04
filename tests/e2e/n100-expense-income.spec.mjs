@@ -29,7 +29,7 @@ async function openFromMenu(page, group, link) {
   await page.getByRole("button", { name: "Abrir menú" }).click();
   await page.getByRole("treeitem", { name: group.module }).click();
   await page.getByRole("treeitem", { name: group.name }).click();
-  await page.getByRole("link", { name: link, exact: true }).click();
+  await page.getByRole("treeitem", { name: link, exact: true }).click();
   await waitForPageToSettle(page);
 }
 
@@ -37,7 +37,7 @@ const ACCOUNTS_AND_BANKS = { module: "FICHEROS", name: "CUENTAS Y BANCOS" };
 
 async function leaveThroughMenuAndComeBack(page, { to, backTo }) {
   await openFromMenu(page, ACCOUNTS_AND_BANKS, to);
-  await page.getByRole("link", { name: backTo, exact: true }).click();
+  await page.getByRole("treeitem", { name: backTo, exact: true }).click();
   await waitForPageToSettle(page);
 }
 

@@ -29,7 +29,7 @@ test.describe("navigation", () => {
     await page.getByRole("button", { name: "Abrir menú" }).click();
     await page.getByText("CONFIGURACIÓN", { exact: true }).click();
     await page.getByText("INFORMACIÓN PLAN", { exact: true }).click();
-    await page.getByRole("link", { name: "Mi plan" }).click();
+    await page.getByRole("treeitem", { name: "Mi plan" }).click();
     await expect(page).toHaveURL(/\/home\/mi-plan$/);
     await expect(page.getByRole("heading", { name: "Mi plan" })).toBeVisible();
   });

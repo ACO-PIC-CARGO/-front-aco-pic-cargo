@@ -19,7 +19,8 @@ async function openList(page) {
   await list;
   await waitForPageToSettle(page);
   const masters = await mastersOnList(page);
-  const active = masters.filter((m) => m.status === 1);
+  // Bulk-loaded masters have no shipment type and the master form cannot render them (as in the original).
+  const active = masters.filter((m) => m.status === 1 && m.id_shipment);
   return {
     open: active.find((m) => !m.statuslock && !m.statuslockadm),
     closed: active.find((m) => m.statuslock || m.statuslockadm),
