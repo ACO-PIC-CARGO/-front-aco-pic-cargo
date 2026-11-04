@@ -553,6 +553,12 @@ function mostrarBtnGuardar() {
           />
         </v-card-text>
         <v-card-actions>
+          <span
+            v-if="!entitiesStore.clienteModalEditId && !entitiesStore.cliente.telefonoActual.telefono"
+            class="text-error text-body-small px-4"
+          >
+            Agrega el teléfono principal del cliente para poder guardarlo.
+          </span>
           <v-spacer />
           <v-btn
             v-if="mostrarBtnGuardar()"
