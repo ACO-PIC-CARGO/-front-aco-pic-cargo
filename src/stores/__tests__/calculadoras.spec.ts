@@ -541,7 +541,7 @@ describe("calculadoras store", () => {
     test("sends the tariff, confirms an accepted change and explains a refused one", async () => {
       respond({ [path]: accepted([]) });
       expect(await calc()[action]!({ id: "322" })).toBe(true);
-      respond({ [path]: rejected("Este rango se cruza con el de 0 a 100 kg.") });
+      respond({ [path]: rejected("No se encontraron registros") });
       expect(await calc()[action]!({ id: "322" })).toBe(false);
 
       expect(httpMock).toHaveBeenNthCalledWith(1, { method, url: URL_MAIN + path, headers: JSON_HEADERS, data: { id: "322" } });
@@ -549,7 +549,7 @@ describe("calculadoras store", () => {
       expect(Swal.fire).toHaveBeenNthCalledWith(2, {
         icon: "error",
         title: "No se guardaron los cambios",
-        text: "Este rango se cruza con el de 0 a 100 kg.",
+        text: "No se encontraron registros",
       });
     });
   });
