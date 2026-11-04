@@ -5,7 +5,7 @@ import { createPinia } from "pinia";
 import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
-import { VAutocomplete, VBtn, VRadio, VRadioGroup, VSelect } from "vuetify/components";
+import { VAutocomplete, VBtn, VDataTableServer, VRadio, VRadioGroup, VSelect } from "vuetify/components";
 import * as directives from "vuetify/directives";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import TrafficReport from "@/components/folderTraffic/TrafficReport.vue";
@@ -143,7 +143,9 @@ test("the PDF is exported with the same filters the screen searched", async () =
   await click("Buscar");
   await click("Exportar PDF");
 
-  expect(lastSent("traffic_report_pdf").data).toEqual(lastSent("traffic_list").params);
+  const { pagina, limit, ...searched } = lastSent("traffic_list").params as Record<string, unknown>;
+  expect({ pagina, limit }).toEqual({ pagina: 1, limit: 10 });
+  expect(lastSent("traffic_report_pdf").data).toEqual(searched);
   expect(lastSent("traffic_report_pdf").data).toMatchObject({ state: "SENT", desde: "2026-09-01", hasta: "2026-09-30" });
 });
 
@@ -157,6 +159,36 @@ test("a sentido and a master's operator are searched and exported", async () => 
 
   expect(lastSent("traffic_list").params).toMatchObject({ sentido: 2, id_operador: 33 });
   expect(lastSent("traffic_report_pdf").data).toMatchObject({ sentido: 2, id_operador: 33 });
+});
+
+test("the counts come from every file the server found, not from the page shown", async () => {
+  respond({
+    traffic_list: accepted([{ code_traffic: "TR-00025", sent_at: null, status_name: null, totalregistro: "25", totalenviados: "5" }]),
+    traffic_status: accepted([IN_REVIEW]),
+    getEntitiesList: accepted([OPERATOR]),
+  });
+  await mountReport();
+
+  expect(wrapper!.text()).toContain("Pendientes: 20");
+  expect(wrapper!.text()).toContain("Enviados a operaciones: 5");
+  expect(wrapper!.text()).toContain("Total: 25");
+});
+
+test("another page is asked to the server, and a new search starts again on the first page", async () => {
+  respond({
+    traffic_list: accepted([{ code_traffic: "TR-00025", sent_at: null, status_name: null, totalregistro: "25", totalenviados: "0" }]),
+    traffic_status: accepted([IN_REVIEW]),
+    getEntitiesList: accepted([OPERATOR]),
+  });
+  await mountReport();
+
+  wrapper!.findComponent(VDataTableServer).vm.$emit("update:page", 3);
+  await flushPromises();
+  expect(lastSent("traffic_list").params).toMatchObject({ pagina: 3, limit: 10 });
+
+  await click("Filtrar");
+  await click("Buscar");
+  expect(lastSent("traffic_list").params).toMatchObject({ pagina: 1, limit: 10 });
 });
 
 test("the PDF is offered only with the Exportar permission", async () => {

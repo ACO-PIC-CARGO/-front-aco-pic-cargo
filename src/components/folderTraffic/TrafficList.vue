@@ -8,6 +8,7 @@ import { trafficStatusLabel } from "@/utils/trafficSend";
 import TrafficCorrelativeDialog from "./TrafficCorrelativeDialog.vue";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 import TrafficStatusDialog from "./TrafficStatusDialog.vue";
+import { TRAFFIC_TABLE_FOOTER } from "./trafficTableFooter";
 
 const STATE_OPTIONS = [
   { title: "Pendientes", value: "PENDING" },
@@ -33,6 +34,8 @@ const canModify = usePermissions().can("lstTraffic", "MODIFICAR");
 const state = shallowRef<TrafficState | null>("PENDING");
 const status = shallowRef<number | null>(null);
 const loading = shallowRef(false);
+const page = shallowRef(1);
+const pageSize = shallowRef(10);
 const numbering = shallowRef(false);
 const relabelling = ref<TrafficFile | null>(null);
 const sending = ref<TrafficFile | null>(null);
@@ -49,7 +52,7 @@ const emptyText = computed(() =>
 
 async function load() {
   loading.value = true;
-  await trafficStore.loadFiles({ state: state.value, status: status.value });
+  await trafficStore.loadFiles({ state: state.value, status: status.value }, { pagina: page.value, limit: pageSize.value });
   loading.value = false;
 }
 
@@ -65,7 +68,8 @@ async function onSent() {
   await load();
 }
 
-watch([state, status], load);
+watch([state, status], () => (page.value === 1 ? load() : (page.value = 1)));
+watch([page, pageSize], load);
 onMounted(() => {
   trafficStore.loadStatuses();
   load();
@@ -106,9 +110,14 @@ onMounted(() => {
         Configurar correlativo
       </v-btn>
     </div>
-    <v-data-table
+    <v-data-table-server
+      v-bind="TRAFFIC_TABLE_FOOTER"
+      v-model:page="page"
+      v-model:items-per-page="pageSize"
       :headers="headers"
       :items="trafficStore.files"
+      :items-length="trafficStore.totalFiles"
+      disable-sort
       :loading="loading"
       :no-data-text="emptyText"
       item-value="id_traffic"
@@ -148,7 +157,7 @@ onMounted(() => {
           />
         </template>
       </template>
-    </v-data-table>
+    </v-data-table-server>
   </v-card>
   <TrafficStatusDialog
     v-if="relabelling"

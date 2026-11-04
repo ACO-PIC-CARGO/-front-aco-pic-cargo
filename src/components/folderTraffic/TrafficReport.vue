@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef } from "vue";
+import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import Swal from "sweetalert2";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { usePermissions } from "@/composables/usePermissions";
@@ -10,6 +10,7 @@ import { reportDay } from "@/utils/operationalReports";
 import { hasFailed } from "@/utils/request";
 import { trafficStatusLabel } from "@/utils/trafficSend";
 import { recentMonths, toTrafficFilters, type TrafficReportForm } from "./trafficReportFilters";
+import { TRAFFIC_TABLE_FOOTER } from "./trafficTableFooter";
 
 const STATE_OPTIONS = [
   { label: "Todos", value: null },
@@ -44,14 +45,14 @@ const form = ref<TrafficReportForm>({ state: null, status: null, sentido: null, 
 const appliedFilters = shallowRef<TrafficFilters>({});
 const filtersOpen = shallowRef(false);
 const loading = shallowRef(false);
+const page = shallowRef(1);
+const pageSize = shallowRef(10);
 
-const sentCount = computed(() => trafficStore.files.filter((file) => file.sent_at).length);
-const pendingCount = computed(() => trafficStore.files.length - sentCount.value);
+const pendingCount = computed(() => trafficStore.totalFiles - trafficStore.sentFiles);
 
-async function search() {
+async function load() {
   loading.value = true;
-  appliedFilters.value = toTrafficFilters(form.value);
-  const answer = await trafficStore.loadFiles(appliedFilters.value);
+  const answer = await trafficStore.loadFiles(appliedFilters.value, { pagina: page.value, limit: pageSize.value });
   loading.value = false;
   if (hasFailed(answer)) {
     Swal.fire({ icon: "error", text: answer.mensaje });
@@ -59,6 +60,14 @@ async function search() {
   }
   filtersOpen.value = false;
 }
+
+function search() {
+  appliedFilters.value = toTrafficFilters(form.value);
+  if (page.value === 1) load();
+  else page.value = 1;
+}
+
+watch([page, pageSize], load);
 
 const exportPdf = () => trafficStore.exportReport(appliedFilters.value);
 
@@ -204,17 +213,19 @@ onMounted(() => {
         </v-btn>
       </v-card-title>
 
-      <v-data-table
+      <v-data-table-server
+        v-bind="TRAFFIC_TABLE_FOOTER"
+        v-model:page="page"
+        v-model:items-per-page="pageSize"
         :headers="HEADERS"
         :items="trafficStore.files"
+        :items-length="trafficStore.totalFiles"
         item-value="id_traffic"
         :loading="loading"
         loading-text="Buscando expedientes de tráfico..."
         no-data-text="No hay expedientes de tráfico con esos filtros. Cambia las fechas o el estado y busca de nuevo."
-        :items-per-page="-1"
         fixed-header
         disable-sort
-        hide-default-footer
         height="650"
         density="compact"
       />
@@ -231,13 +242,13 @@ onMounted(() => {
             cols="12"
             md="4"
           >
-            Enviados a operaciones: {{ sentCount }}
+            Enviados a operaciones: {{ trafficStore.sentFiles }}
           </v-col>
           <v-col
             cols="12"
             md="4"
           >
-            Total: {{ trafficStore.files.length }}
+            Total: {{ trafficStore.totalFiles }}
           </v-col>
         </v-row>
       </v-container>

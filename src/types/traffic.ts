@@ -16,12 +16,19 @@ export interface TrafficFile {
   nameconsigner: string | null;
   namepricing: string | null;
   nameoperador: string | null;
+  totalregistro?: string | number;
+  totalenviados?: string | number;
   id_status: number | null;
   status_name: string | null;
   created_at: string;
   sent_at: string | null;
   id_master: number | null;
   code_master: string | null;
+}
+
+export interface TrafficPage {
+  pagina: number;
+  limit: number;
 }
 
 export interface TrafficFilters {

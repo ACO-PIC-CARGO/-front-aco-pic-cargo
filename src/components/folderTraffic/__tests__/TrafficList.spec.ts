@@ -3,6 +3,7 @@ import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
+import { VDataTableServer } from "vuetify/components";
 import * as directives from "vuetify/directives";
 import TrafficList from "@/components/folderTraffic/TrafficList.vue";
 import { URL_MAIN, accepted, httpMock, respond } from "@/stores/__tests__/catalogHttp";
@@ -49,12 +50,16 @@ async function mountAs(actions: string[], rows: unknown[] = [pending]) {
 
 const listParams = () =>
   httpMock.mock.calls.filter(([config]) => config.url === URL_MAIN + "traffic_list").map(([config]) => config.params);
+const lastListParams = () => {
+  const calls = listParams();
+  return calls[calls.length - 1];
+};
 const labelled = (label: string) => wrapper!.find(`button[aria-label="${label}"]`);
 
 test("the list starts on the files still pending", async () => {
   await mountAs(["VER"]);
 
-  expect(listParams()).toEqual([{ state: "PENDING", status: null }]);
+  expect(listParams()).toEqual([{ state: "PENDING", status: null, pagina: 1, limit: 10 }]);
   expect(wrapper!.text()).toContain("TR-00004");
 });
 
@@ -65,7 +70,26 @@ test("choosing another state lists those files", async () => {
   await flushPromises();
 
   const calls = listParams();
-  expect(calls[calls.length - 1]).toEqual({ state: "SENT", status: null });
+  expect(calls[calls.length - 1]).toEqual({ state: "SENT", status: null, pagina: 1, limit: 10 });
+});
+
+test("another page is asked to the server, and another state starts again on the first page", async () => {
+  await mountAs(["VER"], [{ ...pending, totalregistro: "25", totalenviados: "0" }]);
+
+  wrapper!.findComponent(VDataTableServer).vm.$emit("update:page", 2);
+  await flushPromises();
+  expect(lastListParams()).toMatchObject({ pagina: 2, limit: 10 });
+
+  (wrapper!.vm as unknown as { state: string | null }).state = "SENT";
+  await flushPromises();
+  expect(lastListParams()).toMatchObject({ state: "SENT", pagina: 1 });
+});
+
+test("no page size asks for more files than the server sends in one page", async () => {
+  await mountAs(["VER"]);
+
+  const sizes = wrapper!.findComponent(VDataTableServer).props("itemsPerPageOptions") as number[];
+  expect(sizes.every((size) => size > 0 && size <= 100)).toBe(true);
 });
 
 test("a file opens on its house screen", async () => {

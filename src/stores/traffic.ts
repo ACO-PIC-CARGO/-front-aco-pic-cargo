@@ -8,6 +8,7 @@ import type {
   TrafficFileOfHouse,
   TrafficFilters,
   TrafficMasterOption,
+  TrafficPage,
   TrafficSendPayload,
   TrafficSent,
   TrafficStatus,
@@ -26,6 +27,9 @@ const firstRowOf = <Row>(answer: ApiResponse<Row[]>): Row | null => (answer.esta
 
 export const useTrafficStore = defineStore("traffic", () => {
   const files = ref<TrafficFile[]>([]);
+  const totalFiles = ref(0);
+  const sentFiles = ref(0);
+  let latestLoad = 0;
   const statuses = ref<TrafficStatus[]>([]);
 
   async function fileOfQuote(quoteKind: QuoteKind, idQuote: number | string): Promise<TrafficFileOfQuote | null> {
@@ -61,9 +65,13 @@ export const useTrafficStore = defineStore("traffic", () => {
       data: payload,
     });
 
-  async function loadFiles(filters: TrafficFilters) {
-    const answer = await request<TrafficFile>({ method: "get", url: url("traffic_list"), headers: JSON_HEADERS, params: filters });
+  async function loadFiles(filters: TrafficFilters, page: TrafficPage) {
+    const load = ++latestLoad;
+    const answer = await request<TrafficFile>({ method: "get", url: url("traffic_list"), headers: JSON_HEADERS, params: { ...filters, ...page } });
+    if (load !== latestLoad) return answer;
     files.value = answer.estadoflag ? answer.data : [];
+    totalFiles.value = Number(files.value[0]?.totalregistro ?? 0);
+    sentFiles.value = Number(files.value[0]?.totalenviados ?? 0);
     return answer;
   }
 
@@ -95,6 +103,8 @@ export const useTrafficStore = defineStore("traffic", () => {
 
   return {
     files,
+    totalFiles,
+    sentFiles,
     statuses,
     fileOfQuote,
     fileOfHouse,

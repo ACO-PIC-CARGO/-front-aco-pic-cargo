@@ -85,17 +85,37 @@ describe("traffic store", () => {
     });
   });
 
-  test("loadFiles keeps the listed files and empties the list when there are none", async () => {
-    respond({ traffic_list: accepted([listed]) });
+  test("loadFiles keeps the page asked, the totals of every file found, and empties the list when there are none", async () => {
+    const counted = { ...listed, totalregistro: "25", totalenviados: "5" };
+    respond({ traffic_list: accepted([counted]) });
     const store = useTrafficStore();
 
-    await store.loadFiles({ state: "PENDING" });
-    expect(store.files).toEqual([listed]);
-    expect(sentConfig("traffic_list")!.params).toEqual({ state: "PENDING" });
+    await store.loadFiles({ state: "PENDING" }, { pagina: 2, limit: 10 });
+    expect(store.files).toEqual([counted]);
+    expect({ total: store.totalFiles, sent: store.sentFiles }).toEqual({ total: 25, sent: 5 });
+    expect(sentConfig("traffic_list")!.params).toEqual({ state: "PENDING", pagina: 2, limit: 10 });
 
     respond({ traffic_list: rejected() });
-    await store.loadFiles({});
+    await store.loadFiles({}, { pagina: 1, limit: 10 });
     expect(store.files).toEqual([]);
+    expect(store.totalFiles).toBe(0);
+  });
+
+  test("a slower earlier load does not replace the page asked last", async () => {
+    let releaseFirst = () => {};
+    httpMock
+      .mockImplementationOnce(
+        () => new Promise((resolve) => (releaseFirst = () => resolve({ data: accepted([{ ...listed, code_traffic: "TR-OLD" }]) }))),
+      )
+      .mockImplementationOnce(async () => ({ data: accepted([{ ...listed, code_traffic: "TR-NEW" }]) }));
+    const store = useTrafficStore();
+
+    const first = store.loadFiles({}, { pagina: 1, limit: 10 });
+    await store.loadFiles({}, { pagina: 2, limit: 10 });
+    releaseFirst();
+    await first;
+
+    expect(store.files.map((file) => file.code_traffic)).toEqual(["TR-NEW"]);
   });
 
   test("saveStatus creates a new status and updates an existing one", async () => {
