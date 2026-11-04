@@ -146,7 +146,7 @@ onMounted(load);
               v-model="draft.position"
               label="Posición"
               :min="1"
-              hint="Ordena la lista: el 1 aparece primero."
+              hint="Ordena la lista: el 1 aparece primero. Si la dejas vacía, va al final."
               persistent-hint
             />
             <v-alert
