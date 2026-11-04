@@ -6,6 +6,8 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import NewQuote from "@/views/folderPricing/NewQuote.vue";
+import NewAduana from "@/views/Aduana/NewQuote.vue";
+import { useAduanaStore } from "@/stores/aduana";
 import { usePricingStore } from "@/stores/pricing";
 import { accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
@@ -27,7 +29,7 @@ Object.defineProperty(window, "visualViewport", {
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 7, id_pais: 1 }]));
-  sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: "newQuote", actions: ["VER", "NUEVO"] }], controlled: ["newQuote"] }));
+  sessionStorage.setItem("permissions", JSON.stringify({ screens: [], controlled: [] }));
   vi.spyOn(console, "error").mockImplementation(() => {});
   httpMock.mockResolvedValue({ data: accepted([]) });
 });
@@ -38,6 +40,24 @@ test("opening a new quote after viewing another one shows no required-field erro
   Object.assign(usePricingStore().datosPrincipales, { id_marketing: 2, nombre: "Cliente anterior", idsentido: 1, idtipocarga: 3, idincoterms: 9 });
 
   const wrapper = mount(defineComponent({ components: { NewQuote }, template: "<v-app><NewQuote /></v-app>" }), {
+    global: {
+      plugins: [createVuetify({ components, directives }), pinia],
+      stubs: { DatosCargaComponent: true, ServicesComponent: true, DatosCostosComponent: true, ComparativaComponent: true, NotasComponent: true },
+    },
+    attachTo: document.body,
+  });
+  await flushPromises();
+
+  expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
+  wrapper.unmount();
+});
+
+test("opening a new customs quote after viewing another one shows no required-field errors", { timeout: 20_000 }, async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  Object.assign(useAduanaStore().datosPrincipales, { id_marketing: 2, nombre: "Cliente anterior", idsentido: 1, idtipocarga: 3, idincoterms: 9 });
+
+  const wrapper = mount(defineComponent({ components: { NewAduana }, template: "<v-app><NewAduana /></v-app>" }), {
     global: {
       plugins: [createVuetify({ components, directives }), pinia],
       stubs: { DatosCargaComponent: true, ServicesComponent: true, DatosCostosComponent: true, ComparativaComponent: true, NotasComponent: true },
