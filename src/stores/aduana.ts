@@ -2412,6 +2412,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     datosPrincipales.value.telefonoproveedor = res.telefonoproveedor;
     datosPrincipales.value.direccionproveedor = res.direccionproveedor;
     datosPrincipales.value.id_status = res.statusquote;
+    datosPrincipales.value.nameStatusQuote = res.namestatusquote;
     datosPrincipales.value.descripcioncarga = res.descripcionmercancia;
     datosPrincipales.value.fecha_inicio = res.fecha_inicio;
     // --------------------------------------------------------------

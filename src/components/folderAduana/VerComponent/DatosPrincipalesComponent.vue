@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { withChosenOption } from "@/utils/selectOptions";
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
@@ -8,6 +9,9 @@ import { useAduanaStore } from "@/stores/aduana";
 const appStore = useAppStore();
 const aduanaStore = useAduanaStore();
 const pricingStore = usePricingStore();
+const estadoCotizacionItems = computed(() =>
+  withChosenOption(pricingStore.listQuoteStatus || [], aduanaStore.datosPrincipales.id_status, aduanaStore.datosPrincipales.nameStatusQuote),
+);
 const entitiesStore = useEntitiesStore();
 
 const buscarClienteDialog = ref(false);
@@ -102,7 +106,7 @@ watch(registroClienteFlag, async () => {
             variant="outlined"
             density="compact"
             class="my-1"
-            :items="pricingStore.listQuoteStatus"
+            :items="estadoCotizacionItems"
             item-title="name"
             item-value="id"
             v-model="aduanaStore.datosPrincipales.id_status"

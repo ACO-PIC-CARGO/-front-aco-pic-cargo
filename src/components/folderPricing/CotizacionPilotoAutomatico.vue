@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import moment from "moment";
@@ -113,7 +114,7 @@ async function recargarProveedores(e: string | null) {
   });
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, proveedorStore.lstProveedores, (proveedor) => proveedor.namelong),
   });
 }
 function isDateValid(date: string) {

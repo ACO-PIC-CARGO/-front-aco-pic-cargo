@@ -309,7 +309,7 @@ async function guardarCotizacion() {
       .id_branch;
     const branchCreacion = [1, 2];
     if (branchCreacion.includes(id_branch)) {
-      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+      const { url: urlGenerada } = await pricingStore.crearCarpetaOneDrive({
         nro_quote: pricingStore.nro_quote,
         nombre: pricingStore.datosPrincipales.nombre,
       });
@@ -751,7 +751,7 @@ async function copiarCotizacion() {
 
     if (branchCreacion.includes(id_branch)) {
       // Aquí recibimos el return de la función anterior
-      const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+      const { url: urlGenerada } = await pricingStore.crearCarpetaOneDrive({
         nro_quote: pricingStore.nro_quote,
         nombre: pricingStore.datosPrincipales.nombre,
       });

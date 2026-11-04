@@ -179,6 +179,7 @@ async function Aceptar() {
         </v-col>
 
         <v-col
+          v-if="statesStore.tipo != 'nuevo'"
           cols="12"
           class="py-1"
         >
@@ -186,7 +187,6 @@ async function Aceptar() {
             v-model="statesStore.StateModel.code"
             :readonly="statesStore.tipo != 'nuevo'"
             label="Código"
-            v-if="statesStore.tipo != 'nuevo'"
           />
         </v-col>
         <v-col

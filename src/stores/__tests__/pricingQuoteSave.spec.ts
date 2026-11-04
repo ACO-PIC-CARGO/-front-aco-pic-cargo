@@ -117,7 +117,7 @@ describe("saving a quote", () => {
     const pricing = quote();
     pricing.id = 501;
 
-    await expect(pricing.crearCarpetaOneDrive({ nro_quote: "15000-P", nombre: "ZEVALLOS" })).resolves.toBe("https://drive/new");
+    await expect(pricing.crearCarpetaOneDrive({ nro_quote: "15000-P", nombre: "ZEVALLOS" })).resolves.toEqual({ url: "https://drive/new", motivo: null });
     expect(httpMock.mock.calls[0]![0]).toMatchObject({
       method: "get",
       url: URL_MAIN + "crear-carpeta-cotizacion",
@@ -126,12 +126,12 @@ describe("saving a quote", () => {
   });
 
   test.each([
-    ["refuses", { estadoflag: false, mensaje: "La carpeta solo se crea en producción", tipomensaje: "TMSGERR", data: null }],
-    ["fails", new Error("Network Error")],
-  ])("crearCarpetaOneDrive gives no url when the folder service %s", async (_, answer) => {
+    ["refuses", { estadoflag: false, mensaje: "Las carpetas de OneDrive solo se crean en producción.", tipomensaje: "TMSGINF", data: null }, "Las carpetas de OneDrive solo se crean en producción."],
+    ["fails", new Error("Network Error"), CONNECTION_ERROR_MESSAGE],
+  ])("crearCarpetaOneDrive gives no url and says why when the folder service %s", async (_, answer, motivo) => {
     respond({ "crear-carpeta-cotizacion": answer });
 
-    await expect(quote().crearCarpetaOneDrive({ id_quote: 501 })).resolves.toBeNull();
+    await expect(quote().crearCarpetaOneDrive({ id_quote: 501 })).resolves.toEqual({ url: null, motivo });
   });
 
   test("registrarQuotePorCambioIncoterms keeps the new quote's number only when it was saved", async () => {

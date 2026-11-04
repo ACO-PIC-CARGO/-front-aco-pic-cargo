@@ -207,10 +207,10 @@ async function guardarCotizacion() {
   return respuesta.estadoflag;
 }
 
-async function generar() {
+async function generar({ validarTipoReporte = true }: { validarTipoReporte?: boolean } = {}) {
   pricingStore.tiporeporte = tiporeporte.value;
 
-  if ((await frmReporte.value!.validate()).valid) {
+  if (!validarTipoReporte || (await frmReporte.value!.validate()).valid) {
     if (blockedQuoteSave(pricingStore)) return;
     loading.value = true;
     appStore.spiner = true;
@@ -264,7 +264,7 @@ async function generar() {
       if (branchCreacion.includes(id_branch) && name == "newQuote") {
         console.log("Iniciando creación de carpeta...");
 
-        const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        const { url: urlGenerada, motivo } = await pricingStore.crearCarpetaOneDrive({
           id_quote: pricingStore.id,
         });
 
@@ -274,7 +274,7 @@ async function generar() {
             url: urlGenerada,
           });
         } else {
-          Swal.fire({ icon: "warning", title: "Cotización guardada sin carpeta", text: FOLDER_NOT_CREATED });
+          Swal.fire({ icon: "warning", title: "Cotización guardada sin carpeta", text: motivo ?? FOLDER_NOT_CREATED });
         }
       }
 
@@ -294,8 +294,12 @@ async function generar() {
     }
   }
 }
-function abrirModalTipoReporte(guardar = false) {
+async function abrirModalTipoReporte(guardar = false) {
   guardarFlag.value = guardar;
+  if (tiporeporte.value) {
+    await generar({ validarTipoReporte: false });
+    return;
+  }
   imprimirFlag.value = true;
 }
 function abrirModalTipoReportePreview() {
@@ -703,7 +707,7 @@ onMounted(() => {
             color="primary"
             :loading="loading"
             variant="text"
-            @click="generar"
+            @click="generar()"
           >
             Aceptar
           </v-btn>
@@ -869,6 +873,7 @@ onMounted(() => {
             color="#A43542"
             class="mx-1"
             size="small"
+            :loading="loading"
             :disabled="pricingStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte(false)"
           >

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -32,10 +32,13 @@ const editableStep4 = ref(false);
 const indexCostos = ref(0);
 // ...mapState(["preServices", "preCostos"]),
 
+onBeforeMount(() => {
+  aduanaStore.resetAduanaNew();
+  pricingStore.resetQuoteNew();
+});
+
 onMounted(async () => {
   appStore.mainTitle = "Nueva Cotización";
-  aduanaStore.resetAduanaNew();
-  await pricingStore.resetQuoteNew();
   await pricingStore.getMarketingList();
   await pricingStore.getQuoteStatus();
   await aduanaStore.getModalityAduana();

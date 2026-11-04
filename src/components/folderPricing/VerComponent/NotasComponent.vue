@@ -168,11 +168,11 @@ async function anidarNota() {
   dialog.value = !dialog.value;
 }
 
-async function generar() {
+async function generar({ validarTipoReporte = true }: { validarTipoReporte?: boolean } = {}) {
   pricingStore.tiporeporte = tiporeporte.value;
   loading.value = true;
 
-  if ((await frmReporte.value!.validate()).valid) {
+  if (!validarTipoReporte || (await frmReporte.value!.validate()).valid) {
     appStore.spiner = true;
     const name = route.name;
     // 1. Registro inicial
@@ -228,7 +228,7 @@ async function generar() {
         console.log("Iniciando creación de carpeta...");
 
         // Aquí recibimos el return de la función anterior
-        const urlGenerada = await pricingStore.crearCarpetaOneDrive({
+        const { url: urlGenerada } = await pricingStore.crearCarpetaOneDrive({
           nro_quote: pricingStore.nro_quote,
           nombre: pricingStore.datosPrincipales.nombre,
         });
@@ -262,8 +262,12 @@ async function generar() {
     }
   }
 }
-function abrirModalTipoReporte(guardar = false) {
+async function abrirModalTipoReporte(guardar = false) {
   guardarFlag.value = guardar;
+  if (tiporeporte.value) {
+    await generar({ validarTipoReporte: false });
+    return;
+  }
   imprimirFlag.value = true;
 }
 function abrirModalTipoReportePreview() {
@@ -660,7 +664,7 @@ onMounted(() => {
             color="primary"
             :loading="loading"
             variant="text"
-            @click="generar"
+            @click="generar()"
           >
             Aceptar
           </v-btn>
@@ -826,6 +830,7 @@ onMounted(() => {
             color="#A43542"
             class="mx-1"
             size="small"
+            :loading="loading"
             :disabled="pricingStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte(false)"
           >

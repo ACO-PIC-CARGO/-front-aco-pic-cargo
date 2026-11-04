@@ -64,7 +64,9 @@ const shownWith = async (screen: string, view: Component, actions: string[]) => 
   await flushPromises();
 };
 const button = (text: string) => async () =>
-  [...document.body.querySelectorAll("button")].some((candidate) => candidate.textContent?.trim().toUpperCase().includes(text));
+  [...document.body.querySelectorAll("button")].some((candidate) =>
+    `${candidate.textContent?.trim()} ${candidate.getAttribute("aria-label") ?? ""}`.toUpperCase().includes(text),
+  );
 const icon = (name: string) => async () => document.body.querySelector(`.${name}`) !== null;
 const onTab = (label: string, shown: () => Promise<boolean>) => async () => {
   [...document.body.querySelectorAll<HTMLElement>(".v-tab")].find((tab) => tab.textContent?.trim() === label)!.click();

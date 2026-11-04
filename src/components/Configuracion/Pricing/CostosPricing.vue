@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { storeToRefs } from "pinia";
 import { useAppStore } from "@/stores/app";
@@ -116,7 +117,7 @@ const recargarProveedores: (e: string | null) => void = _.debounce(async (e: str
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, proveedorStore.lstProveedores, (proveedor) => proveedor.namelong),
   });
 }, 100);
 

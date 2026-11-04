@@ -4,9 +4,15 @@ import "@/styles/vuetify-legacy.css";
 import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import { en, es } from "vuetify/locale";
+import { showEmptyStringAsNoSelection } from "@/plugins/emptySelectValue";
+
+showEmptyStringAsNoSelection();
 
 const primaryColor = { color: "primary" };
-const fieldDefaults = { variant: "underlined", ...primaryColor };
+// As in Vuetify 2, a field shows its errors once the user leaves it or the form is validated, not when code fills it.
+const vuetify2FieldBehavior = { hideDetails: "auto", validateOn: "invalid-input" };
+const fieldDefaults = { variant: "underlined", ...primaryColor, ...vuetify2FieldBehavior };
+const selectionDefaults = { ...primaryColor, ...vuetify2FieldBehavior };
 
 export default createVuetify({
   icons: { defaultSet: "mdi", aliases, sets: { mdi } },
@@ -18,11 +24,11 @@ export default createVuetify({
     VAutocomplete: fieldDefaults,
     VCombobox: fieldDefaults,
     VFileInput: fieldDefaults,
-    VCheckbox: primaryColor,
+    VCheckbox: selectionDefaults,
     VCheckboxBtn: primaryColor,
     VRadio: primaryColor,
-    VRadioGroup: primaryColor,
-    VSwitch: primaryColor,
+    VRadioGroup: selectionDefaults,
+    VSwitch: selectionDefaults,
     VStepper: primaryColor,
     // VStepper does not hand its color to its items; an empty edit icon keeps the number on the current step, as Vuetify 2 did.
     VStepperItem: { ...primaryColor, editIcon: "" },

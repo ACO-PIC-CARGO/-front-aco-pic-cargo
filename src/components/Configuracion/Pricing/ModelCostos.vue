@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, ref, useTemplateRef } from "vue";
 import { storeToRefs } from "pinia";
 // @ts-expect-error lodash ships no type declarations
@@ -133,7 +134,7 @@ const recargarProveedores: (e: string | null) => void = _.debounce(async (e: str
   const IdProveedor = lstCostos.value.map((v) => v.id_proveedor);
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, proveedorStore.lstProveedores, (proveedor) => proveedor.namelong),
   });
 }, 100);
 function eliminarRegistro(item: CostoPricing) {

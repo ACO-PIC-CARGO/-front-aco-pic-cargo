@@ -43,3 +43,18 @@ test("an issued invoice is annulled only with Eliminar, and anyone who sees the 
   expect(await offers(["VER", "NUEVO", "MODIFICAR"])).toEqual({ ver: true, anular: false });
   expect(await offers(["VER", "ELIMINAR"])).toEqual({ ver: true, anular: true });
 });
+
+test("a cancelled invoice shows the reason it was cancelled for", async () => {
+  const cancelled = { ...INVOICE, correlativo: "02355", estatus: false, estado: "ANULADO", motivo_anulacion: "Datos del cliente <b>errados</b>" };
+  httpMock.mockImplementation(async (config) => ({
+    data: accepted(config.url.startsWith(URL_MAIN + "listar_Factura") ? [cancelled] : []),
+  }));
+  const Swal = (await import("sweetalert2")).default;
+  await offers(["VER"]);
+
+  await wrapper!.get('[aria-label="Ver motivo de anulación"]').trigger("click");
+
+  expect(Swal.fire).toHaveBeenCalledWith(
+    expect.objectContaining({ title: "Motivo de anulación de la factura 02355", text: "Datos del cliente <b>errados</b>" }),
+  );
+});

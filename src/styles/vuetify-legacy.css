@@ -58,6 +58,27 @@
   .v-card-title:has(> .v-row) {
     padding: 16px;
   }
+  /* Fields hide their empty message row; this keeps a small gap between stacked fields and room for the next outlined label. */
+  .v-input__details--hidden {
+    min-height: 8px;
+  }
+  .v-input__details:not(.v-input__details--hidden) {
+    padding-bottom: 8px;
+  }
+  :is(.py-0, .pa-0) .v-input:has(> .v-input__control > .v-field--variant-outlined) > .v-input__details--hidden {
+    min-height: 16px;
+  }
+  .v-selection-control-group--inline > .v-selection-control--density-compact {
+    --v-selection-control-size: 40px;
+  }
+  .v-checkbox .v-selection-control,
+  .v-switch .v-selection-control {
+    min-height: var(--v-selection-control-size);
+  }
+  .v-checkbox > .v-input__details--hidden,
+  .v-switch > .v-input__details--hidden {
+    min-height: 0;
+  }
 }
 
 @layer vuetify-overrides {

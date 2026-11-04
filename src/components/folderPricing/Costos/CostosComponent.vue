@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import type { Ref } from "vue";
@@ -11,7 +12,13 @@ import { useProveedorStore } from "@/stores/proveedor";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { invalidMultiplierMessage } from "@/components/folderPricing/quoteRules";
-import { calcularValor, comienzaNoConCaracter, currencyFormat } from "@/utils/cotizacion";
+import {
+  aplicarMinimoDescargaPeru,
+  calcularValor,
+  comienzaNoConCaracter,
+  currencyFormat,
+} from "@/utils/cotizacion";
+import { sessionIsoPais } from "@/utils/sesion";
 import type { Costo, FormNuevoCosto, Numerico } from "@/types/cotizacion";
 import type { TipoCostoConfig } from "@/types/empresas";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
@@ -260,7 +267,7 @@ const recargarProveedores = useDebouncedSearch(async (e: string | null) => {
   });
   await proveedorStore.obtenerProveedorPricing({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, proveedorStore.lstProveedores, (proveedor) => proveedor.namelong),
   });
 });
 function isITBM(code: Numerico) {
@@ -605,7 +612,13 @@ function obtenerCostoElemento(element: Costo) {
             : operacionFinal;
       }
     }
-    return operacionFinal;
+    return aplicarMinimoDescargaPeru(
+      codigoMultiplicador,
+      datosPrincipales.peso,
+      sessionIsoPais(),
+      element.costounitario,
+      operacionFinal,
+    );
   }
 
   // CASO B: Sí es porcentaje (Cálculo basado en CIF / Seguro)
@@ -927,6 +940,14 @@ function formatearCostoTotal(valor: Costo) {
         : operacionFinal;
      }
   }
+
+  operacionFinal = aplicarMinimoDescargaPeru(
+    codigoMultiplicador,
+    datosPrincipales.peso,
+    sessionIsoPais(),
+    valor.costounitario,
+    operacionFinal,
+  );
 
   // 6. Retornamos el valor con su respectivo formato de moneda
   return currencyFormat(operacionFinal);

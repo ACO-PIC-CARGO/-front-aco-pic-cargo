@@ -62,7 +62,7 @@ export interface TipoFlujoMes {
 }
 
 export interface FiltroFlujoMes {
-  id_proveedor: string | number;
-  id_cliente: string | number;
+  id_proveedor: string | number | null;
+  id_cliente: string | number | null;
   nro_expediente: string | number;
 }

@@ -76,14 +76,17 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
     return null;
   }
 
-  async function changeInline(config: AxiosRequestConfig): Promise<void> {
-    if (busy.value) return;
+  async function changeInline(config: AxiosRequestConfig): Promise<ApiResponse | null> {
+    if (busy.value) return null;
     const response = await mutate(config);
     if (!response.estadoflag) warn(response);
+    return response;
   }
 
-  const move = (url: string, id: number, direction: MoveDirection) =>
-    changeInline({ method: "put", url: `${url}/${id}/move`, data: { direction } });
+  async function move(url: string, id: number, direction: MoveDirection): Promise<void> {
+    const response = await changeInline({ method: "put", url: `${url}/${id}/move`, data: { direction } });
+    if (response?.estadoflag) notifySuccess(response.mensaje);
+  }
 
   const savePhase = (draft: TrackingPhaseDraft) => save(PHASES_URL, draft);
   const saveStep = (draft: TrackingStepDraft) => save(STEPS_URL, draft);

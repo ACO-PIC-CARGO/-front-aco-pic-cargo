@@ -842,12 +842,7 @@ function isPricingOption() {
                         .id_tipotelefono
                     "
                     @update:model-value="validarTelefonoActual"
-                    :error-messages="
-                      !entitiesStore.cliente.telefonoActual
-                        .id_tipotelefono
-                        ? 'Dato Requerido'
-                        : ''
-                    "
+                    :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
                 <v-col
@@ -862,11 +857,7 @@ function isPricingOption() {
                       entitiesStore.cliente.telefonoActual.telefono
                     "
                     @change="validarTelefonoActual"
-                    :error-messages="
-                      !entitiesStore.cliente.telefonoActual.telefono
-                        ? 'Dato Requerido'
-                        : ''
-                    "
+                    :rules="[(v) => !!v || 'Dato Requerido']"
                     :prefix="getPrefix()"
                     :style="{
                       backgroundImage: `url(${obtenerFlag()})`,

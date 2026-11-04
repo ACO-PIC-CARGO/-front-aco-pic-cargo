@@ -17,6 +17,7 @@ import type {
 import type { ClienteListado } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { FOLDER_NOT_CREATED } from "@/components/folderPricing/quoteRules";
+import { chosenOptionTitle } from "@/utils/selectOptions";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -232,10 +233,10 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
     setTimeout(async () => {
       appStore.spiner = true;
       let respuesta;
-      let urlCarpeta: string | null = null;
+      let carpeta: { url: string | null; motivo: string | null } = { url: null, motivo: null };
       try {
         respuesta = await pricingStore.registrarQuotePorCambioIncoterms(data);
-        if (respuesta.estadoflag) urlCarpeta = await crearCarpetaNuevaCotizacion();
+        if (respuesta.estadoflag) carpeta = await crearCarpetaNuevaCotizacion();
       } finally {
         appStore.spiner = false;
       }
@@ -244,8 +245,8 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
         Swal.fire({ icon: "error", title: "No se creó la nueva cotización", text: respuesta.mensaje });
         return;
       }
-      if (urlCarpeta) {
-        urlGenerada.value = urlCarpeta;
+      if (carpeta.url) {
+        urlGenerada.value = carpeta.url;
         Swal.fire({
           icon: "success",
           title: "Nueva cotización creada",
@@ -261,7 +262,7 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
         return;
       }
       const sinCarpeta = [1, 2].includes(sessionBranchId())
-        ? ` ${FOLDER_NOT_CREATED} Los archivos no se copiaron porque la carpeta no existe.`
+        ? ` ${carpeta.motivo ?? FOLDER_NOT_CREATED} Los archivos no se copiaron porque la carpeta no existe.`
         : "";
       const res = await Swal.fire({
         icon: "success",
@@ -277,10 +278,10 @@ function recargarServiciosCostosContinuar(id_incoterms?: number | string) {
   // }
 }
 async function crearCarpetaNuevaCotizacion() {
-  if (![1, 2].includes(sessionBranchId())) return null;
-  const url = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
-  if (url) await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
-  return url;
+  if (![1, 2].includes(sessionBranchId())) return { url: null, motivo: null };
+  const carpeta = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
+  if (carpeta.url) await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url: carpeta.url });
+  return carpeta;
 }
 function recargarServicioEditar(id_incoterms?: number | string) {
   const servicesPorIncoterm = pricingStore.preServices.filter(
@@ -472,7 +473,9 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_vendedor"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col
@@ -489,7 +492,9 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_pricing"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col

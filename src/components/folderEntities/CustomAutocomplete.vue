@@ -13,6 +13,7 @@ const props = defineProps<{
 const emit = defineEmits<{ search: [value: string]; id: [id: number] }>();
 
 const showOptionsList = ref(true);
+const hasSuggestions = computed(() => !props.loading && (props.items?.length ?? 0) > 0);
 const search = computed({
   get() {
     return props.value;
@@ -52,23 +53,22 @@ function selectItem(id: number) {
     />
 
     <v-list
+      v-if="hasSuggestions"
+      v-show="showOptionsList"
       density="compact"
       class="customAutocomplete elevation-1"
-      v-show="showOptionsList"
     >
-      <template v-if="items!.length > 0 && !loading">
-        <template
-          v-for="(item, index) in items"
-          :key="index"
-        >
-          <v-list-item @click="selectItem(item.id)">
-            <v-list-item-title>
-              {{ item.telefono ? item.nombrecompleto.concat(" - ", item.telefono) : item.nombrecompleto }}
-            </v-list-item-title>
-          </v-list-item>
+      <template
+        v-for="(item, index) in items"
+        :key="index"
+      >
+        <v-list-item @click="selectItem(item.id)">
+          <v-list-item-title>
+            {{ item.telefono ? item.nombrecompleto.concat(" - ", item.telefono) : item.nombrecompleto }}
+          </v-list-item-title>
+        </v-list-item>
 
-          <!--<v-divider v-if="index < items.length - 1"></v-divider>-->
-        </template>
+        <!--<v-divider v-if="index < items.length - 1"></v-divider>-->
       </template>
     </v-list>
   </div>

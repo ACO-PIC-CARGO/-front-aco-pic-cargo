@@ -232,13 +232,13 @@ async function Limpiar() {
           />
         </v-col>
         <v-col
+          v-if="airlinesStore.tipo != 'nuevo'"
           cols="12"
           class="py-1"
         >
           <v-text-field
             v-model="airlinesStore.AirlineModel.code"
             label="Código (*)"
-            v-if="airlinesStore.tipo != 'nuevo'"
             readonly
           />
         </v-col>

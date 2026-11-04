@@ -65,7 +65,7 @@ const shows = (text: string) =>
 const houseControls = () => ({
   acciones: document.body.querySelector("button .mdi-tools, button .mdi-close") !== null,
   eliminar: shows("Eliminar"),
-  imprimir: shows("Imprimir"),
+  imprimir: shows("Imprimir BL"),
   notificaciones: shows("Notificaciones"),
   editar: shows("Editar"),
 });

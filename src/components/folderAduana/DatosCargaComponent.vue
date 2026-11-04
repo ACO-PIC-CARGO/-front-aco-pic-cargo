@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -192,7 +193,7 @@ const recargarPuertoOrigen = useDebouncedSearch(async (textoBuscar: string) => {
   await aduanaStore.getPortBeginAduana({
     id_transport: id_transport[0]!.id_transport!,
     id: aduanaStore.datosPrincipales.idorigen,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, aduanaStore.listPortBegin, (port) => port.name),
   });
 });
 const recargarPuertoDestino = useDebouncedSearch(async (textoBuscar: string) => {
@@ -207,7 +208,7 @@ const recargarPuertoDestino = useDebouncedSearch(async (textoBuscar: string) => 
   await aduanaStore.getPortEndAduana({
     id_transport: id_transport[0]!.id_transport!,
     id: aduanaStore.datosPrincipales.iddestino,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, aduanaStore.listPortEnd, (port) => port.name),
   });
 });
 async function anadirCarga() {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { chosenOptionTitle } from "@/utils/selectOptions";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -181,7 +182,9 @@ function recargarServiciosCostos() {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_vendedor"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col
@@ -198,7 +201,9 @@ function recargarServiciosCostos() {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="aduanaStore.datosPrincipales.id_pricing"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col

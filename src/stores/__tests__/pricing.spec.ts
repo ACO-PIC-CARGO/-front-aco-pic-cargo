@@ -15,6 +15,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
 import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
+import { currencyFormat } from "@/utils/cotizacion";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn() }) }));
@@ -810,6 +811,7 @@ describe("pricing store", () => {
               },
             ],
             "telefono": "+51997300697",
+            "tienefleteflag": undefined,
             "tiporeporte": "TOTAL",
             "url_folderonedrive": "https://drive/x",
             "ventascasillerodetalles": [],
@@ -1561,6 +1563,16 @@ describe("pricing store", () => {
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
     });
 
+    test("generarReporte prints a new quote, whose shipment holds the chosen row instead of its id", async () => {
+      const pricing = cotizacion();
+      pricing.datosPrincipales.idtipocarga = { id: 2, code: "FCL", embarque: "FCL" };
+
+      await pricing.generarReporte({ tipo: "TOTAL" });
+
+      expect((postedBody("quote_preview_totales") as Record<string, unknown>).isFCL).toBe(true);
+      expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
+    });
+
     test("generarReporte tells the backend which quote the PDF belongs to so it lands in the quote's folder", async () => {
       const pricing = cotizacion();
       pricing.id = 77;
@@ -1629,6 +1641,33 @@ describe("pricing store", () => {
       await vi.advanceTimersByTimeAsync(1100);
 
       expect(await pending).toMatchSnapshot();
+    });
+
+    test("predata applies the Peru discharge minimum to detailed preview rows", async () => {
+      vi.useFakeTimers();
+      const pricing = cotizacion();
+      pricing.datosPrincipales.peso = 866;
+      pricing.datosEmpresa = [{ pais: "PERU" }];
+      sessionStorage.removeItem("iso_pais");
+      pricing.listMultiplicador.push({ id: 42, code: 24, valor: 1 });
+      pricing.opcionCostos[0]!.listCostos.push({
+        nameservice: "DESCARGA",
+        eslocalflag: 1,
+        esventaflag: 1,
+        status: 1,
+        id_multiplicador: 42,
+        costounitario: 30,
+      });
+
+      const pending = pricing.predata({ tipo: "DETALLE" });
+      await vi.advanceTimersByTimeAsync(1100);
+      const preview = await pending;
+      const opcionesPreview = preview.OpcionesSelecciondas as {
+        datosLocales: { name?: string; valor?: string }[];
+      }[];
+      const descarga = opcionesPreview[0]!.datosLocales.find((linea) => linea.name === "DESCARGA");
+
+      expect(descarga?.valor).toBe(currencyFormat(30));
     });
 
     test.each([

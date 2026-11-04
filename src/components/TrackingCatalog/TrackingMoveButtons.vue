@@ -1,8 +1,22 @@
 <script setup lang="ts">
+import { ref, watch } from "vue";
 import type { MoveDirection } from "@/types/trackingCatalog";
 
-defineProps<{ label: string; isFirst: boolean; isLast: boolean }>();
+const props = defineProps<{ label: string; isFirst: boolean; isLast: boolean; busy: boolean }>();
 const emit = defineEmits<{ move: [direction: MoveDirection] }>();
+
+const pending = ref<MoveDirection | null>(null);
+watch(
+  () => props.busy,
+  (busy) => {
+    if (!busy) pending.value = null;
+  },
+);
+
+function move(direction: MoveDirection) {
+  pending.value = direction;
+  emit("move", direction);
+}
 </script>
 
 <template>
@@ -11,8 +25,9 @@ const emit = defineEmits<{ move: [direction: MoveDirection] }>();
       icon
       variant="text"
       :disabled="isFirst"
+      :loading="pending === 'up'"
       :aria-label="`Subir ${label}`"
-      @click="emit('move', 'up')"
+      @click="move('up')"
     >
       <v-icon icon="mdi-arrow-up" />
       <v-tooltip
@@ -26,8 +41,9 @@ const emit = defineEmits<{ move: [direction: MoveDirection] }>();
       icon
       variant="text"
       :disabled="isLast"
+      :loading="pending === 'down'"
       :aria-label="`Bajar ${label}`"
-      @click="emit('move', 'down')"
+      @click="move('down')"
     >
       <v-icon icon="mdi-arrow-down" />
       <v-tooltip

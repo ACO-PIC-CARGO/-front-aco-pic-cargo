@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vitest";
 import {
+  aplicarMinimoDescargaPeru,
   calcularImpuestos,
   calcularValor,
   comienzaConCaracter,
@@ -21,6 +22,26 @@ import {
   validateCost,
   validateLength,
 } from "@/utils/cotizacion";
+
+describe("aplicarMinimoDescargaPeru", () => {
+  test("applies the 30 USD floor for multiplier 24 in Peru below 1000 kg", () => {
+    expect(aplicarMinimoDescargaPeru(24, 866, "PERÚ", 30, 25.98)).toBe(30);
+    expect(aplicarMinimoDescargaPeru(24, 866, 9589, 30, 25.98)).toBe(30);
+  });
+
+  test("does not apply the minimum to zero unit cost", () => {
+    expect(aplicarMinimoDescargaPeru(24, 866, 9589, 0, 0)).toBe(0);
+    expect(aplicarMinimoDescargaPeru(24, 866, 9589, "0", 0)).toBe(0);
+  });
+
+  test("keeps the calculated amount outside the Peru under-1000-kg rule", () => {
+    expect(aplicarMinimoDescargaPeru(24, 1100, "PERU", 30, 25.98)).toBe(25.98);
+    expect(aplicarMinimoDescargaPeru(24, 1000, "PERU", 30, 25.98)).toBe(25.98);
+    expect(aplicarMinimoDescargaPeru(24, 866, "CHILE", 30, 25.98)).toBe(25.98);
+    expect(aplicarMinimoDescargaPeru(23, 866, "PERU", 30, 25.98)).toBe(25.98);
+    expect(aplicarMinimoDescargaPeru(24, undefined, "PERU", 30, 25.98)).toBe(25.98);
+  });
+});
 
 describe("numeroSeguro", () => {
   test.each([

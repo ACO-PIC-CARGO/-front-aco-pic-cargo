@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -206,9 +207,9 @@ const recargarProveedores = useDebouncedSearch(async (e: string) => {
         IdProveedor.push(costo.id_proveedor);
     });
   });
-  await (appStore.cargarProveedores as (filters: { id: string; search: string }) => Promise<void>)({
+  await (appStore.cargarProveedores as (filters: { id: string; search: string | null }) => Promise<void>)({
     id: IdProveedor.join(","),
-    search: e,
+    search: serverSearchText(e, appStore.provedores, (proveedor) => proveedor.namelong),
   });
 });
 async function nuevoProveedor() {

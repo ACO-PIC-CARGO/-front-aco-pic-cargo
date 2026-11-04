@@ -161,10 +161,10 @@ describe("trackingCatalog store", () => {
     expect(store.phases).toEqual([phase()]);
   });
 
-  test("movePhase and moveStep send the direction and reload", async () => {
+  test("movePhase and moveStep send the direction, reload and confirm the new order", async () => {
     respond({
-      "put tracking_phases/7/move": accepted(),
-      "put tracking_steps/5/move": accepted(),
+      "put tracking_phases/7/move": accepted([], "Cambiamos el orden."),
+      "put tracking_steps/5/move": accepted([], "Cambiamos el orden."),
       "get tracking_catalog": accepted([phase()]),
     });
     const store = useTrackingCatalogStore();
@@ -176,7 +176,10 @@ describe("trackingCatalog store", () => {
       ["put", "tracking_steps/5/move", { direction: "down" }],
       ["get", "tracking_catalog", undefined],
     ]);
-    expect(Swal.fire).not.toHaveBeenCalled();
+    expect(vi.mocked(Swal.fire).mock.calls.map(([options]) => options)).toEqual([
+      expect.objectContaining({ toast: true, icon: "success", titleText: "Cambiamos el orden." }),
+      expect.objectContaining({ toast: true, icon: "success", titleText: "Cambiamos el orden." }),
+    ]);
   });
 
   test("a rejected move warns with the reason and does not reload", async () => {

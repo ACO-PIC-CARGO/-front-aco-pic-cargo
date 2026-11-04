@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { serverSearchText } from "@/utils/serverSearch";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -391,14 +392,14 @@ const recargarPuertoOrigen = useDebouncedSearch(async (textoBuscar: string) => {
   await appStore._getPortBegin({
     id_transport: id_transport.value as number,
     id: appStore.master_origen,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, appStore.itemsPortBegin, (port) => port.name),
   });
 });
 const recargarPuertoDestino = useDebouncedSearch(async (textoBuscar: string) => {
   await appStore._getPortEnd({
     id_transport: id_transport.value as number,
     id: appStore.master_destino,
-    search: textoBuscar,
+    search: serverSearchText(textoBuscar, appStore.itemsPortEnd, (port) => port.name),
   });
 });
 

@@ -3,6 +3,8 @@ import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 
+const BillingHistory = () => import("../views/BillingHistory/BillingHistory.vue");
+
 const routes = [
   {
     path: "/",
@@ -768,7 +770,12 @@ const routes = [
       {
         path: "historial-facturacion",
         name: "billingHistory",
-        component: () => import("../views/BillingHistory/BillingHistory.vue"),
+        component: BillingHistory,
+      },
+      {
+        path: "facturacion-membresia",
+        name: "lstFacturacionMembresia",
+        component: BillingHistory,
       },
       // {
       //   path: "suscripcion3",

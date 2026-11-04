@@ -224,6 +224,7 @@ async function Aceptar() {
         </v-col>
 
         <v-col
+          v-if="cityStore.tipo != 'nuevo'"
           cols="12"
           class="py-1"
         >
@@ -231,7 +232,6 @@ async function Aceptar() {
             v-model="cityStore.model.code"
             :readonly="cityStore.tipo != 'nuevo'"
             label="Código"
-            v-if="cityStore.tipo != 'nuevo'"
           />
         </v-col>
         <v-col

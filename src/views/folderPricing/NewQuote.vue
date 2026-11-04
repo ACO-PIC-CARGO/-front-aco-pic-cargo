@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from "vue";
+import { nextTick, onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -61,9 +61,12 @@ const excelInput = ref<HTMLInputElement>();
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let mostrarCostos: boolean | undefined;
 
-onMounted(async () => {
+onBeforeMount(() => {
   pricingStore.step = 1;
   pricingStore.SET_RESET();
+});
+
+onMounted(async () => {
   calculadorasStore.lstTransporte = [];
   appStore.mainTitle = "Nueva Cotización";
   await Promise.all([
@@ -777,8 +780,8 @@ async function guardar() {
 }
 async function crearCarpetaCotizacion() {
   if (![1, 2].includes(sessionBranchId())) return "";
-  const url = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
-  if (!url) return FOLDER_NOT_CREATED;
+  const { url, motivo } = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
+  if (!url) return motivo ?? FOLDER_NOT_CREATED;
   await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
   return "";
 }
