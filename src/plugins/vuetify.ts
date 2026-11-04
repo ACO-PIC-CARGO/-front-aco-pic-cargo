@@ -4,6 +4,9 @@ import "@/styles/vuetify-legacy.css";
 import { createVuetify } from "vuetify";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import { en, es } from "vuetify/locale";
+import { showEmptyStringAsNoSelection } from "@/plugins/emptySelectValue";
+
+showEmptyStringAsNoSelection();
 
 const primaryColor = { color: "primary" };
 const compactDetails = { hideDetails: "auto" };
