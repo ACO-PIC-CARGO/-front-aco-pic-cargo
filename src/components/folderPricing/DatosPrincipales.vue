@@ -17,6 +17,7 @@ import type {
 import type { ClienteListado } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { FOLDER_NOT_CREATED } from "@/components/folderPricing/quoteRules";
+import { chosenOptionTitle } from "@/utils/selectOptions";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -32,7 +33,6 @@ const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 const { can } = usePermissions();
 const canSaveQuote = route.name === "newQuote" ? can("newQuote", "NUEVO") : can("lstQuote", "MODIFICAR");
-const executiveName = (item: { raw: unknown; title: string }) => (typeof item.raw === "object" ? item.title : "");
 
 const dialogFiles = ref(false);
 const search = ref("");
@@ -474,7 +474,7 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_vendedor"
                 >
-                  <template #selection="{ internalItem }">{{ executiveName(internalItem) }}</template>
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
                 </v-autocomplete>
               </v-col>
 
@@ -493,7 +493,7 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_pricing"
                 >
-                  <template #selection="{ internalItem }">{{ executiveName(internalItem) }}</template>
+                  <template #selection="{ internalItem }">{{ chosenOptionTitle(internalItem) }}</template>
                 </v-autocomplete>
               </v-col>
 
