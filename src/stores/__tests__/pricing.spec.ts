@@ -810,6 +810,7 @@ describe("pricing store", () => {
               },
             ],
             "telefono": "+51997300697",
+            "tienefleteflag": undefined,
             "tiporeporte": "TOTAL",
             "url_folderonedrive": "https://drive/x",
             "ventascasillerodetalles": [],
