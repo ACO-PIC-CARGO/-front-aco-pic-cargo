@@ -682,6 +682,11 @@ const routes = [
         component: () => import("../views/TypePayment/ListTypePayment.vue"),
       },
       {
+        path: "folderTraffic/status",
+        name: "lstTrafficStatus",
+        component: () => import("../views/folderTraffic/ListTrafficStatus.vue"),
+      },
+      {
         path: "usuarios/listado",
         name: "listUser",
         component: () => import("../views/Users/ListUsuarios.vue"),
