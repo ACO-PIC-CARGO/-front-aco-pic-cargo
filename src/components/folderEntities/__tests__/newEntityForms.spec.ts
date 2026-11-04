@@ -116,3 +116,29 @@ test("a new client form opens without required-field errors", async () => {
   expect(wrapper.findAll(".v-input--error").map((field) => field.find("label").text())).toEqual([]);
   wrapper.unmount();
 });
+
+test("a new client continues past step 1 without a main phone", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const entities = useEntitiesStore();
+  Object.assign(entities.cliente, {
+    id_tipopersona: 1,
+    id_tipotransaccion: 1,
+    nombrecompleto: "Cliente sin teléfono",
+    id_pais: 1,
+    telefonoActual: { id_tipotelefono: "", telefono: "" },
+    contactoActual: { nombre: "Ana", id_tipotelefono: 1, telefono: "999888777" },
+  });
+  const SeccionCliente = (await import("@/components/folderEntities/Cliente/SeccionCliente.vue")).default;
+  const wrapper = mount(SeccionCliente, {
+    global: { plugins: [createVuetify({ components, directives }), pinia], stubs: { VOverlay: true } },
+    attachTo: document.body,
+  });
+  await flushPromises();
+
+  await wrapper.findAll("button").find((button) => button.text().includes("Agregar Más"))!.trigger("click");
+  await flushPromises();
+
+  expect(entities.stepper).toBe(2);
+  wrapper.unmount();
+});

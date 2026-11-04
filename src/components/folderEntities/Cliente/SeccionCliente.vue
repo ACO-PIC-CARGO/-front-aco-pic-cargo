@@ -842,7 +842,6 @@ function isPricingOption() {
                         .id_tipotelefono
                     "
                     @update:model-value="validarTelefonoActual"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
                 <v-col
@@ -857,7 +856,6 @@ function isPricingOption() {
                       entitiesStore.cliente.telefonoActual.telefono
                     "
                     @change="validarTelefonoActual"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
                     :prefix="getPrefix()"
                     :style="{
                       backgroundImage: `url(${obtenerFlag()})`,
