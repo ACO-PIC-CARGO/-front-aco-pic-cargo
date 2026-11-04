@@ -32,6 +32,7 @@ const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
 const { can } = usePermissions();
 const canSaveQuote = route.name === "newQuote" ? can("newQuote", "NUEVO") : can("lstQuote", "MODIFICAR");
+const executiveName = (item: { raw: unknown; title: string }) => (typeof item.raw === "object" ? item.title : "");
 
 const dialogFiles = ref(false);
 const search = ref("");
@@ -472,7 +473,9 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_vendedor"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ executiveName(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col
@@ -489,7 +492,9 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-title="nombrecompleto"
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.id_pricing"
-                />
+                >
+                  <template #selection="{ internalItem }">{{ executiveName(internalItem) }}</template>
+                </v-autocomplete>
               </v-col>
 
               <v-col

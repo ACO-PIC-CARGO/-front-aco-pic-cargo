@@ -120,3 +120,19 @@ test("a new incoterm the backend refuses shows why, keeps the edited quote and i
   expect(pricing.datosPrincipales.idincoterms).toBe(9);
   expect(routerPush).not.toHaveBeenCalled();
 });
+
+test("Ejecutivo and Pricing show no raw id before the executives load, then show the executive's name", { timeout: 15_000 }, async () => {
+  const pricing = await openQuoteInEdit();
+  pricing.datosPrincipales.id_vendedor = 4;
+  pricing.datosPrincipales.id_pricing = 4;
+  const fieldText = (label: string) =>
+    wrapper!.findAllComponents({ name: "VAutocomplete" }).find((field) => field.props("label") === label)!.find(".v-field__input").text();
+  await flushPromises();
+
+  expect([fieldText("Ejecutivo"), fieldText("Pricing")]).toEqual(["", ""]);
+
+  pricing.listEjecutivo = [{ id: 4, nombrecompleto: "ZURITA RAMIREZ CESAR" }];
+  await flushPromises();
+
+  expect([fieldText("Ejecutivo"), fieldText("Pricing")]).toEqual(["ZURITA RAMIREZ CESAR", "ZURITA RAMIREZ CESAR"]);
+});
