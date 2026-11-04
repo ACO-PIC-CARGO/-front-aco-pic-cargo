@@ -371,6 +371,7 @@ watch(reset, () => {
                   pricingStore.index
                 ]!.listCostos.filter((v) => v.esopcionflag == 1)
               "
+              :actualizar-costos-flag="pricingStore.actualizarCostosFlag"
               :amount="pricingStore.datosPrincipales.amount"
               index=""
             />

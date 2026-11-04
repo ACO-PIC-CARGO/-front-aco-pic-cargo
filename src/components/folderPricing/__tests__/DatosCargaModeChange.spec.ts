@@ -77,3 +77,22 @@ test("clicking the mode a new quote already has keeps it without asking", async 
   expect(modalTitles()).toEqual([]);
   expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true });
 });
+
+test.each([
+  ["Grupal", false],
+  ["Individual", true],
+])("confirming the switch to %s asks the costs tab to recalculate its totals", async (mode, startsGrupal) => {
+  vi.useFakeTimers();
+  try {
+    const { pricing, switches } = await openNewQuote({ grupal: startsGrupal });
+    const before = pricing.actualizarCostosFlag;
+
+    if (mode === "Grupal") switches.proxyGrupal = true;
+    else switches.proxyIndividual = true;
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(pricing.actualizarCostosFlag).toBe(!before);
+  } finally {
+    vi.useRealTimers();
+  }
+});

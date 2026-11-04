@@ -304,6 +304,7 @@ function cambiarGrupalIndividual() {
             esindividualflag: esindividualflag,
           }),
         ]);
+        pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
       }, 500);
     }
   } else if (esindividualflag) {
@@ -319,6 +320,7 @@ function cambiarGrupalIndividual() {
           esindividualflag: true,
         }),
       ]);
+      pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
     }, 100);
   }
   cambiarImpuesto();
