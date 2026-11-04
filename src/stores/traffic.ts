@@ -7,6 +7,7 @@ import type {
   TrafficFile,
   TrafficFileOfHouse,
   TrafficFilters,
+  TrafficMasterOption,
   TrafficSendPayload,
   TrafficSent,
   TrafficStatus,
@@ -46,6 +47,11 @@ export const useTrafficStore = defineStore("traffic", () => {
 
   const sendQuote = (payload: TrafficSendPayload, idempotencyKey: string) =>
     request<TrafficSent>({ method: "post", url: url("traffic_send"), headers: withKey(idempotencyKey), data: payload });
+
+  async function mastersFor(trafficId: number): Promise<TrafficMasterOption[]> {
+    const answer = await request<TrafficMasterOption>({ method: "get", url: url(`traffic/${trafficId}/masters`), headers: JSON_HEADERS });
+    return answer.estadoflag ? answer.data : [];
+  }
 
   const sendToOperations = (trafficId: number, payload: TrafficToOperationsPayload, idempotencyKey: string) =>
     request<TrafficToOperations>({
@@ -94,6 +100,7 @@ export const useTrafficStore = defineStore("traffic", () => {
     fileOfHouse,
     sendQuote,
     sendToOperations,
+    mastersFor,
     loadFiles,
     setFileStatus,
     loadStatuses,

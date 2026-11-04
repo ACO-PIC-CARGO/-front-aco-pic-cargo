@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { monthsToRange, quoteRouteOf, sendTargetsFor, trafficStatusLabel } from "@/utils/trafficSend";
+import { masterChoiceProblem, monthsToRange, quoteRouteOf, sendTargetsFor, trafficStatusLabel } from "@/utils/trafficSend";
 
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
 
@@ -55,5 +55,30 @@ describe("Cotización de un expediente de tráfico", () => {
 
   test("an aduana quote opens in Aduana", () => {
     expect(quoteRouteOf({ quote_kind: "ADUANA", id_quote: 31 }, 5)).toEqual({ name: "VerAduana", params: { id: 31, step: 5 } });
+  });
+});
+
+describe("Elección de master al enviar a Operaciones", () => {
+  const today = "2026-11-04";
+
+  test("a new master needs its availability date", () => {
+    expect(masterChoiceProblem({ isNew: true, availability: "", masterId: null }, today)).toBe(
+      "Elige la fecha de disponibilidad del master.",
+    );
+  });
+
+  test("a new master's availability date must come after today", () => {
+    expect(masterChoiceProblem({ isNew: true, availability: today, masterId: null }, today)).toBe(
+      "La fecha de disponibilidad debe ser posterior a hoy.",
+    );
+  });
+
+  test("an existing master must be chosen", () => {
+    expect(masterChoiceProblem({ isNew: false, availability: "", masterId: null }, today)).toBe("Elige el master al que se enlaza.");
+  });
+
+  test("a complete choice has no problem", () => {
+    expect(masterChoiceProblem({ isNew: true, availability: "2026-11-20", masterId: null }, today)).toBe("");
+    expect(masterChoiceProblem({ isNew: false, availability: "", masterId: 3831 }, today)).toBe("");
   });
 });

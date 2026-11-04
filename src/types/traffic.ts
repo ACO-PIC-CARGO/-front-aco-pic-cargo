@@ -85,3 +85,8 @@ export interface TrafficFileOfHouse {
   id_quote: number;
   sent: boolean;
 }
+
+export interface TrafficMasterOption {
+  id: number;
+  code_master: string;
+}

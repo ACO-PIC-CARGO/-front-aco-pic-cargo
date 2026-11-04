@@ -37,3 +37,15 @@ export const quoteRouteOf = ({ quote_kind, id_quote }: { quote_kind: QuoteKind; 
   name: quote_kind === "ADUANA" ? "VerAduana" : "verQuote",
   params: step ? { id: id_quote, step } : { id: id_quote },
 });
+
+export interface MasterChoice {
+  isNew: boolean;
+  availability: string;
+  masterId: number | null;
+}
+
+export const masterChoiceProblem = ({ isNew, availability, masterId }: MasterChoice, today: string) => {
+  if (!isNew) return masterId ? "" : "Elige el master al que se enlaza.";
+  if (!availability) return "Elige la fecha de disponibilidad del master.";
+  return availability > today ? "" : "La fecha de disponibilidad debe ser posterior a hoy.";
+};

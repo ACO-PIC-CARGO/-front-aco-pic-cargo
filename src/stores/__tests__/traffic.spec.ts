@@ -39,6 +39,17 @@ describe("traffic store", () => {
     expect(sentConfig("traffic_by_house")!.params).toEqual({ id_house: 90 });
   });
 
+  test("mastersFor returns the masters the file can join, or none", async () => {
+    const master = { id: 3831, code_master: "2026MBL01741" };
+    respond({ "traffic/4/masters": accepted([master]) });
+    const store = useTrafficStore();
+
+    expect(await store.mastersFor(4)).toEqual([master]);
+
+    respond({ "traffic/4/masters": rejected() });
+    expect(await store.mastersFor(4)).toEqual([]);
+  });
+
   test("sendQuote posts the approval data with the idempotency key", async () => {
     respond({ traffic_send: accepted([{ id_traffic: 4, code_traffic: "TR-00004", id_house: 90 }]) });
     const payload = {
