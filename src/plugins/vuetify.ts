@@ -6,7 +6,9 @@ import { aliases, mdi } from "vuetify/iconsets/mdi";
 import { en, es } from "vuetify/locale";
 
 const primaryColor = { color: "primary" };
-const fieldDefaults = { variant: "underlined", ...primaryColor };
+const compactDetails = { hideDetails: "auto" };
+const fieldDefaults = { variant: "underlined", ...primaryColor, ...compactDetails };
+const selectionDefaults = { ...primaryColor, ...compactDetails };
 
 export default createVuetify({
   icons: { defaultSet: "mdi", aliases, sets: { mdi } },
@@ -18,11 +20,11 @@ export default createVuetify({
     VAutocomplete: fieldDefaults,
     VCombobox: fieldDefaults,
     VFileInput: fieldDefaults,
-    VCheckbox: primaryColor,
+    VCheckbox: selectionDefaults,
     VCheckboxBtn: primaryColor,
     VRadio: primaryColor,
-    VRadioGroup: primaryColor,
-    VSwitch: primaryColor,
+    VRadioGroup: selectionDefaults,
+    VSwitch: selectionDefaults,
     VStepper: primaryColor,
     // VStepper does not hand its color to its items; an empty edit icon keeps the number on the current step, as Vuetify 2 did.
     VStepperItem: { ...primaryColor, editIcon: "" },
