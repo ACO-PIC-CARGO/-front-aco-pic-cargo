@@ -675,7 +675,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
         headers: JSON_HEADERS,
         params: datos,
       });
-      fletePricing.value = (res.estadoflag && res.data[0]) || {};
+      fletePricing.value = res.data?.[0] || {};
     } catch {
       fletePricing.value = {};
     }
