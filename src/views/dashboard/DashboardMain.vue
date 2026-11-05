@@ -398,7 +398,7 @@ async function editarCotizacionAduana() {
 }
 async function abrirCorreo() {
   const codeLCL = [9017];
-  const codeFCL = [9017, 9001, 9002];
+  const codeFCL = [9017, 9001, 9002,9026];
   const codeAereo = [9017, 9024];
   idRole.value = [];
   dialogProveedor.value = true;
