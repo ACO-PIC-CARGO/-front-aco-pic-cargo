@@ -4,7 +4,8 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import { positiveInteger } from "@/components/folderPricing/quoteRules";
-import type { Costo } from "@/types/cotizacion";
+import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
+import type { Costo, OpcionCosto } from "@/types/cotizacion";
 
 withDefaults(
   defineProps<{
@@ -25,6 +26,7 @@ const VentasComponent = defineAsyncComponent(() => import("./Costos/VentasCompon
 const ImpuestosComponent = defineAsyncComponent(() => import("./Costos/ImpuestosComponent.vue"));
 
 const pricingStore = usePricingStore();
+const { calcularTotalFleteVentaPorOpcion } = useCotizacionCalculos();
 
 const mostrarCostos = ref(false);
 const mostrarVentasFlag = ref(false);
@@ -76,9 +78,13 @@ function irAComparativa() {
 }
 async function pasarLlenadoCostos() {
   if ((await frmDatosOpcion.value!.validate()).valid) {
+    priceWithOptionFreight(pricingStore.opcionCostos[pricingStore.index]);
     btnIngresarCostos.value = false;
     mostrarCostos.value = true;
   }
+}
+function priceWithOptionFreight(opcion: OpcionCosto | null | undefined) {
+  pricingStore.totalFlete = calcularTotalFleteVentaPorOpcion({ listCostos: opcion?.listCostos });
 }
 function cambiarPagina(pagina: number | string) {
   pricingStore.page = Number(pagina);
@@ -86,6 +92,7 @@ function cambiarPagina(pagina: number | string) {
 function cancelarLlenadoCostos() {
   pricingStore.opcionCostos.splice(-1, 1);
   pricingStore.index = pricingStore.index - 1;
+  priceWithOptionFreight(pricingStore.opcionCostos[pricingStore.index]);
   btnIngresarCostos.value = false;
   mostrarCostos.value = true;
   setTimeout(() => {
@@ -250,6 +257,9 @@ function scrollToComponent(componentId: string) {
   }, 100);
 }
 
+watch([opcionSeleccionadaActual, llenadoCostos], ([opcion, llenando]) => {
+  if (!llenando) priceWithOptionFreight(opcion);
+});
 watch(opcionesSeleccionadas, () => {
   pricingStore.page = 1;
 });
