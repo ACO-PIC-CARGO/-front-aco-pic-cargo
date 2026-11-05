@@ -107,6 +107,12 @@ describe("calcularValor", () => {
     expect(calcularValor("100", "50", 13, "100")).toBe(150);
   });
 
+  test("returns a minimum sent as a numeric string as a number, so section totals add it", () => {
+    const freightLine = 1125;
+    expect(freightLine + calcularValor(8000, 0, 13, 0.35, "118.0000")).toBe(1243);
+    expect(freightLine + calcularValor(8000, 0, 14, 0.35, "118.0000")).toBe(1243);
+  });
+
   test("an unparseable price falls back to the floor or minimum", () => {
     expect(calcularValor("abc", 0, 5, 10)).toBe(60);
     expect(calcularValor("abc", 0, 13, 10, 30)).toBe(30);

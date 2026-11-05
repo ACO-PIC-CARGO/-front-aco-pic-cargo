@@ -92,16 +92,17 @@ export function calcularValor(
   flete: Numerico,
   multiplicador: unknown,
   porcentaje: Numerico = 0,
-  minimo = 118,
+  minimo: Numerico = 118,
 ): number {
   // SETEANDO DATOS
   const cif =
     parseFloat(String(precio)) + parseFloat(String(flete ? flete : 0));
   const seguro = 0.015 * cif;
-  const porcentajeDe = (base: number, piso: number): number => {
+  const porcentajeDe = (base: number, piso: Numerico): number => {
     if (porcentaje == 0) return 0;
     const monto = (parseFloat(String(porcentaje)) / 100) * base;
-    return monto >= piso ? monto : piso;
+    const pisoNumerico = numeroSeguro(piso);
+    return monto >= pisoNumerico ? monto : pisoNumerico;
   };
 
   // CALCULAR LOS COSTOS
