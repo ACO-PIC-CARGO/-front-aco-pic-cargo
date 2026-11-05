@@ -829,6 +829,9 @@ async function recargarCostos() {
   pricingStore.llenadoCostos = true;
   indexCostos.value++;
 }
+function refreshComparisonWhenOpened(paso: unknown) {
+  if (paso === 3) pricingStore.actualizarComparativa = !pricingStore.actualizarComparativa;
+}
 function irVentaCliente() {
   step.value = 2;
   pricingStore.step = 2;
@@ -1118,6 +1121,7 @@ function formatearCostoTotal(valor: Costo) {
     <v-stepper
       v-model="step"
       class="pt-0"
+      @update:model-value="refreshComparisonWhenOpened"
     >
       <v-stepper-header>
         <v-stepper-item

@@ -162,3 +162,16 @@ test("a draft whose OneDrive link fails is still reported as saved and leaves th
   );
   expect(push).toHaveBeenCalledWith({ name: "lstQuote" });
 });
+
+test("opening the comparison from the stepper header recalculates it", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const wrapper = shallowMount(NewQuote, { global: { plugins: [pinia], renderStubDefaultSlot: true } });
+  await flushPromises();
+  const before = usePricingStore().actualizarComparativa;
+
+  wrapper.findComponent({ name: "VStepper" }).vm.$emit("update:modelValue", 3);
+  await flushPromises();
+
+  expect(usePricingStore().actualizarComparativa).toBe(!before);
+});
