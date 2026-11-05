@@ -485,7 +485,7 @@ function mostrarBtnGuardar() {
                 <v-img
                   class="mx-auto"
                   max-width="110"
-                  src="../public/img/svg/power.svg"
+                  src="/img/svg/power.svg"
                   alt="Sistema Apagado"
                 />
               </v-col>
