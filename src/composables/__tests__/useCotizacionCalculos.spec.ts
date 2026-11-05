@@ -199,6 +199,41 @@ describe("calcularTotalFleteVentaPorOpcion", () => {
     ).toBe(40);
   });
 
+  test("applies each line's minimum the way the sale table shows it", () => {
+    const withMinimum = { ...freightCost, considerarvalorminimoflag: true };
+    expect(
+      calcularTotalFleteVentaPorOpcion({
+        listCostos: [{ ...withMinimum, minimo: "100.0000" }],
+      }),
+    ).toBe(100);
+    expect(
+      calcularTotalFleteVentaPorOpcion({
+        listCostos: [{ ...withMinimum, minimo: "50.0000" }],
+      }),
+    ).toBe(80);
+    expect(
+      calcularTotalFleteVentaPorOpcion({
+        listCostos: [{ ...freightCost, minimo: "100.0000" }],
+      }),
+    ).toBe(80);
+    expect(
+      calcularTotalFleteVentaPorOpcion({
+        listCostos: [{ ...withMinimum, minimo: "100.0000", costounitario: "0" }],
+      }),
+    ).toBe(0);
+  });
+
+  test("applies the Peru discharge minimum the way the sale table shows it", () => {
+    sessionStorage.setItem("iso_pais", "9589");
+    setPricing([{ id: 4, code: 24, valor: 1 }], { volumen: 2, peso: 866 });
+    expect(
+      calcularTotalFleteVentaPorOpcion({
+        listCostos: [{ ...freightCost, id_multiplicador: 4, costounitario: 30 }],
+      }),
+    ).toBe(30);
+    sessionStorage.removeItem("iso_pais");
+  });
+
   test("treats missing or non-numeric values as zero", () => {
     setPricing([{ id: 1, code: 2, valor: "abc" }], { volumen: "1,5" });
     expect(
@@ -319,6 +354,17 @@ describe("formatearCostos", () => {
     expect(subtotals[1]).toBe(225);
     expect(subtotals[2]).toBe(60);
     expect(subtotals[3]).toBeCloseTo(4.2, 10);
+  });
+
+  test("prices a multiplier 15 cost as a percentage of CIF plus insurance, like the cost screen", () => {
+    const [cost] = formatearCostos({
+      costos: [{ ...baseCost, id_multiplicador: 4, costounitario: 4, cif: 0.35, minimo: 0 }],
+      multiplicadores: [{ id: 4, code: 15, valor: 1 }],
+      datosPrincipales: { amount: 10000 },
+      totalDeFlete: 0,
+    });
+
+    expect(cost!.subtotal).toBeCloseTo(35.525, 10);
   });
 
   test("applies the minimum and the one-unit floor for small freight", () => {

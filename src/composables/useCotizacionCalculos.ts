@@ -99,56 +99,21 @@ export function useCotizacionCalculos() {
     return costosFlete.reduce((total, costo) => {
       const multiplicador = ((pricing.listMultiplicador || []) as Multiplicador[])
         .find((item) => item.id == costo.id_multiplicador);
-      let factor = numeroSeguro(
-        calcularFac(
-          multiplicador ? multiplicador.code : "N",
-          datosPrincipales.volumen,
-          datosPrincipales.peso,
-          datosPrincipales.containers,
-          datosPrincipales.amount,
-        ),
-      );
-
-      if (
-        costo.code_cost == 4 &&
-        numeroSeguro(datosPrincipales.volumen) < 1
-      ) {
-        factor = Math.max(factor, 1);
-      }
-
-      if ([5, 13, 14].includes(Number(multiplicador && multiplicador.code))) {
+      if (!multiplicador || [5, 13, 14].includes(Number(multiplicador.code))) {
         return total;
       }
-
-      return (
-        total +
-        numeroSeguro(multiplicador && multiplicador.valor) *
-          numeroSeguro(costo.costounitario) *
-          factor
-      );
+      return total + subtotalPorFactor(costo, multiplicador, datosPrincipales);
     }, 0);
   }
 
-  function calcularSubtotal(
+  function subtotalPorFactor(
     costo: Costo,
-    multiplicador: Multiplicador | undefined,
+    multiplicador: Multiplicador,
     datosPrincipales: DatosPrincipales,
-    totalDeFlete: Numerico,
   ): number {
-    if (!multiplicador) return 0;
-    const code = multiplicador.code;
-    if ([5, 13, 14].includes(Number(code))) {
-      return calcularValor(
-        datosPrincipales.amount,
-        totalDeFlete,
-        code,
-        [5, 13, 14, 15].includes(Number(code)) ? costo.cif : costo.seguro,
-        costo.minimo as number,
-      );
-    }
     let factor = numeroSeguro(
       calcularFac(
-        code,
+        multiplicador.code,
         datosPrincipales.volumen,
         datosPrincipales.peso,
         datosPrincipales.containers,
@@ -159,7 +124,7 @@ export function useCotizacionCalculos() {
       factor = Math.max(factor, 1);
     }
     const subtotal = aplicarMinimoDescargaPeru(
-      code,
+      multiplicador.code,
       datosPrincipales.peso,
       sessionIsoPais(),
       costo.costounitario,
@@ -168,6 +133,25 @@ export function useCotizacionCalculos() {
     return costo.considerarvalorminimoflag && costo.costounitario != 0
       ? Math.max(numeroSeguro(costo.minimo), subtotal)
       : subtotal;
+  }
+
+  function calcularSubtotal(
+    costo: Costo,
+    multiplicador: Multiplicador | undefined,
+    datosPrincipales: DatosPrincipales,
+    totalDeFlete: Numerico,
+  ): number {
+    if (!multiplicador) return 0;
+    if ([5, 13, 14, 15].includes(Number(multiplicador.code))) {
+      return calcularValor(
+        datosPrincipales.amount,
+        totalDeFlete,
+        multiplicador.code,
+        costo.cif,
+        costo.minimo,
+      );
+    }
+    return subtotalPorFactor(costo, multiplicador, datosPrincipales);
   }
 
   function costosConMultiplicador(costos: Costo[], multiplicadores: Multiplicador[]) {
