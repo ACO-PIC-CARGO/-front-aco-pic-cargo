@@ -209,6 +209,9 @@ const proxyGrupal = computed({
       confirmarCambio("grupal", valor);
     } else {
       keepModeChecked("esgrupalflag");
+      pricingStore.datosPrincipales.id_percepcionaduana =
+        masterusuariosStore.lstPercepcionAduana.find((v) => v.codigo == "02")?.id;
+      changeImportType();
     }
   },
 });

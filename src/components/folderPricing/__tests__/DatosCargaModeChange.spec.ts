@@ -98,9 +98,9 @@ test.each([
 });
 
 test.each([
-  ["Grupal", true],
-  ["Individual", false],
-])("clicking %s again on a new quote keeps its transport, district, import type and notes", async (_mode, grupal) => {
+  ["Grupal", true, 2],
+  ["Individual", false, 1],
+])("clicking %s again on a new quote keeps its transport, district and notes", async (_mode, grupal, importType) => {
   vi.useFakeTimers();
   try {
     const { pricing, switches } = await openNewQuote({ grupal });
@@ -115,7 +115,7 @@ test.each([
     await vi.advanceTimersByTimeAsync(1000);
 
     expect(pricing.listServices[0]!.status).toBe(1);
-    expect(pricing.datosPrincipales).toMatchObject({ id_town: 5, id_percepcionaduana: 1, esgrupalflag: grupal, esindividualflag: !grupal });
+    expect(pricing.datosPrincipales).toMatchObject({ id_town: 5, id_percepcionaduana: importType, esgrupalflag: grupal, esindividualflag: !grupal });
     expect(pricing.opcionCostos[0]!.listNotasQuote).toBe(notes);
   } finally {
     vi.useRealTimers();
