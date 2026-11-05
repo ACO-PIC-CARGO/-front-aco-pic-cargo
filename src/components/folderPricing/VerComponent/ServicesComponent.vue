@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { storeToRefs } from "pinia";
-import { useAppStore } from "@/stores/app";
 import { useTownStore } from "@/stores/town";
 import { usePricingStore } from "@/stores/pricing";
 import type { Servicio } from "@/types/cotizacion";
@@ -9,7 +8,6 @@ import type { Servicio } from "@/types/cotizacion";
 withDefaults(defineProps<{ mostrarBtn?: boolean }>(), { mostrarBtn: true });
 const emit = defineEmits<{ activarLlenadoCostos: []; recargarCostos: [] }>();
 
-const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const townStore = useTownStore();
 const { begEndList, listServices, opcionCostos, errorValorMercancia } = storeToRefs(pricingStore);
@@ -29,7 +27,6 @@ const categoriasConfig = [
   { code: "OP", title: "OPCIONAL" },
 ];
 
-const isEmpresaPermitida = computed(() => appStore.isEmpresaPermitida);
 const iddestino = computed(() => pricingStore.datosPrincipales.iddestino);
 // Two-way bindings para propiedades de Vuex usando getters/setters computados
 const amountModel = computed({
@@ -267,9 +264,9 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
         <v-icon>mdi-plus</v-icon>
       </v-btn>
     </v-card-title>
-    <v-list-subheader class="mt-0">
-      <h4>Desmarque los servicios que NO desea utilizar.</h4>
-    </v-list-subheader>
+    <v-card-subtitle class="text-wrap font-weight-bold">
+      Desmarque los servicios que NO desea utilizar.
+    </v-card-subtitle>
 
     <!-- Lista de Servicios por Categoría -->
     <v-card-text>
@@ -287,6 +284,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
           <div
             v-for="service in getServicesByCode(cat.code)"
             :key="service.id"
+            class="mb-2"
           >
             <v-checkbox
               density="compact"
@@ -303,7 +301,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
               v-if="
                 service.code_service == 14 &&
                   service.status == 1 &&
-                  isEmpresaPermitida
+                  townStore.lstTownPricing.length > 0
               "
             >
               <v-autocomplete
@@ -313,7 +311,7 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
                 density="compact"
                 variant="outlined"
                 label="Distrito"
-                class="pr-10"
+                class="mt-3 pr-10"
                 v-model="pricingStore.datosPrincipales.id_town"
                 readonly
               />
@@ -339,11 +337,11 @@ async function buscarYCARGAR(idDestino: number | string | undefined) {
                 (v) =>
                   !requiereValorMercancia ||
                   (!!v && Number(v) > 0) ||
-                  'Dato Requerido',
+                  'Ingresa el valor de la mercancía (mayor que 0).',
                 (v) =>
                   !v ||
                   /^(?!0\d+|\d*e)\d*(?:\.\d+)?$/.test(v) ||
-                  'Debe ser un número real entero positivo',
+                  'Ingresa un monto válido, por ejemplo 1500.50.',
               ]"
               @update:model-value="recargarCostos"
               @blur="recargarCostos"
