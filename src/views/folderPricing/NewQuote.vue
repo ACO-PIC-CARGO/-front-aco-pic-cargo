@@ -22,6 +22,8 @@ import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import {
   FOLDER_NOT_CREATED,
+  FOLDER_NOT_LINKED,
+  MISSING_PORTS,
   NO_CALCULATOR_FREIGHT,
   NO_DEFAULT_STATUS,
   blockedQuoteSave,
@@ -167,7 +169,7 @@ async function activarDatosCarga() {
 }
 async function activarServicios() {
   const services = [...pricingStore.preServices];
-  let serv: Servicio[] = services.filter(
+  const serv: Servicio[] = services.filter(
     (v) =>
       v.id_incoterms == pricingStore.datosPrincipales.idincoterms &&
       v.id_modality == pricingStore.datosPrincipales.idsentido &&
@@ -175,21 +177,7 @@ async function activarServicios() {
         (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id,
   );
   await Promise.all([pricingStore.getTipoCostos(), cargarTarifasTransporte()]);
-  const { esgrupalflag } = pricingStore.datosPrincipales;
-
-  if (esgrupalflag) {
-    serv = serv.map((v) => {
-      if (v.code_service == 14) {
-        return {
-          ...v,
-          status: 0,
-        };
-      }
-
-      return v;
-    });
-  }
-  pricingStore.listServices = serv;
+  pricingStore.listServices = withGroupTransportOff(serv);
   ServicesComponentFlag.value = true;
   nextTick(() => {
     // setTimeout(() => {
@@ -202,12 +190,16 @@ async function activarServicios() {
 
   appStore.spiner = false;
 }
+function withGroupTransportOff<T extends Servicio>(services: T[]): T[] {
+  if (!pricingStore.datosPrincipales.esgrupalflag) return services;
+  return services.map((v) => (v.code_service == 14 ? { ...v, status: 0 } : v));
+}
 function recargarServicios() {
   const services = [...pricingStore.preServices];
   if (services.length == 0) {
     return;
   }
-  const serv = services.filter(
+  const serv = withGroupTransportOff(services).filter(
     (v) =>
       v.id_incoterms == pricingStore.datosPrincipales.idincoterms &&
       v.id_modality == pricingStore.datosPrincipales.idsentido &&
@@ -236,6 +228,11 @@ function recargarServicios() {
   });
 }
 async function activarLlenadoCostos() {
+  if (!selectedRoute()) {
+    Swal.fire({ icon: "warning", title: "Faltan los puertos", text: MISSING_PORTS });
+    return;
+  }
+  pricingStore.datosPrincipales.tienefleteflag = true;
   const existeTransporteDestino = pricingStore.listServices.some(
     (v) => v.code_service == 14 && v.status == 1,
   );
@@ -260,35 +257,46 @@ async function activarLlenadoCostos() {
       return;
     }
   }
-  continuarLlenadoCostos();
+  await continuarLlenadoCostos();
+}
+function selectedRoute() {
+  const datos = pricingStore.datosPrincipales;
+  const idTipoCarga =
+    typeof datos.idtipocarga === "object" ? datos.idtipocarga.id : datos.idtipocarga;
+  const shipment = pricingStore.listShipment.find((v) => v.id == idTipoCarga);
+  const origin = pricingStore.listPortBegin.find((v) => v.id_port == datos.idorigen);
+  const destination = pricingStore.listPortEnd.find((v) => v.id_port == datos.iddestino);
+  return shipment && origin && destination ? { shipment, origin, destination } : null;
+}
+async function requestCalculatorFreight() {
+  const route = selectedRoute();
+  if (!route) {
+    calculadorasStore.fletePricing = {};
+    return;
+  }
+  await calculadorasStore.obtenerFleteCalculadora({
+    shipment: route.shipment.code,
+    puerto_origen: route.origin.puerto!,
+    puerto_destino: route.destination.puerto!,
+    volumen: pricingStore.datosPrincipales.volumen,
+    peso: pricingStore.datosPrincipales.peso,
+  });
+}
+function rebuildOptionCosts(indiceOpcion: number) {
+  const { esgrupalflag, esindividualflag } = pricingStore.datosPrincipales;
+  if (esgrupalflag) return activarLlenadoCostosGrupal(indiceOpcion, false);
+  if (esindividualflag) return activarLlenadoCostosIndividual(indiceOpcion, false);
 }
 async function continuarLlenadoCostos() {
   dialogPesoVolumen.value = false;
   dialogDistrito.value = false;
-  const idTipoCarga =
-    typeof pricingStore.datosPrincipales.idtipocarga === "object"
-      ? pricingStore.datosPrincipales.idtipocarga.id
-      : pricingStore.datosPrincipales.idtipocarga;
-
   const { esindividualflag, esgrupalflag } = pricingStore.datosPrincipales;
   appStore.spiner = true;
-  await Promise.all([
-    pricingStore.getMultiplicador(),
-
-    calculadorasStore.obtenerFleteCalculadora({
-      shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)!
-        .code,
-      puerto_origen: pricingStore.listPortBegin.find(
-        (v) => v.id_port == pricingStore.datosPrincipales.idorigen,
-      )!.puerto!,
-      puerto_destino: pricingStore.listPortEnd.find(
-        (v) => v.id_port == pricingStore.datosPrincipales.iddestino,
-      )!.puerto!,
-      volumen: pricingStore.datosPrincipales.volumen,
-      peso: pricingStore.datosPrincipales.peso,
-    }),
-  ]);
-  appStore.spiner = false;
+  try {
+    await Promise.all([pricingStore.getMultiplicador(), requestCalculatorFreight()]);
+  } finally {
+    appStore.spiner = false;
+  }
   if (esgrupalflag) {
     await activarLlenadoCostosGrupal();
   } else if (esindividualflag) {
@@ -785,7 +793,11 @@ async function crearCarpetaCotizacion() {
   if (![1, 2].includes(sessionBranchId())) return "";
   const { url, motivo } = await pricingStore.crearCarpetaOneDrive({ id_quote: pricingStore.id });
   if (!url) return motivo ?? FOLDER_NOT_CREATED;
-  await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
+  try {
+    await pricingStore.actualizarURLEnElQuote({ id: pricingStore.id, url });
+  } catch {
+    return FOLDER_NOT_LINKED;
+  }
   return "";
 }
 async function anadirNuevaOpcion(nro_propuesta: number) {
@@ -803,136 +815,17 @@ async function anadirNuevaOpcion(nro_propuesta: number) {
     selected: false,
   });
 
-  const indiceOpcion = pricing.opcionCostos.length - 1;
-  if (pricing.datosPrincipales.esgrupalflag) {
-    await activarLlenadoCostosGrupal(indiceOpcion, false);
-  } else if (pricing.datosPrincipales.esindividualflag) {
-    await activarLlenadoCostosIndividual(indiceOpcion, false);
-  }
+  await rebuildOptionCosts(pricing.opcionCostos.length - 1);
 }
 async function recargarCostos() {
-  Promise.all([pricingStore.getTipoCostos(), pricingStore.getMultiplicador()]);
-  const codeServicesActivos = new Set(
-    (pricingStore.listServices || [])
-      .filter((v) => v.status === true || v.status === 1)
-      .map((v) => v.code_service),
-  );
-
-  const c = (pricingStore.preCostos || []).filter(
-    (v) =>
-      v.id_incoterms === pricingStore.datosPrincipales.idincoterms &&
-      v.id_modality === pricingStore.datosPrincipales.idsentido &&
-      v.id_shipment ===
-        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id &&
-      codeServicesActivos.has(v.code_service),
-  );
-
-  let idContainer: (number | string | undefined)[] = [];
-  if ((pricingStore.datosPrincipales.containers || []).length > 0) {
-    idContainer = pricingStore.datosPrincipales.containers!.map((v) => v.id);
-  }
-
-  const cFiltrado = c.filter((v) => {
-    if (v.escontenedorflag) {
-      return idContainer.includes(v.id_container as number | string);
-    }
-    return true;
-  });
-
-  const codeCost = [69, 114, 105, 39];
-
-  const cDuplicado = cFiltrado.flatMap((item) => {
-    if (codeCost.includes(item.code_cost as number)) {
-      return [
-        {
-          ...item,
-          esopcionflag: 1,
-          esventaflag: 0,
-          status: true,
-          cif: pricingStore.datosPrincipales.esgrupalflag
-            ? 0
-            : parseFloat(String(0.35)),
-          seguro: pricingStore.datosPrincipales.esgrupalflag
-            ? 0
-            : parseFloat(String(0.45)),
-          costounitario: pricingStore.datosPrincipales.esgrupalflag
-            ? 0
-            : item.costounitario,
-          nro_propuesta: 1,
-        },
-      ];
-    }
-
-    let montoprofit: Numerico = 0;
-    const tipoImportacion = masterusuariosStore.lstPercepcionAduana.find(
-      (v) =>
-        String(v.id) ===
-        String(pricingStore.datosPrincipales.id_percepcionaduana),
-    );
-    const profitList = item.profit_ganancia_pricing || [];
-
-    if (pricingStore.datosPrincipales.esindividualflag) {
-      const profitObj = profitList.find((v) => v.esindividualflag);
-      if (tipoImportacion?.codigo == "01") {
-        montoprofit = profitObj?.profitprimeraimportacion || 0;
-      }
-      if (tipoImportacion?.codigo == "02") {
-        montoprofit = profitObj?.profitsegundaimportacion || 0;
-      }
-    }
-
-    if (pricingStore.datosPrincipales.esgrupalflag) {
-      const profitObj = profitList.find((v) => v.esgrupalflag);
-      if (tipoImportacion?.codigo == "01") {
-        montoprofit = profitObj?.profitprimeraimportacion || 0;
-      }
-      if (tipoImportacion?.codigo == "02") {
-        montoprofit = profitObj?.profitsegundaimportacion || 0;
-      }
-    }
-
-    return [
-      {
-        ...item,
-        nro_propuesta: 1,
-        esopcionflag: 1,
-        esventaflag: 0,
-        status: true,
-        cif: pricingStore.datosPrincipales.esgrupalflag
-          ? 0
-          : parseFloat(String(0.35)),
-        seguro: pricingStore.datosPrincipales.esgrupalflag
-          ? 0
-          : parseFloat(String(0.45)),
-        costounitario: pricingStore.datosPrincipales.esgrupalflag
-          ? 0
-          : item.costounitario,
-      },
-      {
-        ...item,
-        nro_propuesta: 1,
-        esopcionflag: 0,
-        esventaflag: 1,
-        status: true,
-        cif: parseFloat(String(0.35)),
-        seguro: parseFloat(String(0.45)),
-        costounitario:
-          parseFloat(
-            (pricingStore.datosPrincipales.esgrupalflag
-              ? 0
-              : item.costounitario) as string,
-          ) + parseFloat(montoprofit as string),
-        tieneprofitflag: parseFloat(montoprofit as string) > 0,
-      },
-    ];
-  });
-
-  pricingStore.opcionCostos = (pricingStore.opcionCostos || []).slice(0, 1);
+  await Promise.all([
+    pricingStore.getTipoCostos(),
+    pricingStore.getMultiplicador(),
+    requestCalculatorFreight(),
+  ]);
+  pricingStore.opcionCostos = pricingStore.opcionCostos.slice(0, 1);
   pricingStore.index = 0;
-  pricingStore.opcionCostos[0]!.listCostos = cDuplicado;
-  pricingStore.opcionCostos[0]!.listImpuestos = pricingStore.listImpuestos;
-  pricingStore.opcionCostos[0]!.listNotasQuote = pricingStore.listNotasQuote;
-
+  await rebuildOptionCosts(0);
   pricingStore.llenadoCostos = true;
   indexCostos.value++;
 }

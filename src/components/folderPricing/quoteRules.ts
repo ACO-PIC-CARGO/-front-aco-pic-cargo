@@ -25,6 +25,12 @@ export const missingCalculatorFreight = (
 export const FOLDER_NOT_CREATED =
   "No pudimos crear la carpeta de la cotización en OneDrive. Puedes seguir trabajando y pedir a soporte que la cree.";
 
+export const FOLDER_NOT_LINKED =
+  "Creamos la carpeta en OneDrive, pero no pudimos enlazarla a la cotización. Enlázala desde el listado con «Actualizar URL Carpeta».";
+
+export const MISSING_PORTS =
+  "Elige el puerto de origen y de destino en Datos de la Carga para calcular el flete.";
+
 export const positiveInteger = (value: unknown): true | string =>
   (/^\d+$/.test(String(value ?? "").trim()) && Number(value) > 0) ||
   "Ingresa un número entero mayor que 0.";
