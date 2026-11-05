@@ -4,6 +4,7 @@ dist
 /dist
 dist/
 .env.*
+!.env.example
 
 /tests/e2e/.auth/
 /playwright-report/
