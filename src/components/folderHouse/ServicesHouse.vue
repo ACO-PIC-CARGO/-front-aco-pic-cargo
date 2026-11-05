@@ -12,8 +12,7 @@ import type { ServicioHouse, ServicioPorIncoterm } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
 import { usePermissions } from "@/composables/usePermissions";
 
-const componentProps = defineProps<{ isFormActionsDisabled?: boolean; hideCustoms?: boolean }>();
-const emit = defineEmits<{ loaded: [] }>();
+const componentProps = defineProps<{ isFormActionsDisabled?: boolean }>();
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -21,7 +20,7 @@ const housesStore = useHousesStore();
 const { can } = usePermissions();
 
 const loading = ref(false);
-const mostrarBtnTelex = ref(Boolean(housesStore.telexconfirmado));
+const mostrarBtnTelex = ref(false);
 const selected_certificado = "";
 const dialogConfirmarTelex = ref(false);
 const cboConfirmaTelex = [
@@ -250,10 +249,8 @@ async function _validaData() {
 
           appStore.itemsHouseServices =
             _sortServicesByName(lstServices);
-          emit("loaded");
         } else {
           appStore.itemsHouseServices = [];
-          if (response.data.tipomensaje === "TMSGINF") emit("loaded");
         }
       })
       .catch(function (error) {
@@ -597,7 +594,6 @@ onMounted(async () => {
 
     <!-- Campos de Aduana -->
     <v-card
-      v-if="!hideCustoms"
       class="mt-4"
       border
     >

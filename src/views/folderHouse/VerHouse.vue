@@ -5,10 +5,6 @@ import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
-import ServicesHouse from "@/components/folderHouse/ServicesHouse.vue";
-import BitacoraHouse from "@/components/folderHouse/BitacoraHouse.vue";
-import { isoFromDayMonthYear } from "@/components/HouseFile/houseEditForm";
-import type { HouseDetalle } from "@/types/operaciones";
 import "@/styles/aco-ui.css";
 import HouseStepList from "@/components/HouseFile/HouseStepList.vue";
 import ClientTrackingPreview from "@/components/HouseFile/ClientTrackingPreview.vue";
@@ -66,36 +62,8 @@ async function finishEditing() {
   await appRouter.replace({ name: viewRoute, params: { id: houseId.value } });
 }
 
-const servicesLoaded = ref(false);
-const servicesKey = ref(0);
-const houseLoaded = computed(() => Number(housesStore.house.id) === houseId.value);
-
-function houseToSave(): HouseDetalle {
-  if (isTrafficFile) return housesStore.house;
-  // Without services houseEdit refuses the save, instead of deleting the services that did not load.
-  return { ...housesStore.house, services: servicesLoaded.value ? appStore.itemsHouseServices : undefined };
-}
-
-watch(
-  () => housesStore.house,
-  (house) => {
-    if (isTrafficFile) return;
-    servicesLoaded.value = false;
-    servicesKey.value++;
-    housesStore.$patch({
-      telexconfirmado: house.telexconfirmado,
-      fechaconfirmaciontelex: isoFromDayMonthYear(house.fechaconfirmaciontelex),
-      house_sentido: house.id_modality,
-      house_id_trasnport: house.id_shipment,
-      house_incoterms: house.id_incoterms,
-      house_cotizacion: house.id_cot,
-    });
-    housesStore._getBitacoraLineal({ id_modalidad: house.id_modality, id_shipment: house.id_shipment, id_incoterms: house.id_incoterms });
-  },
-);
-
 async function saveChanges() {
-  const reason = await houseEdit.save(houseToSave());
+  const reason = await houseEdit.save(housesStore.house);
   if (reason) {
     Swal.fire({ icon: "warning", text: reason });
     return;
@@ -105,7 +73,6 @@ async function saveChanges() {
 }
 
 watch(isEditing, (editing) => {
-  servicesLoaded.value = false;
   showTitle();
   if (editing) houseEdit.start(housesStore.house);
 });
@@ -331,42 +298,6 @@ onMounted(async () => {
                     :load-error="trackingError"
                     @retry="loadTracking"
                   />
-                </v-col>
-              </v-row>
-              <v-row
-                v-if="isEditing && !isTrafficFile && houseLoaded"
-                density="compact"
-                class="house-data"
-              >
-                <v-col
-                  cols="12"
-                  lg="6"
-                >
-                  <v-card
-                    variant="flat"
-                    border
-                    rounded="lg"
-                    class="pa-3"
-                  >
-                    <ServicesHouse
-                      :key="servicesKey"
-                      hide-customs
-                      @loaded="servicesLoaded = true"
-                    />
-                  </v-card>
-                </v-col>
-                <v-col
-                  cols="12"
-                  lg="6"
-                >
-                  <v-card
-                    variant="flat"
-                    border
-                    rounded="lg"
-                    class="pa-3"
-                  >
-                    <BitacoraHouse />
-                  </v-card>
                 </v-col>
               </v-row>
             </div>
