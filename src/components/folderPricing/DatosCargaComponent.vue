@@ -196,24 +196,7 @@ const proxyIndividual = computed({
     if (pricingStore.datosPrincipales.id || valor) {
       confirmarCambio("individual", valor);
     } else {
-      const cambioDesdeGrupal = pricingStore.datosPrincipales.esgrupalflag;
-      pricingStore.datosPrincipales.esindividualflag = true;
-      pricingStore.datosPrincipales.esgrupalflag = false;
-      if (cambioDesdeGrupal) {
-        cambiarServicioTransporteActivo();
-      }
-      cambiarNotasIndividualGrupal({
-        esgrupalflag: false,
-        esindividualflag: true,
-      });
-      setTimeout(() => {
-        cambiarImpuesto();
-        if (cambioDesdeGrupal) {
-          id_percepcionaduana.value =
-            pricingStore.datosPrincipales.id_percepcionaduana;
-          dialogCambiarPercepcionAduana.value = true;
-        }
-      }, 100);
+      keepModeChecked("esindividualflag");
     }
   },
 });
@@ -225,23 +208,17 @@ const proxyGrupal = computed({
     if (pricingStore.datosPrincipales.id || valor) {
       confirmarCambio("grupal", valor);
     } else {
-      const percepcionAduana = masterusuariosStore.lstPercepcionAduana.find(
-        (v) => v.codigo == "02",
-      );
-      pricingStore.datosPrincipales.id_percepcionaduana = percepcionAduana!.id;
-      pricingStore.datosPrincipales.esgrupalflag = true;
-      pricingStore.datosPrincipales.esindividualflag = false;
-      desactivarTransporteParaGrupal();
-      cambiarNotasIndividualGrupal({
-        esgrupalflag: true,
-        esindividualflag: false,
-      });
-      setTimeout(() => {
-        cambiarImpuesto();
-      }, 100);
+      keepModeChecked("esgrupalflag");
     }
   },
 });
+
+function keepModeChecked(mode: "esindividualflag" | "esgrupalflag") {
+  pricingStore.datosPrincipales[mode] = false;
+  nextTick(() => {
+    pricingStore.datosPrincipales[mode] = true;
+  });
+}
 
 watch(
   () => props.abrirModalContenedorRecargar,

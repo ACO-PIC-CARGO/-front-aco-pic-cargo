@@ -96,3 +96,28 @@ test.each([
     vi.useRealTimers();
   }
 });
+
+test.each([
+  ["Grupal", true],
+  ["Individual", false],
+])("clicking %s again on a new quote keeps its transport, district, import type and notes", async (_mode, grupal) => {
+  vi.useFakeTimers();
+  try {
+    const { pricing, switches } = await openNewQuote({ grupal });
+    pricing.listServices = [{ code_service: "14", status: 1 }] as never;
+    pricing.listNotasQuote = [{ id: 1, description: "Nota base", grupalflag: true, individualflag: true }] as never;
+    pricing.opcionCostos = [{ nro_propuesta: 1, listCostos: [], listImpuestos: [], listNotasQuote: [{ id: 9, description: "Nota editada", estado: 1 }] }] as never;
+    Object.assign(pricing.datosPrincipales, { id_town: 5, id_percepcionaduana: 1 });
+    const notes = pricing.opcionCostos[0]!.listNotasQuote;
+
+    if (grupal) switches.proxyGrupal = false;
+    else switches.proxyIndividual = false;
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(pricing.listServices[0]!.status).toBe(1);
+    expect(pricing.datosPrincipales).toMatchObject({ id_town: 5, id_percepcionaduana: 1, esgrupalflag: grupal, esindividualflag: !grupal });
+    expect(pricing.opcionCostos[0]!.listNotasQuote).toBe(notes);
+  } finally {
+    vi.useRealTimers();
+  }
+});
