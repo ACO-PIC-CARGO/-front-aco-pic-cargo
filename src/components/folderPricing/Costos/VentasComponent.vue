@@ -630,6 +630,12 @@ watch(
     calcTotales();
   },
 );
+watch(
+  () => props.actualizarCostosFlag,
+  () => {
+    calcTotales();
+  },
+);
 
 onMounted(() => {
   calcTotales();

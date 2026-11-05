@@ -477,6 +477,7 @@ watch(reset, () => {
                     (v) => v.esventaflag == 1,
                   )
                 "
+                :actualizar-costos-flag="pricingStore.actualizarCostosFlag"
                 :amount="pricingStore.datosPrincipales.amount"
               />
             </v-col>
