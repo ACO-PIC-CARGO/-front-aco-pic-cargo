@@ -651,36 +651,49 @@ async function anadirCarga() {
     pricingStore.datosPrincipales.numerobultos = numerobultos.value;
     pricingStore.datosPrincipales.volumen = volumen.value;
     pricingStore.datosPrincipales.peso = peso.value;
-    const datos = pricingStore.datosPrincipales;
-    const idTipoCarga =
-      typeof datos.idtipocarga === "object"
-        ? datos.idtipocarga.id
-        : datos.idtipocarga;
-    const shipment = pricingStore.listShipment.find(
-      (v) => v.id == idTipoCarga,
-    );
-    const puertoOrigen = pricingStore.listPortBegin.find(
-      (v) => v.id_port == datos.idorigen,
-    );
-    const puertoDestino = pricingStore.listPortEnd.find(
-      (v) => v.id_port == datos.iddestino,
-    );
+    await refreshFreightAndAmounts();
+    frmDatosCarga.value!.reset();
+  }
+}
+async function refreshFreightAndAmounts() {
+  const datos = pricingStore.datosPrincipales;
+  const idTipoCarga =
+    typeof datos.idtipocarga === "object"
+      ? datos.idtipocarga.id
+      : datos.idtipocarga;
+  const shipment = pricingStore.listShipment.find(
+    (v) => v.id == idTipoCarga,
+  );
+  const puertoOrigen = pricingStore.listPortBegin.find(
+    (v) => v.id_port == datos.idorigen,
+  );
+  const puertoDestino = pricingStore.listPortEnd.find(
+    (v) => v.id_port == datos.iddestino,
+  );
+  if (shipment && puertoOrigen && puertoDestino) {
     appStore.spiner = true;
-    if (!!datos.idorigen && !!datos.iddestino) {
+    try {
       await calculadorasStore.obtenerFleteCalculadora({
-        shipment: shipment!.code,
-        puerto_origen: puertoOrigen!.puerto!,
-        puerto_destino: puertoDestino!.puerto!,
+        shipment: shipment.code,
+        puerto_origen: puertoOrigen.puerto!,
+        puerto_destino: puertoDestino.puerto!,
         volumen: datos.volumen,
         peso: datos.peso,
       });
+    } finally {
+      appStore.spiner = false;
     }
-    appStore.spiner = false;
-    const { esgrupalflag, esindividualflag } = datos;
-    cambiarMontosACero({ esgrupalflag, esindividualflag });
-    frmDatosCarga.value!.reset();
-    pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
   }
+  recalculateAmounts();
+}
+function recalculateAmounts() {
+  const { esgrupalflag, esindividualflag } = pricingStore.datosPrincipales;
+  cambiarMontosACero({ esgrupalflag, esindividualflag });
+  pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
+}
+async function changeDestinationPort(idDestino: number | string | undefined) {
+  await buscarTownPorDestino(idDestino);
+  await refreshFreightAndAmounts();
 }
 function cambiarServicioTransporteActivo() {
   const servicio = pricingStore.listServices.find(
@@ -937,12 +950,12 @@ function borrarFila(i: number) {
   total();
 }
 
-function guardarDatosCalculadora() {
+async function guardarDatosCalculadora() {
   pricingStore.datosPrincipales.numerobultos = tblTotal.value.uni;
   pricingStore.datosPrincipales.volumen = tblTotal.value.volumen;
   pricingStore.datosPrincipales.peso = tblTotal.value.peso;
   calculadoraFlag.value = false;
-  pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
+  await refreshFreightAndAmounts();
 }
 function mostrarComboPercepcionAduana() {
   const esPeru = sessionIsoPais() == 9589;
@@ -1211,8 +1224,12 @@ async function confirmarCambio(tipo: string, nuevoValor: boolean | undefined) {
 }
 function cambiarPercepcionAduana() {
   pricingStore.datosPrincipales.id_percepcionaduana = id_percepcionaduana.value;
-  cambiarImpuesto();
+  changeImportType();
   cerrarDialogCambiarPercepcionAduana();
+}
+function changeImportType() {
+  cambiarImpuesto();
+  recalculateAmounts();
 }
 function cerrarDialogCambiarPercepcionAduana() {
   dialogCambiarPercepcionAduana.value = false;
@@ -1299,6 +1316,7 @@ function finalizarSeleccionDistrito() {
                 item-title="name"
                 item-value="id_port"
                 v-model="pricingStore.datosPrincipales.idorigen"
+                @update:model-value="refreshFreightAndAmounts()"
                 @update:search="recargarPuertoOrigen"
               />
             </v-col>
@@ -1318,7 +1336,7 @@ function finalizarSeleccionDistrito() {
                 item-title="name"
                 item-value="id_port"
                 v-model="pricingStore.datosPrincipales.iddestino"
-                @update:model-value="buscarTownPorDestino"
+                @update:model-value="changeDestinationPort"
                 @update:search="recargarPuertoDestino"
               />
             </v-col>
@@ -1373,7 +1391,7 @@ function finalizarSeleccionDistrito() {
                 v-model="
                   pricingStore.datosPrincipales.id_percepcionaduana
                 "
-                @update:model-value="cambiarImpuesto()"
+                @update:model-value="changeImportType()"
               />
             </v-col>
           </v-row>
