@@ -6,9 +6,7 @@ import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
 import ServicesHouse from "@/components/folderHouse/ServicesHouse.vue";
-import ServicesHouseVer from "@/components/folderHouse/ServicesHouseVer.vue";
 import BitacoraHouse from "@/components/folderHouse/BitacoraHouse.vue";
-import BitacoraHouseVer from "@/components/folderHouse/BitacoraHouseVer.vue";
 import { isoFromDayMonthYear } from "@/components/HouseFile/houseEditForm";
 import type { HouseDetalle } from "@/types/operaciones";
 import "@/styles/aco-ui.css";
@@ -336,7 +334,7 @@ onMounted(async () => {
                 </v-col>
               </v-row>
               <v-row
-                v-if="!isTrafficFile && houseLoaded"
+                v-if="isEditing && !isTrafficFile && houseLoaded"
                 density="compact"
                 class="house-data"
               >
@@ -351,14 +349,9 @@ onMounted(async () => {
                     class="pa-3"
                   >
                     <ServicesHouse
-                      v-if="isEditing"
                       :key="servicesKey"
                       hide-customs
                       @loaded="servicesLoaded = true"
-                    />
-                    <ServicesHouseVer
-                      v-else
-                      :key="servicesKey"
                     />
                   </v-card>
                 </v-col>
@@ -372,11 +365,7 @@ onMounted(async () => {
                     rounded="lg"
                     class="pa-3"
                   >
-                    <BitacoraHouse v-if="isEditing" />
-                    <BitacoraHouseVer
-                      v-else
-                      is-form-actions-disabled
-                    />
+                    <BitacoraHouse />
                   </v-card>
                 </v-col>
               </v-row>

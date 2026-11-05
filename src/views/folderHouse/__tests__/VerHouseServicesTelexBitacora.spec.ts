@@ -162,12 +162,9 @@ test("saving after a quote added services to the house keeps those services", as
   expect(saved!.data!.lstservices).toEqual([expect.objectContaining({ id: 40, nameservice: "DESCARGA" })]);
 });
 
-test.each(["controlHouseVer", "controlHouseEditar"])(
-  "the house screen (%s) loads this house's bitácora and the statuses for its modality, shipment and incoterm",
-  async (routeName) => {
-    await openHouse(routeName);
+test("the house edit screen loads this house's bitácora and the statuses for its modality, shipment and incoterm", async () => {
+  await openHouse("controlHouseEditar");
 
-    expect(calls("getHouseBitacora").map((config) => config.data!.id)).toContain("9");
-    expect(calls("getBitacoraLineal").map((config) => config.params)).toContainEqual({ id_modalidad: 1, id_shipment: 2, id_incoterms: 3 });
-  },
-);
+  expect(calls("getHouseBitacora").map((config) => config.data!.id)).toContain("9");
+  expect(calls("getBitacoraLineal").map((config) => config.params)).toContainEqual({ id_modalidad: 1, id_shipment: 2, id_incoterms: 3 });
+});
