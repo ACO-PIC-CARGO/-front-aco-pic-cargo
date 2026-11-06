@@ -6,6 +6,7 @@ import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
 import { trafficStatusLabel } from "@/utils/trafficSend";
 import TrafficCorrelativeDialog from "./TrafficCorrelativeDialog.vue";
+import TrafficFileCreateDialog from "./TrafficFileCreateDialog.vue";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 import TrafficStatusDialog from "./TrafficStatusDialog.vue";
 import { TRAFFIC_TABLE_FOOTER } from "./trafficTableFooter";
@@ -31,6 +32,8 @@ const headers = [
 const router = useRouter();
 const trafficStore = useTrafficStore();
 const canModify = usePermissions().can("lstTraffic", "MODIFICAR");
+const canCreate = usePermissions().can("lstTraffic", "NUEVO");
+const creating = shallowRef(false);
 const state = shallowRef<TrafficState | null>("PENDING");
 const status = shallowRef<number | null>(null);
 const loading = shallowRef(false);
@@ -102,6 +105,15 @@ onMounted(() => {
       />
       <v-spacer />
       <v-btn
+        v-if="canCreate"
+        color="primary"
+        prepend-icon="mdi-plus"
+        class="mr-2"
+        @click="creating = true"
+      >
+        Nuevo pre-expediente
+      </v-btn>
+      <v-btn
         v-if="canModify"
         variant="tonal"
         prepend-icon="mdi-counter"
@@ -123,6 +135,9 @@ onMounted(() => {
       item-value="id_traffic"
       density="compact"
     >
+      <template #[`item.quote_number`]="{ item }">
+        {{ item.quote_number ?? "Sin cotización" }}
+      </template>
       <template #[`item.status`]="{ item }">
         <v-chip
           size="small"
@@ -172,6 +187,10 @@ onMounted(() => {
     @sent="onSent"
   />
   <TrafficCorrelativeDialog v-model="numbering" />
+  <TrafficFileCreateDialog
+    v-model="creating"
+    @created="load"
+  />
 </template>
 
 <style scoped>

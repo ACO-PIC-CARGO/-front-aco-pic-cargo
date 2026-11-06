@@ -1,4 +1,4 @@
-import type { QuoteKind } from "@/types/traffic";
+import type { QuoteKind, TrafficFileForm } from "@/types/traffic";
 
 export type SendTarget = "OPERATIONS" | "TRAFFIC";
 
@@ -48,4 +48,20 @@ export const masterChoiceProblem = ({ isNew, availability, masterId }: MasterCho
   if (!isNew) return masterId ? "" : "Elige el master al que se enlaza.";
   if (!availability) return "Elige la fecha de disponibilidad del master.";
   return availability > today ? "" : "La fecha de disponibilidad debe ser posterior a hoy.";
+};
+
+const TRAFFIC_FILE_REQUIRED: [keyof TrafficFileForm, string][] = [
+  ["id_consigner", "Elige el cliente."],
+  ["id_modality", "Elige el sentido."],
+  ["id_shipment", "Elige el tipo de embarque."],
+  ["id_port_begin", "Elige el puerto de origen."],
+  ["id_port_end", "Elige el puerto de destino."],
+];
+
+export const trafficFileProblem = (form: TrafficFileForm, manualNumber: boolean) => {
+  const missing = TRAFFIC_FILE_REQUIRED.find(([field]) => !form[field]);
+  if (missing) return missing[1];
+  const number = form.nro_traffic;
+  if (manualNumber && !(Number.isInteger(number) && Number(number) > 0)) return "Escribe el número de tráfico.";
+  return "";
 };
