@@ -35,12 +35,12 @@ beforeEach(() => {
 });
 afterEach(() => wrapper?.unmount());
 
-async function openDialog(sendAnswer: unknown) {
+async function openDialog(sendAnswer: unknown, props: Record<string, unknown> = {}) {
   respond({ getListBanksDetailsCargar: accepted(ACCOUNTS), sendNotificacionHouse: sendAnswer });
   const pinia = createPinia();
   setActivePinia(pinia);
   wrapper = mount(HouseArrivalNoticeDialog, {
-    props: { modelValue: true, houseId: 31, modality: "Importación" },
+    props: { modelValue: true, houseId: 31, modality: "Importación", ...props },
     global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
@@ -74,7 +74,9 @@ test("sends the chosen notice with the chosen accounts and confirms what the ser
   await tickAccount("PEN-BBVA");
   await send();
 
-  expect(sentRequests()[0]).toMatchObject({ data: { id: 31, notificacion: "Aviso de Llegada", cuentasBancarias: [9] } });
+  expect(sentRequests()[0]).toMatchObject({
+    data: { id: 31, notificacion: { id: null, title: "Aviso de Llegada" }, cuentasBancarias: [9], fecha: null },
+  });
   expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "success", titleText: "Enviamos el aviso a cliente@example.com." });
   expect(wrapper!.emitted("update:modelValue")).toEqual([[false]]);
 });
@@ -95,4 +97,16 @@ test("asks for a notice and an account before sending", async () => {
   await send();
   expect(document.body.textContent).toContain("Elige el aviso y al menos una cuenta bancaria.");
   expect(sentRequests()).toHaveLength(0);
+});
+
+test("sends the notice picked in the house notice list with its date and tells the screen it went out", async () => {
+  const fecha = "2026-11-05T15:30:00.000Z";
+  await openDialog(accepted([]), { notice: { id: 21, title: "Aviso de Salida" }, fecha });
+  await tickAccount("USD-BCP");
+  await send();
+
+  expect(sentRequests()[0]).toMatchObject({
+    data: { id: 31, notificacion: { id: 21, title: "Aviso de Salida" }, cuentasBancarias: [4], fecha },
+  });
+  expect(wrapper!.emitted("sent")).toHaveLength(1);
 });

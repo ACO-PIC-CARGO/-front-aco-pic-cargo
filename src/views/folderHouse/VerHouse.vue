@@ -13,6 +13,7 @@ import HouseMasterDates from "@/components/HouseFile/HouseMasterDates.vue";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import HouseArrivalNoticeDialog from "@/components/HouseFile/HouseArrivalNoticeDialog.vue";
+import NotificacionesHouse from "@/components/folderHouse/NotificacionesHouse.vue";
 import HouseClientRequiredDialog from "@/components/HouseFile/HouseClientRequiredDialog.vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
@@ -23,6 +24,7 @@ import { useHousesStore } from "@/stores/houses";
 import { usePermissions } from "@/composables/usePermissions";
 import { provideHouseScreen } from "@/composables/useHouseScreen";
 import TrafficFileBar from "@/components/folderTraffic/TrafficFileBar.vue";
+import type { HouseNotice, NotificacionHouse } from "@/types/operaciones";
 
 const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
 
@@ -88,6 +90,9 @@ async function loadTracking() {
 }
 
 const noticeDialog = ref(false);
+const pendingNotice = ref<HouseNotice | null>(null);
+const pendingNoticeDate = ref<string | null>(null);
+const notificacionesHouseRef = ref<InstanceType<typeof NotificacionesHouse> | null>(null);
 const clientDialog = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const fab = ref(false);
@@ -149,38 +154,75 @@ function isAereo() {
   return shipmentCode() == "Aéreo";
 }
 
-const NOTICE_REQUIREMENTS: [string, string][] = [
-  ["id_modality", "Sentido"],
-  ["id_shipment", "Tipo de embarque"],
-  ["id_port_begin", "Puerto de origen"],
-  ["id_port_end", "Puerto de destino"],
-  ["id_proveedor", "Proveedor"],
-  ["id_consigner", "Cliente"],
-  ["emailaddress_clientefinal", "Correo del cliente"],
-  ["id_operador", "Operador"],
-  ["fecha_etd", "Fecha ETD"],
-  ["fecha_eta", "Fecha ETA"],
-  ["monto", "Monto"],
+const NOTICE_REQUIREMENTS: [string, string, string][] = [
+  ["id_modality", "Sentido", "mdi-swap-horizontal"],
+  ["id_shipment", "Tipo de embarque", "mdi-ferry"],
+  ["id_port_begin", "Puerto de origen", "mdi-map-marker"],
+  ["id_port_end", "Puerto de destino", "mdi-map-marker"],
+  ["id_proveedor", "Proveedor", "mdi-truck"],
+  ["id_consigner", "Cliente", "mdi-account"],
+  ["emailaddress_clientefinal", "Correo del cliente", "mdi-email"],
+  ["id_operador", "Operador", "mdi-truck"],
+  ["fecha_etd", "Fecha ETD", "mdi-calendar-month"],
+  ["fecha_eta", "Fecha ETA", "mdi-calendar-month"],
+  ["monto", "Monto", "mdi-currency-usd"],
 ];
-const LOOSE_CARGO_REQUIREMENTS: [string, string][] = [
-  ["bultos", "Nº de bultos"],
-  ["peso", "Peso"],
-  ["volumen", "Volumen"],
+const LOOSE_CARGO_REQUIREMENTS: [string, string, string][] = [
+  ["bultos", "Nº de bultos", "mdi-package-variant"],
+  ["peso", "Peso", "mdi-weight-kilogram"],
+  ["volumen", "Volumen", "mdi-package-variant"],
 ];
 
-function openNotificaciones() {
+function houseReadyForNotice(): boolean {
   const house = housesStore.house as Record<string, unknown>;
   const requirements = shipmentCode() == "FCL" ? NOTICE_REQUIREMENTS : [...NOTICE_REQUIREMENTS, ...LOOSE_CARGO_REQUIREMENTS];
-  const missing = requirements.filter(([field]) => !house[field]).map(([, label]) => label);
-  if (!missing.length) {
-    noticeDialog.value = true;
-    return;
-  }
+  const missing = requirements.filter(([field]) => !house[field]);
+  if (!missing.length) return true;
   Swal.fire({
     icon: "warning",
-    title: "Completa el house para enviar el aviso",
-    html: `<p>Falta:</p>${missing.map((label) => `<p>${label}</p>`).join("")}`,
+    title: "Completa los datos del House",
+    html: `
+      <p>Para continuar con el envío, revisa estos datos pendientes:</p>
+      <ul class="house-validation-list">
+        ${missing.map(([, label, icon]) => `
+          <li>
+            <span class="house-validation-item-icon"><i class="mdi ${icon}" aria-hidden="true"></i></span>
+            <span class="house-validation-item-label">${label}</span>
+          </li>
+        `).join("")}
+      </ul>
+    `,
+    confirmButtonText: '<i class="mdi mdi-check-circle" aria-hidden="true"></i><span>Entendido</span>',
+    showCloseButton: true,
+    customClass: {
+      container: "house-validation-container",
+      popup: "house-validation-popup",
+      title: "house-validation-title",
+      icon: "house-validation-icon",
+      closeButton: "house-validation-close",
+      htmlContainer: "house-validation-content",
+      confirmButton: "house-validation-confirm",
+    },
   });
+  return false;
+}
+
+function loadNotices() {
+  return housesStore.getListadoNotificacionesHouse({ id_house: houseId.value, id_modality: housesStore.house.id_modality });
+}
+
+function requestHouseNotification(notification: NotificacionHouse) {
+  if (houseReadyForNotice()) notificacionesHouseRef.value?.requestSend(notification);
+}
+
+function sendHouseNotification({ notification, fecha }: { notification: NotificacionHouse; fecha: string }) {
+  if (!fecha) {
+    Swal.fire({ icon: "warning", text: "La fecha es obligatoria para enviar la notificación." });
+    return;
+  }
+  pendingNotice.value = { id: notification.id, title: notification.descripcion || notification.codigo || "Notificación" };
+  pendingNoticeDate.value = fecha;
+  noticeDialog.value = true;
 }
 
 async function clientSaved() {
@@ -190,7 +232,7 @@ async function clientSaved() {
 onMounted(async () => {
   appStore.spiner = true;
   await housesStore.verHouse({ id: houseId.value });
-  await Promise.all([loadTracking(), branchTimeZoneStore.load()]);
+  await Promise.all([loadTracking(), branchTimeZoneStore.load(), loadNotices()]);
   await pricingStore.getCargarEjecutivo();
   showTitle();
   clientDialog.value = isEditing.value && Boolean(route.params.activar) && !housesStore.house.id_consigner;
@@ -298,6 +340,12 @@ onMounted(async () => {
                     :load-error="trackingError"
                     @retry="loadTracking"
                   />
+                  <NotificacionesHouse
+                    ref="notificacionesHouseRef"
+                    :house-id="houseId"
+                    @request-send="requestHouseNotification"
+                    @send="sendHouseNotification"
+                  />
                 </v-col>
               </v-row>
             </div>
@@ -360,20 +408,6 @@ onMounted(async () => {
               Imprimir BL
             </v-btn>
 
-            <v-btn
-              v-if="can(permissionScreen, 'MODIFICAR')"
-              key="notificaciones"
-              color="deep-purple"
-              @click="openNotificaciones"
-            >
-              <v-icon
-                start
-                style="transform: rotate(-45deg)"
-              >
-                mdi-send
-              </v-icon>
-              Notificaciones
-            </v-btn>
             <v-btn
               v-if="!isEditing && can(permissionScreen, 'MODIFICAR')"
               key="editar"
@@ -452,6 +486,9 @@ onMounted(async () => {
         v-model="noticeDialog"
         :house-id="houseId"
         :modality="housesStore.house.modality"
+        :notice="pendingNotice"
+        :fecha="pendingNoticeDate"
+        @sent="loadNotices"
       />
       <HouseClientRequiredDialog
         v-model="clientDialog"
@@ -506,5 +543,124 @@ onMounted(async () => {
 .house-data :deep(.v-field__input),
 .house-data :deep(.v-label:not(.v-field-label--floating)) {
   font-size: 13px;
+}
+
+:global(.house-validation-container.swal2-backdrop-show) {
+  backdrop-filter: blur(3px);
+  background: rgba(15, 35, 61, 0.56);
+}
+
+:global(.house-validation-popup.swal2-popup) {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(13, 43, 82, 0.24);
+  overflow: hidden;
+  padding: 0 2.25rem 1.6rem;
+  position: relative;
+}
+
+:global(.house-validation-popup.swal2-popup::before) {
+  background: linear-gradient(125deg, #70c4ff 0%, #cbe8ff 55%, #f5faff 100%);
+  clip-path: ellipse(86% 100% at 50% 0%);
+  content: "";
+  height: 145px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+:global(.house-validation-title.swal2-title) {
+  color: #14365e;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 0;
+}
+
+:global(.house-validation-content.swal2-html-container) {
+  color: #536780;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0.75rem 0 0;
+}
+
+:global(.house-validation-content .house-validation-list) {
+  border-bottom: 1px solid #e2eaf5;
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0 0 0.85rem;
+  text-align: left;
+}
+
+:global(.house-validation-content .house-validation-list li) {
+  align-items: flex-start;
+  background: rgba(232, 241, 253, 0.56);
+  border: 1px solid #dce8f8;
+  border-radius: 12px;
+  color: #234365;
+  display: flex;
+  gap: 0.85rem;
+  min-height: 52px;
+  padding: 0.55rem 0.75rem;
+}
+
+:global(.house-validation-content .house-validation-item-icon) {
+  align-items: center;
+  background: #dcecff;
+  border-radius: 50%;
+  color: #1471dc;
+  display: inline-flex;
+  flex: 0 0 36px;
+  font-size: 1.25rem;
+  height: 36px;
+  justify-content: center;
+}
+
+:global(.house-validation-content .house-validation-item-label) {
+  align-self: center;
+  line-height: 1.3;
+}
+
+:global(.house-validation-icon.swal2-icon.swal2-warning) {
+  background: #126bd5;
+  border: 8px solid #fff;
+  box-shadow: 0 4px 14px rgba(18, 107, 213, 0.24);
+  color: #fff;
+  height: 6rem;
+  margin: 1rem auto 0.75rem;
+  position: relative;
+  width: 6rem;
+  z-index: 1;
+}
+
+:global(.house-validation-icon .swal2-icon-content) {
+  color: #fff;
+  font-size: 3.5rem;
+}
+
+:global(.house-validation-close.swal2-close) {
+  color: #33475e;
+  font-size: 2rem;
+  z-index: 1;
+}
+
+:global(.house-validation-confirm.swal2-styled) {
+  align-items: center;
+  background: #0969d8 !important;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(9, 105, 216, 0.2);
+  display: inline-flex;
+  gap: 0.5rem;
+  font-weight: 600;
+  justify-content: center;
+  min-width: 13rem;
+  padding: 0.8rem 1.5rem;
+}
+
+:global(.house-validation-confirm.swal2-styled:hover) {
+  background: #0759ba !important;
 }
 </style>

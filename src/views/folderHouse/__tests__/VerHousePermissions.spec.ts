@@ -66,10 +66,9 @@ const houseControls = () => ({
   acciones: document.body.querySelector("button .mdi-tools, button .mdi-close") !== null,
   eliminar: shows("Eliminar"),
   imprimir: shows("Imprimir BL"),
-  notificaciones: shows("Notificaciones"),
   editar: shows("Editar"),
 });
-const NONE = { acciones: false, eliminar: false, imprimir: false, notificaciones: false, editar: false };
+const NONE = { acciones: false, eliminar: false, imprimir: false, editar: false };
 
 test("a user who may only look at houses gets no house actions", async () => {
   await openHouse("controlHouseVer", ["VER"]);
@@ -85,7 +84,7 @@ test("each house action shows only with its own permission", async () => {
   expect(houseControls()).toEqual({ ...NONE, acciones: true, imprimir: true });
 
   await openHouse("controlHouseVer", ["VER", "MODIFICAR"]);
-  expect(houseControls()).toEqual({ ...NONE, acciones: true, notificaciones: true, editar: true });
+  expect(houseControls()).toEqual({ ...NONE, acciones: true, editar: true });
 });
 
 test("the edit address opens the house read-only without Modificar", async () => {

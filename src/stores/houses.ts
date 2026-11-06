@@ -14,8 +14,11 @@ import type {
   FiltroHouseConsulta,
   HouseDetalle,
   HouseFacturable,
+  HouseNotice,
+  NotificacionHouse,
 } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 import { hasFailed, request } from "@/utils/request";
 import { emptyHouseFilter, houseListParams } from "@/components/HouseFile/houseListFilters";
@@ -24,6 +27,24 @@ export const useHousesStore = defineStore("houses", () => {
   const listHouse = ref<HouseListado[]>([]);
   const house = ref<HouseDetalle>({});
   const lstFacturasFiscales = ref<FacturaFiscal[]>([]);
+  const ListadoNotificacionesHouse = ref<NotificacionHouse[]>([]);
+
+  async function getListadoNotificacionesHouse(params: Record<string, unknown>): Promise<void> {
+    await axios<ApiResponse<NotificacionHouse[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "listar_notificaciones_house",
+      params,
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => {
+        const data = response.data;
+        ListadoNotificacionesHouse.value = data.estadoflag && Array.isArray(data.data) ? data.data : [];
+        if (!data.estadoflag) showRejectedResponse(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   async function verHouse(filtros: FiltroHouseConsulta): Promise<void> {
     const response = await request<HouseDetalle>({
@@ -153,11 +174,11 @@ export const useHousesStore = defineStore("houses", () => {
     return true;
   }
 
-  function sendArrivalNotice(houseId: number, noticeType: string, accountIds: number[]): Promise<ApiResponse> {
+  function sendArrivalNotice(houseId: number, notice: HouseNotice, accountIds: number[], fecha: string | null = null): Promise<ApiResponse> {
     return request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
-      data: { id: houseId, notificacion: noticeType, cuentasBancarias: accountIds },
+      data: { id: houseId, notificacion: notice, cuentasBancarias: accountIds, fecha },
     });
   }
 
@@ -379,6 +400,8 @@ export const useHousesStore = defineStore("houses", () => {
     listHouse,
     house,
     lstFacturasFiscales,
+    ListadoNotificacionesHouse,
+    getListadoNotificacionesHouse,
     verHouse,
     setConfirmarTelex,
     guardarCarpetaHouse,

@@ -4,8 +4,10 @@ import { storeToRefs } from "pinia";
 import { useBancosStore } from "@/stores/bancos";
 import { useHousesStore } from "@/stores/houses";
 import { notifySuccess } from "@/utils/request";
+import type { HouseNotice } from "@/types/operaciones";
 
-const props = defineProps<{ houseId: number; modality?: string }>();
+const props = defineProps<{ houseId: number; modality?: string; notice?: HouseNotice | null; fecha?: string | null }>();
+const emit = defineEmits<{ sent: [] }>();
 const open = defineModel<boolean>({ required: true });
 
 const IMPORT_NOTICES = ["Aviso de Salida", "Actualización de Salida", "Pre-Aviso de Llegada", "Aviso de Llegada", "Actualización de Llegada"];
@@ -25,7 +27,7 @@ watch(
   open,
   (isOpen) => {
     if (!isOpen) return;
-    noticeType.value = null;
+    noticeType.value = props.notice?.title ?? null;
     accountIds.value = [];
     errorMessage.value = "";
     bancosStore.getListBanksDetailsCargar();
@@ -39,13 +41,15 @@ async function send() {
     return;
   }
   sending.value = true;
-  const response = await housesStore.sendArrivalNotice(props.houseId, noticeType.value, accountIds.value);
+  const notice = { id: props.notice?.id ?? null, title: noticeType.value };
+  const response = await housesStore.sendArrivalNotice(props.houseId, notice, accountIds.value, props.fecha ?? null);
   sending.value = false;
   if (!response.estadoflag) {
     errorMessage.value = response.mensaje;
     return;
   }
   notifySuccess(response.mensaje);
+  emit("sent");
   open.value = false;
 }
 </script>
@@ -59,10 +63,11 @@ async function send() {
   >
     <v-card class="aco-card">
       <v-card-title class="aco-title-card pt-5 px-6">
-        Enviar aviso al cliente
+        Enviar {{ notice ? notice.title : "aviso" }} al cliente
       </v-card-title>
       <v-card-text class="px-6">
         <v-select
+          v-if="!notice"
           v-model="noticeType"
           :items="notices"
           label="Aviso"
