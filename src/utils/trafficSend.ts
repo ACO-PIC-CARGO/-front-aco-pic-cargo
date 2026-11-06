@@ -1,4 +1,4 @@
-import type { QuoteKind, TrafficFileForm } from "@/types/traffic";
+import type { AssociableQuote, QuoteKind, TrafficFileForm } from "@/types/traffic";
 
 export type SendTarget = "OPERATIONS" | "TRAFFIC";
 
@@ -65,3 +65,8 @@ export const trafficFileProblem = (form: TrafficFileForm, manualNumber: boolean)
   if (manualNumber && !(Number.isInteger(number) && Number(number) > 0)) return "Escribe el número de tráfico.";
   return "";
 };
+
+export const associableIdsOf = (quotes: AssociableQuote[]) => ({
+  pricing: new Set(quotes.filter((quote) => quote.quote_kind === "PRICING").map((quote) => quote.id_quote)),
+  aduana: new Set(quotes.filter((quote) => quote.quote_kind === "ADUANA").map((quote) => quote.id_quote)),
+});

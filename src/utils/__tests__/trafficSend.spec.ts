@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { masterChoiceProblem, monthsToRange, quoteRouteOf, sendTargetsFor, trafficFileProblem, trafficStatusLabel } from "@/utils/trafficSend";
+import { associableIdsOf, masterChoiceProblem, monthsToRange, quoteRouteOf, sendTargetsFor, trafficFileProblem, trafficStatusLabel } from "@/utils/trafficSend";
 
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
 
@@ -102,5 +102,18 @@ describe("trafficFileProblem", () => {
     expect(trafficFileProblem(complete, true)).toBe("Escribe el número de tráfico.");
     expect(trafficFileProblem({ ...complete, nro_traffic: 2.5 }, true)).toBe("Escribe el número de tráfico.");
     expect(trafficFileProblem({ ...complete, nro_traffic: 57 }, true)).toBe("");
+  });
+});
+
+describe("associableIdsOf", () => {
+  test("splits the quotes by kind", () => {
+    const ids = associableIdsOf([
+      { quote_kind: "PRICING", id_quote: 5 },
+      { quote_kind: "ADUANA", id_quote: 31 },
+      { quote_kind: "PRICING", id_quote: 6 },
+    ]);
+
+    expect([...ids.pricing]).toEqual([5, 6]);
+    expect([...ids.aduana]).toEqual([31]);
   });
 });
