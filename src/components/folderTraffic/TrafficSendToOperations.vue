@@ -155,7 +155,7 @@ onMounted(async () => {
   </v-dialog>
 
   <v-dialog
-    v-else
+    v-else-if="step === 'master'"
     :model-value="true"
     max-width="520"
     persistent

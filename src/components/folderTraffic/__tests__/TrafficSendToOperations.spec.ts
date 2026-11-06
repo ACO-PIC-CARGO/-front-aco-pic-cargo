@@ -186,3 +186,12 @@ test("cancelling the quote-less send closes the flow and sends nothing", async (
   expect(wrapper!.emitted("close")).toHaveLength(1);
   expect(sentPayloads()).toEqual([]);
 });
+
+test("while the quote-less confirmation is open, the master choice stays hidden", async () => {
+  respond({ "traffic/4/masters": accepted([]) });
+  vi.mocked(Swal.fire).mockReturnValueOnce(new Promise(() => {}) as never);
+
+  await mountFlow(quotelessFile);
+
+  expect(document.body.textContent).not.toContain("Enviar TR-00004 a Operaciones");
+});
