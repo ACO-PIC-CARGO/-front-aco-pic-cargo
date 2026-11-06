@@ -66,7 +66,21 @@ const loadingBotonTracking = ref(false);
 const dialogFormato = ref(false);
 const formatoflag = ref(true);
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getValidationIcon(error: string): string {
+  if (error === "Proveedor" || error === "Operador") return "mdi-truck";
+  if (error.includes("correo")) return "mdi-email";
+  if (error === "Fecha ETD" || error === "Fecha ETA") return "mdi-calendar-month";
+  if (error === "Monto") return "mdi-currency-usd";
+  if (error === "Peso") return "mdi-weight-kilogram";
+  if (error === "Volumen" || error === "Nº de bultos") return "mdi-package-variant";
+  if (error.includes("Puerto")) return "mdi-map-marker";
+  if (error === "Tipo de Embarque") return "mdi-ferry";
+  if (error === "Sentido") return "mdi-swap-horizontal";
+  if (error === "Cliente") return "mdi-account";
+  return "mdi-alert-circle";
+}
+
+//eslint-disable-next-line @typescript-eslint/no-unused-vars
 const isBotonTrackingDisabled = computed(() => {
   return housesStore.house_enlace_tracking !== "" &&
     housesStore.house_enlace_tracking !== null
@@ -652,12 +666,30 @@ async function validarMenuNotificaciones() {
     displayMenuNotificaciones.value = true;
   } else {
     Swal.fire({
-      icon: "error",
+      icon: "warning",
+      title: "Completa los datos del House",
       html: `
-            <b>¡El Expediente House requiere los siguientes datos para mostrar el menú de notificaciones!</b>
-            <br><br>
-            ${errores.map((error) => `<p>${error}</p>`).join("")}
-          `,
+        <p>Para habilitar el menú de notificaciones, completa los siguientes campos:</p>
+        <ul class="house-validation-list">
+          ${errores.map((error) => `
+            <li>
+              <span class="house-validation-item-icon"><i class="mdi ${getValidationIcon(error)}" aria-hidden="true"></i></span>
+              <span class="house-validation-item-label">${error}</span>
+            </li>
+          `).join("")}
+        </ul>
+      `,
+      confirmButtonText: '<i class="mdi mdi-check-circle" aria-hidden="true"></i><span>Entendido</span>',
+      showCloseButton: true,
+      customClass: {
+        container: "house-validation-container",
+        popup: "house-validation-popup",
+        title: "house-validation-title",
+        icon: "house-validation-icon",
+        closeButton: "house-validation-close",
+        htmlContainer: "house-validation-content",
+        confirmButton: "house-validation-confirm",
+      },
     });
   }
 }
@@ -956,6 +988,15 @@ onMounted(async () => {
   }
 
   //this._getnroHouse();
+  const idHouse = route.params.id;
+  const idModality = housesStore.house.id_modality;
+  if (idHouse && idModality !== undefined && idModality !== null) {
+    await housesStore.getListadoNotificacionesHouse({
+      id_house: idHouse,
+      id_modality: idModality,
+    });
+  }
+
   Promise.all([
     appStore._getModality(),
     appStore._getShipment(),
@@ -1547,6 +1588,126 @@ onMounted(async () => {
   flex-direction: column-reverse;
   align-items: flex-end;
 }
+
+:global(.house-validation-container.swal2-backdrop-show) {
+  backdrop-filter: blur(3px);
+  background: rgba(15, 35, 61, 0.56);
+}
+
+:global(.house-validation-popup.swal2-popup) {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(13, 43, 82, 0.24);
+  overflow: hidden;
+  padding: 0 2.25rem 1.6rem;
+  position: relative;
+}
+
+:global(.house-validation-popup.swal2-popup::before) {
+  background: linear-gradient(125deg, #70c4ff 0%, #cbe8ff 55%, #f5faff 100%);
+  clip-path: ellipse(86% 100% at 50% 0%);
+  content: "";
+  height: 145px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+:global(.house-validation-title.swal2-title) {
+  color: #14365e;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 0;
+}
+
+:global(.house-validation-content.swal2-html-container) {
+  color: #536780;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0.75rem 0 0;
+}
+
+:global(.house-validation-content .house-validation-list) {
+  border-bottom: 1px solid #e2eaf5;
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0 0 0.85rem;
+  text-align: left;
+}
+
+:global(.house-validation-content .house-validation-list li) {
+  align-items: flex-start;
+  background: rgba(232, 241, 253, 0.56);
+  border: 1px solid #dce8f8;
+  border-radius: 12px;
+  color: #234365;
+  display: flex;
+  gap: 0.85rem;
+  min-height: 52px;
+  padding: 0.55rem 0.75rem;
+}
+
+:global(.house-validation-content .house-validation-item-icon) {
+  align-items: center;
+  background: #dcecff;
+  border-radius: 50%;
+  color: #1471dc;
+  display: inline-flex;
+  flex: 0 0 36px;
+  font-size: 1.25rem;
+  height: 36px;
+  justify-content: center;
+}
+
+:global(.house-validation-content .house-validation-item-label) {
+  align-self: center;
+  line-height: 1.3;
+}
+
+:global(.house-validation-icon.swal2-icon.swal2-warning) {
+  background: #126bd5;
+  border: 8px solid #fff;
+  box-shadow: 0 4px 14px rgba(18, 107, 213, 0.24);
+  color: #fff;
+  height: 6rem;
+  margin: 1rem auto 0.75rem;
+  position: relative;
+  width: 6rem;
+  z-index: 1;
+}
+
+:global(.house-validation-icon .swal2-icon-content) {
+  color: #fff;
+  font-size: 3.5rem;
+}
+
+:global(.house-validation-close.swal2-close) {
+  color: #33475e;
+  font-size: 2rem;
+  z-index: 1;
+}
+
+:global(.house-validation-confirm.swal2-styled) {
+  align-items: center;
+  background: #0969d8 !important;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(9, 105, 216, 0.2);
+  display: inline-flex;
+  gap: 0.5rem;
+  font-weight: 600;
+  justify-content: center;
+  min-width: 13rem;
+  padding: 0.8rem 1.5rem;
+}
+
+:global(.house-validation-confirm.swal2-styled:hover) {
+  background: #0759ba !important;
+}
+
 .acciones-dial .v-btn {
   min-width: 220px;
 }

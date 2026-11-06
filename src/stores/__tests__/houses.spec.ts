@@ -77,6 +77,31 @@ describe("houses store", () => {
     expect(houses.listHouse).toEqual([]);
   });
 
+  test("getListadoNotificacionesHouse loads the branch notification options", async () => {
+    const notifications = [{
+      estadoflag: true,
+      mensaje: "ok",
+      tipomensaje: "success",
+      id: 21,
+      codigo: "AV-SAL",
+      descripcion: "Aviso de salida",
+      fecha: "2026-11-05",
+      enviadoflag: true,
+    }];
+    respond({ listar_notificaciones_house: accepted(notifications) });
+    const houses = useHousesStore();
+
+    await houses.getListadoNotificacionesHouse({ id_house: 5, id_modality: 2 });
+
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "get",
+      url: URL_MAIN + "listar_notificaciones_house",
+      params: { id_house: 5, id_modality: 2 },
+      headers: JSON_HEADERS,
+    });
+    expect(houses.ListadoNotificacionesHouse).toEqual(notifications);
+  });
+
   test("getCargarHouse asks for the houses of the session branch", async () => {
     httpMock.mockResolvedValue({ data: { data: [{ id: 3 }] } });
     const houses = useHousesStore();

@@ -169,7 +169,18 @@ export interface CotizacionAsociableHouse extends CotizacionListado {
 
 export interface ItemNotificacion {
   title: string;
-  value: number;
+  value: number | string;
+}
+
+export interface NotificacionHouse {
+  estadoflag: boolean;
+  mensaje: string;
+  tipomensaje: string;
+  id: number | string;
+  codigo: string | null;
+  descripcion: string | null;
+  fecha: string | null;
+  enviadoflag: boolean | null;
 }
 
 export interface CuentaBancariaPic {

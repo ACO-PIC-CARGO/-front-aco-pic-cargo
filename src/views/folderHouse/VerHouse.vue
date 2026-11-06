@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
 //import houselist from "./houselist.vue";
 import dataEmbar from "@/components/folderHouse/DataEmbarVer.vue";
+import NotificacionesHouse from "@/components/folderHouse/NotificacionesHouse.vue";
 import "@/styles/aco-ui.css";
 import HouseStepList from "@/components/HouseFile/HouseStepList.vue";
 import ClientTrackingPreview from "@/components/HouseFile/ClientTrackingPreview.vue";
@@ -18,7 +19,7 @@ import { notifySuccess } from "@/utils/request";
 import { useHouseEditStore } from "@/stores/houseEdit";
 import { usePricingStore } from "@/stores/pricing";
 import { useHousesStore } from "@/stores/houses";
-import type { CuentaBancariaPic, HouseDetalle, ItemNotificacion } from "@/types/operaciones";
+import type { CuentaBancariaPic, HouseDetalle, ItemNotificacion, NotificacionHouse } from "@/types/operaciones";
 import { sessionBranchId, sessionSucursal, sessionUser } from "@/utils/sesion";
 import { useBankStore } from "@/stores/bank";
 
@@ -86,7 +87,9 @@ const headers = [
   { key: "cci", title: "CCI" },
   { key: "symbol", title: "Moneda" },
 ];
-const notificacion = ref<ItemNotificacion>(null as unknown as ItemNotificacion);
+type NotificacionParaEnviar = ItemNotificacion | { title: string; id: number | string };
+const notificacion = ref<NotificacionParaEnviar>(null as unknown as NotificacionParaEnviar);
+const fechaNotificacion = ref<string | null>(null);
 const abrirModalCuentasNotificacion = ref(false);
 const itemsNotificacionesImport: ItemNotificacion[] = [
   { title: "Aviso de Salida", value: 1 },
@@ -103,6 +106,7 @@ const itemsNotificacionesExport: ItemNotificacion[] = [
 const displayMenuNotificaciones = ref(false);
 const loadingBotonNotificaciones = ref(false);
 const loadingBotonEliminarHouse = ref(false);
+const notificacionesHouseRef = ref<InstanceType<typeof NotificacionesHouse> | null>(null);
 const fab = ref(false);
 const openMenuNotificaciones = ref(false);
 const dialogFormato = ref(false);
@@ -186,9 +190,6 @@ async function exportarFormatoHBL() {
     });
   }
   dialogFormato.value = false;
-}
-function openNotificaciones() {
-  validarMenuNotificaciones();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function _setMasterContainer(id_master: number, id_containers: number, quantity: number) {
@@ -369,7 +370,21 @@ function getTipoEmbarqueHouse() {
     ? "FCL"
     : "";
 }
-async function validarMenuNotificaciones() {
+function getValidationIcon(error: string): string {
+  if (error === "Proveedor" || error === "Operador") return "mdi-truck";
+  if (error.includes("correo")) return "mdi-email";
+  if (error === "Fecha ETD" || error === "Fecha ETA") return "mdi-calendar-month";
+  if (error === "Monto") return "mdi-currency-usd";
+  if (error === "Peso") return "mdi-weight-kilogram";
+  if (error === "Volumen" || error === "Nº de bultos") return "mdi-package-variant";
+  if (error.includes("Puerto")) return "mdi-map-marker";
+  if (error === "Tipo de Embarque") return "mdi-ferry";
+  if (error === "Sentido") return "mdi-swap-horizontal";
+  if (error === "Cliente") return "mdi-account";
+  return "mdi-alert-circle";
+}
+
+async function validarMenuNotificaciones(): Promise<boolean> {
   if (bankStore.list.length == 0) {
     Swal.fire({
       icon: "warning",
@@ -444,15 +459,35 @@ async function validarMenuNotificaciones() {
 
   if (!errores.length) {
     displayMenuNotificaciones.value = true;
+    return true;
   } else {
     Swal.fire({
-      icon: "error",
+      icon: "warning",
+      title: "Completa los datos del House",
       html: `
-            <b>¡El Expediente House requiere los siguientes datos para mostrar el menú de notificaciones!</b>
-            <br><br>
-            ${errores.map((error) => `<p>${error}</p>`).join("")}
-          `,
+        <p>Para continuar con el envío, revisa estos datos pendientes:</p>
+        <ul class="house-validation-list">
+          ${errores.map((error) => `
+            <li>
+              <span class="house-validation-item-icon"><i class="mdi ${getValidationIcon(error)}" aria-hidden="true"></i></span>
+              <span class="house-validation-item-label">${error}</span>
+            </li>
+          `).join("")}
+        </ul>
+      `,
+      confirmButtonText: '<i class="mdi mdi-check-circle" aria-hidden="true"></i><span>Entendido</span>',
+      showCloseButton: true,
+      customClass: {
+        container: "house-validation-container",
+        popup: "house-validation-popup",
+        title: "house-validation-title",
+        icon: "house-validation-icon",
+        closeButton: "house-validation-close",
+        htmlContainer: "house-validation-content",
+        confirmButton: "house-validation-confirm",
+      },
     });
+    return false;
   }
 }
 async function houseRowForMail(): Promise<HouseDetalle | undefined> {
@@ -479,12 +514,29 @@ async function houseRowForMail(): Promise<HouseDetalle | undefined> {
     return undefined;
   }
 }
-function sendNotificacion(notificacionSeleccionada: ItemNotificacion) {
+function sendNotificacion(notificacionSeleccionada: NotificacionParaEnviar, fecha: string | null = null) {
   selected.value = [];
   notificacion.value = notificacionSeleccionada;
+  fechaNotificacion.value = fecha;
   abrirModalCuentasNotificacion.value = true;
 }
-async function enviarNotificacion(notificacion: ItemNotificacion) {
+async function requestHouseNotification(notification: NotificacionHouse): Promise<void> {
+  if (!(await validarMenuNotificaciones())) return;
+  displayMenuNotificaciones.value = false;
+  notificacionesHouseRef.value?.requestSend(notification);
+}
+async function sendHouseNotification(payload: { notification: NotificacionHouse; fecha: string }): Promise<void> {
+  if (!payload.fecha) {
+    Swal.fire({ icon: "warning", text: "La fecha es obligatoria para enviar la notificación." });
+    return;
+  }
+  displayMenuNotificaciones.value = false;
+  sendNotificacion({
+    title: payload.notification.descripcion || payload.notification.codigo || "Notificación",
+    id: payload.notification.id,
+  }, payload.fecha);
+}
+async function enviarNotificacion(notificacion: NotificacionParaEnviar) {
   errorCuentas.value = "";
   if (selected.value.length == 0) {
     errorCuentas.value = "Es necesario al menos una cuenta";
@@ -504,6 +556,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
     cuentasBancarias: selected.value,
     razonSocial:
       sessionSucursal().trade_name || "",
+    fecha: fechaNotificacion.value,
   };
 
   const config = {
@@ -516,7 +569,7 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
   };
 
   await axios(config)
-    .then(function (response) {
+    .then(async function (response) {
       sessionStorage.setItem("auth-token", response.data.token);
 
       if (response.data.status == "401") {
@@ -542,6 +595,10 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
           title: "Excelente",
           text: "Notificación enviada éxitosamente",
         });
+        await housesStore.getListadoNotificacionesHouse({
+          id_house: route.params.id,
+          id_modality: housesStore.house.id_modality,
+        });
       }
     })
     .catch(function (error) {
@@ -560,7 +617,15 @@ async function enviarNotificacion(notificacion: ItemNotificacion) {
 onMounted(async () => {
   appStore.spiner = true;
   await housesStore.verHouse(route.params);
-  await Promise.all([loadTracking(), branchTimeZoneStore.load()]);
+  await Promise.all([
+    loadTracking(),
+    branchTimeZoneStore.load(),
+    appStore.getListBanksDetailsCargarPorSucursal(),
+    housesStore.getListadoNotificacionesHouse({
+      id_house: route.params.id,
+      id_modality: housesStore.house.id_modality,
+    }),
+  ]);
   await pricingStore.getCargarEjecutivo();
   showTitle();
   if (isEditing.value) await houseEdit.start(housesStore.house);
@@ -668,6 +733,12 @@ onMounted(async () => {
                     :load-error="trackingError"
                     @retry="loadTracking"
                   />
+                  <NotificacionesHouse
+                    ref="notificacionesHouseRef"
+                    :house-id="houseId"
+                    @request-send="requestHouseNotification"
+                    @send="sendHouseNotification"
+                  />
                 </v-col>
               </v-row>
             </div>
@@ -680,6 +751,7 @@ onMounted(async () => {
             <ClientTrackingPreview :house-id="houseId" />
           </v-col>
         </v-row>
+        
         <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
           <v-speed-dial
             v-model="fab"
@@ -727,19 +799,6 @@ onMounted(async () => {
               Imprimir BL
             </v-btn>
 
-            <v-btn
-              key="notificaciones"
-              color="deep-purple"
-              @click="openNotificaciones"
-            >
-              <v-icon
-                start
-                style="transform: rotate(-45deg)"
-              >
-                mdi-send
-              </v-icon>
-              Notificaciones
-            </v-btn>
             <v-btn
               v-if="!isEditing"
               key="editar"
@@ -948,5 +1007,124 @@ onMounted(async () => {
 .house-data :deep(.v-field__input),
 .house-data :deep(.v-label:not(.v-field-label--floating)) {
   font-size: 13px;
+}
+
+:global(.house-validation-container.swal2-backdrop-show) {
+  backdrop-filter: blur(3px);
+  background: rgba(15, 35, 61, 0.56);
+}
+
+:global(.house-validation-popup.swal2-popup) {
+  background: linear-gradient(180deg, #f8fbff 0%, #fff 100%);
+  border-radius: 14px;
+  box-shadow: 0 20px 60px rgba(13, 43, 82, 0.24);
+  overflow: hidden;
+  padding: 0 2.25rem 1.6rem;
+  position: relative;
+}
+
+:global(.house-validation-popup.swal2-popup::before) {
+  background: linear-gradient(125deg, #70c4ff 0%, #cbe8ff 55%, #f5faff 100%);
+  clip-path: ellipse(86% 100% at 50% 0%);
+  content: "";
+  height: 145px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+}
+
+:global(.house-validation-title.swal2-title) {
+  color: #14365e;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.25;
+  padding: 0;
+}
+
+:global(.house-validation-content.swal2-html-container) {
+  color: #536780;
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0.75rem 0 0;
+}
+
+:global(.house-validation-content .house-validation-list) {
+  border-bottom: 1px solid #e2eaf5;
+  display: grid;
+  gap: 0.3rem;
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0 0 0.85rem;
+  text-align: left;
+}
+
+:global(.house-validation-content .house-validation-list li) {
+  align-items: flex-start;
+  background: rgba(232, 241, 253, 0.56);
+  border: 1px solid #dce8f8;
+  border-radius: 12px;
+  color: #234365;
+  display: flex;
+  gap: 0.85rem;
+  min-height: 52px;
+  padding: 0.55rem 0.75rem;
+}
+
+:global(.house-validation-content .house-validation-item-icon) {
+  align-items: center;
+  background: #dcecff;
+  border-radius: 50%;
+  color: #1471dc;
+  display: inline-flex;
+  flex: 0 0 36px;
+  font-size: 1.25rem;
+  height: 36px;
+  justify-content: center;
+}
+
+:global(.house-validation-content .house-validation-item-label) {
+  align-self: center;
+  line-height: 1.3;
+}
+
+:global(.house-validation-icon.swal2-icon.swal2-warning) {
+  background: #126bd5;
+  border: 8px solid #fff;
+  box-shadow: 0 4px 14px rgba(18, 107, 213, 0.24);
+  color: #fff;
+  height: 6rem;
+  margin: 1rem auto 0.75rem;
+  position: relative;
+  width: 6rem;
+  z-index: 1;
+}
+
+:global(.house-validation-icon .swal2-icon-content) {
+  color: #fff;
+  font-size: 3.5rem;
+}
+
+:global(.house-validation-close.swal2-close) {
+  color: #33475e;
+  font-size: 2rem;
+  z-index: 1;
+}
+
+:global(.house-validation-confirm.swal2-styled) {
+  align-items: center;
+  background: #0969d8 !important;
+  border-radius: 14px;
+  box-shadow: 0 4px 10px rgba(9, 105, 216, 0.2);
+  display: inline-flex;
+  gap: 0.5rem;
+  font-weight: 600;
+  justify-content: center;
+  min-width: 13rem;
+  padding: 0.8rem 1.5rem;
+}
+
+:global(.house-validation-confirm.swal2-styled:hover) {
+  background: #0759ba !important;
 }
 </style>

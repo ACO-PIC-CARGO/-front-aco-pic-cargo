@@ -14,14 +14,34 @@ import type {
   FiltroHouseConsulta,
   HouseDetalle,
   HouseFacturable,
+  NotificacionHouse,
 } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { sessionBranchId } from "@/utils/sesion";
 
 export const useHousesStore = defineStore("houses", () => {
   const listHouse = ref<HouseListado[]>([]);
   const house = ref<HouseDetalle>({});
   const lstFacturasFiscales = ref<FacturaFiscal[]>([]);
+  const ListadoNotificacionesHouse = ref<NotificacionHouse[]>([]);
+
+  async function getListadoNotificacionesHouse(params: Record<string, unknown>): Promise<void> {
+    await axios<ApiResponse<NotificacionHouse[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "listar_notificaciones_house",
+      params,
+      headers: { "Content-Type": "application/json" },
+    })
+      .then((response) => {
+        const data = response.data;
+        ListadoNotificacionesHouse.value = data.estadoflag && Array.isArray(data.data) ? data.data : [];
+        if (!data.estadoflag) showRejectedResponse(data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
 
   // getCargarHouse
   async function verHouse(filtros: FiltroHouseConsulta): Promise<void> {
@@ -437,6 +457,8 @@ export const useHousesStore = defineStore("houses", () => {
     listHouse,
     house,
     lstFacturasFiscales,
+    ListadoNotificacionesHouse,
+    getListadoNotificacionesHouse,
     verHouse,
     setConfirmarTelex,
     guardarCarpetaHouse,
