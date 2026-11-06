@@ -483,11 +483,13 @@ function abrirModalListadoArchivos() {
   dialogFiles.value = true;
 }
 function abrirSeleccionCorreo() {
+  const hasDraft = !!pricingStore.datosPrincipales.datosinstructivomanual;
   Swal.fire({
     icon: "question",
-    title: "¿Empezar Instructivo?",
+    title: hasDraft ? "¿Continuar el instructivo?" : "¿Empezar Instructivo?",
+    text: hasDraft ? "Tienes un borrador guardado. Seguirás desde donde lo dejaste." : undefined,
     showConfirmButton: true,
-    confirmButtonText: "Empezar",
+    confirmButtonText: hasDraft ? "Continuar" : "Empezar",
     cancelButtonText: "Cancelar",
     allowEnterKey: false,
     allowEscapeKey: false,
