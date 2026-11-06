@@ -108,7 +108,7 @@ onMounted(async () => {
         class="mr-2"
         @click="creating = true"
       >
-        Nuevo pre-expediente
+        Nuevo embarque
       </v-btn>
       <v-btn
         v-if="canModify"

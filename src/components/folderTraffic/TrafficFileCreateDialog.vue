@@ -97,7 +97,7 @@ async function create() {
   emit("created");
   const choice = await Swal.fire({
     icon: "success",
-    title: "Pre-expediente creado",
+    title: "Embarque creado",
     text: answer.mensaje,
     confirmButtonText: "Ver expediente",
     showCancelButton: true,
@@ -115,7 +115,7 @@ async function create() {
   >
     <v-card>
       <v-card-title class="pt-5 px-6">
-        Nuevo pre-expediente
+        Nuevo embarque
       </v-card-title>
       <v-card-text class="px-6">
         <v-row dense>
@@ -278,7 +278,7 @@ async function create() {
           :loading="saving"
           @click="create"
         >
-          Crear pre-expediente
+          Crear embarque
         </v-btn>
       </v-card-actions>
     </v-card>
