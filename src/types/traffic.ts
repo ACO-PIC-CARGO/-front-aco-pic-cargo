@@ -102,3 +102,22 @@ export interface TrafficMasterOption {
   id: number;
   code_master: string;
 }
+
+export interface TrafficFileForm {
+  id_consigner: number | null;
+  id_modality: number | null;
+  id_shipment: number | null;
+  id_port_begin: number | null;
+  id_port_end: number | null;
+  id_incoterms: number | null;
+  id_pricing: number | null;
+  bultos: number | null;
+  peso: number | null;
+  volumen: number | null;
+  nro_traffic: number | null;
+}
+
+export interface AssociableQuote {
+  quote_kind: QuoteKind;
+  id_quote: number;
+}

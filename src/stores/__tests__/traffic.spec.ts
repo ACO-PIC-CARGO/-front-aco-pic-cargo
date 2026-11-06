@@ -144,4 +144,23 @@ describe("traffic store", () => {
 
     expect(await useTrafficStore().correlative()).toEqual({ correlativo: null, last_used: 3, next_code: "TR-00004" });
   });
+
+  test("createFile posts the pre-file with its retry key", async () => {
+    respond({ traffic_file: accepted([{ id_traffic: 9, code_traffic: "TR-00009", id_house: 91 }]) });
+    const form = {
+      id_consigner: 12, id_modality: 1, id_shipment: 2, id_port_begin: 3, id_port_end: 4,
+      id_incoterms: null, id_pricing: null, bultos: null, peso: null, volumen: null, nro_traffic: null,
+    };
+
+    const answer = await useTrafficStore().createFile(form, "key-1");
+
+    expect(answer.data[0]).toEqual({ id_traffic: 9, code_traffic: "TR-00009", id_house: 91 });
+    expect(sentConfig("traffic_file")).toMatchObject({ method: "post", data: form, headers: { "idempotency-key": "key-1" } });
+  });
+
+  test("associableQuotes is empty when the server has none", async () => {
+    respond({ "traffic/4/associable_quotes": rejected() });
+
+    expect(await useTrafficStore().associableQuotes(4)).toEqual([]);
+  });
 });
