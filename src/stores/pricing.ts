@@ -637,10 +637,10 @@ export const usePricingStore = defineStore("pricing", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse>(config).then((response) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const data = response.data;
-    });
+    const { data } = await axios<ApiResponse>(config);
+    if (data.estadoflag && String(datos.id) === String(datosPrincipales.value.id)) {
+      datosPrincipales.value.datosinstructivomanual = datos.datosInstructivoManual as DatosPrincipales["datosinstructivomanual"];
+    }
   }
   async function obtenerRoles(): Promise<void> {
     itemsDataRoleList.value = useAppStore().itemsDataRoleList;

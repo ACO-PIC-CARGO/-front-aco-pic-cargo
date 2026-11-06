@@ -503,6 +503,43 @@ describe("pricing store", () => {
     });
   });
 
+  describe("instructivo draft", () => {
+    const draft = { servicio: "Grupal", listaDocumentos: [] };
+
+    const openQuote = (id: number) => {
+      const store = usePricingStore();
+      store.datosPrincipales.id = id;
+      return store;
+    };
+
+    test("a saved draft stays loaded so reopening the instructivo shows it without reloading", async () => {
+      respond({ actualizar_datos_instructivo_manual: accepted([]) });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: "16793", datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toEqual(draft);
+    });
+
+    test("a refused draft keeps the draft that was loaded", async () => {
+      respond({ actualizar_datos_instructivo_manual: rejected("No se pudo guardar.") });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: "16793", datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toBeUndefined();
+    });
+
+    test("saving another quote's draft leaves the open quote's draft alone", async () => {
+      respond({ actualizar_datos_instructivo_manual: accepted([]) });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: 9613, datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toBeUndefined();
+    });
+  });
+
   describe("quote", () => {
     test("registrarQuote posts the LCL quote with formatted costs, notes, taxes and services and keeps the new id", async () => {
       httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 501, nro_quote: "15000-P", msg: "Registrado" } });
