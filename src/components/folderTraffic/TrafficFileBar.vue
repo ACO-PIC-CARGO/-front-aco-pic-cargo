@@ -2,6 +2,7 @@
 import { ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { usePermissions } from "@/composables/usePermissions";
+import { useHousesStore } from "@/stores/houses";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFileOfHouse } from "@/types/traffic";
 import { quoteRouteOf } from "@/utils/trafficSend";
@@ -11,6 +12,7 @@ const props = defineProps<{ houseId: number }>();
 
 const router = useRouter();
 const trafficStore = useTrafficStore();
+const housesStore = useHousesStore();
 const canSend = usePermissions().can("lstTraffic", "MODIFICAR");
 const file = ref<TrafficFileOfHouse | null>(null);
 const sending = shallowRef(false);
@@ -24,9 +26,12 @@ async function onSent() {
   await loadFile();
 }
 
-watch(() => props.houseId, loadFile, { immediate: true });
+watch(() => [props.houseId, housesStore.house?.id_cot, housesStore.house?.id_quoteaduana], loadFile, { immediate: true });
 
-const openQuote = () => router.push(quoteRouteOf(file.value!));
+function openQuote() {
+  const { quote_kind, id_quote } = file.value!;
+  if (quote_kind && id_quote) router.push(quoteRouteOf({ quote_kind, id_quote }));
+}
 const openExpenses = () => router.push({ name: "billControlGastos", params: { id_house: props.houseId } });
 </script>
 
@@ -48,6 +53,7 @@ const openExpenses = () => router.push({ name: "billControlGastos", params: { id
       </v-chip>
       <v-spacer />
       <v-btn
+        v-if="file.id_quote"
         size="small"
         variant="text"
         @click="openQuote"

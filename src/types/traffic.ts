@@ -93,8 +93,8 @@ export interface TrafficFileOfHouse {
   id_traffic: number;
   code_traffic: string;
   id_house: number;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
   sent: boolean;
 }
 
