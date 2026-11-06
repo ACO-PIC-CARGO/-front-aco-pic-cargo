@@ -89,6 +89,17 @@ test("a refused create shows the server's reason and the retry uses a new key", 
   expect(first).not.toBe(second);
 });
 
+test("a lost connection keeps the retry key, so a retry cannot create a second file", async () => {
+  const dialog = await mountDialog({ traffic_file: new Error("network down") });
+  await fill(dialog);
+
+  await dialog.create();
+  await dialog.create();
+
+  const [first, second] = createKeys();
+  expect(first).toBe(second);
+});
+
 test("after creating, the user can open the new file", async () => {
   const dialog = await mountDialog({ traffic_file: accepted([{ id_traffic: 9, code_traffic: "TR-00009", id_house: 91 }]) });
   vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);

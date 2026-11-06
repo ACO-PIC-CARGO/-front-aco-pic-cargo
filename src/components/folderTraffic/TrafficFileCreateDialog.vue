@@ -85,7 +85,8 @@ async function create() {
     idempotencyKey,
   );
   saving.value = false;
-  idempotencyKey = generateIdempotencyKey();
+  // A lost answer may have been committed; retrying with the same key lets the server replay it instead of creating twice.
+  if (answer.tipomensaje !== "TMSGERR") idempotencyKey = generateIdempotencyKey();
   const created = answer.estadoflag ? answer.data[0] : undefined;
   if (!created) {
     problem.value = answer.mensaje;
