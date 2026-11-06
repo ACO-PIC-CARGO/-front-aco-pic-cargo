@@ -39,7 +39,7 @@ function toggleFromRow(event: MouseEvent) {
 
 <template>
   <tr
-    class="cursor-pointer"
+    :class="['cursor-pointer', { 'step-skipped': step.skipped }]"
     @click="toggleFromRow"
   >
     <td class="px-1">
@@ -59,6 +59,14 @@ function toggleFromRow(event: MouseEvent) {
           size="20"
         />
         <span class="text-body-medium font-weight-medium">{{ step.name }}</span>
+        <v-chip
+          v-if="step.skipped"
+          size="x-small"
+          color="error"
+          variant="flat"
+        >
+          Sin confirmar
+        </v-chip>
       </div>
     </td>
     <td class="px-1 text-no-wrap">
@@ -187,3 +195,9 @@ function toggleFromRow(event: MouseEvent) {
     </td>
   </tr>
 </template>
+
+<style scoped>
+.step-skipped > td {
+  background-color: rgba(var(--v-theme-error), 0.12);
+}
+</style>

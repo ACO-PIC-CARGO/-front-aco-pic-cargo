@@ -1,5 +1,6 @@
 import { expect, test } from "vitest";
 import {
+  blockingStepName,
   calendarDateLabel,
   clientSteps,
   commentSendState,
@@ -33,6 +34,8 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   validation_result_code: null,
   quote_validity: null,
   state: "next",
+  skipped: false,
+  allows_skip: false,
   comments: [],
   ...over,
 });
@@ -133,4 +136,15 @@ test("a calendar date shows its day with the month's first three letters and the
   expect(calendarDateLabel("2026-10-19")).toBe("19/OCT/2026");
   expect(calendarDateLabel("2026-01-01")).toBe("01/ENE/2026");
   expect(calendarDateLabel(null)).toBe("—");
+});
+
+test("a blocked step waits on the first pending step that does not let the next ones go first", () => {
+  const steps = [
+    step({ id: 1, name: "Pago al proveedor", state: "next", allows_skip: true }),
+    step({ id: 2, name: "Mercancía lista para envío", state: "next" }),
+    step({ id: 3, name: "Fecha de Cut Off", state: "blocked" }),
+  ];
+
+  expect(blockingStepName(steps)).toBe("Mercancía lista para envío");
+  expect(blockingStepName([step({ state: "confirmed" })])).toBeNull();
 });

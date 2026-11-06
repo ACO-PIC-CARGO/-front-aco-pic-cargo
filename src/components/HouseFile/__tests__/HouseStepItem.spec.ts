@@ -33,6 +33,8 @@ const blockedStep: HouseTrackingStep = {
   validation_result_code: null,
   quote_validity: null,
   state: "blocked",
+  skipped: false,
+  allows_skip: false,
   comments: [],
 };
 
@@ -108,4 +110,14 @@ test("the controls of a step row do their own action without opening its comment
   expect(wrapper.emitted("edit-date")).toHaveLength(1);
   expect(wrapper.text()).not.toContain("Aún no hay comentarios en este paso.");
   wrapper.unmount();
+});
+
+test("a step passed by a later confirmation reads as not confirmed until it is", () => {
+  const skipped = mountStep({ ...blockedStep, state: "next", skipped: true });
+  expect(skipped.text()).toContain("Sin confirmar");
+  skipped.unmount();
+
+  const pending = mountStep({ ...blockedStep, state: "next" });
+  expect(pending.text()).not.toContain("Sin confirmar");
+  pending.unmount();
 });

@@ -104,6 +104,7 @@ export const useTrackingCatalogStore = defineStore("trackingCatalog", () => {
         active: step.active,
         validation_id: step.validation_id,
         date_default_id: step.date_default_id,
+        allows_skip: step.allows_skip,
       }),
     );
 

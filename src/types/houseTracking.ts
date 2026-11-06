@@ -24,6 +24,8 @@ export interface HouseTrackingStep {
   validation_result_code: string | null;
   quote_validity: QuoteValidity | null;
   state: StepState;
+  skipped: boolean;
+  allows_skip: boolean;
   comments: HouseTrackingComment[];
 }
 

@@ -37,6 +37,8 @@ const confirmedStep: HouseTrackingStep = {
   validation_result_code: null,
   quote_validity: null,
   state: "confirmed",
+  skipped: false,
+  allows_skip: false,
   comments: [comment] as HouseTrackingStep["comments"],
 };
 let wrapper: VueWrapper | undefined;

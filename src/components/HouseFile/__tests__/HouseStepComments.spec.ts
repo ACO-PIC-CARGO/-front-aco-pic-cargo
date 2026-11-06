@@ -45,6 +45,8 @@ const step: HouseTrackingStep = {
   validation_result_code: null,
   quote_validity: null,
   state: "next",
+  skipped: false,
+  allows_skip: false,
   comments: [],
 };
 

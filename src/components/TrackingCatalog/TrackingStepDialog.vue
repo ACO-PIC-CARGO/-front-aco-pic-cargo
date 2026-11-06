@@ -35,6 +35,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
       active: true,
       validation_id: null,
       date_default_id: null,
+      allows_skip: false,
     };
   }
   return {
@@ -46,6 +47,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
     active: step.active,
     validation_id: step.validation_id,
     date_default_id: step.date_default_id,
+    allows_skip: step.allows_skip,
   };
 }
 
@@ -121,6 +123,15 @@ watch(open, (isOpen) => {
             color="success"
             inset
             hide-details
+          />
+          <v-switch
+            id="tracking-step-allows-skip"
+            v-model="draft.allows_skip"
+            label="Permite confirmar los pasos siguientes sin confirmar este"
+            hint="Si se confirma un paso posterior antes que este, este paso se marca en rojo hasta que lo confirmes."
+            persistent-hint
+            color="success"
+            inset
           />
           <v-alert
             v-if="serverError"

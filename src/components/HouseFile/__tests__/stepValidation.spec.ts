@@ -24,6 +24,8 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   validation_result_code: null,
   quote_validity: { quote_id: 7092, valid_until: "2025-11-14", kept_by: null, kept_at: null },
   state: "next",
+  skipped: false,
+  allows_skip: false,
   comments: [],
   ...over,
 });

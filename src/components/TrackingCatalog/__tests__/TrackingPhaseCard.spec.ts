@@ -39,6 +39,7 @@ const phase: TrackingPhase = {
       active: true,
       validation_id: null,
       date_default_id: null,
+      allows_skip: false,
     },
   ],
 };

@@ -10,6 +10,7 @@ export interface TrackingStep {
   active: boolean;
   validation_id: number | null;
   date_default_id: number | null;
+  allows_skip: boolean;
 }
 
 export interface TrackingPhase {
@@ -44,6 +45,7 @@ export interface TrackingStepDraft {
   active: boolean;
   validation_id: number | null;
   date_default_id: number | null;
+  allows_skip: boolean;
 }
 
 export interface TrackingValidation {
