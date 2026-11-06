@@ -7,8 +7,8 @@ export interface TrafficFile {
   nro_traffic: number;
   id_house: number;
   code_house: string | null;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
   quote_number: string | null;
   namemodality: string | null;
   nameportbegin: string | null;
