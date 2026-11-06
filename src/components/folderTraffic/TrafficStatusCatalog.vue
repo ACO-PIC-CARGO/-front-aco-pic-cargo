@@ -13,6 +13,7 @@ const NAME_MAX = 80;
 const headers = [
   { title: "Nombre", key: "name" },
   { title: "Posición", key: "position" },
+  { title: "Predeterminado", key: "is_default", sortable: false },
   { title: "Acciones", key: "actions", sortable: false, align: "end" },
 ] as const;
 
@@ -28,7 +29,7 @@ const emptyText = canCreate
 
 const loading = shallowRef(false);
 const dialog = shallowRef(false);
-const draft = ref<TrafficStatusForm>({ id: null, name: "", position: null });
+const draft = ref<TrafficStatusForm>({ id: null, name: "", position: null, is_default: false });
 const form = useTemplateRef("form");
 const { saving, serverError, save } = useDialogSave(dialog, form, persist);
 const isEditing = computed(() => Boolean(draft.value.id));
@@ -50,7 +51,7 @@ async function persist() {
 }
 
 async function openDialog(status: TrafficStatus | null) {
-  draft.value = status ? { ...status } : { id: null, name: "", position: null };
+  draft.value = status ? { ...status } : { id: null, name: "", position: null, is_default: false };
   serverError.value = "";
   dialog.value = true;
   await nextTick();
@@ -97,6 +98,16 @@ onMounted(load);
       :no-data-text="emptyText"
       class="elevation-1"
     >
+      <template #[`item.is_default`]="{ item }">
+        <v-chip
+          v-if="item.is_default"
+          size="small"
+          color="primary"
+          prepend-icon="mdi-check"
+        >
+          Predeterminado
+        </v-chip>
+      </template>
       <template #[`item.actions`]="{ item }">
         <v-btn
           v-if="canEdit"
@@ -148,6 +159,14 @@ onMounted(load);
               :min="1"
               hint="Ordena la lista: el 1 aparece primero. Si la dejas vacía, va al final."
               persistent-hint
+            />
+            <v-checkbox
+              id="traffic-status-default"
+              v-model="draft.is_default"
+              label="Usar como filtro inicial en EMBARQUES y como estatus de los expedientes nuevos"
+              hint="Solo puede haber uno. Si marcas este, el anterior deja de serlo."
+              persistent-hint
+              class="mt-2"
             />
             <v-alert
               v-if="serverError"

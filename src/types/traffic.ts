@@ -44,12 +44,14 @@ export interface TrafficStatus {
   id: number;
   name: string;
   position: number;
+  is_default: boolean;
 }
 
 export interface TrafficStatusForm {
   id?: number | null;
   name: string;
   position?: number | null;
+  is_default?: boolean;
 }
 
 export interface TrafficCorrelative {
