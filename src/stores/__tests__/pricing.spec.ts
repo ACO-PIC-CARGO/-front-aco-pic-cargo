@@ -1931,6 +1931,20 @@ describe("pricing store", () => {
       expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
     });
 
+    test("aprobarCotizacion into a file without master confirms it without touching a master", async () => {
+      respond({ aprobar_cotizacion: accepted([{ id_master: null, code_master: null }]) });
+      const pricing = usePricingStore();
+      pricing.datosPrincipales = { nombre: "ZEVALLOS" };
+
+      expect(await pricing.aprobarCotizacion({ IdempotencyKey: "key-3", nuevoexpediente: false })).toBe(true);
+      await flushPromises();
+
+      expect(moveFileToOneDrive).not.toHaveBeenCalled();
+      expect(imprimirGuardarControlDetallado).not.toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success", text: "ok" }));
+      expect(router.push).not.toHaveBeenCalled();
+    });
+
     test("aprobarCotizacion moves the files to the existing folder when the quote joins an existing file", async () => {
       respond({ aprobar_cotizacion: accepted([{ id_master: 901, code_master: "M-901" }]) });
       vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);

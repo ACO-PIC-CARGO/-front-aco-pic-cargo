@@ -4582,6 +4582,10 @@ export const usePricingStore = defineStore("pricing", () => {
       Swal.fire({ icon: "error", text: refusedByServer ? data.mensaje : APPROVE_FAILED_MESSAGE });
       return false;
     }
+    if (!data.data[0].id_master) {
+      Swal.fire({ icon: "success", title: "Cotización asociada", text: data.mensaje });
+      return true;
+    }
     const name = data.data[0]!.code_master + " - " + datosPrincipales.value.nombre;
     const id_branch = sessionBranchId();
     const id_branchs = ["1", "2", 1, 2];
