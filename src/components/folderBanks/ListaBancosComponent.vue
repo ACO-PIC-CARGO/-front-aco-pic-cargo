@@ -19,26 +19,32 @@ const formNew = useTemplateRef("formNew");
 const form = useTemplateRef("form");
 
 const datosBanco = ref<BancoFilaConCuentas | null>(null);
-const cuentasFlag = ref(false);
+const expandedBanks = ref<string[]>([]);
+type OrdenCuenta = { key: string; order?: "asc" | "desc" | false };
+const ordenPrincipal: OrdenCuenta = { key: "esprincipalflag", order: "desc" };
+const ordenesCuenta = ref<Record<string, OrdenCuenta[]>>({});
 const cuentaFlag = ref(false);
 const cuenta = ref<CuentaBancoDetalle>("" as unknown as CuentaBancoDetalle);
 const headersCuenta = [
-  { width: "35%", title: "Nro Cuenta", key: "nrocuenta" },
-  { width: "35%", title: "CCI", key: "nrocci" },
-  { width: "10%", title: "Moneda", key: "coins" },
-  { width: "10%", title: "Usar Facturación", key: "esprincipalflag" },
-  { width: "15%", title: "Acción", key: "action", align: "center" as const },
+  { title: "Nro Cuenta", key: "nrocuenta", width: "28%" },
+  { title: "CCI", key: "nrocci", width: "29%" },
+  { title: "Moneda", key: "coins", width: "14%" },
+  { title: "Cuenta Principal", key: "esprincipalflag", width: "16%", align: "center" as const, sortable: false },
+  { title: "Acciones", key: "action", width: "13%", align: "end" as const, sortable: false },
 ];
 const headers = [
+  { title: "Acciones", key: "action", align: "start" as const, sortable: false },
   { title: "Código", align: "start" as const, key: "code" },
   { title: "Acrónimo", key: "acronym" },
   { title: "Nombre", key: "name" },
-  { title: "Descripción", key: "description" },
+  // { title: "Descripción", key: "description" },
+  { title: "Cuenta Principal", key: "primary_account" },
   { title: "Estado", key: "status" },
   { title: "Creación", key: "created_at" },
 
   { title: "Última Actualización", key: "updated_at" },
-  { title: "Acciones", key: "action" },
+  { title: "", key: "vercuentas", sortable: false },
+  { title: "", key: "nuevacuentas", sortable: false },
 ];
 const loading = ref(true);
 const loading_as = ref(true);
@@ -68,15 +74,58 @@ const id = ref<number | string>("");
 function updateStatus(newValue: unknown) {
   record.value.status = newValue ? 1 : 0;
 }
+function bancoActivo(item: BancoFila): boolean {
+  return item.status === 1 || item.status === true || item.status === "1";
+}
 function abrirCuentas(item: BancoFila) {
-  cuentasFlag.value = true;
   datosBanco.value = { ...item } as BancoFilaConCuentas;
+  const key = String(item.id);
+  const index = expandedBanks.value.indexOf(key);
+  if (index >= 0) {
+    expandedBanks.value.splice(index, 1);
+  } else {
+    expandedBanks.value.push(key);
+  }
+}
+function bankRowProps({ item }: { item: BancoFila }) {
+  return { class: { "bank-row-expanded": item.id != null && expandedBanks.value.includes(String(item.id)) } };
+}
+function cuentasBanco(item: BancoFila): CuentaBancoDetalle[] {
+  return (item.banks_details ?? []).filter(
+    (detail): detail is CuentaBancoDetalle => typeof detail === "object" && detail !== null,
+  );
+}
+function esCuentaPrincipal(flag: unknown): boolean {
+  return flag === true || flag === 1 || flag === "1";
+}
+function ordenarIndicadorPrincipal(a: unknown, b: unknown): number {
+  return Number(esCuentaPrincipal(a)) - Number(esCuentaPrincipal(b));
+}
+function ordenCuenta(id: BancoFila["id"]): OrdenCuenta[] {
+  return ordenesCuenta.value[String(id)] ?? [ordenPrincipal];
+}
+function actualizarOrdenCuenta(id: BancoFila["id"], sortBy: OrdenCuenta[]) {
+  const secundarios = sortBy.filter((sort) => sort.key !== "esprincipalflag");
+  ordenesCuenta.value[String(id)] = [ordenPrincipal, ...secundarios.slice(-1)];
+}
+function tieneCuentaPrincipal(item: BancoFila): boolean {
+  if (!Array.isArray(item.banks_details)) return false;
+  return item.banks_details.some((detail) => {
+    if (
+      typeof detail !== "object" ||
+      detail === null ||
+      !("esprincipalflag" in detail)
+    )
+      return false;
+    return esCuentaPrincipal(detail.esprincipalflag);
+  });
 }
 function abrirCuenta(item: CuentaBancoDetalle) {
   cuentaFlag.value = true;
   cuenta.value = { ...item };
 }
-function abrirNuevaCuenta() {
+function abrirNuevaCuenta(item: BancoFila) {
+  datosBanco.value = { ...item } as BancoFilaConCuentas;
   cuentaFlag.value = true;
   cuenta.value = {
     id: "",
@@ -90,7 +139,6 @@ function abrirNuevaCuenta() {
   };
 }
 async function guardarCuenta() {
-  console.log('dd')
   let val = false;
   let namePrincipal = "";
   if (cuenta.value.esprincipalflag) {
@@ -111,12 +159,10 @@ async function guardarCuenta() {
       return;
     }
   }
-  console.log('dd2')
   if ((await frmCuenta.value!.validate()).valid) {
     cuenta.value.status =
       cuenta.value.status == 0 || cuenta.value.status == false ? 0 : 1;
     await bankStore.guardarCuentaDetalle(cuenta.value);
-    cuentasFlag.value = false;
     cuentaFlag.value = false;
   }
 }
@@ -126,7 +172,8 @@ async function insert() {
   try {
     if ((await formNew.value!.validate()).valid) {
       resetRecord("filter");
-      if (await bankStore.insertBank(record.value)) showFilterDrawerNew.value = false;
+      if (await bankStore.insertBank(record.value))
+        showFilterDrawerNew.value = false;
     }
   } finally {
     saving.value = false;
@@ -137,18 +184,19 @@ async function EliminarCuenta(item: CuentaBancoDetalle) {
   Swal.fire({
     icon: "question",
     title: ``,
-    text: `¿Quieres ${active ? "eliminar" : "activar"} la cuenta ${item.nrocuenta}?`,
+    text: `¿Quieres ${active ? "eliminar" : "activar"} la cuenta ${
+      item.nrocuenta
+    }?`,
     showDenyButton: true,
     denyButtonText: "Cancelar",
   }).then(async (res) => {
     if (res.isConfirmed) {
-      await bankStore.eliminarCuentaDetalle({ ...item, status: active ? 0 : 1 });
-    }
-    if (res.isDenied) {
-      await bankStore.fetchDataBank(records.value);
+      await bankStore.eliminarCuentaDetalle({
+        ...item,
+        status: active ? 0 : 1,
+      });
     }
   });
-  cuentasFlag.value = false;
   //
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -166,19 +214,22 @@ async function resetRecord(option?: string) {
   showFilterDrawer.value = false;
 }
 async function switch_status(item: BancoFila) {
+  const active = bancoActivo(item);
   Swal.fire({
     title: "¿Estás seguro?",
-    text: `Si inactiva el registro, éste no aparecerá disponible en otros formularios ¿Está seguro de que desea inactivarlo?`,
-    confirmButtonColor: "red",
+    text: active
+      ? "Si inactiva el registro, este no aparecerá disponible en otros formularios. ¿Está seguro de que desea inactivarlo?"
+      : "¿Está seguro de que desea activar este banco?",
+    confirmButtonColor: active ? "red" : "green",
     icon: "question",
     showCancelButton: true,
-    confirmButtonText: "Sí, inactivar",
+    confirmButtonText: active ? "Sí, inactivar" : "Sí, activar",
     cancelButtonColor: "orange",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
     if (result.isConfirmed) {
       resetRecord("filter");
-      await bankStore.updateBank({ ...item, status: 0 });
+      await bankStore.updateBank({ ...item, status: active ? 0 : 1 });
     }
   });
 }
@@ -207,7 +258,8 @@ async function submit_update() {
         status: record.value.status,
       };
       resetRecord("filter");
-      if (await bankStore.updateBank(data)) showFilterDrawerUpdate.value = false;
+      if (await bankStore.updateBank(data))
+        showFilterDrawerUpdate.value = false;
     }
   } finally {
     saving.value = false;
@@ -265,39 +317,49 @@ function resetForms() {
   if (form.value) form.value.reset();
 }
 
-watch(() => bankStore.record, (newRecord) => {
-  if (newRecord && Object.keys(newRecord).length > 0) {
-    const { code, acronym, name, description, status } = newRecord;
-    record.value = { code, acronym, name, description, status } as RegistroBancoEditable;
-    loading_as.value = false;
-  }
-}, { immediate: true });
-watch(() => bankStore.loading, (newList) => {
-  loading.value = newList == true ? false : true;
-}, { immediate: true });
+watch(
+  () => bankStore.record,
+  (newRecord) => {
+    if (newRecord && Object.keys(newRecord).length > 0) {
+      const { code, acronym, name, description, status } = newRecord;
+      record.value = {
+        code,
+        acronym,
+        name,
+        description,
+        status,
+      } as RegistroBancoEditable;
+      loading_as.value = false;
+    }
+  },
+  { immediate: true },
+);
+watch(
+  () => bankStore.loading,
+  (newList) => {
+    loading.value = newList == true ? false : true;
+  },
+  { immediate: true },
+);
 
 originalRecords.value = { ...records.value };
 onMounted(async () => {
   appStore.mainTitle = `Banco`;
   await Promise.all([
     bankStore.fetchDataBank(records.value),
-    (appStore._getCoinsList as (records: unknown) => Promise<void>)(records.value),
+    (appStore._getCoinsList as (records: unknown) => Promise<void>)(
+      records.value,
+    ),
   ]);
 });
 </script>
 
 <template>
-  <v-card class="px-5">
+  <v-card class="bank-list-card px-5">
     <v-card elevation="0">
-      <v-container
-        v-if="loading"
-        style="height: 400px"
-      >
+      <v-container v-if="loading" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col
-            class="text-body-large text-center"
-            cols="12"
-          >
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -312,99 +374,204 @@ onMounted(async () => {
 
       <v-card-title
         v-if="!loading"
-        class="elevation-0 d-flex align-center flex-wrap"
+        class="bank-list-toolbar d-flex align-center flex-wrap"
       >
         <v-text-field
-          append-inner-icon="mdi-magnify"
-          label="Buscar"
+          class="bank-list-search"
+          prepend-inner-icon="mdi-magnify"
+          label="Buscar banco"
+          variant="outlined"
+          density="compact"
           single-line
           hide-details
+          clearable
           v-model="search"
         />
         <v-spacer />
         <v-btn
-          v-if="can('bankList', 'NUEVO')"
-          size="small"
-          color="success"
-          @click="open_new()"
-        >
-          Nuevo
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#2962FF"
+          class="bank-filter-button"
+          variant="flat"
+          prepend-icon="mdi-filter-outline"
           @click="open_filter()"
         >
           Filtrar
+        </v-btn>
+        <v-btn
+          v-if="can('bankList', 'NUEVO')"
+          class="bank-new-button"
+          color="#075ae0"
+          prepend-icon="mdi-plus"
+          @click="open_new()"
+        >
+          Nuevo Banco
         </v-btn>
       </v-card-title>
 
       <v-data-table
         v-if="!loading"
-        class="elevation-1"
+        class="bank-list-table"
         :headers="headers"
         :items="bankStore.list"
-        item-value="id"
+        :item-value="(item: BancoFila) => String(item.id)"
         :search="search"
+        :items-per-page="10"
+        :row-props="bankRowProps"
+        v-model:expanded="expandedBanks"
       >
         <template #[`item.status`]="{ item }">
-          {{ !!item.status ? "Activo" : "Inactivo" }}
+          <v-chip
+            size="small"
+            :color="bancoActivo(item) ? 'success' : 'grey'"
+            :prepend-icon="bancoActivo(item) ? 'mdi-check-circle' : 'mdi-close-circle'"
+          >
+            {{ bancoActivo(item) ? "Activo" : "Inactivo" }}
+          </v-chip>
+        </template>
+        <template #[`item.primary_account`]="{ item }">
+          {{
+            tieneCuentaPrincipal(item)
+              ? "Cuenta principal para Control de Gastos"
+              : ""
+          }}
         </template>
         <template #[`item.action`]="{ item }">
-          <v-btn
-            variant="text"
-            class="mx-1"
-            size="small"
-            icon
-            @click="open_read(item.id)"
-          >
-            <v-icon
+          <div class="d-flex align-center ga-1">
+            <v-btn
+              class="bank-action bank-action-view"
+              variant="flat"
+              size="small"
+              icon="mdi-eye"
               color="primary"
-            >
-              mdi-eye
-            </v-icon>
-          </v-btn>
+              aria-label="Ver banco"
+              @click="open_read(item.id)"
+            />
+            <v-btn
+              v-if="can('bankList', 'MODIFICAR')"
+              class="bank-action bank-action-edit"
+              variant="flat"
+              size="small"
+              icon="mdi-pencil"
+              color="warning"
+              aria-label="Modificar banco"
+              @click="open_update(item.id)"
+            />
+            <v-btn
+              class="bank-action bank-action-delete"
+              variant="flat"
+              color="error"
+              size="small"
+              :icon="bancoActivo(item) ? 'mdi-delete' : 'mdi-check'"
+              :aria-label="bancoActivo(item) ? 'Inactivar banco' : 'Activar banco'"
+              @click="switch_status(item)"
+              v-if="can('bankList', 'ELIMINAR')"
+            />
+          </div>
+        </template>
+        <template #[`item.vercuentas`]="{ item }">
           <v-btn
-            variant="text"
-            class="mx-1"
+            v-if="item.banks_details?.length"
+            class="bank-accounts-button"
+            variant="outlined"
             size="small"
-            icon
+            :append-icon="
+              expandedBanks.includes(String(item.id))
+                ? 'mdi-chevron-up'
+                : 'mdi-chevron-down'
+            "
+            :aria-label="
+              expandedBanks.includes(String(item.id))
+                ? 'Ocultar cuentas'
+                : 'Ver cuentas'
+            "
             @click="abrirCuentas(item)"
           >
-            <v-icon
-              color="#0D47A1"
-            >
-              mdi-bank
-            </v-icon>
+            {{
+              expandedBanks.includes(String(item.id))
+                ? "Ocultar Cuentas"
+                : "Ver Cuentas"
+            }}
           </v-btn>
-          <v-btn
-            v-if="can('bankList', 'MODIFICAR')"
-            variant="text"
-            class="mx-1"
+          <v-chip
+            v-else
             size="small"
-            icon
-            @click="open_update(item.id)"
+            color="grey"
           >
-            <v-icon
-              color="warning"
-            >
-              mdi-pencil
-            </v-icon>
-          </v-btn>
-
+            Sin cuentas
+          </v-chip>
+        </template>
+        <template #[`item.nuevacuentas`]="{ item }">
           <v-btn
-            variant="text"
-            class="mx-1"
+            v-if="can('bankList', 'NUEVO')"
+            color="success"
             size="small"
-            icon
-            @click="switch_status(item)"
-            v-if="item.status && can('bankList', 'ELIMINAR')"
+            prepend-icon="mdi-plus"
+            aria-label="Nueva cuenta"
+            @click="abrirNuevaCuenta(item)"
           >
-            <v-icon color="red">
-              mdi-delete
-            </v-icon>
+            Nueva Cuenta
           </v-btn>
+        </template>
+        <template #expanded="{ item }">
+          <div class="bank-account-detail">
+            <v-data-table
+              :headers="headersCuenta"
+              :items="cuentasBanco(item)"
+              item-value="id"
+              density="compact"
+              :items-per-page="-1"
+              :sort-by="ordenCuenta(item.id)"
+              :custom-key-sort="{ esprincipalflag: ordenarIndicadorPrincipal }"
+              @update:sort-by="actualizarOrdenCuenta(item.id, $event)"
+              hide-default-footer
+            >
+              <template #[`item.coins`]="{ item: account }">
+                <v-autocomplete
+                  :items="appStore.itemsCoinsList"
+                  v-model="account.id_coin"
+                  item-title="acronym"
+                  item-value="id"
+                  readonly
+                  density="compact"
+                />
+              </template>
+              <template #[`item.action`]="{ item: account }">
+                <div class="d-flex ga-1 justify-end">
+                  <v-btn
+                    v-if="can('bankList', 'MODIFICAR')"
+                    class="bank-action bank-action-edit"
+                    variant="flat"
+                    size="small"
+                    icon="mdi-pencil"
+                    color="warning"
+                    aria-label="Editar cuenta"
+                    @click="abrirCuenta(account)"
+                  />
+                  <v-btn
+                    v-if="can('bankList', 'ELIMINAR')"
+                    class="bank-action bank-action-delete"
+                    variant="flat"
+                    size="small"
+                    color="error"
+                    :icon="account.status == 1 ? 'mdi-delete' : 'mdi-check'"
+                    :aria-label="
+                      account.status == 1
+                        ? 'Eliminar cuenta'
+                        : 'Activar cuenta'
+                    "
+                    @click="EliminarCuenta(account)"
+                  />
+                </div>
+              </template>
+              <template #[`item.esprincipalflag`]="{ item: account }">
+                <v-chip
+                  size="small"
+                  :color="esCuentaPrincipal(account.esprincipalflag) ? 'primary' : 'grey'"
+                >
+                  {{ esCuentaPrincipal(account.esprincipalflag) ? "Sí" : "No" }}
+                </v-chip>
+              </template>
+            </v-data-table>
+          </div>
         </template>
       </v-data-table>
     </v-card>
@@ -413,7 +580,6 @@ onMounted(async () => {
       v-model="showFilterDrawerNew"
       location="right"
       temporary
-      
       width="30%"
     >
       <v-list-item>
@@ -497,7 +663,6 @@ onMounted(async () => {
       v-model="showFilterDrawerRead"
       location="right"
       temporary
-      
       width="30%"
     >
       <v-container v-if="!loading_as">
@@ -560,15 +725,9 @@ onMounted(async () => {
         </v-card-actions>
       </v-container>
 
-      <v-container
-        v-if="loading_as"
-        style="height: 400px"
-      >
+      <v-container v-if="loading_as" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col
-            class="text-body-large text-center"
-            cols="12"
-          >
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -586,7 +745,6 @@ onMounted(async () => {
       v-model="showFilterDrawerUpdate"
       location="right"
       temporary
-      
       width="30%"
     >
       <v-container v-if="!loading_as">
@@ -671,15 +829,9 @@ onMounted(async () => {
         </v-card-actions>
       </v-container>
 
-      <v-container
-        v-if="loading_as"
-        style="height: 400px"
-      >
+      <v-container v-if="loading_as" style="height: 400px">
         <v-row class="fill-height align-content-center justify-center">
-          <v-col
-            class="text-body-large text-center"
-            cols="12"
-          >
+          <v-col class="text-body-large text-center" cols="12">
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -697,7 +849,6 @@ onMounted(async () => {
       v-model="showFilterDrawer"
       location="right"
       temporary
-      
       width="30%"
     >
       <v-list-item>
@@ -711,11 +862,7 @@ onMounted(async () => {
       <v-container>
         <v-card-text>
           <v-row>
-            <v-text-field
-              label="Código"
-              v-model="records.code"
-              clearable
-            />
+            <v-text-field label="Código" v-model="records.code" clearable />
           </v-row>
           <v-row>
             <v-text-field
@@ -725,11 +872,7 @@ onMounted(async () => {
             />
           </v-row>
           <v-row>
-            <v-text-field
-              label="Nombre"
-              v-model="records.name"
-              clearable
-            />
+            <v-text-field label="Nombre" v-model="records.name" clearable />
           </v-row>
           <v-row>
             <v-text-field
@@ -739,26 +882,10 @@ onMounted(async () => {
             />
           </v-row>
           <v-row>
-            <v-radio-group
-              v-model="records.status"
-              inline
-              density="compact"
-            >
-              <v-radio
-                label="Activo"
-                color="green"
-                :value="1"
-              />
-              <v-radio
-                label="Inactivo"
-                color="red"
-                :value="0"
-              />
-              <v-radio
-                label="Todos"
-                color="blue"
-                value="null"
-              />
+            <v-radio-group v-model="records.status" inline density="compact">
+              <v-radio label="Activo" color="green" :value="1" />
+              <v-radio label="Inactivo" color="red" :value="0" />
+              <v-radio label="Todos" color="blue" value="null" />
             </v-radio-group>
           </v-row>
         </v-card-text>
@@ -766,18 +893,10 @@ onMounted(async () => {
 
       <v-container>
         <v-card-actions class="justify-end mt-3">
-          <v-btn
-            class="mx-1"
-            color="success"
-            @click="filter()"
-          >
+          <v-btn class="mx-1" color="success" @click="filter()">
             Aceptar
           </v-btn>
-          <v-btn
-            class="mx-1"
-            color="ligth"
-            @click="resetRecord('filter')"
-          >
+          <v-btn class="mx-1" color="ligth" @click="resetRecord('filter')">
             Limpiar
           </v-btn>
           <v-btn
@@ -791,96 +910,13 @@ onMounted(async () => {
       </v-container>
     </v-navigation-drawer>
 
-    <v-dialog
-      v-model="cuentasFlag"
-      scrollable
-      persistent
-      width="80%"
-    >
-      <v-card v-if="datosBanco">
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
-          {{ datosBanco.name }} {{ datosBanco.acronym }}
-          <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            @click="cuentasFlag = !cuentasFlag"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-data-table
-            :headers="headersCuenta"
-            :items="datosBanco.banks_details"
-            class="elevation-1"
-            item-value="index"
-            density="compact"
-            :items-per-page="5"
-          >
-            <template #[`item.coins`]="{ item }">
-              <v-autocomplete
-                :items="appStore.itemsCoinsList"
-                v-model="item.id_coin"
-                item-title="acronym"
-                item-value="id"
-                readonly
-                density="compact"
-              />
-            </template>
-            <template #[`item.action`]="{ item }">
-              <div class="d-flex">
-                <v-btn
-                  v-if="can('bankList', 'MODIFICAR')"
-                  variant="text"
-                  icon
-                  @click="abrirCuenta(item)"
-                >
-                  <v-icon
-                    color="warning"
-                  >
-                    mdi-pencil
-                  </v-icon>
-                </v-btn>
-                <v-btn
-                  v-if="can('bankList', 'ELIMINAR')"
-                  variant="text"
-                  color="error"
-                  icon
-                  @click="EliminarCuenta(item)"
-                >
-                  <v-icon>mdi-delete</v-icon>
-                </v-btn>
-              </div>
-            </template>
-            <template #[`item.esprincipalflag`]="{ item }">
-              {{ item.esprincipalflag == 1 ? "Si" : "No" }}
-            </template>
-          </v-data-table>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            v-if="can('bankList', 'NUEVO')"
-            color="success"
-            @click="abrirNuevaCuenta()"
-          >
-            Nueva Cuenta
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      v-model="cuentaFlag"
-      scrollable
-      persistent
-      width="50%"
-    >
+    <v-dialog v-model="cuentaFlag" scrollable persistent width="500">
       <v-card v-if="cuenta">
-        <v-card-title primary-title />
+        <v-card-title>
+          {{
+            cuenta.id ? `Editar Cuenta: ${cuenta.nrocuenta}` : "Nueva Cuenta"
+          }}
+        </v-card-title>
         <v-card-text>
           <v-form ref="frmCuenta">
             <v-autocomplete
@@ -896,10 +932,7 @@ onMounted(async () => {
               v-model="cuenta.nrocuenta"
               :rules="[(v) => !!v || 'Dato Requerido']"
             />
-            <v-text-field
-              label="CCI"
-              v-model="cuenta.nrocci"
-            />
+            <v-text-field label="CCI" v-model="cuenta.nrocci" />
 
             <v-checkbox
               v-if="cuenta.id"
@@ -908,8 +941,11 @@ onMounted(async () => {
               :value-comparator="(value, checked) => Boolean(value) === checked"
             />
             <!-- v-if="cuenta.id" -->
-            <v-checkbox
-              label="Usar En FACTURACIÓN DE CONTROL DE GASTOS"
+            <v-switch
+              color="success"
+              density="compact"
+              hide-details
+              label="Usar en FACTURACIÓN DE CONTROL DE GASTOS"
               v-model="cuenta.esprincipalflag"
               :value-comparator="(value, checked) => Boolean(value) === checked"
             />
@@ -917,18 +953,8 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            sm
-            color="success"
-            @click="guardarCuenta()"
-          >
-            Guardar
-          </v-btn>
-          <v-btn
-            sm
-            color="danger"
-            @click="cuentaFlag = !cuentaFlag"
-          >
+          <v-btn sm color="success" @click="guardarCuenta()"> Guardar </v-btn>
+          <v-btn sm color="danger" @click="cuentaFlag = !cuentaFlag">
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -937,4 +963,122 @@ onMounted(async () => {
   </v-card>
 </template>
 
+<style scoped>
+.bank-list-card {
+  border-radius: 18px;
+}
 
+.bank-list-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px 4px 16px;
+}
+
+.bank-list-search {
+  flex: 0 1 400px;
+  min-width: 220px;
+}
+
+.bank-list-toolbar .v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.bank-filter-button {
+  color: #17448e;
+  background-color: #e8f0fe;
+}
+
+.bank-new-button {
+  font-weight: 600;
+}
+
+.bank-list-table {
+  border: 1px solid #e4ebf6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > thead) {
+  color: #14264e;
+  background-color: #e8effb;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > tbody > tr:not(.v-data-table__tr--expanded):not(.bank-row-expanded):nth-of-type(4n + 3)) {
+  background-color: #f5f7fb;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > tbody > tr.bank-row-expanded) {
+  background-color: #e8f0fe;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > tbody > tr.v-data-table__tr--expanded:not(:has(.bank-account-detail))) {
+  display: none;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > tbody > tr > td) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.bank-list-table :deep(> .v-table__wrapper > table > tbody > tr.v-data-table__tr--expanded > td) {
+  padding: 0;
+}
+
+.bank-action {
+  border-radius: 9px;
+}
+
+.bank-action-view {
+  color: #0758b8 !important;
+  background-color: #e8efff !important;
+}
+
+.bank-action-edit {
+  color: #ad5700 !important;
+  background-color: #fff3da !important;
+}
+
+.bank-action-delete {
+  color: #bd2424 !important;
+  background-color: #ffebeb !important;
+}
+
+.bank-accounts-button {
+  min-width: 145px;
+  border-color: #cad9f3;
+  color: #173a76;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.bank-account-detail {
+  margin: 12px 16px 16px;
+  overflow: hidden;
+  border: 1px solid #e4ebf6;
+  border-radius: 12px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(20, 38, 78, 0.1);
+}
+
+.bank-account-detail :deep(.v-table) {
+  background-color: transparent;
+}
+
+.bank-account-detail :deep(thead) {
+  color: #14264e;
+  background-color: #e8effb;
+}
+
+.bank-account-detail :deep(tbody) {
+  background-color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bank-list-table :deep(.v-data-table__tr--expanded *) {
+    transition-duration: 0s !important;
+  }
+}
+</style>

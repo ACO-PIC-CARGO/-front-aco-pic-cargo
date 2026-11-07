@@ -76,14 +76,14 @@ const screens: Screen[] = [
   { route: "listGastos", component: ListaGastosComponent, controls: LIST_ACTIONS },
   { route: "listIngresos", component: ListaIngresosComponent, controls: LIST_ACTIONS },
   { route: "listMultiplicador", component: ListaMultiplicadoresComponent, controls: LIST_ACTIONS },
-  { route: "bankList", component: ListaBancosComponent, controls: LIST_ACTIONS },
+  { route: "bankList", component: ListaBancosComponent, controls: { ...LIST_ACTIONS, NUEVO: button("NUEVO BANCO") } },
   { route: "listComentariosPredefinidos", component: ListaComentariosPredefinidosComponent, controls: { ...LIST_ACTIONS, EXPORTAR } },
   { route: "listClientes", component: ListClienteComponent, controls: { ...LIST_ACTIONS, EXPORTAR } },
   { route: "listProveedor", component: ListProveedorComponent, controls: { ...LIST_ACTIONS, EXPORTAR } },
   { route: "listSubGasto", component: ListSubGasto, controls: LIST_ACTIONS },
   { route: "listSubIngresos", component: ListSubIngreso, controls: LIST_ACTIONS },
   { route: "listAirlines", component: ListAirlines, controls: LIST_ACTIONS },
-  { route: "listQuoteStatus", component: ListQuoteStatus, controls: LIST_ACTIONS },
+  { route: "listQuoteStatus", component: ListQuoteStatus, controls: { ...LIST_ACTIONS, NUEVO: button("NUEVO ESTADO") } },
   { route: "listPort", component: ListPort, controls: LIST_ACTIONS },
   { route: "listMotonave", component: ListMotonave, controls: LIST_ACTIONS },
   { route: "listState", component: ListState, controls: LIST_ACTIONS },
@@ -140,20 +140,19 @@ describe.each(screens)("$route", (screen) => {
 });
 
 describe("bankList accounts", () => {
-  const accountsDialog = () => document.body.querySelector(".v-overlay--active .v-card")!;
   const accountControls = (): Action[] => {
-    const dialog = accountsDialog();
+    const detail = document.body.querySelector(".bank-account-detail")!;
     const shown = {
-      NUEVO: [...dialog.querySelectorAll("button")].some((element) => element.textContent?.trim() === "Nueva Cuenta"),
-      MODIFICAR: dialog.querySelector("tbody .mdi-pencil") !== null,
-      ELIMINAR: dialog.querySelector("tbody .mdi-delete") !== null,
+      NUEVO: document.body.querySelector('button[aria-label="Nueva cuenta"]') !== null,
+      MODIFICAR: detail.querySelector('button[aria-label="Editar cuenta"]') !== null,
+      ELIMINAR: detail.querySelector('button[aria-label="Eliminar cuenta"]') !== null,
     };
     return (Object.keys(shown) as Action[]).filter((action) => shown[action as keyof typeof shown]);
   };
   const openAccounts = async (actions: string[]) => {
     httpMock.mockImplementation(async () => ({ data: accepted([{ ...ROW, banks_details: [{ id: 3, nrocuenta: "001", status: 1 }] }]) }));
     await mountWith({ route: "bankList", component: ListaBancosComponent, controls: {} }, actions);
-    document.body.querySelector<HTMLElement>("tbody .mdi-bank")!.click();
+    document.body.querySelector<HTMLElement>('button[aria-label="Ver cuentas"]')!.click();
     await flushPromises();
   };
 

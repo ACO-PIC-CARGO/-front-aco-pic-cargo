@@ -14,6 +14,7 @@ const masterusuariosStore = useMasterusuariosStore();
 const search = ref("");
 const loading = ref(false);
 const headers = [
+  { title: "Acciones", key: "action", sortable: false },
   { title: "Código", key: "code" },
   { title: "Nombre", key: "name" },
   // { text: "Descripción", value: "description" },
@@ -30,8 +31,11 @@ const headers = [
   { title: "Estado", key: "estado" },
   { title: "Creación", key: "created_at" },
   { title: "Última Actualización", key: "updated_at" },
-  { title: "Acciones", key: "action" },
 ] as const;
+
+function estadoActivo(item: EstadoCotizacion): boolean {
+  return item.status === 1 || item.status === true || item.status === "1";
+}
 
 onMounted(async () => {
   loading.value = true;
@@ -95,138 +99,183 @@ async function eliminar(item: EstadoCotizacion) {
 </script>
 
 <template>
-  <!-- <div class="">{{ $store.state.QuoteStatus.statusQuoteList }}</div> -->
-  <v-card
-    fluid
-    class="px-5"
-  >
-    <v-row>
-      <v-col cols="4">
-        <v-text-field
-          label="Buscar"
-          placeholder="Buscar"
-          v-model="search"
-          clearable
-          append-inner-icon="mdi-magnify"
-        />
-      </v-col>
-      <v-col
-        cols="4"
-        offset="4"
-        class="text-right my-auto"
+  <v-card class="quote-status-card px-5">
+    <v-card-title class="quote-status-toolbar d-flex align-center flex-wrap">
+      <v-text-field
+        v-model="search"
+        class="quote-status-search"
+        label="Buscar estado"
+        prepend-inner-icon="mdi-magnify"
+        variant="outlined"
+        density="compact"
+        single-line
+        hide-details
+        clearable
+      />
+      <v-spacer />
+      <v-btn
+        class="quote-status-filter"
+        variant="flat"
+        prepend-icon="mdi-filter-outline"
+        @click="
+          (QuoteStatusStore.drawer =
+            !QuoteStatusStore.drawer) &&
+            (QuoteStatusStore.tipo = 'filter')
+        "
       >
-        <v-btn
-          v-if="can('listQuoteStatus', 'NUEVO')"
+        Filtrar
+      </v-btn>
+      <v-btn
+        v-if="can('listQuoteStatus', 'NUEVO')"
+        class="quote-status-new"
+        color="#075ae0"
+        prepend-icon="mdi-plus"
+        @click="nuevo()"
+      >
+        Nuevo Estado
+      </v-btn>
+    </v-card-title>
+    <v-data-table
+      :headers="headers"
+      :items="QuoteStatusStore.statusQuoteList"
+      class="quote-status-table"
+      item-value="id"
+      :loading="loading"
+      :search="search"
+      :items-per-page="10"
+    >
+      <template #[`item.estado`]="{ item }">
+        <v-chip
           size="small"
-          color="success"
-          @click="nuevo()"
+          :color="estadoActivo(item) ? 'success' : 'grey'"
+          :prepend-icon="estadoActivo(item) ? 'mdi-check-circle' : 'mdi-close-circle'"
         >
-          NUEVO
-        </v-btn>
-        <v-btn
-          size="small"
-          class="mx-1"
-          color="#2962FF"
-          @click="
-            (QuoteStatusStore.drawer =
-              !QuoteStatusStore.drawer) &&
-              (QuoteStatusStore.tipo = 'filter')
-          "
-        >
-          FILTRAR
-        </v-btn>
-      </v-col>
-      <v-col cols="12">
-        <v-data-table
-          :headers="headers"
-          :items="QuoteStatusStore.statusQuoteList"
-          class="elevation-1"
-          item-value="id"
-          :loading="loading"
-          :search="search"
-        >
-          <template #[`item.estado`]="{ item }">
-            <!-- @vue-expect-error compares a boolean with 1 -->
-            {{ !!item.status == 1 ? "Activo" : "Inactivo" }}
-          </template>
-          <template #[`item.statuscalls`]="{ item }">
-            <v-chip
-              color="green"
-              v-if="item.status_calls == 1"
-            >
-              Si
-            </v-chip>
-            <v-chip
-              color="red"
-              v-else
-            >
-              No
-            </v-chip>
-          </template>
-          <template #[`item.statuscalls_all`]="{ item }">
-            <v-chip
-              color="green"
-              v-if="item.status_calls_all == 1"
-            >
-              Si
-            </v-chip>
-            <v-chip
-              color="red"
-              v-else
-            >
-              No
-            </v-chip>
-          </template>
-          <template #[`item.action`]="{ item }">
-            <v-tooltip location="bottom">
-              <template #activator="{ props }">
-                <v-icon
-                  color="primary"
-                 
-                  v-bind="props"
-                  @click="ver(item)"
-                >
-                  mdi-eye
-                </v-icon>
-              </template>
-              <span>Ver</span>
-            </v-tooltip>
-            <v-tooltip location="bottom">
-              <template #activator="{ props }">
-                <v-icon
-                  v-if="can('listQuoteStatus', 'MODIFICAR')"
-                  color="warning"
-                 
-                  v-bind="props"
-                  @click="editar(item)"
-                >
-                  mdi-pencil
-                </v-icon>
-              </template>
-              <span>Editar</span>
-            </v-tooltip>
-            <v-tooltip
-              location="bottom"
-              v-if="item.status == 1"
-            >
-              <template #activator="{ props }">
-                <v-icon
-                  v-if="can('listQuoteStatus', 'ELIMINAR')"
-                  color="error"
-                 
-                  v-bind="props"
-                  @click="eliminar(item)"
-                >
-                  mdi-delete
-                </v-icon>
-              </template>
-              <span>Eliminar</span>
-            </v-tooltip>
-          </template>
-        </v-data-table>
-      </v-col>
-    </v-row>
+          {{ estadoActivo(item) ? "Activo" : "Inactivo" }}
+        </v-chip>
+      </template>
+      <template #[`item.statuscalls`]="{ item }">
+        <v-chip color="green" v-if="item.status_calls == 1">Si</v-chip>
+        <v-chip color="red" v-else>No</v-chip>
+      </template>
+      <template #[`item.statuscalls_all`]="{ item }">
+        <v-chip color="green" v-if="item.status_calls_all == 1">Si</v-chip>
+        <v-chip color="red" v-else>No</v-chip>
+      </template>
+      <template #[`item.action`]="{ item }">
+        <div class="d-flex align-center ga-1">
+          <v-tooltip location="bottom" text="Ver">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                class="quote-status-action quote-status-action-view"
+                variant="flat"
+                size="small"
+                icon="mdi-eye"
+                color="primary"
+                aria-label="Ver estado"
+                @click="ver(item)"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip v-if="can('listQuoteStatus', 'MODIFICAR')" location="bottom" text="Editar">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                class="quote-status-action quote-status-action-edit"
+                variant="flat"
+                size="small"
+                icon="mdi-pencil"
+                color="warning"
+                aria-label="Editar estado"
+                @click="editar(item)"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip v-if="estadoActivo(item) && can('listQuoteStatus', 'ELIMINAR')" location="bottom" text="Eliminar">
+            <template #activator="{ props }">
+              <v-btn
+                v-bind="props"
+                class="quote-status-action quote-status-action-delete"
+                variant="flat"
+                size="small"
+                icon="mdi-delete"
+                color="error"
+                aria-label="Eliminar estado"
+                @click="eliminar(item)"
+              />
+            </template>
+          </v-tooltip>
+        </div>
+      </template>
+    </v-data-table>
   </v-card>
 </template>
 
-<style></style>
+<style scoped>
+.quote-status-card {
+  border-radius: 18px;
+}
+
+.quote-status-toolbar {
+  gap: 12px;
+  padding: 20px 4px 16px;
+}
+
+.quote-status-search {
+  flex: 0 1 400px;
+  min-width: 220px;
+}
+
+.quote-status-toolbar .v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.quote-status-filter {
+  color: #17448e;
+  background-color: #e8f0fe;
+}
+
+.quote-status-new {
+  font-weight: 600;
+}
+
+.quote-status-table {
+  border: 1px solid #e4ebf6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.quote-status-table :deep(> .v-table__wrapper > table > thead) {
+  color: #14264e;
+  background-color: #e8effb;
+}
+
+.quote-status-table :deep(> .v-table__wrapper > table > tbody > tr:nth-of-type(even)) {
+  background-color: #f5f7fb;
+}
+
+.quote-status-table :deep(> .v-table__wrapper > table > tbody > tr > td) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.quote-status-action {
+  border-radius: 9px;
+}
+
+.quote-status-action-view {
+  color: #0758b8 !important;
+  background-color: #e8efff !important;
+}
+
+.quote-status-action-edit {
+  color: #ad5700 !important;
+  background-color: #fff3da !important;
+}
+
+.quote-status-action-delete {
+  color: #bd2424 !important;
+  background-color: #ffebeb !important;
+}
+</style>

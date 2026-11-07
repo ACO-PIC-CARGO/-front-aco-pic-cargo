@@ -15,6 +15,7 @@ const { can } = usePermissions();
 const appStore = useAppStore();
 
 const headers = [
+  { title: "Acciones", key: "action", sortable: false },
   { title: "Código", align: "start", key: "code" },
   { title: "Nombre", key: "name" },
   { title: "Descripción", key: "description" },
@@ -23,7 +24,6 @@ const headers = [
   { title: "Creación", key: "created_at" },
 
   { title: "Última Actualización", key: "updated_at" },
-  { title: "Acciones", key: "action" },
 ] as const;
 const showFilterDrawer = ref(false);
 const showFilterDrawerNew = ref(false);
@@ -101,6 +101,9 @@ onMounted(async () => {
 
 async function exportar() {
   await marketingStore.ExportMarketing(marketing_list.value);
+}
+function marketingActivo(status: unknown): boolean {
+  return status === 1 || status === true || status === "1";
 }
 function updateStatus(newValue: unknown) {
   marketing.value.status = newValue ? 1 : 0;
@@ -277,10 +280,7 @@ async function reset_records() {
 </script>
 
 <template>
-  <v-card
-    fluid
-    class="px-5"
-  >
+  <v-card class="marketing-list-card px-5">
     <v-card elevation="0">
       <v-container
         v-if="loading"
@@ -306,89 +306,100 @@ async function reset_records() {
 
       <v-card-title
         v-if="!loading"
-        class="elevation-0 d-flex align-center flex-wrap"
+        class="marketing-list-toolbar d-flex align-center flex-wrap"
       >
         <v-text-field
-          append-inner-icon="mdi-magnify"
-          label="Buscar"
+          class="marketing-list-search"
+          prepend-inner-icon="mdi-magnify"
+          label="Buscar marketing"
+          variant="outlined"
+          density="compact"
           single-line
           hide-details
+          clearable
           v-model="search"
         />
         <v-spacer />
         <v-btn
-          v-if="can('listMarketing', 'NUEVO')"
-          size="small"
-          color="success"
-          @click="open_insert()"
+          v-if="can('listMarketing', 'EXPORTAR')"
+          class="marketing-export-button"
+          variant="flat"
+          prepend-icon="mdi-download"
+          @click="exportar"
         >
-          Nuevo
+          Exportar
         </v-btn>
         <v-btn
-          size="small"
-          class="mx-1"
-          color="#2962FF"
+          class="marketing-filter-button"
+          variant="flat"
+          prepend-icon="mdi-filter-outline"
           @click="open_filter()"
         >
           Filtrar
         </v-btn>
         <v-btn
-          v-if="can('listMarketing', 'EXPORTAR')"
-          size="small"
-          class="mx-1"
-          color="#004D40"
-          @click="exportar"
+          v-if="can('listMarketing', 'NUEVO')"
+          class="marketing-new-button"
+          color="#075ae0"
+          prepend-icon="mdi-plus"
+          @click="open_insert()"
         >
-          Exportar
+          Nuevo
         </v-btn>
       </v-card-title>
 
       <v-data-table
         v-if="!loading"
-        class="elevation-1"
+        class="marketing-list-table"
         :headers="headers"
         :items="marketingStore.list"
         item-value="id"
         :search="search"
+        :items-per-page="10"
       >
         <template #[`item.status`]="{ item }">
-          {{ !!item.status ? "Activo" : "Inactivo" }}
+          <v-chip
+            size="small"
+            :color="marketingActivo(item.status) ? 'success' : 'grey'"
+            :prepend-icon="marketingActivo(item.status) ? 'mdi-check-circle' : 'mdi-close-circle'"
+          >
+            {{ marketingActivo(item.status) ? "Activo" : "Inactivo" }}
+          </v-chip>
         </template>
         <template #[`item.action`]="{ item }">
-          <v-btn
-            variant="text"
-            icon
-            @click="open_read(item.id)"
-          >
-            <v-icon
+          <div class="d-flex align-center ga-1">
+            <v-btn
+              class="marketing-action marketing-action-view"
+              variant="flat"
+              size="small"
+              icon="mdi-eye"
               color="primary"
-            >
-              mdi-eye
-            </v-icon>
-          </v-btn>
-          <v-btn
-            v-if="can('listMarketing', 'MODIFICAR')"
-            variant="text"
-            icon
-            @click="open_update(item.id)"
-          >
-            <v-icon
+              aria-label="Ver marketing"
+              @click="open_read(item.id)"
+            />
+            <v-btn
+              v-if="can('listMarketing', 'MODIFICAR')"
+              class="marketing-action marketing-action-edit"
+              variant="flat"
+              size="small"
+              icon="mdi-pencil"
               color="warning"
-            >
-              mdi-pencil
-            </v-icon>
-          </v-btn>
-
-          <v-btn
-            variant="text"
-            icon
-            color="red"
-            @click="switch_status(item)"
-            v-if="item.status && can('listMarketing', 'ELIMINAR')"
-          >
-            <v-icon>mdi-delete</v-icon>
-          </v-btn>
+              aria-label="Editar marketing"
+              @click="open_update(item.id)"
+            />
+            <v-btn
+              v-if="marketingActivo(item.status) && can('listMarketing', 'ELIMINAR')"
+              class="marketing-action marketing-action-delete"
+              variant="flat"
+              size="small"
+              icon="mdi-delete"
+              color="error"
+              aria-label="Inactivar marketing"
+              @click="switch_status(item)"
+            />
+          </div>
         </template>
+
       </v-data-table>
     </v-card>
 
@@ -789,3 +800,77 @@ async function reset_records() {
     </v-navigation-drawer>
   </v-card>
 </template>
+
+<style scoped>
+.marketing-list-card {
+  border-radius: 18px;
+}
+
+.marketing-list-toolbar {
+  gap: 12px;
+  padding: 20px 4px 16px;
+}
+
+.marketing-list-search {
+  flex: 0 1 400px;
+  min-width: 220px;
+}
+
+.marketing-list-toolbar .v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.marketing-filter-button {
+  color: #17448e;
+  background-color: #e8f0fe;
+}
+
+.marketing-export-button {
+  color: #00695c;
+  background-color: #e0f2f1;
+}
+
+.marketing-new-button {
+  font-weight: 600;
+}
+
+.marketing-list-table {
+  border: 1px solid #e4ebf6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.marketing-list-table :deep(> .v-table__wrapper > table > thead) {
+  color: #14264e;
+  background-color: #e8effb;
+}
+
+.marketing-list-table :deep(> .v-table__wrapper > table > tbody > tr:nth-of-type(even)) {
+  background-color: #f5f7fb;
+}
+
+.marketing-list-table :deep(> .v-table__wrapper > table > tbody > tr > td) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.marketing-action {
+  border-radius: 9px;
+}
+
+.marketing-action-view {
+  color: #0758b8 !important;
+  background-color: #e8efff !important;
+}
+
+.marketing-action-edit {
+  color: #ad5700 !important;
+  background-color: #fff3da !important;
+}
+
+.marketing-action-delete {
+  color: #bd2424 !important;
+  background-color: #ffebeb !important;
+}
+</style>

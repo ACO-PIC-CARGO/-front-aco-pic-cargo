@@ -3,7 +3,6 @@ import { computed, nextTick, onBeforeMount, onMounted, ref, useTemplateRef, watc
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
-import type { SweetAlertIcon } from "sweetalert2";
 import moment from "moment";
 import { io } from "socket.io-client";
 import axios from "@/api/http";
@@ -47,6 +46,7 @@ import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
+import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
 
 const route = useRoute();
 const router = useRouter();
@@ -180,106 +180,13 @@ function abrirSwalConfigFlete() {
     routesHome.includes(routeHome) &&
     positions.includes(position)
   ) {
-    // 1. Textos actualizados enfocados en el riesgo de cálculos incorrectos
-    let tituloAlerta = "";
-    let mensajeAlerta = "";
-    let iconoAlerta: SweetAlertIcon = "warning";
-
-    if (dias_restantes < 0) {
-      const diasVencidos = Math.abs(dias_restantes);
-      tituloAlerta = "¡ATENCIÓN: FLETE VENCIDO!";
-      mensajeAlerta = `Su flete venció hace <b>${
-        dias_restantes === -1 ? "1 día" : `${diasVencidos} días`
-      }</b>.<br>Debe actualizarlo urgentemente; de lo contrario, <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #e74c3c; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-      iconoAlerta = "error";
-    } else if (dias_restantes === 0) {
-      tituloAlerta = "¡FLETE VENCE HOY!";
-      mensajeAlerta = `Su flete expira <b>hoy mismo</b>.<br>Actualice los costos para evitar que <b>los cálculos saldrán incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-      iconoAlerta = "warning";
-    } else {
-      tituloAlerta = "¡AVISO DE VIGENCIA DE FLETE!";
-      mensajeAlerta = `Su flete está próximo a vencer en <b>${dias_restantes} ${
-        dias_restantes === 1 ? "día" : "días"
-      }</b>.<br>Manténgalo al día para asegurar que <b>los cálculos no salgan incorrectos</b> en las cotizaciones.<br><br><span style="color: #f39c12; font-weight: bold;">Fecha de vigencia: ${vigencia}</span>`;
-      iconoAlerta = "warning";
-    }
-
-    // 2. Alerta con 3 botones con iconos y bloqueo total de 5 segundos
-    Swal.fire({
-      icon: iconoAlerta,
-      title: tituloAlerta,
-      html: mensajeAlerta,
-      allowOutsideClick: false,
-      allowEscapeKey: false,
-
-      // Botón principal (Ir a Configurar Flete)
-      confirmButtonText: "Espere (5s)...",
-      confirmButtonColor: "#00a65a",
-
-      // Tercer botón (Actualizar Fecha)
-      showDenyButton: true,
-      denyButtonText: '<i class="fa fa-calendar-alt"></i> Actualizar Fecha',
-      denyButtonColor: "#3085d6",
-
-      // Botón secundario (Cancelar)
-      showCancelButton: true,
-      cancelButtonText: '<i class="fa fa-times"></i> Cancelar',
-
-      didOpen: () => {
-        const confirmBtn = Swal.getConfirmButton()!;
-        const denyBtn = Swal.getDenyButton();
-        const cancelBtn = Swal.getCancelButton();
-
-        // Deshabilitamos los 3 botones al inicio
-        confirmBtn.disabled = true;
-        confirmBtn.style.backgroundColor = "#95a5a6";
-
-        if (denyBtn) {
-          denyBtn.disabled = true;
-          denyBtn.style.backgroundColor = "#95a5a6";
-        }
-
-        if (cancelBtn) {
-          cancelBtn.disabled = true;
-        }
-
-        let timerSecs = 5;
-        confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
-
-        const interval = setInterval(() => {
-          timerSecs--;
-          if (timerSecs > 0) {
-            confirmBtn.innerHTML = `Por favor lea (${timerSecs}s)`;
-          } else {
-            clearInterval(interval);
-
-            // Habilitamos y restauramos los botones con sus respectivos iconos al pasar los 5 segundos
-            confirmBtn.disabled = false;
-            confirmBtn.innerHTML =
-              '<i class="fa fa-cog"></i> Ir a Configurar Flete';
-            confirmBtn.style.backgroundColor = "#00a65a";
-
-            if (denyBtn) {
-              denyBtn.disabled = false;
-              denyBtn.innerHTML =
-                '<i class="fa fa-calendar-alt"></i> Actualizar Fecha';
-              denyBtn.style.backgroundColor = "#3085d6";
-            }
-
-            if (cancelBtn) {
-              cancelBtn.disabled = false;
-            }
-          }
-        }, 1000);
-      },
-    }).then((res) => {
+    mostrarAvisoVigenciaFlete(dias_restantes, vigencia).then((res) => {
       if (res.isConfirmed) {
-        // Acción para "Ir a Configurar Flete"
+        dialogCambiarFecha.value = true;
+      } else if (res.isDenied) {
         router.push({
           name: "ServiciosCostosFijosLCL",
         });
-      } else if (res.isDenied) {
-        dialogCambiarFecha.value = true;
       }
     });
   }
@@ -2280,6 +2187,120 @@ watch(idRole, async () => {
 </style>
 
 <style>
+.freight-alert.swal2-popup {
+  width: min(460px, calc(100vw - 32px));
+  padding: 12px 16px 16px;
+  border-radius: 14px;
+  color: #071d40;
+}
+.freight-alert .swal2-icon {
+  width: 76px;
+  height: 54px;
+  margin: 0 auto 4px;
+  border: 0;
+  color: #fa6900;
+}
+.freight-alert .swal2-icon.swal2-error {
+  color: #d8392b;
+}
+.freight-alert .swal2-icon .swal2-icon-content,
+.freight-alert .swal2-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.freight-alert-title.swal2-title {
+  padding: 0;
+  font-size: clamp(1.35rem, 5vw, 1.8rem);
+  font-weight: 900;
+}
+.freight-alert-content.swal2-html-container {
+  margin: 4px 0 0;
+  overflow: visible;
+  color: #071d40;
+}
+.freight-alert-heading {
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: #fa6900;
+  color: white;
+  font-size: clamp(1.35rem, 5vw, 1.8rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+.freight-alert-deadline {
+  margin-top: 10px;
+  padding: 8px;
+  border-radius: 12px;
+  background: #f0f1f3;
+  color: #071d40;
+  font-size: clamp(1.1rem, 4vw, 1.4rem);
+  font-weight: 800;
+}
+.freight-alert-deadline-value {
+  color: #e85c00;
+}
+.freight-alert-date {
+  margin-top: 6px;
+  color: #5b6372;
+  font-size: 0.8rem;
+}
+.freight-alert-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 10px 0;
+  text-align: left;
+  font-size: 0.85rem;
+}
+.freight-alert-message strong {
+  font-size: 1.05rem;
+}
+.freight-alert-countdown {
+  --freight-progress: 100%;
+  display: grid;
+  flex: 0 0 54px;
+  height: 54px;
+  place-items: center;
+  border: 7px solid transparent;
+  border-radius: 50%;
+  background: linear-gradient(white, white) padding-box,
+    conic-gradient(#fa6900 var(--freight-progress), #ffd5b5 0) border-box;
+  color: #f26700;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+.freight-alert-actions.swal2-actions {
+  gap: 8px;
+  margin: 8px 0 0;
+}
+.freight-alert-actions .swal2-styled {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.freight-alert-update.swal2-confirm {
+  background: #075ae0;
+}
+.freight-alert-config.swal2-deny {
+  background: #e8f0fe;
+  color: #17448e;
+}
+.freight-alert-continue.swal2-cancel {
+  background: #e9ebee;
+  color: #253953;
+}
+.freight-alert-actions .swal2-styled:disabled {
+  background: #e9ebee;
+  color: #7d8795;
+  opacity: 1;
+  cursor: not-allowed;
+}
+.freight-alert-actions .mdi {
+  margin-right: 6px;
+}
 /* Oculta en móviles (menos de 992px) */
 @media (max-width: 991.98px) {
   .ocultarMovil {
