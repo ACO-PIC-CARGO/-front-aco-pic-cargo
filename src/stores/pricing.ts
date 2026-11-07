@@ -637,10 +637,10 @@ export const usePricingStore = defineStore("pricing", () => {
         "Content-Type": "application/json",
       },
     };
-    await axios<ApiResponse>(config).then((response) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const data = response.data;
-    });
+    const { data } = await axios<ApiResponse>(config);
+    if (data.estadoflag && String(datos.id) === String(datosPrincipales.value.id)) {
+      datosPrincipales.value.datosinstructivomanual = datos.datosInstructivoManual as DatosPrincipales["datosinstructivomanual"];
+    }
   }
   async function obtenerRoles(): Promise<void> {
     itemsDataRoleList.value = useAppStore().itemsDataRoleList;
@@ -4581,6 +4581,10 @@ export const usePricingStore = defineStore("pricing", () => {
       const refusedByServer = !data.estadoflag && data.mensaje !== CONNECTION_ERROR_MESSAGE;
       Swal.fire({ icon: "error", text: refusedByServer ? data.mensaje : APPROVE_FAILED_MESSAGE });
       return false;
+    }
+    if (!data.data[0].id_master) {
+      Swal.fire({ icon: "success", title: "Cotización asociada", text: data.mensaje });
+      return true;
     }
     const name = data.data[0]!.code_master + " - " + datosPrincipales.value.nombre;
     const id_branch = sessionBranchId();

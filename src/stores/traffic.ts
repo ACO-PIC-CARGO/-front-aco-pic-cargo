@@ -2,9 +2,11 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import type { ApiResponse } from "@/types/api";
 import type {
+  AssociableQuote,
   QuoteKind,
   TrafficCorrelative,
   TrafficFile,
+  TrafficFileForm,
   TrafficFileOfHouse,
   TrafficFilters,
   TrafficMasterOption,
@@ -51,6 +53,14 @@ export const useTrafficStore = defineStore("traffic", () => {
 
   const sendQuote = (payload: TrafficSendPayload, idempotencyKey: string) =>
     request<TrafficSent>({ method: "post", url: url("traffic_send"), headers: withKey(idempotencyKey), data: payload });
+
+  const createFile = (form: TrafficFileForm, idempotencyKey: string) =>
+    request<TrafficSent>({ method: "post", url: url("traffic_file"), headers: withKey(idempotencyKey), data: form });
+
+  async function associableQuotes(trafficId: number): Promise<AssociableQuote[]> {
+    const answer = await request<AssociableQuote>({ method: "get", url: url(`traffic/${trafficId}/associable_quotes`), headers: JSON_HEADERS });
+    return answer.estadoflag ? answer.data : [];
+  }
 
   async function mastersFor(trafficId: number): Promise<TrafficMasterOption[]> {
     const answer = await request<TrafficMasterOption>({ method: "get", url: url(`traffic/${trafficId}/masters`), headers: JSON_HEADERS });
@@ -109,6 +119,8 @@ export const useTrafficStore = defineStore("traffic", () => {
     fileOfQuote,
     fileOfHouse,
     sendQuote,
+    createFile,
+    associableQuotes,
     sendToOperations,
     mastersFor,
     loadFiles,

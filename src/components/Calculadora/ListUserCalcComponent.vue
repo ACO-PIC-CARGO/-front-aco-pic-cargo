@@ -4,12 +4,14 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePermissions } from "@/composables/usePermissions";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import type {
   ConceptoCotizacionCalculadora,
+  FiltroUsuariosCalculadora,
   UsuarioCalculadora,
 } from "@/types/calculadora";
 
@@ -37,10 +39,33 @@ const search = ref("");
 const dialogCalls = ref(false);
 const dialogCallHistory = ref(false);
 const loading = ref(false);
+const loadingList = ref(false);
+const loadingFilters = ref(true);
+const filterOpen = ref(false);
+const filterError = ref("");
+const emptyFilter = (): FiltroUsuariosCalculadora => ({
+  fechainicio: "",
+  fechafin: "",
+  id_status: null,
+  id_cliente: null,
+  id_shipment: null,
+  id_port_begin: null,
+  id_port_end: null,
+  email: "",
+  telefono: "",
+});
+const filtro = ref<FiltroUsuariosCalculadora>(emptyFilter());
+const filtroAplicado = ref<FiltroUsuariosCalculadora>(emptyFilter());
+const buscarOrigen = useDebouncedSearch((search: string | null) => {
+  void pricingStore.getPortBegin({ search: search || null });
+});
+const buscarDestino = useDebouncedSearch((search: string | null) => {
+  void pricingStore.getPortEnd({ search: search || null });
+});
 const title = ref("");
 const fecha = ref(moment().format("YYYY-MM-DD"));
 const headers = [
-  { title: "", key: "action", sortable: false },
+  { title: "Acciones", key: "action", sortable: false },
   // { title: "", key: "accion" },
   { title: "Fecha Registro", key: "created_at" },
   { title: "Estado Cotización", key: "estado_cotizacion" },
@@ -56,11 +81,6 @@ const headers = [
   { title: "Teléfono", key: "telefono" },
   // { title: "Estado", key: "estadocotizacion" },
 ];
-
-function contarAcciones(item: UsuarioCalculadora): number {
-  const modifica = Number(can("listUserCalc", "MODIFICAR"));
-  return modifica + Number(Boolean(item.capture_cotizacion)) + (item.estadocotizacion == 1 ? 1 + modifica : 0);
-}
 
 const datos = ref<Record<string, unknown>>({
   desgloseKey: [],
@@ -104,8 +124,61 @@ const frmComentario = useTemplateRef("frmComentario");
 const frmCall = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 
 onMounted(async () => {
-  await calculadorasStore.getListUserCalc();
+  try {
+    await cargarListado(filtroAplicado.value);
+    await Promise.all([
+      appStore.cargarClientes(),
+      pricingStore.getQuoteStatus(),
+      pricingStore.getShipment(),
+      pricingStore.getPortBegin({}),
+      pricingStore.getPortEnd({}),
+    ]);
+  } catch (error) {
+    console.error("Error al cargar los filtros de usuarios de calculadora:", error);
+    await Swal.fire({ icon: "error", text: "No se pudieron cargar los filtros. Recarga la página para intentarlo nuevamente." });
+  } finally {
+    loadingFilters.value = false;
+  }
 });
+
+async function cargarListado(filtros: FiltroUsuariosCalculadora): Promise<boolean> {
+  loadingList.value = true;
+  try {
+    return await calculadorasStore.getListUserCalc(filtros);
+  } catch (error) {
+    console.error("Error al cargar usuarios de calculadora:", error);
+    await Swal.fire({ icon: "error", text: "No se pudo cargar el listado. Inténtalo nuevamente." });
+    return false;
+  } finally {
+    loadingList.value = false;
+  }
+}
+function abrirFiltro() {
+  filtro.value = { ...filtroAplicado.value };
+  filterError.value = "";
+  filterOpen.value = true;
+}
+async function aplicarFiltro() {
+  const { fechainicio, fechafin } = filtro.value;
+  if ((fechainicio && !fechafin) || (!fechainicio && fechafin)) {
+    filterError.value = "Selecciona ambas fechas para filtrar por registro.";
+    return;
+  }
+  if (fechainicio && fechafin && fechainicio > fechafin) {
+    filterError.value = "La fecha inicial no puede ser posterior a la fecha final.";
+    return;
+  }
+  filterError.value = "";
+  const next = { ...filtro.value, email: (filtro.value.email || "").trim(), telefono: (filtro.value.telefono || "").trim() };
+  if (await cargarListado(next)) {
+    filtroAplicado.value = next;
+    filterOpen.value = false;
+  }
+}
+async function limpiarFiltro() {
+  filtro.value = emptyFilter();
+  await aplicarFiltro();
+}
 
 function abrirModalCambiarEstado(data: UsuarioCalculadora) {
   dataCotizacion.value = { ...data };
@@ -121,7 +194,7 @@ async function guardarEstadoCotizacion() {
     if (!(await calculadorasStore.actualizarEstadoCotizacionCalculadora(dataCotizacion.value))) return;
     dialogEditarEstado.value = false;
     appStore.spiner = true;
-    await calculadorasStore.getListUserCalc();
+    await cargarListado(filtroAplicado.value);
     appStore.spiner = false;
   }
 }
@@ -171,7 +244,7 @@ function abrirModalPreview(data: UsuarioCalculadora) {
 }
 async function exportar() {
   loading.value = true;
-  await calculadorasStore.ExportarListUser();
+  await calculadorasStore.ExportarListUser(filtroAplicado.value);
   loading.value = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -975,37 +1048,54 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="12" md="6">
+  <v-container fluid class="calc-users-container">
+    <v-card class="calc-users-card px-5">
+      <v-card-title class="calc-users-toolbar d-flex align-center flex-wrap">
         <v-text-field
           v-model="search"
-          append-inner-icon="mdi-magnify"
-          label="Search"
+          class="calc-users-search"
+          prepend-inner-icon="mdi-magnify"
+          label="Buscar usuario"
           single-line
           hide-details
           variant="outlined"
           density="compact"
+          clearable
         />
-      </v-col>
-      <v-col cols="12" md="6">
+        <v-spacer />
         <v-btn
           v-if="can('listUserCalc', 'EXPORTAR')"
-          color="green"
+          class="calc-users-export"
+          variant="flat"
+          prepend-icon="mdi-download"
           @click="exportar()"
           :loading="loading"
+          :disabled="loadingList"
         >
           Exportar
         </v-btn>
-      </v-col>
-      <v-col cols="12" md="12">
+        <v-btn
+          class="calc-users-filter"
+          variant="flat"
+          prepend-icon="mdi-filter-outline"
+          :disabled="loadingList"
+          @click="abrirFiltro"
+        >
+          Filtrar
+        </v-btn>
+      </v-card-title>
+        <div class="calc-users-search-hint">
+          La búsqueda rápida solo filtra la tabla; la exportación utiliza los filtros aplicados.
+        </div>
         <v-data-table
           :headers="headers"
           :items="calculadorasStore.listUser"
           :search="search"
           item-value="id"
           id="tblListUser"
-          class="elevation-2"
+          class="calc-users-table"
+          :loading="loadingList"
+          :items-per-page="10"
           show-expand
           expand-strategy="single"
           v-model:expanded="expanded"
@@ -1052,16 +1142,20 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               En Espera
             </v-chip>
           </template>
+          <template #[`item.estado_cotizacion`]="{ item }">
+            <v-chip v-if="item.estado_cotizacion" size="small" color="primary" variant="tonal">
+              {{ item.estado_cotizacion }}
+            </v-chip>
+          </template>
           <template #[`item.action`]="{ item }">
-            <v-btn-toggle
-              :class="{ 'acciones-dos-filas': contarAcciones(item) >= 4 }"
-            >
+            <div class="calc-users-actions">
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn
-                    variant="text"
+                    class="calc-users-action calc-users-action-call"
+                    variant="flat"
                     icon
-                    size="x-small"
+                    size="small"
                     v-bind="props"
                     @click="abrirModalCambiarEstado(item)"
                     aria-label="Registro Llamada"
@@ -1076,9 +1170,10 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn
-                    variant="text"
+                    class="calc-users-action calc-users-action-image"
+                    variant="flat"
                     icon
-                    size="x-small"
+                    size="small"
                     v-bind="props"
                     @click="abrirImg(item)"
                     aria-label="Ver Capture"
@@ -1093,9 +1188,10 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn
-                    variant="text"
+                    class="calc-users-action calc-users-action-view"
+                    variant="flat"
                     icon
-                    size="x-small"
+                    size="small"
                     v-bind="props"
                     @click="abrirModalPreview(item)"
                     aria-label="Ver Costos"
@@ -1110,11 +1206,11 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn
-                    variant="text"
+                    class="calc-users-action calc-users-action-send"
+                    variant="flat"
                     icon
-                    size="x-small"
+                    size="small"
                     v-bind="props"
-                    class="ma-1 btnCalc"
                     @click="enviarCotizacionAPricing(item)"
                     aria-label="Enviar Pricing"
                     v-if="item.estadocotizacion == 1 && can('listUserCalc', 'MODIFICAR')"
@@ -1126,7 +1222,7 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
                 </template>
                 <span>Enviar Pricing</span>
               </v-tooltip>
-            </v-btn-toggle>
+            </div>
             <!-- <v-btn x-small icon color="primary" @click="openCall(item)">
             <v-icon>mdi-phone</v-icon>
           </v-btn>
@@ -1135,8 +1231,59 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
           </v-btn> -->
           </template>
         </v-data-table>
-      </v-col>
-    </v-row>
+    </v-card>
+    <v-navigation-drawer
+      v-model="filterOpen"
+      class="calc-users-filter-drawer"
+      location="right"
+      temporary
+      width="min(480px, 100vw)"
+    >
+      <v-list-item>
+        <v-list-item-title class="text-headline-small">Filtrar Registros</v-list-item-title>
+      </v-list-item>
+      <v-container>
+        <v-card-text>
+          <v-progress-linear v-if="loadingFilters" indeterminate color="primary" class="mb-4" />
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="filtro.fechainicio" type="date" label="Fecha registro desde" variant="outlined" density="compact" hide-details />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="filtro.fechafin" type="date" label="Fecha registro hasta" variant="outlined" density="compact" hide-details />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-autocomplete v-model="filtro.id_status" :items="pricingStore.listQuoteStatus" item-title="name" item-value="id" label="Estado de cotización" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-autocomplete v-model="filtro.id_cliente" :items="appStore.clientes" item-title="namelong" item-value="id" label="Cliente" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-autocomplete v-model="filtro.id_shipment" :items="pricingStore.listShipment" item-title="embarque" item-value="id" label="Tipo de carga" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-autocomplete v-model="filtro.id_port_begin" :items="pricingStore.listPortBegin" item-title="name" item-value="id_port" label="Puerto origen" variant="outlined" density="compact" hide-details clearable no-filter @update:search="buscarOrigen" />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-autocomplete v-model="filtro.id_port_end" :items="pricingStore.listPortEnd" item-title="name" item-value="id_port" label="Puerto destino" variant="outlined" density="compact" hide-details clearable no-filter @update:search="buscarDestino" />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="filtro.email" label="Correo" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field v-model="filtro.telefono" label="Teléfono" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
+          </v-row>
+          <v-alert v-if="filterError" type="error" density="compact" class="mt-4">{{ filterError }}</v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="success" variant="flat" :loading="loadingList" :disabled="loadingFilters" @click="aplicarFiltro">Aceptar</v-btn>
+          <v-btn variant="flat" :disabled="loadingList" @click="limpiarFiltro">Limpiar</v-btn>
+          <v-btn color="warning" variant="flat" :disabled="loadingList" @click="filterOpen = false">Cerrar</v-btn>
+        </v-card-actions>
+      </v-container>
+    </v-navigation-drawer>
     <PreviewQuote :dialog="dialog" :data="dataCotizacion" />
     <v-dialog v-model="dialogEditarEstado" max-width="30%">
       <v-card>
@@ -1196,17 +1343,68 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
 </template>
 
 <style scoped>
-.acciones-dos-filas {
+.calc-users-card {
+  border-radius: 18px;
+}
+.calc-users-toolbar {
+  gap: 12px;
+  padding: 20px 4px 16px;
+}
+.calc-users-search {
+  flex: 0 1 400px;
+  min-width: 220px;
+}
+.calc-users-toolbar .v-btn {
+  text-transform: none;
+  letter-spacing: normal;
+}
+.calc-users-search-hint {
+  margin: -8px 4px 12px;
+  color: #5b6372;
+  font-size: 0.8rem;
+}
+.calc-users-filter {
+  color: #17448e;
+  background-color: #e8f0fe;
+}
+.calc-users-export {
+  color: #00695c;
+  background-color: #e0f2f1;
+}
+.calc-users-table {
+  border: 1px solid #e4ebf6;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.calc-users-table :deep(> .v-table__wrapper > table > thead) {
+  color: #14264e;
+  background-color: #e8effb;
+}
+.calc-users-table :deep(> .v-table__wrapper > table > tbody > tr:nth-of-type(even)) {
+  background-color: #f5f7fb;
+}
+.calc-users-table :deep(> .v-table__wrapper > table > tbody > tr > td) {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+.calc-users-actions {
   display: grid;
-  grid-template-columns: repeat(3, max-content);
+  grid-template-columns: repeat(2, max-content);
+  gap: 4px;
 }
-
-#tblListUser tbody tr:nth-child(odd) {
-  background-color: #f9f9f9; /* Color suave para impares */
+.calc-users-action {
+  border-radius: 9px;
 }
-
-/* Fila par */
-#tblListUser tbody tr:nth-child(even) {
-  background-color: #ffffff; /* Color para pares */
+.calc-users-action-call {
+  background-color: #e8efff !important;
+}
+.calc-users-action-image {
+  background-color: #ffebeb !important;
+}
+.calc-users-action-view {
+  background-color: #f1e9fa !important;
+}
+.calc-users-action-send {
+  background-color: #e0f2f1 !important;
 }
 </style>

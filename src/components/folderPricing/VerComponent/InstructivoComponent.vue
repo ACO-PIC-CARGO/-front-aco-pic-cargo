@@ -35,7 +35,7 @@ const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFil
 const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
 const sendingInstructivo = shallowRef(false);
 const instructivoDestino = computed<SendTarget>(() => {
-  if (sendingInstructivo.value) return sendTarget.value;
+  if (sendingInstructivo.value && sendTarget.value) return sendTarget.value;
   return pendingTrafficFile.value ? "TRAFFIC" : "OPERATIONS";
 });
 const approvalState = computed(() => {
@@ -483,11 +483,13 @@ function abrirModalListadoArchivos() {
   dialogFiles.value = true;
 }
 function abrirSeleccionCorreo() {
+  const hasDraft = !!pricingStore.datosPrincipales.datosinstructivomanual;
   Swal.fire({
     icon: "question",
-    title: "¿Empezar Instructivo?",
+    title: hasDraft ? "¿Continuar el instructivo?" : "¿Empezar Instructivo?",
+    text: hasDraft ? "Tienes un borrador guardado. Seguirás desde donde lo dejaste." : undefined,
     showConfirmButton: true,
-    confirmButtonText: "Empezar",
+    confirmButtonText: hasDraft ? "Continuar" : "Empezar",
     cancelButtonText: "Cancelar",
     allowEnterKey: false,
     allowEscapeKey: false,
@@ -1062,7 +1064,7 @@ function getProveedor(element: OpcionCosto) {
     >
       <v-card class="pa-5">
         <h2 class="text-blue justify--text">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}
+          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO<template v-if="sendTarget"> A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}</template>
         </h2>
         <v-select
           id="send-target"
@@ -1100,6 +1102,7 @@ function getProveedor(element: OpcionCosto) {
           <v-spacer />
           <v-btn
             class="mx-1"
+            :disabled="!sendTarget"
             @click="abrirModalListadoArchivos()"
             color="success"
           >

@@ -6,14 +6,14 @@ import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
 import { trafficStatusLabel } from "@/utils/trafficSend";
 import TrafficCorrelativeDialog from "./TrafficCorrelativeDialog.vue";
+import TrafficFileCreateDialog from "./TrafficFileCreateDialog.vue";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 import TrafficStatusDialog from "./TrafficStatusDialog.vue";
 import { TRAFFIC_TABLE_FOOTER } from "./trafficTableFooter";
 
 const STATE_OPTIONS = [
-  { title: "Pendientes", value: "PENDING" },
-  { title: "Enviados a operaciones", value: "SENT" },
   { title: "Todos", value: null },
+  { title: "Enviados a operaciones", value: "SENT" },
 ];
 const headers = [
   { title: "N° Tráfico", key: "code_traffic" },
@@ -31,7 +31,9 @@ const headers = [
 const router = useRouter();
 const trafficStore = useTrafficStore();
 const canModify = usePermissions().can("lstTraffic", "MODIFICAR");
-const state = shallowRef<TrafficState | null>("PENDING");
+const canCreate = usePermissions().can("lstTraffic", "NUEVO");
+const creating = shallowRef(false);
+const state = shallowRef<TrafficState | null>(null);
 const status = shallowRef<number | null>(null);
 const loading = shallowRef(false);
 const page = shallowRef(1);
@@ -44,11 +46,7 @@ const statusOptions = computed(() => [
   { title: "Todos los estatus", value: null },
   ...trafficStore.statuses.map((option) => ({ title: option.name, value: option.id })),
 ]);
-const emptyText = computed(() =>
-  state.value === "PENDING"
-    ? "No hay expedientes pendientes en Tráfico. Envía una cotización a Tráfico desde su pantalla para verla aquí."
-    : "No hay expedientes de tráfico con esos filtros. Cambia el estado o el estatus.",
-);
+const emptyText = "No hay expedientes de tráfico con esos filtros. Cambia el estado o el estatus.";
 
 async function load() {
   loading.value = true;
@@ -70,9 +68,11 @@ async function onSent() {
 
 watch([state, status], () => (page.value === 1 ? load() : (page.value = 1)));
 watch([page, pageSize], load);
-onMounted(() => {
-  trafficStore.loadStatuses();
-  load();
+onMounted(async () => {
+  await trafficStore.loadStatuses();
+  const defaultStatus = trafficStore.statuses.find((option) => option.is_default)?.id ?? null;
+  if (defaultStatus === null) await load();
+  else status.value = defaultStatus;
 });
 </script>
 
@@ -102,6 +102,15 @@ onMounted(() => {
       />
       <v-spacer />
       <v-btn
+        v-if="canCreate"
+        color="primary"
+        prepend-icon="mdi-plus"
+        class="mr-2"
+        @click="creating = true"
+      >
+        Nuevo embarque
+      </v-btn>
+      <v-btn
         v-if="canModify"
         variant="tonal"
         prepend-icon="mdi-counter"
@@ -123,6 +132,9 @@ onMounted(() => {
       item-value="id_traffic"
       density="compact"
     >
+      <template #[`item.quote_number`]="{ item }">
+        {{ item.quote_number ?? "Sin cotización" }}
+      </template>
       <template #[`item.status`]="{ item }">
         <v-chip
           size="small"
@@ -132,29 +144,53 @@ onMounted(() => {
         </v-chip>
       </template>
       <template #[`item.actions`]="{ item }">
-        <v-btn
-          icon="mdi-eye"
-          size="small"
-          variant="text"
-          :aria-label="`Ver ${item.code_traffic}`"
-          @click="openFile(item)"
-        />
+        <v-tooltip
+          text="Ver expediente"
+          location="top"
+        >
+          <template #activator="{ props: tooltip }">
+            <v-btn
+              v-bind="tooltip"
+              icon="mdi-eye"
+              size="small"
+              variant="text"
+              :aria-label="`Ver ${item.code_traffic}`"
+              @click="openFile(item)"
+            />
+          </template>
+        </v-tooltip>
         <template v-if="canModify && !item.sent_at">
-          <v-btn
-            icon="mdi-tag-outline"
-            size="small"
-            variant="text"
-            :aria-label="`Cambiar estatus de ${item.code_traffic}`"
-            @click="relabelling = item"
-          />
-          <v-btn
-            icon="mdi-send"
-            size="small"
-            variant="text"
-            color="primary"
-            :aria-label="`Enviar ${item.code_traffic} a Operaciones`"
-            @click="sending = item"
-          />
+          <v-tooltip
+            text="Cambiar estatus"
+            location="top"
+          >
+            <template #activator="{ props: tooltip }">
+              <v-btn
+                v-bind="tooltip"
+                icon="mdi-tag-outline"
+                size="small"
+                variant="text"
+                :aria-label="`Cambiar estatus de ${item.code_traffic}`"
+                @click="relabelling = item"
+              />
+            </template>
+          </v-tooltip>
+          <v-tooltip
+            text="Enviar a Operaciones"
+            location="top"
+          >
+            <template #activator="{ props: tooltip }">
+              <v-btn
+                v-bind="tooltip"
+                icon="mdi-send"
+                size="small"
+                variant="text"
+                color="primary"
+                :aria-label="`Enviar ${item.code_traffic} a Operaciones`"
+                @click="sending = item"
+              />
+            </template>
+          </v-tooltip>
         </template>
       </template>
     </v-data-table-server>
@@ -172,6 +208,10 @@ onMounted(() => {
     @sent="onSent"
   />
   <TrafficCorrelativeDialog v-model="numbering" />
+  <TrafficFileCreateDialog
+    v-model="creating"
+    @created="load"
+  />
 </template>
 
 <style scoped>

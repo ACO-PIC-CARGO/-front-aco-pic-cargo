@@ -5,7 +5,8 @@ import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import TrafficFileBar from "@/components/folderTraffic/TrafficFileBar.vue";
-import { accepted, respond } from "@/stores/__tests__/catalogHttp";
+import { useHousesStore } from "@/stores/houses";
+import { accepted, httpMock, respond } from "@/stores/__tests__/catalogHttp";
 
 const push = vi.fn();
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
@@ -62,4 +63,24 @@ test("the expense control opens the house's own control de gastos", async () => 
   await buttonNamed("Control de gastos")!.trigger("click");
 
   expect(push).toHaveBeenCalledWith({ name: "billControlGastos", params: { id_house: 90 } });
+});
+
+const quotelessFile = { ...pendingFile, quote_kind: null, id_quote: null };
+
+test("a file without a quote offers no quote to open but can still be sent", async () => {
+  await mountAs(["VER", "MODIFICAR"], quotelessFile as never);
+
+  expect(buttonNamed("Ver cotización")).toBeUndefined();
+  expect(buttonNamed("Enviar a Operaciones")).toBeDefined();
+});
+
+test("the bar reloads its file once a quote is associated to the house", async () => {
+  await mountAs(["VER", "MODIFICAR"], quotelessFile as never);
+  respond({ traffic_by_house: accepted([pendingFile]) });
+
+  useHousesStore().house = { ...useHousesStore().house, id_cot: 15376 } as never;
+  await flushPromises();
+
+  expect(httpMock.mock.calls.filter(([config]) => config.url.endsWith("traffic_by_house"))).toHaveLength(2);
+  expect(buttonNamed("Ver cotización")).toBeDefined();
 });

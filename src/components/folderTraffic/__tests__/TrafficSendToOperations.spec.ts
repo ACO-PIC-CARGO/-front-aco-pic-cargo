@@ -39,8 +39,8 @@ interface FileToSend {
   id_traffic: number;
   code_traffic: string;
   id_house: number;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
 }
 
 const pricingFile: FileToSend = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, quote_kind: "PRICING", id_quote: 15376 };
@@ -162,4 +162,36 @@ test("inside a read-only host form, like the house screen, the instructivo and t
   field("input[aria-label='Enlazar a un master existente']").click();
   await flushPromises();
   expect(document.querySelector("#traffic-master")).not.toBeNull();
+});
+
+const quotelessFile: FileToSend = { ...pricingFile, quote_kind: null, id_quote: null };
+
+test("a file without a quote asks before sending and then goes to the master choice", async () => {
+  respond({ "traffic/4/masters": accepted([]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);
+  const getQuote = vi.spyOn(usePricingStore(), "getQuote");
+
+  const flow = await mountFlow(quotelessFile);
+
+  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: "¿Enviar sin cotización?", confirmButtonText: "Enviar sin cotización" }));
+  expect(getQuote).not.toHaveBeenCalled();
+  expect(flow.step).toBe("master");
+});
+
+test("cancelling the quote-less send closes the flow and sends nothing", async () => {
+  respond({ "traffic/4/masters": accepted([]) });
+
+  await mountFlow(quotelessFile);
+
+  expect(wrapper!.emitted("close")).toHaveLength(1);
+  expect(sentPayloads()).toEqual([]);
+});
+
+test("while the quote-less confirmation is open, the master choice stays hidden", async () => {
+  respond({ "traffic/4/masters": accepted([]) });
+  vi.mocked(Swal.fire).mockReturnValueOnce(new Promise(() => {}) as never);
+
+  await mountFlow(quotelessFile);
+
+  expect(document.body.textContent).not.toContain("Enviar TR-00004 a Operaciones");
 });

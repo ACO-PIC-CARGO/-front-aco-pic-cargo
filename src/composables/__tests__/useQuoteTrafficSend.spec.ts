@@ -40,18 +40,28 @@ describe("useQuoteTrafficSend", () => {
     await send.load();
 
     expect(send.targets.value).toEqual(["OPERATIONS"]);
-    expect(send.target.value).toBe("OPERATIONS");
+    expect(send.target.value).toBeNull();
     expect(send.pendingFile.value).toEqual(pendingFile);
   });
 
-  test("a new quote starts on Operaciones, as before, and can switch to Tráfico", async () => {
+  test("a new quote starts with no destination so the user must choose Operaciones or Tráfico", async () => {
     respond({ traffic_by_quote: rejected() });
     const send = sendFor(false);
 
     await send.load();
 
     expect(send.targets.value).toEqual(["OPERATIONS", "TRAFFIC"]);
-    expect(send.target.value).toBe("OPERATIONS");
+    expect(send.target.value).toBeNull();
+  });
+
+  test("reloading clears the destination chosen before", async () => {
+    respond({ traffic_by_quote: rejected() });
+    const send = sendFor(false);
+    send.target.value = "TRAFFIC";
+
+    await send.load();
+
+    expect(send.target.value).toBeNull();
   });
 
   test("a refused send shows the server's reason and the retry uses a new key", async () => {

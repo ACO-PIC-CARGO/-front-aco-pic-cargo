@@ -503,6 +503,43 @@ describe("pricing store", () => {
     });
   });
 
+  describe("instructivo draft", () => {
+    const draft = { servicio: "Grupal", listaDocumentos: [] };
+
+    const openQuote = (id: number) => {
+      const store = usePricingStore();
+      store.datosPrincipales.id = id;
+      return store;
+    };
+
+    test("a saved draft stays loaded so reopening the instructivo shows it without reloading", async () => {
+      respond({ actualizar_datos_instructivo_manual: accepted([]) });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: "16793", datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toEqual(draft);
+    });
+
+    test("a refused draft keeps the draft that was loaded", async () => {
+      respond({ actualizar_datos_instructivo_manual: rejected("No se pudo guardar.") });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: "16793", datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toBeUndefined();
+    });
+
+    test("saving another quote's draft leaves the open quote's draft alone", async () => {
+      respond({ actualizar_datos_instructivo_manual: accepted([]) });
+      const store = openQuote(16793);
+
+      await store.guardarDatosInstructivo({ id: 9613, datosInstructivoManual: draft });
+
+      expect(store.datosPrincipales.datosinstructivomanual).toBeUndefined();
+    });
+  });
+
   describe("quote", () => {
     test("registrarQuote posts the LCL quote with formatted costs, notes, taxes and services and keeps the new id", async () => {
       httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 501, nro_quote: "15000-P", msg: "Registrado" } });
@@ -1892,6 +1929,20 @@ describe("pricing store", () => {
       expect(guardarCarpetaHouse).toHaveBeenCalledWith({ nroMaster: "M-900 - ZEVALLOS", id: 900, idSelectedFile: ["f1", "f2"] });
       expect(imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 900, id_branch: 1 });
       expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
+    });
+
+    test("aprobarCotizacion into a file without master confirms it without touching a master", async () => {
+      respond({ aprobar_cotizacion: accepted([{ id_master: null, code_master: null }]) });
+      const pricing = usePricingStore();
+      pricing.datosPrincipales = { nombre: "ZEVALLOS" };
+
+      expect(await pricing.aprobarCotizacion({ IdempotencyKey: "key-3", nuevoexpediente: false })).toBe(true);
+      await flushPromises();
+
+      expect(moveFileToOneDrive).not.toHaveBeenCalled();
+      expect(imprimirGuardarControlDetallado).not.toHaveBeenCalled();
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success", text: "ok" }));
+      expect(router.push).not.toHaveBeenCalled();
     });
 
     test("aprobarCotizacion moves the files to the existing folder when the quote joins an existing file", async () => {

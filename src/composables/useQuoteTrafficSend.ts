@@ -17,7 +17,7 @@ interface QuoteTrafficOptions {
 export function useQuoteTrafficSend({ quoteKind, quoteId, approved }: QuoteTrafficOptions) {
   const trafficStore = useTrafficStore();
   const trafficFile = ref<TrafficFileOfQuote | null>(null);
-  const target = shallowRef<SendTarget>("OPERATIONS");
+  const target = shallowRef<SendTarget | null>(null);
   let idempotencyKey = generateIdempotencyKey();
 
   const targets = computed(() => sendTargetsFor(approved(), trafficFile.value));
@@ -26,7 +26,7 @@ export function useQuoteTrafficSend({ quoteKind, quoteId, approved }: QuoteTraff
 
   async function load() {
     trafficFile.value = await trafficStore.fileOfQuote(quoteKind, quoteId());
-    target.value = targets.value[0] ?? "OPERATIONS";
+    target.value = null;
   }
 
   const showWorking = (title: string) => Swal.fire({ icon: "info", title, allowOutsideClick: false, didOpen: () => Swal.showLoading() });

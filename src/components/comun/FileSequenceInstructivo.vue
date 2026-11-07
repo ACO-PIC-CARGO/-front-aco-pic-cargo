@@ -3125,7 +3125,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             @click="setDatosInstructivo"
             class="mx-2"
           >
-            Guardar Borrador Y Continuar
+            Guardar Borrador Y Continuar a {{ destino === "TRAFFIC" ? "Tráfico" : "Operaciones" }}
           </v-btn>
           <v-btn
             color="success"

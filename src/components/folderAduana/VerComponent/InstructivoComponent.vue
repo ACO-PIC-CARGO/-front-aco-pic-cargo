@@ -724,7 +724,7 @@ function getProveedor(element: OpcionCosto) {
     >
       <v-card class="pa-5">
         <h2 class="text-blue">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}
+          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO<template v-if="sendTarget"> A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}</template>
         </h2>
         <v-select
           id="send-target"
@@ -760,6 +760,7 @@ function getProveedor(element: OpcionCosto) {
           <v-spacer />
           <v-btn
             class="mx-1"
+            :disabled="!sendTarget"
             @click="abrirModalAprobar()"
             color="success"
           >

@@ -7,8 +7,8 @@ export interface TrafficFile {
   nro_traffic: number;
   id_house: number;
   code_house: string | null;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
   quote_number: string | null;
   namemodality: string | null;
   nameportbegin: string | null;
@@ -44,12 +44,14 @@ export interface TrafficStatus {
   id: number;
   name: string;
   position: number;
+  is_default: boolean;
 }
 
 export interface TrafficStatusForm {
   id?: number | null;
   name: string;
   position?: number | null;
+  is_default?: boolean;
 }
 
 export interface TrafficCorrelative {
@@ -93,12 +95,31 @@ export interface TrafficFileOfHouse {
   id_traffic: number;
   code_traffic: string;
   id_house: number;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
   sent: boolean;
 }
 
 export interface TrafficMasterOption {
   id: number;
   code_master: string;
+}
+
+export interface TrafficFileForm {
+  id_consigner: number | null;
+  id_modality: number | null;
+  id_shipment: number | null;
+  id_port_begin: number | null;
+  id_port_end: number | null;
+  id_incoterms: number | null;
+  id_pricing: number | null;
+  bultos: number | null;
+  peso: number | null;
+  volumen: number | null;
+  nro_traffic: number | null;
+}
+
+export interface AssociableQuote {
+  quote_kind: QuoteKind;
+  id_quote: number;
 }

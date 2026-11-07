@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import axios from "@/api/http";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseEditStore } from "@/stores/houseEdit";
+import { useTrafficStore } from "@/stores/traffic";
 import { editFormFromHouse } from "./houseEditForm";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
+import { associableIdsOf } from "@/utils/trafficSend";
 import type { AprobacionCotizacion, CotizacionListado } from "@/types/cotizacion";
 import type { CotizacionAsociableHouse } from "@/types/operaciones";
 
@@ -22,9 +24,29 @@ const COST_OPTIONS = [
   { id: "2", text: "Sumar los nuevos costos, a los costos ya existentes de proveedores" },
 ];
 
+const COST_OPTIONS_WITHOUT_MASTER = [
+  { id: "0", text: "No copiar los costos de la cotización" },
+  { id: "2", text: "Sumar los costos de la cotización" },
+];
+
 const pricingStore = usePricingStore();
 const aduanaStore = useAduanaStore();
 const housesStore = useHousesStore();
+const trafficStore = useTrafficStore();
+const associableIds = ref<ReturnType<typeof associableIdsOf> | null>(null);
+const pricingQuotes = computed(() =>
+  associableIds.value ? pricingStore.listQuotes.filter((quote) => associableIds.value!.pricing.has(Number(quote.id))) : pricingStore.listQuotes,
+);
+const aduanaQuotes = computed(() =>
+  associableIds.value ? aduanaStore.listQuotes2.filter((quote) => associableIds.value!.aduana.has(Number(quote.id))) : aduanaStore.listQuotes2,
+);
+const costOptions = computed(() => (housesStore.house.id_master ? COST_OPTIONS : COST_OPTIONS_WITHOUT_MASTER));
+
+async function loadTrafficFilter() {
+  if (!housesStore.house.id) return;
+  const file = await trafficStore.fileOfHouse(housesStore.house.id);
+  if (file && file.id_quote === null) associableIds.value = associableIdsOf(await trafficStore.associableQuotes(file.id_traffic));
+}
 const { form } = storeToRefs(useHouseEditStore());
 const dialog = ref(false);
 const kind = ref<QuoteKind>("pricing");
@@ -45,7 +67,9 @@ function cancel() {
   resetSelection();
 }
 
-onMounted(() => Promise.all([pricingStore.ListarMontosFinalesQuoteMONGODB(), aduanaStore.ListarMontosFinalesAduanaMONGODB()]));
+onMounted(() =>
+  Promise.all([pricingStore.ListarMontosFinalesQuoteMONGODB(), aduanaStore.ListarMontosFinalesAduanaMONGODB(), loadTrafficFilter()]),
+);
 
 function openCosts(selected: QuoteKind, value: unknown) {
   if (!value) return;
@@ -118,7 +142,7 @@ async function associate() {
   <div class="d-flex flex-wrap ga-3">
     <v-autocomplete
       v-model="form.id_cot"
-      :items="pricingStore.listQuotes"
+      :items="pricingQuotes"
       item-title="code"
       item-value="id"
       label="Cot Nro"
@@ -128,7 +152,7 @@ async function associate() {
     />
     <v-autocomplete
       v-model="form.id_quoteaduana"
-      :items="aduanaStore.listQuotes2"
+      :items="aduanaQuotes"
       item-title="quote"
       item-value="id"
       label="Aduana asociado al house"
@@ -157,7 +181,7 @@ async function associate() {
         <v-card-text class="px-6">
           <v-autocomplete
             v-model="option"
-            :items="COST_OPTIONS"
+            :items="costOptions"
             item-title="text"
             item-value="id"
             label="Qué hacer con los costos"

@@ -13,6 +13,7 @@ import type {
   EnvioCotizacionCalculadora,
   FiltroCalculadora,
   FiltroFleteCalculadora,
+  FiltroUsuariosCalculadora,
   FleteCalculadora,
   FleteGrupal,
   FleteGrupalResumen,
@@ -37,6 +38,7 @@ import type { EstadoCotizacion, Multiplicador } from "@/types/cotizacion";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { sessionBranchId, sessionIsoPais } from "@/utils/sesion";
 import { request } from "@/utils/request";
+import { showRejectedResponse } from "@/utils/rejectedResponse";
 // import funciones from "./../../mixins/funciones";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
@@ -176,17 +178,23 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function getListUserCalc(): Promise<void> {
+  async function getListUserCalc(filtro?: FiltroUsuariosCalculadora): Promise<boolean> {
     const response = await axios<ApiResponse<UsuarioCalculadora[]>>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "listar_usuarios_calculadora",
       headers: JSON_HEADERS,
       data: {
         iso_pais: sessionIsoPais(),
+        ...filtro,
       },
     });
 
+    if (!response.data.estadoflag) {
+      showRejectedResponse(response.data);
+      return false;
+    }
     listUser.value = response.data.data;
+    return true;
   }
 
   async function getCboStatus(): Promise<void> {
@@ -213,12 +221,12 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     });
   }
 
-  async function ExportarListUser(): Promise<void> {
+  async function ExportarListUser(filtro?: FiltroUsuariosCalculadora): Promise<void> {
     try {
       const { data } = await axios<Blob>({
         method: "get",
         url: import.meta.env.VITE_URL_MAIN + "export_listar_usuarios_calculadora",
-        params: { id_pais: sessionIsoPais() },
+        params: { id_pais: sessionIsoPais(), ...filtro },
         responseType: "blob",
       });
       if (data.type.includes("json")) {

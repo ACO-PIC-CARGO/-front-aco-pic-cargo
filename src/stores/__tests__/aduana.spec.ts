@@ -825,6 +825,17 @@ describe("aduana store", () => {
       expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 900, id_branch: 1 } });
     });
 
+    test("aprobarCotizacionAduana into a file without master confirms it without offering an expense control", async () => {
+      const mensaje = "Se asoció la cotización al expediente TR-00004.";
+      respond({ aprobar_cotizacion_aduana: { estadoflag: true, mensaje, data: [{ id_master: null, nro_master: null }] } });
+
+      expect(await useAduanaStore().aprobarCotizacionAduana({ id_quote: 14, nuevoexpediente: false, IdempotencyKey: "key-3" })).toBe(true);
+      await flushPromises();
+
+      expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success", text: mensaje }));
+      expect(router.push).not.toHaveBeenCalled();
+    });
+
     test.each([
       [{ estadoflag: false, mensaje: "Esta cotización ya fue aprobada.", tipomensaje: "TMSGADV", data: [] }, "Esta cotización ya fue aprobada."],
       [new Error("down"), APPROVE_FAILED_MESSAGE],

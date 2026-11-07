@@ -31,6 +31,8 @@ const etd = (keptAt: string | null): HouseTrackingStep => ({
   validation_result_code: null,
   quote_validity: { quote_id: 7092, valid_until: "2025-11-14", kept_by: keptAt && "Carlos Ramírez", kept_at: keptAt },
   state: "next",
+  skipped: false,
+  allows_skip: false,
   comments: [],
 });
 const phaseWith = (step: HouseTrackingStep): HouseTrackingPhase => ({
@@ -61,6 +63,8 @@ const mountList = (...steps: HouseTrackingStep[]) => {
 const confirmedEtd = (sentAt: string | null): HouseTrackingStep => ({
   ...etd(null),
   state: "confirmed",
+  skipped: false,
+  allows_skip: false,
   confirmed_at: "2026-10-26T15:00:00Z",
   sent_at: sentAt,
 });

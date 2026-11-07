@@ -36,9 +36,9 @@ let wrapper: VueWrapper | undefined;
 beforeEach(() => vi.clearAllMocks());
 afterEach(() => wrapper?.unmount());
 
-async function mountAs(actions: string[], rows: unknown[] = [pending]) {
+async function mountAs(actions: string[], rows: unknown[] = [pending], statuses: unknown[] = []) {
   sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: "lstTraffic", actions }], controlled: ["lstTraffic"] }));
-  respond({ traffic_list: accepted(rows), traffic_status: accepted([]) });
+  respond({ traffic_list: accepted(rows), traffic_status: accepted(statuses) });
   const pinia = createPinia();
   setActivePinia(pinia);
   wrapper = mount(TrafficList, {
@@ -56,10 +56,10 @@ const lastListParams = () => {
 };
 const labelled = (label: string) => wrapper!.find(`button[aria-label="${label}"]`);
 
-test("the list starts on the files still pending", async () => {
+test("without a default status the list starts with every file", async () => {
   await mountAs(["VER"]);
 
-  expect(listParams()).toEqual([{ state: "PENDING", status: null, pagina: 1, limit: 10 }]);
+  expect(listParams()).toEqual([{ state: null, status: null, pagina: 1, limit: 10 }]);
   expect(wrapper!.text()).toContain("TR-00004");
 });
 
@@ -123,4 +123,13 @@ test("without Modificar on Tráfico, files are only viewed", async () => {
   expect(labelled("Enviar TR-00004 a Operaciones").exists()).toBe(false);
   expect(labelled("Cambiar estatus de TR-00004").exists()).toBe(false);
   expect(wrapper!.findAll("button").some((button) => button.text().includes("Configurar correlativo"))).toBe(false);
+});
+
+test("the list starts filtered by the company's default status", async () => {
+  await mountAs(["VER"], [pending], [
+    { id: 3, name: "En negociación", position: 1, is_default: false },
+    { id: 7, name: "Por embarcar", position: 2, is_default: true },
+  ]);
+
+  expect(listParams()).toEqual([{ state: null, status: 7, pagina: 1, limit: 10 }]);
 });

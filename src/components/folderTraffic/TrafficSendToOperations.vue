@@ -13,8 +13,8 @@ interface TrafficFileToSend {
   id_traffic: number;
   code_traffic: string;
   id_house: number;
-  quote_kind: QuoteKind;
-  id_quote: number;
+  quote_kind: QuoteKind | null;
+  id_quote: number | null;
 }
 
 const props = defineProps<{ file: TrafficFileToSend }>();
@@ -23,7 +23,11 @@ const emit = defineEmits<{ close: []; sent: [] }>();
 const router = useRouter();
 const pricingStore = usePricingStore();
 const trafficStore = useTrafficStore();
-const step = shallowRef<"loading" | "instructivo" | "master">(props.file.quote_kind === "PRICING" ? "loading" : "master");
+const firstStep = () => {
+  if (props.file.id_quote === null) return "confirm";
+  return props.file.quote_kind === "PRICING" ? "loading" : "master";
+};
+const step = shallowRef<"confirm" | "loading" | "instructivo" | "master">(firstStep());
 const isNew = shallowRef(true);
 const availability = shallowRef("");
 const masterId = shallowRef<number | null>(null);
@@ -80,8 +84,27 @@ async function send() {
   if (choice.isConfirmed) router.push({ name: "controlHouseVer", params: { id: props.file.id_house } });
 }
 
+async function confirmWithoutQuote() {
+  const choice = await Swal.fire({
+    icon: "question",
+    title: "¿Enviar sin cotización?",
+    text:
+      "Este expediente no tiene cotización. Se enviará a Operaciones con los datos del expediente (cliente, ruta y carga), " +
+      "sin instructivo ni costos de una cotización. Después puedes asociarle una cotización desde el house y completar su instructivo.",
+    confirmButtonText: "Enviar sin cotización",
+    showCancelButton: true,
+    cancelButtonText: "Cancelar",
+  });
+  if (!choice.isConfirmed) {
+    emit("close");
+    return;
+  }
+  step.value = "master";
+}
+
 onMounted(async () => {
   const loadingMasters = trafficStore.mastersFor(props.file.id_traffic);
+  if (step.value === "confirm") await confirmWithoutQuote();
   if (step.value === "loading") await openInstructivo();
   masters.value = await loadingMasters;
 });
@@ -120,7 +143,7 @@ onMounted(async () => {
         <!-- Own form, so a read-only host form (the house screen) cannot make these fields read-only. -->
         <v-form>
           <FileSequenceInstructivo
-            :quote-id="file.id_quote"
+            :quote-id="file.id_quote ?? undefined"
             :aprobadoflag="false"
             destino="OPERATIONS"
             @continuar="step = 'master'"
@@ -132,7 +155,7 @@ onMounted(async () => {
   </v-dialog>
 
   <v-dialog
-    v-else
+    v-else-if="step === 'master'"
     :model-value="true"
     max-width="520"
     persistent

@@ -55,3 +55,6 @@ export const stepDialogPreset = (step: HouseTrackingStep, mode: StepDialogMode) 
   }
   return { title: `Confirmar «${step.name}»`, action: "Confirmar", initial: step.scheduled_at };
 };
+
+export const blockingStepName = (steps: HouseTrackingStep[]): string | null =>
+  steps.find((step) => step.state === "next" && !step.allows_skip)?.name ?? null;

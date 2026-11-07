@@ -42,6 +42,7 @@ const step = {
   active: true,
   validation_id: null,
   date_default_id: null,
+  allows_skip: false,
 };
 const phase: TrackingPhase = { id: 1, name: "Origen", icon: "mdi-airplane", sort_order: 1, active: true, first_step_number: 1, last_step_number: 1, steps: [step] };
 const cost = { id: 31, id_costo: 4, costo: "FLETE", id_multiplicador: 2, id_proveedor: 9, precio: "10", minimo: 0, status: 1, eslocalflag: true };

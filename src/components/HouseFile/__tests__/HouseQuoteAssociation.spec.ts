@@ -115,3 +115,53 @@ test("replacing the costs checks the payments of the house's master", async () =
   const check = httpMock.mock.calls.map(([config]) => config).find((config) => String(config.url).endsWith("validar_existe_pago_master"));
   expect(check).toMatchObject({ params: { id: 77 } });
 });
+
+const listedQuotes = () => wrapper!.findAllComponents(VAutocomplete)[0]!.props("items") as { id: number }[];
+
+async function mountTrafficHouse(houseFields: Record<string, unknown>) {
+  httpMock.mockImplementation(async (config) => {
+    const url = String(config.url);
+    if (url.endsWith("traffic_by_house")) {
+      return { data: { estadoflag: true, data: [{ id_traffic: 4, code_traffic: "TR-00004", id_house: 2856, quote_kind: null, id_quote: null, sent: false }] } };
+    }
+    if (url.endsWith("traffic/4/associable_quotes")) return { data: { estadoflag: true, data: [{ quote_kind: "PRICING", id_quote: 5 }] } };
+    return { data: { data: [] } };
+  });
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const trafficHouse = { ...house, ...houseFields } as unknown as HouseDetalle;
+  useHousesStore().house = trafficHouse as never;
+  useHouseEditStore().form = editFormFromHouse(trafficHouse);
+  usePricingStore().listQuotes = [
+    { id: 5, code: "Q-5", listIngresosInstructivo: [{ descripcion: "TOTAL", valor: 10, igv: 1 }], listCostosInstructivo: [] },
+    { id: 7, code: "Q-7", listIngresosInstructivo: [{ descripcion: "TOTAL", valor: 10, igv: 1 }], listCostosInstructivo: [] },
+  ] as never;
+  wrapper = mount(HouseQuoteAssociation, {
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
+  await flushPromises();
+}
+
+test("a Tráfico pre-file only lists the quotes it can take", async () => {
+  await mountTrafficHouse({ id_master: null });
+
+  expect(listedQuotes().map((quote) => quote.id)).toEqual([5]);
+});
+
+test("a house without master offers only to skip or add the quote's costs", async () => {
+  await mountTrafficHouse({ id_master: null });
+  wrapper!.findAllComponents(VAutocomplete)[0]!.vm.$emit("update:modelValue", 5);
+  await flushPromises();
+
+  const options = wrapper!.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Qué hacer con los costos")!;
+  expect((options.props("items") as { id: string }[]).map((option) => option.id)).toEqual(["0", "2"]);
+});
+
+test("a house that is not a Tráfico file keeps every quote", async () => {
+  await mountAndPickQuote();
+
+  expect(listedQuotes().map((quote) => quote.id)).toEqual([5]);
+  const options = wrapper!.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Qué hacer con los costos")!;
+  expect((options.props("items") as { id: string }[]).map((option) => option.id)).toEqual(["0", "1", "2"]);
+});

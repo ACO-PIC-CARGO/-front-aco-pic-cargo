@@ -201,3 +201,15 @@ describe("each action is offered only with its permission", () => {
     }
   });
 });
+
+test("marking a status as the default sends the mark", { timeout: 15_000 }, async () => {
+  await mountCatalog();
+  await click(buttonNamed("Nuevo estatus"));
+  await typeName("Por embarcar");
+  await click(openDialog()!.querySelector<HTMLInputElement>("#traffic-status-default"));
+  httpMock.mockClear();
+
+  await click(buttonNamed("Crear estatus"));
+
+  expect(sentData("post traffic_status")).toMatchObject({ name: "Por embarcar", is_default: true });
+});

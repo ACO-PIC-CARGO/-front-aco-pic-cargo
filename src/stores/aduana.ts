@@ -392,6 +392,10 @@ export const useAduanaStore = defineStore("aduana", () => {
       showRefusal(refusedByServer ? data.mensaje : APPROVE_FAILED_MESSAGE);
       return false;
     }
+    if (!master.id_master) {
+      Swal.fire({ icon: "success", title: "Cotización asociada", text: data.mensaje });
+      return true;
+    }
     Swal.fire({
       icon: "success",
       title: "Aviso",

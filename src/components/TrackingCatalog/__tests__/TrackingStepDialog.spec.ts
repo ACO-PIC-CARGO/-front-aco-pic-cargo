@@ -43,6 +43,7 @@ const step: TrackingStep = {
   active: true,
   validation_id: 1,
   date_default_id: null,
+  allows_skip: false,
 };
 const phase: TrackingPhase = {
   id: 7,
@@ -124,4 +125,25 @@ test("choosing a default date saves it with the step", async () => {
 
   const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
   expect(saved.data).toMatchObject({ date_default_id: 2 });
+});
+
+test("a step that lets the next ones be confirmed first saves the switch", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  useTrackingCatalogStore().phases = [phase];
+  wrapper = mount(TrackingStepDialog, {
+    props: { step, phaseId: 7, modelValue: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
+  await wrapper.setProps({ modelValue: true });
+  await flushPromises();
+
+  document.body.querySelector<HTMLInputElement>("#tracking-step-allows-skip")!.click();
+  await flushPromises();
+  buttonNamed("Guardar cambios").click();
+  await flushPromises();
+
+  const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
+  expect(saved.data).toMatchObject({ allows_skip: true });
 });
