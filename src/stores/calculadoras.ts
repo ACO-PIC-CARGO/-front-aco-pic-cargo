@@ -5,6 +5,7 @@ import axios from "@/api/http";
 import router from "@/router";
 import type { ApiResponse } from "@/types/api";
 import type {
+  ClienteFiltroCalculadora,
   ConceptoCotizacionCalculadora,
   ConfiguracionCalculadora,
   ContenedorCalculadora,
@@ -26,6 +27,7 @@ import type {
   NavieraCalculadora,
   OpcionCalculadora,
   ProfitCalculadoraFila,
+  PuertoFiltroCalculadora,
   PuertoCalculadora,
   ServicioCalculadora,
   SucursalCalculadora,
@@ -195,6 +197,46 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     }
     listUser.value = response.data.data;
     return true;
+  }
+
+  async function listarPuertosOrigenCotizacionCalculadora(): Promise<PuertoFiltroCalculadora[]> {
+    const response = await axios<ApiResponse<PuertoFiltroCalculadora[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "calc/cotizacion/puertos/origen",
+      headers: JSON_HEADERS,
+    });
+    if (!response.data.estadoflag) throw new Error(response.data.mensaje);
+    return response.data.data;
+  }
+
+  async function listarPuertosDestinoCotizacionCalculadora(): Promise<PuertoFiltroCalculadora[]> {
+    const response = await axios<ApiResponse<PuertoFiltroCalculadora[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "calc/cotizacion/puertos/destino",
+      headers: JSON_HEADERS,
+    });
+    if (!response.data.estadoflag) throw new Error(response.data.mensaje);
+    return response.data.data;
+  }
+
+  async function listarClientesCotizacionCalculadora(): Promise<ClienteFiltroCalculadora[]> {
+    const response = await axios<ApiResponse<ClienteFiltroCalculadora[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "calc/cotizacion/clientes",
+      headers: JSON_HEADERS,
+    });
+    if (!response.data.estadoflag) throw new Error(response.data.mensaje);
+    return response.data.data;
+  }
+
+  async function listarEstadosCotizacionCalculadora(): Promise<EstadoCotizacion[]> {
+    const response = await axios<ApiResponse<EstadoCotizacion[]>>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "calc/cotizacion/estatus",
+      headers: JSON_HEADERS,
+    });
+    if (!response.data.estadoflag) throw new Error(response.data.mensaje);
+    return response.data.data;
   }
 
   async function getCboStatus(): Promise<void> {
@@ -908,6 +950,10 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
     CargarcontendedorCalc,
     CargarSucursal,
     getListUserCalc,
+    listarPuertosOrigenCotizacionCalculadora,
+    listarPuertosDestinoCotizacionCalculadora,
+    listarClientesCotizacionCalculadora,
+    listarEstadosCotizacionCalculadora,
     getCboStatus,
     SetCall,
     ExportarListUser,

@@ -64,19 +64,6 @@ function button(name: string) {
   return [...document.querySelectorAll<HTMLElement>("button")].find((candidate) => candidate.textContent?.trim() === name)!;
 }
 
-function field(label: string) {
-  return [...document.querySelectorAll<HTMLElement>(".calc-users-filter-drawer .v-text-field")]
-    .find((element) => element.querySelector("label")?.textContent?.trim() === label)!
-    .querySelector<HTMLInputElement>("input")!;
-}
-
-async function fill(label: string, value: string) {
-  const input = field(label);
-  input.value = value;
-  input.dispatchEvent(new Event("input", { bubbles: true }));
-  await flushPromises();
-}
-
 test("muestra acciones a la izquierda, estado, búsqueda y paginación", async () => {
   await mountScreen();
   expect(document.querySelector("thead th")?.textContent?.trim()).toBe("Acciones");
@@ -100,7 +87,12 @@ test("carga los catálogos en paralelo después del listado y no al abrir el fil
   ]);
   resolveList({ data: accepted([row]) });
   await flushPromises();
-  const catalogPaths = ["CargarClientes", "getQuoteStatus", "getShipment", "getPortBegin", "getPortEnd"];
+  const catalogPaths = [
+    "calc/cotizacion/puertos/origen",
+    "calc/cotizacion/puertos/destino",
+    "calc/cotizacion/clientes",
+    "calc/cotizacion/estatus",
+  ];
   for (const path of catalogPaths) {
     expect(httpMock.mock.calls.filter(([config]) => config.url.includes(path))).toHaveLength(1);
   }
@@ -129,30 +121,19 @@ test("aplica filtros y los conserva para exportar y limpiar", async () => {
   expect(drawer?.classList.contains("v-navigation-drawer--active")).toBe(true);
   expect(drawer?.classList.contains("v-navigation-drawer--right")).toBe(true);
   expect(drawer?.textContent).toContain("Filtrar Registros");
-  expect(httpMock.mock.calls.some(([config]) => config.url.includes("getQuoteStatus"))).toBe(true);
-  expect(httpMock.mock.calls.some(([config]) => config.url.includes("getShipment"))).toBe(true);
-  expect(httpMock.mock.calls.some(([config]) => config.url.includes("CargarClientes"))).toBe(true);
-  expect(httpMock.mock.calls.some(([config]) => config.url.includes("getPortBegin"))).toBe(true);
-  expect(httpMock.mock.calls.some(([config]) => config.url.includes("getPortEnd"))).toBe(true);
-  await fill("Fecha registro desde", "2026-11-01");
-  await fill("Fecha registro hasta", "2026-11-06");
-  await fill("Correo", "ana@example.test");
-  await fill("Teléfono", "123");
+  expect(httpMock.mock.calls.some(([config]) => config.url.includes("calc/cotizacion/estatus"))).toBe(true);
   const selects = wrapper!.findAllComponents(components.VAutocomplete);
   for (const [label, value] of [
-    ["Estado de cotización", 2], ["Cliente", 3], ["Tipo de carga", 4], ["Puerto origen", 5], ["Puerto destino", 6],
+    ["Puerto origen", 5], ["Puerto destino", 6], ["Cliente", 3], ["Estado de cotización", 2],
   ] as const) {
     selects.find((select) => select.props("label") === label)!.vm.$emit("update:modelValue", value);
   }
   await flushPromises();
   button("Aceptar").click();
   await flushPromises();
-  const expected = {
-    fechainicio: "2026-11-01", fechafin: "2026-11-06", id_status: 2, id_cliente: 3, id_shipment: 4,
-    id_port_begin: 5, id_port_end: 6, email: "ana@example.test", telefono: "123",
-  };
+  const expected = { id_status: 2, id_cliente: 3, id_port_begin: 5, id_port_end: 6 };
   const listRequests = () => httpMock.mock.calls.map(([config]) => config).filter((config) => config.url.endsWith("listar_usuarios_calculadora"));
-  expect(listRequests().at(-1)?.data).toEqual({ iso_pais: 9589, ...expected });
+  expect(listRequests()[listRequests().length - 1]?.data).toEqual({ iso_pais: 9589, ...expected });
   button("Exportar").click();
   await flushPromises();
   expect(exportar).toHaveBeenCalledWith(expected);
@@ -160,27 +141,24 @@ test("aplica filtros y los conserva para exportar y limpiar", async () => {
   await flushPromises();
   button("Limpiar").click();
   await flushPromises();
-  expect(listRequests().at(-1)?.data).toEqual({
-    iso_pais: 9589, fechainicio: "", fechafin: "", id_status: null, id_cliente: null, id_shipment: null,
-    id_port_begin: null, id_port_end: null, email: "", telefono: "",
+  expect(listRequests()[listRequests().length - 1]?.data).toEqual({
+    iso_pais: 9589, id_status: null, id_cliente: null, id_port_begin: null, id_port_end: null,
   });
 });
 
-test("no aplica fechas incompletas ni invertidas", async () => {
+test("solo muestra los cuatro filtros permitidos", async () => {
   await mountScreen();
   button("Filtrar").click();
   await flushPromises();
-  const listCount = () => httpMock.mock.calls.filter(([config]) => config.url.endsWith("listar_usuarios_calculadora")).length;
-  const initialCount = listCount();
-  await fill("Fecha registro desde", "2026-11-06");
-  button("Aceptar").click();
-  await flushPromises();
-  expect(document.body.textContent).toContain("Selecciona ambas fechas");
-  await fill("Fecha registro hasta", "2026-11-01");
-  button("Aceptar").click();
-  await flushPromises();
-  expect(document.body.textContent).toContain("La fecha inicial no puede ser posterior");
-  expect(listCount()).toBe(initialCount);
+  const labels = [...new Set(
+    [...document.querySelectorAll(".calc-users-filter-drawer label")].map((label) => label.textContent?.trim()),
+  )];
+  expect(labels).toEqual(["Puerto origen", "Puerto destino", "Cliente", "Estado de cotización"]);
+  expect(document.querySelectorAll(".calc-users-filter-drawer .v-col-sm-6")).toHaveLength(0);
+  const selects = wrapper!.findAllComponents(components.VAutocomplete);
+  expect(selects.find((select) => select.props("label") === "Puerto origen")!.props("itemTitle")).toBe("port_origen");
+  expect(selects.find((select) => select.props("label") === "Puerto destino")!.props("itemTitle")).toBe("port_destino");
+  expect(selects.find((select) => select.props("label") === "Cliente")!.props("itemTitle")).toBe("nombre");
 });
 
 test("cerrar el panel descarta cambios sin aplicar ni recargar", async () => {
@@ -190,15 +168,20 @@ test("cerrar el panel descarta cambios sin aplicar ni recargar", async () => {
   button("Filtrar").click();
   await flushPromises();
   const initialCount = listCount();
-  await fill("Correo", "sin-aplicar@example.test");
+  wrapper!.findAllComponents(components.VAutocomplete)
+    .find((select) => select.props("label") === "Estado de cotización")!
+    .vm.$emit("update:modelValue", 2);
+  await flushPromises();
   button("Cerrar").click();
   await flushPromises();
   expect(document.querySelector(".calc-users-filter-drawer")?.classList.contains("v-navigation-drawer--active")).toBe(false);
   expect(listCount()).toBe(initialCount);
   button("Exportar").click();
   await flushPromises();
-  expect(exportar).toHaveBeenCalledWith(expect.objectContaining({ email: "" }));
+  expect(exportar).toHaveBeenCalledWith(expect.objectContaining({ id_status: null }));
   button("Filtrar").click();
   await flushPromises();
-  expect(field("Correo").value).toBe("");
+  expect(wrapper!.findAllComponents(components.VAutocomplete)
+    .find((select) => select.props("label") === "Estado de cotización")!
+    .props("modelValue")).toBeNull();
 });
