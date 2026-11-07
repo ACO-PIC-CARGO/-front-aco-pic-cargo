@@ -210,6 +210,18 @@ export interface DetalleLlamadaCalculadora {
   nombrecompleto?: string;
 }
 
+export interface FiltroUsuariosCalculadora {
+  fechainicio: string;
+  fechafin: string;
+  id_status: number | string | null;
+  id_cliente: number | string | null;
+  id_shipment: number | string | null;
+  id_port_begin: number | string | null;
+  id_port_end: number | string | null;
+  email: string;
+  telefono: string;
+}
+
 export interface UsuarioCalculadora {
   id: string;
   tipo?: string;

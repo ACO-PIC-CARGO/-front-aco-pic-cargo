@@ -49,6 +49,35 @@ test("the leads export asks the session's country and downloads the workbook the
   expect(link.click).toHaveBeenCalledOnce();
 });
 
+test("the leads list and export send the same applied filters", async () => {
+  const filters = {
+    fechainicio: "2026-11-01",
+    fechafin: "2026-11-06",
+    id_status: 2,
+    id_cliente: 3,
+    id_shipment: 4,
+    id_port_begin: 5,
+    id_port_end: 6,
+    email: "test@example.test",
+    telefono: "123",
+  };
+  httpMock.mockResolvedValueOnce({ data: accepted([]) });
+  await useCalculadorasStore().getListUserCalc(filters);
+  expect(httpMock).toHaveBeenLastCalledWith(expect.objectContaining({
+    method: "post",
+    url: URL_MAIN + "listar_usuarios_calculadora",
+    data: { iso_pais: 9589, ...filters },
+  }));
+  spyDownloadLink();
+  httpMock.mockResolvedValueOnce({ data: new Blob(["xlsx"], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }) });
+  await useCalculadorasStore().ExportarListUser(filters);
+  expect(httpMock).toHaveBeenLastCalledWith(expect.objectContaining({
+    method: "get",
+    url: URL_MAIN + "export_listar_usuarios_calculadora",
+    params: { id_pais: 9589, ...filters },
+  }));
+});
+
 test("an export with no leads shows the server's message instead of downloading", async () => {
   const link = spyDownloadLink();
   httpMock.mockResolvedValue({ data: jsonBlob(rejected("No se encontraron registros.")) });
@@ -57,6 +86,16 @@ test("an export with no leads shows the server's message instead of downloading"
 
   expect(Swal.fire).toHaveBeenCalledWith({ icon: "info", text: "No se encontraron registros." });
   expect(link.click).not.toHaveBeenCalled();
+});
+
+test("a rejected filtered list keeps the previous results and shows the server message", async () => {
+  const store = useCalculadorasStore();
+  store.listUser = [{ id: "1", nombre: "Anterior" }];
+  httpMock.mockResolvedValue({ data: rejected("No se pudo filtrar.") });
+
+  expect(await store.getListUserCalc()).toBe(false);
+  expect(store.listUser).toEqual([{ id: "1", nombre: "Anterior" }]);
+  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ text: "No se pudo filtrar." }));
 });
 
 test("an export the server refuses shows its reason", async () => {

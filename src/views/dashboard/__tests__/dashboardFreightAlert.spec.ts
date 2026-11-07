@@ -1,0 +1,60 @@
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { flushPromises, shallowMount } from "@vue/test-utils";
+import type { VueWrapper } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
+import DashboardMain from "@/views/dashboard/DashboardMain.vue";
+import { mostrarAvisoVigenciaFlete } from "@/views/dashboard/avisoVigenciaFlete";
+
+const route = vi.hoisted(() => ({ name: "Home", params: {}, fullPath: "/" }));
+const push = vi.hoisted(() => vi.fn());
+vi.mock("vue-router", () => ({ useRoute: () => route, useRouter: () => ({ push }) }));
+vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
+vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn(), get: vi.fn() }) }));
+vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn() }) }));
+vi.mock("@/views/dashboard/avisoVigenciaFlete", () => ({ mostrarAvisoVigenciaFlete: vi.fn() }));
+
+let wrapper: VueWrapper | undefined;
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  route.name = "Home";
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 1, position_code: ["01"] }]));
+  sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 1, esnuevoflag: false, tienefleteactivo: false, dias_restantes: 2, vigencia: "2026-11-08" }]));
+  sessionStorage.setItem("permissions", JSON.stringify({ screens: [], controlled: [] }));
+});
+
+afterEach(() => wrapper?.unmount());
+
+async function mountDashboard() {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  wrapper = shallowMount(DashboardMain, { global: { plugins: [pinia], stubs: { RouterView: true } } });
+  await flushPromises();
+}
+
+test("Actualizar vigencia abre el formulario de fecha", async () => {
+  vi.mocked(mostrarAvisoVigenciaFlete).mockResolvedValue({ isConfirmed: true, isDenied: false, isDismissed: false });
+  await mountDashboard();
+  expect(mostrarAvisoVigenciaFlete).toHaveBeenCalledWith(2, "2026-11-08");
+  expect((wrapper!.vm as unknown as { dialogCambiarFecha: boolean }).dialogCambiarFecha).toBe(true);
+  expect(push).not.toHaveBeenCalled();
+});
+
+test("Configurar flete abre la pantalla de costos", async () => {
+  vi.mocked(mostrarAvisoVigenciaFlete).mockResolvedValue({ isConfirmed: false, isDenied: true, isDismissed: false });
+  await mountDashboard();
+  expect(push).toHaveBeenCalledWith({ name: "ServiciosCostosFijosLCL" });
+});
+
+test("Continuar no abre el formulario ni navega", async () => {
+  vi.mocked(mostrarAvisoVigenciaFlete).mockResolvedValue({ isConfirmed: false, isDenied: false, isDismissed: true });
+  await mountDashboard();
+  expect((wrapper!.vm as unknown as { dialogCambiarFecha: boolean }).dialogCambiarFecha).toBe(false);
+  expect(push).not.toHaveBeenCalled();
+});
+
+test("no muestra el aviso fuera de la página principal", async () => {
+  route.name = "newQuote";
+  await mountDashboard();
+  expect(mostrarAvisoVigenciaFlete).not.toHaveBeenCalled();
+});
