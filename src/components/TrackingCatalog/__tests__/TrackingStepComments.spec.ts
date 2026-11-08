@@ -43,6 +43,7 @@ const step: TrackingStep = {
   validation_id: null,
   date_default_id: null,
   allows_skip: false,
+  allows_send_skip: false,
 };
 let wrapper: VueWrapper | undefined;
 

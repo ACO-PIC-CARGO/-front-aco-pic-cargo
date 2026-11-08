@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { useSecuritysStore } from "@/stores/securitys";
+import { markSessionBranchConfigured } from "@/utils/sesion";
 import type { Modalidad } from "@/types/catalogos";
 import type { CostoConfig, TipoCostoConfig } from "@/types/empresas";
 import type { TipoCarga } from "@/types/cotizacion";
@@ -118,11 +119,7 @@ async function finalizarSinLogin() {
       Swal.showLoading();
     },
   });
-  const dataBranch = JSON.parse(sessionStorage.getItem("dataBranch") as string);
-
-  dataBranch[0].esnuevoflag = false;
-
-  sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+  markSessionBranchConfigured();
   await securitysStore._getMenuItem();
 
   setTimeout(async () => {

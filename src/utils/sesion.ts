@@ -29,6 +29,12 @@ export const chooseSessionBranch = (branch: SucursalSesion): void => {
   }
 };
 
+export const markSessionBranchConfigured = (): void => {
+  const branches = JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
+  branches[0]!.esnuevoflag = false;
+  for (const storage of [sessionStorage, localStorage]) storage.setItem("dataBranch", JSON.stringify(branches));
+};
+
 export const sessionIsoPais = (): number | null =>
   JSON.parse(sessionStorage.getItem("iso_pais") as string) as number | null;
 

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 import {
   chooseSessionBranch,
   clearSession,
+  markSessionBranchConfigured,
   sessionIsoPais,
   sessionSucursal,
   sessionUser,
@@ -67,6 +68,25 @@ describe("signing out", () => {
     for (const storage of [sessionStorage, localStorage]) {
       for (const key of sessionKeys) expect(storage.getItem(key)).toBeNull();
       expect(storage.getItem("version")).toBe("2.64");
+    }
+  });
+});
+
+describe("finishing the initial configuration of a new company", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+  });
+
+  test("a new tab, which copies the session from localStorage, no longer sees the branch as new", () => {
+    const newBranch = JSON.stringify([{ id: 74, trade_name: "SUPP", esnuevoflag: true }]);
+    sessionStorage.setItem("dataBranch", newBranch);
+    localStorage.setItem("dataBranch", newBranch);
+
+    markSessionBranchConfigured();
+
+    for (const storage of [sessionStorage, localStorage]) {
+      expect(JSON.parse(storage.getItem("dataBranch")!)).toEqual([{ id: 74, trade_name: "SUPP", esnuevoflag: false }]);
     }
   });
 });

@@ -47,6 +47,7 @@ const step = (over: Partial<TrackingStep> = {}): TrackingStep => ({
   validation_id: null,
   date_default_id: null,
   allows_skip: false,
+  allows_send_skip: false,
   ...over,
 });
 
@@ -134,11 +135,12 @@ describe("trackingCatalog store", () => {
       validation_id: 1,
       date_default_id: 2,
       allows_skip: false,
+      allows_send_skip: false,
     });
     expect(httpMock.mock.calls.map(([config]) => [config.method, config.url, config.data])).toEqual([
       ["put", "tracking_phases/7", { name: "Origen", icon: "mdi-factory", active: false }],
       ["get", "tracking_catalog", undefined],
-      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true, validation_id: 1, date_default_id: 2, allows_skip: false }],
+      ["put", "tracking_steps/5", { phase_id: 8, name: "Pago", icon: "mdi-cash", visible_to_client: false, active: true, validation_id: 1, date_default_id: 2, allows_skip: false, allows_send_skip: false }],
       ["get", "tracking_catalog", undefined],
     ]);
   });
@@ -157,6 +159,7 @@ describe("trackingCatalog store", () => {
       validation_id: null,
       date_default_id: null,
       allows_skip: false,
+      allows_send_skip: false,
     };
     expect(await store.saveStep(draft)).toBe("Ya existe un paso con ese nombre. Usa otro nombre.");
     expect(sent()).toEqual(["post tracking_steps"]);
