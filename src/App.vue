@@ -8,6 +8,7 @@ import axios from "@/api/http";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
+import { claimUpdatePrompt } from "@/utils/versionPrompt";
 
 const ControlServices = defineAsyncComponent(
   () => import("@/components/ServicesControl.vue"),
@@ -37,7 +38,6 @@ socket.on("connect_error", (err) => {
   console.error("Error al conectar con Socket.IO:", err);
 });
 
-const registration = ref<ServiceWorkerRegistration | null>(null);
 const listAgente = ref(false);
 const dialogWelcome = ref(false);
 const dialogVersion = ref(false);
@@ -66,15 +66,10 @@ onMounted(async () => {
       if (data.power == 1) {
         dialogPower.value = false;
       }
-      if (data.version != import.meta.env.VITE_VERSION) {
+      if (claimUpdatePrompt(data.version)) {
         dialogVersion.value = true;
       }
     }
-  });
-
-  window.addEventListener("sw-updated", (event) => {
-    registration.value = (event as CustomEvent<ServiceWorkerRegistration>).detail;
-    dialogVersion.value = true; // Muestra tu diálogo actual
   });
 
   appStore.drawer = false;
@@ -105,10 +100,6 @@ async function actualizar() {
   if (window.caches) {
     const cacheNames = await caches.keys();
     await Promise.all(cacheNames.map((name) => caches.delete(name)));
-  }
-
-  if (registration.value && registration.value.waiting) {
-    registration.value.waiting.postMessage({ type: "SKIP_WAITING" });
   }
 
   setTimeout(() => {
@@ -191,15 +182,8 @@ async function _getVersion() {
   try {
     await axios<ApiResponse<VersionSistema[]>>(config)
       .then(function (response) {
-        const serverVersion = response.data.data[0]!.version;
-        const currentVersion = sessionStorage.getItem("version");
-        if (
-          !!currentVersion &&
-          serverVersion != currentVersion
-        ) {
+        if (claimUpdatePrompt(response.data.data[0]!.version)) {
           dialogVersion.value = true;
-        } else {
-          dialogVersion.value = false;
         }
 
         if (response.data.data[0]!.power != 1) {
