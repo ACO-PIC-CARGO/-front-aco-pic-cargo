@@ -441,7 +441,7 @@ async function abrirCorreoSend(language: EmailLanguage) {
       title: "¡Casi listo!",
       html: `
               <div style="text-align: center; font-family: 'Segoe UI', sans-serif;">
-                <h2 style="color: #333; margin-top: 0;">Tabla copiada con éxito</h2>
+                <h2 style="color: #333; margin-top: 0;">Correo copiado</h2>
                 
                 <div style="background-color: #eef6ff; border: 2px dashed #3085d6; padding: 20px; border-radius: 12px; margin: 20px 0;">
                   <p style="font-size: 1.1rem; color: #555; margin: 0;">
