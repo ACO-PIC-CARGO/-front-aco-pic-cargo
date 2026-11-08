@@ -4021,6 +4021,7 @@ export const useAduanaStore = defineStore("aduana", () => {
     /* GENERAR */
     const data = {
       nombre_impuesto: useEnterprisesStore().impuesto.nombre_impuesto,
+      porcentaje_impuesto_servicios: useEnterprisesStore().impuesto.impuesto,
       impuesto:
         listServices.value.filter((v) => v.code_service == 15).length > 0
           ? listServices.value.filter((v) => v.code_service == 15)[0]!.status == true ||
