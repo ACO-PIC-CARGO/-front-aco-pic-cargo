@@ -2065,7 +2065,9 @@ export const useAduanaStore = defineStore("aduana", () => {
         document: datosEmpresa.value[0]!.document,
         phone: datosEmpresa.value[0]!.phone,
         tipo: tipo,
+        esAduana: true,
         cliente: datosPrincipales.value.nombre,
+        telefonoCliente: datosPrincipales.value.telefono,
         slogancliente: datosPrincipales.value.slogan ? datosPrincipales.value.slogan : "",
         fechafin: datosPrincipales.value.fecha_fin,
         tiempoTransito: datosPrincipales.value.tiempo_transito,
@@ -2093,6 +2095,7 @@ export const useAduanaStore = defineStore("aduana", () => {
         numerobultos: datosPrincipales.value.numerobultos,
         peso: datosPrincipales.value.peso,
         volumen: datosPrincipales.value.volumen,
+        amount: datosPrincipales.value.amount,
         sentido: listModality.value.filter((v) => v.id == datosPrincipales.value.idsentido)[0]!.name,
         embarque: listShipment.value.filter(
           (v) =>
