@@ -47,6 +47,9 @@ import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
 import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
+import { TEMPLATES_NOT_LOADED, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
+import { buildProviderQuoteEmail, buildProviderQuoteSubject } from "@/utils/providerQuoteEmail";
+import type { EmailLanguage } from "@/types/providerQuoteEmailTemplate";
 
 const route = useRoute();
 const router = useRouter();
@@ -59,6 +62,7 @@ const townStore = useTownStore();
 const calculadorasStore = useCalculadorasStore();
 const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
+const providerQuoteEmailTemplateStore = useProviderQuoteEmailTemplateStore();
 // Read on every render: this layout stays mounted when the session reloads its permissions.
 const can = (screen: string, action: string) => usePermissions().can(screen, action);
 
@@ -91,6 +95,7 @@ const dialogProveedor = ref(false);
 const dialogPilotoAutomatico = ref(false);
 const idRole = ref<number[]>([]);
 const lstDatosTarifa = ref<DatoTarifaProveedor[]>([]);
+const templateLoadError = ref<string | null>(null);
 const formVigencia = useTemplateRef("formVigencia");
 
 onMounted(async () => {
@@ -315,7 +320,8 @@ async function abrirCorreo() {
   const codeAereo = [9017, 9024];
   idRole.value = [];
   dialogProveedor.value = true;
-  await appStore._getRole();
+  const [loadError] = await Promise.all([providerQuoteEmailTemplateStore.load(), appStore._getRole()]);
+  templateLoadError.value = loadError;
   const code = pricingStore.listShipment.find(
     (v: TipoCarga) => v.id == pricingStore.datosPrincipales.idtipocarga,
   )!.code;
@@ -372,10 +378,9 @@ async function abrirCorreo() {
 //   const body = encodeURIComponent(lineasBody.join("\r\n"));
 //   window.location.href = `mailto:${to}?subject=${subject}&body=${body}`;
 // },
-async function abrirCorreoSend() {
+async function abrirCorreoSend(language: EmailLanguage) {
   const valIncoterms = ["EXW", "FCA", "FOB"];
   const selected = lstDatosTarifa.value.filter((v) => v.selected);
-  const nameCliente = pricingStore.dataCliente.nombrecompleto;
   const to = selected
     .map((v) => v.email)
     .filter((e) => e)
@@ -384,7 +389,6 @@ async function abrirCorreoSend() {
   const incoterms = pricingStore.listIncoterms.find(
     (v: Incoterm) => v.id == pricingStore.datosPrincipales.idincoterms,
   )!;
-  let subject = ``;
 
   const miEmail = sessionStorage.getItem("dataUser")
     ? JSON.parse(sessionStorage.getItem("dataUser") as string)[0].correoemail
@@ -393,12 +397,9 @@ async function abrirCorreoSend() {
   const origen = pricingStore.listPortBegin.find(
     (v: Puerto) => v.id_port == pricingStore.datosPrincipales.idorigen,
   );
-
   const destino = pricingStore.listPortEnd.find(
-    (v: Puerto) =>
-      v.id_port == pricingStore.datosPrincipales.iddestino,
+    (v: Puerto) => v.id_port == pricingStore.datosPrincipales.iddestino,
   );
-  let tablaHtml = "";
 
   if (!valIncoterms.includes(incoterms.name!)) {
     Swal.fire({
@@ -408,120 +409,27 @@ async function abrirCorreoSend() {
     });
     return;
   }
-  if (incoterms.name == "EXW") {
-    subject = `QUOTE${pricingStore.nro_quote} ${
-      incoterms ? incoterms.name : ""
-    } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
-      pricingStore.datosPrincipales.peso || ""
-    }KGS / ${
-      pricingStore.datosPrincipales.volumen || ""
-    }M3 | CLIENTE: ${nameCliente}`;
-    /* CREAR EL BOBY */
-    tablaHtml = `
-        <div style="font-family: Arial, sans-serif;">
-          <p>Hola colega, me ayudas cotizando este embarque:</p>
-          <table border="1" style="border-collapse: collapse; width: 100%; max-width: 800px;">
-            <tr style="background-color: #eeeeee;">
-              <th style="padding: 8px; border: 1px solid #333;"> CONCEPTO</th>
-              <th style="padding: 8px; border: 1px solid #333;"> DETALLE</th>
-            </tr>
-            <tr><td style="padding: 8px; border: 1px solid #333;">INCOTERMS</td><td style="padding: 8px; border: 1px solid #333;">${
-              incoterms ? incoterms.name : ""
-            }</td></tr>
-            <tr>
-              <td> DIRECCIÓN:</td>
-              <td> ${
-                pricingStore.datosPrincipales.direccionproveedor ||
-                ""
-              }</td>
-              </tr>
-            <tr>
-              <td> PUERTO SALIDA:</td>
-              <td> ${origen ? origen.name : ""}</td>
-              </tr>
-            <tr>
-              <td> PUERTO LLEGADAA:</td>
-              <td> ${destino ? destino.name : ""}</td>
-              </tr>
-            <tr>
-              <td style="padding: 8px; border: 1px solid #333;"> PESO(Kgs)</td>
-              <td style="padding: 8px; border: 1px solid #333;"> ${
-                pricingStore.datosPrincipales.peso || ""
-              }</td>
-            </tr>
-            <tr>
-              <td style="padding: 8px; border: 1px solid #333;">M3</td><td style="padding: 8px; border: 1px solid #333;">
-                ${pricingStore.datosPrincipales.volumen || ""}</td>
-            </tr>
-            <tr>
-              <td> DESCRIPCIÓN DE LA MERCANCÍA:</td>
-              <td>
-                ${
-                  pricingStore.datosPrincipales.descripcioncarga ||
-                  ""
-                }
-              </td>
-            <tr>
-          </table>
-          <p>Saludos.</p>
-        </div>
-      `;
-  }
-  if (incoterms.name == "FCA" || incoterms.name == "FOB") {
-    subject = `QUOTE${pricingStore.nro_quote} ${
-      incoterms ? incoterms.name : ""
-    } ${origen ? origen.name : ""} - ${destino ? destino.name : ""}  ${
-      pricingStore.datosPrincipales.peso || ""
-    }KGS / ${
-      pricingStore.datosPrincipales.volumen || ""
-    }M3 | CLIENTE: ${nameCliente}`;
-    /* CREAR EL BOBY */
-    tablaHtml = `
-        <div style="font-family: Arial, sans-serif;">
-          <p>Hola colega, me ayudas cotizando este embarque:</p>
-          <table border="1" style="border-collapse: collapse; width: 100%; max-width: 800px;">
-            <tr style="background-color: #eeeeee;">
-              <th style="padding: 8px; border: 1px solid #333;"> CONCEPTO</th>
-              <th style="padding: 8px; border: 1px solid #333;"> DETALLE</th>
-            </tr>
-            <tr>
-                <td style="padding: 8px; border: 1px solid #333;"> INCOTERMS</td>
-                <td style="padding: 8px; border: 1px solid #333;">${
-                  incoterms ? incoterms.name : ""
-                }</td>
-            </tr>
 
-            <tr>
-              <td> PUERTO SALIDA:</td>
-              <td>${origen ? origen.name : ""}</td>
-              </tr>
-            <tr>
-              <td> PUERTO LLEGADAA:</td>
-              <td> ${destino ? destino.name : ""}</td>
-              </tr>
-            <tr>
-              <td style="padding: 8px; border: 1px solid #333;"> PESO</td>
-              <td style="padding: 8px; border: 1px solid #333;"> ${
-                pricingStore.datosPrincipales.peso || ""
-              }
-              </td>
-            </tr>
-            <tr><td style="padding: 8px; border: 1px solid #333;">M3</td><td style="padding: 8px; border: 1px solid #333;"> ${
-              pricingStore.datosPrincipales.volumen || ""
-            }</td>
-            </tr>
-            <tr>
-              <td> DESCRIPCIÓN DE LA MERCANCÍA:</td>
-              <td> ${
-                pricingStore.datosPrincipales.descripcioncarga ||
-                ""
-              }</td>
-            <tr>
-          </table>
-          <p>Saludos.</p>
-        </div>
-      `;
+  const template = providerQuoteEmailTemplateStore.templateFor(language);
+  if (!template) {
+    Swal.fire({ icon: "warning", text: templateLoadError.value ?? TEMPLATES_NOT_LOADED });
+    return;
   }
+
+  const shipment = {
+    quoteNumber: pricingStore.nro_quote,
+    client: pricingStore.dataCliente.nombrecompleto ?? "",
+    incoterm: incoterms.name!,
+    pickupAddress: pricingStore.datosPrincipales.direccionproveedor,
+    portOfLoading: origen?.name,
+    portOfDischarge: destino?.name,
+    containers: pricingStore.datosPrincipales.containers,
+    weight: pricingStore.datosPrincipales.peso,
+    volume: pricingStore.datosPrincipales.volumen,
+    commodity: pricingStore.datosPrincipales.descripcioncarga,
+  };
+  const subject = buildProviderQuoteSubject(language, shipment);
+  const tablaHtml = buildProviderQuoteEmail(template, shipment);
 
   try {
     const blob = new Blob([tablaHtml], { type: "text/html" });
@@ -553,14 +461,17 @@ async function abrirCorreoSend() {
       // timer: 2500,
     });
 
-    const body = encodeURIComponent("Hola colega, (PEGA LA TABLA AQUI)");
+    const body = encodeURIComponent("(PEGA AQUÍ EL CORREO CON CTRL + V)");
     window.location.href = `mailto:${miEmail}?bcc=${to}&subject=${encodeURIComponent(
       subject,
     )}&body=${body}`;
     dialogProveedor.value = false;
   } catch (err) {
     console.error("Error al copiar:", err);
-    alert("Hubo un problema al copiar los datos automáticamente.");
+    Swal.fire({
+      icon: "error",
+      text: "No pudimos copiar el correo. Revisa que el navegador permita usar el portapapeles e intenta de nuevo.",
+    });
   }
 }
 function abrirModalCopiarCotizacion() {
@@ -1935,9 +1846,17 @@ watch(idRole, async () => {
           <v-spacer />
           <v-btn
             color="success"
-            @click="abrirCorreoSend"
+            :loading="providerQuoteEmailTemplateStore.loading"
+            @click="abrirCorreoSend('es')"
           >
-            Enviar Correo
+            Enviar en español
+          </v-btn>
+          <v-btn
+            color="success"
+            :loading="providerQuoteEmailTemplateStore.loading"
+            @click="abrirCorreoSend('en')"
+          >
+            Enviar en inglés
           </v-btn>
           <v-btn
             color="error"
