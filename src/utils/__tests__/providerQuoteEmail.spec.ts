@@ -81,10 +81,11 @@ describe("the email that asks providers for rates", () => {
       buildProviderQuoteEmail(spanish, shipment({ containers: null, weight: 0, volume: "", commodity: null, portOfDischarge: " " })),
     );
 
-    expect(labels).toContainEqual(["Peso (kg)", "0"]);
-    expect(labels.map(([label]) => label)).not.toEqual(
-      expect.arrayContaining(["Contenedores", "Volumen (m³)", "Tipo de mercancía", "Puerto de llegada"]),
-    );
+    expect(labels).toEqual([
+      ["Incoterm", "FOB"],
+      ["Puerto de salida", "SHANGHAI"],
+      ["Peso (kg)", "0"],
+    ]);
   });
 
   test("escapes the quote values", () => {

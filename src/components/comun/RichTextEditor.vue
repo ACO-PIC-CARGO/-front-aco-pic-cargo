@@ -10,6 +10,9 @@ const init = {
   menubar: false,
   plugins: "lists link",
   toolbar: "undo redo | blocks | bold italic underline | bullist numlist | link",
+  // Pasted images become base64 and exceed the API's request size limit.
+  paste_data_images: false,
+  invalid_elements: "img",
 };
 </script>
 
