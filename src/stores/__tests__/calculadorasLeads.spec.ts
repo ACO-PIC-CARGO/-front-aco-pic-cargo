@@ -51,15 +51,10 @@ test("the leads export asks the session's country and downloads the workbook the
 
 test("the leads list and export send the same applied filters", async () => {
   const filters = {
-    fechainicio: "2026-11-01",
-    fechafin: "2026-11-06",
     id_status: 2,
     id_cliente: 3,
-    id_shipment: 4,
     id_port_begin: 5,
     id_port_end: 6,
-    email: "test@example.test",
-    telefono: "123",
   };
   httpMock.mockResolvedValueOnce({ data: accepted([]) });
   await useCalculadorasStore().getListUserCalc(filters);

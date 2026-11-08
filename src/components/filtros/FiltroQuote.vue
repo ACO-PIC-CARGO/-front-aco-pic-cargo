@@ -110,7 +110,7 @@ function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | 
   return (
     fechaInicio.isValid() &&
     fechaFin.isValid() &&
-    fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+    fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
   );
 }
 async function reporteMarketing() {
@@ -259,7 +259,7 @@ async function reporteListado() {
     await Swal.fire({
       icon: "warning",
       title: "No se puede generar el reporte",
-      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 mes</strong> para continuar.`,
+      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 año</strong> para continuar.`,
       confirmButtonText: "Revisar fechas",
     });
     return;

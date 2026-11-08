@@ -4,16 +4,18 @@ import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePermissions } from "@/composables/usePermissions";
-import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import moment from "moment";
 import PreviewQuote from "./PreviewQuote.vue";
 import Swal from "sweetalert2";
 import { usePricingStore } from "@/stores/pricing";
 import type {
+  ClienteFiltroCalculadora,
   ConceptoCotizacionCalculadora,
   FiltroUsuariosCalculadora,
+  PuertoFiltroCalculadora,
   UsuarioCalculadora,
 } from "@/types/calculadora";
+import type { EstadoCotizacion } from "@/types/cotizacion";
 
 interface LlamadaCalculadora {
   iduser?: string;
@@ -44,24 +46,17 @@ const loadingFilters = ref(true);
 const filterOpen = ref(false);
 const filterError = ref("");
 const emptyFilter = (): FiltroUsuariosCalculadora => ({
-  fechainicio: "",
-  fechafin: "",
   id_status: null,
   id_cliente: null,
-  id_shipment: null,
   id_port_begin: null,
   id_port_end: null,
-  email: "",
-  telefono: "",
 });
 const filtro = ref<FiltroUsuariosCalculadora>(emptyFilter());
 const filtroAplicado = ref<FiltroUsuariosCalculadora>(emptyFilter());
-const buscarOrigen = useDebouncedSearch((search: string | null) => {
-  void pricingStore.getPortBegin({ search: search || null });
-});
-const buscarDestino = useDebouncedSearch((search: string | null) => {
-  void pricingStore.getPortEnd({ search: search || null });
-});
+const puertosOrigen = ref<PuertoFiltroCalculadora[]>([]);
+const puertosDestino = ref<PuertoFiltroCalculadora[]>([]);
+const clientes = ref<ClienteFiltroCalculadora[]>([]);
+const estadosCotizacion = ref<EstadoCotizacion[]>([]);
 const title = ref("");
 const fecha = ref(moment().format("YYYY-MM-DD"));
 const headers = [
@@ -126,13 +121,16 @@ const frmCall = ref<{ validate: () => Promise<{ valid: boolean }> }>();
 onMounted(async () => {
   try {
     await cargarListado(filtroAplicado.value);
-    await Promise.all([
-      appStore.cargarClientes(),
-      pricingStore.getQuoteStatus(),
-      pricingStore.getShipment(),
-      pricingStore.getPortBegin({}),
-      pricingStore.getPortEnd({}),
+    const [origen, destino, clientesCotizacion, estados] = await Promise.all([
+      calculadorasStore.listarPuertosOrigenCotizacionCalculadora(),
+      calculadorasStore.listarPuertosDestinoCotizacionCalculadora(),
+      calculadorasStore.listarClientesCotizacionCalculadora(),
+      calculadorasStore.listarEstadosCotizacionCalculadora(),
     ]);
+    puertosOrigen.value = origen;
+    puertosDestino.value = destino;
+    clientes.value = clientesCotizacion;
+    estadosCotizacion.value = estados;
   } catch (error) {
     console.error("Error al cargar los filtros de usuarios de calculadora:", error);
     await Swal.fire({ icon: "error", text: "No se pudieron cargar los filtros. Recarga la página para intentarlo nuevamente." });
@@ -159,17 +157,8 @@ function abrirFiltro() {
   filterOpen.value = true;
 }
 async function aplicarFiltro() {
-  const { fechainicio, fechafin } = filtro.value;
-  if ((fechainicio && !fechafin) || (!fechainicio && fechafin)) {
-    filterError.value = "Selecciona ambas fechas para filtrar por registro.";
-    return;
-  }
-  if (fechainicio && fechafin && fechainicio > fechafin) {
-    filterError.value = "La fecha inicial no puede ser posterior a la fecha final.";
-    return;
-  }
   filterError.value = "";
-  const next = { ...filtro.value, email: (filtro.value.email || "").trim(), telefono: (filtro.value.telefono || "").trim() };
+  const next = { ...filtro.value };
   if (await cargarListado(next)) {
     filtroAplicado.value = next;
     filterOpen.value = false;
@@ -1246,32 +1235,17 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
         <v-card-text>
           <v-progress-linear v-if="loadingFilters" indeterminate color="primary" class="mb-4" />
           <v-row>
-            <v-col cols="12" sm="6">
-              <v-text-field v-model="filtro.fechainicio" type="date" label="Fecha registro desde" variant="outlined" density="compact" hide-details />
+            <v-col cols="12">
+              <v-autocomplete v-model="filtro.id_port_begin" :items="puertosOrigen" item-title="port_origen" item-value="id_port" label="Puerto origen" variant="outlined" density="compact" hide-details clearable />
             </v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field v-model="filtro.fechafin" type="date" label="Fecha registro hasta" variant="outlined" density="compact" hide-details />
+            <v-col cols="12">
+              <v-autocomplete v-model="filtro.id_port_end" :items="puertosDestino" item-title="port_destino" item-value="id_port" label="Puerto destino" variant="outlined" density="compact" hide-details clearable />
             </v-col>
-            <v-col cols="12" sm="6">
-              <v-autocomplete v-model="filtro.id_status" :items="pricingStore.listQuoteStatus" item-title="name" item-value="id" label="Estado de cotización" variant="outlined" density="compact" hide-details clearable />
+            <v-col cols="12">
+              <v-autocomplete v-model="filtro.id_cliente" :items="clientes" item-title="nombre" item-value="id" label="Cliente" variant="outlined" density="compact" hide-details clearable />
             </v-col>
-            <v-col cols="12" sm="6">
-              <v-autocomplete v-model="filtro.id_cliente" :items="appStore.clientes" item-title="namelong" item-value="id" label="Cliente" variant="outlined" density="compact" hide-details clearable />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-autocomplete v-model="filtro.id_shipment" :items="pricingStore.listShipment" item-title="embarque" item-value="id" label="Tipo de carga" variant="outlined" density="compact" hide-details clearable />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-autocomplete v-model="filtro.id_port_begin" :items="pricingStore.listPortBegin" item-title="name" item-value="id_port" label="Puerto origen" variant="outlined" density="compact" hide-details clearable no-filter @update:search="buscarOrigen" />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-autocomplete v-model="filtro.id_port_end" :items="pricingStore.listPortEnd" item-title="name" item-value="id_port" label="Puerto destino" variant="outlined" density="compact" hide-details clearable no-filter @update:search="buscarDestino" />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field v-model="filtro.email" label="Correo" variant="outlined" density="compact" hide-details clearable />
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field v-model="filtro.telefono" label="Teléfono" variant="outlined" density="compact" hide-details clearable />
+            <v-col cols="12">
+              <v-autocomplete v-model="filtro.id_status" :items="estadosCotizacion" item-title="name" item-value="id" label="Estado de cotización" variant="outlined" density="compact" hide-details clearable />
             </v-col>
           </v-row>
           <v-alert v-if="filterError" type="error" density="compact" class="mt-4">{{ filterError }}</v-alert>
