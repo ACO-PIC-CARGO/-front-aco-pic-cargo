@@ -2946,6 +2946,7 @@ export const usePricingStore = defineStore("pricing", () => {
       url_folderonedrive: datosPrincipales.value.url_folderonedrive,
       nombre_cotizacion: nombre_cotizacion.value,
       nombre_impuesto: useEnterprisesStore().impuesto.nombre_impuesto,
+      porcentaje_impuesto_servicios: useEnterprisesStore().impuesto.impuesto,
       impuesto:
         listServices.value.filter((v) => v.code_service == 15).length > 0
           ? listServices.value.filter((v) => v.code_service == 15)[0]!.status == true ||
@@ -3073,7 +3074,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdfInBackground(
+    await downloadPdf(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );

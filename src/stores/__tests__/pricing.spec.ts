@@ -1596,6 +1596,7 @@ describe("pricing store", () => {
 
       await pricing.generarReporte({ tipo, nro_propuesta: 1, tipoCotizacion: "individual", fecha_salida: "2026-11-01", nombre_cliente: "ZEVALLOS" });
 
+      expect(postedBody("quote_preview_totales")).toHaveProperty("porcentaje_impuesto_servicios", 18);
       expect(postedBody("quote_preview_totales")).toMatchSnapshot();
       expect(window.open).toHaveBeenCalledWith(URL_MAIN + "files/x.pdf", "_blank");
     });
@@ -1708,7 +1709,7 @@ describe("pricing store", () => {
     });
 
     test.each([
-      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf", downloadPdfInBackground],
+      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf", downloadPdf],
       ["imprimiReporteListadoMarketing", "reporte_canales_origen", "REPORTE_CANALES_ORIGEN.pdf", downloadPdf],
     ] as const)("%s downloads the PDF of the list filters from %s instead of opening a public file", async (name, path, fileName, download) => {
       const pricing = usePricingStore();
