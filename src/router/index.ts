@@ -906,6 +906,12 @@ const routes = [
           import("../views/Configuracion/Pricing/TextoWhatsappCotizacion.vue"),
       },
       {
+        path: "configuracion/provider_quote_email_template",
+        name: "providerQuoteEmailTemplate",
+        component: () =>
+          import("../views/Configuracion/Pricing/ProviderQuoteEmailTemplate.vue"),
+      },
+      {
         path: "reporte/ReporteGanancia",
         name: "ReporteGanancia",
         component: () =>

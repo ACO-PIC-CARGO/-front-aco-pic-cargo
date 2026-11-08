@@ -1,0 +1,108 @@
+<script setup lang="ts">
+import { onMounted, ref } from "vue";
+import { storeToRefs } from "pinia";
+import RichTextEditor from "@/components/comun/RichTextEditor.vue";
+import { useAppStore } from "@/stores/app";
+import { useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
+import { usePermissions } from "@/composables/usePermissions";
+import type { EmailLanguage, ProviderQuoteEmailTemplate } from "@/types/providerQuoteEmailTemplate";
+
+const SCREEN = "providerQuoteEmailTemplate";
+const LANGUAGES: { value: EmailLanguage; title: string }[] = [
+  { value: "es", title: "Español" },
+  { value: "en", title: "Inglés" },
+];
+
+const appStore = useAppStore();
+const templateStore = useProviderQuoteEmailTemplateStore();
+const { loading, saving } = storeToRefs(templateStore);
+const { can } = usePermissions();
+
+const language = ref<EmailLanguage>("es");
+const drafts = ref<ProviderQuoteEmailTemplate[]>([]);
+const loadError = ref<string | null>(null);
+const saveError = ref<string | null>(null);
+
+onMounted(async () => {
+  appStore.mainTitle = "Plantilla del correo para solicitar tarifas a proveedores";
+  loadError.value = await templateStore.load();
+  drafts.value = templateStore.templates.map((template) => ({ ...template }));
+});
+
+async function save(draft: ProviderQuoteEmailTemplate) {
+  saveError.value = await templateStore.save({ ...draft });
+}
+</script>
+
+<template>
+  <v-card :loading="loading">
+    <v-alert
+      v-if="loadError"
+      type="warning"
+      variant="tonal"
+      class="ma-4"
+    >
+      {{ loadError }} Recarga la página para intentarlo de nuevo.
+    </v-alert>
+    <template v-else>
+      <v-tabs
+        v-model="language"
+        align-tabs="center"
+        slider-color="primary"
+      >
+        <v-tab
+          v-for="option in LANGUAGES"
+          :key="option.value"
+          :value="option.value"
+        >
+          {{ option.title }}
+        </v-tab>
+      </v-tabs>
+      <v-tabs-window v-model="language">
+        <v-tabs-window-item
+          v-for="draft in drafts"
+          :key="draft.language"
+          :value="draft.language"
+          class="pa-4"
+        >
+          <RichTextEditor
+            v-model="draft.intro_html"
+            label="Texto antes de los datos"
+          />
+          <v-alert
+            type="info"
+            variant="tonal"
+            class="my-4"
+          >
+            Aquí el sistema inserta la tabla con los datos de la cotización: incoterm, dirección de recojo (solo EXW),
+            puertos, contenedores, peso, volumen y tipo de mercancía.
+          </v-alert>
+          <RichTextEditor
+            v-model="draft.closing_html"
+            label="Texto después de los datos"
+          />
+          <v-alert
+            v-if="saveError"
+            type="warning"
+            variant="tonal"
+            class="mt-4"
+          >
+            {{ saveError }}
+          </v-alert>
+          <div
+            v-if="can(SCREEN, 'MODIFICAR')"
+            class="d-flex justify-end mt-4"
+          >
+            <v-btn
+              color="success"
+              :loading="saving"
+              @click="save(draft)"
+            >
+              Guardar
+            </v-btn>
+          </div>
+        </v-tabs-window-item>
+      </v-tabs-window>
+    </template>
+  </v-card>
+</template>
