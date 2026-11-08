@@ -13,7 +13,7 @@ import { useFilesStore } from "@/stores/files";
 import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
-import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
 import { currencyFormat } from "@/utils/cotizacion";
@@ -24,7 +24,6 @@ vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { 
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
 vi.mock("@/utils/pdfDownload", () => ({
   downloadPdf: vi.fn(async () => true),
-  downloadPdfInBackground: vi.fn(async () => true),
   downloadExcel: vi.fn(async () => true),
 }));
 vi.mock("@/utils/quoteReportSocket", () => ({
@@ -1749,13 +1748,13 @@ describe("pricing store", () => {
       expect(window.open).not.toHaveBeenCalled();
     });
 
-    test("imprimiReporteListadoCalls downloads the PDF of the calls filters", async () => {
+    test("imprimiReporteListadoCalls submits the calls filters to the asynchronous report flow", async () => {
       const pricing = usePricingStore();
       pricing.filtroCalls = { fechainicio: "2026-02-01", fechafin: "2026-02-28", tipopdf: 1 };
 
       await pricing.imprimiReporteListadoCalls({});
 
-      expect(downloadPdfInBackground).toHaveBeenCalledWith(
+      expect(requestQuoteReport).toHaveBeenCalledWith(
         {
           method: "post",
           url: URL_MAIN + "reporte_llamadas_export",

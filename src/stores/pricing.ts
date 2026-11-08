@@ -80,7 +80,7 @@ import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/app
 import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
 import { latestRequestTracker } from "@/utils/latestRequest";
-import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
@@ -3184,7 +3184,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdfInBackground(
+    await requestQuoteReport(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data: { filtro: { ...filtroCalls.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );

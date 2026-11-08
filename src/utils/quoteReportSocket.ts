@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from "axios";
 import { io } from "socket.io-client";
 import Swal from "sweetalert2";
+import "@/styles/quote-report-alert.css";
 import axios from "@/api/http";
 import { downloadBlob } from "@/utils/pdfDownload";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
@@ -20,6 +21,7 @@ interface QuoteReportResponse extends QuoteReportId {
 }
 
 const REPORT_EVENT = "reporte-quote";
+const PENDING_REPORTS = "pending-quote-reports";
 const quoteReportSocket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
   autoConnect: false,
@@ -27,6 +29,56 @@ const quoteReportSocket = io(import.meta.env.VITE_URL_MAIN, {
 
 let connectedToken: string | null = null;
 let connectionPromise: Promise<void> | null = null;
+
+type QuoteReportAlertStatus = "info" | "success" | "error";
+
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    "\"": "&quot;",
+    "'": "&#39;",
+  })[character]!);
+}
+
+function showQuoteReportAlert(
+  status: QuoteReportAlertStatus,
+  title: string,
+  message: string,
+  actionLabel = "Entendido",
+): void {
+  const icon = status === "info" ? "i" : status === "success" ? "✓" : "!";
+  const iconContent = status === "info"
+    ? `<svg class="quote-report-document-icon" viewBox="0 0 128 128" aria-hidden="true">
+        <path d="M35 10h39l21 21v45M74 10v22h22M35 10v102h34" />
+        <path d="M49 42h24M49 57h22M49 72h13" />
+        <circle cx="91" cy="88" r="25" />
+        <path d="M91 74v15l10 6" />
+      </svg>`
+    : `<span class="quote-report-icon-symbol">${icon}</span>`;
+  const content = status === "info"
+    ? `<div class="quote-report-time-banner"><span class="quote-report-clock"><svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="15" /><path d="M20 11v9l6 4" /></svg></span><span>Tomará entre <b>20 y 40 segundos.</b></span></div>
+       <p class="quote-report-followup">Te avisaremos una vez esté listo.</p>`
+    : `<p class="quote-report-message">${escapeHtml(message)}</p>`;
+
+  void Swal.fire({
+    icon: status,
+    iconHtml: iconContent,
+    title,
+    html: content,
+    confirmButtonText: `✓ ${actionLabel}`,
+    buttonsStyling: false,
+    customClass: {
+      container: "quote-report-container",
+      popup: `quote-report-popup quote-report-popup--${status}`,
+      icon: `quote-report-icon quote-report-icon--${status}`,
+      title: "quote-report-title",
+      htmlContainer: "quote-report-content",
+      confirmButton: `quote-report-button quote-report-button--${status}`,
+    },
+  });
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -63,8 +115,8 @@ function sameIdentifier(left: number | string, right: number | string): boolean 
 }
 
 function matchesSession(value: QuoteReportId, branchId: number, userId: number | string): boolean {
-  if (value.branchId !== undefined) return sameIdentifier(value.branchId, branchId);
-  return value.userId !== undefined && sameIdentifier(value.userId, userId);
+  return (value.branchId === undefined || sameIdentifier(value.branchId, branchId)) &&
+    (value.userId === undefined || sameIdentifier(value.userId, userId));
 }
 
 async function connectQuoteReportSocket(): Promise<void> {
@@ -123,15 +175,109 @@ function httpErrorMessage(error: unknown): string {
   return "No pudimos iniciar el reporte. Intenta de nuevo en unos minutos.";
 }
 
+function pendingReports(): QuoteReportId[] {
+  const raw = sessionStorage.getItem(PENDING_REPORTS);
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) throw new Error("Lista de reportes inválida");
+    return parsed.map(parseQuoteReportId).filter((item): item is QuoteReportId => item !== null);
+  } catch (error) {
+    console.error("No se pudieron leer los reportes pendientes:", error);
+    return [];
+  }
+}
+
+function savePending(report: QuoteReportId): void {
+  const reports = pendingReports().filter((item) => !sameIdentifier(item.requestId, report.requestId));
+  reports.push(report);
+  sessionStorage.setItem(PENDING_REPORTS, JSON.stringify(reports));
+}
+
+function forgetPending(report: QuoteReportId): void {
+  const reports = pendingReports().filter((item) => !sameIdentifier(item.requestId, report.requestId));
+  if (reports.length) sessionStorage.setItem(PENDING_REPORTS, JSON.stringify(reports));
+  else sessionStorage.removeItem(PENDING_REPORTS);
+}
+
+function dismissReport(report: QuoteReportId): void {
+  void axios.delete(`reporte_quote/${encodeURIComponent(String(report.requestId))}`)
+    .catch((error: unknown) => console.error("No se pudo liberar el reporte temporal:", error));
+}
+
+async function recoverPendingReport(
+  report: QuoteReportId,
+  shouldContinue: () => boolean = () => true,
+  onFinished: () => void = () => undefined,
+): Promise<void> {
+  if (!shouldContinue()) return;
+  try {
+    const response = await axios.get<Blob>(`reporte_quote/${encodeURIComponent(String(report.requestId))}`, { responseType: "blob" });
+    if (!shouldContinue()) return;
+    const type = String(response.headers["content-type"] || "");
+    if (type.includes("application/pdf")) {
+      const disposition = String(response.headers["content-disposition"] || "");
+      const name = /filename="?([^";]+)"?/i.exec(disposition)?.[1] || "REPORTE_COTIZACIONES.pdf";
+      downloadBlob(response.data, name);
+      onFinished();
+      forgetPending(report);
+      dismissReport(report);
+      showQuoteReportAlert("success", "Reporte generado", "El documento se descargó correctamente.", "Aceptar");
+      return;
+    }
+    const result: unknown = JSON.parse(await response.data.text());
+    if (isRecord(result) && result.status === "pending") {
+      window.setTimeout(() => void recoverPendingReport(report, shouldContinue, onFinished), 5000);
+      return;
+    }
+    if (isRecord(result) && result.status === "failed" && typeof result.mensaje === "string") {
+      forgetPending(report);
+      onFinished();
+      dismissReport(report);
+      showQuoteReportAlert("error", "No se pudo generar el reporte", result.mensaje);
+      return;
+    }
+    throw new Error("El servidor devolvió un estado de reporte inválido.");
+  } catch (error) {
+    if (!shouldContinue()) return;
+    if (isRecord(error) && isRecord(error.response) && error.response.status === 404) {
+      forgetPending(report);
+      onFinished();
+      showQuoteReportAlert("error", "Reporte no disponible", "El reporte expiró o el servidor se reinició. Solicítalo nuevamente.");
+    } else {
+      console.error("No se pudo recuperar el reporte:", error);
+      showQuoteReportAlert("error", "No se pudo recuperar el reporte", "Recarga la página para volver a intentar.");
+    }
+  }
+}
+
+export function resumeQuoteReports(): void {
+  if (!sessionStorage.getItem("auth-token")) return;
+  let branchId: number;
+  let userId: number | string;
+  try {
+    branchId = sessionBranchId();
+    const login = sessionUser().users;
+    if (!login) throw new Error("No se encontró el usuario de sesión.");
+    userId = login;
+  } catch (error) {
+    console.error("No se pudo identificar la sesión para recuperar reportes:", error);
+    return;
+  }
+  for (const report of pendingReports()) {
+    if (matchesSession(report, branchId, userId)) void recoverPendingReport(report);
+  }
+}
+
 export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFileName: string): Promise<void> {
   try {
     await connectQuoteReportSocket();
   } catch {
-    Swal.fire({
-      icon: "error",
-      title: "No se pudo conectar",
-      text: "No pudimos conectar con el servicio de reportes. Intenta nuevamente.",
-    });
+    showQuoteReportAlert(
+      "error",
+      "No se pudo conectar",
+      "No pudimos conectar con el servicio de reportes. Intenta nuevamente.",
+    );
     return;
   }
 
@@ -146,11 +292,11 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
     userId = sessionUserId;
   } catch {
     quoteReportSocket.disconnect();
-    Swal.fire({
-      icon: "error",
-      title: "No se pudo identificar la sesión",
-      text: "Vuelve a iniciar sesión e intenta generar el reporte nuevamente.",
-    });
+    showQuoteReportAlert(
+      "error",
+      "No se pudo identificar la sesión",
+      "Vuelve a iniciar sesión e intenta generar el reporte nuevamente.",
+    );
     return;
   }
   let activeRequest: QuoteReportId | null = null;
@@ -169,38 +315,43 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
     if (completed) return;
     completed = true;
     cleanup();
-    Swal.fire({ icon: "error", title: "No se pudo generar el reporte", text: message });
+    showQuoteReportAlert("error", "No se pudo generar el reporte", message);
   };
   const finishWithResponse = (response: QuoteReportResponse) => {
     if (completed) return;
     completed = true;
     cleanup();
     if (!response.estadoflag) {
-      Swal.fire({
-        icon: "error",
-        title: "No se pudo generar el reporte",
-        text: response.mensaje || "No pudimos generar el reporte. Intenta de nuevo en unos minutos.",
-      });
+      forgetPending(response);
+      dismissReport(response);
+      showQuoteReportAlert(
+        "error",
+        "No se pudo generar el reporte",
+        response.mensaje || "No pudimos generar el reporte. Intenta de nuevo en unos minutos.",
+      );
       return;
     }
 
     const contentType = response.contentType || "application/pdf";
     const file = toPdfBlob(response.file, contentType);
     if (!file || !contentType.toLowerCase().includes("pdf")) {
-      Swal.fire({
-        icon: "error",
-        title: "No se pudo descargar el reporte",
-        text: "El servidor no entregó un archivo PDF válido.",
-      });
+      showQuoteReportAlert(
+        "error",
+        "No se pudo descargar el reporte",
+        "El servidor no entregó un archivo PDF válido.",
+      );
       return;
     }
 
     downloadBlob(file, response.fileName || fallbackFileName);
-    Swal.fire({
-      icon: "success",
-      title: "Reporte listo",
-      text: "El documento se descargó automáticamente.",
-    });
+    forgetPending(response);
+    dismissReport(response);
+    showQuoteReportAlert(
+      "success",
+      "Reporte generado",
+      "El documento se descargó correctamente.",
+      "Aceptar",
+    );
   };
   const onReport = (payload: unknown) => {
     const response = parseQuoteReportResponse(payload);
@@ -230,6 +381,7 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
         throw new Error("La solicitud del reporte respondió con una sucursal o usuario distinto.");
       }
       activeRequest = request;
+      savePending(request);
       if (
         earlyResponse &&
         matchesSession(earlyResponse, branchId, userId) &&
@@ -238,6 +390,13 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
         finishWithResponse(earlyResponse);
       }
       earlyResponse = null;
+      if (!completed) {
+        window.setTimeout(() => void recoverPendingReport(
+          request,
+          () => !completed && activeRequest === request,
+          () => { completed = true; cleanup(); },
+        ), 5000);
+      }
     } catch (error) {
       if (!quoteReportSocket.connected || disconnectedBeforeResponse || retryAfterSend) {
         retryAfterSend = true;
@@ -266,6 +425,12 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
   const onReconnect = () => {
     if (!disconnectedBeforeResponse || completed) return;
     disconnectedBeforeResponse = false;
+    if (activeRequest) {
+      completed = true;
+      cleanup();
+      void recoverPendingReport(activeRequest);
+      return;
+    }
     retryAfterSend = true;
     if (!isSending) {
       retryAfterSend = false;
@@ -278,11 +443,11 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
   quoteReportSocket.on(REPORT_EVENT, onReport);
   quoteReportSocket.on("disconnect", onDisconnect);
   quoteReportSocket.on("connect", onReconnect);
-  Swal.fire({
-    icon: "info",
-    title: "Reporte en proceso",
-    text: "El documento se descargará automáticamente cuando esté listo.",
-    showConfirmButton: true,
-  });
+  showQuoteReportAlert(
+    "info",
+    "Generando Reporte",
+    "El documento se descargará automáticamente cuando esté listo.",
+    "Puedes continuar trabajando",
+  );
   await sendRequest();
 }
