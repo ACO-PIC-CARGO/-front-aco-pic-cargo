@@ -14,6 +14,7 @@ import { useHousesStore } from "@/stores/houses";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { getNombreCotizacion, usePricingStore } from "@/stores/pricing";
 import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import type { Costo, DatosPrincipales, Impuesto, Multiplicador, Nota, OpcionCosto, Servicio } from "@/types/cotizacion";
 import { currencyFormat } from "@/utils/cotizacion";
 import { JSON_HEADERS, URL_MAIN, accepted, flushPromises, httpMock, rejected, respond } from "./catalogHttp";
@@ -25,6 +26,9 @@ vi.mock("@/utils/pdfDownload", () => ({
   downloadPdf: vi.fn(async () => true),
   downloadPdfInBackground: vi.fn(async () => true),
   downloadExcel: vi.fn(async () => true),
+}));
+vi.mock("@/utils/quoteReportSocket", () => ({
+  requestQuoteReport: vi.fn(async () => {}),
 }));
 
 const postMock = vi.mocked((http as unknown as { post: (...a: unknown[]) => Promise<unknown> }).post);
@@ -1708,22 +1712,39 @@ describe("pricing store", () => {
       expect(descarga?.valor).toBe(currencyFormat(30));
     });
 
-    test.each([
-      ["imprimiReporteListado", "export_list_quote", "REPORTE_COTIZACIONES.pdf", downloadPdf],
-      ["imprimiReporteListadoMarketing", "reporte_canales_origen", "REPORTE_CANALES_ORIGEN.pdf", downloadPdf],
-    ] as const)("%s downloads the PDF of the list filters from %s instead of opening a public file", async (name, path, fileName, download) => {
+    test("imprimiReporteListado submits the list filters to the asynchronous report flow", async () => {
       const pricing = usePricingStore();
       pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
 
-      await pricing[name]({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
+      await pricing.imprimiReporteListado({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
 
-      expect(download).toHaveBeenCalledWith(
+      expect(requestQuoteReport).toHaveBeenCalledWith(
         {
           method: "post",
-          url: URL_MAIN + path,
+          url: URL_MAIN + "export_list_quote",
+          data: {
+            filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 },
+            filtroSeleccionado: { a: 1 },
+            filtroCabecera: { b: 2 },
+          },
+        },
+        "REPORTE_COTIZACIONES.pdf",
+      );
+    });
+
+    test("imprimiReporteListadoMarketing downloads the marketing report using the existing flow", async () => {
+      const pricing = usePricingStore();
+      pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 };
+
+      await pricing.imprimiReporteListadoMarketing({ filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } });
+
+      expect(downloadPdf).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + "reporte_canales_origen",
           data: { filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 2 }, filtroSeleccionado: { a: 1 }, filtroCabecera: { b: 2 } },
         },
-        fileName,
+        "REPORTE_CANALES_ORIGEN.pdf",
       );
       expect(window.open).not.toHaveBeenCalled();
     });

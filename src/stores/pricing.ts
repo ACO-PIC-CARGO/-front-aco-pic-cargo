@@ -81,6 +81,7 @@ import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
 import { latestRequestTracker } from "@/utils/latestRequest";
 import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
@@ -3074,7 +3075,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdf(
+    await requestQuoteReport(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );

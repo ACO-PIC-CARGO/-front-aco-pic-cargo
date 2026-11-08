@@ -110,7 +110,7 @@ function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | 
   return (
     fechaInicio.isValid() &&
     fechaFin.isValid() &&
-    fechaFin.isAfter(fechaInicio.clone().add(1, "month"), "day")
+    fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
   );
 }
 async function reporteMarketing() {
