@@ -1046,7 +1046,7 @@ onMounted(async () => {
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
               <PricingRequestButton
-                v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
+                v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
               />
               <!--  -->
