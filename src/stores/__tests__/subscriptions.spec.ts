@@ -686,18 +686,30 @@ describe("subscriptions store", () => {
     test("builds the trial notice", () => {
       const store = useSubscriptionsStore();
       const now = Date.parse("2026-10-20T00:00:00Z");
-      expect(store.trialNotice({ branchId: 1, now })).toBeNull();
       expect(store.trialNotice({ branchId: 5, now })).toEqual({ days: null, ended: false, canBuy: true, paidText: null });
       store.registrationTrial = { ends_at: "2026-10-22T12:00:00Z" };
       expect(store.trialNotice({ branchId: 5, now })).toEqual({ days: 3, ended: false, canBuy: true, paidText: null });
       store.registrationTrial = { ends_at: "2026-10-19T00:00:00Z" };
-      expect(store.trialNotice({ branchId: 1, now })).toEqual({ days: null, ended: true, canBuy: false, paidText: null });
+      expect(store.trialNotice({ branchId: 5, now })).toEqual({ days: null, ended: true, canBuy: true, paidText: null });
       store.plan = livePlan({ status: "trialing", current_period_ends_at: "2026-10-21T00:00:00Z" }) as never;
       expect(store.trialNotice({ branchId: 5, now })!.days).toBe(1);
       store.plan = livePlan() as never;
       expect(store.trialNotice({ branchId: 5, now })).toEqual({ days: null, ended: false, canBuy: false, paidText: "ACO START activo" });
       store.plan = livePlan({ status: "paused" }) as never;
       expect(store.trialNotice({ branchId: 5, now })).toBeNull();
+    });
+
+    test("the ACO branches that need no subscription never see the trial or the buy button", () => {
+      const store = useSubscriptionsStore();
+      const now = Date.parse("2026-10-20T00:00:00Z");
+      for (const branchId of [1, 2, 17, "17"]) {
+        store.registrationTrial = null;
+        expect(store.trialNotice({ branchId, now })).toBeNull();
+        store.registrationTrial = { ends_at: "2026-10-22T12:00:00Z" };
+        expect(store.trialNotice({ branchId, now })).toBeNull();
+        store.registrationTrial = { ends_at: "2026-10-19T00:00:00Z" };
+        expect(store.trialNotice({ branchId, now })).toBeNull();
+      }
     });
 
     test("formats prices and dates", () => {

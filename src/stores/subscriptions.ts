@@ -576,15 +576,14 @@ const daysUntil = (value: string | null | undefined, now: number) =>
   Math.max(0, Math.ceil((Date.parse(value as string) - now) / DAY_MS) || 0);
 
 const NO_NOTICE: TrialNotice = { days: null, ended: false, canBuy: false, paidText: null };
-const ACO_BRANCH_ID = 1;
+const NO_SUBSCRIPTION_BRANCH_IDS = [1, 2, 17];
 
 const registrationTrialNotice = (
   registrationTrial: RegistrationTrial | null,
-  canBuy: boolean,
   now: number,
-): TrialNotice | null => {
-  const notice = { ...NO_NOTICE, canBuy };
-  if (!registrationTrial) return canBuy ? notice : null;
+): TrialNotice => {
+  const notice = { ...NO_NOTICE, canBuy: true };
+  if (!registrationTrial) return notice;
   const days = daysUntil(registrationTrial.ends_at, now);
   return days > 0 ? { ...notice, days } : { ...notice, ended: true };
 };
@@ -601,8 +600,8 @@ const trialNoticeOf = ({
   now?: number;
 }): TrialNotice | null => {
   if (!isLivePlan(plan)) {
-    const canBuy = Number(branchId) !== ACO_BRANCH_ID;
-    return registrationTrialNotice(registrationTrial, canBuy, now);
+    if (NO_SUBSCRIPTION_BRANCH_IDS.includes(Number(branchId))) return null;
+    return registrationTrialNotice(registrationTrial, now);
   }
   if (plan.status === "trialing") {
     return {
