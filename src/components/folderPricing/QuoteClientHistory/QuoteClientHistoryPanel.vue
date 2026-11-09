@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, toRef } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, toRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useClientQuoteHistory } from "./useClientQuoteHistory";
 import { cargoDetail, modalityColor, modalityLabel, money, transportIcon } from "./quoteHistoryLabels";
@@ -11,6 +11,10 @@ const props = withDefaults(defineProps<{ clientId: number | string | null | unde
 const BAR_HEIGHT = 48;
 const router = useRouter();
 const open = ref(false);
+const active = computed(() => props.visible && !!props.clientId);
+watch(active, (isActive) => {
+  if (!isActive) open.value = false;
+});
 const { items, totalCount, hasMore, loaded, loading, errorMessage, loadMore, retry } = useClientQuoteHistory(
   toRef(props, "clientId"),
 );
@@ -29,10 +33,11 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
   <v-layout-item
     position="bottom"
     :size="BAR_HEIGHT"
-    :model-value="visible && !!clientId"
+    :model-value="active"
     class="client-history"
   >
     <section
+      v-show="active"
       class="client-history__sheet bg-surface"
       :class="{ 'client-history__sheet--open': open }"
       :style="{ '--client-history-bar': `${BAR_HEIGHT}px` }"
