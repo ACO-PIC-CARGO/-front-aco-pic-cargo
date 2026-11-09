@@ -6,6 +6,7 @@ import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useHousesStore } from "@/stores/houses";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { calendarDateLabel, fromDateAndTime, toDateAndTime } from "@/components/HouseFile/houseTrackingFormat";
+import { isDateOnlyHouseNotice } from "@/components/HouseFile/houseNoticeDate";
 import type { NotificacionHouse } from "@/types/operaciones";
 
 const housesStore = useHousesStore();
@@ -95,15 +96,16 @@ watch(dateDialogOpen, (isOpen) => {
 
 function sendNotification(item: NotificacionHouse): void {
   const id = idKey(item);
-  const fecha = fechas[id];
-  const hora = horas[id];
-  if (!fecha || !hora) {
-    erroresFecha[id] = "La fecha y la hora son obligatorias para enviar la notificación.";
+  const fecha = fechas[id] ?? "";
+  const hora = horas[id] ?? "";
+  const dateOnly = isDateOnlyHouseNotice(item);
+  if (!fecha || (!dateOnly && !hora)) {
+    erroresFecha[id] = dateOnly ? "La fecha es obligatoria para enviar la notificación." : "La fecha y la hora son obligatorias para enviar la notificación.";
     openDateDialog(item, true);
     return;
   }
   delete erroresFecha[id];
-  emit("send", { notification: item, fecha: fromDateAndTime(fecha, hora, timeZone.value) });
+  emit("send", { notification: item, fecha: dateOnly ? fecha : fromDateAndTime(fecha, hora, timeZone.value) });
 }
 
 function openDateDialog(item: NotificacionHouse, sendAfterSave = false): void {
@@ -117,20 +119,28 @@ function openDateDialog(item: NotificacionHouse, sendAfterSave = false): void {
 }
 
 function saveDate(): void {
-  if (!selectedNotification.value || !dateDraft.value) {
-    dateDialogError.value = "La fecha y la hora son obligatorias.";
-    return;
-  }
-  const time = normalizeTime(timeDraft.value);
-  if (!time) {
-    dateDialogError.value = "Ingresa una hora válida, por ejemplo 10 o 10:30.";
-    return;
-  }
+  if (!selectedNotification.value) return;
   const item = selectedNotification.value;
+  const dateOnly = isDateOnlyHouseNotice(item);
+  const date = dateDraft.value;
+  if (!date) {
+    dateDialogError.value = dateOnly ? "La fecha es obligatoria." : "La fecha y la hora son obligatorias.";
+    return;
+  }
   const id = idKey(item);
-  const fecha = fromDateAndTime(dateDraft.value, time, timeZone.value);
+  let time = "";
+  let fecha = date;
+  if (!dateOnly) {
+    const normalizedTime = normalizeTime(timeDraft.value);
+    if (!normalizedTime) {
+      dateDialogError.value = "Ingresa una hora válida, por ejemplo 10 o 10:30.";
+      return;
+    }
+    time = normalizedTime;
+    fecha = fromDateAndTime(date, normalizedTime, timeZone.value);
+  }
   const shouldSend = pendingSend.value;
-  fechas[id] = dateDraft.value;
+  fechas[id] = date;
   horas[id] = time;
   delete erroresFecha[id];
   pendingSend.value = false;
@@ -237,7 +247,11 @@ defineExpose({ requestSend });
                 :aria-label="fechas[idKey(item)] ? `Cambiar fecha de ${item.descripcion || item.codigo}` : `Poner fecha a ${item.descripcion || item.codigo}`"
                 @click="openDateDialog(item)"
               >
-                {{ fechas[idKey(item)] && horas[idKey(item)] ? `${calendarDateLabel(fechas[idKey(item)])} ${horas[idKey(item)]}` : "Poner fecha" }}
+                {{
+                  fechas[idKey(item)] && (isDateOnlyHouseNotice(item) || horas[idKey(item)])
+                    ? `${calendarDateLabel(fechas[idKey(item)])}${isDateOnlyHouseNotice(item) ? "" : ` ${horas[idKey(item)]}`}`
+                    : "Poner fecha"
+                }}
               </v-btn>
               <span
                 v-if="erroresFecha[idKey(item)]"
@@ -284,6 +298,7 @@ defineExpose({ requestSend });
           label="Fecha"
         />
         <v-text-field
+          v-if="selectedNotification && !isDateOnlyHouseNotice(selectedNotification)"
           v-model="timeDraft"
           type="time"
           step="60"

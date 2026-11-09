@@ -182,6 +182,14 @@ export const useHousesStore = defineStore("houses", () => {
     });
   }
 
+  function updateHouseNotificationData(houseId: number, data: Record<string, unknown>): Promise<ApiResponse> {
+    return request({
+      method: "put",
+      url: "house_actualizar_notificacion",
+      data: { id_house: houseId, ...data },
+    });
+  }
+
   async function getFacturasFiscales(houseFacturable: HouseFacturable = {}): Promise<void> {
     lstFacturasFiscales.value = [];
 
@@ -410,6 +418,7 @@ export const useHousesStore = defineStore("houses", () => {
     insertComentarioHouse,
     deleteHouse,
     sendArrivalNotice,
+    updateHouseNotificationData,
     getFacturasFiscales,
     copy_house,
     modalServices_manualMode,

@@ -41,6 +41,20 @@ describe("houses store", () => {
     expect(houses.house).toEqual({ id: 5, code_house: "H-5" });
   });
 
+  test("notification data is saved through the dedicated house update endpoint", async () => {
+    respond({ house_actualizar_notificacion: accepted({}) });
+    const houses = useHousesStore();
+    const data = { id_proveedor: 20, emailaddress_clientefinal: "cliente@example.com", fecha_etd: "2026-11-09" };
+
+    await houses.updateHouseNotificationData(5, data);
+
+    expect(httpMock).toHaveBeenCalledWith({
+      method: "put",
+      url: "house_actualizar_notificacion",
+      data: { id_house: 5, ...data },
+    });
+  });
+
   test("verHouse empties the house when the server refuses it", async () => {
     respond({ house_ver: rejected("No encontramos ese expediente. Recarga la página e intenta de nuevo.") });
     const houses = useHousesStore();

@@ -28,6 +28,9 @@ export interface HouseEditForm {
   monto: number | null;
   nro_declaracion_aduana: string;
   canal_aduana: string;
+  emailaddress_clientefinal: string;
+  fecha_etd: string;
+  fecha_eta: string;
 }
 
 const MISSING_PARTIES = "Elige el cliente HBL y el proveedor para guardar.";
@@ -67,6 +70,9 @@ export const editFormFromHouse = (house: HouseDetalle): HouseEditForm => {
     monto: toNumber(source.monto),
     nro_declaracion_aduana: toText(source.nro_declaracion_aduana),
     canal_aduana: toText(source.canal_aduana),
+    emailaddress_clientefinal: toText(source.emailaddress_clientefinal),
+    fecha_etd: isoFromDayMonthYear(toText(source.fecha_etd)) ?? "",
+    fecha_eta: isoFromDayMonthYear(toText(source.fecha_eta)) ?? "",
   };
 };
 
