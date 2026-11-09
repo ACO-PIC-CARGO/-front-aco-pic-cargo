@@ -72,11 +72,12 @@ describe("houseEdit store", () => {
     expect((httpMock.mock.calls[0]![0].data as { id_consigner: number }).id_consigner).toBe(31);
   });
 
-  test("a house without client or provider is not sent", async () => {
+  test("a house whose HBL client and provider were cleared is sent with both cleared", async () => {
+    httpMock.mockResolvedValue({ data: { status: 200, statusBol: true, estadoflag: true } });
     const store = useHouseEditStore();
-    store.form = editFormFromHouse({ ...house, id_consigner: null } as unknown as HouseDetalle);
-    expect(await store.save(house)).toBe("Elige el cliente HBL y el proveedor para guardar.");
-    expect(httpMock).not.toHaveBeenCalled();
+    store.form = editFormFromHouse({ ...house, id_consigner: null, id_proveedor: null } as unknown as HouseDetalle);
+    expect(await store.save(house)).toBeNull();
+    expect(httpMock.mock.calls[0]![0].data).toMatchObject({ id_consigner: "", id_proveedor: "" });
   });
 
   test("a house loaded without its services, or another house, is never sent", async () => {

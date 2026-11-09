@@ -68,11 +68,9 @@ test("the save payload keeps every service of the house and includes the customs
   ]);
 });
 
-test("a house needs a client and a provider before saving", () => {
+test("a house can be saved without its HBL client and provider", () => {
   const form = editFormFromHouse(house);
-  expect(editFormError(form)).toBeNull();
-  expect(editFormError({ ...form, id_consigner: null })).toBe("Elige el cliente HBL y el proveedor para guardar.");
-  expect(editFormError({ ...form, id_proveedor: null })).toBe("Elige el cliente HBL y el proveedor para guardar.");
+  expect(editFormError({ ...form, id_consigner: null, id_proveedor: null })).toBeNull();
 });
 
 test("a house cannot be saved with a negative quantity, weight, volume or amount", () => {

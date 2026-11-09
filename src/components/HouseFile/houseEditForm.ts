@@ -30,7 +30,6 @@ export interface HouseEditForm {
   canal_aduana: string;
 }
 
-const MISSING_PARTIES = "Elige el cliente HBL y el proveedor para guardar.";
 const NEGATIVE_QUANTITIES = "Revisa bultos, peso, volumen y monto: no pueden ser negativos.";
 
 const toNumber = (value: unknown): number | null =>
@@ -111,7 +110,6 @@ export const houseEditPayload = (form: HouseEditForm, services: ServicioHouse[],
 const isNegative = (value: number | null) => value !== null && value < 0;
 
 export const editFormError = (form: HouseEditForm): string | null => {
-  if (!form.id_consigner || !form.id_proveedor) return MISSING_PARTIES;
   if ([form.bultos, form.peso, form.volumen, form.monto].some(isNegative)) return NEGATIVE_QUANTITIES;
   return null;
 };
