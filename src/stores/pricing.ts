@@ -1447,6 +1447,7 @@ export const usePricingStore = defineStore("pricing", () => {
       ventascasillerodetalles: [],
       opcionCostos: opciones,
       tienefleteflag: datosPrincipales.value.tienefleteflag,
+      pricing_notes: datosPrincipales.value.pricing_notes ?? null,
       id_branch: sessionBranchId(),
     };
     const response = (await request({

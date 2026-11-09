@@ -23,6 +23,8 @@ import { askAdminCredentials } from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
+import PricingNotesField from "@/components/folderPricing/PricingRequest/PricingNotesField.vue";
+
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
 );
@@ -632,6 +634,10 @@ function irANotas() {
                 @activar-llenado-costos="activarLlenadoCostos()"
                 @recargar-costos="recargarCostos()"
                 :mostrar-btn="false"
+              />
+              <PricingNotesField
+                :quote-id="route.params.id as string"
+                class="mt-4"
               />
             </v-col>
           </v-row>

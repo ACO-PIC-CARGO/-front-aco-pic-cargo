@@ -12,6 +12,7 @@ import ServicesComponent from "../../components/folderPricing/ServicesComponent.
 import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
+import PricingNotesField from "@/components/folderPricing/PricingRequest/PricingNotesField.vue";
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
 );
@@ -1203,6 +1204,10 @@ function formatearCostoTotal(valor: Costo) {
                 v-if="ServicesComponentFlag"
                 @activar-llenado-costos="activarLlenadoCostos()"
                 @recargar-costos="recargarCostos()"
+              />
+              <PricingNotesField
+                v-if="ServicesComponentFlag"
+                class="mt-4"
               />
             </v-col>
           </v-row>
