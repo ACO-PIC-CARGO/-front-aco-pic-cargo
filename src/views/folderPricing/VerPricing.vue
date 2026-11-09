@@ -51,6 +51,9 @@ const UnificarCotizacion = defineAsyncComponent(
   () =>
     import("@/components/folderPricing/VerComponent/UnificarCotizacion.vue"),
 );
+const QuoteClientHistoryPanel = defineAsyncComponent(
+  () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
+);
 
 const route = useRoute();
 const appStore = useAppStore();
@@ -287,6 +290,10 @@ onMounted(async () => {
         </v-stepper-window>
       </v-stepper>
     </v-card>
+    <QuoteClientHistoryPanel
+      :client-id="pricingStore.datosPrincipales.id_entitie"
+      :visible="Number(pricingStore.e1) <= 4"
+    />
     <v-snackbar
       v-model="snackbarSinFlete"
       location="bottom"

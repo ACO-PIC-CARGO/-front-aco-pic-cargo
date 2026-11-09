@@ -98,7 +98,7 @@ describe("useClientQuoteHistory", () => {
   });
 
   test("picking another client aborts the pending request and shows only the new client", async () => {
-    let resolveFirst!: (value: unknown) => void;
+    let resolveFirst!: (value: { data: unknown }) => void;
     httpMock.mockReturnValueOnce(new Promise((resolve) => (resolveFirst = resolve)));
     const { clientId, history } = mountHistory(41);
     await settle();

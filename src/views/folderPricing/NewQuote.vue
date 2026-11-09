@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { nextTick, onBeforeMount, onMounted, ref } from "vue";
+import { defineAsyncComponent, nextTick, onBeforeMount, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -12,6 +12,9 @@ import ServicesComponent from "../../components/folderPricing/ServicesComponent.
 import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
+const QuoteClientHistoryPanel = defineAsyncComponent(
+  () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
+);
 import { useCotizacionCalculos } from "@/composables/useCotizacionCalculos";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -1236,6 +1239,7 @@ function formatearCostoTotal(valor: Costo) {
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+    <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
     <v-dialog

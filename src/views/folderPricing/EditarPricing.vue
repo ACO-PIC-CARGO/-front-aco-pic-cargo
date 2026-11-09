@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
@@ -22,6 +22,10 @@ import { isApprovedQuote } from "@/utils/quoteApproval";
 import { askAdminCredentials } from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
+
+const QuoteClientHistoryPanel = defineAsyncComponent(
+  () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
+);
 
 const route = useRoute();
 const appStore = useAppStore();
@@ -680,6 +684,7 @@ function irANotas() {
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+    <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
     <v-snackbar
       v-model="snackbarSinFlete"
       location="bottom"
