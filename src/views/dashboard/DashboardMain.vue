@@ -14,7 +14,7 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import { io } from "socket.io-client";
 import axios from "@/api/http";
-import PricingRequestPopup from "@/components/folderPricing/PricingRequest/PricingRequestPopup.vue";
+import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotifications/QuoteNotificationPopup.vue";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
@@ -79,7 +79,7 @@ const can = (screen: string, action: string) =>
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
-  auth: { token: sessionStorage.getItem("auth-token") },
+  auth: (cb) => cb({ token: sessionStorage.getItem("auth-token") }),
 });
 socket.on("connect_error", (err) => {
   console.error("Error al conectar con Socket.IO:", err);
@@ -1999,7 +1999,7 @@ watch(idRole, async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <PricingRequestPopup :socket="socket" />
+    <QuoteNotificationPopup :socket="socket" />
   </div>
 </template>
 
