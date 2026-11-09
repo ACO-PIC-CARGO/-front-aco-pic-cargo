@@ -697,6 +697,19 @@ export const usePricingStore = defineStore("pricing", () => {
       }
     });
   }
+  type ListView = "" | "pending_send" | "pricing_requested";
+  const listViewFilters = new Map<ListView, { filtro: FiltroCotizaciones; search: string }>();
+  function switchListView(view: ListView): void {
+    listViewFilters.set(pricingView.value, { filtro: { ...filtro.value }, search: search.value });
+    const saved = listViewFilters.get(view);
+    filtro.value = saved ? { ...saved.filtro } : { fechainicio: "", fechafin: "", tipopdf: 1 };
+    search.value = saved?.search ?? "";
+    pricingView.value = view;
+    pagina.value = 1;
+  }
+  function pricingViewFilter(): Record<string, string> {
+    return pricingView.value ? { pricing_view: pricingView.value } : {};
+  }
   function quoteListParams(): Record<string, unknown> {
     return filledParams({
       ...filtro.value,
@@ -3082,7 +3095,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
     await requestQuoteReport(
-      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value, ...pricingViewFilter() }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );
   }
@@ -3099,6 +3112,7 @@ export const usePricingStore = defineStore("pricing", () => {
     const data = {
       filtro: {
         ...filtro.value,
+        ...pricingViewFilter(),
         search: search.value,
         limit: limit.value,
         pagina: pagina.value,
@@ -6925,6 +6939,7 @@ export const usePricingStore = defineStore("pricing", () => {
     limit,
     pagina,
     pricingView,
+    switchListView,
     dataCliente,
     step,
     id_master,

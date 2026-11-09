@@ -167,6 +167,36 @@ describe("pricing store", () => {
   });
 
   describe("lists", () => {
+    test("each list tab keeps its own filters, and the queues start without dates", () => {
+      const pricing = usePricingStore();
+      pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-11-30", tipopdf: 1, id_status: 3 };
+      pricing.search = "zev";
+
+      pricing.switchListView("pending_send");
+      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1 });
+      expect(pricing.search).toBe("");
+      pricing.filtro.id_status = 5;
+
+      pricing.switchListView("");
+      expect(pricing.filtro).toEqual({ fechainicio: "2026-01-01", fechafin: "2026-11-30", tipopdf: 1, id_status: 3 });
+      expect(pricing.search).toBe("zev");
+
+      pricing.switchListView("pending_send");
+      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1, id_status: 5 });
+      expect(pricing.pagina).toBe(1);
+    });
+
+    test("both quote list reports carry the active tab", async () => {
+      const pricing = usePricingStore();
+      pricing.switchListView("pricing_requested");
+
+      await pricing.imprimiReporteListado({ filtroSeleccionado: {}, filtroCabecera: {} });
+      await pricing.exportarExcelListadoQuote();
+
+      expect(vi.mocked(requestQuoteReport).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "pricing_requested" });
+      expect(vi.mocked(downloadExcel).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "pricing_requested" });
+    });
+
     test("a slower old status summary never replaces the one of the current tab", async () => {
       let resolveOld!: (value: { data: unknown }) => void;
       httpMock

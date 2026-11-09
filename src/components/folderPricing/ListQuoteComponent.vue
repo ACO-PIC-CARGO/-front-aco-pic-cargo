@@ -187,6 +187,12 @@ const cabCotizaciones = [
 
 const SENT_TO_CLIENT_HEADER = { key: "sent_to_client_at", title: "ENVÍO AL CLIENTE", align: "center" } as const;
 const showsSentToClient = computed(() => pricingStore.pricingView === "pricing_requested");
+const NO_DATA_TEXTS = {
+  "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
+  pending_send: "No hay cotizaciones pendientes de envío.",
+  pricing_requested: "Todavía no se ha solicitado ninguna cotización a pricing.",
+} as const;
+const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
 const headersCotizaciones = computed(() => {
   if (!showsSentToClient.value) return [...cabCotizaciones];
   const afterCode = cabCotizaciones.findIndex((header) => header.key === "codigo") + 1;
@@ -932,7 +938,7 @@ onMounted(async () => {
       show-expand
       class="elevation-1"
       disable-sort
-      no-data-text="No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros."
+      :no-data-text="noDataText"
       @update:options="cambiarPagina"
     >
       <template #item="{ item, internalItem, isExpanded, toggleExpand }">

@@ -26,8 +26,7 @@ const props = withDefaults(defineProps<{ pricingView?: "" | "pending_send" | "pr
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-pricingStore.pricingView = props.pricingView;
-pricingStore.pagina = 1;
+pricingStore.switchListView(props.pricingView);
 const configEmpresaStore = useConfigEmpresaStore();
 const masterusuariosStore = useMasterusuariosStore();
 const securitysStore = useSecuritysStore();
