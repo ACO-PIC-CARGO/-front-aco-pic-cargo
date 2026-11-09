@@ -15,9 +15,10 @@ describe("modalityLabel", () => {
     expect(modalityLabel(item({ group_flag: true }))).toBe("LCL Grupal");
   });
 
-  test("FCL names its containers and air keeps the shipment name", () => {
-    expect(modalityLabel(item({ shipment_name: "FCL", containers: [{ id_containers: 20, cantidad: 1, name: "20' STD" }] }))).toBe("FCL 20' STD");
-    expect(modalityLabel(item({ shipment_name: "Aéreo", transport_name: "Aéreo" }))).toBe("Aéreo");
+  test("FCL names its containers and air keeps the shipment name, whatever the individual flag says", () => {
+    const fcl = { shipment_name: "FCL", individual_flag: true, containers: [{ id_containers: 20, cantidad: 1, name: "20' STD" }] };
+    expect(modalityLabel(item(fcl))).toBe("FCL 20' STD");
+    expect(modalityLabel(item({ shipment_name: "Aéreo", transport_name: "Aéreo", individual_flag: true }))).toBe("Aéreo");
   });
 });
 
