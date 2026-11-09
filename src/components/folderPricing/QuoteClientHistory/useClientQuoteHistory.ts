@@ -63,6 +63,7 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
   const loading = ref(false);
   const errorMessage = ref<string | null>(null);
   let request: AbortController | null = null;
+  let shownId: ClientId | null = null;
 
   async function fetchPage(id: ClientId, after?: ClientQuoteHistoryItem) {
     request?.abort();
@@ -101,6 +102,7 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
   const showClient = useDebouncedSearch((id: ClientId | null | undefined) => {
     request?.abort();
     errorMessage.value = null;
+    shownId = id || null;
     history.value = (id && histories.get(id)) || null;
     if (id && !history.value) void fetchPage(id);
   });
@@ -112,16 +114,18 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
     return items[items.length - 1];
   }
 
+  function isShowingCurrentClient() {
+    return shownId !== null && shownId === clientId.value;
+  }
+
   function loadMore() {
-    const id = clientId.value;
     const last = lastItem();
-    if (!id || !last || loading.value) return;
-    void fetchPage(id, last);
+    if (!isShowingCurrentClient() || !last || loading.value) return;
+    void fetchPage(shownId!, last);
   }
 
   function retry() {
-    const id = clientId.value;
-    if (id) void fetchPage(id, lastItem());
+    if (isShowingCurrentClient()) void fetchPage(shownId!, lastItem());
   }
 
   return {

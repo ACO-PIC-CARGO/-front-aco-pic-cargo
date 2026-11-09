@@ -113,6 +113,23 @@ describe("useClientQuoteHistory", () => {
     expect(history.items.value.map((item) => item.id)).toEqual([5]);
   });
 
+  test("Ver más while the client is changing waits for the new client instead of mixing both", async () => {
+    httpMock.mockResolvedValueOnce(page([historyRow(9, { total_count: "2", has_more: true })]));
+    const { clientId, history } = mountHistory(41);
+    await settle();
+    httpMock.mockResolvedValueOnce(page([historyRow(5, { total_count: "1" })]));
+
+    clientId.value = 42;
+    history.loadMore();
+    await settle();
+
+    expect(httpMock).toHaveBeenCalledTimes(2);
+    expect(httpMock.mock.calls[1]![0].params).toMatchObject({ entitie_id: 42 });
+    expect(httpMock.mock.calls[1]![0].params?.cursor_created_at).toBeUndefined();
+    expect(history.items.value.map((item) => item.id)).toEqual([5]);
+    expect(history.totalCount.value).toBe(1);
+  });
+
   test("returning to a client already loaded does not ask again", async () => {
     httpMock
       .mockResolvedValueOnce(page([historyRow(9, { total_count: "1" })]))
