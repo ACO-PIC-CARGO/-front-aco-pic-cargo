@@ -3,6 +3,8 @@ import { defineComponent, ref } from "vue";
 import { mount } from "@vue/test-utils";
 import { LOAD_FAILED, useClientQuoteHistory } from "../useClientQuoteHistory";
 import type { ClientQuoteHistoryRow } from "../useClientQuoteHistory";
+import { NO_FILTERS } from "../quoteHistoryFilters";
+import type { ClientHistoryFilters } from "../quoteHistoryFilters";
 import { URL_MAIN, accepted, flushPromises, httpMock, rejected } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -37,9 +39,10 @@ const page = (rows: ClientQuoteHistoryRow[]) => ({ data: accepted(rows) });
 
 function mountHistory(initial: number | null) {
   const clientId = ref<number | null>(initial);
+  const filters = ref<ClientHistoryFilters>({ ...NO_FILTERS });
   let history!: ReturnType<typeof useClientQuoteHistory>;
-  mount(defineComponent({ setup() { history = useClientQuoteHistory(clientId); return () => null; } }));
-  return { clientId, history };
+  mount(defineComponent({ setup() { history = useClientQuoteHistory(clientId, filters); return () => null; } }));
+  return { clientId, filters, history };
 }
 
 const settle = async () => {
@@ -128,6 +131,57 @@ describe("useClientQuoteHistory", () => {
     expect(httpMock.mock.calls[1]![0].params?.cursor_created_at).toBeUndefined();
     expect(history.items.value.map((item) => item.id)).toEqual([5]);
     expect(history.totalCount.value).toBe(1);
+  });
+
+  test("changing a filter asks for the first page with the filter", async () => {
+    httpMock
+      .mockResolvedValueOnce(page([historyRow(9, { total_count: "4", has_more: true })]))
+      .mockResolvedValueOnce(page([historyRow(7, { total_count: "1" })]));
+    const { filters, history } = mountHistory(41);
+    await settle();
+
+    filters.value = { ...NO_FILTERS, status_id: 7, weight_to: 500 };
+    await settle();
+
+    const [config] = httpMock.mock.calls[1]!;
+    expect(config.params).toMatchObject({ entitie_id: 41, status_id: 7, weight_to: 500 });
+    expect(config.params?.cursor_created_at).toBeUndefined();
+    expect(history.items.value.map((item) => item.id)).toEqual([7]);
+    expect(history.totalCount.value).toBe(1);
+  });
+
+  test("Ver más keeps the filter of the shown page", async () => {
+    httpMock
+      .mockResolvedValueOnce(page([historyRow(9, { total_count: "4" })]))
+      .mockResolvedValueOnce(page([historyRow(7, { total_count: "2", has_more: true })]))
+      .mockResolvedValueOnce(page([historyRow(6)]));
+    const { filters, history } = mountHistory(41);
+    await settle();
+    filters.value = { ...NO_FILTERS, status_id: 7 };
+    await settle();
+
+    history.loadMore();
+    await flushPromises();
+
+    expect(httpMock.mock.calls[2]![0].params).toMatchObject({ status_id: 7, cursor_id: 7 });
+    expect(history.items.value.map((item) => item.id)).toEqual([7, 6]);
+  });
+
+  test("each client and filter set is kept on its own", async () => {
+    httpMock
+      .mockResolvedValueOnce(page([historyRow(9, { total_count: "4" })]))
+      .mockResolvedValueOnce(page([historyRow(7, { total_count: "1" })]));
+    const { filters, history } = mountHistory(41);
+    await settle();
+    filters.value = { ...NO_FILTERS, status_id: 7 };
+    await settle();
+
+    filters.value = { ...NO_FILTERS };
+    await settle();
+
+    expect(httpMock).toHaveBeenCalledTimes(2);
+    expect(history.items.value.map((item) => item.id)).toEqual([9]);
+    expect(history.totalCount.value).toBe(4);
   });
 
   test("returning to a client already loaded does not ask again", async () => {

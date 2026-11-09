@@ -4,6 +4,8 @@ import http from "@/api/http";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import { sessionIsoPais } from "@/utils/sesion";
 import { quoteOptionTotals } from "./quoteOptionTotals";
+import { filterParams } from "./quoteHistoryFilters";
+import type { ClientHistoryFilters } from "./quoteHistoryFilters";
 import type { QuoteTotals } from "./quoteOptionTotals";
 import type { ApiResponse } from "@/types/api";
 import type { Costo, Multiplicador } from "@/types/cotizacion";
@@ -41,6 +43,12 @@ export type ClientQuoteHistoryItem = Omit<ClientQuoteHistoryRow, "multipliers" |
 
 type ClientId = number | string;
 
+interface HistoryQuery {
+  id: ClientId;
+  key: string;
+  params: Record<string, number | boolean>;
+}
+
 interface ClientHistory {
   items: ClientQuoteHistoryItem[];
   totalCount: number;
@@ -57,15 +65,21 @@ function withTotals({ multipliers, costs, ...row }: ClientQuoteHistoryRow): Clie
   return { ...row, ...quoteOptionTotals({ costs, multipliers, cargo, isoCountry: sessionIsoPais() }) };
 }
 
-export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>) {
-  const histories = new Map<ClientId, ClientHistory>();
+function queryOf(id: ClientId, filters: ClientHistoryFilters): HistoryQuery {
+  const params = filterParams(filters);
+  return { id, key: `${id}|${JSON.stringify(params)}`, params };
+}
+
+export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>, filters: Ref<ClientHistoryFilters>) {
+  const histories = new Map<string, ClientHistory>();
   const history = ref<ClientHistory | null>(null);
   const loading = ref(false);
   const errorMessage = ref<string | null>(null);
+  const wanted = computed(() => (clientId.value ? queryOf(clientId.value, filters.value) : null));
   let request: AbortController | null = null;
-  let shownId: ClientId | null = null;
+  let shown: HistoryQuery | null = null;
 
-  async function fetchPage(id: ClientId, after?: ClientQuoteHistoryItem) {
+  async function fetchPage(query: HistoryQuery, after?: ClientQuoteHistoryItem) {
     request?.abort();
     const current = new AbortController();
     request = current;
@@ -75,7 +89,13 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
       const { data } = await http<ApiResponse<ClientQuoteHistoryRow[]>>({
         method: "get",
         url: `${import.meta.env.VITE_URL_MAIN}quote_client_history`,
-        params: { entitie_id: id, limit: PAGE_SIZE, cursor_created_at: after?.cursor_created_at, cursor_id: after?.id },
+        params: {
+          entitie_id: query.id,
+          limit: PAGE_SIZE,
+          cursor_created_at: after?.cursor_created_at,
+          cursor_id: after?.id,
+          ...query.params,
+        },
         signal: current.signal,
       });
       if (current.signal.aborted) return;
@@ -83,14 +103,14 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
         errorMessage.value = data.mensaje || LOAD_FAILED;
         return;
       }
-      const previous = (after && histories.get(id)) || EMPTY_HISTORY;
+      const previous = (after && histories.get(query.key)) || EMPTY_HISTORY;
       const rows = data.estadoflag ? data.data : [];
       const next: ClientHistory = {
         items: [...previous.items, ...rows.map(withTotals)],
         totalCount: after ? previous.totalCount : Number(rows[0]?.total_count ?? 0),
         hasMore: Boolean(rows[0]?.has_more),
       };
-      histories.set(id, next);
+      histories.set(query.key, next);
       history.value = next;
     } catch {
       if (!current.signal.aborted) errorMessage.value = LOAD_FAILED;
@@ -99,33 +119,33 @@ export function useClientQuoteHistory(clientId: Ref<ClientId | null | undefined>
     }
   }
 
-  const showClient = useDebouncedSearch((id: ClientId | null | undefined) => {
+  const show = useDebouncedSearch((query: HistoryQuery | null) => {
     request?.abort();
     errorMessage.value = null;
-    shownId = id || null;
-    history.value = (id && histories.get(id)) || null;
-    if (id && !history.value) void fetchPage(id);
+    shown = query;
+    history.value = (query && histories.get(query.key)) || null;
+    if (query && !history.value) void fetchPage(query);
   });
 
-  watch(clientId, (id) => showClient(id), { immediate: true });
+  watch(() => wanted.value?.key, () => show(wanted.value), { immediate: true });
 
   function lastItem() {
     const items = history.value?.items ?? [];
     return items[items.length - 1];
   }
 
-  function isShowingCurrentClient() {
-    return shownId !== null && shownId === clientId.value;
+  function isShowingWanted() {
+    return shown !== null && shown.key === wanted.value?.key;
   }
 
   function loadMore() {
     const last = lastItem();
-    if (!isShowingCurrentClient() || !last || loading.value) return;
-    void fetchPage(shownId!, last);
+    if (!isShowingWanted() || !last || loading.value) return;
+    void fetchPage(shown!, last);
   }
 
   function retry() {
-    if (isShowingCurrentClient()) void fetchPage(shownId!, lastItem());
+    if (isShowingWanted()) void fetchPage(shown!, lastItem());
   }
 
   return {

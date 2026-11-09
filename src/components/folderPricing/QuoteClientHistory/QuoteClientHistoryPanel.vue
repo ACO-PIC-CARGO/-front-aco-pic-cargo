@@ -2,6 +2,8 @@
 import { computed, onBeforeUnmount, onMounted, ref, toRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useClientQuoteHistory } from "./useClientQuoteHistory";
+import { useClientHistoryFilterOptions } from "./useClientHistoryFilterOptions";
+import { useHistoryFilterForm } from "./quoteHistoryFilters";
 import { cargoDetail, modalityColor, modalityLabel, money, transportIcon } from "./quoteHistoryLabels";
 
 const props = withDefaults(defineProps<{ clientId: number | string | null | undefined; visible?: boolean }>(), {
@@ -15,8 +17,12 @@ const active = computed(() => props.visible && !!props.clientId);
 watch(active, (isActive) => {
   if (!isActive) open.value = false;
 });
+const clientId = toRef(props, "clientId");
+const { form, applied, weightError, volumeError, active: filtering, clear } = useHistoryFilterForm(clientId);
+const { options } = useClientHistoryFilterOptions(clientId);
 const { items, totalCount, hasMore, loaded, loading, errorMessage, loadMore, retry } = useClientQuoteHistory(
-  toRef(props, "clientId"),
+  clientId,
+  applied,
 );
 
 const quoteHref = (id: number) => router.resolve({ name: "verQuote", params: { id } }).href;
@@ -54,7 +60,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
           icon="mdi-account-group"
           color="primary"
         />
-        <span class="text-title-medium font-weight-bold">Historial del cliente ({{ totalCount }})</span>
+        <span class="text-title-medium font-weight-bold">Historial del cliente ({{ options.total_count }})</span>
         <v-icon
           class="ms-auto"
           :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'"
@@ -66,6 +72,106 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
         class="client-history__content"
         :inert="!open"
       >
+        <div
+          v-if="options.total_count"
+          class="client-history__filters"
+        >
+          <v-select
+            v-model="form.transport_id"
+            :items="options.transports"
+            item-title="name"
+            item-value="id"
+            label="Tipo"
+            density="compact"
+            clearable
+            hide-details
+          />
+          <v-select
+            v-model="form.modality"
+            :items="options.modalities"
+            item-title="label"
+            return-object
+            label="Modalidad"
+            density="compact"
+            clearable
+            hide-details
+          />
+          <v-text-field
+            v-model="form.weight_from"
+            type="number"
+            min="0"
+            label="Peso desde (kg)"
+            density="compact"
+            :error="!!weightError"
+            hide-details
+          />
+          <v-text-field
+            v-model="form.weight_to"
+            type="number"
+            min="0"
+            label="Peso hasta (kg)"
+            density="compact"
+            :error-messages="weightError ?? undefined"
+            hide-details="auto"
+          />
+          <v-text-field
+            v-model="form.volume_from"
+            type="number"
+            min="0"
+            label="Volumen desde (m³)"
+            density="compact"
+            :error="!!volumeError"
+            hide-details
+          />
+          <v-text-field
+            v-model="form.volume_to"
+            type="number"
+            min="0"
+            label="Volumen hasta (m³)"
+            density="compact"
+            :error-messages="volumeError ?? undefined"
+            hide-details="auto"
+          />
+          <v-select
+            v-model="form.port_begin_id"
+            :items="options.origins"
+            item-title="name"
+            item-value="id"
+            label="Origen"
+            density="compact"
+            clearable
+            hide-details
+          />
+          <v-select
+            v-model="form.port_end_id"
+            :items="options.destinations"
+            item-title="name"
+            item-value="id"
+            label="Destino"
+            density="compact"
+            clearable
+            hide-details
+          />
+          <v-select
+            v-model="form.status_id"
+            :items="options.statuses"
+            item-title="name"
+            item-value="id"
+            label="Estado"
+            density="compact"
+            clearable
+            hide-details
+          />
+          <v-btn
+            variant="text"
+            prepend-icon="mdi-filter-remove-outline"
+            :disabled="!filtering"
+            @click="clear"
+          >
+            Limpiar filtros
+          </v-btn>
+        </div>
+
         <v-alert
           v-if="errorMessage"
           type="error"
@@ -88,6 +194,12 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
           class="text-medium-emphasis"
         >
           Cargando el historial del cliente…
+        </p>
+        <p
+          v-else-if="loaded && !items.length && filtering"
+          class="text-medium-emphasis"
+        >
+          Ninguna cotización de este cliente coincide con los filtros. Cambia o limpia los filtros.
         </p>
         <p
           v-else-if="loaded && !items.length"
@@ -242,6 +354,14 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
   flex: 1;
   overflow-y: auto;
   padding: 0 16px 16px;
+}
+
+.client-history__filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  align-items: start;
+  padding: 8px 0 12px;
 }
 
 .client-history__table th {
