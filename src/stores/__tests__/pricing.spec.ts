@@ -167,6 +167,21 @@ describe("pricing store", () => {
   });
 
   describe("lists", () => {
+    test("a slower old status summary never replaces the one of the current tab", async () => {
+      let resolveOld!: (value: { data: unknown }) => void;
+      httpMock
+        .mockReturnValueOnce(new Promise((resolve) => (resolveOld = resolve)) as never)
+        .mockResolvedValueOnce({ data: accepted([{ id: 2, nombre_estado: "NUEVA" }]) });
+      const pricing = usePricingStore();
+
+      const old = pricing.getResumenPorEstado();
+      await pricing.getResumenPorEstado();
+      resolveOld({ data: accepted([{ id: 1, nombre_estado: "VIEJA" }]) });
+      await old;
+
+      expect(pricing.listadoResumen).toEqual([{ id: 2, nombre_estado: "NUEVA" }]);
+    });
+
     test("the quote list and its status summary send the pricing view of the active tab", async () => {
       respond({ getQuoteList: accepted([]), resumen_por_estado: accepted([]) });
       const pricing = usePricingStore();

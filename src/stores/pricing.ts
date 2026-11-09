@@ -707,7 +707,9 @@ export const usePricingStore = defineStore("pricing", () => {
       pricing_view: pricingView.value,
     });
   }
+  const startSummaryRequest = latestRequestTracker();
   async function getResumenPorEstado(): Promise<void> {
+    const isLatest = startSummaryRequest();
     const response = await request<ResumenEstadoCotizacion>({
       method: "get",
       url: `${import.meta.env.VITE_URL_MAIN}resumen_por_estado`,
@@ -716,6 +718,7 @@ export const usePricingStore = defineStore("pricing", () => {
         "Content-Type": "application/json",
       },
     });
+    if (!isLatest()) return;
     listadoResumen.value = response.estadoflag ? response.data : [];
   }
   const startQuoteListRequest = latestRequestTracker();
