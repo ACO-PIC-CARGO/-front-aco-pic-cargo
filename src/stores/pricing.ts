@@ -2999,6 +2999,7 @@ export const usePricingStore = defineStore("pricing", () => {
       numerobultos: datosPrincipales.value.numerobultos,
       peso: datosPrincipales.value.peso,
       volumen: datosPrincipales.value.volumen,
+      amount: datosPrincipales.value.amount,
       sentido: listModality.value.filter((v) => v.id == datosPrincipales.value.idsentido)[0]!.name,
       embarque: listShipment.value.filter(
         (v) =>
@@ -3027,7 +3028,6 @@ export const usePricingStore = defineStore("pricing", () => {
       totalServicios: currencyFormat(totalServicios),
 
       total: currencyFormat(parseFloat(String(totalServicios)) + parseFloat(String(totalImpuesto)) + parseFloat(String(totalImpuestosIGV))),
-      amount: datosPrincipales.value.amount,
     };
 
     const headers = {
@@ -4493,6 +4493,7 @@ export const usePricingStore = defineStore("pricing", () => {
         phone: datosEmpresa.value[0]!.phone,
         tipo: tipo,
         cliente: datosPrincipales.value.nombre,
+        telefonoCliente: datosPrincipales.value.telefono,
         slogancliente: datosPrincipales.value.slogan ? datosPrincipales.value.slogan : "",
         fechafin: datosPrincipales.value.fecha_fin,
         tiempoTransito: datosPrincipales.value.tiempo_transito,
@@ -4520,6 +4521,7 @@ export const usePricingStore = defineStore("pricing", () => {
         numerobultos: datosPrincipales.value.numerobultos,
         peso: datosPrincipales.value.peso,
         volumen: datosPrincipales.value.volumen,
+        amount: datosPrincipales.value.amount ?? datosPrincipales.value.monto,
         sentido: listModality.value.filter((v) => v.id == datosPrincipales.value.idsentido)[0]!.name,
         embarque: listShipment.value.filter(
           (v) =>

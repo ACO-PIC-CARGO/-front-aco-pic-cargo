@@ -2095,7 +2095,7 @@ export const useAduanaStore = defineStore("aduana", () => {
         numerobultos: datosPrincipales.value.numerobultos,
         peso: datosPrincipales.value.peso,
         volumen: datosPrincipales.value.volumen,
-        amount: datosPrincipales.value.amount,
+        amount: datosPrincipales.value.amount ?? datosPrincipales.value.monto,
         sentido: listModality.value.filter((v) => v.id == datosPrincipales.value.idsentido)[0]!.name,
         embarque: listShipment.value.filter(
           (v) =>

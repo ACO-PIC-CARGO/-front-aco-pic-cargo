@@ -834,7 +834,7 @@ onMounted(() => {
             :disabled="pricingStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte(false)"
           >
-            Imprimir Cotizacion
+            Imprimir PDF
           </v-btn>
         </v-card-actions>
       </v-card>

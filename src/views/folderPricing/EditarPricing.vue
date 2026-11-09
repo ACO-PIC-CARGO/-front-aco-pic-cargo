@@ -579,7 +579,7 @@ function irANotas() {
         <v-divider />
         <v-stepper-item
           :value="4"
-          title="Notas de Costos"
+          title="Notas y Enviar a Cliente"
           :editable="mostrarStepS"
         />
       </v-stepper-header>
