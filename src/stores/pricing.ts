@@ -113,6 +113,7 @@ export const usePricingStore = defineStore("pricing", () => {
   const totalregistro = ref<number>(0);
   const limit = ref<number>(10);
   const pagina = ref<number>(1);
+  const pricingView = ref<"" | "pending_send" | "pricing_requested">("");
   const dataCliente = ref<ClienteCotizacion>({});
   const step = ref<number>(1);
   const id_master = ref<number | string | null>("");
@@ -703,6 +704,7 @@ export const usePricingStore = defineStore("pricing", () => {
       limit: limit.value,
       pagina: pagina.value,
       id_branch: sessionBranchId(),
+      pricing_view: pricingView.value,
     });
   }
   async function getResumenPorEstado(): Promise<void> {
@@ -6919,6 +6921,7 @@ export const usePricingStore = defineStore("pricing", () => {
     totalregistro,
     limit,
     pagina,
+    pricingView,
     dataCliente,
     step,
     id_master,

@@ -302,6 +302,7 @@ export interface DetalleLlamada {
 
 export interface CotizacionListado {
   id?: number;
+  sent_to_client_at?: string | null;
   index?: number;
   rowId?: string;
   code?: string;

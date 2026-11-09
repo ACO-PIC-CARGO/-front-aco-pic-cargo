@@ -167,6 +167,18 @@ describe("pricing store", () => {
   });
 
   describe("lists", () => {
+    test("the quote list and its status summary send the pricing view of the active tab", async () => {
+      respond({ getQuoteList: accepted([]), resumen_por_estado: accepted([]) });
+      const pricing = usePricingStore();
+      pricing.pricingView = "pending_send";
+
+      await pricing.getListQuote();
+      await pricing.getResumenPorEstado();
+
+      expect(sentConfig("getQuoteList")!.params).toMatchObject({ pricing_view: "pending_send" });
+      expect(sentConfig("resumen_por_estado")!.params).toMatchObject({ pricing_view: "pending_send" });
+    });
+
     test("getListQuote sends the filter page with the branch, numbers the rows and hands the raw rows to aduana", async () => {
       const rows = [{ id: 9, code: "Q1" }, { code: "Q2" }];
       respond({ getQuoteList: accepted(rows) });
@@ -813,6 +825,7 @@ describe("pricing store", () => {
               },
             ],
             "peso": 1200,
+            "pricing_notes": null,
             "serviciocotizacion": [
               {
                 "codegroupservices": 1,

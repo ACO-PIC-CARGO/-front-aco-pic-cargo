@@ -7,7 +7,7 @@ import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
-import ListPricing from "@/views/folderPricing/ListPricing.vue";
+import QuoteListPanel from "@/components/folderPricing/QuoteListPanel.vue";
 import ListQuoteComponent from "@/components/folderPricing/ListQuoteComponent.vue";
 import ListCallComponent from "@/components/folderPricing/ListCallComponent.vue";
 import FiltroQuote from "@/components/filtros/FiltroQuote.vue";
@@ -63,7 +63,7 @@ const labelled = (label: string) => () => document.body.querySelector(`button[ar
 const FOLDER_DIALOG: Record<string, unknown> = { dialogUrl: true, masterEditar: { id: 6, url_folderonedrive: "https://onedrive.test/Q-6" } };
 
 describe.each([
-  ["Nueva cotización", ListPricing, button("NUEVA COTIZACIÓN"), "NUEVO"],
+  ["Nueva cotización", QuoteListPanel, button("NUEVA COTIZACIÓN"), "NUEVO"],
   ["Editar", ListQuoteComponent, labelled("Editar cotización"), "MODIFICAR"],
   ["Registrar llamada", ListQuoteComponent, labelled("Registrar llamada"), "MODIFICAR"],
   ["Eliminar", ListQuoteComponent, labelled("Eliminar cotización"), "ELIMINAR"],

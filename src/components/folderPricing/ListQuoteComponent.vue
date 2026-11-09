@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
@@ -184,6 +184,14 @@ const cabCotizaciones = [
     align: "center",
   },
 ] as const;
+
+const SENT_TO_CLIENT_HEADER = { key: "sent_to_client_at", title: "ENVÍO AL CLIENTE", align: "center" } as const;
+const showsSentToClient = computed(() => pricingStore.pricingView === "pricing_requested");
+const headersCotizaciones = computed(() => {
+  if (!showsSentToClient.value) return [...cabCotizaciones];
+  const afterCode = cabCotizaciones.findIndex((header) => header.key === "codigo") + 1;
+  return [...cabCotizaciones.slice(0, afterCode), SENT_TO_CLIENT_HEADER, ...cabCotizaciones.slice(afterCode)];
+});
 // filtro: {
 //   idmarketing: null,
 //   idstatus: null,
@@ -912,7 +920,7 @@ onMounted(async () => {
     <!-- @vue-expect-error return-object makes the expanded model hold rows, the typing says string ids -->
     <v-data-table-server
       :search="pricingStore.search"
-      :headers="cabCotizaciones"
+      :headers="headersCotizaciones"
       :items="pricingStore.listQuotes"
       :items-length="pricingStore.totalregistro"
       v-model:page="pricingStore.pagina"
@@ -1138,6 +1146,13 @@ onMounted(async () => {
           </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.codigo }}
+          </td>
+          <td
+            v-if="showsSentToClient"
+            class="text-center"
+            @click="toggleExpand(internalItem)"
+          >
+            {{ item.sent_to_client_at ?? "Pendiente" }}
           </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.pricing }}
