@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import QuoteListPanel from "@/components/folderPricing/QuoteListPanel.vue";
+import { usePricingStore } from "@/stores/pricing";
 
 type ListTab = "all" | "pending_send" | "pricing_requested";
 
-const tab = ref<ListTab>("all");
+const tab = ref<ListTab>(usePricingStore().pricingView || "all");
 const pricingView = computed(() => (tab.value === "all" ? "" : tab.value));
 </script>
 
