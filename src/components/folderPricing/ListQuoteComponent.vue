@@ -10,6 +10,7 @@ import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import { isApprovedQuote } from "@/utils/quoteApproval";
 import type { ApiResponse } from "@/types/api";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
@@ -1044,6 +1045,10 @@ onMounted(async () => {
                 </template>
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
+              <PricingRequestButton
+                v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
+                :quote-id="item.id"
+              />
               <!--  -->
             </v-btn-toggle>
             <v-btn-toggle>
