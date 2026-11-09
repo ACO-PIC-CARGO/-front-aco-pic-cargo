@@ -80,7 +80,8 @@ import { callFilterDatesAtAppLoad, quoteFilterDatesAtAppLoad } from "@/utils/app
 import { currentMonthToDate } from "@/utils/dates";
 import { filledParams } from "@/utils/queryParams";
 import { latestRequestTracker } from "@/utils/latestRequest";
-import { downloadExcel, downloadPdf, downloadPdfInBackground } from "@/utils/pdfDownload";
+import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
+import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
@@ -2946,6 +2947,7 @@ export const usePricingStore = defineStore("pricing", () => {
       url_folderonedrive: datosPrincipales.value.url_folderonedrive,
       nombre_cotizacion: nombre_cotizacion.value,
       nombre_impuesto: useEnterprisesStore().impuesto.nombre_impuesto,
+      porcentaje_impuesto_servicios: useEnterprisesStore().impuesto.impuesto,
       impuesto:
         listServices.value.filter((v) => v.code_service == 15).length > 0
           ? listServices.value.filter((v) => v.code_service == 15)[0]!.status == true ||
@@ -3073,7 +3075,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdfInBackground(
+    await requestQuoteReport(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote", data: { filtro: { ...filtro.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );
@@ -3182,7 +3184,7 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroSeleccionado = {},
     filtroCabecera = {},
   }: FiltrosReporte): Promise<void> {
-    await downloadPdfInBackground(
+    await requestQuoteReport(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "reporte_llamadas_export", data: { filtro: { ...filtroCalls.value }, filtroSeleccionado, filtroCabecera } },
       "REPORTE_COTIZACIONES.pdf",
     );

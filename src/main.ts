@@ -11,6 +11,7 @@ import router from "./router";
 // Imported here so it captures the session and the date at app start, before the session sync below.
 import "./utils/appLoad";
 import vuetify from "./plugins/vuetify";
+import { resumeQuoteReports } from "./utils/quoteReportSocket";
 
 // Importing a moment locale also activates it; the webpack build started in "en" until a screen chose "es".
 moment.locale("en");
@@ -110,3 +111,4 @@ window.addEventListener("storage", (event) => {
 
 app.use(createPinia()).use(router).use(vuetify).use(VueSweetalert2);
 app.mount("#app");
+resumeQuoteReports();

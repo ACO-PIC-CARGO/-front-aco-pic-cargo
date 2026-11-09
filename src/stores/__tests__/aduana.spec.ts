@@ -923,6 +923,7 @@ describe("aduana store", () => {
 
       await aduana.generarReporteAduana({ tipo, nro_propuesta: 1 });
 
+      expect(postedBody("quote_preview_totales")).toHaveProperty("porcentaje_impuesto_servicios", 18);
       expect(postedBody("quote_preview_totales")).toMatchSnapshot();
       expect(postMock.mock.calls[0]![2]).toEqual(JSON_HEADERS);
       expect(Swal.fire).toHaveBeenCalledWith({ icon: "success", title: "PDF Generado", text: "El PDF se descargará automaticamente", showConfirmButton: true });

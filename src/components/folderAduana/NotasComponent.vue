@@ -9,7 +9,7 @@ import { sessionBranchId } from "@/utils/sesion";
 import type { DatosPrevisualizacion, FilaServicioNota, OpcionCosto } from "@/types/cotizacion";
 
 const previewCotizacion = defineAsyncComponent(() =>
-  import("@/components/folderPricing/PreviewQuote.vue"));
+  import("@/components/folderAduana/PreviewQuote.vue"));
 
 const route = useRoute();
 const router = useRouter();

@@ -31,6 +31,8 @@ const save = (pdf: Blob, fileName: string): void => {
   setTimeout(() => URL.revokeObjectURL(url), URL_LIFETIME_MS);
 };
 
+export const downloadBlob = (file: Blob, fileName: string): void => save(file, fileName);
+
 const requestFile = async (config: AxiosRequestConfig, fileName: string, fileType: string): Promise<PdfAnswer | null> => {
   try {
     const { data } = await axios<Blob>({ ...config, responseType: "blob" });

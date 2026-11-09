@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeMount, onMounted, ref, useTemplateRef, watch } from "vue";
+import {
+  computed,
+  nextTick,
+  onBeforeMount,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -46,6 +54,7 @@ import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
+import { sessionBranchId } from "@/utils/sesion";
 import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
 import { TEMPLATES_NOT_LOADED, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
 import { buildProviderQuoteEmail, buildProviderQuoteSubject } from "@/utils/providerQuoteEmail";
@@ -64,7 +73,8 @@ const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 const providerQuoteEmailTemplateStore = useProviderQuoteEmailTemplateStore();
 // Read on every render: this layout stays mounted when the session reloads its permissions.
-const can = (screen: string, action: string) => usePermissions().can(screen, action);
+const can = (screen: string, action: string) =>
+  usePermissions().can(screen, action);
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
@@ -77,7 +87,11 @@ const dialogSeleccionDistrito = ref(false);
 const dialogCambiarFecha = ref(false);
 const fechaVigencia = ref<string | null>("");
 const snackbar = ref(false);
+const tituloMensaje = ref("");
 const dataMensaje = ref("");
+const confirmarRecargaCotizacion = ref(false);
+const snackbarColor = ref<"operation" | "success" | "info">("operation");
+const snackbarIcon = ref("mdi-bell-outline");
 const dialogFiles = ref(false);
 const headersFiles = [
   { title: "Archivo", key: "name" },
@@ -99,7 +113,16 @@ const templateLoadError = ref<string | null>(null);
 const formVigencia = useTemplateRef("formVigencia");
 
 onMounted(async () => {
-  const urlPricing = ["newQuote", "verQuote", "editQuote"];
+  const urlPricing = [
+    "lstQuote",
+    "newQuote",
+    "verQuote",
+    "editQuote",
+    "listClientes",
+    "nuevoClientes",
+    "verCliente",
+    "editarCliente",
+  ];
   socket.emit(
     "join-empresa",
     JSON.parse(sessionStorage.getItem("dataUser") as string)[0].id_branch,
@@ -107,23 +130,82 @@ onMounted(async () => {
 
   socket.on("nueva-operacion", (data: { mensaje: string }) => {
     if (!urlPricing.includes(route.name as string)) {
+      confirmarRecargaCotizacion.value = false;
+      snackbarColor.value = "operation";
+      snackbarIcon.value = "mdi-bell-outline";
+      tituloMensaje.value = "Nueva operación";
       dataMensaje.value = data.mensaje;
       snackbar.value = true;
     }
   });
+
+  socket.on(
+    "cotizacion-bot",
+    (data: { id_branch: number | string; nro_cotizacion: number | string }) => {
+      if (Number(data.id_branch) !== sessionBranchId()) return;
+      confirmarRecargaCotizacion.value = route.name === "lstQuote";
+      snackbarColor.value = "success";
+      snackbarIcon.value = "mdi-check-circle";
+      tituloMensaje.value = "Se generó la cotización";
+      dataMensaje.value = confirmarRecargaCotizacion.value
+        ? `${data.nro_cotizacion}. ¿Deseas recargar los datos?`
+        : `${data.nro_cotizacion}.`;
+      snackbar.value = true;
+    },
+  );
+  socket.on(
+    "cotizacion-calculadora",
+    (data: { id_branch: number | string; nro_cotizacion: number | string }) => {
+      if (Number(data.id_branch) !== sessionBranchId()) return;
+      confirmarRecargaCotizacion.value = false;
+      snackbarColor.value = "info";
+      snackbarIcon.value = "mdi-calculator-variant";
+      tituloMensaje.value = "Calculadora de Flete";
+      dataMensaje.value = `Se ha generado cotización con correlativo: ${data.nro_cotizacion}.`;
+      snackbar.value = true;
+    },
+  );
   abrirSwalConfigFlete();
   nextTick(() => {
     appStore.drawer = false;
   });
 });
+
+async function recargarCotizacionesGeneradas(): Promise<void> {
+  snackbar.value = false;
+  confirmarRecargaCotizacion.value = false;
+  appStore.spiner = true;
+  try {
+    await pricingStore.reloadQuoteList();
+  } catch (error) {
+    console.error("Error al recargar cotizaciones después de una notificación de Socket.IO:", error);
+    await Swal.fire({
+      icon: "error",
+      text: "No se pudieron recargar las cotizaciones. Inténtalo nuevamente.",
+    });
+  } finally {
+    appStore.spiner = false;
+  }
+}
+
+function descartarRecargaCotizaciones(): void {
+  snackbar.value = false;
+  confirmarRecargaCotizacion.value = false;
+}
+
 onBeforeMount(() => {
-  mostrarBtnMenu.value = !JSON.parse(sessionStorage.getItem("dataBranch") as string)[0]
-    .esnuevoflag;
+  mostrarBtnMenu.value = !JSON.parse(
+    sessionStorage.getItem("dataBranch") as string,
+  )[0].esnuevoflag;
   appStore.drawer = mostrarBtnMenu.value;
 });
 
-const itemsOperadorList = computed<Operador[]>(() => appStore.itemsOperadorList);
-const listadoFilesDrive = computed<ArchivoDrive[]>(() => pricingStore.listadoFilesDrive);
+const itemsOperadorList = computed<Operador[]>(
+  () => appStore.itemsOperadorList,
+);
+const listadoFilesDrive = computed<ArchivoDrive[]>(
+  () => pricingStore.listadoFilesDrive,
+);
 const operadorNombre = computed(() => {
   const isHousePage =
     route.name &&
@@ -139,9 +221,7 @@ const operadorNombre = computed(() => {
   }
 
   const operadorId =
-    housesStore && housesStore.house
-      ? housesStore.house.id_operador
-      : null;
+    housesStore && housesStore.house ? housesStore.house.id_operador : null;
 
   if (!operadorId || !itemsOperadorList.value) {
     return "";
@@ -172,8 +252,12 @@ async function guardarNuevaFecha() {
 function abrirSwalConfigFlete() {
   const routesHome = ["Home", "Main"];
   const positions = ["01", "02"];
-  const dataBranch: SucursalSesion | undefined = JSON.parse(sessionStorage.getItem("dataBranch") as string)?.[0];
-  const dataUser: UsuarioSesion | undefined = JSON.parse(sessionStorage.getItem("dataUser") as string)?.[0];
+  const dataBranch: SucursalSesion | undefined = JSON.parse(
+    sessionStorage.getItem("dataBranch") as string,
+  )?.[0];
+  const dataUser: UsuarioSesion | undefined = JSON.parse(
+    sessionStorage.getItem("dataUser") as string,
+  )?.[0];
   const position = dataUser?.position_code?.[0];
   if (!dataBranch || !position) return;
 
@@ -200,11 +284,17 @@ async function guardarCotizacion() {
   const validacion = validarRegistro() && !blockedQuoteSave(pricingStore);
   if (!!validacion) {
     appStore.spiner = true;
-    const respuesta = await pricingStore.registrarQuote({ fullflag: true }).finally(() => {
-      appStore.spiner = false;
-    });
+    const respuesta = await pricingStore
+      .registrarQuote({ fullflag: true })
+      .finally(() => {
+        appStore.spiner = false;
+      });
     if (!respuesta.estadoflag) {
-      Swal.fire({ icon: "error", title: "No se guardó la cotización", text: respuesta.mensaje });
+      Swal.fire({
+        icon: "error",
+        title: "No se guardó la cotización",
+        text: respuesta.mensaje,
+      });
       return;
     }
     Swal.fire({
@@ -220,8 +310,9 @@ async function guardarCotizacion() {
         });
       }
     });
-    const id_branch = JSON.parse(sessionStorage.getItem("dataUser") as string)[0]
-      .id_branch;
+    const id_branch = JSON.parse(
+      sessionStorage.getItem("dataUser") as string,
+    )[0].id_branch;
     const branchCreacion = [1, 2];
     if (branchCreacion.includes(id_branch)) {
       const { url: urlGenerada } = await pricingStore.crearCarpetaOneDrive({
@@ -230,12 +321,14 @@ async function guardarCotizacion() {
       });
 
       if (urlGenerada) {
-        await pricingStore.actualizarURLEnElQuote({
-          id: pricingStore.id,
-          url: urlGenerada,
-        }).catch((e: unknown) => {
-          console.error(e);
-        });
+        await pricingStore
+          .actualizarURLEnElQuote({
+            id: pricingStore.id,
+            url: urlGenerada,
+          })
+          .catch((e: unknown) => {
+            console.error(e);
+          });
       } else {
         console.warn(
           "No se obtuvo URL de OneDrive, se saltó la actualización.",
@@ -261,15 +354,10 @@ async function editarCotizacion() {
       name: "verQuote",
       params: {
         id: pricingStore.id,
-        step: pricingStore.step
-          ? pricingStore.step
-          : 1,
+        step: pricingStore.step ? pricingStore.step : 1,
       },
     };
-    if (
-      router.resolve(destino).fullPath !==
-      route.fullPath
-    ) {
+    if (router.resolve(destino).fullPath !== route.fullPath) {
       await router.push(destino);
     }
     appStore.spiner = false;
@@ -299,9 +387,7 @@ async function editarCotizacionAduana() {
       name: "VerAduana",
       params: {
         id: aduanaStore.id,
-        step: aduanaStore.step
-          ? aduanaStore.step
-          : 1,
+        step: aduanaStore.step ? aduanaStore.step : 1,
       },
     });
     appStore.spiner = false;
@@ -316,7 +402,7 @@ async function editarCotizacionAduana() {
 }
 async function abrirCorreo() {
   const codeLCL = [9017];
-  const codeFCL = [9017, 9001, 9002,9026];
+  const codeFCL = [9017, 9001, 9002, 9026];
   const codeAereo = [9017, 9024];
   idRole.value = [];
   dialogProveedor.value = true;
@@ -559,12 +645,14 @@ async function copiarCotizacion() {
       },
     });
 
-    await pricingStore.copiarQuote({
-      fullflag: true,
-      id: route.params.id,
-    }).catch((err: unknown) => {
-      console.error("copiarQuote", err);
-    });
+    await pricingStore
+      .copiarQuote({
+        fullflag: true,
+        id: route.params.id,
+      })
+      .catch((err: unknown) => {
+        console.error("copiarQuote", err);
+      });
 
     const userStr = sessionStorage.getItem("dataUser");
     const id_branch = userStr ? JSON.parse(userStr)[0].id_branch : null;
@@ -625,9 +713,7 @@ async function copiarCotizacion() {
 function validarRegistro() {
   let val = true;
 
-  if (
-    pricingStore.opcionCostos.some((v: OpcionCosto) => v.date_end == "")
-  ) {
+  if (pricingStore.opcionCostos.some((v: OpcionCosto) => v.date_end == "")) {
     Swal.fire({
       icon: "warning",
       title: "Aviso",
@@ -648,9 +734,7 @@ function validarRegistro() {
       val = false;
     }
   }
-  if (
-    !pricingStore.opcionCostos.some((v: OpcionCosto) => v.tiempo_transito)
-  ) {
+  if (!pricingStore.opcionCostos.some((v: OpcionCosto) => v.tiempo_transito)) {
     Swal.fire({
       icon: "warning",
       title: "Aviso",
@@ -693,34 +777,18 @@ function obtenerTipoAlert() {
   let type = "red";
   const Url = ["newQuote", "editQuote", "verQuote"];
   if (Url.includes(getNameUrl())) {
-    if (
-      pricingStore.totalCosto -
-        pricingStore.totalVenta <
-      0
-    ) {
+    if (pricingStore.totalCosto - pricingStore.totalVenta < 0) {
       type = "success";
     }
-    if (
-      pricingStore.totalCosto -
-        pricingStore.totalVenta >
-      0
-    ) {
+    if (pricingStore.totalCosto - pricingStore.totalVenta > 0) {
       type = "error";
     }
   }
   if (Url.includes(getNameUrl())) {
-    if (
-      aduanaStore.totalCosto -
-        aduanaStore.totalVenta <
-      0
-    ) {
+    if (aduanaStore.totalCosto - aduanaStore.totalVenta < 0) {
       type = "success";
     }
-    if (
-      aduanaStore.totalCosto -
-        aduanaStore.totalVenta >
-      0
-    ) {
+    if (aduanaStore.totalCosto - aduanaStore.totalVenta > 0) {
       type = "error";
     }
   }
@@ -762,7 +830,9 @@ function ira(ruta: string, id: string | string[] | undefined) {
 }
 function esUsuarioAdmin() {
   try {
-    const dataUser: UsuarioSesion[] | null = JSON.parse(sessionStorage.getItem("dataUser") as string);
+    const dataUser: UsuarioSesion[] | null = JSON.parse(
+      sessionStorage.getItem("dataUser") as string,
+    );
     if (dataUser && dataUser[0]) {
       // Verificar en ambos campos: 'user' y 'usuario'
       const userEmail = dataUser[0].user || dataUser[0].usuario || "";
@@ -781,10 +851,7 @@ function esCotizacionAprobada() {
     return true;
   }
 
-  if (
-    pricing.datosPrincipales &&
-    pricing.datosPrincipales.nameStatusQuote
-  ) {
+  if (pricing.datosPrincipales && pricing.datosPrincipales.nameStatusQuote) {
     const statusName = pricing.datosPrincipales.nameStatusQuote
       .toUpperCase()
       .trim();
@@ -894,8 +961,7 @@ function isClienteInternacional() {
   const val = masterusuariosStore.lstTipoTransaccion.some(
     (v: TipoTransaccion) => {
       return (
-        v.codigo == "02" &&
-        v.id == entitiesStore.cliente.id_tipotransaccion
+        v.codigo == "02" && v.id == entitiesStore.cliente.id_tipotransaccion
       );
     },
   );
@@ -1058,17 +1124,13 @@ async function modificarCliente() {
   }
 
   if (!okStep1) {
-    entitiesStore.isStep1Valid =
-      !entitiesStore.isStep1Valid;
+    entitiesStore.isStep1Valid = !entitiesStore.isStep1Valid;
   } else if (!okStep2_1 || !okStep2_2) {
-    entitiesStore.isStep2Valid =
-      !entitiesStore.isStep2Valid;
+    entitiesStore.isStep2Valid = !entitiesStore.isStep2Valid;
   } else if (!okStep3_1 || !okStep3_2) {
-    entitiesStore.isStep3Valid =
-      !entitiesStore.isStep3Valid;
+    entitiesStore.isStep3Valid = !entitiesStore.isStep3Valid;
   } else if (!okStep4) {
-    entitiesStore.isStep4Valid =
-      !entitiesStore.isStep4Valid;
+    entitiesStore.isStep4Valid = !entitiesStore.isStep4Valid;
   } else {
     appStore.spiner = true;
     await entitiesStore.actualizarCliente();
@@ -1079,8 +1141,7 @@ function isProveedorInternacional() {
   const val = masterusuariosStore.lstTipoTransaccion.some(
     (v: TipoTransaccion) => {
       return (
-        v.codigo == "02" &&
-        v.id == entitiesStore.proveedor.id_tipotransaccion
+        v.codigo == "02" && v.id == entitiesStore.proveedor.id_tipotransaccion
       );
     },
   );
@@ -1091,8 +1152,7 @@ function isShipper() {
   const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == entitiesStore.proveedor.id_tipoproveedor &&
-      item == "SHIPPER"
+      v.id == entitiesStore.proveedor.id_tipoproveedor && item == "SHIPPER"
     );
   });
 
@@ -1102,8 +1162,7 @@ function isNaviera() {
   const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == entitiesStore.proveedor.id_tipoproveedor &&
-      item == "NAVIERA"
+      v.id == entitiesStore.proveedor.id_tipoproveedor && item == "NAVIERA"
     );
   });
 
@@ -1113,8 +1172,7 @@ function isAlmacen() {
   const val = appStore.itemsDataRoleList.some((v: RolProveedor) => {
     const item = (v.name.split("-")[1] || "").trim().toUpperCase();
     return (
-      v.id == entitiesStore.proveedor.id_tipoproveedor &&
-      item == "ALMACEN"
+      v.id == entitiesStore.proveedor.id_tipoproveedor && item == "ALMACEN"
     );
   });
 
@@ -1159,8 +1217,7 @@ async function registrarProveedor() {
   }
 
   if (!okStep4) {
-    entitiesStore.isStep4Valid =
-      !entitiesStore.isStep4Valid;
+    entitiesStore.isStep4Valid = !entitiesStore.isStep4Valid;
   } else {
     appStore.spiner = true;
     await entitiesStore.guardarProveedor();
@@ -1182,10 +1239,7 @@ async function modificarProveedor() {
 
     if (!entitiesStore.proveedor.id_tipoproveedor) {
       okStep1 = false;
-    } else if (
-      isShipper() &&
-      !entitiesStore.proveedor.producto
-    ) {
+    } else if (isShipper() && !entitiesStore.proveedor.producto) {
       okStep1 = false;
     }
 
@@ -1206,17 +1260,11 @@ async function modificarProveedor() {
       okStep1 = false;
     }
 
-    if (
-      isNaviera() &&
-      entitiesStore.proveedor.dias_sobreestadia < 0
-    ) {
+    if (isNaviera() && entitiesStore.proveedor.dias_sobreestadia < 0) {
       okStep1 = false;
     }
 
-    if (
-      isAlmacen() &&
-      entitiesStore.proveedor.dias_almacenaje < 0
-    ) {
+    if (isAlmacen() && entitiesStore.proveedor.dias_almacenaje < 0) {
       okStep1 = false;
     }
   }
@@ -1335,17 +1383,13 @@ async function modificarProveedor() {
   }
 
   if (!okStep1) {
-    entitiesStore.isStep1Valid =
-      !entitiesStore.isStep1Valid;
+    entitiesStore.isStep1Valid = !entitiesStore.isStep1Valid;
   } else if (!okStep2_1 || !okStep2_2) {
-    entitiesStore.isStep2Valid =
-      !entitiesStore.isStep2Valid;
+    entitiesStore.isStep2Valid = !entitiesStore.isStep2Valid;
   } else if (!okStep3_1 || !okStep3_2) {
-    entitiesStore.isStep3Valid =
-      !entitiesStore.isStep3Valid;
+    entitiesStore.isStep3Valid = !entitiesStore.isStep3Valid;
   } else if (!okStep4) {
-    entitiesStore.isStep4Valid =
-      !entitiesStore.isStep4Valid;
+    entitiesStore.isStep4Valid = !entitiesStore.isStep4Valid;
   } else {
     appStore.spiner = true;
     await entitiesStore.actualizarProveedor();
@@ -1375,12 +1419,14 @@ watch(idRole, async () => {
     },
   };
 
-  await axios<ApiResponse<{ datos: DatoTarifaProveedor[] }>>(config).then((res) => {
-    const data = res.data;
-    lstDatosTarifa.value = data.data.datos.map((v) => {
-      return { ...v, selected: v.proveedorprincipalflag };
-    });
-  });
+  await axios<ApiResponse<{ datos: DatoTarifaProveedor[] }>>(config).then(
+    (res) => {
+      const data = res.data;
+      lstDatosTarifa.value = data.data.datos.map((v) => {
+        return { ...v, selected: v.proveedorprincipalflag };
+      });
+    },
+  );
 });
 </script>
 
@@ -1394,11 +1440,7 @@ watch(idRole, async () => {
       <ListMenu />
     </v-navigation-drawer>
 
-    <v-app-bar
-      elevation="0"
-      v-if="mostrarBtnMenu"
-      :color="colorBar()"
-    >
+    <v-app-bar elevation="0" v-if="mostrarBtnMenu" :color="colorBar()">
       <v-app-bar-nav-icon
         aria-label="Abrir menú"
         v-if="mostrarBtnMenu"
@@ -1417,48 +1459,31 @@ watch(idRole, async () => {
         variant="flat"
         class="mx-4 text-primary"
       >
-        <v-icon
-          start
-          color="primary"
-        >
-          mdi-account
-        </v-icon>
+        <v-icon start color="primary"> mdi-account </v-icon>
         VENDEDOR: {{ operadorNombre }}
       </v-chip>
 
       <v-spacer />
 
-      <b
-        v-if="route.params.id_house"
-        class="mr-10 text-headline-large"
-      >
+      <b v-if="route.params.id_house" class="mr-10 text-headline-large">
         PROFIT PR:
         {{
           (
-            (appStore.totalTotalIngresos
-              ? appStore.totalTotalIngresos
-              : 0) -
-            (appStore.totalTotalEgresos
-              ? appStore.totalTotalEgresos
-              : 0)
+            (appStore.totalTotalIngresos ? appStore.totalTotalIngresos : 0) -
+            (appStore.totalTotalEgresos ? appStore.totalTotalEgresos : 0)
           ).toFixed(2)
         }}
         USD
       </b>
 
-      <b
-        v-if="route.params.id_house"
-        class="mr-10 text-headline-large"
-      >
+      <b v-if="route.params.id_house" class="mr-10 text-headline-large">
         / OP:
         {{
           (
             (appStore.totalTotalIngresosOp
               ? appStore.totalTotalIngresosOp
               : 0) -
-            (appStore.totalTotalEgresosOp
-              ? appStore.totalTotalEgresosOp
-              : 0)
+            (appStore.totalTotalEgresosOp ? appStore.totalTotalEgresosOp : 0)
           ).toFixed(2)
         }}
         USD
@@ -1467,16 +1492,9 @@ watch(idRole, async () => {
       <v-spacer />
 
       <!-- nuevo -->
-      <label
-        class="monto"
-        v-if="getNameUrl() == 'newQuote'"
-      >
+      <label class="monto" v-if="getNameUrl() == 'newQuote'">
         Profit / Ganancia
-        {{
-          currencyFormat(
-            pricingStore.totalVenta - pricingStore.totalCosto,
-          )
-        }}
+        {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
 
       <v-spacer
@@ -1486,23 +1504,20 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'newQuote' && !!pricingStore.btnRegistrar && can('newQuote', 'NUEVO')"
+        v-if="
+          getNameUrl() == 'newQuote' &&
+          !!pricingStore.btnRegistrar &&
+          can('newQuote', 'NUEVO')
+        "
         @click="guardarCotizacion()"
         :disabled="pricingStore.bloquearBtnImprimir"
       >
         GUARDAR
       </v-btn>
       <!-- editar -->
-      <label
-        class="monto"
-        v-if="getNameUrl() == 'editQuote'"
-      >
+      <label class="monto" v-if="getNameUrl() == 'editQuote'">
         Profit / Ganancia
-        {{
-          currencyFormat(
-            pricingStore.totalVenta - pricingStore.totalCosto,
-          )
-        }}
+        {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
       <v-spacer v-if="getNameUrl() == 'editQuote'" />
 
@@ -1512,24 +1527,13 @@ watch(idRole, async () => {
         v-if="getNameUrl() == 'editQuote' && can('lstQuote', 'MODIFICAR')"
         @click="editarCotizacion()"
       >
-        <v-icon
-          size="small"
-          class="mx-1"
-        >
-          mdi-content-save-all
-        </v-icon> GUARDAR
+        <v-icon size="small" class="mx-1"> mdi-content-save-all </v-icon>
+        GUARDAR
       </v-btn>
       <!-- ver -->
-      <label
-        class="monto"
-        v-if="getNameUrl() == 'verQuote'"
-      >
+      <label class="monto" v-if="getNameUrl() == 'verQuote'">
         Profit / Ganancia
-        {{
-          currencyFormat(
-            pricingStore.totalVenta - pricingStore.totalCosto,
-          )
-        }}
+        {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
       <v-spacer v-if="getNameUrl() == 'verQuote'" />
 
@@ -1539,12 +1543,7 @@ watch(idRole, async () => {
         v-if="getNameUrl() == 'verQuote' && can('lstQuote', 'MODIFICAR')"
         @click="handleEditarQuote()"
       >
-        <v-icon
-          size="small"
-          class="mx-1"
-        >
-          mdi-pencil
-        </v-icon> EDITAR
+        <v-icon size="small" class="mx-1"> mdi-pencil </v-icon> EDITAR
       </v-btn>
       <v-btn
         variant="elevated"
@@ -1553,12 +1552,7 @@ watch(idRole, async () => {
         color="light-blue-darken-3"
         @click="abrirCorreo()"
       >
-        <v-icon
-          class="mx-1"
-          size="small"
-        >
-          mdi-email-fast
-        </v-icon>
+        <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
         CORREO
       </v-btn>
 
@@ -1569,12 +1563,7 @@ watch(idRole, async () => {
         color="light-blue-darken-3"
         @click="abrirCorreo()"
       >
-        <v-icon
-          class="mx-1"
-          size="small"
-        >
-          mdi-email-fast
-        </v-icon>
+        <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
         CORREO
       </v-btn>
 
@@ -1583,16 +1572,9 @@ watch(idRole, async () => {
         v-if="getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote'"
         class="mx-1"
         color="#FFD600"
-        @click="
-          abrirCarpeta(pricingStore.datosPrincipales.url_folderonedrive!)
-        "
+        @click="abrirCarpeta(pricingStore.datosPrincipales.url_folderonedrive!)"
       >
-        <v-icon
-          class="mx-1"
-          size="small"
-        >
-          mdi-folder
-        </v-icon>
+        <v-icon class="mx-1" size="small"> mdi-folder </v-icon>
         ABRIR
       </v-btn>
 
@@ -1603,12 +1585,7 @@ watch(idRole, async () => {
         color="light-blue-darken-3"
         @click="abrirModalCopiarCotizacion()"
       >
-        <v-icon
-          class="mx-1"
-          size="small"
-        >
-          mdi-content-copy
-        </v-icon>
+        <v-icon class="mx-1" size="small"> mdi-content-copy </v-icon>
         COPIAR
       </v-btn>
 
@@ -1617,8 +1594,8 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoClientes' &&
-            entitiesStore.showBtnSaveFlag &&
-            can('listClientes', 'NUEVO')
+          entitiesStore.showBtnSaveFlag &&
+          can('listClientes', 'NUEVO')
         "
         color="success"
         class="ml-auto"
@@ -1632,8 +1609,8 @@ watch(idRole, async () => {
         variant="elevated"
         v-if="
           getNameUrl() == 'nuevoProveedor' &&
-            entitiesStore.showBtnSaveFlag &&
-            can('listProveedor', 'NUEVO')
+          entitiesStore.showBtnSaveFlag &&
+          can('listProveedor', 'NUEVO')
         "
         color="success"
         class="ml-auto"
@@ -1643,18 +1620,11 @@ watch(idRole, async () => {
         Guardar Proveedor
       </v-btn>
 
-      <label
-        class="monto"
-        v-if="routeAduana.includes(getNameUrl())"
-      >
+      <label class="monto" v-if="routeAduana.includes(getNameUrl())">
         {{
           currencyFormat(
-            (aduanaStore.totalVenta
-              ? aduanaStore.totalVenta
-              : 0) -
-              (aduanaStore.totalCosto
-                ? aduanaStore.totalCosto
-                : 0),
+            (aduanaStore.totalVenta ? aduanaStore.totalVenta : 0) -
+              (aduanaStore.totalCosto ? aduanaStore.totalCosto : 0),
           )
         }}
       </label>
@@ -1662,13 +1632,14 @@ watch(idRole, async () => {
       <v-btn
         variant="elevated"
         color="#009688"
-        v-if="getNameUrl() == 'EditarAduana' && can('lstQuoteAduanaAduana', 'MODIFICAR')"
+        v-if="
+          getNameUrl() == 'EditarAduana' &&
+          can('lstQuoteAduanaAduana', 'MODIFICAR')
+        "
         @click="editarCotizacionAduana()"
         size="small"
       >
-        <v-icon class="mx-1">
-          mdi-save
-        </v-icon> GUARDAR
+        <v-icon class="mx-1"> mdi-save </v-icon> GUARDAR
       </v-btn>
 
       <v-btn
@@ -1676,8 +1647,8 @@ watch(idRole, async () => {
         color="#009688"
         v-if="
           getNameUrl() == 'VerAduana' &&
-            aduanaStore.mostrarBtnActualizarFlag &&
-            can('lstQuoteAduanaAduana', 'MODIFICAR')
+          aduanaStore.mostrarBtnActualizarFlag &&
+          can('lstQuoteAduanaAduana', 'MODIFICAR')
         "
         @click="ira('EditarAduana', route.params.id)"
       >
@@ -1690,9 +1661,7 @@ watch(idRole, async () => {
         @click="abrirModalPilotoAutomatico()"
         v-if="getNameUrl() == 'editQuote' && can('lstQuote', 'MODIFICAR')"
       >
-        <v-icon class="mx-1">
-          mdi-send
-        </v-icon>AUTOMATICO
+        <v-icon class="mx-1"> mdi-send </v-icon>AUTOMATICO
       </v-btn>
 
       <v-btn
@@ -1701,9 +1670,7 @@ watch(idRole, async () => {
         @click="ira('EditAccountPaysCxC', route.params.id)"
         v-if="getNameUrl() == 'viewAccountPaysCxC'"
       >
-        <v-icon class="mx-1">
-          mdi-pencil
-        </v-icon> IR EDITAR
+        <v-icon class="mx-1"> mdi-pencil </v-icon> IR EDITAR
       </v-btn>
 
       <v-btn
@@ -1712,9 +1679,7 @@ watch(idRole, async () => {
         @click="ira('EditAccountPays', route.params.id)"
         v-if="getNameUrl() == 'viewAccountPays'"
       >
-        <v-icon class="mx-1">
-          mdi-pencil
-        </v-icon> IR EDITAR
+        <v-icon class="mx-1"> mdi-pencil </v-icon> IR EDITAR
       </v-btn>
       <v-spacer />
       <PlanStatusBadge />
@@ -1728,24 +1693,14 @@ watch(idRole, async () => {
       </div>
     </v-main>
 
-    <div
-      v-if="appStore.dialogProcessing"
-      class="dialogOverlay"
-    />
-    <div
-      v-if="appStore.dialogProcessing"
-      class="dialogProcessing"
-    >
+    <div v-if="appStore.dialogProcessing" class="dialogOverlay" />
+    <div v-if="appStore.dialogProcessing" class="dialogProcessing">
       <!-- <div class="dialogOverlay"></div> -->
       <LoadingComponent />
     </div>
 
     <!-- Modal de autenticación admin para editar cotizaciones aprobadas -->
-    <v-dialog
-      v-model="dialogAdminAuth"
-      max-width="400"
-      persistent
-    >
+    <v-dialog v-model="dialogAdminAuth" max-width="400" persistent>
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2">
           Autenticación Requerida
@@ -1783,11 +1738,7 @@ watch(idRole, async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="grey"
-            variant="text"
-            @click="cerrarDialogAdminAuth()"
-          >
+          <v-btn color="grey" variant="text" @click="cerrarDialogAdminAuth()">
             Cancelar
           </v-btn>
           <v-btn
@@ -1801,10 +1752,7 @@ watch(idRole, async () => {
       </v-card>
     </v-dialog>
 
-    <v-dialog
-      v-model="dialogProveedor"
-      width="35%"
-    >
+    <v-dialog v-model="dialogProveedor" width="35%">
       <v-card>
         <v-card-title> Seleccionar proveedor: </v-card-title>
         <v-card-text>
@@ -1829,10 +1777,7 @@ watch(idRole, async () => {
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(dato, index) in lstDatosTarifa"
-                :key="index"
-              >
+              <tr v-for="(dato, index) in lstDatosTarifa" :key="index">
                 <td>
                   <v-checkbox v-model="dato.selected" />
                 </td>
@@ -1858,10 +1803,7 @@ watch(idRole, async () => {
           >
             Enviar en inglés
           </v-btn>
-          <v-btn
-            color="error"
-            @click="dialogProveedor = false"
-          >
+          <v-btn color="error" @click="dialogProveedor = false">
             Cancelar
           </v-btn>
         </v-card-actions>
@@ -1875,10 +1817,7 @@ watch(idRole, async () => {
       max-width="75%"
     >
       <v-card v-if="dialogPilotoAutomatico">
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           COTIZACIÓN PILOTO AUTOMÁTICO
           <v-spacer />
           <v-btn
@@ -1897,10 +1836,7 @@ watch(idRole, async () => {
       </v-card>
     </v-dialog>
 
-    <v-dialog
-      v-model="dialogFiles"
-      max-width="40%"
-    >
+    <v-dialog v-model="dialogFiles" max-width="40%">
       <v-card>
         <v-card-title> Archivos a Copiar </v-card-title>
         <v-card-text>
@@ -1928,43 +1864,65 @@ watch(idRole, async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            size="small"
-            color="success"
-            @click="copiarCotizacion"
-          >
+          <v-btn size="small" color="success" @click="copiarCotizacion">
             Continuar
           </v-btn>
-          <v-btn
-            size="small"
-            color="error"
-            @click="dialogFiles = false"
-          >
+          <v-btn size="small" color="error" @click="dialogFiles = false">
             Cancelar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-snackbar v-model="snackbar">
-      {{ dataMensaje }}
+    <v-snackbar
+      v-model="snackbar"
+      :class="['socket-notification-snackbar', `socket-notification--${snackbarColor}`]"
+      :timeout="confirmarRecargaCotizacion ? -1 : 5000"
+      location="bottom center"
+    >
+      <div class="socket-notification" role="status" aria-live="polite">
+        <div class="socket-notification__icon">
+          <v-icon>{{ snackbarIcon }}</v-icon>
+        </div>
+        <div class="socket-notification__divider" />
+        <div class="socket-notification__text">
+          <div class="socket-notification__title">{{ tituloMensaje }}</div>
+          <div class="socket-notification__message">{{ dataMensaje }}</div>
+        </div>
+        <div class="socket-notification__actions">
+          <v-btn
+            v-if="confirmarRecargaCotizacion"
+            class="socket-notification__primary-action"
+            variant="flat"
+            @click="recargarCotizacionesGeneradas"
+          >
+            Sí, recargar
+          </v-btn>
+          <v-btn
+            v-else
+            class="socket-notification__primary-action"
+            variant="flat"
+            @click="descartarRecargaCotizaciones"
+          >
+            Entendido
+          </v-btn>
+          <v-btn
+            class="socket-notification__close"
+            icon="mdi-close"
+            variant="text"
+            aria-label="Cerrar notificación"
+            @click="descartarRecargaCotizaciones"
+          />
+        </div>
+      </div>
     </v-snackbar>
 
-    <v-dialog
-      persistent
-      max-width="480"
-      v-model="dialogCambiarFecha"
-    >
+    <v-dialog persistent max-width="480" v-model="dialogCambiarFecha">
       <v-card class="rounded-lg elevation-4">
         <!-- Cabecera profesional con color y título claro -->
         <v-card-title
           class="text-headline-medium bg-primary text-white py-3 px-4 d-flex align-center"
         >
-          <v-icon
-            start
-            class="mr-2"
-          >
-            mdi-calendar-clock
-          </v-icon>
+          <v-icon start class="mr-2"> mdi-calendar-clock </v-icon>
           <span class="font-weight-bold">Actualizar Vigencia de Flete</span>
         </v-card-title>
 
@@ -2004,23 +1962,14 @@ watch(idRole, async () => {
             elevation="1"
             @click="guardarNuevaFecha"
           >
-            <v-icon
-              start
-              size="18"
-            >
-              mdi-check
-            </v-icon>
+            <v-icon start size="18"> mdi-check </v-icon>
             Actualizar Fecha
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
 
-    <v-dialog
-      v-model="dialogSeleccionDistrito"
-      max-width="560px"
-      persistent
-    >
+    <v-dialog v-model="dialogSeleccionDistrito" max-width="560px" persistent>
       <v-card rounded="lg">
         <v-card-title class="text-headline-medium font-weight-bold">
           Seleccionar distrito
@@ -2219,6 +2168,128 @@ watch(idRole, async () => {
 }
 .freight-alert-actions .mdi {
   margin-right: 6px;
+}
+.socket-notification-snackbar .v-snackbar__wrapper,
+.socket-notification-snackbar.v-snackbar__wrapper {
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  padding: 0;
+  border: 2px solid #b8cce0 !important;
+  border-radius: 18px;
+  background: #fff !important;
+  color: #17324d !important;
+  box-shadow: 0 14px 34px rgba(14, 43, 74, 0.3) !important;
+}
+.socket-notification-snackbar .v-snackbar__content {
+  width: 100%;
+  padding: 0;
+}
+.socket-notification {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid #d5e1ed;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 10px 28px rgba(14, 43, 74, 0.24);
+}
+.socket-notification__icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border-radius: 50%;
+}
+.socket-notification__icon .v-icon {
+  font-size: 30px;
+}
+.socket-notification__divider {
+  width: 1px;
+  height: 42px;
+  flex: 0 0 1px;
+  background: #d8e2eb;
+}
+.socket-notification__text {
+  min-width: 0;
+  flex: 1;
+}
+.socket-notification__title {
+  color: #17324d;
+  font-size: 0.98rem;
+  font-weight: 800;
+  line-height: 1.3;
+}
+.socket-notification__message {
+  margin-top: 2px;
+  color: #4a5d70;
+  font-size: 0.84rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.socket-notification__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+}
+.socket-notification__primary-action {
+  min-width: 0;
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.socket-notification__close {
+  color: #687889;
+}
+.socket-notification--operation .socket-notification__icon {
+  background: #edf4ff;
+  color: #1769d2;
+}
+.socket-notification--operation .socket-notification__primary-action {
+  background: #1769d2;
+}
+.socket-notification--success .socket-notification__icon {
+  background: #e8f7ed;
+  color: #0c8b49;
+}
+.socket-notification--success .socket-notification__primary-action {
+  background: #0c8b49;
+}
+.socket-notification--info .socket-notification__icon {
+  background: #e8f2ff;
+  color: #1769d2;
+}
+.socket-notification--info .socket-notification__primary-action {
+  background: #1769d2;
+}
+.socket-notification__primary-action:hover {
+  filter: brightness(0.94);
+}
+@media (max-width: 600px) {
+  .socket-notification {
+    gap: 9px;
+    padding: 10px;
+  }
+  .socket-notification__icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+  .socket-notification__icon .v-icon {
+    font-size: 25px;
+  }
+  .socket-notification__actions {
+    gap: 0;
+  }
+  .socket-notification__primary-action {
+    padding-inline: 8px;
+  }
 }
 /* Oculta en móviles (menos de 992px) */
 @media (max-width: 991.98px) {

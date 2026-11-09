@@ -211,15 +211,21 @@ export interface DetalleLlamadaCalculadora {
 }
 
 export interface FiltroUsuariosCalculadora {
-  fechainicio: string;
-  fechafin: string;
   id_status: number | string | null;
   id_cliente: number | string | null;
-  id_shipment: number | string | null;
   id_port_begin: number | string | null;
   id_port_end: number | string | null;
-  email: string;
-  telefono: string;
+}
+
+export interface PuertoFiltroCalculadora {
+  id_port?: number | string;
+  port_origen?: string;
+  port_destino?: string;
+}
+
+export interface ClienteFiltroCalculadora {
+  id?: number | string;
+  nombre?: string;
 }
 
 export interface UsuarioCalculadora {
