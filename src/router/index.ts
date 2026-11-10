@@ -3,6 +3,7 @@ import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 import signedInGuard from "./signedInGuard";
+import trafficHouseGuard from "./trafficHouseGuard";
 
 const BillingHistory = () => import("../views/BillingHistory/BillingHistory.vue");
 
@@ -977,4 +978,5 @@ router.beforeEach(signedInGuard);
 router.beforeEach(permissionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
+router.beforeEach(trafficHouseGuard);
 export default router;
