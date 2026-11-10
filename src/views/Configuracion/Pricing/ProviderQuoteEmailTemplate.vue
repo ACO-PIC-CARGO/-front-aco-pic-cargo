@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import RichTextEditor from "@/components/comun/RichTextEditor.vue";
+import ProviderEmailTableEditor from "@/components/folderPricing/ProviderEmailTableEditor.vue";
 import { useAppStore } from "@/stores/app";
 import { useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
 import { usePermissions } from "@/composables/usePermissions";
@@ -69,14 +70,12 @@ async function save(draft: ProviderQuoteEmailTemplate) {
             v-model="draft.intro_html"
             label="Texto antes de los datos"
           />
-          <v-alert
-            type="info"
-            variant="tonal"
+          <ProviderEmailTableEditor
+            v-model:header="draft.table_header"
+            v-model:rows="draft.table_rows"
+            :readonly="!can(SCREEN, 'MODIFICAR')"
             class="my-4"
-          >
-            Aquí el sistema inserta la tabla con los datos de la cotización: incoterm, dirección de recojo (solo EXW),
-            puertos, contenedores, peso, volumen y tipo de mercancía.
-          </v-alert>
+          />
           <RichTextEditor
             v-model="draft.closing_html"
             label="Texto después de los datos"
