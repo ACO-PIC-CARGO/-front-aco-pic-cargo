@@ -1797,6 +1797,26 @@ describe("pricing store", () => {
         expect.stringMatching(/^Reporte de Cotizaciones .+\.xlsx$/),
       );
     });
+
+    test("exportarExcelDetalleQuote downloads the detailed workbook with the paged filter", async () => {
+      const pricing = usePricingStore();
+      pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1 };
+      pricing.search = "abc";
+
+      await pricing.exportarExcelDetalleQuote();
+
+      expect(downloadExcel).toHaveBeenCalledWith(
+        {
+          method: "post",
+          url: URL_MAIN + "export_list_quote_detail_xls",
+          data: {
+            filtro: { fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1, search: "abc", limit: 10, pagina: 1, id_branch: 1 },
+            id_branch: 1,
+          },
+        },
+        expect.stringMatching(/^Reporte Detallado de Cotizaciones .+\.xlsx$/),
+      );
+    });
   });
 
   describe("instructivo", () => {

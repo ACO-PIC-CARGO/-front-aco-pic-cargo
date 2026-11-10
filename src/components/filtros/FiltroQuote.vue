@@ -16,6 +16,7 @@ const masterusuariosStore = useMasterusuariosStore();
 
 const errorFiltroFecha = ref("");
 const loadingReporte = ref(false);
+const loadingExcel = ref(false);
 
 function validarFiltroFechas() {
   errorFiltroFecha.value = "";
@@ -105,7 +106,7 @@ async function limpiar() {
   pricingStore.filtrarQuoteFlag = false;
   appStore.spiner = false;
 }
-function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | null | undefined) {
+function rangoFechaSuperaUnAnio(inicio: string | null | undefined, fin: string | null | undefined) {
   const fechaInicio = moment(inicio);
   const fechaFin = moment(fin);
   return (
@@ -114,33 +115,37 @@ function rangoFechaSuperaUnMes(inicio: string | null | undefined, fin: string | 
     fechaFin.isAfter(fechaInicio.clone().add(1, "year"), "day")
   );
 }
-async function reporteMarketing() {
+async function validarRangosReporte(): Promise<boolean> {
   const f = pricingStore.filtro;
-  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
+  const rangoCreacionExcedido = rangoFechaSuperaUnAnio(
     f.fechainicio,
     f.fechafin,
   );
-  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
+  const rangoEmisionExcedido = rangoFechaSuperaUnAnio(
     f.fechaemisiondesde,
     f.fechaemisionhasta,
   );
 
-  if (rangoCreacionExcedido || rangoEmisionExcedido) {
-    const rangoExcedido =
-      rangoCreacionExcedido && rangoEmisionExcedido
-        ? "Los rangos de creación y emisión"
-        : rangoCreacionExcedido
-          ? "El rango de creación"
-          : "El rango de emisión";
-    await Swal.fire({
-      icon: "warning",
-      title: "No se puede generar el reporte",
-      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 año</strong> para continuar.`,
-      confirmButtonText: "Revisar fechas",
-    });
-    return;
-  }
+  if (!rangoCreacionExcedido && !rangoEmisionExcedido) return true;
 
+  const rangoExcedido =
+    rangoCreacionExcedido && rangoEmisionExcedido
+      ? "Los rangos de creación y emisión"
+      : rangoCreacionExcedido
+        ? "El rango de creación"
+        : "El rango de emisión";
+  await Swal.fire({
+    icon: "warning",
+    title: "No se puede generar el reporte",
+    html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 año</strong> para continuar.`,
+    confirmButtonText: "Revisar fechas",
+  });
+  return false;
+}
+async function reporteMarketing() {
+  if (!(await validarRangosReporte())) return;
+
+  const f = pricingStore.filtro;
   loadingReporte.value = true;
   const filtroSeleccionado: Record<string, string | undefined> = {};
   const store = pricingStore;
@@ -240,32 +245,9 @@ async function reporteMarketing() {
   loadingReporte.value = false;
 }
 async function reporteListado() {
+  if (!(await validarRangosReporte())) return;
+
   const f = pricingStore.filtro;
-  const rangoCreacionExcedido = rangoFechaSuperaUnMes(
-    f.fechainicio,
-    f.fechafin,
-  );
-  const rangoEmisionExcedido = rangoFechaSuperaUnMes(
-    f.fechaemisiondesde,
-    f.fechaemisionhasta,
-  );
-
-  if (rangoCreacionExcedido || rangoEmisionExcedido) {
-    const rangoExcedido =
-      rangoCreacionExcedido && rangoEmisionExcedido
-        ? "Los rangos de creación y emisión"
-        : rangoCreacionExcedido
-          ? "El rango de creación"
-          : "El rango de emisión";
-    await Swal.fire({
-      icon: "warning",
-      title: "No se puede generar el reporte",
-      html: `<strong>${rangoExcedido} supera el máximo permitido.</strong><br>Selecciona un periodo de hasta <strong>1 año</strong> para continuar.`,
-      confirmButtonText: "Revisar fechas",
-    });
-    return;
-  }
-
   loadingReporte.value = true;
   const filtroSeleccionado: Record<string, string | undefined> = {};
   const store = pricingStore;
@@ -363,6 +345,18 @@ async function reporteListado() {
     console.error(e);
   });
   loadingReporte.value = false;
+}
+async function reporteExcelDetalle() {
+  if (!(await validarRangosReporte())) return;
+
+  loadingExcel.value = true;
+  try {
+    await pricingStore.exportarExcelDetalleQuote();
+  } catch (error) {
+    console.error(error);
+  } finally {
+    loadingExcel.value = false;
+  }
 }
 function imprimir() {
   if (pricingStore.filtro.tipopdf === 3) return reporteMarketing();
@@ -704,10 +698,21 @@ onMounted(async () => {
         class="mx-1"
         color="red"
         :loading="loadingReporte"
-        :disabled="loadingReporte"
+        :disabled="loadingReporte || loadingExcel"
         @click="imprimir()"
       >
         <v-icon>mdi-file-pdf-box</v-icon> REPORTE
+      </v-btn>
+      <v-btn
+        v-if="canPrint"
+        class="mx-1"
+        color="success"
+        data-testid="quote-detail-excel-report"
+        :loading="loadingExcel"
+        :disabled="loadingExcel || loadingReporte"
+        @click="reporteExcelDetalle()"
+      >
+        <v-icon>mdi-file-excel</v-icon> REPORTE
       </v-btn>
       <v-btn
         class="mx-1"

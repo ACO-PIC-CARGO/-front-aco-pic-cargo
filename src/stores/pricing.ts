@@ -3089,20 +3089,38 @@ export const usePricingStore = defineStore("pricing", () => {
       "REPORTE_CANALES_ORIGEN.pdf",
     );
   }
-  async function exportarExcelListadoQuote(): Promise<void> {
+  function getQuoteListExcelData() {
+    const id_branch = sessionBranchId();
     const data = {
       filtro: {
         ...filtro.value,
         search: search.value,
         limit: limit.value,
         pagina: pagina.value,
-        id_branch: sessionBranchId(),
+        id_branch,
       },
-      id_branch: sessionBranchId(),
+      id_branch,
     };
+    return data;
+  }
+  async function exportarExcelListadoQuote(): Promise<void> {
     await downloadExcel(
-      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_list_quote_xls", data },
+      {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "export_list_quote_xls",
+        data: getQuoteListExcelData(),
+      },
       `Reporte de Cotizaciones ${moment().format("DD-MM-YYYY hh:mm:ss")}.xlsx`,
+    );
+  }
+  async function exportarExcelDetalleQuote(): Promise<void> {
+    await downloadExcel(
+      {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "export_list_quote_detail_xls",
+        data: getQuoteListExcelData(),
+      },
+      `Reporte Detallado de Cotizaciones ${moment().format("DD-MM-YYYY HH-mm-ss")}.xlsx`,
     );
   }
   async function imprimirMercadeo(): Promise<void> {
@@ -7067,6 +7085,7 @@ export const usePricingStore = defineStore("pricing", () => {
     imprimiReporteListado,
     imprimiReporteListadoMarketing,
     exportarExcelListadoQuote,
+    exportarExcelDetalleQuote,
     imprimirMercadeo,
     imprimiReporteListadoCalls,
     getListRecibidoCotizacion,
