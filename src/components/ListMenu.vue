@@ -40,7 +40,7 @@ onMounted(() => {
   }, 10);
 });
 
-const lstMenu = computed<ItemMenu[]>(() => appStore.lstMenu);
+const lstMenu = computed<ItemMenu[]>(() => appStore.lstMenu ?? []);
 const listIncoterms = computed<Incoterm[]>(() => pricingStore.listIncoterms);
 const actualizarCostosFlag = computed(() => pricingStore.actualizarCostosFlag);
 const isAereoPricing = computed(() => {

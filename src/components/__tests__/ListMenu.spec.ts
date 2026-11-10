@@ -32,6 +32,8 @@ const MENU = [
   },
 ];
 
+const MenuHost = defineComponent({ components: { ListMenu }, template: "<v-app><ListMenu /></v-app>" });
+
 let router: Router;
 let wrapper: VueWrapper;
 
@@ -64,7 +66,7 @@ beforeEach(async () => {
     ],
   });
   await router.push("/");
-  wrapper = mount(defineComponent({ components: { ListMenu }, template: "<v-app><ListMenu /></v-app>" }), {
+  wrapper = mount(MenuHost, {
     global: { plugins: [createVuetify({ components, directives }), createPinia(), router] },
     attachTo: document.body,
   });
@@ -89,6 +91,23 @@ test("a menu item opened before leaving its screen another way still opens it wi
   await openMenuItem("CLIENTES");
 
   expect(router.currentRoute.value.name).toBe("listClientes");
+});
+
+test("the menu does not break when the session lost its menu, as after an expired session", async () => {
+  wrapper.unmount();
+  sessionStorage.removeItem("menu");
+  const errors: unknown[] = [];
+
+  wrapper = mount(MenuHost, {
+    global: {
+      plugins: [createVuetify({ components, directives }), createPinia(), router],
+      config: { errorHandler: (error) => errors.push(error) },
+    },
+    attachTo: document.body,
+  });
+  await settle();
+
+  expect(errors).toEqual([]);
 });
 
 test("the quote summary does not flag the ports as missing when a new quote clears them", async () => {
