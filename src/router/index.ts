@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
+import signedInGuard from "./signedInGuard";
 
 const BillingHistory = () => import("../views/BillingHistory/BillingHistory.vue");
 
@@ -972,10 +973,7 @@ const router = createRouter({
   },
 });
 
-router.beforeEach((to) => {
-  const requiresAuth = to.matched.some((record) => record.meta && record.meta.requiresAuth);
-  if (requiresAuth && !sessionStorage.getItem("auth-token")) return { name: "Login" };
-});
+router.beforeEach(signedInGuard);
 router.beforeEach(permissionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
