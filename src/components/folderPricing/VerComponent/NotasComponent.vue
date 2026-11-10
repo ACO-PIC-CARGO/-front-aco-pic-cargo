@@ -549,26 +549,14 @@ onMounted(() => {
         cols="12"
         md="4"
         offset-md="8"
+        class="d-flex justify-end"
       >
-        <v-row>
-          <v-col
-            class="px-0"
-            cols="6"
-          >
-            <EnviarCotizacionWhatsapp v-if="canPrint" />
-          </v-col>
-          <v-col
-            class="px-0"
-            cols="6"
-          >
-            <v-btn
-              color="#3363A2"
-              @click="abrirModalCambioNombreSecciones()"
-            >
-              PREVIEW COTIZACIÓN(es)
-            </v-btn>
-          </v-col>
-        </v-row>
+        <v-btn
+          color="#3363A2"
+          @click="abrirModalCambioNombreSecciones()"
+        >
+          PREVIEW COTIZACIÓN(es)
+        </v-btn>
       </v-col>
     </v-row>
     <v-dialog
@@ -836,6 +824,10 @@ onMounted(() => {
           >
             Imprimir PDF
           </v-btn>
+          <EnviarCotizacionWhatsapp
+            v-if="canPrint"
+            class="mx-1"
+          />
         </v-card-actions>
       </v-card>
     </v-dialog>
