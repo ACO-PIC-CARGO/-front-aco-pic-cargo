@@ -60,6 +60,8 @@ import { sessionBranchId } from "@/utils/sesion";
 import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
 import { TEMPLATES_NOT_LOADED, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
 import { buildProviderQuoteEmail, buildProviderQuoteSubject } from "@/utils/providerQuoteEmail";
+import { quoteEmailFieldValues } from "@/utils/providerQuoteEmailFields";
+import type { QuoteEmailLists } from "@/utils/providerQuoteEmailFields";
 import type { EmailLanguage } from "@/types/providerQuoteEmailTemplate";
 
 const route = useRoute();
@@ -510,16 +512,25 @@ async function abrirCorreoSend(language: EmailLanguage) {
     quoteNumber: pricingStore.nro_quote,
     client: pricingStore.dataCliente.nombrecompleto ?? "",
     incoterm: incoterms.name!,
-    pickupAddress: pricingStore.datosPrincipales.direccionproveedor,
     portOfLoading: origen?.name,
     portOfDischarge: destino?.name,
-    containers: pricingStore.datosPrincipales.containers,
     weight: pricingStore.datosPrincipales.peso,
     volume: pricingStore.datosPrincipales.volumen,
-    commodity: pricingStore.datosPrincipales.descripcioncarga,
+  };
+  const lists: QuoteEmailLists = {
+    incoterms: pricingStore.listIncoterms.map((item) => ({ id: item.id!, name: item.name ?? "" })),
+    portsOfLoading: pricingStore.listPortBegin.map((port) => ({ id: port.id_port!, name: port.name ?? "" })),
+    portsOfDischarge: pricingStore.listPortEnd.map((port) => ({ id: port.id_port!, name: port.name ?? "" })),
+    marketing: pricingStore.listMarketing.map((item) => ({ id: item.id!, name: item.name ?? "" })),
+    statuses: pricingStore.listQuoteStatus.map((item) => ({ id: item.id!, name: item.name ?? "" })),
+    staff: pricingStore.listEjecutivo.map((item) => ({ id: item.id!, name: item.nombrecompleto ?? "" })),
+    directions: pricingStore.listModality.map((item) => ({ id: item.id!, name: item.name ?? "" })),
+    shipmentTypes: pricingStore.listShipment.map((item) => ({ id: item.id!, name: item.embarque ?? "" })),
+    providers: appStore.itemsProveedorList.map((item) => ({ id: item.id!, name: String(item.namelong ?? "") })),
+    importOrders: masterusuariosStore.lstPercepcionAduana.map((item) => ({ id: item.id!, name: item.descripcion ?? "" })),
   };
   const subject = buildProviderQuoteSubject(language, shipment);
-  const tablaHtml = buildProviderQuoteEmail(template, shipment);
+  const tablaHtml = buildProviderQuoteEmail(template, quoteEmailFieldValues(pricingStore.datosPrincipales, lists));
 
   try {
     const blob = new Blob([tablaHtml], { type: "text/html" });
