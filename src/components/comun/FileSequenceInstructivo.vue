@@ -1445,10 +1445,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                 </v-row>
               </v-stepper-vertical-item>
               <!-- MONTO A PAGAR -->
-              <div
-                class=""
-                v-if="datosManuales.pagarProveedor"
-              >
+              <template v-if="datosManuales.pagarProveedor">
                 <!-- Monto -->
                 <v-stepper-vertical-item
                   :editable="true"
@@ -1488,7 +1485,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   </v-row>
                 </v-stepper-vertical-item>
                 <!-- ALIBABA -->
-                <div v-if="mostrarPagarProveedorAlibaba">
+                <template v-if="mostrarPagarProveedorAlibaba">
                   <!--  -->
                   <v-stepper-vertical-item
                     :editable="true"
@@ -1672,9 +1669,9 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       </v-col>
                     </v-row>
                   </v-stepper-vertical-item>
-                </div>
+                </template>
 
-                <div v-if="mostrarPagarProveedorInternacional">
+                <template v-if="mostrarPagarProveedorInternacional">
                   <!-- Nro Factura -->
                   <v-stepper-vertical-item
                     :editable="true"
@@ -1951,7 +1948,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       </v-col>
                     </v-row>
                   </v-stepper-vertical-item>
-                </div>
+                </template>
                 <!-- ------------------------------------------ -->
                 <v-stepper-vertical-item
                   :editable="true"
@@ -1977,7 +1974,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                     </v-col>
                   </v-row>
                 </v-stepper-vertical-item>
-              </div>
+              </template>
               <!-- SEGURO DE MERCANCIA -->
               <v-stepper-vertical-item
                 :editable="true"
