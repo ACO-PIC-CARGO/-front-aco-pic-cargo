@@ -209,7 +209,7 @@ describe("enterprises store", () => {
 
   test("RegistroNuevaEmpresa signs the new admin in on both storages and reports success", async () => {
     const created = {
-      data_users: [{ id: 11, id_entitie: 22, id_branch: 33 }],
+      data_users: [{ id: 11, id_entitie: 22, id_branch: 33, id_secutiry: 5 }],
       data_branch: [{ id: 33, esnuevoflag: true }],
     };
     respond({ registro_nueva_empresa: accepted([created]) });
@@ -223,14 +223,13 @@ describe("enterprises store", () => {
       url: URL_MAIN + "registro_nueva_empresa",
       data: expect.objectContaining({ email: "ana@acme.pe" }),
     });
-    const signedIn = [{ id: 22, id_entitie: 22, id_branch: 33, id_user: 11 }];
+    const signedIn = [{ id: 22, id_entitie: 22, id_branch: 33, id_user: 11, id_secutiry: 5 }];
     for (const storage of [sessionStorage, localStorage]) {
       expect(JSON.parse(storage.getItem("dataUser")!)).toEqual(signedIn);
       expect(storage.getItem("auth-token")).toBe("tok");
       expect(JSON.parse(storage.getItem("dataBranch")!)).toEqual([{ id: 33, esnuevoflag: true }]);
+      expect(JSON.parse(storage.getItem("security")!)).toBe(5);
     }
-    expect(sessionStorage.getItem("security")).toBe("undefined");
-    expect(localStorage.getItem("security")).toBeNull();
     expect(result).toBe(true);
   });
 

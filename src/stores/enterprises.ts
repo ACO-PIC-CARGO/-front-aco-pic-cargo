@@ -189,10 +189,10 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
       data: data.value,
     })
       .then((response) => {
-        sessionStorage.setItem("security", String(response.data.data[0]!.data_users.id_secutiry));
-
-        const dataUser = response.data.data[0]!.data_users; // es un array
+        const dataUser = response.data.data[0]!.data_users;
         const dataBranch = response.data.data[0]!.data_branch;
+        sessionStorage.setItem("security", String(dataUser[0]!.id_secutiry));
+        localStorage.setItem("security", String(dataUser[0]!.id_secutiry));
         dataUser[0]!.id_user = dataUser[0]!.id;
         dataUser[0]!.id = dataUser[0]!.id_entitie;
         sessionStorage.setItem("dataUser", JSON.stringify(dataUser));
