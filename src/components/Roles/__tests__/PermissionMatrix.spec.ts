@@ -26,7 +26,7 @@ let wrapper: VueWrapper | undefined;
 let current: Grants = {};
 afterEach(() => wrapper?.unmount());
 
-const mountMatrix = (props: { modelValue?: Grants; readonly?: boolean } = {}) => {
+const mountMatrix = (props: { modelValue?: Grants; readonly?: boolean; catalog?: CatalogScreen[] } = {}) => {
   current = props.modelValue ?? {};
   wrapper = mount(PermissionMatrix, {
     props: {
@@ -43,12 +43,19 @@ const mountMatrix = (props: { modelValue?: Grants; readonly?: boolean } = {}) =>
   return wrapper;
 };
 
+const open = async (...titles: string[]) => {
+  for (const title of titles) {
+    const panel = wrapper!.findAll("button").find((button) => button.text().startsWith(`${title} `));
+    await panel!.trigger("click");
+  }
+};
 const box = (label: string) => wrapper!.find<HTMLInputElement>(`input[aria-label="${label}"]`);
 const grants = () => current;
 const sorted = (actions: readonly string[] | undefined) => [...(actions ?? [])].sort();
 
-test("a cell the user cannot grant is disabled, the others are not", () => {
+test("a cell the user cannot grant is disabled, the others are not", async () => {
   mountMatrix();
+  await open("Módulo 1", "Grupo 1");
 
   expect(box("Eliminar en Pantalla 7").element.disabled).toBe(true);
   expect(box("Eliminar en Pantalla 8").element.disabled).toBe(false);
@@ -56,6 +63,7 @@ test("a cell the user cannot grant is disabled, the others are not", () => {
 
 test("checking an action on a screen also grants Ver on it", async () => {
   mountMatrix();
+  await open("Módulo 1", "Grupo 1");
 
   await box("Nuevo en Pantalla 7").setValue(true);
 
@@ -64,6 +72,7 @@ test("checking an action on a screen also grants Ver on it", async () => {
 
 test("unchecking Ver clears the screen's row", async () => {
   mountMatrix({ modelValue: { 7: ["VER", "NUEVO", "EXPORTAR"] } });
+  await open("Módulo 1", "Grupo 1");
 
   await box("Ver en Pantalla 7").setValue(false);
 
@@ -72,6 +81,7 @@ test("unchecking Ver clears the screen's row", async () => {
 
 test("selecting a whole module grants every action the user can grant on its screens only", async () => {
   mountMatrix();
+  await open("Módulo 1");
 
   await box("Seleccionar todo en Módulo 1").setValue(true);
 
@@ -88,8 +98,19 @@ test("selecting an action column grants it, with Ver, on every screen that allow
   expect(grants()).toEqual({ 8: ["VER", "ELIMINAR"], 9: ["VER", "ELIMINAR"] });
 });
 
-test("a read-only matrix shows the grants but lets nothing change", () => {
+test("selecting a whole group grants every action the user can grant on that group's screens only", async () => {
+  mountMatrix({ catalog: [screen(7, 1), { ...screen(8, 1, ["ELIMINAR"]), group_id: 11, group_name: "Otro grupo" }] });
+  await open("Módulo 1", "Otro grupo");
+
+  await box("Seleccionar todo en Otro grupo").setValue(true);
+
+  expect(sorted(grants()[8])).toEqual(sorted(ACTIONS.filter((action) => action !== "ELIMINAR")));
+  expect(grants()[7]).toBeUndefined();
+});
+
+test("a read-only matrix shows the grants but lets nothing change", async () => {
   mountMatrix({ modelValue: { 7: ["VER"] }, readonly: true });
+  await open("Módulo 1", "Grupo 1", "Módulo 2", "Grupo 2");
 
   expect(box("Ver en Pantalla 7").element.checked).toBe(true);
   expect(wrapper!.findAll("input").every((input) => (input.element as HTMLInputElement).disabled)).toBe(true);
