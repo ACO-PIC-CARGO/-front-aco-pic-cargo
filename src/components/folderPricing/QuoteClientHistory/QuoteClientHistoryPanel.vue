@@ -10,7 +10,7 @@ const props = withDefaults(defineProps<{ clientId: number | string | null | unde
   visible: true,
 });
 
-const BAR_HEIGHT = 48;
+const BAR_HEIGHT = 56;
 const router = useRouter();
 const open = ref(false);
 const active = computed(() => props.visible && !!props.clientId);
@@ -49,129 +49,151 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
       :style="{ '--client-history-bar': `${BAR_HEIGHT}px` }"
       aria-label="Historial del cliente"
     >
-      <button
-        type="button"
-        class="client-history__bar"
-        :aria-expanded="open"
-        aria-controls="client-history-content"
-        @click="open = !open"
-      >
-        <v-icon
-          icon="mdi-account-group"
-          color="primary"
-        />
-        <span class="text-title-medium font-weight-bold">Historial del cliente ({{ options.total_count }})</span>
-        <v-icon
-          class="ms-auto"
-          :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'"
-        />
-      </button>
+      <header class="client-history__bar">
+        <button
+          type="button"
+          class="client-history__toggle"
+          :aria-expanded="open"
+          aria-controls="client-history-content"
+          @click="open = !open"
+        >
+          <v-icon
+            icon="mdi-account-group"
+            color="blue-darken-4"
+            size="x-large"
+          />
+          <span class="client-history__title">Historial del Cliente ({{ options.total_count }})</span>
+          <v-icon :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'" />
+        </button>
+
+        <v-menu
+          v-if="open && options.total_count"
+          :close-on-content-click="false"
+          location="bottom end"
+        >
+          <template #activator="{ props: menuProps }">
+            <button
+              type="button"
+              class="client-history__filter-button"
+              v-bind="menuProps"
+            >
+              <v-icon
+                icon="mdi-filter-variant"
+                color="blue-darken-3"
+                size="small"
+              />
+              <span class="flex-grow-1 text-start">{{ filtering ? "Filtros aplicados" : "Filtrar cotizaciones" }}</span>
+              <v-icon
+                icon="mdi-chevron-down"
+                color="blue-darken-4"
+                size="small"
+              />
+            </button>
+          </template>
+          <v-card class="client-history__filters">
+            <v-select
+              v-model="form.transport_id"
+              :items="options.transports"
+              item-title="name"
+              item-value="id"
+              label="Tipo"
+              density="compact"
+              clearable
+              hide-details
+            />
+            <v-select
+              v-model="form.modality"
+              :items="options.modalities"
+              item-title="label"
+              return-object
+              label="Modalidad"
+              density="compact"
+              clearable
+              hide-details
+            />
+            <v-text-field
+              v-model="form.weight_from"
+              type="number"
+              min="0"
+              label="Peso desde (kg)"
+              density="compact"
+              :error="!!weightError"
+              hide-details
+            />
+            <v-text-field
+              v-model="form.weight_to"
+              type="number"
+              min="0"
+              label="Peso hasta (kg)"
+              density="compact"
+              :error-messages="weightError ?? undefined"
+              hide-details="auto"
+            />
+            <v-text-field
+              v-model="form.volume_from"
+              type="number"
+              min="0"
+              label="Volumen desde (m³)"
+              density="compact"
+              :error="!!volumeError"
+              hide-details
+            />
+            <v-text-field
+              v-model="form.volume_to"
+              type="number"
+              min="0"
+              label="Volumen hasta (m³)"
+              density="compact"
+              :error-messages="volumeError ?? undefined"
+              hide-details="auto"
+            />
+            <v-select
+              v-model="form.port_begin_id"
+              :items="options.origins"
+              item-title="name"
+              item-value="id"
+              label="Origen"
+              density="compact"
+              clearable
+              hide-details
+            />
+            <v-select
+              v-model="form.port_end_id"
+              :items="options.destinations"
+              item-title="name"
+              item-value="id"
+              label="Destino"
+              density="compact"
+              clearable
+              hide-details
+            />
+            <v-select
+              v-model="form.status_id"
+              :items="options.statuses"
+              item-title="name"
+              item-value="id"
+              label="Estado"
+              density="compact"
+              clearable
+              hide-details
+            />
+            <v-btn
+              variant="text"
+              prepend-icon="mdi-filter-remove-outline"
+              :disabled="!filtering"
+              @click="clear"
+            >
+              Limpiar filtros
+            </v-btn>
+          </v-card>
+        </v-menu>
+      </header>
 
       <div
         id="client-history-content"
         class="client-history__content"
         :inert="!open"
       >
-        <div
-          v-if="options.total_count"
-          class="client-history__filters"
-        >
-          <v-select
-            v-model="form.transport_id"
-            :items="options.transports"
-            item-title="name"
-            item-value="id"
-            label="Tipo"
-            density="compact"
-            clearable
-            hide-details
-          />
-          <v-select
-            v-model="form.modality"
-            :items="options.modalities"
-            item-title="label"
-            return-object
-            label="Modalidad"
-            density="compact"
-            clearable
-            hide-details
-          />
-          <v-text-field
-            v-model="form.weight_from"
-            type="number"
-            min="0"
-            label="Peso desde (kg)"
-            density="compact"
-            :error="!!weightError"
-            hide-details
-          />
-          <v-text-field
-            v-model="form.weight_to"
-            type="number"
-            min="0"
-            label="Peso hasta (kg)"
-            density="compact"
-            :error-messages="weightError ?? undefined"
-            hide-details="auto"
-          />
-          <v-text-field
-            v-model="form.volume_from"
-            type="number"
-            min="0"
-            label="Volumen desde (m³)"
-            density="compact"
-            :error="!!volumeError"
-            hide-details
-          />
-          <v-text-field
-            v-model="form.volume_to"
-            type="number"
-            min="0"
-            label="Volumen hasta (m³)"
-            density="compact"
-            :error-messages="volumeError ?? undefined"
-            hide-details="auto"
-          />
-          <v-select
-            v-model="form.port_begin_id"
-            :items="options.origins"
-            item-title="name"
-            item-value="id"
-            label="Origen"
-            density="compact"
-            clearable
-            hide-details
-          />
-          <v-select
-            v-model="form.port_end_id"
-            :items="options.destinations"
-            item-title="name"
-            item-value="id"
-            label="Destino"
-            density="compact"
-            clearable
-            hide-details
-          />
-          <v-select
-            v-model="form.status_id"
-            :items="options.statuses"
-            item-title="name"
-            item-value="id"
-            label="Estado"
-            density="compact"
-            clearable
-            hide-details
-          />
-          <v-btn
-            variant="text"
-            prepend-icon="mdi-filter-remove-outline"
-            :disabled="!filtering"
-            @click="clear"
-          >
-            Limpiar filtros
-          </v-btn>
-        </div>
-
         <v-alert
           v-if="errorMessage"
           type="error"
@@ -209,103 +231,103 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
         </p>
 
         <template v-if="items.length">
-          <v-table
-            density="compact"
-            class="client-history__table"
-          >
-            <thead>
-              <tr>
-                <th>N.º Cotización</th>
-                <th>Fecha</th>
-                <th>Tipo</th>
-                <th>Modalidad</th>
-                <th>Detalle de Carga</th>
-                <th>Ruta (Origen – Destino)</th>
-                <th class="text-end">
-                  Costos (US$)
-                </th>
-                <th class="text-end">
-                  Venta (US$)
-                </th>
-                <th class="text-end">
-                  Profit (US$)
-                </th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="item in items"
-                :key="item.id"
-              >
-                <td>
-                  <a
-                    :href="quoteHref(item.id)"
-                    target="_blank"
-                    rel="noopener"
-                    class="font-weight-bold"
-                  >{{ item.quote_code }}</a>
-                </td>
-                <td>{{ item.created_date }}</td>
-                <td class="text-no-wrap">
-                  <v-icon
-                    :icon="transportIcon(item.transport_name)"
-                    size="small"
-                    color="primary"
-                  />
-                  {{ item.transport_name }}
-                </td>
-                <td>
-                  <v-chip
-                    size="small"
-                    variant="tonal"
-                    :color="modalityColor(item)"
-                  >
-                    {{ modalityLabel(item) }}
-                  </v-chip>
-                </td>
-                <td>{{ cargoDetail(item) }}</td>
-                <td class="text-no-wrap">
-                  <v-icon
-                    icon="mdi-map-marker"
-                    size="small"
-                    color="primary"
-                  />
-                  {{ item.origin }} – {{ item.destination }}
-                </td>
-                <td class="text-end">
-                  {{ money(item.cost) }}
-                </td>
-                <td class="text-end">
-                  {{ money(item.sale) }}
-                </td>
-                <td
-                  class="text-end font-weight-bold"
-                  :class="item.profit < 0 ? 'text-error' : 'text-success'"
+          <div class="client-history__table-scroll">
+            <table class="client-history__table">
+              <thead>
+                <tr class="bg-blue-grey-lighten-5">
+                  <th>N.º Cotización</th>
+                  <th>Fecha</th>
+                  <th>Tipo</th>
+                  <th>Modalidad</th>
+                  <th>Detalle de Carga</th>
+                  <th>Ruta (Origen – Destino)</th>
+                  <th>Costos (US$)</th>
+                  <th>Venta (US$)</th>
+                  <th>Profit (US$)</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="item in items"
+                  :key="item.id"
                 >
-                  {{ money(item.profit) }}
-                </td>
-                <td>
-                  <v-chip
-                    size="small"
-                    variant="tonal"
-                    :color="item.approved_flag ? 'success' : undefined"
-                    :prepend-icon="item.approved_flag ? 'mdi-check-circle-outline' : undefined"
+                  <td>
+                    <a
+                      :href="quoteHref(item.id)"
+                      target="_blank"
+                      rel="noopener"
+                      class="client-history__quote-link text-blue-darken-3"
+                    >{{ item.quote_code }}</a>
+                  </td>
+                  <td>{{ item.created_date }}</td>
+                  <td class="text-start">
+                    <span class="d-inline-flex align-center ga-2">
+                      <v-icon
+                        :icon="transportIcon(item.transport_name)"
+                        size="small"
+                        color="blue-darken-3"
+                      />
+                      {{ item.transport_name }}
+                    </span>
+                  </td>
+                  <td>
+                    <v-chip
+                      size="small"
+                      variant="flat"
+                      :color="modalityColor(item)"
+                    >
+                      {{ modalityLabel(item) }}
+                    </v-chip>
+                  </td>
+                  <td>{{ cargoDetail(item) }}</td>
+                  <td>
+                    <v-chip
+                      size="small"
+                      variant="flat"
+                      color="blue-grey-lighten-5"
+                    >
+                      <v-icon
+                        icon="mdi-map-marker"
+                        size="small"
+                        color="blue-darken-3"
+                        start
+                      />
+                      {{ item.origin }} – {{ item.destination }}
+                    </v-chip>
+                  </td>
+                  <td>{{ money(item.cost) }}</td>
+                  <td>{{ money(item.sale) }}</td>
+                  <td
+                    class="client-history__profit"
+                    :class="item.profit < 0 ? 'text-error' : 'text-green-darken-2'"
                   >
-                    {{ item.status_name }}
-                  </v-chip>
-                </td>
-              </tr>
-            </tbody>
-          </v-table>
+                    {{ money(item.profit) }}
+                  </td>
+                  <td class="text-start">
+                    <v-chip
+                      size="small"
+                      variant="flat"
+                      :color="item.approved_flag ? 'light-green-lighten-2' : 'blue-grey-lighten-5'"
+                      :prepend-icon="item.approved_flag ? 'mdi-check-circle-outline' : undefined"
+                    >
+                      {{ item.status_name }}
+                    </v-chip>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <div class="client-history__footer">
-            <span class="text-medium-emphasis">Mostrando {{ items.length }} de {{ totalCount }} cotizaciones</span>
+            <span class="font-weight-medium">Mostrando {{ items.length }} de {{ totalCount }} cotizaciones</span>
             <v-btn
               v-if="hasMore"
-              color="primary"
-              rounded
+              color="blue-darken-1"
+              rounded="pill"
+              min-width="300"
               prepend-icon="mdi-chevron-down"
+              append-icon="mdi-refresh"
               :loading="loading"
               @click="loadMore"
             >
@@ -342,38 +364,105 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
 
 .client-history__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
-  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--client-history-bar);
+  padding: 0 32px;
+}
+
+.client-history__toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   height: var(--client-history-bar);
-  padding: 0 16px;
   text-align: start;
+}
+
+.client-history__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+}
+
+.client-history__filter-button {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 272px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1.5px solid rgb(var(--v-theme-primary));
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.client-history__filter-button:hover {
+  background: rgba(var(--v-theme-primary), 0.06);
+}
+
+.client-history__filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 8px;
+  align-items: start;
+  width: min(640px, 90vw);
+  padding: 12px;
 }
 
 .client-history__content {
   flex: 1;
   overflow-y: auto;
-  padding: 0 16px 16px;
+  padding: 4px 32px 20px;
 }
 
-.client-history__filters {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 8px;
-  align-items: start;
-  padding: 8px 0 12px;
+.client-history__table-scroll {
+  overflow-x: auto;
+}
+
+.client-history__table {
+  width: 100%;
+  min-width: 1160px;
+  border: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+  border-radius: 4px;
+  border-spacing: 0;
+  font-size: 0.875rem;
 }
 
 .client-history__table th {
+  height: 32px;
+  padding: 0 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-align: center;
   white-space: nowrap;
 }
 
+.client-history__table td {
+  height: 32px;
+  padding: 0 8px;
+  border-top: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
+  text-align: center;
+  white-space: nowrap;
+}
+
+.client-history__table tbody tr:hover {
+  background: rgba(var(--v-theme-primary), 0.04);
+}
+
+.client-history__quote-link,
+.client-history__profit {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
 .client-history__footer {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 16px;
-  padding-top: 12px;
+  margin-top: 16px;
 }
 
 @media (prefers-reduced-motion: reduce) {

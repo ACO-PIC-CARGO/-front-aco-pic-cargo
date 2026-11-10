@@ -19,9 +19,7 @@ export function modalityLabel(item: ClientQuoteHistoryItem): string {
 }
 
 export function modalityColor(item: ClientQuoteHistoryItem): string {
-  if (item.individual_flag) return "success";
-  if (item.group_flag) return "info";
-  return "primary";
+  return modalityLabel(item) === "LCL Individual" ? "light-green-lighten-2" : "blue-lighten-3";
 }
 
 export function cargoDetail(item: ClientQuoteHistoryItem): string {
