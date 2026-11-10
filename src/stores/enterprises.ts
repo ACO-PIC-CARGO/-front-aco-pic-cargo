@@ -3,6 +3,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
+import { useSecuritysStore } from "@/stores/securitys";
 import { useUserStore } from "@/stores/user";
 import type { ApiResponse } from "@/types/api";
 import type {
@@ -19,7 +20,7 @@ import type {
 } from "@/types/empresas";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { request } from "@/utils/request";
-import { sessionBranchId } from "@/utils/sesion";
+import { chooseSessionBranch, sessionBranchId } from "@/utils/sesion";
 
 const showAnswer = (data: ApiResponse) =>
   Swal.fire({
@@ -188,7 +189,7 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
       headers: { "Content-Type": "application/json" },
       data: data.value,
     })
-      .then((response) => {
+      .then(async (response) => {
         const dataUser = response.data.data[0]!.data_users;
         const dataBranch = response.data.data[0]!.data_branch;
         sessionStorage.setItem("security", String(dataUser[0]!.id_secutiry));
@@ -201,6 +202,11 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
         localStorage.setItem("dataUser", JSON.stringify(dataUser));
         localStorage.setItem("auth-token", response.data.token!);
         localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+
+        const securitys = useSecuritysStore();
+        await securitys.CargarBranch();
+        const loadedBranch = securitys.lstSucursal.find((branch) => branch.id === dataBranch[0]!.id);
+        if (loadedBranch) chooseSessionBranch(loadedBranch);
 
         // dispatch("security/", null, { root: true });
       })

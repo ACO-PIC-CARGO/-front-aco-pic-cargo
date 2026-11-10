@@ -146,7 +146,7 @@ export interface FormCuentaEmpresa {
 
 export interface RegistroNuevaEmpresaRow {
   data_users: UsuarioLogin[];
-  data_branch: unknown;
+  data_branch: { id: number }[];
 }
 
 export interface DatoEmpresaConfig {

@@ -207,12 +207,34 @@ describe("enterprises store", () => {
     expect(sentUrls()).toEqual(["actualizar_enterprise"]);
   });
 
-  test("RegistroNuevaEmpresa signs the new admin in on both storages and reports success", async () => {
+  test("RegistroNuevaEmpresa leaves the same session as a login, with the registered branch as the login loads it", async () => {
+    const registered = {
+      data_users: [{ id: 11, id_entitie: 22, id_branch: 33, id_secutiry: 5 }],
+      data_branch: [{ id: 33, esnuevoflag: true, iso_pais: "604" }],
+    };
+    const loadedBranch = { id: 33, esnuevoflag: true, iso_pais: "604", moneda: [{ id: 1, acronym: "PEN" }] };
+    respond({
+      registro_nueva_empresa: accepted([registered]),
+      "CargarBranch/11": accepted([{ id: 99, iso_pais: "152", moneda: [] }, loadedBranch]),
+    });
+
+    const result = await useEnterprisesStore().RegistroNuevaEmpresa();
+
+    for (const storage of [sessionStorage, localStorage]) {
+      expect(JSON.parse(storage.getItem("security")!)).toBe(5);
+      expect(JSON.parse(storage.getItem("dataUser")!)[0]).toMatchObject({ id: 22, id_user: 11, id_branch: 33 });
+      expect(JSON.parse(storage.getItem("dataBranch")!)).toEqual([loadedBranch]);
+      expect(storage.getItem("iso_pais")).toBe("604");
+    }
+    expect(result).toBe(true);
+  });
+
+  test("RegistroNuevaEmpresa signs the new admin in on both storages with the registered branch when its branches cannot be loaded", async () => {
     const created = {
       data_users: [{ id: 11, id_entitie: 22, id_branch: 33, id_secutiry: 5 }],
       data_branch: [{ id: 33, esnuevoflag: true }],
     };
-    respond({ registro_nueva_empresa: accepted([created]) });
+    respond({ registro_nueva_empresa: accepted([created]), "CargarBranch/11": rejected() });
     const enterprises = useEnterprisesStore();
     enterprises.data.email = "ana@acme.pe";
 
