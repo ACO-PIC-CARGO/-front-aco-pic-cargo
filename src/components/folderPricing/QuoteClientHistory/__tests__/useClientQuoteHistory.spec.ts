@@ -18,6 +18,7 @@ const historyRow = (id: number, fields: Partial<ClientQuoteHistoryRow> = {}): Cl
   cursor_created_at: `2026-01-01 10:00:${String(id).padStart(2, "0")}.123456`,
   transport_name: "Marítimo",
   shipment_name: "LCL",
+  incoterm_name: "FOB",
   group_flag: false,
   individual_flag: true,
   weight: 1000,

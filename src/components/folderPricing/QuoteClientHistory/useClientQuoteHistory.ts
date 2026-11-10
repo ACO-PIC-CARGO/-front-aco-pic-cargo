@@ -23,6 +23,7 @@ export interface ClientQuoteHistoryRow {
   cursor_created_at: string;
   transport_name: string | null;
   shipment_name: string | null;
+  incoterm_name: string | null;
   group_flag: boolean;
   individual_flag: boolean;
   weight: number | null;

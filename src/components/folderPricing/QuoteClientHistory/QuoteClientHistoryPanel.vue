@@ -239,6 +239,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
                   <th>Fecha</th>
                   <th>Tipo</th>
                   <th>Modalidad</th>
+                  <th>Incoterm</th>
                   <th>Detalle de Carga</th>
                   <th>Ruta (Origen – Destino)</th>
                   <th>Costos (US$)</th>
@@ -280,6 +281,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
                       {{ modalityLabel(item) }}
                     </v-chip>
                   </td>
+                  <td>{{ item.incoterm_name }}</td>
                   <td>{{ cargoDetail(item) }}</td>
                   <td>
                     <v-chip

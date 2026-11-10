@@ -4,7 +4,7 @@ import type { ClientQuoteHistoryItem } from "../useClientQuoteHistory";
 
 const item = (fields: Partial<ClientQuoteHistoryItem>): ClientQuoteHistoryItem => ({
   id: 1, quote_code: "00000001", created_date: "01/01/2026", cursor_created_at: "2026-01-01 00:00:00",
-  transport_name: "Marítimo", shipment_name: "LCL", group_flag: false, individual_flag: false,
+  transport_name: "Marítimo", shipment_name: "LCL", incoterm_name: "FOB", group_flag: false, individual_flag: false,
   weight: 1100, volume: 1.5, amount: 0, containers: [], origin: null, destination: null,
   status_name: null, approved_flag: false, total_count: null, has_more: false, cost: 0, sale: 0, profit: 0, ...fields,
 });
