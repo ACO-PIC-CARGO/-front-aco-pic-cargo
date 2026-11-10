@@ -17,7 +17,7 @@ const rows: EmailTableRow[] = [
 
 function mountEditor(readonly = false) {
   const wrapper = mount(ProviderEmailTableEditor, {
-    props: { header: ["Concepto", "Detalle"], rows, readonly, "onUpdate:rows": (value: EmailTableRow[]) => wrapper.setProps({ rows: value }) },
+    props: { header: ["Concepto", "Detalle"] as [string, string], rows, readonly, "onUpdate:rows": (value: EmailTableRow[]) => wrapper.setProps({ rows: value }) },
     global: { plugins: [vuetify] },
   });
   return wrapper;
@@ -39,7 +39,7 @@ test("removing a row drops it and adding one appends an empty row to fill in", a
   await button(wrapper, "Quitar fila", 0).trigger("click");
   expect(savedRows(wrapper).map((row) => row.field)).toEqual(["weight", "volume"]);
   await wrapper.find('button[aria-label="Agregar fila"]').trigger("click");
-  expect(savedRows(wrapper).at(-1)).toEqual({ field: "incoterm", label: "" });
+  expect(savedRows(wrapper)[savedRows(wrapper).length - 1]).toEqual({ field: "incoterm", label: "" });
 });
 
 test("without permission to modify, rows cannot be moved, removed or added", () => {
