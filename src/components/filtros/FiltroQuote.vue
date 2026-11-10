@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
+import { chosenOptionTitle } from "@/utils/selectOptions";
 
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
@@ -163,13 +164,13 @@ async function reporteMarketing() {
   }
   if (f.id_pricing) {
     filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_pricing,
-    )?.name;
+      (v) => v.id == f.id_pricing,
+    )?.nombrecompleto;
   }
   if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
     filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_entities,
-    )?.name;
+      (v) => v.id == f.id_entities,
+    )?.nombrecompleto;
   }
   if (f.id_modality) {
     filtroSeleccionado.Modalidad = store.listModality.find(
@@ -201,13 +202,13 @@ async function reporteMarketing() {
   }
   if (f.id_pricing) {
     filtroCabecera.Pricing = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_pricing,
-    )?.name;
+      (v) => v.id == f.id_pricing,
+    )?.nombrecompleto;
   }
   if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
     filtroCabecera.Ejecutivo = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_entities,
-    )?.name;
+      (v) => v.id == f.id_entities,
+    )?.nombrecompleto;
   }
   if (f.id_modality) {
     filtroCabecera.Modalidad = store.listModality.find(
@@ -288,13 +289,13 @@ async function reporteListado() {
   }
   if (f.id_pricing) {
     filtroSeleccionado["Ejecutivo Pricing"] = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_pricing,
-    )?.name;
+      (v) => v.id == f.id_pricing,
+    )?.nombrecompleto;
   }
   if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == "2")) {
     filtroSeleccionado["Ejecutivo Venta"] = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_entities,
-    )?.name;
+      (v) => v.id == f.id_entities,
+    )?.nombrecompleto;
   }
   if (f.id_modality) {
     filtroSeleccionado.Modalidad = store.listModality.find(
@@ -326,13 +327,13 @@ async function reporteListado() {
   }
   if (f.id_pricing) {
     filtroCabecera.Pricing = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_pricing,
-    )?.name;
+      (v) => v.id == f.id_pricing,
+    )?.nombrecompleto;
   }
   if (f.id_entities && !(f.tipopdf === 2 || (f.tipopdf as unknown) == '2')) {
     filtroCabecera.Ejecutivo = store.listEjecutivo.find(
-      (v) => v.id_entitie == f.id_entities,
-    )?.name;
+      (v) => v.id == f.id_entities,
+    )?.nombrecompleto;
   }
   if (f.id_modality) {
     filtroCabecera.Modalidad = store.listModality.find(
@@ -381,7 +382,7 @@ function getTextoPorId(
 
 onMounted(async () => {
   await pricingStore.getMarketingList();
-  await pricingStore.getModulesEntities();
+  await pricingStore.getCargarEjecutivo();
   await pricingStore.getQuoteStatus();
   await pricingStore.getModality();
   await pricingStore.getShipment();
@@ -471,11 +472,15 @@ onMounted(async () => {
                 :items="pricingStore.listEjecutivo"
                 label="Pricing."
                 density="compact"
-                item-title="name"
-                item-value="id_entitie"
+                item-title="nombrecompleto"
+                item-value="id"
                 v-model="pricingStore.filtro.id_pricing"
                 clearable
-              />
+              >
+                <template #selection="{ internalItem }">
+                  {{ chosenOptionTitle(internalItem) }}
+                </template>
+              </v-autocomplete>
             </v-col>
             <v-col
               cols="12"
@@ -486,11 +491,15 @@ onMounted(async () => {
                 :items="pricingStore.listEjecutivo"
                 label="Ejecutivo."
                 density="compact"
-                item-title="name"
-                item-value="id_entitie"
+                item-title="nombrecompleto"
+                item-value="id"
                 v-model="pricingStore.filtro.id_entities"
                 clearable
-              />
+              >
+                <template #selection="{ internalItem }">
+                  {{ chosenOptionTitle(internalItem) }}
+                </template>
+              </v-autocomplete>
             </v-col>
             <v-col
               cols="12"

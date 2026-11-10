@@ -72,22 +72,22 @@
 }
 
 .swal2-popup.quote-report-popup--info {
-  width: min(92vw, 430px);
-  padding: 12px 12px 14px;
-  border-radius: 16px;
+  width: min(92vw, 480px);
+  padding: 18px 22px 20px;
+  border-radius: 18px;
 }
 
 .quote-report-popup--info .swal2-icon {
-  width: 64px;
-  height: 64px;
-  margin: 0 auto;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 4px;
   border: 0;
   border-radius: 0;
 }
 
 .quote-report-document-icon {
-  width: 60px;
-  height: 60px;
+  width: 66px;
+  height: 66px;
   overflow: visible;
   fill: none;
   stroke: #2187e8;
@@ -97,31 +97,31 @@
 }
 
 .quote-report-popup--info .quote-report-title {
-  margin: 0 0 2px;
-  font-size: 28px;
+  margin: 0 0 8px;
+  font-size: 30px;
 }
 
 .quote-report-popup--info .quote-report-content {
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .swal2-popup.quote-report-popup--info .swal2-actions {
-  margin: 8px auto 0;
+  margin: 12px auto 0;
   padding: 0;
 }
 
 .quote-report-time-banner {
   display: flex;
-  min-height: 46px;
+  min-height: 52px;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  margin: 0 auto 10px;
-  padding: 8px 12px;
+  gap: 10px;
+  margin: 0 auto 12px;
+  padding: 10px 14px;
   border-radius: 10px;
   color: #0871d7;
   background: #eaf4ff;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .quote-report-time-banner b {
@@ -149,7 +149,7 @@
 .quote-report-followup {
   margin: 0;
   color: #626b78;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .swal2-popup.quote-report-popup .quote-report-button {
@@ -178,13 +178,13 @@
 }
 
 .swal2-popup.quote-report-popup--info .quote-report-button {
-  width: min(100%, 260px);
-  min-height: 46px;
+  width: min(100%, 280px);
+  min-height: 50px;
   margin: 0 auto;
   margin-right: auto;
   margin-left: auto;
   border-radius: 10px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .quote-report-button--success {
@@ -248,6 +248,36 @@
   font-size: 15px;
 }
 
+.swal2-popup.quote-report-popup--success {
+  width: min(92vw, 480px);
+  padding: 18px 22px 20px;
+  border-radius: 18px;
+}
+
+.quote-report-popup--success .swal2-icon {
+  width: 70px;
+  height: 70px;
+  margin-bottom: 8px;
+}
+
+.quote-report-popup--success .quote-report-title {
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+
+.quote-report-popup--success .quote-report-content {
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+.swal2-popup.quote-report-popup--success .quote-report-button {
+  min-width: 180px;
+  min-height: 50px;
+  margin-top: 6px;
+  padding: 10px 24px;
+  font-size: 16px;
+}
+
 .quote-report-popup--success::before,
 .quote-report-popup--success::after,
 .quote-report-popup--error::before,
@@ -289,7 +319,7 @@
   }
 
   .swal2-popup.quote-report-popup--info {
-    padding: 10px 10px 12px;
+    padding: 14px 14px 16px;
   }
 
   .swal2-popup.quote-report-popup--success,
@@ -298,13 +328,13 @@
   }
 
   .quote-report-popup--info .swal2-icon {
-    width: 52px;
-    height: 52px;
+    width: 58px;
+    height: 58px;
   }
 
   .quote-report-document-icon {
-    width: 48px;
-    height: 48px;
+    width: 54px;
+    height: 54px;
   }
 
   .quote-report-popup .quote-report-title {
@@ -316,16 +346,16 @@
   }
 
   .quote-report-popup--info .quote-report-title {
-    margin-bottom: 2px;
+    margin-bottom: 6px;
     font-size: 24px;
   }
 
   .quote-report-time-banner {
-    min-height: 42px;
+    min-height: 46px;
     gap: 7px;
-    margin-bottom: 6px;
-    padding: 7px 8px;
-    font-size: 13px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    font-size: 14px;
   }
 
   .quote-report-clock {
@@ -334,7 +364,7 @@
   }
 
   .quote-report-followup {
-    font-size: 13px;
+    font-size: 14px;
   }
 
   .quote-report-popup--success .swal2-icon,
@@ -359,13 +389,37 @@
     font-size: 14px;
   }
 
+  .swal2-popup.quote-report-popup--success {
+    padding: 14px 14px 16px;
+  }
+
+  .quote-report-popup--success .swal2-icon {
+    width: 58px;
+    height: 58px;
+  }
+
+  .quote-report-popup--success .quote-report-title {
+    margin-bottom: 6px;
+    font-size: 24px;
+  }
+
+  .quote-report-popup--success .quote-report-content {
+    font-size: 15px;
+  }
+
+  .swal2-popup.quote-report-popup--success .quote-report-button {
+    min-width: 160px;
+    min-height: 44px;
+    font-size: 15px;
+  }
+
   .swal2-popup.quote-report-popup--info .quote-report-button {
     width: 100%;
-    min-height: 40px;
-    font-size: 14px;
+    min-height: 44px;
+    font-size: 15px;
   }
 
   .swal2-popup.quote-report-popup--info .swal2-actions {
-    margin-top: 6px;
+    margin-top: 8px;
   }
 }
