@@ -6,6 +6,7 @@ import { usePricingStore } from "@/stores/pricing";
 import {
   aplicarMinimoDescargaPeru,
   calcularValor,
+  costTypeName,
   currencyFormat,
 } from "@/utils/cotizacion";
 import { sessionIsoPais } from "@/utils/sesion";
@@ -555,13 +556,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "FL",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "FL") }}:
 
           <span>{{ currencyFormat(resumenOpcion.flete) }} </span>
         </v-expansion-panel-title>
@@ -801,13 +796,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "OR",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "OR") }}:
           <span>{{ currencyFormat(resumenOpcion.origen) }}</span>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -1020,13 +1009,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "LO",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "LO") }}:
           <span>{{ currencyFormat(resumenOpcion.gasto) }}</span>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -1228,13 +1211,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "AD",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "AD") }}:
           <span>{{ currencyFormat(resumenOpcion.aduana) }}</span>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -1437,13 +1414,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "FL",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "FL") }}:
 
           <span>{{ currencyFormat(resumenOpcion.flete) }} </span>
         </v-expansion-panel-title>
@@ -1686,13 +1657,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "AL",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "AL") }}:
           <span>{{ currencyFormat(resumenOpcion.almacen) }}</span>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
@@ -1905,13 +1870,7 @@ function formatoFecha(fecha: string | null | undefined) {
     >
       <v-expansion-panel>
         <v-expansion-panel-title>
-          {{
-            pricingStore.listTipoCostos.length > 0
-              ? pricingStore.listTipoCostos.filter(
-                (v) => v.codigo == "GT",
-              )[0]!.name
-              : ""
-          }}:
+          {{ costTypeName(pricingStore.listTipoCostos, "GT") }}:
           <span>{{ currencyFormat(resumenOpcion.gastostercero) }}</span>
         </v-expansion-panel-title>
         <v-expansion-panel-text>

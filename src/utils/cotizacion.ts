@@ -10,6 +10,7 @@ import type {
   Numerico,
   Servicio,
 } from "@/types/cotizacion";
+import type { TipoCostoConfig } from "@/types/empresas";
 
 type ImpuestoOpcional = Impuesto | null;
 
@@ -338,4 +339,8 @@ export function validateLength(
   return (
     value.length <= maxLength || `Hasta ${maxLength} caracteres permitidoss`
   );
+}
+
+export function costTypeName(costTypes: TipoCostoConfig[], code: string): string {
+  return costTypes.find((costType) => costType.codigo == code)?.name ?? "";
 }

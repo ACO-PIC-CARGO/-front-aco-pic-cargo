@@ -5,6 +5,7 @@ import {
   calcularValor,
   comienzaConCaracter,
   comienzaNoConCaracter,
+  costTypeName,
   currencyFormat,
   formatImp,
   formatearContainer,
@@ -639,5 +640,21 @@ describe("obtenerStatus", () => {
 describe("probarFunction", () => {
   test("returns 1", () => {
     expect(probarFunction()).toBe(1);
+  });
+});
+
+describe("costTypeName", () => {
+  const costTypes = [
+    { codigo: "FL", name: "FLETE" },
+    { codigo: "OR", name: "ORIGEN" },
+  ];
+
+  test("returns the name of the cost type with that code", () => {
+    expect(costTypeName(costTypes, "OR")).toBe("ORIGEN");
+  });
+
+  test("returns an empty string when the list lacks that code or is empty", () => {
+    expect(costTypeName(costTypes, "GT")).toBe("");
+    expect(costTypeName([], "FL")).toBe("");
   });
 });
