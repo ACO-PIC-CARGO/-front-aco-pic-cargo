@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, test } from "vitest";
+import { AxiosError } from "axios";
+import type { AxiosResponse } from "axios";
 import {
+  SessionEndedError,
   chooseSessionBranch,
   clearSession,
+  isSessionEndedError,
   markSessionBranchConfigured,
+  sessionBranchId,
   sessionIsoPais,
   sessionSucursal,
   sessionUser,
@@ -24,11 +29,28 @@ describe("session readers", () => {
     expect(sessionIsoPais()).toBe(9589);
   });
 
-  test("without a session the user and branch readers throw, the user id is empty and the country is null", () => {
-    expect(() => sessionUser()).toThrow(TypeError);
-    expect(() => sessionSucursal()).toThrow(TypeError);
+  test("without a session the user and branch readers say the session ended, the user id is empty and the country is null", () => {
+    expect(() => sessionUser()).toThrow(SessionEndedError);
+    expect(() => sessionBranchId()).toThrow(SessionEndedError);
+    expect(() => sessionSucursal()).toThrow(SessionEndedError);
     expect(sessionUserIdOrEmpty()).toBe("");
     expect(sessionIsoPais()).toBeNull();
+  });
+});
+
+describe("errors that only mean the session ended", () => {
+  const rejectedWith = (status: number) => new AxiosError("Request failed", "ERR_BAD_REQUEST", undefined, undefined, { status } as AxiosResponse);
+
+  test("are a session reader finding no session and a request refused for an expired token", () => {
+    expect(isSessionEndedError(new SessionEndedError())).toBe(true);
+    expect(isSessionEndedError(rejectedWith(401))).toBe(true);
+  });
+
+  test("do not include other failures", () => {
+    expect(isSessionEndedError(rejectedWith(400))).toBe(false);
+    expect(isSessionEndedError(rejectedWith(500))).toBe(false);
+    expect(isSessionEndedError(new TypeError("Cannot read properties of null (reading '0')"))).toBe(false);
+    expect(isSessionEndedError(undefined)).toBe(false);
   });
 });
 

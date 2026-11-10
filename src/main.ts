@@ -12,6 +12,7 @@ import router from "./router";
 import "./utils/appLoad";
 import vuetify from "./plugins/vuetify";
 import { resumeQuoteReports } from "./utils/quoteReportSocket";
+import { isSessionEndedError } from "./utils/sesion";
 
 // Importing a moment locale also activates it; the webpack build started in "en" until a screen chose "es".
 moment.locale("en");
@@ -25,6 +26,7 @@ Sentry.init({
   environment: import.meta.env.MODE,
   release: import.meta.env.VITE_VERSION,
   enabled: import.meta.env.PROD,
+  beforeSend: (event, hint) => (isSessionEndedError(hint.originalException) ? null : event),
 });
 
 // -------------

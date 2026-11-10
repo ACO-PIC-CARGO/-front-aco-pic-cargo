@@ -1,23 +1,37 @@
+import { isAxiosError } from "axios";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
 
-export const sessionBranchId = (): number =>
-  (JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[])[0]!.id_branch;
+export class SessionEndedError extends Error {
+  constructor() {
+    super("The session ended");
+    this.name = "SessionEndedError";
+  }
+}
+
+export const isSessionEndedError = (error: unknown): boolean =>
+  error instanceof SessionEndedError || (isAxiosError(error) && error.response?.status === 401);
+
+const firstSessionRow = <Row>(key: string): Row => {
+  const rows = JSON.parse(sessionStorage.getItem(key) as string) as Row[] | null;
+  if (!rows?.[0]) throw new SessionEndedError();
+  return rows[0];
+};
+
+export const sessionBranchId = (): number => firstSessionRow<UsuarioSesion>("dataUser").id_branch;
 
 export const sessionBranchIdOrEmpty = (): number | "" => {
   const users = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[] | null;
   return users ? users[0]!.id_branch : "";
 };
 
-export const sessionUser = (): UsuarioSesion =>
-  (JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[])[0]!;
+export const sessionUser = (): UsuarioSesion => firstSessionRow<UsuarioSesion>("dataUser");
 
 export const sessionUserIdOrEmpty = (): number | "" => {
   const users = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[] | null;
   return users ? users[0]!.id! : "";
 };
 
-export const sessionSucursal = (): SucursalSesion =>
-  (JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[])[0]!;
+export const sessionSucursal = (): SucursalSesion => firstSessionRow<SucursalSesion>("dataBranch");
 
 export const chooseSessionBranch = (branch: SucursalSesion): void => {
   const users = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[];
