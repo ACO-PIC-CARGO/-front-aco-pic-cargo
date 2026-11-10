@@ -3,7 +3,6 @@ import { flushPromises, shallowMount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import DashboardMain from "@/views/dashboard/DashboardMain.vue";
-import { usePricingStore } from "@/stores/pricing";
 import { mostrarAvisoVigenciaFlete } from "@/views/dashboard/avisoVigenciaFlete";
 
 const route = vi.hoisted(() => ({ name: "Home", params: {}, fullPath: "/" }));
@@ -68,70 +67,6 @@ test("no muestra el aviso fuera de la página principal", async () => {
   route.name = "newQuote";
   await mountDashboard();
   expect(mostrarAvisoVigenciaFlete).not.toHaveBeenCalled();
-});
-
-test("cotizacion-bot pide confirmar la recarga en lstQuote y actualiza el listado al aceptar", async () => {
-  route.name = "lstQuote";
-  await mountDashboard();
-  const store = usePricingStore();
-  const reload = vi.spyOn(store, "reloadQuoteList").mockResolvedValue();
-
-  const onCotizacionBot = socketHandlers.handlers["cotizacion-bot"]!;
-  onCotizacionBot({
-    id_branch: 2,
-    nro_cotizacion: "COT-123",
-  });
-  await flushPromises();
-
-  const vm = wrapper!.vm as unknown as {
-    snackbar: boolean;
-    dataMensaje: string;
-    confirmarRecargaCotizacion: boolean;
-    recargarCotizacionesGeneradas: () => Promise<void>;
-  };
-
-  expect(vm.snackbar).toBe(false);
-
-  onCotizacionBot({
-    id_branch: "1",
-    nro_cotizacion: "COT-123",
-  });
-  await flushPromises();
-
-  expect(vm.snackbar).toBe(true);
-  expect(vm.confirmarRecargaCotizacion).toBe(true);
-  expect(vm.dataMensaje).toContain("COT-123");
-
-  await vm.recargarCotizacionesGeneradas();
-
-  expect(reload).toHaveBeenCalledOnce();
-  expect(vm.snackbar).toBe(false);
-});
-
-test("cotizacion-calculadora muestra el aviso con el correlativo en lstQuote", async () => {
-  route.name = "lstQuote";
-  await mountDashboard();
-  const reload = vi.spyOn(usePricingStore(), "reloadQuoteList").mockResolvedValue();
-
-  socketHandlers.handlers["cotizacion-calculadora"]!({
-    id_branch: 1,
-    nro_cotizacion: "15517-P",
-  });
-  await flushPromises();
-
-  const vm = wrapper!.vm as unknown as {
-    snackbar: boolean;
-    tituloMensaje: string;
-    dataMensaje: string;
-    confirmarRecargaCotizacion: boolean;
-    snackbarColor: string | undefined;
-  };
-  expect(vm.snackbar).toBe(true);
-  expect(vm.confirmarRecargaCotizacion).toBe(false);
-  expect(vm.snackbarColor).toBe("info");
-  expect(vm.tituloMensaje).toBe("Calculadora de Flete");
-  expect(vm.dataMensaje).toBe("Se ha generado cotización con 15517-P.");
-  expect(reload).not.toHaveBeenCalled();
 });
 
 test("nueva-operacion también se presenta con el contenido del snackbar mejorado", async () => {

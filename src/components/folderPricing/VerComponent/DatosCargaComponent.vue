@@ -64,7 +64,10 @@ const pesoCargable = computed(() => {
 });
 
 onMounted(async () => {
-  await appStore._getContainers();
+  await Promise.all([
+    appStore._getContainers(),
+    appStore._getProveedorRolShipper(),
+  ]);
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -233,18 +236,30 @@ function mostrarComboPercepcionAduana() {
       <v-card-text>
         <v-form ref="frmPuerto">
           <v-row>
-            <v-col cols="12">
+            <v-col
+              v-if="mostrarproveedor"
+              cols="12"
+            >
+              <v-alert
+                type="info"
+                variant="tonal"
+                density="compact"
+                class="mb-2"
+                icon="mdi-information-outline"
+              >
+                Solo se muestran proveedores configurados con el rol SHIPPER.
+              </v-alert>
               <v-autocomplete
                 label="Proveedor"
                 variant="outlined"
                 density="compact"
                 class="my-1"
-                :items="appStore.itemsProveedorList"
+                :items="appStore.itemsProveedorRolShipper"
                 item-title="namelong"
                 item-value="id"
+                placeholder="Proveedor SHIPPER"
                 readonly
                 v-model="pricingStore.datosPrincipales.id_proveedor"
-                v-if="mostrarproveedor"
               />
             </v-col>
             <v-col

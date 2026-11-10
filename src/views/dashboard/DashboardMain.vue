@@ -15,6 +15,7 @@ import moment from "moment";
 import { io } from "socket.io-client";
 import axios from "@/api/http";
 import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotifications/QuoteNotificationPopup.vue";
+import GeneratedQuoteDialog from "@/components/folderPricing/QuoteNotifications/GeneratedQuoteDialog.vue";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
@@ -55,7 +56,6 @@ import { useAduanaStore } from "@/stores/aduana";
 import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
-import { sessionBranchId } from "@/utils/sesion";
 import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
 import { TEMPLATES_NOT_LOADED, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
 import { buildProviderQuoteEmail, buildProviderQuoteSubject } from "@/utils/providerQuoteEmail";
@@ -91,8 +91,7 @@ const fechaVigencia = ref<string | null>("");
 const snackbar = ref(false);
 const tituloMensaje = ref("");
 const dataMensaje = ref("");
-const confirmarRecargaCotizacion = ref(false);
-const snackbarColor = ref<"operation" | "success" | "info">("operation");
+const snackbarColor = ref<"operation">("operation");
 const snackbarIcon = ref("mdi-bell-outline");
 const dialogFiles = ref(false);
 const headersFiles = [
@@ -132,7 +131,6 @@ onMounted(async () => {
 
   socket.on("nueva-operacion", (data: { mensaje: string }) => {
     if (!urlPricing.includes(route.name as string)) {
-      confirmarRecargaCotizacion.value = false;
       snackbarColor.value = "operation";
       snackbarIcon.value = "mdi-bell-outline";
       tituloMensaje.value = "Nueva operación";
@@ -141,58 +139,14 @@ onMounted(async () => {
     }
   });
 
-  socket.on(
-    "cotizacion-bot",
-    (data: { id_branch: number | string; nro_cotizacion: number | string }) => {
-      if (Number(data.id_branch) !== sessionBranchId()) return;
-      confirmarRecargaCotizacion.value = route.name === "lstQuote";
-      snackbarColor.value = "success";
-      snackbarIcon.value = "mdi-check-circle";
-      tituloMensaje.value = "Se generó la cotización";
-      dataMensaje.value = confirmarRecargaCotizacion.value
-        ? `${data.nro_cotizacion}. ¿Deseas recargar los datos?`
-        : `${data.nro_cotizacion}.`;
-      snackbar.value = true;
-    },
-  );
-  socket.on(
-    "cotizacion-calculadora",
-    (data: { id_branch: number | string; nro_cotizacion: number | string }) => {
-      if (Number(data.id_branch) !== sessionBranchId()) return;
-      confirmarRecargaCotizacion.value = false;
-      snackbarColor.value = "info";
-      snackbarIcon.value = "mdi-calculator-variant";
-      tituloMensaje.value = "Calculadora de Flete";
-      dataMensaje.value = `Se ha generado cotización con correlativo: ${data.nro_cotizacion}.`;
-      snackbar.value = true;
-    },
-  );
   abrirSwalConfigFlete();
   nextTick(() => {
     appStore.drawer = false;
   });
 });
 
-async function recargarCotizacionesGeneradas(): Promise<void> {
+function descartarAvisoSocket(): void {
   snackbar.value = false;
-  confirmarRecargaCotizacion.value = false;
-  appStore.spiner = true;
-  try {
-    await pricingStore.reloadQuoteList();
-  } catch (error) {
-    console.error("Error al recargar cotizaciones después de una notificación de Socket.IO:", error);
-    await Swal.fire({
-      icon: "error",
-      text: "No se pudieron recargar las cotizaciones. Inténtalo nuevamente.",
-    });
-  } finally {
-    appStore.spiner = false;
-  }
-}
-
-function descartarRecargaCotizaciones(): void {
-  snackbar.value = false;
-  confirmarRecargaCotizacion.value = false;
 }
 
 onBeforeMount(() => {
@@ -777,7 +731,7 @@ function getNameUrl() {
 }
 function obtenerTipoAlert() {
   let type = "red";
-  const Url = ["newQuote", "editQuote", "verQuote"];
+  const Url = ["newQuote", "editQuote", "verQuote", "VerCotizacionCalculadora"];
   if (Url.includes(getNameUrl())) {
     if (pricingStore.totalCosto - pricingStore.totalVenta < 0) {
       type = "success";
@@ -810,6 +764,7 @@ function colorBar() {
     "newQuote",
     "editQuote",
     "verQuote",
+    "VerCotizacionCalculadora",
     "newCotizacionAduana",
     "EditarAduana",
     "VerAduana",
@@ -1533,11 +1488,11 @@ watch(idRole, async () => {
         GUARDAR
       </v-btn>
       <!-- ver -->
-      <label class="monto" v-if="getNameUrl() == 'verQuote'">
+      <label class="monto" v-if="['verQuote', 'VerCotizacionCalculadora'].includes(getNameUrl())">
         Profit / Ganancia
         {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
-      <v-spacer v-if="getNameUrl() == 'verQuote'" />
+      <v-spacer v-if="['verQuote', 'VerCotizacionCalculadora'].includes(getNameUrl())" />
 
       <v-btn
         variant="elevated"
@@ -1878,7 +1833,7 @@ watch(idRole, async () => {
     <v-snackbar
       v-model="snackbar"
       :class="['socket-notification-snackbar', `socket-notification--${snackbarColor}`]"
-      :timeout="confirmarRecargaCotizacion ? -1 : 5000"
+      :timeout="5000"
       location="bottom center"
     >
       <div class="socket-notification" role="status" aria-live="polite">
@@ -1892,18 +1847,9 @@ watch(idRole, async () => {
         </div>
         <div class="socket-notification__actions">
           <v-btn
-            v-if="confirmarRecargaCotizacion"
             class="socket-notification__primary-action"
             variant="flat"
-            @click="recargarCotizacionesGeneradas"
-          >
-            Sí, recargar
-          </v-btn>
-          <v-btn
-            v-else
-            class="socket-notification__primary-action"
-            variant="flat"
-            @click="descartarRecargaCotizaciones"
+            @click="descartarAvisoSocket"
           >
             Entendido
           </v-btn>
@@ -1912,7 +1858,7 @@ watch(idRole, async () => {
             icon="mdi-close"
             variant="text"
             aria-label="Cerrar notificación"
-            @click="descartarRecargaCotizaciones"
+            @click="descartarAvisoSocket"
           />
         </div>
       </div>
@@ -2000,6 +1946,7 @@ watch(idRole, async () => {
       </v-card>
     </v-dialog>
     <QuoteNotificationPopup :socket="socket" />
+    <GeneratedQuoteDialog :socket="socket" />
   </div>
 </template>
 
