@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { noticeDetails, noticeHeading, noticeMeasures, noticeMessage } from "../quoteNoticeContent";
+import { noticeDetails, noticeMeasures, pricingRequestDetails, sentToClientMessage } from "../quoteNoticeContent";
 import type { QuoteNotice } from "../quoteNotificationApi";
 
 const notice = (fields: Partial<QuoteNotice> = {}): QuoteNotice => ({
@@ -10,7 +10,7 @@ const notice = (fields: Partial<QuoteNotice> = {}): QuoteNotice => ({
 });
 const values = (rows: { label: string; value: string }[]) => rows.map(({ label, value }) => [label, value]);
 
-describe("the quote notice popup content", () => {
+describe("the quote sent to the client notice", () => {
   test("shows the quote data with the shipment type, the goods value in dollars and the cargo measures", () => {
     expect(values(noticeDetails(notice()))).toEqual([
       ["Cotización N.°", "15560-P"],
@@ -39,10 +39,27 @@ describe("the quote notice popup content", () => {
     expect(noticeMeasures(sparse)).toEqual([]);
   });
 
-  test("a quote sent to the client says who sent it, and a pricing request who asks for the review", () => {
-    expect(noticeHeading(notice())).toEqual(["Cotización", "formal lista"]);
-    expect(noticeMessage(notice())).toBe("ANA TORRES ya le envió la cotización.");
-    expect(noticeHeading(notice({ kind: "pricing_request" }))).toEqual(["Solicitud de", "cotización"]);
-    expect(noticeMessage(notice({ kind: "pricing_request", created_by_name: null }))).toBe("Un usuario te pide revisar esta cotización.");
+  test("says who sent the quote", () => {
+    expect(sentToClientMessage(notice())).toBe("ANA TORRES ya le envió la cotización.");
+    expect(sentToClientMessage(notice({ created_by_name: null }))).toBe("Un usuario ya le envió la cotización.");
+  });
+});
+
+describe("the pricing request notice", () => {
+  test("shows who asks, the quote, its shipment type and the notes to pricing", () => {
+    const request = notice({ kind: "pricing_request", created_by_name: "RAMIREZ CARLOS", group_flag: false, individual_flag: true, pricing_notes: "PRUEBA FINAL." });
+
+    expect(values(pricingRequestDetails(request))).toEqual([
+      ["Vendedor", "RAMIREZ CARLOS"],
+      ["Cotización N.°", "15560-P"],
+      ["Tipo de Embarque", "LCL Individual"],
+      ["Notas", "PRUEBA FINAL."],
+    ]);
+  });
+
+  test("leaves out the notes when the request has none", () => {
+    const request = notice({ kind: "pricing_request", pricing_notes: null });
+
+    expect(pricingRequestDetails(request).map((row) => row.label)).not.toContain("Notas");
   });
 });

@@ -46,11 +46,11 @@ afterEach(() => {
 test("Ver cotización opens the quote in a new tab, marks it seen and shows the next notice", async () => {
   mount(QuoteNotificationPopup, { props: { socket: { on: vi.fn(), off: vi.fn() } }, global: { plugins: [vuetify] }, attachTo: document.body });
   await flushPromises();
-  expect(document.body.textContent).toContain("VENTAS te pide revisar esta cotización.");
+  expect(document.body.textContent).toContain("Te solicitaron una");
   expect(document.body.textContent).toContain("Revisar flete");
   vi.advanceTimersByTime(DISMISS_GUARD_MS);
 
-  button("Ver cotización").click();
+  button("Ver Cotización").click();
   await flushPromises();
 
   expect(window.open).toHaveBeenCalledWith("/home/folderPricing/verQuote/5", "_blank", "noopener");

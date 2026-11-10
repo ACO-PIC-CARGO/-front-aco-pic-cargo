@@ -40,12 +40,13 @@ export function noticeMeasures(notice: QuoteNotice): NoticeDetail[] {
   ]);
 }
 
-export const noticeHeading = (notice: QuoteNotice): [string, string] =>
-  notice.kind === "sent_to_client" ? ["Cotización", "formal lista"] : ["Solicitud de", "cotización"];
+export const sentToClientMessage = (notice: QuoteNotice): string =>
+  `${notice.created_by_name ?? "Un usuario"} ya le envió la cotización.`;
 
-export function noticeMessage(notice: QuoteNotice): string {
-  const who = notice.created_by_name ?? "Un usuario";
-  return notice.kind === "sent_to_client"
-    ? `${who} ya le envió la cotización.`
-    : `${who} te pide revisar esta cotización.`;
-}
+export const pricingRequestDetails = (notice: QuoteNotice): NoticeDetail[] =>
+  present([
+    detail("Vendedor", notice.created_by_name, "mdi-account-outline"),
+    detail("Cotización N.°", notice.quote_code, "mdi-file-document-outline"),
+    detail("Tipo de Embarque", modalityLabel(notice), transportIcon(notice.transport_name), true),
+    detail("Notas", notice.pricing_notes, "mdi-message-text-outline"),
+  ]);
