@@ -15,6 +15,8 @@ import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import HouseArrivalNoticeDialog from "@/components/HouseFile/HouseArrivalNoticeDialog.vue";
 import NotificacionesHouse from "@/components/folderHouse/NotificacionesHouse.vue";
 import HouseClientRequiredDialog from "@/components/HouseFile/HouseClientRequiredDialog.vue";
+import HouseNoticeRequiredDataDialog from "@/components/HouseFile/HouseNoticeRequiredDataDialog.vue";
+import { missingHouseNoticeRequirements } from "@/components/HouseFile/houseNoticeRequirements";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import { notifySuccess } from "@/utils/request";
@@ -93,6 +95,8 @@ const noticeDialog = ref(false);
 const pendingNotice = ref<HouseNotice | null>(null);
 const pendingNoticeDate = ref<string | null>(null);
 const notificacionesHouseRef = ref<InstanceType<typeof NotificacionesHouse> | null>(null);
+const requiredDataDialog = ref(false);
+const pendingRequiredNotice = ref<NotificacionHouse | null>(null);
 const clientDialog = ref(false);
 const loadingBotonEliminarHouse = ref(false);
 const fab = ref(false);
@@ -154,57 +158,8 @@ function isAereo() {
   return shipmentCode() == "Aéreo";
 }
 
-const NOTICE_REQUIREMENTS: [string, string, string][] = [
-  ["id_modality", "Sentido", "mdi-swap-horizontal"],
-  ["id_shipment", "Tipo de embarque", "mdi-ferry"],
-  ["id_port_begin", "Puerto de origen", "mdi-map-marker"],
-  ["id_port_end", "Puerto de destino", "mdi-map-marker"],
-  ["id_proveedor", "Proveedor", "mdi-truck"],
-  ["id_consigner", "Cliente", "mdi-account"],
-  ["emailaddress_clientefinal", "Correo del cliente", "mdi-email"],
-  ["id_operador", "Operador", "mdi-truck"],
-  ["fecha_etd", "Fecha ETD", "mdi-calendar-month"],
-  ["fecha_eta", "Fecha ETA", "mdi-calendar-month"],
-  ["monto", "Monto", "mdi-currency-usd"],
-];
-const LOOSE_CARGO_REQUIREMENTS: [string, string, string][] = [
-  ["bultos", "Nº de bultos", "mdi-package-variant"],
-  ["peso", "Peso", "mdi-weight-kilogram"],
-  ["volumen", "Volumen", "mdi-package-variant"],
-];
-
-function houseReadyForNotice(): boolean {
-  const house = housesStore.house as Record<string, unknown>;
-  const requirements = shipmentCode() == "FCL" ? NOTICE_REQUIREMENTS : [...NOTICE_REQUIREMENTS, ...LOOSE_CARGO_REQUIREMENTS];
-  const missing = requirements.filter(([field]) => !house[field]);
-  if (!missing.length) return true;
-  Swal.fire({
-    icon: "warning",
-    title: "Completa los datos del House",
-    html: `
-      <p>Para continuar con el envío, revisa estos datos pendientes:</p>
-      <ul class="house-validation-list">
-        ${missing.map(([, label, icon]) => `
-          <li>
-            <span class="house-validation-item-icon"><i class="mdi ${icon}" aria-hidden="true"></i></span>
-            <span class="house-validation-item-label">${label}</span>
-          </li>
-        `).join("")}
-      </ul>
-    `,
-    confirmButtonText: '<i class="mdi mdi-check-circle" aria-hidden="true"></i><span>Entendido</span>',
-    showCloseButton: true,
-    customClass: {
-      container: "house-validation-container",
-      popup: "house-validation-popup",
-      title: "house-validation-title",
-      icon: "house-validation-icon",
-      closeButton: "house-validation-close",
-      htmlContainer: "house-validation-content",
-      confirmButton: "house-validation-confirm",
-    },
-  });
-  return false;
+function missingNoticeData() {
+  return missingHouseNoticeRequirements(housesStore.house);
 }
 
 function loadNotices() {
@@ -212,7 +167,32 @@ function loadNotices() {
 }
 
 function requestHouseNotification(notification: NotificacionHouse) {
-  if (houseReadyForNotice()) notificacionesHouseRef.value?.requestSend(notification);
+  if (missingNoticeData().length) {
+    pendingRequiredNotice.value = notification;
+    requiredDataDialog.value = true;
+    return;
+  }
+  notificacionesHouseRef.value?.requestSend(notification);
+}
+
+async function requiredDataSaved() {
+  const notification = pendingRequiredNotice.value;
+  if (!notification) return;
+  await reloadHouse();
+  await loadNotices();
+  const missing = missingNoticeData();
+  if (missing.length) {
+    await Swal.fire({
+      icon: "warning",
+      title: "No pudimos actualizar todos los datos",
+      text: `Revisa estos campos y vuelve a guardar: ${missing.map(({ label }) => label).join(", ")}.`,
+    });
+    requiredDataDialog.value = true;
+    return;
+  }
+  pendingRequiredNotice.value = null;
+  const refreshedNotification = housesStore.ListadoNotificacionesHouse.find((item) => item.id == notification.id) ?? notification;
+  notificacionesHouseRef.value?.requestSend(refreshedNotification);
 }
 
 function sendHouseNotification({ notification, fecha }: { notification: NotificacionHouse; fecha: string }) {
@@ -489,6 +469,10 @@ onMounted(async () => {
         :notice="pendingNotice"
         :fecha="pendingNoticeDate"
         @sent="loadNotices"
+      />
+      <HouseNoticeRequiredDataDialog
+        v-model="requiredDataDialog"
+        @saved="requiredDataSaved"
       />
       <HouseClientRequiredDialog
         v-model="clientDialog"

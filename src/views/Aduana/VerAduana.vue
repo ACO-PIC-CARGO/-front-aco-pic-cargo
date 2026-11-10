@@ -169,7 +169,7 @@ onMounted(async () => {
             :editable="mostrarStepS"
           >
             <template #title>
-              <span v-if="mostrarStepS"> Notas de Costos </span>
+              <span v-if="mostrarStepS"> Notas y Enviar a Cliente </span>
               <v-progress-circular
                 v-else
                 indeterminate

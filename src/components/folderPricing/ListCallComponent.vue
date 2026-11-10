@@ -397,6 +397,22 @@ async function guardarNota() {
         cols="12"
         class="mt-3 clsFiltro"
       >
+        <div class="applied-filters-header d-flex flex-wrap align-center ga-16">
+          <h2 class="text-headline-small ma-0">
+            Filtros Aplicados
+          </h2>
+          <v-btn
+            data-testid="clear-applied-call-filters"
+            color="default"
+            variant="outlined"
+            size="small"
+            prepend-icon="mdi-filter-remove"
+            @click="limpiar()"
+          >
+            Limpiar Filtro
+          </v-btn>
+        </div>
+        <v-divider class="applied-filters-divider" />
         <v-row>
           <v-col
             cols="6"
@@ -801,4 +817,12 @@ async function guardarNota() {
   </v-container>
 </template>
 
-<style></style>
+<style scoped>
+.applied-filters-header {
+  margin-bottom: 0;
+}
+
+.applied-filters-divider {
+  margin: 16px 0 24px;
+}
+</style>

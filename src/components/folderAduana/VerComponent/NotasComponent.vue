@@ -293,7 +293,7 @@ onMounted(() => {
         size="small"
         @click="abrirModalCambioHeader()"
       >
-        Imprimir Cotizacion
+        Imprimir PDF
       </v-btn>
     </v-card-actions>
     <v-dialog

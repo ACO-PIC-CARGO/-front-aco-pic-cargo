@@ -569,10 +569,6 @@ async function validarMenuNotificaciones() {
       errores.push("Volumen");
     }
   }
-  if (!housesStore.copy_house.monto) {
-    errores.push("Monto");
-  }
-
   if (!errores.length) {
     displayMenuNotificaciones.value = true;
   } else {

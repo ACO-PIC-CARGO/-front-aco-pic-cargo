@@ -761,7 +761,7 @@ onMounted(() => {
             :disabled="aduanaStore.bloquearBtnImprimir"
             @click="abrirModalTipoReporte()"
           >
-            Imprimir Cotizacion
+            Imprimir PDF
           </v-btn>
         </v-card-actions>
       </v-card>

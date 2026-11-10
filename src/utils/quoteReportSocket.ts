@@ -22,6 +22,7 @@ interface QuoteReportResponse extends QuoteReportId {
 
 const REPORT_EVENT = "reporte-quote";
 const PENDING_REPORTS = "pending-quote-reports";
+const REPORT_SUCCESS_MESSAGE = "Puedes guardarlo o verlo en tu carpeta de Descarga.";
 const quoteReportSocket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
   autoConnect: false,
@@ -222,7 +223,7 @@ async function recoverPendingReport(
       onFinished();
       forgetPending(report);
       dismissReport(report);
-      showQuoteReportAlert("success", "Reporte generado", "El documento se descargó correctamente.", "Aceptar");
+      showQuoteReportAlert("success", "Reporte generado", REPORT_SUCCESS_MESSAGE, "Aceptar");
       return;
     }
     const result: unknown = JSON.parse(await response.data.text());
@@ -349,7 +350,7 @@ export async function requestQuoteReport(config: AxiosRequestConfig, fallbackFil
     showQuoteReportAlert(
       "success",
       "Reporte generado",
-      "El documento se descargó correctamente.",
+      REPORT_SUCCESS_MESSAGE,
       "Aceptar",
     );
   };

@@ -4,10 +4,12 @@ import { flushPromises, mount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
+import { VSelect } from "vuetify/components";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import ListQuoteComponent from "@/components/folderPricing/ListQuoteComponent.vue";
+import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 const push = vi.hoisted(() => vi.fn());
@@ -76,12 +78,43 @@ test("the table counts every quote the server found and asks the server for the 
   answerWith({ getQuoteList: listAnswer(30) });
   await mountList();
 
-  expect(document.body.querySelector(".v-data-table-footer")!.textContent).toContain("1-10 of 30");
+  expect(document.body.querySelector(".v-data-table-footer")).toBeNull();
+  expect(document.body.querySelector('[data-testid="quote-pagination-summary"]')!.textContent).toContain("1-10 de 30");
 
   await click(document.body.querySelector<HTMLElement>('button[aria-label="Next page"]')!);
 
   expect(lastListParams()).toMatchObject({ pagina: 2, limit: 10 });
   expect(requestsTo("resumen_por_estado")).toHaveLength(0);
+});
+
+test("the custom page-size selector offers only the requested values", async () => {
+  await mountList();
+
+  const selector = wrapper!.findAllComponents(VSelect).find((item) => item.classes().includes("quote-items-per-page"));
+  expect(selector?.props("items")).toEqual([10, 15, 20, 50, 100]);
+  expect(selector?.props("modelValue")).toBe(10);
+});
+
+test("applied filters have a persistent clear button that resets the same filters as Limpiar", async () => {
+  await mountList();
+  const pricingStore = usePricingStore();
+  pricingStore.filtro.id_pricing = 12;
+  pricingStore.filtro.id_entities = 34;
+
+  expect(document.body.textContent).toContain("Filtros Aplicados");
+  const buttonLabels = [...document.body.querySelectorAll("button")].map((button) =>
+    button.textContent?.trim(),
+  );
+  expect(buttonLabels).toContain("Limpiar Filtro");
+  expect(buttonLabels).toContain("Limpiar");
+
+  await click(document.body.querySelector<HTMLElement>('[data-testid="clear-applied-filters"]')!);
+
+  expect(pricingStore.filtro).toMatchObject({ tipopdf: 1, estado: "1" });
+  expect(pricingStore.filtro.id_pricing).toBeUndefined();
+  expect(pricingStore.filtro.id_entities).toBeUndefined();
+  expect(pricingStore.filtrarQuoteFlag).toBe(false);
+  expect(requestsTo("getQuoteList")).toHaveLength(1);
 });
 
 test("a search goes to the server once the user stops typing, from the first page, without recounting the totals", async () => {

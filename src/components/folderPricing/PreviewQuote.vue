@@ -18,11 +18,14 @@ interface DatosCotizacionVistaPrevia extends VistaPreviaCotizacion {
   amount?: number | string;
   business_name?: string;
   code?: string;
+  contenedor?: { name?: string; valor?: number | string }[];
   document?: string;
   esAduana?: boolean;
   fechafin?: string | null;
+  monto?: number | string | null;
   nameEmpresa?: string;
   phone?: string;
+  telefono?: string;
   telefonoCliente?: string;
   tiempoTransito?: number | string;
 }
@@ -42,6 +45,11 @@ const datosEmpresa = ref<Partial<SucursalSesion> | null>(null);
 const quote = computed(
   () => props.data as unknown as DatosCotizacionVistaPrevia | null,
 );
+const datosCarga = computed(() =>
+  quote.value?.esAduana
+    ? aduanaStore.datosPrincipales
+    : pricingStore.datosPrincipales,
+);
 const option = computed<OpcionVistaPrevia | null>(
   () => quote.value?.OpcionesSelecciondas?.[props.index - 1] ?? null,
 );
@@ -60,16 +68,46 @@ const validityDate = computed(
 const transitTime = computed(
   () => option.value?.tiempo_transito ?? quote.value?.tiempoTransito,
 );
+const clientPhone = computed(
+  () => quote.value?.telefonoCliente || quote.value?.telefono || datosCarga.value.telefono || "",
+);
+const merchandiseAmount = computed(() =>
+  [
+    quote.value?.amount,
+    quote.value?.monto,
+    datosCarga.value.amount,
+    datosCarga.value.monto,
+  ].find((value) => value !== undefined && value !== null && value !== ""),
+);
+const weightDisplay = computed(() =>
+  withUnit(quote.value?.peso ?? datosCarga.value.peso, "kg") || "—",
+);
+const volumeDisplay = computed(() =>
+  withUnit(quote.value?.volumen ?? datosCarga.value.volumen, "m³") || "—",
+);
 const isFCL = computed(() => {
-  const tipoCarga = pricingStore.datosPrincipales.idtipocarga;
+  const tipoCarga = datosCarga.value.idtipocarga;
   const id = typeof tipoCarga === "object" && tipoCarga !== null
     ? tipoCarga.id
     : tipoCarga;
-  const shipment = (pricingStore.listShipment || []).find(
+  const listShipment = quote.value?.esAduana
+    ? aduanaStore.listShipment
+    : pricingStore.listShipment;
+  const shipment = (listShipment || []).find(
     (item) => item && item.id == id,
   );
   return shipment?.code === "FCL";
 });
+const containersDisplay = computed(() =>
+  (quote.value?.contenedor ?? [])
+    .filter((container): container is { name: string; valor: number | string } =>
+      typeof container.name === "string" &&
+      container.name.length > 0 &&
+      container.valor !== undefined &&
+      container.valor !== null)
+    .map((container) => `${container.valor}x${container.name}`)
+    .join(" + "),
+);
 
 function getServiceLines(...groups: (LineaReporte[] | undefined)[]): LineaReporte[] {
   return groups.flatMap((items) => items ?? []).filter((item) => !!item.name);
@@ -103,6 +141,12 @@ function amountNumber(value: number | string | null | undefined): number {
 function formatCurrency(value: number | string | null | undefined): string {
   return `US$${new Intl.NumberFormat("en-US", {
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amountNumber(value))}`;
+}
+
+function formatMerchandiseAmount(value: number | string | null | undefined): string {
+  return `US$${new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 2,
   }).format(amountNumber(value))}`;
 }
@@ -192,8 +236,12 @@ function formatDate(value: string | null | undefined): string {
 
 function withUnit(value: unknown, unit: string): string {
   if (value === undefined || value === null || value === "") return "";
-  const text = String(value);
-  return /[a-zA-Z³]/.test(text) ? text : `${text} ${unit}`;
+  const text = String(value).trim();
+  const unitPattern = unit === "m³" ? /\s*m(?:³|3)$/i : /\s*kg$/i;
+  if (unitPattern.test(text)) {
+    return `${text.replace(unitPattern, "").trim()} ${unit}`;
+  }
+  return `${text} ${unit}`;
 }
 
 function handleKeyPress(event: KeyboardEvent) {
@@ -259,11 +307,11 @@ onBeforeUnmount(() => {
           <span><b>Cliente:</b> {{ quote.cliente }}</span>
         </div>
         <div
-          v-if="quote.telefonoCliente"
+          v-if="clientPhone"
           class="meta-line"
         >
           <v-icon icon="mdi-phone" />
-          <span><b>Tel.:</b> {{ quote.telefonoCliente }}</span>
+          <span><b>Tel.:</b> {{ clientPhone }}</span>
         </div>
       </div>
       <div class="meta-column">
@@ -310,22 +358,26 @@ onBeforeUnmount(() => {
             <dt>Incoterms:</dt>
             <dd>{{ quote.icoterm || "—" }}</dd>
           </div>
+          <div v-if="isFCL">
+            <dt>Contenedores:</dt>
+            <dd>{{ containersDisplay || "—" }}</dd>
+          </div>
           <div v-if="quote.esAduana || !isFCL">
             <dt>N.º de bultos:</dt>
             <dd>{{ quote.numerobultos || "—" }}</dd>
           </div>
           <div v-if="quote.esAduana || !isFCL">
             <dt>Peso:</dt>
-            <dd>{{ withUnit(quote.peso, "kg") || "—" }}</dd>
+            <dd>{{ weightDisplay }}</dd>
           </div>
           <div v-if="quote.esAduana || !isFCL">
             <dt>Volumen:</dt>
-            <dd>{{ withUnit(quote.volumen, "m³") || "—" }}</dd>
+            <dd>{{ volumeDisplay }}</dd>
           </div>
-          <div v-if="quote.amount">
+          <div v-if="merchandiseAmount !== undefined">
             <dt>Valor de mercancía:</dt>
             <dd class="merchandise-value">
-              {{ formatCurrency(quote.amount) }}
+              {{ formatMerchandiseAmount(merchandiseAmount) }}
             </dd>
           </div>
         </dl>

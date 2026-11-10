@@ -212,7 +212,7 @@ onMounted(async () => {
           <v-stepper-item
             complete
             :value="4"
-            title="Notas de Costos"
+            title="Notas y Enviar a Cliente"
             editable
           />
           <v-divider />

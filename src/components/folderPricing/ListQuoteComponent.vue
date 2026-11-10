@@ -12,6 +12,7 @@ import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import { isApprovedQuote } from "@/utils/quoteApproval";
+import { chosenOptionTitle } from "@/utils/selectOptions";
 import type { ApiResponse } from "@/types/api";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type {
@@ -30,6 +31,14 @@ const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const { can } = usePermissions();
+const itemsPerPageOptions = [10, 15, 20, 50, 100];
+const pageCount = computed(() => Math.max(1, Math.ceil(pricingStore.totalregistro / pricingStore.limit)));
+const quoteRange = computed(() => {
+  const total = pricingStore.totalregistro;
+  if (!total) return "0-0 de 0";
+  const start = (pricingStore.pagina - 1) * pricingStore.limit + 1;
+  return `${start}-${Math.min(pricingStore.pagina * pricingStore.limit, total)} de ${total}`;
+});
 
 const dialogUrl = ref(false);
 const search = ref("");
@@ -238,6 +247,10 @@ async function cambiarPagina() {
   appStore.spiner = true;
   await pricingStore.getListQuote();
   appStore.spiner = false;
+}
+function cambiarItemsPorPagina(limit: number) {
+  pricingStore.limit = limit;
+  pricingStore.pagina = 1;
 }
 async function limpiar() {
   appStore.spiner = true;
@@ -611,6 +624,22 @@ onMounted(async () => {
         cols="12"
         class="mt-3 clsFiltro"
       >
+        <div class="applied-filters-header d-flex flex-wrap align-center ga-16">
+          <h2 class="text-headline-small ma-0">
+            Filtros Aplicados
+          </h2>
+          <v-btn
+            data-testid="clear-applied-filters"
+            color="default"
+            variant="outlined"
+            size="small"
+            prepend-icon="mdi-filter-remove"
+            @click="limpiar()"
+          >
+            Limpiar Filtro
+          </v-btn>
+        </div>
+        <v-divider class="applied-filters-divider" />
         <v-row>
           <v-col
             cols="6"
@@ -765,10 +794,14 @@ onMounted(async () => {
               readonly
               hide-details
               variant="outlined"
-              item-title="name"
-              item-value="id_entitie"
+              item-title="nombrecompleto"
+              item-value="id"
               v-model="pricingStore.filtro.id_pricing"
-            />
+            >
+              <template #selection="{ internalItem }">
+                {{ chosenOptionTitle(internalItem) }}
+              </template>
+            </v-autocomplete>
           </v-col>
           <v-col
             cols="12"
@@ -783,10 +816,14 @@ onMounted(async () => {
               readonly
               hide-details
               variant="outlined"
-              item-title="name"
-              item-value="id_entitie"
+              item-title="nombrecompleto"
+              item-value="id"
               v-model="pricingStore.filtro.id_entities"
-            />
+            >
+              <template #selection="{ internalItem }">
+                {{ chosenOptionTitle(internalItem) }}
+              </template>
+            </v-autocomplete>
           </v-col>
           <v-col
             cols="12"
@@ -931,11 +968,13 @@ onMounted(async () => {
       :items-length="pricingStore.totalregistro"
       v-model:page="pricingStore.pagina"
       v-model:items-per-page="pricingStore.limit"
+      :items-per-page-options="itemsPerPageOptions"
       :expand-strategy="singleExpand ? 'single' : 'multiple'"
       v-model:expanded="expanded"
       item-value="rowId"
       return-object
       show-expand
+      hide-default-footer
       class="elevation-1"
       disable-sort
       :no-data-text="noDataText"
@@ -1243,6 +1282,48 @@ onMounted(async () => {
         </tr>
       </template>
     </v-data-table-server>
+    <v-row
+      class="mt-2 align-center justify-space-between"
+      no-gutters
+    >
+      <v-col
+        cols="12"
+        sm="4"
+        class="d-flex align-center justify-center justify-sm-start ga-2"
+      >
+        <span>Mostrar</span>
+        <v-select
+          v-model="pricingStore.limit"
+          :items="itemsPerPageOptions"
+          aria-label="Mostrar cotizaciones por página"
+          density="compact"
+          hide-details
+          variant="outlined"
+          class="quote-items-per-page"
+          max-width="120"
+          @update:model-value="cambiarItemsPorPagina"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        sm="4"
+        class="d-flex justify-center"
+      >
+        <v-pagination
+          v-model="pricingStore.pagina"
+          :length="pageCount"
+          :total-visible="7"
+          aria-label="Paginación de cotizaciones"
+        />
+      </v-col>
+      <v-col
+        cols="12"
+        sm="4"
+        class="text-center text-sm-right"
+      >
+        <span data-testid="quote-pagination-summary">{{ quoteRange }}</span>
+      </v-col>
+    </v-row>
     <v-dialog
       v-model="dialog"
       scrollable
@@ -1540,11 +1621,17 @@ onMounted(async () => {
 
 <style>
 .clsFiltro {
-  padding: 35px 25px 35px 25px;
+  padding: 12px 25px 30px 25px;
   margin: 0 20px;
   max-width: 94vw;
   background: #f4f8fc !important;
   border-radius: 16px;
+}
+.applied-filters-header {
+  margin-bottom: 0;
+}
+.applied-filters-divider {
+  margin: 16px 0 24px;
 }
 .clsFechaPor {
   padding: 15px 25px 10px 25px;

@@ -114,7 +114,11 @@ describe("requestQuoteReport", () => {
     });
 
     expect(downloadBlob).toHaveBeenCalledWith(expect.any(Blob), "quotes.pdf");
-    expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "success" }));
+    expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({
+      icon: "success",
+      title: "Reporte generado",
+      html: expect.stringContaining("Puedes guardarlo o verlo en tu carpeta de Descarga."),
+    }));
   });
 
   test("shows the backend error for a matching failed report", async () => {

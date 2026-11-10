@@ -1154,7 +1154,7 @@ function formatearCostoTotal(valor: Costo) {
         <v-divider />
         <v-stepper-item
           :value="4"
-          title="Notas de Costos"
+          title="Notas y Enviar a Cliente"
         />
       </v-stepper-header>
 
