@@ -363,21 +363,25 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
 }
 
 .client-history__bar {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   min-height: var(--client-history-bar);
   padding: 0 32px;
 }
 
 .client-history__toggle {
+  grid-column: 2;
   display: flex;
   align-items: center;
   gap: 12px;
   height: var(--client-history-bar);
-  text-align: start;
+}
+
+.client-history__bar > :not(.client-history__toggle) {
+  grid-column: 3;
+  justify-self: end;
 }
 
 .client-history__title {
