@@ -102,7 +102,7 @@ const taxRate = () => Number(enterprisesStore.impuesto.impuesto) || 0;
 function validarMonto(v: string | number) {
   if (!v) return "Dato Requerido";
 
-  if (id_proformace.value.code === "07") {
+  if (id_proformace.value?.code === "07") {
     return Number(v) !== 0 || "El monto no puede ser cero";
   }
   return Number(v) > 0 || "Monto Mayor que 0.00";
@@ -382,7 +382,7 @@ function eliminar(producto: AccountConcept) {
   producto.status = 0;
 }
 function validacionesRequeridas() {
-  switch (id_proformace.value.code) {
+  switch (id_proformace.value?.code) {
     case "002":
       facturaFlag.value = true;
       serieFlag.value = true;
@@ -395,7 +395,7 @@ function validacionesRequeridas() {
   }
 }
 function obtenerPrefixCoins() {
-  symbol.value = id_coins.value.symbol;
+  symbol.value = id_coins.value?.symbol ?? "";
   tipocambio.value = 1;
   cambiarTipodeCambio();
 }

@@ -99,7 +99,7 @@ function recibirId(file: ArchivoSoporte) {
 function validarMonto(v: string | number) {
   if (!v) return "Dato Requerido";
 
-  if (id_proformace.value.code === "07") {
+  if (id_proformace.value?.code === "07") {
     return Number(v) !== 0 || "El monto no puede ser cero";
   }
   return Number(v) > 0 || "Monto Mayor que 0.00";
@@ -391,7 +391,7 @@ function cambiarTipodeCambio() {
   itemsProductos.value = repriceConcepts(itemsProductos.value, tipocambio.value, taxRate());
 }
 function validacionesRequeridas() {
-  switch (id_proformace.value.code) {
+  switch (id_proformace.value?.code) {
     case "002":
       facturaFlag.value = true;
       serieFlag.value = true;
@@ -404,7 +404,7 @@ function validacionesRequeridas() {
   }
 }
 function obtenerPrefixCoins() {
-  symbol.value = id_coins.value.symbol;
+  symbol.value = id_coins.value?.symbol ?? "";
   tipocambio.value = 1;
   cambiarTipodeCambio();
 }
