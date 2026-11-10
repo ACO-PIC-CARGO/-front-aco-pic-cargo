@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from "vue";
 import { storeToRefs } from "pinia";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useHousesStore } from "@/stores/houses";
@@ -12,6 +12,12 @@ const props = defineProps<{ editing?: boolean }>();
 
 const appStore = useAppStore();
 const route = useRoute();
+const router = useRouter();
+
+function openEntity(page: "ver-proveedor" | "ver-cliente", id?: number | string) {
+  if (!id) return;
+  window.open(router.resolve(`/home/folderEntities/${page}/${id}`).href, "_blank", "noopener");
+}
 const housesStore = useHousesStore();
 const pricingStore = usePricingStore();
 const itemsContainers = computed(() => appStore.itemsContainers);
@@ -203,6 +209,8 @@ onMounted(async () => {
           label="Proveedor"
           v-model="housesStore.house.proveedor"
           readonly
+          :append-inner-icon="housesStore.house.id_proveedor ? 'mdi-eye' : ''"
+          @click:append-inner="openEntity('ver-proveedor', housesStore.house.id_proveedor)"
         />
       </v-col>
       <v-col
@@ -248,6 +256,8 @@ onMounted(async () => {
           label="Consigne HBL"
           v-model="housesStore.house.consigner_real"
           readonly
+          :append-inner-icon="housesStore.house.id_consigner_real ? 'mdi-eye' : ''"
+          @click:append-inner="openEntity('ver-cliente', housesStore.house.id_consigner_real)"
         />
       </v-col>
       <v-col

@@ -93,8 +93,9 @@ async function save() {
 <template>
   <v-dialog
     v-model="open"
-    max-width="640"
+    max-width="460"
     persistent
+    scrollable
     content-class="aco-ui"
   >
     <v-card class="aco-card">
@@ -126,10 +127,7 @@ async function save() {
               @blur="validateEmail"
             />
           </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
+          <v-col cols="12">
             <v-text-field
               v-model="houseEdit.form.fecha_etd"
               type="date"
@@ -137,10 +135,7 @@ async function save() {
               :readonly="false"
             />
           </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
+          <v-col cols="12">
             <v-text-field
               v-model="houseEdit.form.fecha_eta"
               type="date"
@@ -148,10 +143,7 @@ async function save() {
               :readonly="false"
             />
           </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
+          <v-col cols="12">
             <v-text-field
               v-model.number="houseEdit.form.monto"
               type="number"

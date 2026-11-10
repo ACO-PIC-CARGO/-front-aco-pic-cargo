@@ -2,7 +2,9 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
+import axios from "@/api/http";
 import DatosCargaComponent from "@/components/folderPricing/DatosCargaComponent.vue";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
@@ -22,6 +24,7 @@ const modalTitles = () => vi.mocked(Swal.fire).mock.calls.map(([options]) => Str
 async function openNewQuote({ grupal = false } = {}) {
   const pinia = createPinia();
   setActivePinia(pinia);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1 }]));
   const pricing = usePricingStore();
   pricing.datosPrincipales = { ...pricing.datosPrincipales, id: "", esindividualflag: !grupal, esgrupalflag: grupal };
   useMasterusuariosStore().lstPercepcionAduana = [
@@ -76,6 +79,22 @@ test("clicking the mode a new quote already has keeps it without asking", async 
 
   expect(modalTitles()).toEqual([]);
   expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true });
+});
+
+test("a new quote loads the SHIPPER provider list", async () => {
+  const providers = [{ id: 12, namelong: "Proveedor SHIPPER" }];
+  vi.mocked(axios).mockResolvedValueOnce({
+    data: { estadoflag: true, data: providers, token: "test-token" },
+  } as never);
+
+  await openNewQuote();
+
+  const providerRequest = vi.mocked(axios).mock.calls
+    .map(([config]) => config as { url?: string })
+    .find(({ url }) => url?.includes("cargar_proveedor_x_rol"));
+
+  expect(providerRequest?.url).toContain("cargar_proveedor_x_rol?id_branch=1&rol=SHIPPER");
+  expect(useAppStore().itemsProveedorRolShipper).toEqual(providers);
 });
 
 test.each([
