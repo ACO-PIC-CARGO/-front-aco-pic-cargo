@@ -12,6 +12,7 @@ import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePermissions } from "@/composables/usePermissions";
 import { usePricingStore } from "@/stores/pricing";
 import { readFreightSheet } from "@/utils/freightSheet";
+import { readSheetOrWarn } from "@/utils/readSheetOrWarn";
 import type { ApiResponse } from "@/types/api";
 import type {
   FilaCargaFlete,
@@ -336,7 +337,8 @@ async function guardarDatos() {
 async function procesarExcel() {
   const file = document.getElementById("excel") as HTMLInputElement;
   if (props.type == "LCL") {
-    await procesarLCL(await readXlsFile(file.files![0]!));
+    const rows = await readSheetOrWarn(file.files![0]!);
+    if (rows) await procesarLCL(rows);
     return;
   }
   const validacionFormato = await validarCabecerasExcel(file.files![0]!);
@@ -885,9 +887,9 @@ async function validarCabecerasExcel(data: File) {
     { name: "vigencia_desde" },
     { name: "vigencia_hasta" },
   ];
-  const datosExcel = await readXlsFile(data).then((rows) => {
-    return rows[0]!;
-  });
+  const rows = await readSheetOrWarn(data);
+  if (!rows) return false;
+  const datosExcel = rows[0]!;
   switch (props.type) {
     case "LCL":
       datosExcel.forEach((element) => {

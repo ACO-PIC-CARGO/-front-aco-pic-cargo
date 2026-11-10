@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
-import { readSheet as readXlsFile } from "read-excel-file/browser";
 import Swal from "sweetalert2";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePermissions } from "@/composables/usePermissions";
 import type { OpcionCalculadora, TransporteCalculadora } from "@/types/calculadora";
+import { readSheetOrWarn } from "@/utils/readSheetOrWarn";
 
 const props = withDefaults(defineProps<{ type?: string; idModality?: number }>(), {
   type: "type",
@@ -180,24 +180,22 @@ async function procesarExcel() {
   const datos: TransporteCalculadora[] = [];
   datosExcel.value = [];
 
-  await readXlsFile(file.files![0]!).then((rows) => {
-    for (let index = 0; index < rows.length; index++) {
-      if (index > 1) {
-        datos.push({
-          peso_desde: rows[index]![0] as number,
-          peso_hasta: rows[index]![1] as number,
-          provincia: rows[index]![2] as string,
-          // puerto_destino: rows[index][3],
-          distrito: rows[index]![4] as string,
-          tarifadolar: parseFloat(String((rows[index]![5] as number) / (tipocambio.value as number))).toFixed(
-            2,
-          ),
-          tarifamonlocal: rows[index]![5] as number,
-          opcion: calculadorasStore.opcionCalculadora,
-        });
-      }
+  const rows = await readSheetOrWarn(file.files![0]!);
+  if (!rows) return;
+  for (let index = 0; index < rows.length; index++) {
+    if (index > 1) {
+      datos.push({
+        peso_desde: rows[index]![0] as number,
+        peso_hasta: rows[index]![1] as number,
+        provincia: rows[index]![2] as string,
+        // puerto_destino: rows[index][3],
+        distrito: rows[index]![4] as string,
+        tarifadolar: parseFloat(String((rows[index]![5] as number) / (tipocambio.value as number))).toFixed(2),
+        tarifamonlocal: rows[index]![5] as number,
+        opcion: calculadorasStore.opcionCalculadora,
+      });
     }
-  });
+  }
   appStore.spiner = true;
   datosExcel.value = await calculadorasStore.validarTransporte({ datovalidar: datos });
   appStore.spiner = false;
