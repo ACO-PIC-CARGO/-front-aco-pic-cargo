@@ -10,7 +10,9 @@ vi.mock("@/utils/sesion", () => ({ sessionBranchId: () => 1 }));
 
 const notice = (id: number, fields: Partial<QuoteNotice> = {}): QuoteNotice => ({
   notification_id: String(id), kind: "pricing_request", branch_id: 1, quote_id: id, quote_code: `${id}-P`,
-  client_name: "CLIENTE", created_by_name: "VENTAS", pricing_notes: null, created_at: "09/11/2026 10:00", ...fields,
+  client_name: "CLIENTE", created_by_name: "VENTAS", pricing_notes: null, created_at: "09/11/2026 10:00",
+  client_phone: null, transport_name: null, shipment_name: null, individual_flag: false, group_flag: false,
+  containers: [], origin: null, goods_value: null, weight: null, volume: null, ...fields,
 });
 
 function mountInbox() {

@@ -9,7 +9,9 @@ const TRANSPORT_ICONS: Record<string, string> = {
   "Terrestre": "mdi-truck",
 };
 
-export function modalityLabel(item: ClientQuoteHistoryItem): string {
+type ModalityFields = Pick<ClientQuoteHistoryItem, "shipment_name" | "group_flag" | "individual_flag" | "containers">;
+
+export function modalityLabel(item: ModalityFields): string {
   const shipment = item.shipment_name ?? "";
   if (item.containers.length) return `${shipment} ${item.containers.map((container) => container.name).join(", ")}`;
   if (shipment !== "LCL") return shipment;
