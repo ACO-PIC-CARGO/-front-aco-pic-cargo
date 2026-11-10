@@ -13,6 +13,7 @@ import "./utils/appLoad";
 import vuetify from "./plugins/vuetify";
 import { resumeQuoteReports } from "./utils/quoteReportSocket";
 import { isSessionEndedError } from "./utils/sesion";
+import { isReloadingIntoNewBuild, reloadIntoNewBuild } from "./utils/staleBuild";
 
 // Importing a moment locale also activates it; the webpack build started in "en" until a screen chose "es".
 moment.locale("en");
@@ -26,8 +27,11 @@ Sentry.init({
   environment: import.meta.env.MODE,
   release: import.meta.env.VITE_VERSION,
   enabled: import.meta.env.PROD,
-  beforeSend: (event, hint) => (isSessionEndedError(hint.originalException) ? null : event),
+  beforeSend: (event, hint) =>
+    isSessionEndedError(hint.originalException) || isReloadingIntoNewBuild() ? null : event,
 });
+
+window.addEventListener("vite:preloadError", (event) => reloadIntoNewBuild(event));
 
 // -------------
 interface BeforeInstallPromptEvent extends Event {
