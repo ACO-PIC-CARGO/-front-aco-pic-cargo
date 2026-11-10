@@ -4,6 +4,7 @@ import {
   nextTick,
   onBeforeMount,
   onMounted,
+  onUnmounted,
   ref,
   useTemplateRef,
   watch,
@@ -84,6 +85,7 @@ const socket = io(import.meta.env.VITE_URL_MAIN, {
 socket.on("connect_error", (err) => {
   console.error("Error al conectar con Socket.IO:", err);
 });
+onUnmounted(() => socket.disconnect());
 
 const dialogSeleccionDistrito = ref(false);
 const dialogCambiarFecha = ref(false);

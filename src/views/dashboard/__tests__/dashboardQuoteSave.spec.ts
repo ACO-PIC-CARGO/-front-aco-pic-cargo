@@ -16,7 +16,7 @@ vi.mock("vue-router", () => ({
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn().mockResolvedValue({ data: {} }), { post: vi.fn(), get: vi.fn() }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
-vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn() }) }));
+vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn(), disconnect: vi.fn() }) }));
 
 interface TopBar {
   guardarCotizacion(): Promise<void>;

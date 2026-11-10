@@ -10,6 +10,7 @@ const route = vi.hoisted(() => ({ name: "Home", params: {}, fullPath: "/" }));
 const push = vi.hoisted(() => vi.fn());
 const socketHandlers = vi.hoisted(() => ({
   handlers: {} as Record<string, (data: unknown) => void>,
+  disconnect: vi.fn(),
 }));
 vi.mock("vue-router", () => ({ useRoute: () => route, useRouter: () => ({ push }) }));
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
@@ -20,6 +21,7 @@ vi.mock("socket.io-client", () => ({
       socketHandlers.handlers[event] = handler;
     }),
     emit: vi.fn(),
+    disconnect: socketHandlers.disconnect,
   }),
 }));
 vi.mock("@/views/dashboard/avisoVigenciaFlete", () => ({ mostrarAvisoVigenciaFlete: vi.fn() }));
@@ -150,4 +152,14 @@ test("nueva-operacion también se presenta con el contenido del snackbar mejorad
   expect(vm.tituloMensaje).toBe("Nueva operación");
   expect(vm.dataMensaje).toBe("Hay una nueva operación.");
   expect(vm.snackbarColor).toBe("operation");
+});
+
+test("leaving the layout closes its server connection, so its handlers stop reading a signed-out session", async () => {
+  vi.mocked(mostrarAvisoVigenciaFlete).mockResolvedValue({ isConfirmed: false, isDenied: false, isDismissed: true });
+  await mountDashboard();
+
+  wrapper!.unmount();
+  wrapper = undefined;
+
+  expect(socketHandlers.disconnect).toHaveBeenCalledTimes(1);
 });
