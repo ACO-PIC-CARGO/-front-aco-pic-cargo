@@ -16,8 +16,12 @@ interface RequestConfig {
 }
 
 const httpMock = http as unknown as Mock<(config: RequestConfig) => Promise<{ data: unknown }>>;
-const spanish = { language: "es" as const, intro_html: "<p>Hola</p>", closing_html: "<p>Saludos</p>" };
-const english = { language: "en" as const, intro_html: "<p>Hello</p>", closing_html: "<p>Regards</p>" };
+const table = {
+  table_header: ["Concepto", "Detalle"] as [string, string],
+  table_rows: [{ field: "incoterm" as const, label: "Incoterm" }],
+};
+const spanish = { language: "es" as const, intro_html: "<p>Hola</p>", closing_html: "<p>Saludos</p>", ...table };
+const english = { language: "en" as const, intro_html: "<p>Hello</p>", closing_html: "<p>Regards</p>", ...table };
 const accepted = (data: unknown[] = [], mensaje = "ok") => ({ estadoflag: true, mensaje, tipomensaje: "TMSGINF", data });
 const rejected = (mensaje: string) => ({ estadoflag: false, mensaje, tipomensaje: "TMSGADV", data: [] });
 
@@ -45,7 +49,7 @@ describe("provider email templates", () => {
     expect(store.templateFor("es")).toBeNull();
   });
 
-  test("saving sends the texts to the language's URL and keeps them", async () => {
+  test("saving sends the texts and the table to the language's URL and keeps them", async () => {
     httpMock.mockResolvedValueOnce({ data: accepted([spanish, english]) });
     const store = useProviderQuoteEmailTemplateStore();
     await store.load();
@@ -57,12 +61,12 @@ describe("provider email templates", () => {
     expect(httpMock).toHaveBeenLastCalledWith({
       method: "put",
       url: "provider_quote_email_templates/en",
-      data: { intro_html: "<p>Hi team</p>", closing_html: "<p>Regards</p>" },
+      data: { intro_html: "<p>Hi team</p>", closing_html: "<p>Regards</p>", ...table },
     });
     expect(store.templateFor("en")).toEqual(edited);
   });
 
-  test("saving sends only the two texts even when the template carries the API's status fields", async () => {
+  test("saving sends only the template fields even when the template carries the API's status fields", async () => {
     const loaded = { ...english, estadoflag: true, mensaje: null, tipomensaje: null };
     httpMock.mockResolvedValueOnce({ data: accepted([loaded]) });
     const store = useProviderQuoteEmailTemplateStore();
@@ -72,7 +76,7 @@ describe("provider email templates", () => {
     await store.save(store.templateFor("en")!);
 
     expect(httpMock).toHaveBeenLastCalledWith(
-      expect.objectContaining({ data: { intro_html: "<p>Hello</p>", closing_html: "<p>Regards</p>" } }),
+      expect.objectContaining({ data: { intro_html: "<p>Hello</p>", closing_html: "<p>Regards</p>", ...table } }),
     );
   });
 

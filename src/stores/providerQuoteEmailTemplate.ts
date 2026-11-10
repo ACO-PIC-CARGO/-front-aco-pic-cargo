@@ -25,9 +25,13 @@ export const useProviderQuoteEmailTemplateStore = defineStore("providerQuoteEmai
     templates.value.find((template) => template.language === language) ?? null;
 
   async function save(template: ProviderQuoteEmailTemplate): Promise<string | null> {
-    const { language, intro_html, closing_html } = template;
+    const { language, intro_html, closing_html, table_header, table_rows } = template;
     saving.value = true;
-    const response = await request({ method: "put", url: `${TEMPLATES_URL}/${language}`, data: { intro_html, closing_html } });
+    const response = await request({
+      method: "put",
+      url: `${TEMPLATES_URL}/${language}`,
+      data: { intro_html, closing_html, table_header, table_rows },
+    });
     saving.value = false;
     if (!response.estadoflag) return response.mensaje;
     templates.value = templates.value.map((saved) => (saved.language === language ? { ...template } : saved));
