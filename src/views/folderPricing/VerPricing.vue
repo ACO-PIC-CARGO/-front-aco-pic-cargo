@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, onMounted, ref, watch } from "vue";
+import { defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -69,6 +69,11 @@ const editable1 = true;
 const verFlag = ref(true);
 const mostrarStepS = ref(false);
 const snackbarSinFlete = ref(false);
+let leftScreen = false;
+
+onBeforeUnmount(() => {
+  leftScreen = true;
+});
 
 watch(
   [mostrarStepS, () => pricingStore.datosPrincipales.tienefleteflag],
@@ -148,7 +153,7 @@ onMounted(async () => {
   pricingStore.actualizarCostosFlag = !pricingStore.actualizarCostosFlag;
   pricingStore.actualizarComparativa = !pricingStore.actualizarComparativa;
   setTimeout(async () => {
-    await pricingStore.generaInstructivo();
+    if (!leftScreen) await pricingStore.generaInstructivo();
   }, 1000);
   pricingStore.actualizarCostosFlag = false;
   pricingStore.step2 = true;

@@ -148,6 +148,45 @@ describe("Ver", () => {
   });
 });
 
+describe("Ver instructions", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    answerWith({ getQuoteId: accepted([QUOTE]) });
+  });
+  afterEach(() => vi.useRealTimers());
+
+  test("are built a second after the quote loads", async () => {
+    const { pricing } = await openScreen(VerPricing);
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(pricing.generaInstructivo).toHaveBeenCalledTimes(1);
+  });
+
+  test("are not built once the user has left the quote, so they cannot break the next screen", async () => {
+    const { pricing, wrapper } = await openScreen(VerPricing);
+
+    wrapper.unmount();
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(pricing.generaInstructivo).not.toHaveBeenCalled();
+  });
+
+  test("are not built when the user leaves while the quote is still loading", async () => {
+    let finishLoading = () => {};
+    const { pricing, wrapper } = await openScreen(VerPricing, (store) => {
+      vi.spyOn(store, "getTipoCostos").mockReturnValue(new Promise((resolve) => (finishLoading = () => resolve(undefined as never))) as never);
+    });
+
+    wrapper.unmount();
+    finishLoading();
+    await flushPromises();
+    await vi.advanceTimersByTimeAsync(1000);
+
+    expect(pricing.generaInstructivo).not.toHaveBeenCalled();
+  });
+});
+
 describe("Editar", () => {
   const admin = { usuario: "jefa@empresa.com", clave: "Clave-1" };
 
