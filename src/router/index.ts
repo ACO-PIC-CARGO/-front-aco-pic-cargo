@@ -570,6 +570,11 @@ const routes = [
         component: () => import("../views/FolderPerformance/ListaPerformance.vue"),
       },
       {
+        path: "bank/cuentas",
+        name: "cuentasBancariasListado",
+        component: () => import("../views/FolderBanks/CuentasBancariasListado.vue"),
+      },
+      {
         path: "bank/list",
         name: "bankList",
         component: () => import("../views/FolderBanks/ListaBancos.vue"),

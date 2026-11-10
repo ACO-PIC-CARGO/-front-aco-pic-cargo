@@ -140,31 +140,15 @@ describe.each(screens)("$route", (screen) => {
 });
 
 describe("bankList accounts", () => {
-  const accountControls = (): Action[] => {
-    const detail = document.body.querySelector(".bank-account-detail")!;
-    const shown = {
-      NUEVO: document.body.querySelector('button[aria-label="Nueva cuenta"]') !== null,
-      MODIFICAR: detail.querySelector('button[aria-label="Editar cuenta"]') !== null,
-      ELIMINAR: detail.querySelector('button[aria-label="Eliminar cuenta"]') !== null,
-    };
-    return (Object.keys(shown) as Action[]).filter((action) => shown[action as keyof typeof shown]);
-  };
-  const openAccounts = async (actions: string[]) => {
+  test("accounts are managed in Cuentas bancarias, so even a full user sees no account controls on a bank", async () => {
     httpMock.mockImplementation(async () => ({ data: accepted([{ ...ROW, banks_details: [{ id: 3, nrocuenta: "001", status: 1 }] }]) }));
-    await mountWith({ route: "bankList", component: ListaBancosComponent, controls: {} }, actions);
+    await mountWith({ route: "bankList", component: ListaBancosComponent, controls: {} }, ["VER", "NUEVO", "MODIFICAR", "ELIMINAR"]);
     document.body.querySelector<HTMLElement>('button[aria-label="Ver cuentas"]')!.click();
     await flushPromises();
-  };
 
-  test("a user who may only look at banks sees no account controls", async () => {
-    await openAccounts(["VER"]);
-
-    expect(accountControls()).toEqual([]);
-  });
-
-  test.each(["NUEVO", "MODIFICAR", "ELIMINAR"])("%s shows only its account control", async (action) => {
-    await openAccounts(["VER", action]);
-
-    expect(accountControls()).toEqual([action]);
+    const detail = document.body.querySelector(".bank-account-detail")!;
+    expect(detail.textContent).toContain("001");
+    expect(document.body.querySelector('button[aria-label="Nueva cuenta"]')).toBeNull();
+    expect(detail.querySelectorAll("button")).toHaveLength(0);
   });
 });

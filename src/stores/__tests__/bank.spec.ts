@@ -84,8 +84,6 @@ describe("bank store", () => {
   test.each([
     ["insertBank", "insertar_bank"],
     ["updateBank", "actualizar_bank"],
-    ["guardarCuentaDetalle", "insertar_cuenta"],
-    ["eliminarCuentaDetalle", "eliminar_cuenta"],
   ] as const)("%s shows the answer and reloads the bank list with the default filter", async (name, path) => {
     respond({ [path]: accepted([]), listar_bank: accepted([{ id: 1 }]) });
     const bank = useBankStore();

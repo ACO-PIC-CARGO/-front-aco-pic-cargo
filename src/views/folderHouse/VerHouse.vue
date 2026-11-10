@@ -47,6 +47,17 @@ const houseEdit = useHouseEditStore();
 const { can } = usePermissions();
 const isEditing = computed(() => route.name === editRoute && can(permissionScreen, "MODIFICAR"));
 const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can(permissionScreen, action));
+const hasHeaderTarget = ref(Boolean(document.querySelector("#house-header-actions")));
+
+// On a full reload the app bar mounts after this view, so wait for its slot.
+function waitForHeaderTarget(attempts = 50) {
+  if (hasHeaderTarget.value) return;
+  if (document.querySelector("#house-header-actions")) {
+    hasHeaderTarget.value = true;
+    return;
+  }
+  if (attempts > 0) setTimeout(() => waitForHeaderTarget(attempts - 1), 100);
+}
 
 function showTitle() {
   const heading = isTrafficFile ? "Expediente de tráfico" : `N° BL House ${housesStore.house?.nro_hbl || ""}`;
@@ -210,6 +221,7 @@ async function clientSaved() {
 }
 
 onMounted(async () => {
+  waitForHeaderTarget();
   appStore.spiner = true;
   await housesStore.verHouse({ id: houseId.value });
   await Promise.all([loadTracking(), branchTimeZoneStore.load(), loadNotices()]);
@@ -227,6 +239,32 @@ onMounted(async () => {
     with-background
     class="aco-ui house-file"
   >
+    <Teleport
+      v-if="hasHeaderTarget"
+      to="#house-header-actions"
+      defer
+    >
+      <v-btn
+        v-if="!isEditing && can(permissionScreen, 'MODIFICAR')"
+        color="light-green-lighten-1"
+        variant="elevated"
+        prepend-icon="mdi-pencil"
+        @click="startEditing"
+      >
+        Editar
+      </v-btn>
+      <v-btn
+        v-if="isEditing"
+        color="primary"
+        variant="elevated"
+        prepend-icon="mdi-content-save-outline"
+        :loading="houseEdit.saving"
+        :disabled="houseEdit.loadingLists"
+        @click="saveChanges"
+      >
+        Guardar
+      </v-btn>
+    </Teleport>
     <v-form
       ref="formControlHouse"
       :readonly="!isEditing"
@@ -398,6 +436,19 @@ onMounted(async () => {
                 mdi-pencil
               </v-icon>
               Editar
+            </v-btn>
+            <v-btn
+              v-if="isEditing"
+              key="guardar"
+              color="primary"
+              :loading="houseEdit.saving"
+              :disabled="houseEdit.loadingLists"
+              @click="saveChanges"
+            >
+              <v-icon start>
+                mdi-content-save-outline
+              </v-icon>
+              Guardar
             </v-btn>
           </v-speed-dial>
         </div>

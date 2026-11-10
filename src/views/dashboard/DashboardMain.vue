@@ -1652,6 +1652,10 @@ watch(idRole, async () => {
         <v-icon class="mx-1"> mdi-pencil </v-icon> IR EDITAR
       </v-btn>
       <v-spacer />
+      <span
+        id="house-header-actions"
+        class="d-flex align-center ga-2 mr-2"
+      />
       <PlanStatusBadge />
       <BotonesHeader />
       <BtnIrAlListado />

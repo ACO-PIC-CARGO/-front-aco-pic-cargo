@@ -196,6 +196,47 @@ export interface CuentaBancariaPic {
   symbol: string;
 }
 
+export interface CuentaBancariaListado {
+  id: number;
+  id_bank: number;
+  bank_name: string;
+  id_coin: number;
+  coin_acronym: string;
+  nrocuenta: string;
+  nrocci: string | null;
+  status: number;
+  esprincipalflag: boolean;
+  esavisollegada: boolean;
+}
+
+export type FlagFiltro = boolean | null;
+
+export interface FiltroCuentasBancarias {
+  id_bank: number | null;
+  nrocuenta: string;
+  nrocci: string;
+  esprincipalflag: FlagFiltro;
+  esavisollegada: FlagFiltro;
+  status: number | null;
+  id_coin: number | null;
+}
+
+export interface CuentaBancariaForm {
+  id: number | null;
+  id_bank: number | null;
+  id_coin: number | null;
+  nrocuenta: string;
+  nrocci: string;
+  status: number;
+  esprincipalflag: boolean;
+  esavisollegada: boolean;
+}
+
+export interface OpcionBanco {
+  id: number;
+  name: string;
+}
+
 export interface PasoBitacoraTracking {
   id: number;
   fecha: string;
