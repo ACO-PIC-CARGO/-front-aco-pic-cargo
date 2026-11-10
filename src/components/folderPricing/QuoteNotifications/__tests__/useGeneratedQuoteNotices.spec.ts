@@ -32,6 +32,13 @@ test.each(GENERATED_QUOTE_ROLES)("el cargo %s recibe los avisos del bot y de la 
   expect(inbox.current.value).toMatchObject({ source: "calculadora", nro_cotizacion: "15561-P" });
 });
 
+test.each([1, 22])("el usuario %s recibe el aviso aunque su cargo no sea 08 ni 10", (idUser) => {
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_user: idUser, id_branch: 1, position_code: ["01"] }]));
+  const { handlers, inbox } = setup();
+  handlers["cotizacion-bot"]!({ id_branch: 1, nro_cotizacion: "U" });
+  expect(inbox.current.value).toMatchObject({ nro_cotizacion: "U" });
+});
+
 test("otros cargos o sucursales no reciben el aviso", () => {
   loginWith(["01"]);
   const { handlers, inbox } = setup();

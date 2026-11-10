@@ -3,6 +3,7 @@ import type { RouteLocationRaw } from "vue-router";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 export const GENERATED_QUOTE_ROLES = ["08", "10"];
+export const GENERATED_QUOTE_USER_IDS = [1, 22];
 
 export type GeneratedQuoteSource = "bot" | "calculadora";
 
@@ -34,7 +35,9 @@ interface NoticeSocket {
 }
 
 function userSeesGeneratedQuotes(): boolean {
-  const positions = sessionUser().position_code ?? [];
+  const user = sessionUser();
+  if (GENERATED_QUOTE_USER_IDS.includes(Number(user.id_user))) return true;
+  const positions = user.position_code ?? [];
   return positions.some((code) => GENERATED_QUOTE_ROLES.includes(String(code)));
 }
 
