@@ -168,7 +168,7 @@ onMounted(async () => {
             <td
               :colspan="columns.length"
               class="py-3 px-3"
-              v-if="item.list_comentarios.length > 0 && item.status != 0"
+              v-if="item.list_comentarios?.length && item.status != 0"
             >
               <v-table v-if="item.list_comentarios.length > 0">
                 <thead>

@@ -30,11 +30,12 @@ const EXECUTIVES = [
 ];
 const HOUSE = { id: 31, id_master: 7, code_house: "H-31", list_comentarios: [], status: 1 };
 let wrapper: VueWrapper | undefined;
+let bodies: Record<string, unknown>;
 
 beforeEach(() => {
   vi.clearAllMocks();
   sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 22, id: SESSION_ENTITY_ID }]));
-  const bodies: Record<string, unknown> = {
+  bodies = {
     listado_houses: accepted([HOUSE]),
     getModulesEntities: accepted(EXECUTIVES),
     insertComentarioHouse: accepted([]),
@@ -46,15 +47,19 @@ beforeEach(() => {
 });
 afterEach(() => wrapper?.unmount());
 
-async function openCommentDialog() {
+async function openList(config: { errorHandler?: (error: unknown) => void } = {}) {
   const pinia = createPinia();
   setActivePinia(pinia);
   wrapper = mount(ListHouseComponent, {
-    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    global: { plugins: [createVuetify({ components, directives }), pinia], config },
     attachTo: document.body,
   });
   await flushPromises();
-  await wrapper.find(".mdi-chat-plus").trigger("click");
+}
+
+async function openCommentDialog() {
+  await openList();
+  await wrapper!.find(".mdi-chat-plus").trigger("click");
   await flushPromises();
 }
 
@@ -88,4 +93,15 @@ test("sends the executive the writer picks as the comment's author", async () =>
 
   expect(sentComments()).toHaveLength(1);
   expect(sentComments()[0]!.data).toMatchObject({ id_house: 31, id_entities: 12, comentario: "Sigue en aduana" });
+});
+
+test("expanding a house that has no comments does not break the list", async () => {
+  bodies.listado_houses = accepted([{ ...HOUSE, list_comentarios: null }]);
+  const errors: unknown[] = [];
+  await openList({ errorHandler: (error) => errors.push(error) });
+
+  await wrapper!.find("tbody tr").trigger("click");
+  await flushPromises();
+
+  expect(errors).toEqual([]);
 });
