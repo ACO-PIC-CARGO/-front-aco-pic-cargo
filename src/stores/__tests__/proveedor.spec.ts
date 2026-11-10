@@ -39,8 +39,19 @@ describe("proveedor store", () => {
     expect(store.lstProveedores).toEqual([naviera]);
   });
 
+  test("a search with no matching provider empties the list without an error, since the user is still typing", async () => {
+    respond({ cargar_proveedor_pricing: rejected() });
+    const store = useProveedorStore();
+    store.lstProveedores = [naviera];
+
+    await store.obtenerProveedorPricing({ id: "", search: "zzz" });
+
+    expect(store.lstProveedores).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
   test("obtenerProveedorPricing empties the list and shows the error when the backend rejects", async () => {
-    respond({ cargar_proveedor_pricing: rejected("Sin proveedores") });
+    respond({ cargar_proveedor_pricing: { ...rejected("Sin proveedores"), tipomensaje: "TMSGERR" } });
     const store = useProveedorStore();
     store.lstProveedores = [naviera];
 

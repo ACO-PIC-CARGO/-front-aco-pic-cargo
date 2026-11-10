@@ -28,6 +28,7 @@ export const useProveedorStore = defineStore("proveedor", () => {
           lstProveedores.value = data.data;
         } else {
           lstProveedores.value = [];
+          if (data.tipomensaje === "TMSGINF" && data.status != "401") return;
           Swal.fire({
             icon: "error",
             text: data.mensaje,
