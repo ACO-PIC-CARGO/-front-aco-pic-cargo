@@ -8,7 +8,11 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
 import TrafficSendToOperations from "@/components/folderTraffic/TrafficSendToOperations.vue";
+import router from "@/router";
 import { useAppStore } from "@/stores/app";
+import { useControlGastosStore } from "@/stores/controlGastos";
+import { useFilesStore } from "@/stores/files";
+import { useHousesStore } from "@/stores/houses";
 import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected, respond } from "@/stores/__tests__/catalogHttp";
 import type { QuoteKind } from "@/types/traffic";
@@ -54,6 +58,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   setActivePinia(createPinia());
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id: 176, id_branch: 1 }]));
+  vi.spyOn(useHousesStore(), "guardarCarpetaHouse").mockResolvedValue(undefined);
+  vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
+  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
 });
 afterEach(() => wrapper?.unmount());
 
@@ -73,10 +81,11 @@ const sentPayloads = () =>
     .filter((config) => config.url === URL_MAIN + "traffic/4/send_to_operations")
     .map((config) => ({ data: config.data, key: config.headers!["idempotency-key"] }));
 
-const quoteMaster = { id: 3831, code_master: "2026MBL01741" };
+const quoteMaster = { id: 3831, code_master: "2026MBL01741", url_folderonedrive: "https://drive/3831" };
 
 async function continuePricingInstructivo() {
   vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  usePricingStore().datosPrincipales = { nombre: "ZEVALLOS" } as never;
   const app = useAppStore();
   const loadMasters = vi.spyOn(app, "cargarMaster").mockImplementation(async () => {
     app.itemsMasterList = [quoteMaster];
@@ -149,6 +158,47 @@ test("a refused pricing send shows the server's reason", async () => {
 
   expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "error", text: "El master elegido no pertenece a tu empresa." }));
   expect(wrapper!.emitted("sent")).toBeUndefined();
+});
+
+test("a new expediente ends like an approved quote: the master gets its folder and expense control, and the expense control is offered", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026-01760", id_master: 3900, id_house: 90 }]) });
+  vi.mocked(Swal.fire)
+    .mockResolvedValueOnce({ isConfirmed: true } as never)
+    .mockResolvedValueOnce({ isConfirmed: true, value: "2099-01-15" } as never)
+    .mockResolvedValue({ isConfirmed: true } as never);
+
+  await continuePricingInstructivo();
+
+  expect(useHousesStore().guardarCarpetaHouse).toHaveBeenCalledWith(expect.objectContaining({ nroMaster: "2026-01760 - ZEVALLOS", id: 3900 }));
+  expect(useControlGastosStore().imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 3900, id_branch: 1 });
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ confirmButtonText: "Ir al control de gastos", denyButtonText: "Ahora continuaremos con los Email." }));
+  expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 3900, id_branch: 1 } });
+});
+
+test("an existing expediente moves the quote's files into that master's folder", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026MBL01741", id_master: 3831, id_house: 90 }]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isConfirmed: false } as never);
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  expect(useFilesStore().moveFileToOneDrive).toHaveBeenCalledWith(
+    expect.objectContaining({ destinationFolderUrl: "https://drive/3831", nroMaster: "2026MBL01741 - ZEVALLOS", id: 3831 }),
+  );
+});
+
+test("choosing the emails opens this file's quote on its emails step", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026MBL01741", id_master: 3831, id_house: 90 }]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isDenied: true } as never);
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  vi.useRealTimers();
+  expect(router.push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 15376, step: 5 } });
 });
 
 test("an aduana file goes straight to the master choice", async () => {

@@ -52,32 +52,40 @@ async function openInstructivo() {
   step.value = "instructivo";
 }
 
-async function sendToOperations(payload: TrafficToOperationsPayload): Promise<string | null> {
+async function sendToOperations(payload: TrafficToOperationsPayload) {
   sending.value = true;
   const answer = await trafficStore.sendToOperations(props.file.id_traffic, payload, idempotencyKey);
   sending.value = false;
-  if (!answer.estadoflag) {
-    idempotencyKey = generateIdempotencyKey();
-    return answer.mensaje;
-  }
+  if (answer.estadoflag) emit("sent");
+  else idempotencyKey = generateIdempotencyKey();
+  return answer;
+}
 
-  emit("sent");
+async function sendPricingFile(payload: TrafficToOperationsPayload, url_folderonedrive?: string) {
+  const answer = await sendToOperations(payload);
+  if (!answer.estadoflag) {
+    Swal.fire({ icon: "error", title: "No se pudo enviar", text: answer.mensaje });
+    return;
+  }
+  pricingStore.finishApprovalOnMaster({
+    ...answer.data[0]!,
+    mensaje: answer.mensaje,
+    nuevoexpediente: payload.nuevoexpediente,
+    url_folderonedrive,
+    quoteId: props.file.id_quote,
+  });
+}
+
+async function offerSentHouse(mensaje: string) {
   const choice = await Swal.fire({
     icon: "success",
     title: "Enviado a Operaciones",
-    text: answer.mensaje,
+    text: mensaje,
     confirmButtonText: "Ver house",
     showCancelButton: true,
     cancelButtonText: "Quedarme en Tráfico",
   });
   if (choice.isConfirmed) router.push({ name: "controlHouseVer", params: { id: props.file.id_house } });
-  return null;
-}
-
-async function sendPricingFile(payload: TrafficToOperationsPayload): Promise<boolean> {
-  const refusal = await sendToOperations(payload);
-  if (refusal) Swal.fire({ icon: "error", title: "No se pudo enviar", text: refusal });
-  return !refusal;
 }
 
 async function chooseQuoteExpediente() {
@@ -94,7 +102,7 @@ async function chooseQuoteExpediente() {
 }
 
 function sendWithQuoteMaster(master: ExpedienteMaster) {
-  return sendPricingFile({ nuevoexpediente: false, id_exp: master.id, fecha_validez: null });
+  return sendPricingFile({ nuevoexpediente: false, id_exp: master.id, fecha_validez: null }, master.url_folderonedrive);
 }
 
 function closeQuoteMasterDialog(open: boolean) {
@@ -108,12 +116,13 @@ async function send() {
   );
   if (problem.value) return;
 
-  problem.value =
-    (await sendToOperations({
-      nuevoexpediente: isNew.value,
-      id_exp: isNew.value ? null : masterId.value,
-      fecha_validez: isNew.value ? availability.value : null,
-    })) ?? "";
+  const answer = await sendToOperations({
+    nuevoexpediente: isNew.value,
+    id_exp: isNew.value ? null : masterId.value,
+    fecha_validez: isNew.value ? availability.value : null,
+  });
+  problem.value = answer.estadoflag ? "" : answer.mensaje;
+  if (answer.estadoflag) await offerSentHouse(answer.mensaje);
 }
 
 onMounted(async () => {

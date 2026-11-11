@@ -32,6 +32,13 @@ const quoteTraffic = useQuoteTrafficSend({
   quoteKind: "PRICING",
   quoteId: () => route.params.id as string,
   approved: () => pricingStore.aprobadoflag,
+  finishOnMaster: (sent, payload) =>
+    pricingStore.finishApprovalOnMaster({
+      ...sent,
+      nuevoexpediente: payload.nuevoexpediente,
+      url_folderonedrive: url_folderonedrive.value,
+      quoteId: route.params.id,
+    }),
 });
 const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
 const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));

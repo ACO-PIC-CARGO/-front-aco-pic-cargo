@@ -16,6 +16,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
 import type { Begend, Marketing, Modalidad } from "@/types/catalogos";
 import type {
+  ApprovalOnMaster,
   AprobacionCotizacion,
   ArchivoDrive,
   CambioIncoterms,
@@ -4628,38 +4629,56 @@ export const usePricingStore = defineStore("pricing", () => {
       Swal.fire({ icon: "success", title: "Cotización asociada", text: data.mensaje });
       return true;
     }
-    const name = data.data[0]!.code_master + " - " + datosPrincipales.value.nombre;
+    finishApprovalOnMaster({
+      id_master: data.data[0].id_master,
+      code_master: data.data[0].code_master,
+      mensaje: data.mensaje,
+      nuevoexpediente: dataParaAprobar.nuevoexpediente,
+      url_folderonedrive: dataParaAprobar.url_folderonedrive,
+      quoteId: router.currentRoute.value.params.id,
+    });
+    return true;
+  }
+  function finishApprovalOnMaster({
+    id_master,
+    code_master,
+    mensaje,
+    nuevoexpediente,
+    url_folderonedrive,
+    quoteId,
+  }: ApprovalOnMaster): void {
+    const name = code_master + " - " + datosPrincipales.value.nombre;
     const id_branch = sessionBranchId();
     const id_branchs = ["1", "2", 1, 2];
-    if (dataParaAprobar.nuevoexpediente == true && id_branchs.includes(id_branch)) {
+    if (nuevoexpediente == true && id_branchs.includes(id_branch)) {
       Promise.all([
         useHousesStore().guardarCarpetaHouse({
           nroMaster: name,
-          id: data.data[0]!.id_master,
+          id: id_master,
           idSelectedFile: selectedFile.value.map((v) => v.id),
         }),
 
         useControlGastosStore().imprimirGuardarControlDetallado({
           guardarEnCarpeta: false,
           asociadoflag: true,
-          id: data.data[0]!.id_master,
+          id: id_master,
           id_branch: sessionBranchId(),
         }),
       ]);
     }
 
-    if (dataParaAprobar.nuevoexpediente == false && id_branchs.includes(id_branch)) {
+    if (nuevoexpediente == false && id_branchs.includes(id_branch)) {
       Promise.all([
         useFilesStore().moveFileToOneDrive({
-          destinationFolderUrl: dataParaAprobar.url_folderonedrive,
+          destinationFolderUrl: url_folderonedrive,
           nroMaster: name,
-          id: data.data[0]!.id_master,
+          id: id_master,
           fileIds: selectedFile.value.map((v) => v.id),
         }),
         useControlGastosStore().imprimirGuardarControlDetallado({
           guardarEnCarpeta: false,
           asociadoflag: true,
-          id: data.data[0]!.id_master,
+          id: id_master,
           id_branch: sessionBranchId(),
         }),
       ]);
@@ -4667,7 +4686,7 @@ export const usePricingStore = defineStore("pricing", () => {
     Swal.fire({
       icon: "success",
       title: "Aviso",
-      text: data.mensaje,
+      text: mensaje,
       timerProgressBar: true,
       allowOutsideClick: false,
       confirmButtonText: "Ir al control de gastos",
@@ -4683,19 +4702,16 @@ export const usePricingStore = defineStore("pricing", () => {
         router.push({
           name: "editControlGasto",
           params: {
-            id: data.data[0]!.id_master,
+            id: id_master,
             id_branch: sessionBranchId(),
           },
         });
       }
       if (res.isDenied) {
-        // La ruta actual está en 'currentRoute'
-        const idActual = router.currentRoute.value.params.id;
-
-        if (idActual) {
+        if (quoteId) {
           router.push({
             name: "verQuote",
-            params: { id: idActual, step: 5 },
+            params: { id: quoteId, step: 5 },
           });
 
           setTimeout(() => {
@@ -4706,7 +4722,6 @@ export const usePricingStore = defineStore("pricing", () => {
         }
       }
     });
-    return true;
   }
   function comienzaNoConCaracter(nombre: string, caracter: string): boolean {
     return nombre.charAt(0).toUpperCase() !== caracter.toUpperCase();
@@ -7120,6 +7135,7 @@ export const usePricingStore = defineStore("pricing", () => {
     validarCosto,
     validateCost,
     aprobarCotizacion,
+    finishApprovalOnMaster,
     comienzaNoConCaracter,
     comienzaConCaracter,
     generaInstructivo,
