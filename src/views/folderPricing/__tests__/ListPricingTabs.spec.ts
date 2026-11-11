@@ -25,10 +25,10 @@ test("each tab mounts the only listing panel, with its pricing view", async () =
   });
   expect(panels(wrapper)).toEqual(["view:"]);
 
-  await wrapper.findAll("button").find((tab) => tab.text() === "Pendientes de envío")!.trigger("click");
+  await wrapper.findAll("button").find((tab) => tab.text().includes("Solicitadas por Ventas"))!.trigger("click");
   expect(panels(wrapper)).toEqual(["view:pending_send"]);
 
-  await wrapper.findAll("button").find((tab) => tab.text() === "Solicitadas a pricing")!.trigger("click");
+  await wrapper.findAll("button").find((tab) => tab.text().includes("Enviadas al Cliente"))!.trigger("click");
   expect(panels(wrapper)).toEqual(["view:pricing_requested"]);
 });
 
