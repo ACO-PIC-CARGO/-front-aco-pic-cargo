@@ -233,7 +233,7 @@ watch(
     :readonly="!editing"
     class="prov-datos"
   >
-    <v-row>
+    <v-row dense>
       <v-col
         cols="12"
         md="7"
@@ -588,7 +588,7 @@ watch(
     </v-row>
 
     <ClienteCard
-      class="mt-4"
+      class="mt-3"
       title="Contactos"
       :required="nuevo"
       icon="mdi-account-group-outline"
@@ -1031,8 +1031,9 @@ watch(
   align-items: center;
   gap: 10px;
   padding: 10px 12px;
-  border: 1px solid #e9edf2;
+  border: 1px solid #dbe7f7;
   border-radius: 10px;
+  background: #fff;
 }
 
 .prov-email + .prov-email {
@@ -1101,8 +1102,9 @@ watch(
   min-height: 72px;
   margin: 0;
   padding: 10px 12px;
-  border: 1px solid #e9edf2;
+  border: 1px solid #dbe7f7;
   border-radius: 10px;
+  background: #fff;
   color: #1f2a40;
   white-space: pre-line;
   word-break: break-word;
@@ -1132,9 +1134,35 @@ watch(
 }
 
 .prov-datos :deep(.v-field__input) {
-  min-height: 36px;
-  padding-top: 6px;
-  padding-bottom: 6px;
+  min-height: 32px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* Slightly tighter first tab so everything fits on one screen. */
+.prov-datos :deep(.cli-card__header) {
+  padding: 8px 14px;
+}
+
+.prov-datos :deep(.cli-card__icon) {
+  width: 32px;
+  height: 32px;
+}
+
+.prov-datos :deep(.cli-card__title) {
+  font-size: 1rem;
+}
+
+.prov-datos :deep(.cli-card__body) {
+  padding: 10px 14px 12px;
+}
+
+.prov-datos :deep(.cli-grid > .cli-field) {
+  padding: 6px 12px;
+}
+
+.prov-datos :deep(.cli-card + .cli-card) {
+  margin-top: 12px;
 }
 
 .prov-datos :deep(.customAutocomplete) {
