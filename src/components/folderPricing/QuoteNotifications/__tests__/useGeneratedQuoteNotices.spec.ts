@@ -126,3 +126,25 @@ test.each([undefined, null, "", "  "])("sin dato (%j) no se muestra la fila", (v
   expect(formatQuoteWeight(value)).toBeNull();
   expect(formatQuoteVolume(value)).toBeNull();
 });
+
+test("los avisos de bot y calculadora se juntan en una sola lista y cada uno se quita por separado", () => {
+  const { handlers, inbox } = setup();
+  handlers["cotizacion-bot"]!({ id_branch: 1, nro_cotizacion: "A" });
+  handlers["cotizacion-calculadora"]!({ id_branch: 1, nro_cotizacion: "B" });
+  handlers["cotizacion-bot"]!({ id_branch: 1, nro_cotizacion: "C" });
+  expect(inbox.notices.value.map((n) => `${n.source}:${n.nro_cotizacion}`)).toEqual(["bot:A", "calculadora:B", "bot:C"]);
+
+  inbox.dismiss(inbox.notices.value[1]);
+  expect(inbox.notices.value.map((n) => n.nro_cotizacion)).toEqual(["A", "C"]);
+
+  inbox.dismissAll((n) => n.source === "bot");
+  expect(inbox.current.value).toBeNull();
+});
+
+test("cancelar descarta todos los avisos pendientes", () => {
+  const { handlers, inbox } = setup();
+  handlers["cotizacion-bot"]!({ id_branch: 1, nro_cotizacion: "A" });
+  handlers["cotizacion-calculadora"]!({ id_branch: 1, nro_cotizacion: "B" });
+  inbox.dismissAll();
+  expect(inbox.notices.value).toEqual([]);
+});

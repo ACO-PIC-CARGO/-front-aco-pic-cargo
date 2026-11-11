@@ -12,7 +12,7 @@ import {
   generatedQuoteLocation,
   useGeneratedQuoteNotices,
 } from "./useGeneratedQuoteNotices";
-import type { GeneratedQuotePayload, QuoteModality } from "./useGeneratedQuoteNotices";
+import type { GeneratedQuoteNotice, GeneratedQuotePayload, QuoteModality } from "./useGeneratedQuoteNotices";
 
 const props = defineProps<{
   socket: {
@@ -25,7 +25,9 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-const { current, dismiss } = useGeneratedQuoteNotices(props.socket);
+const { notices, current, dismiss, dismissAll } = useGeneratedQuoteNotices(props.socket);
+// A second notice arriving while one is open turns the dialog into the grouped list.
+const isList = computed(() => notices.value.length > 1);
 
 const SOURCE_LABELS = { bot: "Bot de cotizaciones", calculadora: "Calculadora de Fletes" };
 
@@ -53,20 +55,23 @@ const MODALITY_LABELS: Record<QuoteModality, { text: string; icon: string }> = {
   individual: { text: "Ver individual", icon: "mdi-account" },
   grupal: { text: "Ver grupal", icon: "mdi-account-group" },
 };
-const modalities = computed(() =>
-  current.value && generatedQuoteLocation(current.value, "individual") ? availableModalities(current.value) : [],
+const modalitiesOf = (notice: GeneratedQuoteNotice): QuoteModality[] =>
+  generatedQuoteLocation(notice, "individual") ? availableModalities(notice) : [];
+const modalities = computed(() => (current.value ? modalitiesOf(current.value) : []));
+const canReloadList = computed(
+  () => route.name === "lstQuote" && notices.value.some((notice) => notice.source === "bot"),
 );
-const canReloadList = computed(() => current.value?.source === "bot" && route.name === "lstQuote");
 
-function viewQuote(modality: QuoteModality) {
-  const location = current.value && generatedQuoteLocation(current.value, modality);
+function viewQuote(notice: GeneratedQuoteNotice, modality: QuoteModality) {
+  const location = generatedQuoteLocation(notice, modality);
   if (!location) return;
   window.open(router.resolve(location).href, "_blank", "noopener");
-  dismiss();
+  dismiss(notice);
 }
 
 async function reloadList() {
-  dismiss();
+  // The reloaded list already shows every bot quote, so those notices are done.
+  dismissAll((notice) => notice.source === "bot");
   appStore.spiner = true;
   try {
     await pricingStore.reloadQuoteList();
@@ -83,10 +88,141 @@ async function reloadList() {
   <v-dialog
     :model-value="!!current"
     persistent
-    max-width="420"
+    :max-width="isList ? 860 : 420"
+    :scrollable="isList"
   >
     <v-card
-      v-if="current"
+      v-if="isList"
+      class="generated-quote"
+    >
+      <div class="generated-quote__header">
+        <v-icon size="40">
+          mdi-file-multiple-outline
+        </v-icon>
+        <span class="generated-quote__divider" />
+        <span class="generated-quote__title">Cotizaciones<br>nuevas</span>
+        <v-spacer />
+        <span class="generated-quote__count">{{ notices.length }}</span>
+      </div>
+      <v-card-text class="generated-quote__list pa-3">
+        <div
+          v-for="(notice, index) in notices"
+          :key="`${notice.source}-${notice.nro_cotizacion}-${index}`"
+          class="generated-quote__item"
+        >
+          <span class="generated-quote__index">{{ index + 1 }}</span>
+          <div class="generated-quote__cell">
+            <div class="generated-quote__code">
+              {{ notice.nro_cotizacion }}
+              <v-chip
+                v-if="notice.tipo"
+                class="generated-quote__type"
+                :class="{ 'generated-quote__type--fcl': String(notice.tipo).toUpperCase() === 'FCL' }"
+                variant="flat"
+                size="x-small"
+              >
+                {{ notice.tipo }}
+              </v-chip>
+            </div>
+            <div
+              v-if="notice.cliente"
+              class="generated-quote__meta"
+            >
+              <v-icon size="14">
+                mdi-account-outline
+              </v-icon>
+              {{ notice.cliente }}
+            </div>
+            <div
+              v-if="notice.telefono"
+              class="generated-quote__meta"
+            >
+              <v-icon size="14">
+                mdi-phone-outline
+              </v-icon>
+              {{ notice.telefono }}
+            </div>
+          </div>
+          <div class="generated-quote__cell">
+            <div class="generated-quote__value">
+              {{ formatQuoteValue(notice.valor_mercancia) ?? "—" }}
+            </div>
+            <div
+              v-if="formatQuoteWeight(notice.peso)"
+              class="generated-quote__meta"
+            >
+              <v-icon size="14">
+                mdi-weight-kilogram
+              </v-icon>
+              {{ formatQuoteWeight(notice.peso) }}
+            </div>
+            <div
+              v-if="formatQuoteVolume(notice.volumen)"
+              class="generated-quote__meta"
+            >
+              <v-icon size="14">
+                mdi-cube-outline
+              </v-icon>
+              {{ formatQuoteVolume(notice.volumen) }}
+            </div>
+          </div>
+          <div class="generated-quote__cell">
+            <div class="generated-quote__label">
+              Fuente
+            </div>
+            <v-chip
+              class="generated-quote__source"
+              variant="flat"
+              size="small"
+              :prepend-icon="notice.source === 'bot' ? 'mdi-robot-outline' : 'mdi-calculator-variant-outline'"
+            >
+              {{ SOURCE_LABELS[notice.source] }}
+            </v-chip>
+          </div>
+          <div class="generated-quote__actions">
+            <v-btn
+              v-for="modality in modalitiesOf(notice)"
+              :key="modality"
+              class="generated-quote__primary"
+              variant="flat"
+              size="small"
+              prepend-icon="mdi-eye-outline"
+              @click="viewQuote(notice, modality)"
+            >
+              {{ modalitiesOf(notice).length > 1 ? MODALITY_LABELS[modality].text : "Ver" }}
+            </v-btn>
+            <v-btn
+              v-if="!modalitiesOf(notice).length"
+              variant="text"
+              size="small"
+              @click="dismiss(notice)"
+            >
+              Quitar
+            </v-btn>
+          </div>
+        </div>
+      </v-card-text>
+      <v-card-actions class="flex-column ga-1 px-4 pb-3 pt-1">
+        <!-- <v-btn
+          v-if="canReloadList"
+          block
+          variant="tonal"
+          @click="reloadList"
+        >
+          Recargar listado
+        </v-btn> -->
+        <v-btn
+          block
+          class="generated-quote__cancel"
+          variant="flat"
+          @click="dismissAll()"
+        >
+          Cancelar
+        </v-btn>
+      </v-card-actions>
+    </v-card>
+    <v-card
+      v-else-if="current"
       class="generated-quote"
     >
       <div class="generated-quote__header">
@@ -174,22 +310,22 @@ async function reloadList() {
           variant="flat"
           size="default"
           :prepend-icon="modalities.length > 1 ? MODALITY_LABELS[modality].icon : 'mdi-open-in-new'"
-          @click="viewQuote(modality)"
+          @click="viewQuote(current, modality)"
         >
           {{ modalities.length > 1 ? MODALITY_LABELS[modality].text : "Ver cotización" }}
         </v-btn>
-        <v-btn
+        <!-- <v-btn
           v-if="canReloadList"
           block
           variant="tonal"
           @click="reloadList"
         >
           Recargar listado
-        </v-btn>
+        </v-btn> -->
         <v-btn
           block
           variant="text"
-          @click="dismiss"
+          @click="dismiss()"
         >
           Cerrar
         </v-btn>
@@ -234,6 +370,97 @@ async function reloadList() {
   color: #fff !important;
   font-weight: 700;
   text-transform: none;
+}
+.generated-quote__count {
+  min-width: 34px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 800;
+  text-align: center;
+}
+.generated-quote__list {
+  max-height: 65vh;
+  background: #f4f7fb;
+}
+.generated-quote__item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border: 1px solid #dbe5f1;
+  border-radius: 12px;
+  background: #fff;
+}
+.generated-quote__item:last-child {
+  margin-bottom: 0;
+}
+.generated-quote__cell {
+  min-width: 0;
+}
+.generated-quote__cell + .generated-quote__cell {
+  padding-left: 12px;
+  border-left: 1px solid #e2e8f0;
+}
+.generated-quote__index {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border-radius: 6px;
+  background: #0b5ed7;
+  color: #fff;
+  font-weight: 800;
+}
+.generated-quote__code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #12263f;
+  font-size: 1rem;
+  font-weight: 800;
+}
+.generated-quote__type {
+  background: #cfe2fb !important;
+  color: #0a3d91 !important;
+  font-weight: 700;
+}
+.generated-quote__type--fcl {
+  background: #d3f2d6 !important;
+  color: #1b6b2a !important;
+}
+.generated-quote__meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #3b4b5e;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+.generated-quote__meta .v-icon {
+  color: #1769d2;
+}
+.generated-quote__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.generated-quote__cancel {
+  background: linear-gradient(180deg, #e53935, #b71c1c) !important;
+  color: #fff !important;
+  font-weight: 700;
+}
+@media (max-width: 700px) {
+  .generated-quote__item {
+    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .generated-quote__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
 }
 .generated-quote__row {
   display: flex;
