@@ -158,15 +158,17 @@ async function send() {
           class="notice-list"
         >
           <div class="notice-list__head">
-            <v-checkbox-btn
-              :model-value="allVisibleSelected"
-              :indeterminate="someVisibleSelected"
-              :disabled="!visibleAccounts.length"
-              aria-label="Seleccionar todas"
-              color="#1a5fd0"
-              :readonly="false"
-              @update:model-value="toggleAllVisible"
-            />
+            <span class="notice-check">
+              <v-checkbox-btn
+                :model-value="allVisibleSelected"
+                :indeterminate="someVisibleSelected"
+                :disabled="!visibleAccounts.length"
+                aria-label="Seleccionar todas"
+                color="#1a5fd0"
+                :readonly="false"
+                @update:model-value="toggleAllVisible"
+              />
+            </span>
             <span class="notice-list__head-label">Seleccionar todas</span>
             <v-spacer />
             <span class="notice-list__count">
@@ -181,13 +183,15 @@ async function send() {
               class="notice-row"
               :class="{ 'notice-row--selected': accountIds.includes(account.id) }"
             >
-              <v-checkbox-btn
-                :model-value="accountIds.includes(account.id)"
-                :aria-label="accountTitle(account)"
-                color="#1a5fd0"
-                :readonly="false"
-                @update:model-value="toggleAccount(account.id)"
-              />
+              <span class="notice-check">
+                <v-checkbox-btn
+                  :model-value="accountIds.includes(account.id)"
+                  :aria-label="accountTitle(account)"
+                  color="#1a5fd0"
+                  :readonly="false"
+                  @update:model-value="toggleAccount(account.id)"
+                />
+              </span>
               <span class="notice-row__main">
                 <span class="notice-row__title">{{ accountTitle(account) }}</span>
                 <span class="notice-row__number">N° Cuenta: {{ account.cuenta }}</span>
@@ -311,6 +315,20 @@ async function send() {
   border-bottom: 1px solid #dbe7f7;
 }
 
+/* Vuetify's selection control stretches by default; keep the box its own size, first in the row. */
+.notice-check {
+  display: inline-flex;
+  flex: 0 0 auto;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.notice-check :deep(.v-selection-control) {
+  flex: 0 0 auto;
+  width: auto;
+  min-height: 0;
+}
+
 .notice-list__head-label {
   font-weight: 700;
   color: #14264e;
@@ -336,7 +354,7 @@ async function send() {
 
 .notice-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  grid-template-columns: 40px minmax(0, 1.3fr) minmax(0, 1fr) auto;
   align-items: center;
   gap: 12px;
   padding: 8px 16px 8px 4px;
@@ -424,7 +442,7 @@ async function send() {
 
 @media (max-width: 700px) {
   .notice-row {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
   }
 
   .notice-row__cci {

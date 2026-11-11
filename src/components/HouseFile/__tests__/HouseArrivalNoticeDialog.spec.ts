@@ -24,8 +24,9 @@ Object.defineProperty(window, "visualViewport", {
 
 const SMTP_MISSING = "El envío de correos no está configurado. Pide a tu administrador que configure el servidor de correo e intenta de nuevo.";
 const ACCOUNTS = [
-  { id: 4, label: "USD-BCP", cuenta: "123", cci: "0021", symbol: "USD" },
-  { id: 9, label: "PEN-BBVA", cuenta: "456", cci: "0099", symbol: "PEN" },
+  { id: 4, label: "USD-BCP", cuenta: "123", cci: "0021", symbol: "USD", esavisollegada: true },
+  { id: 9, label: "PEN-BBVA", cuenta: "456", cci: "0099", symbol: "PEN", esavisollegada: true },
+  { id: 12, label: "USD-CAJA EFECTIVO", cuenta: "EFECTIVO (USD)", cci: null, symbol: "USD", esavisollegada: false },
 ];
 let wrapper: VueWrapper | undefined;
 
@@ -54,14 +55,14 @@ const chooseNotice = async (title: string) => {
 
 const tickAccount = async (label: string) => {
   const box = [...document.body.querySelectorAll<HTMLInputElement>("input[type=checkbox]")].find((input) =>
-    input.closest(".v-checkbox")?.textContent?.includes(label),
+    input.closest(".notice-row")?.textContent?.includes(label),
   )!;
   box.click();
   await flushPromises();
 };
 
 const send = async () => {
-  [...document.body.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.includes("Enviar aviso"))!.click();
+  [...document.body.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent?.includes("Enviar Aviso"))!.click();
   await flushPromises();
 };
 
@@ -109,4 +110,29 @@ test("sends the notice picked in the house notice list with its date and tells t
     data: { id: 31, notificacion: { id: 21, title: "Aviso de Salida" }, cuentasBancarias: [4], fecha },
   });
   expect(wrapper!.emitted("sent")).toHaveLength(1);
+});
+
+test("offers only the accounts flagged for arrival notices and narrows them with the search", async () => {
+  await openDialog(accepted([]), { notice: { id: 21, title: "Aviso de Salida" } });
+  const rows = () => [...document.body.querySelectorAll(".notice-row")].map((row) => row.textContent);
+
+  expect(rows()).toHaveLength(2);
+  expect(document.body.textContent).not.toContain("CAJA EFECTIVO");
+
+  const searchBox = document.body.querySelector<HTMLInputElement>("input[placeholder='Buscar cuenta, banco o moneda...']")!;
+  searchBox.value = "bbva";
+  searchBox.dispatchEvent(new Event("input"));
+  await flushPromises();
+  expect(rows()).toHaveLength(1);
+  expect(rows()[0]).toContain("PEN-BBVA");
+});
+
+test("selects every listed account at once", async () => {
+  await openDialog(accepted([]), { notice: { id: 21, title: "Aviso de Salida" } });
+  document.body.querySelector<HTMLInputElement>("input[aria-label='Seleccionar todas']")!.click();
+  await flushPromises();
+  await send();
+
+  expect(sentRequests()[0]).toMatchObject({ data: { cuentasBancarias: [4, 9] } });
+  expect(document.body.textContent).toContain("2 cuentas seleccionadas");
 });
