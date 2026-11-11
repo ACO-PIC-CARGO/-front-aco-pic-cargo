@@ -3,6 +3,7 @@ import type { RouteLocationRaw } from "vue-router";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 
 export const GENERATED_QUOTE_ROLES = ["08", "10"];
+export const GENERATED_QUOTE_USER_IDS = [1, 22];
 
 export type GeneratedQuoteSource = "bot" | "calculadora";
 
@@ -13,6 +14,10 @@ export interface GeneratedQuotePayload {
   cliente?: string | null;
   telefono?: string | null;
   puerto_origen?: string | null;
+  tipo?: string | null;
+  volumen?: number | string | null;
+  peso?: number | string | null;
+  valor_mercancia?: number | string | null;
   tieneindividualflag?: boolean | number | string | null;
   tienegrupalflag?: boolean | number | string | null;
 }
@@ -34,8 +39,35 @@ interface NoticeSocket {
 }
 
 function userSeesGeneratedQuotes(): boolean {
-  const positions = sessionUser().position_code ?? [];
+  const user = sessionUser();
+  if (GENERATED_QUOTE_USER_IDS.includes(Number(user.id_user))) return true;
+  const positions = user.position_code ?? [];
   return positions.some((code) => GENERATED_QUOTE_ROLES.includes(String(code)));
+}
+
+const isBlank = (value: unknown) => value === undefined || value === null || String(value).trim() === "";
+
+// Formats a numeric socket value with thousands separators; non-numeric text is shown as sent.
+function formatAmount(value: number | string | null | undefined, digits: { min: number; max: number }): string | null {
+  if (isBlank(value)) return null;
+  const amount = Number(String(value).replace(/,/g, ""));
+  if (!Number.isFinite(amount)) return String(value);
+  return amount.toLocaleString("en-US", { minimumFractionDigits: digits.min, maximumFractionDigits: digits.max });
+}
+
+export function formatQuoteValue(value: GeneratedQuotePayload["valor_mercancia"]): string | null {
+  const amount = formatAmount(value, { min: 0, max: 2 });
+  return amount && `USD ${amount}`;
+}
+
+export function formatQuoteWeight(value: GeneratedQuotePayload["peso"]): string | null {
+  const amount = formatAmount(value, { min: 0, max: 2 });
+  return amount && `${amount} kg`;
+}
+
+export function formatQuoteVolume(value: GeneratedQuotePayload["volumen"]): string | null {
+  const amount = formatAmount(value, { min: 2, max: 2 });
+  return amount && `${amount} m³`;
 }
 
 const isOn = (flag: unknown) => [true, 1, "1"].includes(flag as never);

@@ -45,6 +45,14 @@ import { showRejectedResponse } from "@/utils/rejectedResponse";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 const EXPORT_FAILED_MESSAGE = "No pudimos generar el Excel. Revisa tu conexión e intenta de nuevo.";
+// The other filters, which the endpoints still read from the body (list) or the query (export).
+const sinFiltrosDeConsulta = (filtro?: Partial<FiltroUsuariosCalculadora>) =>
+  Object.fromEntries(Object.entries(filtro ?? {}).filter(([key]) => key !== "tipo" && key !== "correlativo"));
+// Only the filled filters, so an empty one does not reach req.query as "".
+const filtrosDeConsulta = ({ tipo, correlativo }: { tipo?: string | null; correlativo?: string }) => ({
+  ...(tipo ? { tipo } : {}),
+  ...(correlativo?.trim() ? { correlativo: correlativo.trim() } : {}),
+});
 const sessionBranches = () => JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
 const sessionUsers = () => JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[];
 const sessionPaisId = () => sessionBranches()[0]!.id_pais;
@@ -181,13 +189,16 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
   }
 
   async function getListUserCalc(filtro?: FiltroUsuariosCalculadora): Promise<boolean> {
+    const cuerpo = sinFiltrosDeConsulta(filtro);
     const response = await axios<ApiResponse<UsuarioCalculadora[]>>({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "listar_usuarios_calculadora",
       headers: JSON_HEADERS,
+      // The endpoint reads tipo and correlativo from req.query; the other filters stay in the body.
+      params: filtrosDeConsulta(filtro ?? {}),
       data: {
         iso_pais: sessionIsoPais(),
-        ...filtro,
+        ...cuerpo,
       },
     });
 
@@ -268,7 +279,7 @@ export const useCalculadorasStore = defineStore("calculadoras", () => {
       const { data } = await axios<Blob>({
         method: "get",
         url: import.meta.env.VITE_URL_MAIN + "export_listar_usuarios_calculadora",
-        params: { id_pais: sessionIsoPais(), ...filtro },
+        params: { id_pais: sessionIsoPais(), ...sinFiltrosDeConsulta(filtro), ...filtrosDeConsulta(filtro ?? {}) },
         responseType: "blob",
       });
       if (data.type.includes("json")) {

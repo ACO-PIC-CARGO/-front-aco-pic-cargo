@@ -8,6 +8,11 @@ import type { ConvenioEntidad, TarifaEntidad } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { removeRow } from "../removeRow";
 import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
+import ClienteCard from "./ClienteCard.vue";
+import "./clienteCards.css";
+
+// Inside Ver Cliente the screen's header holds the Editar/Guardar buttons, so `embedded` hides this section's own.
+const props = withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 
 const appStore = useAppStore();
 const editAllowed = entityEditAllowed("listClientes");
@@ -44,6 +49,11 @@ const showNavigationButtons = computed(() => {
     entitiesStore.isReadonly
   );
 });
+const showOwnEditButton = computed(() => !props.embedded && !showNavigationButtons.value && editAllowed);
+// The Acciones column only holds the delete button, which exists while editing.
+function visibleHeaders<T extends { key: string }>(headers: readonly T[]) {
+  return showFormActions.value ? headers : headers.filter((header) => header.key !== "action");
+}
 
 watch(
   () => entitiesStore.isStep3Valid,
@@ -233,204 +243,275 @@ async function modificarCliente() {
     entitiesStore.isEdit = false;
   }
 }
+
+// Inside the client card, its Continuar runs this step's checks (they move on to the next step when they pass).
+defineExpose({ validarFormulario });
 </script>
 
 <template>
-  <v-card>
-    <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
-      <v-spacer />
+  <div class="cli-section">
+    <div
+      v-if="showOwnEditButton"
+      class="d-flex justify-end mb-3"
+    >
       <v-btn
-        v-if="!showNavigationButtons && editAllowed"
-        color="light-blue-darken-2"
-        class="ma-2"
-        size="small"
+        class="cli-add-btn"
+        variant="outlined"
+        prepend-icon="mdi-pencil-outline"
         @click="modificarCliente"
       >
-        <v-icon
-          start
-          size="small"
-        >
-          mdi-account-edit
-        </v-icon>
-        {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
+        {{ isFormReadonly ? "Editar Cliente" : "Guardar Cambios" }}
       </v-btn>
-    </v-card-title>
-    <v-card-text class="px-2">
-      <div class="container-narrow">
-        <!-- ===== CONVENIOS ===== -->
-        <v-list-subheader class="px-0">
-          <b>Convenios</b>
+    </div>
 
-          <template v-if="showFormActions">
-            <v-btn
-              color="primary"
-              rounded
-              size="small"
-              class="ml-auto"
-              @click="agregarConvenio()"
-            >
-              AGREGAR CONVENIO
-            </v-btn>
+    <!-- ===== CONVENIOS ===== -->
+    <ClienteCard
+      title="Convenios"
+      icon="mdi-handshake-outline"
+    >
+      <template
+        v-if="showFormActions"
+        #actions
+      >
+        <v-btn
+          class="cli-add-btn"
+          variant="outlined"
+          prepend-icon="mdi-plus"
+          @click="agregarConvenio()"
+        >
+          Agregar convenio
+        </v-btn>
+      </template>
+      <v-form
+        ref="formConvenios"
+        :readonly="isFormReadonly"
+      >
+        <v-data-table
+          :headers="visibleHeaders(headersConvenios)"
+          :items="entitiesStore.lstConvenios"
+          class="cli-table"
+          item-value="index"
+          density="comfortable"
+          items-per-page-text="Filas por página:"
+          no-data-text="Sin convenios registrados."
+          disable-sort
+        >
+          <template #[`item.fecha`]="{ item }">
+            <v-text-field
+              v-if="showFormActions"
+              v-model="item.fecha"
+              aria-label="Fecha del convenio"
+              type="date"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+            <template v-else>
+              {{ item.fecha }}
+            </template>
           </template>
-        </v-list-subheader>
-        <v-row>
-          <v-col cols="12">
-            <v-form
-              ref="formConvenios"
-              :readonly="isFormReadonly"
-            >
-              <v-data-table
-                :headers="headersConvenios"
-                :items="entitiesStore.lstConvenios"
-                class="elevation-5"
-                item-value="index"
-                disable-sort
-              >
-                <template #[`item.fecha`]="{ item }">
-                  <v-text-field
-                    type="date"
-                    v-model="item.fecha"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
-                  />
-                </template>
 
-                <template #[`item.dias_credito`]="{ item }">
-                  <v-text-field
-                    type="number"
-                    suffix="días"
-                    v-model="item.dias_credito"
-                    :rules="[
-                      (v) =>
-                        v >= 0 ||
-                        'Es necesario que ponga un número entero positivo',
-                    ]"
-                  />
-                </template>
-
-                <template #[`item.email_soporte`]="{ item }">
-                  <div class="d-flex">
-                    <v-text-field
-                      v-model="item.email_soporte"
-                      :rules="[(v) => validarCorreoElectronico(v)]"
-                    />
-                    <v-file-input
-                      v-if="showFormActions"
-                      accept=".xlsx,.xls,.doc,.docx,.ppt,.pptx,.txt,.pdf,.gif,.jpg,.jpeg,.png"
-                      label="Adjuntar Archivo"
-                      hide-input
-                      class="customFile"
-                      v-model="fileinput"
-                      @update:model-value="subirArchivoConvenio(item)"
-                    />
-                  </div>
-                </template>
-
-                <template
-                  #[`item.action`]="{ item }"
-                  v-if="showFormActions"
-                >
-                  <v-btn
-                    variant="text"
-                    icon
-                    color="red"
-                    @click="eliminarConvenio(item)"
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </template>
-              </v-data-table>
-            </v-form>
-          </v-col>
-        </v-row>
-
-        <br>
-
-        <!-- ===== TARIFAS ===== -->
-        <v-list-subheader class="px-0">
-          <b>Tarifas</b>
-
-          <template v-if="showFormActions">
-            <v-btn
-              color="primary"
-              rounded
-              size="small"
-              class="ml-auto"
-              @click="agregarTarifa()"
-            >
-              AGREGAR TARIFA
-            </v-btn>
+          <template #[`item.dias_credito`]="{ item }">
+            <v-text-field
+              v-if="showFormActions"
+              v-model="item.dias_credito"
+              aria-label="Días para crédito"
+              type="number"
+              suffix="días"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              :rules="[
+                (v) =>
+                  v >= 0 ||
+                  'Es necesario que ponga un número entero positivo',
+              ]"
+            />
+            <template v-else>
+              {{ item.dias_credito }} días
+            </template>
           </template>
-        </v-list-subheader>
-        <v-row>
-          <v-col cols="12">
-            <v-form
-              ref="formTarifas"
-              :readonly="isFormReadonly"
+
+          <template #[`item.email_soporte`]="{ item }">
+            <div
+              v-if="showFormActions"
+              class="d-flex align-center"
             >
-              <v-data-table
-                :headers="headersTarifas"
-                :items="entitiesStore.lstTarifas"
-                class="elevation-5"
-                item-value="index"
-                disable-sort
-              >
-                <template #[`item.fecha`]="{ item }">
-                  <v-text-field
-                    type="date"
-                    v-model="item.fecha"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
-                  />
-                </template>
+              <v-text-field
+                v-model="item.email_soporte"
+                aria-label="Email soporte del convenio"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                :rules="[(v) => validarCorreoElectronico(v)]"
+              />
+              <v-file-input
+                accept=".xlsx,.xls,.doc,.docx,.ppt,.pptx,.txt,.pdf,.gif,.jpg,.jpeg,.png"
+                label="Adjuntar Archivo"
+                hide-input
+                hide-details
+                class="customFile"
+                v-model="fileinput"
+                @update:model-value="subirArchivoConvenio(item)"
+              />
+            </div>
+            <span
+              v-else-if="item.email_soporte"
+              class="cli-link"
+            >
+              <v-icon
+                icon="mdi-email-outline"
+                size="18"
+              />
+              {{ item.email_soporte }}
+            </span>
+          </template>
 
-                <template #[`item.codigo`]="{ item }">
-                  <v-text-field
-                    v-model="item.codigo"
-                    :rules="[(v) => !!v || 'Dato Requerido']"
-                  />
-                </template>
+          <template #[`item.action`]="{ item }">
+            <v-btn
+              class="cli-row-delete"
+              variant="flat"
+              size="small"
+              icon="mdi-delete-outline"
+              aria-label="Eliminar convenio"
+              @click="eliminarConvenio(item)"
+            />
+          </template>
+        </v-data-table>
+      </v-form>
+    </ClienteCard>
 
-                <template #[`item.email_soporte`]="{ item }">
-                  <div class="d-flex">
-                    <v-text-field
-                      v-model="item.email_soporte"
-                      :rules="[(v) => validarCorreoElectronico(v)]"
-                    />
-                    <v-file-input
-                      v-if="showFormActions"
-                      accept=".xlsx,.xls,.doc,.docx,.ppt,.pptx,.txt,.pdf,.gif,.jpg,.jpeg,.png"
-                      label="Adjuntar Archivo"
-                      hide-input
-                      class="customFile"
-                      v-model="fileinput"
-                      @update:model-value="subirArchivoTarifa(item)"
-                    />
-                  </div>
-                </template>
+    <!-- ===== TARIFAS ===== -->
+    <ClienteCard
+      title="Tarifas"
+      icon="mdi-tag-outline"
+    >
+      <template
+        v-if="showFormActions"
+        #actions
+      >
+        <v-btn
+          class="cli-add-btn"
+          variant="outlined"
+          prepend-icon="mdi-plus"
+          @click="agregarTarifa()"
+        >
+          Agregar tarifa
+        </v-btn>
+      </template>
+      <v-form
+        ref="formTarifas"
+        :readonly="isFormReadonly"
+      >
+        <v-data-table
+          :headers="visibleHeaders(headersTarifas)"
+          :items="entitiesStore.lstTarifas"
+          class="cli-table"
+          item-value="index"
+          density="comfortable"
+          items-per-page-text="Filas por página:"
+          no-data-text="Sin tarifas registradas."
+          disable-sort
+        >
+          <template #[`item.fecha`]="{ item }">
+            <v-text-field
+              v-if="showFormActions"
+              v-model="item.fecha"
+              aria-label="Fecha de la tarifa"
+              type="date"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+            <template v-else>
+              {{ item.fecha }}
+            </template>
+          </template>
 
-                <template #[`item.tarifa`]="{ item }">
-                  <v-text-field v-model="item.tarifa" />
-                </template>
+          <template #[`item.codigo`]="{ item }">
+            <v-text-field
+              v-if="showFormActions"
+              v-model="item.codigo"
+              aria-label="Código de la tarifa"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+            <template v-else>
+              {{ item.codigo }}
+            </template>
+          </template>
 
-                <template
-                  #[`item.action`]="{ item }"
-                  v-if="showFormActions"
-                >
-                  <v-btn
-                    variant="text"
-                    icon
-                    color="red"
-                    @click="eliminarTarifa(item)"
-                  >
-                    <v-icon>mdi-delete</v-icon>
-                  </v-btn>
-                </template>
-              </v-data-table>
-            </v-form>
-          </v-col>
-        </v-row>
-      </div>
-    </v-card-text>
-    <v-card-actions v-if="showNavigationButtons">
+          <template #[`item.email_soporte`]="{ item }">
+            <div
+              v-if="showFormActions"
+              class="d-flex align-center"
+            >
+              <v-text-field
+                v-model="item.email_soporte"
+                aria-label="Email soporte de la tarifa"
+                density="compact"
+                variant="outlined"
+                hide-details="auto"
+                :rules="[(v) => validarCorreoElectronico(v)]"
+              />
+              <v-file-input
+                accept=".xlsx,.xls,.doc,.docx,.ppt,.pptx,.txt,.pdf,.gif,.jpg,.jpeg,.png"
+                label="Adjuntar Archivo"
+                hide-input
+                hide-details
+                class="customFile"
+                v-model="fileinput"
+                @update:model-value="subirArchivoTarifa(item)"
+              />
+            </div>
+            <span
+              v-else-if="item.email_soporte"
+              class="cli-link"
+            >
+              <v-icon
+                icon="mdi-email-outline"
+                size="18"
+              />
+              {{ item.email_soporte }}
+            </span>
+          </template>
+
+          <template #[`item.tarifa`]="{ item }">
+            <v-text-field
+              v-if="showFormActions"
+              v-model="item.tarifa"
+              aria-label="Tarifa"
+              density="compact"
+              variant="outlined"
+              hide-details="auto"
+            />
+            <template v-else>
+              {{ item.tarifa }}
+            </template>
+          </template>
+
+          <template #[`item.action`]="{ item }">
+            <v-btn
+              class="cli-row-delete"
+              variant="flat"
+              size="small"
+              icon="mdi-delete-outline"
+              aria-label="Eliminar tarifa"
+              @click="eliminarTarifa(item)"
+            />
+          </template>
+        </v-data-table>
+      </v-form>
+    </ClienteCard>
+
+    <div
+      v-if="showNavigationButtons && !embedded"
+      class="d-flex mt-4"
+    >
       <v-btn
         color="primary"
         @click="entitiesStore.stepper--"
@@ -444,8 +525,8 @@ async function modificarCliente() {
       >
         Continuar
       </v-btn>
-    </v-card-actions>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <style>

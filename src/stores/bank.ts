@@ -150,72 +150,6 @@ export const useBankStore = defineStore("bank", () => {
         console.error(error);
       });
   }
-  async function guardarCuentaDetalle(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "insertar_cuenta",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          const data = {
-            name: "",
-            code: "",
-            acronym: "",
-            description: "",
-            status: 1,
-          };
-          fetchDataBank(data);
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
-  async function eliminarCuentaDetalle(data: Record<string, unknown>): Promise<void> {
-    const config = {
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "eliminar_cuenta",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
-    await axios<ApiResponse>(config)
-      .then((response) => {
-        const data = response.data;
-        sessionStorage.setItem("auth-token", data.token!);
-        Swal.fire({
-          icon: data.estadoflag ? "success" : "error",
-          text: data.mensaje,
-          showCancelButton: false,
-          confirmButtonText: "Ok",
-        }).then(() => {
-          const data = {
-            name: "",
-            code: "",
-            acronym: "",
-            description: "",
-            status: 1,
-          };
-          fetchDataBank(data);
-        });
-      })
-      .catch((error) => {
-        console.log("Error al obtener los datos:", error);
-      });
-  }
   async function verPagoRealizado(nro_operacion: number | string): Promise<void> {
     const config = {
       method: "get",
@@ -712,8 +646,6 @@ export const useBankStore = defineStore("bank", () => {
     readBank,
     updateBank,
     getBanksListCargar,
-    guardarCuentaDetalle,
-    eliminarCuentaDetalle,
     verPagoRealizado,
     anularPagoRealizado,
     actualizarPagoRealizadoSombreado,

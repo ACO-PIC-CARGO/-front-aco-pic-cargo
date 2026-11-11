@@ -34,6 +34,7 @@ export type CuentaBancoDetalle = {
   trial438?: string;
   uptated_at?: string;
   esprincipalflag?: number | boolean;
+  esavisollegada?: number | boolean;
   index?: number;
 };
 

@@ -36,8 +36,17 @@ test("the master's three dates and their confirmations show read-only, even whil
   expect(vi.mocked(axios)).toHaveBeenCalledWith(expect.objectContaining({ url: "getMasterId/2714" }));
   const dates = wrapper.findAll('input[type="text"]').map((input) => (input.element as HTMLInputElement).value);
   expect(dates).toEqual(["19/OCT/2026", "18/NOV/2026", "—"]);
-  const confirmations = wrapper.findAll('input[type="checkbox"]').map((input) => (input.element as HTMLInputElement).checked);
-  expect(confirmations).toEqual([true, false, false]);
+  const confirmations = wrapper.findAll(".confirmation-chip").map((chip) => ({
+    label: chip.text(),
+    confirmed: chip.classes().includes("confirmation-chip--on"),
+    icon: chip.find(".mdi-check-circle").exists() ? "check" : "close",
+  }));
+  expect(confirmations).toEqual([
+    { label: "Salida Confirmada", confirmed: true, icon: "check" },
+    { label: "Llegada Confirmada", confirmed: false, icon: "close" },
+    { label: "Confirmación Disponibilidad", confirmed: false, icon: "close" },
+  ]);
+  expect(wrapper.find('input[type="checkbox"]').exists()).toBe(false);
   expect(wrapper.findAll(".v-input").every((field) => field.classes().includes("v-input--readonly"))).toBe(true);
   wrapper.unmount();
 });

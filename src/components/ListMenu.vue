@@ -30,7 +30,6 @@ const dialogTutorial = ref(false);
 const mostrarFlag = ref(true);
 const branch: SucursalSesion = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0];
 const sucursal: string = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0].trade_name;
-const initiallyOpen = ref<unknown[]>([]);
 const person: UsuarioSesion = JSON.parse(sessionStorage.getItem("dataUser") as string)[0];
 
 onMounted(() => {
@@ -117,10 +116,16 @@ function mostrarResumenPricing() {
 function mostrarVolumen() {
   return true;
 }
-function isLockedItem(item: ItemMenu) {
-  return Boolean(
-    subscriptionsStore.lockedModuleForRoute(appStore.lstMenu, item.route),
+// Worked out once per menu and plan: each item rendering would otherwise walk the whole menu on every click.
+const lockedRoutes = computed(() => {
+  const routesIn = (items: ItemMenu[]): string[] =>
+    items.flatMap((item) => [...(item.route ? [item.route] : []), ...routesIn(item.children ?? [])]);
+  return new Set(
+    routesIn(lstMenu.value).filter((route) => subscriptionsStore.lockedModuleForRoute(lstMenu.value, route)),
   );
+});
+function isLockedItem(item: ItemMenu) {
+  return Boolean(item.route && lockedRoutes.value.has(item.route));
 }
 function getRouteForItem(item: Pick<ItemMenu, "route">): { name?: string } {
   if (!item || !item.route || !router.hasRoute(item.route)) {
@@ -222,13 +227,17 @@ watch(actualizarCostosFlag, () => {
 
     <v-divider />
 
+    <!-- "single": opening a group keeps only its own path open, so the other groups of every level close.
+         Registering items from their data mounts a group's children only while it is open: with the whole
+         menu mounted, every click re-rendered every item. -->
     <v-treeview
-      v-model:opened="initiallyOpen"
       :items="lstMenu"
       :item-props="menuItemProps"
       item-title="name"
       item-value="id"
       open-on-click
+      open-strategy="single"
+      items-registration="props"
       return-object
     >
       <!-- ÍCONOS DEL MENÚ -->

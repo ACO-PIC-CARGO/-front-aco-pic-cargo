@@ -157,45 +157,6 @@ test("a refused edit keeps the Modificar panel open with the reason", { timeout:
   expect(openDrawer()).not.toBeNull();
 });
 
-test.each([
-  { status: 1, sent: 0, question: "eliminar" },
-  { status: 0, sent: 1, question: "activar" },
-])("Eliminar cuenta asks to $question an account with status $status and sends status $sent", { timeout: 15_000 }, async ({ status, sent, question }) => {
-  answerWith([bankWithAccount(status)]);
-  await mountScreen();
-
-  buttonAria("Ver cuentas").click();
-  await flushPromises();
-  buttonAria(status === 1 ? "Eliminar cuenta" : "Activar cuenta").click();
-  await flushPromises();
-
-  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ text: expect.stringContaining(`${question} la cuenta 193-555`) });
-  expect(requestsTo("eliminar_cuenta").map((config) => config.data)).toEqual([expect.objectContaining({ id: 5, status: sent })]);
-});
-
-test.each([
-  { status: 1, action: "Eliminar cuenta" },
-  { status: 0, action: "Activar cuenta" },
-])("Cancelar $action no recarga ni modifica las cuentas", { timeout: 15_000 }, async ({ status, action }) => {
-  answerWith([bankWithAccount(status)]);
-  await mountScreen();
-  buttonAria("Ver cuentas").click();
-  await flushPromises();
-  const listRequests = () => httpMock.mock.calls.filter(([config]) => config.url.includes("listar_bank"));
-  const initialRequests = listRequests().length;
-  expect(initialRequests).toBe(1);
-  vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false, isDenied: true } as never);
-
-  buttonAria(action).click();
-  await flushPromises();
-
-  expect(listRequests()).toHaveLength(initialRequests);
-  expect(requestsTo("eliminar_cuenta")).toHaveLength(0);
-  expect(buttonAria("Ocultar cuentas")).not.toBeNull();
-  expect(document.body.textContent).toContain("193-555");
-  expect(buttonAria(action)).not.toBeNull();
-});
-
 test("Ver Cuentas expande la tabla de cuentas sin Alias", { timeout: 15_000 }, async () => {
   const accounts = Array.from({ length: 7 }, (_, index) => ({
     ...bankWithAccount(1).banks_details[0],
@@ -220,21 +181,44 @@ test("Ver Cuentas expande la tabla de cuentas sin Alias", { timeout: 15_000 }, a
   const tables = document.body.querySelectorAll(".v-data-table");
   expect(tables[1]!.textContent).toContain("Cuenta Principal");
   expect([...tables[1]!.querySelectorAll("tbody tr")].find((row) => row.querySelector("td"))?.textContent).toContain("cuenta-7");
-  const accountChips = [...tables[1]!.querySelectorAll(".v-chip")];
+  const accountChips = [...tables[1]!.querySelectorAll("tbody td:nth-child(4) .v-chip")];
   expect(accountChips.filter((chip) => chip.textContent?.trim() === "Sí")).toHaveLength(1);
   expect(accountChips.filter((chip) => chip.textContent?.trim() === "No")).toHaveLength(6);
   expect(accountChips.find((chip) => chip.textContent?.trim() === "Sí")?.classList.contains("text-primary")).toBe(true);
   expect(accountChips.find((chip) => chip.textContent?.trim() === "No")?.classList.contains("text-grey")).toBe(true);
   expect(tables[1]!.textContent).toContain("cuenta-7");
   expect(tables[1]!.textContent).not.toContain("Items per page");
-  expect(buttonAria("Editar cuenta").classList.contains("bank-action-edit")).toBe(true);
-  expect(buttonAria("Eliminar cuenta").classList.contains("bank-action-delete")).toBe(true);
+  expect(tables[1]!.textContent).not.toContain("Acciones");
+  expect(tables[1]!.querySelectorAll("button")).toHaveLength(0);
   buttonAria("Ocultar cuentas").click();
   await flushPromises();
   expect(bankRow.classList.contains("bank-row-expanded")).toBe(false);
 });
 
-test("la cuenta principal permanece primera al ordenar el detalle y Acciones no es ordenable", { timeout: 15_000 }, async () => {
+test("el detalle muestra si cada cuenta va en el Aviso de Llegada", { timeout: 15_000 }, async () => {
+  answerWith([{
+    ...bankWithAccount(1),
+    banks_details: [
+      { ...bankWithAccount(1).banks_details[0], id: 5, nrocuenta: "con-aviso", esavisollegada: true },
+      { ...bankWithAccount(1).banks_details[0], id: 6, nrocuenta: "sin-aviso", esavisollegada: false },
+    ],
+  }]);
+  await mountScreen();
+  buttonAria("Ver cuentas").click();
+  await flushPromises();
+
+  const table = document.body.querySelector(".bank-account-detail .v-data-table")!;
+  const headers = [...table.querySelectorAll("thead th")].map((header) => header.textContent?.trim());
+  expect(headers).toEqual(["Nro Cuenta", "CCI", "Moneda", "Cuenta Principal", "Aviso de Llegada"]);
+  const avisoOf = (account: string) => {
+    const row = [...table.querySelectorAll("tbody tr")].find((candidate) => candidate.textContent?.includes(account))!;
+    return row.querySelectorAll("td")[4]!.textContent?.trim();
+  };
+  expect(avisoOf("con-aviso")).toBe("Sí");
+  expect(avisoOf("sin-aviso")).toBe("No");
+});
+
+test("la cuenta principal permanece primera al ordenar el detalle y su columna no es ordenable", { timeout: 15_000 }, async () => {
   const accounts = [
     { ...bankWithAccount(1).banks_details[0], id: 5, nrocuenta: "200", esprincipalflag: 0 },
     { ...bankWithAccount(1).banks_details[0], id: 6, nrocuenta: "300", esprincipalflag: 1 },
@@ -250,7 +234,7 @@ test("la cuenta principal permanece primera al ordenar el detalle y Acciones no 
     .map((row) => row.querySelector("td")?.textContent?.trim())
     .filter((value) => value !== undefined);
   const accountHeader = [...table.querySelectorAll<HTMLElement>("thead th")].find((header) => header.textContent?.includes("Nro Cuenta"))!;
-  const actionHeader = [...table.querySelectorAll<HTMLElement>("thead th")].find((header) => header.textContent?.includes("Acciones"))!;
+  const actionHeader = [...table.querySelectorAll<HTMLElement>("thead th")].find((header) => header.textContent?.includes("Cuenta Principal"))!;
 
   expect(displayedAccounts()).toEqual(["300", "200", "100"]);
   expect(actionHeader.classList.contains("v-data-table__th--sortable")).toBe(false);
@@ -268,7 +252,7 @@ test("la cuenta principal permanece primera al ordenar el detalle y Acciones no 
   expect(accounts.map((account) => account.nrocuenta)).toEqual(["200", "300", "100"]);
 });
 
-test("oculta Ver Cuentas sin cuentas y muestra la cuenta principal en el banco", { timeout: 15_000 }, async () => {
+test("oculta Ver Cuentas sin cuentas y el banco ya no muestra la columna Cuenta Principal", { timeout: 15_000 }, async () => {
   answerWith([
     { ...bankWithAccount(1), banks_details: [] },
     {
@@ -286,7 +270,7 @@ test("oculta Ver Cuentas sin cuentas y muestra la cuenta principal en el banco",
   const rows = document.body.querySelectorAll(".bank-list-table > .v-table__wrapper > table > tbody > tr:not(.v-data-table__tr--expanded)");
   expect(rows).toHaveLength(2);
   expect(rows[0]!.querySelector('button[aria-label="Ver cuentas"]')).toBeNull();
-  expect(rows[0]!.querySelector('button[aria-label="Nueva cuenta"]')).not.toBeNull();
+  expect(rows[0]!.querySelector('button[aria-label="Nueva cuenta"]')).toBeNull();
   expect(rows[0]!.textContent).toContain("Sin cuentas");
   const chips = [...rows[0]!.querySelectorAll(".v-chip")];
   const statusChip = chips.find((chip) => chip.textContent?.trim() === "Activo");
@@ -296,7 +280,7 @@ test("oculta Ver Cuentas sin cuentas y muestra la cuenta principal en el banco",
   expect(rows[0]!.textContent).not.toContain("Cuenta principal para Control de Gastos");
   expect(rows[1]!.querySelector('button[aria-label="Ver cuentas"]')).not.toBeNull();
   expect(rows[1]!.textContent).not.toContain("Sin cuentas");
-  expect(rows[1]!.textContent).toContain("Cuenta principal para Control de Gastos");
+  expect(rows[1]!.textContent).not.toContain("Cuenta principal para Control de Gastos");
 });
 
 test("muestra el estado inactivo del banco con el mismo estilo del detalle", { timeout: 15_000 }, async () => {
@@ -333,53 +317,15 @@ test("el listado principal pagina los bancos y permite buscar", { timeout: 15_00
   expect(table.textContent).not.toContain("Banco 11");
 });
 
-test("cada botón de cuentas ocupa su columna y Nueva Cuenta abre el formulario", { timeout: 15_000 }, async () => {
+test("las cuentas se gestionan en Cuentas bancarias: el banco no tiene Nueva Cuenta", { timeout: 15_000 }, async () => {
   answerWith([bankWithAccount(1)]);
   await mountScreen();
 
   expect(buttonAria("Ver cuentas")).not.toBeNull();
-  expect(buttonAria("Nueva cuenta")).not.toBeNull();
-  const row = buttonAria("Ver banco").closest("tr")!;
-  const cells = row.querySelectorAll("td");
-  expect(cells[0]!.querySelector('button[aria-label="Ver banco"]')).not.toBeNull();
-  expect(cells[0]!.querySelector('button[aria-label="Ver cuentas"]')).toBeNull();
-  const viewAccountsCell = cells[cells.length - 2]!;
-  const newAccountCell = cells[cells.length - 1]!;
-  expect(viewAccountsCell.querySelector('button[aria-label="Ver cuentas"]')).not.toBeNull();
-  expect(viewAccountsCell.querySelector('button[aria-label="Nueva cuenta"]')).toBeNull();
-  expect(newAccountCell.querySelector('button[aria-label="Nueva cuenta"]')).not.toBeNull();
-  expect(newAccountCell.querySelector('button[aria-label="Ver cuentas"]')).toBeNull();
-  buttonAria("Nueva cuenta").click();
-  await flushPromises();
-
-  const dialogs = document.body.querySelectorAll<HTMLElement>(".v-dialog");
-  expect(dialogs).toHaveLength(1);
-  expect(dialogs[0]!.textContent).toContain("Moneda");
-  expect(dialogs[0]!.textContent).toContain("Nro Cuenta");
-});
-
-test("Editar cuenta guarda los campos de cuenta y el indicador de control de gastos", { timeout: 15_000 }, async () => {
-  answerWith([bankWithAccount(1)]);
-  await mountScreen();
-
-  buttonAria("Ver cuentas").click();
-  await flushPromises();
-  buttonAria("Editar cuenta").click();
-  await flushPromises();
-
-  const dialogs = document.body.querySelectorAll<HTMLElement>(".v-dialog");
-  expect(dialogs).toHaveLength(1);
-  const editor = dialogs[0]!;
-  const toggles = editor.querySelectorAll<HTMLInputElement>('input[type="checkbox"]');
-  toggles[toggles.length - 1]!.click();
-  await flushPromises();
-
-  buttonNamed("Guardar", editor).click();
-  await flushPromises();
-
-  const savedAccount = requestsTo("insertar_cuenta")[0]!.data;
-  expect(savedAccount).toEqual(expect.objectContaining({ id: 5, esprincipalflag: true }));
-  expect(savedAccount).not.toHaveProperty("alias");
+  expect(buttonAria("Nueva cuenta")).toBeNull();
+  const cells = buttonAria("Ver banco").closest("tr")!.querySelectorAll("td");
+  expect(cells[cells.length - 1]!.querySelector('button[aria-label="Ver cuentas"]')).not.toBeNull();
+  expect(document.body.textContent).not.toContain("Nueva Cuenta");
 });
 
 test("cancelling a bank's inactivation keeps it active and saves nothing", { timeout: 15_000 }, async () => {
