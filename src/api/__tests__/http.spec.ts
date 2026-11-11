@@ -1,12 +1,14 @@
 import { AxiosError } from "axios";
 import type { AxiosAdapter, InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Swal from "sweetalert2";
 import router from "@/router";
 import http from "@/api/http";
 
 vi.mock("@/router", () => ({
   default: { replace: vi.fn(), currentRoute: { value: { name: "x" } } },
 }));
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 let sentConfig: InternalAxiosRequestConfig | undefined;
 
@@ -114,3 +116,45 @@ describe("http client", () => {
   });
 });
 
+describe("a request refused for a missing permission", () => {
+  const MISSING = "No tienes el permiso OPERATIVO › TRÁFICO › EMBARQUES › NUEVO. Pide a un administrador de tu empresa que te lo asigne.";
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout"] });
+    vi.mocked(Swal.fire).mockClear();
+    document.body.innerHTML = "";
+  });
+  afterEach(() => vi.useRealTimers());
+
+  const screenAnswers = async (status: number, shown: string | null) => {
+    http.defaults.adapter = respondWith(status, { estadoflag: false, mensaje: MISSING });
+    await http.post("/traffic_send").catch(() => {
+      if (shown) document.body.insertAdjacentHTML("beforeend", `<div>${shown}</div>`);
+    });
+    vi.runAllTimers();
+  };
+
+  it("shows the missing permission when the screen says nothing", async () => {
+    await screenAnswers(403, null);
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: MISSING });
+  });
+
+  it("shows the missing permission over a screen's own generic text", async () => {
+    await screenAnswers(403, "No pudimos enviar la cotización. Intenta de nuevo.");
+
+    expect(Swal.fire).toHaveBeenCalledWith({ icon: "warning", text: MISSING });
+  });
+
+  it("stays quiet when the screen already shows the missing permission", async () => {
+    await screenAnswers(403, MISSING);
+
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
+  it("leaves every other failure to the screen", async () => {
+    await screenAnswers(500, null);
+
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+});

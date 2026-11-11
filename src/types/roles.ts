@@ -71,6 +71,7 @@ export interface PermissionListRow {
 export interface MyPermissions {
   screens: { route: string; actions: string[] }[];
   controlled: string[];
+  screenNames?: Record<string, string | null>;
 }
 
 export interface RoleFilters {

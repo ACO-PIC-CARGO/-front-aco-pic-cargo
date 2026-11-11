@@ -33,6 +33,20 @@ describe("permissionGuard", () => {
     expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ icon: "warning", text: NO_SCREEN_ACCESS });
   });
 
+  test("names the missing permission when the session knows the screen's name", () => {
+    const permissions = JSON.parse(sessionStorage.getItem("permissions")!);
+    sessionStorage.setItem(
+      "permissions",
+      JSON.stringify({ ...permissions, screenNames: { lstPosition: "CONFIGURACIÓN › EMPRESA Y USUARIO › ROLES" } }),
+    );
+
+    permissionGuard(route("lstPosition"), route("listUser"));
+
+    expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({
+      text: "No tienes el permiso CONFIGURACIÓN › EMPRESA Y USUARIO › ROLES › VER para abrir esta pantalla. Pide a un administrador de tu empresa que te lo asigne.",
+    });
+  });
+
   test("sends a first navigation to a refused screen to Main", () => {
     expect(permissionGuard(route("lstPosition"), route())).toEqual({ name: "Main" });
     expect(Swal.fire).toHaveBeenCalledTimes(1);

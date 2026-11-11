@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import Swal from "sweetalert2";
 import router from "@/router";
 
 interface SessionUserEntry {
@@ -9,6 +10,13 @@ interface SessionUserEntry {
 
 const readSessionUser = (): [SessionUserEntry, ...SessionUserEntry[]] | null =>
   JSON.parse(sessionStorage.getItem("dataUser") as string);
+
+// Runs after the screen's own error handling, so it only speaks when the screen hid the reason.
+const showRefusalUnlessOnScreen = (message: string | undefined) =>
+  message &&
+  setTimeout(() => {
+    if (!document.body.textContent?.includes(message)) Swal.fire({ icon: "warning", text: message });
+  });
 
 const http = axios.create({
   baseURL: import.meta.env.VITE_URL_MAIN,
@@ -60,6 +68,7 @@ http.interceptors.response.use(
         router.replace({ name: "Login" });
       }
     }
+    if (error?.response?.status === 403) showRefusalUnlessOnScreen((error.response.data as { mensaje?: string })?.mensaje);
     return Promise.reject(error);
   },
 );
