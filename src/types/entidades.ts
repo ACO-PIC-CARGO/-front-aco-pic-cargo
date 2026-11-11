@@ -40,6 +40,9 @@ export interface TelefonoEntidad {
 
 export interface ContactoEntidad {
   nombre?: string;
+  // Not stored by the backend yet; sent along with the contact once it accepts them.
+  cargo?: string;
+  email?: string;
   id_tipotelefono?: number | string | null;
   telefono?: string;
   errornombre?: string;

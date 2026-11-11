@@ -6,6 +6,11 @@ import { useEntitiesStore } from "@/stores/entities";
 import type { ProveedorShipper, ShipperCliente } from "@/types/entidades";
 import { removeRow } from "../removeRow";
 import { entityEditAllowed } from "@/components/folderEntities/entityEditAllowed";
+import ClienteCard from "./ClienteCard.vue";
+import "./clienteCards.css";
+
+// Inside Ver Cliente the screen's header holds the Editar/Guardar buttons, so `embedded` hides this section's own.
+const props = withDefaults(defineProps<{ embedded?: boolean }>(), { embedded: false });
 
 const appStore = useAppStore();
 const editAllowed = entityEditAllowed("listClientes");
@@ -44,6 +49,11 @@ const showNavigationButtons = computed(() => {
     entitiesStore.isReadonly
   );
 });
+const showOwnEditButton = computed(() => !props.embedded && !showNavigationButtons.value && editAllowed);
+// Acciones only holds the delete button, which exists while editing.
+const visibleHeaders = computed(() =>
+  showFormActions.value ? headersShippers : headersShippers.filter((header) => header.key !== "action"),
+);
 
 async function mostrarDialogShippers() {
   dialogShippers.value = !dialogShippers.value;
@@ -116,97 +126,103 @@ async function modificarCliente() {
   entitiesStore.isReadonly = true;
   entitiesStore.isEdit = false;
 }
+
+// Inside the client card, its Continuar runs this step's checks (they move on to the next step when they pass).
+defineExpose({ validarFormulario });
 </script>
 
 <template>
-  <div>
-    <v-card>
-      <v-card-title class="px-2 container-narrow d-flex align-center flex-wrap">
-        <v-spacer />
-        <v-btn
-          v-if="!showNavigationButtons && editAllowed"
-          color="light-blue-darken-2"
-          class="ma-2"
-          size="small"
-          @click="modificarCliente"
-        >
-          <v-icon
-            start
-            size="small"
-          >
-            mdi-account-edit
-          </v-icon>
-          {{ isFormReadonly ? "EDITAR CLIENTE" : "GUARDAR CAMBIOS" }}
-        </v-btn>
-      </v-card-title>
-      <v-card-text class="px-2">
-        <div class="container-narrow">
-          <v-list-subheader class="px-0">
-            <b>Shippers</b>
+  <div class="cli-section">
+    <div
+      v-if="showOwnEditButton"
+      class="d-flex justify-end mb-3"
+    >
+      <v-btn
+        class="cli-add-btn"
+        variant="outlined"
+        prepend-icon="mdi-pencil-outline"
+        @click="modificarCliente"
+      >
+        {{ isFormReadonly ? "Editar Cliente" : "Guardar Cambios" }}
+      </v-btn>
+    </div>
 
-            <template v-if="showFormActions">
-              <v-btn
-                color="primary"
-                rounded
-                size="small"
-                class="ml-auto"
-                @click="mostrarDialogShippers"
-              >
-                AGREGAR SHIPPER
-              </v-btn>
-            </template>
-          </v-list-subheader>
-          <v-row>
-            <v-col cols="12">
-              <v-form
-                ref="formShippers"
-                :readonly="isFormReadonly"
-              >
-                <v-data-table
-                  :headers="headersShippers"
-                  :items="entitiesStore.lstShippers"
-                  class="elevation-5"
-                  item-value="index"
-                  disable-sort
-                >
-                  <template #[`item.correlativo`]="{ item }">
-                    PR-{{ item.correlativo }}
-                  </template>
-                  <template
-                    #[`item.action`]="{ item }"
-                    v-if="showFormActions"
-                  >
-                    <v-btn
-                      variant="text"
-                      icon
-                      color="red"
-                      @click="eliminarShipper(item)"
-                    >
-                      <v-icon>mdi-delete</v-icon>
-                    </v-btn>
-                  </template>
-                </v-data-table>
-              </v-form>
-            </v-col>
-          </v-row>
-        </div>
-      </v-card-text>
-      <v-card-actions v-if="showNavigationButtons">
+    <ClienteCard
+      title="Shippers"
+      icon="mdi-ferry"
+    >
+      <template
+        v-if="showFormActions"
+        #actions
+      >
         <v-btn
-          color="primary"
-          @click="entitiesStore.stepper--"
+          color="#1a5fd0"
+          variant="flat"
+          prepend-icon="mdi-plus"
+          class="text-none font-weight-bold"
+          @click="mostrarDialogShippers"
         >
-          Regresar
+          Agregar Shipper
         </v-btn>
-        <v-btn
-          color="primary"
-          class="ml-auto"
-          @click="validarFormulario"
+      </template>
+      <v-form
+        ref="formShippers"
+        :readonly="isFormReadonly"
+      >
+        <v-data-table
+          :headers="visibleHeaders"
+          :items="entitiesStore.lstShippers"
+          class="cli-table"
+          item-value="index"
+          density="comfortable"
+          items-per-page-text="Items por página:"
+          no-data-text="Sin shippers registrados."
+          disable-sort
         >
-          Continuar
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+          <template #[`item.correlativo`]="{ item }">
+            <v-chip
+              class="cli-chip-coin"
+              size="small"
+              variant="flat"
+            >
+              PR-{{ item.correlativo }}
+            </v-chip>
+          </template>
+          <template #[`item.nombrecompleto`]="{ item }">
+            <span class="font-weight-bold">{{ item.nombrecompleto }}</span>
+          </template>
+          <template #[`item.action`]="{ item }">
+            <v-btn
+              class="cli-row-delete"
+              variant="flat"
+              size="small"
+              icon="mdi-delete-outline"
+              aria-label="Eliminar shipper"
+              @click="eliminarShipper(item)"
+            />
+          </template>
+        </v-data-table>
+      </v-form>
+    </ClienteCard>
+
+    <div
+      v-if="showNavigationButtons && !embedded"
+      class="d-flex mt-4"
+    >
+      <v-btn
+        color="primary"
+        @click="entitiesStore.stepper--"
+      >
+        Regresar
+      </v-btn>
+      <v-btn
+        color="primary"
+        class="ml-auto"
+        @click="validarFormulario"
+      >
+        Continuar
+      </v-btn>
+    </div>
 
     <!--DIALOG SHIPPERS-->
     <v-dialog

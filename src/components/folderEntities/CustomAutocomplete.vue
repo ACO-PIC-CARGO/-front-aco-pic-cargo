@@ -9,6 +9,10 @@ const props = defineProps<{
   value?: string;
   rules?: ((v: string) => boolean | string)[];
   disabled?: boolean;
+  // Optional look, for forms whose fields are outlined; left out, the field keeps Vuetify's default.
+  variant?: "outlined" | "filled" | "underlined" | "solo" | "plain";
+  hideDetails?: boolean | "auto";
+  ariaLabel?: string;
 }>();
 const emit = defineEmits<{ search: [value: string]; id: [id: number] }>();
 
@@ -49,6 +53,9 @@ function selectItem(id: number) {
       :loading="loading" 
       :rules="rules" 
       :disabled="disabled"
+      :variant="variant"
+      :hide-details="hideDetails"
+      :aria-label="ariaLabel"
       @focus="showList"
     />
 

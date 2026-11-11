@@ -142,3 +142,65 @@ test("a new client continues past step 1 without a main phone", async () => {
   expect(entities.stepper).toBe(2);
   wrapper.unmount();
 });
+
+const mountNewClient = async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const wrapper = mount(NuevoClienteComponent, {
+    global: { plugins: [createVuetify({ components, directives }), pinia], stubs: { VOverlay: true } },
+    attachTo: document.body,
+  });
+  await flushPromises();
+  return { wrapper, entities: useEntitiesStore() };
+};
+const tabs = (wrapper: Awaited<ReturnType<typeof mountNewClient>>["wrapper"]) =>
+  wrapper.findAll('[role="tab"]').map((tab) => ({ title: tab.text(), locked: tab.attributes("disabled") !== undefined }));
+
+test("a new client uses the client card, starting on its first tab with the later ones locked", async () => {
+  const { wrapper, entities } = await mountNewClient();
+
+  expect(tabs(wrapper)).toEqual([
+    { title: "Datos y Contactos", locked: false },
+    { title: "Convenios y Tarifas", locked: true },
+    { title: "Información Bancaria", locked: true },
+    { title: "Shipper", locked: true },
+    { title: "Destinatario", locked: true },
+  ]);
+  expect(entities.isReadonly).toBe(false);
+  expect(entities.cliente.id_tipotransaccion).toBe("56");
+  const requiredLabels = wrapper.findAll(".cli-field__label").filter((label) => label.find(".cli-field__required").exists());
+  expect(requiredLabels.map((label) => label.text())).toEqual([
+    "Tipo de Cliente *",
+    "Nacional / Extranjero *",
+    "Nombre Completo *",
+    "País *",
+  ]);
+  const requiredCards = wrapper.findAll(".cli-card__title").filter((title) => title.find(".cli-field__required").exists());
+  expect(requiredCards.map((title) => title.text())).toEqual(["Teléfonos Locales / Fijos *", "Contactos *"]);
+  expect(wrapper.findAll("button").map((button) => button.text())).not.toContain("Guardar");
+  wrapper.unmount();
+});
+
+test("a new client moves past its first tab only with its required data, a phone and a contact", async () => {
+  const Swal = (await import("sweetalert2")).default;
+  const { wrapper, entities } = await mountNewClient();
+  Object.assign(entities.cliente, { id_tipopersona: 1, id_tipotransaccion: 1, nombrecompleto: "Cliente nuevo", id_pais: 1 });
+  await flushPromises();
+  const continuar = () => wrapper.findAll("button").find((button) => button.text() === "Continuar al siguiente paso")!;
+
+  await continuar().trigger("click");
+  await flushPromises();
+  expect(entities.stepper).toBe(1);
+  expect(vi.mocked(Swal.fire)).toHaveBeenCalledWith(expect.objectContaining({ icon: "error" }));
+
+  entities.lstTelefonos.push({ id_tipotelefono: 1, telefono: "999" });
+  entities.lstContactos.push({ nombre: "Ana", id_tipotelefono: 1, telefono: "888" });
+  await flushPromises();
+  await continuar().trigger("click");
+  await flushPromises();
+
+  expect(entities.stepper).toBe(3);
+  expect(tabs(wrapper)[1]).toEqual({ title: "Convenios y Tarifas", locked: false });
+  expect(tabs(wrapper)[2]!.locked).toBe(true);
+  wrapper.unmount();
+});

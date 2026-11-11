@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, shallowRef, toRaw, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
@@ -30,43 +30,6 @@ const dialogTutorial = ref(false);
 const mostrarFlag = ref(true);
 const branch: SucursalSesion = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0];
 const sucursal: string = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0].trade_name;
-const initiallyOpen = shallowRef<unknown[]>([]);
-
-function descendantsOf(item: ItemMenu): unknown[] {
-  return (item.children ?? []).flatMap((child) => [toRaw(child), ...descendantsOf(child)]);
-}
-
-function siblingsOf(target: unknown, group: ItemMenu[] = lstMenu.value): ItemMenu[] | null {
-  if (group.some((item) => toRaw(item) === target)) return group;
-  for (const item of group) {
-    const found = item.children ? siblingsOf(target, item.children) : null;
-    if (found) return found;
-  }
-  return null;
-}
-
-// Vuetify emits the same change twice per click; handling it once keeps the result stable.
-let lastEmitted: unknown[] = [];
-const sameMembers = (a: unknown[], b: unknown[]) => a.length === b.length && a.every((value) => b.includes(value));
-
-// Opening a group closes the other groups of the same level (compared by object, ids can repeat across levels).
-function keepOneOpenPerLevel(next: unknown[]) {
-  const nextRaw = next.map((value) => toRaw(value));
-  if (sameMembers(nextRaw, lastEmitted)) return;
-  lastEmitted = nextRaw;
-  const previous = new Set(initiallyOpen.value.map((value) => toRaw(value)));
-  const opened = nextRaw.find((value) => !previous.has(value));
-  if (opened === undefined) {
-    initiallyOpen.value = nextRaw;
-    return;
-  }
-  const closed = new Set(
-    (siblingsOf(opened) ?? [])
-      .filter((item) => toRaw(item) !== opened)
-      .flatMap((item) => [toRaw(item), ...descendantsOf(item)]),
-  );
-  initiallyOpen.value = nextRaw.filter((value) => !closed.has(value));
-}
 const person: UsuarioSesion = JSON.parse(sessionStorage.getItem("dataUser") as string)[0];
 
 onMounted(() => {
@@ -153,10 +116,16 @@ function mostrarResumenPricing() {
 function mostrarVolumen() {
   return true;
 }
-function isLockedItem(item: ItemMenu) {
-  return Boolean(
-    subscriptionsStore.lockedModuleForRoute(appStore.lstMenu, item.route),
+// Worked out once per menu and plan: each item rendering would otherwise walk the whole menu on every click.
+const lockedRoutes = computed(() => {
+  const routesIn = (items: ItemMenu[]): string[] =>
+    items.flatMap((item) => [...(item.route ? [item.route] : []), ...routesIn(item.children ?? [])]);
+  return new Set(
+    routesIn(lstMenu.value).filter((route) => subscriptionsStore.lockedModuleForRoute(lstMenu.value, route)),
   );
+});
+function isLockedItem(item: ItemMenu) {
+  return Boolean(item.route && lockedRoutes.value.has(item.route));
 }
 function getRouteForItem(item: Pick<ItemMenu, "route">): { name?: string } {
   if (!item || !item.route || !router.hasRoute(item.route)) {
@@ -258,14 +227,17 @@ watch(actualizarCostosFlag, () => {
 
     <v-divider />
 
+    <!-- "single": opening a group keeps only its own path open, so the other groups of every level close.
+         Registering items from their data mounts a group's children only while it is open: with the whole
+         menu mounted, every click re-rendered every item. -->
     <v-treeview
-      :opened="initiallyOpen"
-      @update:opened="keepOneOpenPerLevel"
       :items="lstMenu"
       :item-props="menuItemProps"
       item-title="name"
       item-value="id"
       open-on-click
+      open-strategy="single"
+      items-registration="props"
       return-object
     >
       <!-- ÍCONOS DEL MENÚ -->

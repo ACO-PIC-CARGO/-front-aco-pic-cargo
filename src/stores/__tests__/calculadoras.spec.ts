@@ -122,6 +122,7 @@ describe("calculadoras store", () => {
       method: "post",
       url: URL_MAIN + "listar_usuarios_calculadora",
       headers: JSON_HEADERS,
+      params: {},
       data: { iso_pais: 9589 },
     });
     expect(httpMock).toHaveBeenNthCalledWith(2, { method: "post", url: URL_MAIN + "cargue_status", headers: JSON_HEADERS });

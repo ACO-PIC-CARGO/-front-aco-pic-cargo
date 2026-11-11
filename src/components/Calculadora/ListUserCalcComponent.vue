@@ -50,6 +50,8 @@ const emptyFilter = (): FiltroUsuariosCalculadora => ({
   id_cliente: null,
   id_port_begin: null,
   id_port_end: null,
+  tipo: null,
+  correlativo: "",
 });
 const filtro = ref<FiltroUsuariosCalculadora>(emptyFilter());
 const filtroAplicado = ref<FiltroUsuariosCalculadora>(emptyFilter());
@@ -61,7 +63,7 @@ const title = ref("");
 const fecha = ref(moment().format("YYYY-MM-DD"));
 const headers = [
   { title: "Acciones", key: "action", sortable: false },
-  // { title: "", key: "accion" },
+  { title: "Correlativo", key: "correltivo" },
   { title: "Fecha Registro", key: "created_at" },
   { title: "Estado Cotización", key: "estado_cotizacion" },
   { title: "Cliente", key: "nombre" },
@@ -126,6 +128,7 @@ onMounted(async () => {
       calculadorasStore.listarPuertosDestinoCotizacionCalculadora(),
       calculadorasStore.listarClientesCotizacionCalculadora(),
       calculadorasStore.listarEstadosCotizacionCalculadora(),
+      pricingStore.getShipment(),
     ]);
     puertosOrigen.value = origen;
     puertosDestino.value = destino;
@@ -188,6 +191,10 @@ async function guardarEstadoCotizacion() {
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Quote numbers read as five digits: 1 → 00001.
+function correlativoDe(id: string | number | null | undefined) {
+  return id === null || id === undefined || id === "" ? "" : String(id).padStart(5, "0");
+}
 function getFecha(fecha: moment.MomentInput) {
   moment.locale("es");
   return moment(fecha).format("YYYY-MMM-DD");
@@ -1136,6 +1143,9 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
               {{ item.estado_cotizacion }}
             </v-chip>
           </template>
+          <template #[`item.correltivo`]="{ item }">
+            {{ correlativoDe(item.id) }}
+          </template>
           <template #[`item.action`]="{ item }">
             <div class="calc-users-actions">
               <v-tooltip location="top">
@@ -1235,6 +1245,12 @@ function conver_conten(valor: ConceptoCotizacionCalculadora[]) {
         <v-card-text>
           <v-progress-linear v-if="loadingFilters" indeterminate color="primary" class="mb-4" />
           <v-row>
+            <v-col cols="12">
+              <v-text-field v-model="filtro.correlativo" label="Correlativo" placeholder="Ej. 00001" variant="outlined" density="compact" hide-details clearable @keyup.enter="aplicarFiltro" />
+            </v-col>
+            <v-col cols="12">
+              <v-autocomplete v-model="filtro.tipo" :items="pricingStore.listShipment" item-title="embarque" item-value="code" label="Tipo" variant="outlined" density="compact" hide-details clearable />
+            </v-col>
             <v-col cols="12">
               <v-autocomplete v-model="filtro.id_port_begin" :items="puertosOrigen" item-title="port_origen" item-value="id_port" label="Puerto origen" variant="outlined" density="compact" hide-details clearable />
             </v-col>

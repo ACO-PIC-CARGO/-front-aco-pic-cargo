@@ -215,6 +215,9 @@ export interface FiltroUsuariosCalculadora {
   id_cliente: number | string | null;
   id_port_begin: number | string | null;
   id_port_end: number | string | null;
+  // Shipment type code (getShipment) and quote number; the list endpoint reads both from the query string.
+  tipo: string | null;
+  correlativo: string;
 }
 
 export interface PuertoFiltroCalculadora {

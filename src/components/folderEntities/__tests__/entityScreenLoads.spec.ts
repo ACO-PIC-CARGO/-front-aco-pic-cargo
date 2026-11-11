@@ -90,6 +90,47 @@ test("opening Ver Cliente asks for every catalog and the client at once, each on
   wrapper.unmount();
 });
 
+test("Ver Cliente shows its five tabs, with phones and contacts joined to the client's data", async () => {
+  const wrapper = mountWith(VerClienteComponent, SECTIONS);
+  await answerAll();
+
+  expect(wrapper.findAll('[role="tab"]').map((tab) => tab.text())).toEqual([
+    "Datos y Contactos",
+    "Convenios y Tarifas",
+    "Información Bancaria",
+    "Shipper",
+    "Destinatario",
+  ]);
+  expect(wrapper.find('[aria-selected="true"]').text()).toBe("Datos y Contactos");
+  await wrapper.findAll('[role="tab"]')[2]!.trigger("click");
+  expect(wrapper.find('[aria-selected="true"]').text()).toBe("Información Bancaria");
+  wrapper.unmount();
+});
+
+test("Editar in Ver Cliente first checks whether the client has movements", async () => {
+  const wrapper = mountWith(VerClienteComponent, SECTIONS);
+  await answerAll();
+  httpMock.mockClear();
+
+  await wrapper.findAll("button").find((button) => button.text() === "Editar")!.trigger("click");
+  await flushPromises();
+
+  expect(requested()).toEqual(["entities/validar_eliminar_cliente"]);
+  wrapper.unmount();
+});
+
+test("Editar Cliente reuses the same card and opens editing once the client's edit is approved", async () => {
+  const wrapper = mountWith(EditarClienteComponent, SECTIONS);
+  await answerAll();
+
+  expect(requested()).toContain("entities/validar_eliminar_cliente");
+  expect(wrapper.findAll('[role="tab"]')).toHaveLength(5);
+  const buttons = wrapper.findAll("button").map((button) => button.text());
+  expect(buttons).toEqual(expect.arrayContaining(["Cancelar", "Guardar"]));
+  expect(buttons).not.toContain("Editar");
+  wrapper.unmount();
+});
+
 test("Ver Cliente loads the client's departments, provinces and districts together once the client arrives", async () => {
   const wrapper = mountWith(VerClienteComponent, SECTIONS);
   await flushPromises();

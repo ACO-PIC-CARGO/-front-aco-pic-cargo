@@ -38,7 +38,11 @@ beforeEach(() => {
     controlled: ["listUserCalc"],
   }));
   httpMock.mockImplementation(async (config) => ({
-    data: accepted(config.url.includes("listar_usuarios_calculadora") ? [row] : []),
+    data: accepted(
+      config.url.includes("listar_usuarios_calculadora") ? [row]
+        : config.url.endsWith("getShipment") ? [{ id: 1, code: "FCL", embarque: "Marítimo - Completo" }]
+          : [],
+    ),
   }));
 });
 afterEach(() => {
@@ -136,7 +140,7 @@ test("aplica filtros y los conserva para exportar y limpiar", async () => {
   expect(listRequests()[listRequests().length - 1]?.data).toEqual({ iso_pais: 9589, ...expected });
   button("Exportar").click();
   await flushPromises();
-  expect(exportar).toHaveBeenCalledWith(expected);
+  expect(exportar).toHaveBeenCalledWith({ ...expected, tipo: null, correlativo: "" });
   button("Filtrar").click();
   await flushPromises();
   button("Limpiar").click();
@@ -146,14 +150,14 @@ test("aplica filtros y los conserva para exportar y limpiar", async () => {
   });
 });
 
-test("solo muestra los cuatro filtros permitidos", async () => {
+test("solo muestra los filtros permitidos", async () => {
   await mountScreen();
   button("Filtrar").click();
   await flushPromises();
   const labels = [...new Set(
     [...document.querySelectorAll(".calc-users-filter-drawer label")].map((label) => label.textContent?.trim()),
   )];
-  expect(labels).toEqual(["Puerto origen", "Puerto destino", "Cliente", "Estado de cotización"]);
+  expect(labels).toEqual(["Correlativo", "Tipo", "Puerto origen", "Puerto destino", "Cliente", "Estado de cotización"]);
   expect(document.querySelectorAll(".calc-users-filter-drawer .v-col-sm-6")).toHaveLength(0);
   const selects = wrapper!.findAllComponents(components.VAutocomplete);
   expect(selects.find((select) => select.props("label") === "Puerto origen")!.props("itemTitle")).toBe("port_origen");
@@ -184,4 +188,40 @@ test("cerrar el panel descarta cambios sin aplicar ni recargar", async () => {
   expect(wrapper!.findAllComponents(components.VAutocomplete)
     .find((select) => select.props("label") === "Estado de cotización")!
     .props("modelValue")).toBeNull();
+});
+
+test("el correlativo se muestra con cinco dígitos", async () => {
+  await mountScreen();
+  const headers = [...document.querySelectorAll("thead th")].map((th) => th.textContent?.trim());
+  const cell = document.querySelectorAll("tbody tr:first-child td")[headers.indexOf("Correlativo")];
+  expect(cell?.textContent?.trim()).toBe("00001");
+});
+
+test("tipo (code de getShipment) y correlativo viajan en la URL del listado y del Excel", async () => {
+  const store = await mountScreen();
+  const exportar = vi.spyOn(store, "ExportarListUser");
+  expect(httpMock.mock.calls.some(([config]) => config.url.endsWith("getShipment"))).toBe(true);
+  button("Filtrar").click();
+  await flushPromises();
+  const tipo = wrapper!.findAllComponents(components.VAutocomplete).find((select) => select.props("label") === "Tipo")!;
+  expect(tipo.props("itemValue")).toBe("code");
+  tipo.vm.$emit("update:modelValue", "FCL");
+  const correlativo = document.querySelector<HTMLInputElement>(".calc-users-filter-drawer input[placeholder='Ej. 00001']")!;
+  correlativo.value = " 00012 ";
+  correlativo.dispatchEvent(new Event("input"));
+  await flushPromises();
+  button("Aceptar").click();
+  await flushPromises();
+
+  const listRequests = httpMock.mock.calls.map(([config]) => config).filter((config) => config.url.endsWith("listar_usuarios_calculadora"));
+  const last = listRequests[listRequests.length - 1]!;
+  expect(last.params).toEqual({ tipo: "FCL", correlativo: "00012" });
+  expect(last.data).not.toHaveProperty("tipo");
+  expect(last.data).not.toHaveProperty("correlativo");
+
+  button("Exportar").click();
+  await flushPromises();
+  expect(exportar).toHaveBeenCalledWith(expect.objectContaining({ tipo: "FCL", correlativo: " 00012 " }));
+  const excel = httpMock.mock.calls.map(([config]) => config).find((config) => config.url.endsWith("export_listar_usuarios_calculadora"))!;
+  expect(excel.params).toEqual(expect.objectContaining({ tipo: "FCL", correlativo: "00012" }));
 });
