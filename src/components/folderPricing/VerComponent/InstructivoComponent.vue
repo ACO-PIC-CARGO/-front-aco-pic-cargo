@@ -6,6 +6,8 @@ import Swal from "sweetalert2";
 import moment from "moment";
 import axios from "@/api/http";
 import FileSequenceInstructivo from "../../comun/FileSequenceInstructivo.vue";
+import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
+import { askExpedienteKind, askMasterAvailabilityDate } from "@/utils/expedienteChoice";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
@@ -45,7 +47,6 @@ const approvalState = computed(() => {
 
 const notaForm = useTemplateRef("nota");
 const frmSeleccionQuote = useTemplateRef("frmSeleccionQuote");
-const frmAsociarExpediente = useTemplateRef("frmAsociarExpediente");
 
 const dialogCorrelativos = ref(false);
 const correlativos = ref<{ code: string }[]>([]);
@@ -64,8 +65,6 @@ const dialog = ref(false);
 const seleccionQuoteAprobar = ref(false);
 const page = ref(1);
 const nro_propuesta = ref<number | string>("");
-const mostrarAdvertencia = ref(false);
-const textValidacionCotizacionMaster = ref<string[]>([]);
 const dialogConfig = ref(false);
 const dialogCostos = ref(false);
 const dialogReplaceCosts = ref(false);
@@ -328,59 +327,10 @@ async function guardarConfig() {
   dialogConfig.value = false;
   abrirSeleccionDeQuoteAAprobar();
 }
-function verificarMaster() {
-  mostrarAdvertencia.value = false;
-  textValidacionCotizacionMaster.value = [];
-  const master = appStore.itemsMasterList.find(
-    (v: ExpedienteMaster) => v.id == id_exp.value,
-  )!;
+function onMasterSelected(master: ExpedienteMaster) {
+  id_exp.value = master.id;
   url_folderonedrive.value = master.url_folderonedrive;
-  if (
-    !(
-      pricingStore.datosPrincipales.idsentido ==
-      master.id_modality
-    )
-  ) {
-    mostrarAdvertencia.value = true;
-    textValidacionCotizacionMaster.value.push("Modalidad");
-  }
-  if (
-    !(
-      pricingStore.datosPrincipales.idtipocarga ==
-      master.id_shipment
-    )
-  ) {
-    mostrarAdvertencia.value = true;
-    textValidacionCotizacionMaster.value.push("Tipó de Cargar");
-  }
-  if (
-    !(
-      pricingStore.datosPrincipales.idincoterms ==
-      master.id_incoterms
-    )
-  ) {
-    mostrarAdvertencia.value = true;
-    textValidacionCotizacionMaster.value.push("Incoterms");
-  }
-
-  if (
-    !(
-      pricingStore.datosPrincipales.idorigen ==
-      master.id_port_begin
-    )
-  ) {
-    mostrarAdvertencia.value = true;
-    textValidacionCotizacionMaster.value.push("Puerto de origien");
-  }
-  if (
-    !(
-      pricingStore.datosPrincipales.iddestino ==
-      master.id_port_end
-    )
-  ) {
-    mostrarAdvertencia.value = true;
-    textValidacionCotizacionMaster.value.push("Puerto de Destino");
-  }
+  continuarAprobar();
 }
 async function imprimir() {
   pricingStore.opcionCostos
@@ -535,7 +485,7 @@ async function abrirModalAprobar() {
     const cantFecha = newFechaValize.diff(hoy, "days");
 
     if (!esValida) {
-      return Swal.fire({
+      const answer = await Swal.fire({
         icon: "question",
         title: "Advertencia",
         text: `Quedan ${
@@ -547,231 +497,45 @@ async function abrirModalAprobar() {
         showCancelButton: true,
         confirmButtonText: "Enviar a Operaciones.",
         cancelButtonText: "No aprobar.",
-      }).then((res) => {
-        if (res.isDismissed) {
-          return false;
-        }
-
-        nuevoexpediente.value = true;
-        id_exp.value = "";
-        Swal.fire({
-          icon: "question",
-          iconColor: "red",
-          width: 1000,
-          html:
-            appStore.itemsMasterList.length > 0
-              ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
-              : "<h1>¿Desea crear un nuevo expediente?</h1>",
-          showConfirmButton: true,
-          confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-          showDenyButton: appStore.itemsMasterList.length > 0,
-          denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
-          showCloseButton: true,
-          showCancelButton: false,
-          allowOutsideClick: false,
-        }).then(async (res) => {
-          if (res.isConfirmed) {
-            Swal.fire({
-              icon: "warning",
-              width: 1000,
-              title: "Fecha de Disponibilidad - Master",
-              html: `<input type="date" id="swal-input1" class="swal2-input">
-              <p>Si es Importación seria el ETA </p>
-              <p>SI  es Exportación Colocar el ETD </p>
-              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
-
-
-              `,
-              allowOutsideClick: false,
-              confirmButtonText: "ACEPTAR",
-              showCancelButton: true,
-              cancelButtonText: "CANCELAR",
-              preConfirm: () => {
-                const dateInput =
-                  (document.getElementById("swal-input1") as HTMLInputElement).value;
-                if (!dateInput) {
-                  Swal.showValidationMessage(
-                    "La fecha de validez es requerida",
-                  );
-                } else {
-                  const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
-                  const currentDate = moment(); // Obtiene la fecha actual
-
-                  if (selectedDate.isSameOrBefore(currentDate)) {
-                    Swal.showValidationMessage(
-                      "La fecha debe ser mayor que la fecha actual",
-                    );
-                  } else {
-                    return dateInput;
-                  }
-                }
-              },
-            }).then(async (res) => {
-              fecha_validez.value = res.value;
-              console.log(
-                "b",
-                pricingStore.listIngresosInstructivoAprobar,
-              );
-              // eslint-disable-next-line @typescript-eslint/no-unused-vars
-              const sum =
-                pricingStore.listIngresosInstructivoAprobar.filter(
-                  (v) => v.nro_propuesta == nro_propuesta.value,
-                );
-              const igv =
-                pricingStore.listIngresosInstructivoAprobar
-                  .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
-                  .dataIngresos.filter(
-                    (v) => v.descripcion === "TOTAL",
-                  )[0]!.igv;
-              const valor =
-                pricingStore.listIngresosInstructivoAprobar
-                  .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
-                  .dataIngresos.filter(
-                    (v) => v.descripcion === "TOTAL",
-                  )[0]!.valor;
-              const listCostosInstructivo =
-                pricingStore.listIngresosInstructivoAprobar.filter(
-                  (v) => v.nro_propuesta == nro_propuesta.value,
-                )[0]!.dataCostos;
-              const listVentasInstructivo =
-                pricingStore.listIngresosInstructivoAprobar.filter(
-                  (v) => v.nro_propuesta == nro_propuesta.value,
-                )[0]!.dataVentas;
-              if (res.isConfirmed) {
-                await approveQuote({
-                  id_quote: route.params.id,
-                  nuevoexpediente: true,
-                  id_exp: id_exp.value,
-                  fecha_validez: fecha_validez.value,
-                  totalIngreso: valor,
-                  igvIngreso: igv,
-                  valorIngreso: valor,
-                  listCostosInstructivo: listCostosInstructivo,
-                  listVentasInstructivo: listVentasInstructivo,
-                  id_house: id_house.value,
-                  id_opcion: id_opcion.value,
-                  url_folderonedrive: url_folderonedrive.value,
-                });
-              }
-            });
-          }
-          if (res.isDenied) {
-            nuevoexpediente.value = false;
-            aprobarflag.value = true;
-          }
-        });
       });
-    } else {
-      nuevoexpediente.value = true;
-      id_exp.value = "";
-      Swal.fire({
-        icon: "question",
-        iconColor: "red",
-        width: 1000,
-        html:
-          appStore.itemsMasterList.length > 0
-            ? "<h1>¿Desea crear un nuevo expediente o seleccionar uno registrado?</h1>"
-            : "<h1>¿Desea crear un nuevo expediente?</h1>",
-        showConfirmButton: true,
-        confirmButtonText: "CREAR NUEVO EXPEDIENTE",
-        showDenyButton: appStore.itemsMasterList.length > 0,
-        denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO",
-        showCloseButton: true,
-        showCancelButton: false,
-        allowOutsideClick: false,
-      }).then(async (res) => {
-        if (res.isConfirmed) {
-          Swal.fire({
-            icon: "warning",
-            width: 1000,
-            title: "Fecha de Disponibilidad - Master",
-            html: `<input type="date" id="swal-input1" class="swal2-input">
-              <p>Si es Importación seria el ETA </p>
-              <p>SI  es Exportación Colocar el ETD </p>
-              <p style="color:red">Esto te Ayudara a Controlar tus Operaciones  </p>
-
-
-              `,
-            allowOutsideClick: false,
-            confirmButtonText: "ACEPTAR",
-            showCancelButton: true,
-            cancelButtonText: "CANCELAR",
-            preConfirm: () => {
-              const dateInput =
-                (document.getElementById("swal-input1") as HTMLInputElement).value;
-              if (!dateInput) {
-                Swal.showValidationMessage(
-                  "La fecha de validez es requerida",
-                );
-              } else {
-                const selectedDate = moment(dateInput, "YYYY-MM-DD"); // Parsea la fecha ingresada
-                const currentDate = moment(); // Obtiene la fecha actual
-
-                if (selectedDate.isSameOrBefore(currentDate)) {
-                  Swal.showValidationMessage(
-                    "La fecha debe ser mayor que la fecha actual",
-                  );
-                } else {
-                  return dateInput;
-                }
-              }
-            },
-          }).then(async (res) => {
-            fecha_validez.value = res.value;
-            console.log(
-              "a",
-              pricingStore.listIngresosInstructivoAprobar,
-            );
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const sum =
-              pricingStore.listIngresosInstructivoAprobar.filter(
-                (v) => v.nro_propuesta == nro_propuesta.value,
-              );
-            const igv =
-              pricingStore.listIngresosInstructivoAprobar
-                .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
-                .dataIngresos.filter(
-                  (v) => v.descripcion === "TOTAL",
-                )[0]!.igv;
-            const valor =
-              pricingStore.listIngresosInstructivoAprobar
-                .filter((v) => v.nro_propuesta == nro_propuesta.value)[0]!
-                .dataIngresos.filter(
-                  (v) => v.descripcion === "TOTAL",
-                )[0]!.valor;
-            const listCostosInstructivo =
-              pricingStore.listIngresosInstructivoAprobar.filter(
-                (v) => v.nro_propuesta == nro_propuesta.value,
-              )[0]!.dataCostos;
-            const listVentasInstructivo =
-              pricingStore.listIngresosInstructivoAprobar.filter(
-                (v) => v.nro_propuesta == nro_propuesta.value,
-              )[0]!.dataVentas;
-            if (res.isConfirmed) {
-              await approveQuote({
-                id_quote: route.params.id,
-                nuevoexpediente: true,
-                id_exp: id_exp.value,
-                fecha_validez: fecha_validez.value,
-                totalIngreso: valor,
-                igvIngreso: igv,
-                valorIngreso: valor,
-                listCostosInstructivo: listCostosInstructivo,
-                listVentasInstructivo: listVentasInstructivo,
-                id_house: id_house.value,
-                id_opcion: id_opcion.value,
-                url_folderonedrive: url_folderonedrive.value,
-              });
-            }
-          });
-        }
-        if (res.isDenied) {
-          nuevoexpediente.value = false;
-          aprobarflag.value = true;
-        }
-      });
+      if (answer.isDismissed) {
+        return false;
+      }
     }
+    return chooseExpediente();
   }
+}
+async function chooseExpediente() {
+  nuevoexpediente.value = true;
+  id_exp.value = "";
+  const kind = await askExpedienteKind(appStore.itemsMasterList.length > 0);
+  if (kind === "existing") {
+    nuevoexpediente.value = false;
+    aprobarflag.value = true;
+    return;
+  }
+  if (kind !== "new") return;
+  const fecha = await askMasterAvailabilityDate();
+  if (!fecha) return;
+  fecha_validez.value = fecha;
+  const opcion = pricingStore.listIngresosInstructivoAprobar.filter(
+    (v) => v.nro_propuesta == nro_propuesta.value,
+  )[0]!;
+  const total = opcion.dataIngresos.filter((v) => v.descripcion === "TOTAL")[0]!;
+  await approveQuote({
+    id_quote: route.params.id,
+    nuevoexpediente: true,
+    id_exp: id_exp.value,
+    fecha_validez: fecha_validez.value,
+    totalIngreso: total.valor,
+    igvIngreso: total.igv,
+    valorIngreso: total.valor,
+    listCostosInstructivo: opcion.dataCostos,
+    listVentasInstructivo: opcion.dataVentas,
+    id_house: id_house.value,
+    id_opcion: id_opcion.value,
+    url_folderonedrive: url_folderonedrive.value,
+  });
 }
 function continueFromCostOption() {
   dialogCostos.value = false;
@@ -914,11 +678,7 @@ async function continuarAprobarHouses() {
     pricingStore.listIngresosInstructivoAprobar.filter(
       (v) => v.nro_propuesta == nro_propuesta.value,
     )[0]!.dataVentas;
-  const formulario = frmAsociarExpediente.value;
-  if (formulario && !(await formulario.validate()).valid) {
-    return;
-  }
-  if (formulario || id_exp.value || nuevoexpediente.value) {
+  if (id_exp.value) {
     await approveQuote({
       id_quote: route.params.id,
       nuevoexpediente: false,
@@ -938,9 +698,6 @@ async function continuarAprobarHouses() {
   }
 }
 
-function noDataText() {
-  return `No se encontraron Masters con la misma Modalidad, Tipo de Carga, Incoterms y/o Puerto Origen/ Destino asociados a la cotización.`;
-}
 function getProveedor(element: OpcionCosto) {
   const id_proveedor = element.listCostos.some(
     (v) => v.code_cost == 4 && v.esopcionflag == 1,
@@ -970,89 +727,13 @@ function getProveedor(element: OpcionCosto) {
         />
       </div>
     </v-col>
-    <v-dialog
+    <MasterSelectDialog
       v-model="aprobarflag"
-      eager
-      scrollable
-      persistent
-      max-width="50%"
-      transition="dialog-transition"
-      class="classDialog"
-    >
-      <v-card>
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
-          SELECCIONE EL EXPEDIENTE A ASOCIAR:
-          <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="aprobarflag = !aprobarflag"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-form ref="frmAsociarExpediente">
-            <v-row>
-              <v-autocomplete
-                :items="appStore.itemsMasterList"
-                v-model="id_exp"
-                label="Expediente"
-                item-title="code_master"
-                item-value="id"
-                :rules="[(v) => !!v || 'Dato Requerido']"
-                :no-data-text="noDataText()"
-                @update:model-value="verificarMaster()"
-                class="mx-5 my-5"
-              />
-            </v-row>
-          </v-form>
-
-          <v-alert
-            v-if="mostrarAdvertencia"
-            border="start"
-            border-color="error"
-            color="surface"
-            elevation="2"
-          >
-            <template #prepend>
-              <v-icon
-                color="error"
-                icon="$error"
-              />
-            </template>
-            El Master seleccionado no coincide con
-            {{ textValidacionCotizacionMaster.join(", ") }} asociados a la
-            cotización.
-            <h3>¿Está seguro, de asociar la cotización a este registro?</h3>
-          </v-alert>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            class="mx-1"
-            size="small"
-            @click="continuarAprobar()"
-            color="success"
-            :loading="loading"
-          >
-            SELECCIONAR
-          </v-btn>
-          <v-btn
-            class="mx-1"
-            size="small"
-            color="error"
-            @click="aprobarflag = !aprobarflag"
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      :masters="appStore.itemsMasterList"
+      :quote="pricingStore.datosPrincipales"
+      :loading="loading"
+      @select="onMasterSelected"
+    />
     <v-dialog
       v-model="seleccionQuoteAprobar"
       eager
