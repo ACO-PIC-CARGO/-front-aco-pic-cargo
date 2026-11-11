@@ -63,7 +63,7 @@ onMounted(async () => {
   await Promise.all([pricingStore.getResumenPorEstado(), props.pricingView ? null : pricingStore.getQuoteCall()]);
   appStore.spiner = false;
   await Promise.all([
-    pricingStore.cargarTrabajadores(),
+    pricingStore.getPersonalPricing(),
     pricingStore.getQuoteStatus(),
     pricingStore.getMarketingList(),
     appStore.cargarClientes(),
