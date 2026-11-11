@@ -85,7 +85,7 @@ import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
-import { QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
+import { COPY_FAILED_MESSAGE, QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1586,7 +1586,7 @@ export const usePricingStore = defineStore("pricing", () => {
   }: {
     fullflag?: boolean;
     id?: unknown;
-  }): Promise<void> {
+  }): Promise<string | null> {
     const data = {
       id: datosPrincipales.value.id,
       id_town: datosPrincipales.value.id_town,
@@ -1601,12 +1601,14 @@ export const usePricingStore = defineStore("pricing", () => {
       data: data,
     };
     // let vm = this;
-    await axios<ApiResponse<CotizacionCopiada[]>>(config).then(async (response) => {
-      id.value = response.data.data[0]!.insertid;
-      nro_quote.value = response.data.data[0]!.nro_quote;
-      mensaje.value = response.data.data[0]!.mensaje;
-      tiporeporte.value = "";
-    });
+    const response = await request<CotizacionCopiada>(config);
+    const copy = response.data[0];
+    if (!response.estadoflag || !copy) return response.estadoflag ? COPY_FAILED_MESSAGE : response.mensaje;
+    id.value = copy.insertid;
+    nro_quote.value = copy.nro_quote;
+    mensaje.value = copy.mensaje;
+    tiporeporte.value = "";
+    return null;
   }
   async function crearCarpetaOneDrive({
     id_quote = id.value,

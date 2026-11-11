@@ -15,12 +15,13 @@ vi.mock("vue-router", () => ({
 }));
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn().mockResolvedValue({ data: {} }), { post: vi.fn(), get: vi.fn() }) }));
-vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
 vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn(), disconnect: vi.fn() }) }));
 
 interface TopBar {
   guardarCotizacion(): Promise<void>;
   editarCotizacion(): Promise<void>;
+  copiarCotizacion(): Promise<void>;
 }
 
 const REFUSED = "El tiempo de tránsito de la opción 1 debe ser un número entero de días, por ejemplo 15.";
@@ -100,4 +101,36 @@ test("a saved edit opens the quote", async () => {
   await topBar.editarCotizacion();
 
   expect(push).toHaveBeenCalledWith(expect.objectContaining({ name: "verQuote" }));
+});
+
+const COPY_REFUSED = "No tienes el permiso PRICING › COTIZACIÓN › LISTADO COTIZACION › COPIAR. Pide a un administrador de tu empresa que te lo asigne.";
+
+test("a copy the server refuses shows why and leaves the original quote's folder and files alone", async () => {
+  const { pricing, folder, topBar } = await topBarOn("verQuote");
+  vi.spyOn(pricing, "copiarQuote").mockResolvedValue(COPY_REFUSED);
+  const folderLink = vi.spyOn(pricing, "actualizarURLEnElQuote");
+
+  await topBar.copiarCotizacion();
+  await flushPromises();
+
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "error", text: COPY_REFUSED }));
+  expect(folder).not.toHaveBeenCalled();
+  expect(folderLink).not.toHaveBeenCalled();
+  expect(push).not.toHaveBeenCalled();
+});
+
+test("a copied quote gets its own folder and offers to open the copy", async () => {
+  const { pricing, folder, topBar } = await topBarOn("verQuote");
+  vi.spyOn(pricing, "copiarQuote").mockImplementation(async () => {
+    pricing.id = 601;
+    pricing.mensaje = "Se copió la cotización 16000-P.";
+    return null;
+  });
+
+  await topBar.copiarCotizacion();
+  await flushPromises();
+
+  expect(folder).toHaveBeenCalled();
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ text: "Se copió la cotización 16000-P.", confirmButtonText: "Ir a ver" }));
+  expect(push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 601 } });
 });
