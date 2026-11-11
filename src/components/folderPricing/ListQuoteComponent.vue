@@ -794,8 +794,8 @@ onMounted(async () => {
               readonly
               hide-details
               variant="outlined"
-              item-title="nombrecompleto"
-              item-value="id"
+              item-title="name"
+              item-value="id_entitie"
               v-model="pricingStore.filtro.id_pricing"
             >
               <template #selection="{ internalItem }">
@@ -816,8 +816,8 @@ onMounted(async () => {
               readonly
               hide-details
               variant="outlined"
-              item-title="nombrecompleto"
-              item-value="id"
+              item-title="name"
+              item-value="id_entitie"
               v-model="pricingStore.filtro.id_entities"
             >
               <template #selection="{ internalItem }">
