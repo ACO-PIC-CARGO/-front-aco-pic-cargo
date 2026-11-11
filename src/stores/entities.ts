@@ -911,13 +911,13 @@ export const useEntitiesStore = defineStore("entities", () => {
           lstTelefonos.value = res.lsttelefonos.map((item) => {
             return {
               ...item,
-              id_tipotelefono: item.id_tipotelefono!.toString(),
+              id_tipotelefono: phoneTypeText(item.id_tipotelefono),
             };
           });
           lstContactos.value = res.lstcontactos.map((item) => {
             return {
               ...item,
-              id_tipotelefono: item.id_tipotelefono!.toString(),
+              id_tipotelefono: phoneTypeText(item.id_tipotelefono),
             };
           });
           lstConvenios.value = res.lstconvenios;
