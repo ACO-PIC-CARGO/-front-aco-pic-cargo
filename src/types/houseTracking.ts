@@ -19,6 +19,8 @@ export interface HouseTrackingStep {
   confirmed_by: string | null;
   sent_at: string | null;
   scheduled_at: string | null;
+  // ETD, ETA and availability steps: the master date shown as scheduled_at (e.g. "Llegada (ETA)"); null for the rest.
+  house_date_name?: string | null;
   validation: { code: string; name: string } | null;
   validation_result: WeightCheckResult | null;
   validation_result_code: string | null;
