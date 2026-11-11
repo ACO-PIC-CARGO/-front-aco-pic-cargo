@@ -575,6 +575,11 @@ const routes = [
         component: () => import("../views/FolderBanks/CuentasBancariasListado.vue"),
       },
       {
+        path: "tipo_proveedor/listado",
+        name: "tipoProveedor",
+        component: () => import("../views/TipoProveedor/ListTipoProveedor.vue"),
+      },
+      {
         path: "bank/list",
         name: "bankList",
         component: () => import("../views/FolderBanks/ListaBancos.vue"),

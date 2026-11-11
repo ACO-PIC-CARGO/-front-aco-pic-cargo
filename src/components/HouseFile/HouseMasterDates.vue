@@ -84,16 +84,26 @@ const dates = computed(() => [
         <v-col
           cols="12"
           md="6"
+          class="d-flex align-center"
         >
-          <v-checkbox
-            :model-value="Boolean(item.confirmed)"
-            :label="item.confirmedLabel"
-            density="compact"
-            hide-details
-            readonly
-          />
+          <v-chip
+            class="confirmation-chip"
+            :class="{ 'confirmation-chip--on': item.confirmed }"
+            size="small"
+            variant="flat"
+            :color="item.confirmed ? 'teal-darken-1' : 'grey'"
+            :prepend-icon="item.confirmed ? 'mdi-check-circle' : 'mdi-close-circle'"
+          >
+            {{ item.confirmedLabel }}
+          </v-chip>
         </v-col>
       </template>
     </v-row>
   </div>
 </template>
+
+<style scoped>
+.confirmation-chip {
+  font-weight: 600;
+}
+</style>

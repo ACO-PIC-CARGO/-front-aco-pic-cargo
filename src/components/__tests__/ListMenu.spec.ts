@@ -77,6 +77,39 @@ beforeEach(async () => {
 
 afterEach(() => wrapper.unmount());
 
+test("opening a group closes the other groups of its own level and keeps the rest", async () => {
+  wrapper.unmount();
+  sessionStorage.setItem(
+    "menu",
+    JSON.stringify([
+      { id: 1, name: "A", children: [{ id: 1, name: "A1", children: [{ id: 5, name: "A1x", route: "listClientes" }] }, { id: 2, name: "A2", children: [{ id: 6, name: "A2x", route: "listClientes" }] }] },
+      { id: 2, name: "B", children: [{ id: 3, name: "B1", children: [{ id: 7, name: "B1x", route: "listClientes" }] }] },
+    ]),
+  );
+  wrapper = mount(MenuHost, {
+    global: { plugins: [createVuetify({ components, directives }), createPinia(), router] },
+    attachTo: document.body,
+  });
+  await settle();
+  const visible = (name: string) => {
+    const row = wrapper.findAll(".v-treeview-item").find((item) => item.find(".v-list-item-title").text().trim() === name);
+    return Boolean(row?.element.closest(".v-list-group")?.classList.contains("v-list-group--open"));
+  };
+
+  await openMenuItem("A");
+  await openMenuItem("A1");
+  expect(visible("A1")).toBe(true);
+  await openMenuItem("A2");
+  expect(visible("A2")).toBe(true);
+  expect(visible("A1")).toBe(false);
+  expect(visible("A")).toBe(true);
+
+  await openMenuItem("B");
+  expect(visible("B")).toBe(true);
+  expect(visible("A")).toBe(false);
+  expect(visible("A2")).toBe(false);
+});
+
 test("a menu item opens its screen with one click on its row", async () => {
   await openMenuItem("CLIENTES");
 

@@ -214,11 +214,11 @@ onMounted(async () => {
         />
       </v-col>
       <v-col
-        v-if="editing"
         cols="12"
         md="6"
       >
         <v-autocomplete
+          v-if="editing"
           v-model="form.id_consigner"
           :items="appStore.clientes"
           item-title="namelong"
@@ -226,16 +226,30 @@ onMounted(async () => {
           label="Cliente HBL"
           :readonly="false"
         />
+        <v-text-field
+          v-else
+          label="Cliente HBL"
+          :model-value="housesStore.house.consigner"
+          readonly
+          :append-inner-icon="housesStore.house.id_consigner ? 'mdi-eye' : ''"
+          @click:append-inner="openEntity('ver-cliente', housesStore.house.id_consigner)"
+        />
       </v-col>
       <v-col
-        v-if="editing"
         cols="12"
         md="6"
       >
         <v-text-field
+          v-if="editing"
           v-model="form.nro_hbl"
           label="N° BL House"
           :readonly="false"
+        />
+        <v-text-field
+          v-else
+          label="N° BL House"
+          :model-value="housesStore.house.nro_hbl"
+          readonly
         />
       </v-col>
       <v-col
