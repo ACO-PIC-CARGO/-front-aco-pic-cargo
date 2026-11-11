@@ -1,7 +1,15 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { defineComponent } from "vue";
 import { mount } from "@vue/test-utils";
-import { GENERATED_QUOTE_ROLES, availableModalities, generatedQuoteLocation, useGeneratedQuoteNotices } from "../useGeneratedQuoteNotices";
+import {
+  GENERATED_QUOTE_ROLES,
+  availableModalities,
+  formatQuoteValue,
+  formatQuoteVolume,
+  formatQuoteWeight,
+  generatedQuoteLocation,
+  useGeneratedQuoteNotices,
+} from "../useGeneratedQuoteNotices";
 import type { GeneratedQuotePayload } from "../useGeneratedQuoteNotices";
 
 type Listener = (payload: GeneratedQuotePayload) => void;
@@ -98,4 +106,23 @@ test.each([
 
 test("sin id de cotización no hay a dónde ir", () => {
   expect(generatedQuoteLocation({ ...bot }, "individual")).toBeNull();
+});
+
+test("el aviso conserva volumen, peso y valor de mercancía del socket", () => {
+  const { handlers, inbox } = setup();
+  handlers["cotizacion-calculadora"]!({ id_branch: 1, nro_cotizacion: "A", volumen: "4.4", peso: 610, valor_mercancia: "4350" });
+  expect(inbox.current.value).toMatchObject({ volumen: "4.4", peso: 610, valor_mercancia: "4350" });
+});
+
+test("valor, peso y volumen se muestran con su unidad", () => {
+  expect(formatQuoteValue("4350")).toBe("USD 4,350");
+  expect(formatQuoteValue(1234.5)).toBe("USD 1,234.5");
+  expect(formatQuoteWeight(610)).toBe("610 kg");
+  expect(formatQuoteVolume("4.4")).toBe("4.40 m³");
+});
+
+test.each([undefined, null, "", "  "])("sin dato (%j) no se muestra la fila", (value) => {
+  expect(formatQuoteValue(value)).toBeNull();
+  expect(formatQuoteWeight(value)).toBeNull();
+  expect(formatQuoteVolume(value)).toBeNull();
 });
