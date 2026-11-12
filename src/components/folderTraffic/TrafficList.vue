@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import { usePermissions } from "@/composables/usePermissions";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
@@ -36,6 +37,7 @@ const canCreate = usePermissions().can("lstTraffic", "NUEVO");
 const creating = shallowRef(false);
 const state = shallowRef<TrafficState | null>(null);
 const status = shallowRef<number | null>(null);
+const correlativo = shallowRef<string | null>("");
 const loading = shallowRef(false);
 const page = shallowRef(1);
 const pageSize = shallowRef(10);
@@ -47,11 +49,14 @@ const statusOptions = computed(() => [
   { title: "Todos los estatus", value: null },
   ...trafficStore.statuses.map((option) => ({ title: option.name, value: option.id })),
 ]);
-const emptyText = "No hay expedientes de tráfico con esos filtros. Cambia el estado o el estatus.";
+const emptyText = "No hay expedientes de tráfico con esos filtros. Cambia el estado, el estatus o el correlativo.";
 
 async function load() {
   loading.value = true;
-  await trafficStore.loadFiles({ state: state.value, status: status.value }, { pagina: page.value, limit: pageSize.value });
+  await trafficStore.loadFiles(
+    { state: state.value, status: status.value, correlativo: correlativo.value?.trim() || null },
+    { pagina: page.value, limit: pageSize.value },
+  );
   loading.value = false;
 }
 
@@ -72,7 +77,9 @@ async function onSent() {
   await load();
 }
 
-watch([state, status], () => (page.value === 1 ? load() : (page.value = 1)));
+const reloadFromFirstPage = () => (page.value === 1 ? load() : (page.value = 1));
+watch([state, status], reloadFromFirstPage);
+watch(correlativo, useDebouncedSearch(reloadFromFirstPage, 400));
 watch([page, pageSize], load);
 onMounted(async () => {
   await trafficStore.loadStatuses();
@@ -104,6 +111,17 @@ onMounted(async () => {
         label="Estatus"
         density="compact"
         hide-details
+        class="traffic-filter"
+      />
+      <v-text-field
+        id="traffic-correlative"
+        v-model="correlativo"
+        label="Correlativo"
+        placeholder="TR-00001, 15, tr-0…"
+        prepend-inner-icon="mdi-magnify"
+        density="compact"
+        hide-details
+        clearable
         class="traffic-filter"
       />
       <v-spacer />
