@@ -1987,6 +1987,7 @@ onMounted(async () => {
                     :color="egresoProveedor.docs > 0 ? 'blue' : 'grey'"
                     @click="openInvoice(egresoProveedor)"
                     @click.stop="abrirExpandEgreso(index)"
+                    :disabled="!(egresoProveedor.solicitudes && egresoProveedor.solicitudes > 0)"
                   >
                     <v-icon>mdi-file-compare</v-icon>
                   </v-btn>
