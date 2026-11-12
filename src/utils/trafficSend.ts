@@ -1,4 +1,4 @@
-import type { AssociableQuote, QuoteKind, TrafficFileForm } from "@/types/traffic";
+import type { AssociableQuote, QuoteKind, TrafficFileForm, TrafficFileOfHouse } from "@/types/traffic";
 
 export type SendTarget = "OPERATIONS" | "TRAFFIC";
 
@@ -21,6 +21,9 @@ export const sendTargetsFor = (approved: boolean, trafficFile: TrafficFileOfQuot
   if (trafficFile) return trafficFile.sent ? [] : ["OPERATIONS"];
   return approved ? [] : ["OPERATIONS", "TRAFFIC"];
 };
+
+export const trafficEditLocked = (file: TrafficFileOfHouse | null | undefined, authorizedByAdmin: boolean) =>
+  file === undefined || Boolean(file?.sent && !authorizedByAdmin);
 
 export const trafficStatusLabel = ({ sent_at, status_name }: { sent_at: string | null; status_name: string | null }) =>
   sent_at ? "Enviado a operaciones" : status_name || "Sin estatus";

@@ -1,5 +1,14 @@
 import { describe, expect, test } from "vitest";
-import { associableIdsOf, masterChoiceProblem, monthsToRange, quoteRouteOf, sendTargetsFor, trafficFileProblem, trafficStatusLabel } from "@/utils/trafficSend";
+import {
+  associableIdsOf,
+  masterChoiceProblem,
+  monthsToRange,
+  quoteRouteOf,
+  sendTargetsFor,
+  trafficEditLocked,
+  trafficFileProblem,
+  trafficStatusLabel,
+} from "@/utils/trafficSend";
 
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
 
@@ -115,5 +124,29 @@ describe("associableIdsOf", () => {
 
     expect([...ids.pricing]).toEqual([5, 6]);
     expect([...ids.aduana]).toEqual([31]);
+  });
+});
+
+describe("Editar un expediente de tráfico desde Tráfico", () => {
+  const houseFile = { ...pendingFile, quote_kind: "PRICING" as const, id_quote: 12 };
+
+  test("a pending file is edited freely", () => {
+    expect(trafficEditLocked(houseFile, false)).toBe(false);
+  });
+
+  test("a file sent to Operaciones needs an administrator", () => {
+    expect(trafficEditLocked({ ...houseFile, sent: true }, false)).toBe(true);
+  });
+
+  test("a file sent to Operaciones is edited once an administrator authorized it", () => {
+    expect(trafficEditLocked({ ...houseFile, sent: true }, true)).toBe(false);
+  });
+
+  test("stays locked until the file is known", () => {
+    expect(trafficEditLocked(undefined, false)).toBe(true);
+  });
+
+  test("a house with no traffic file is not locked by Tráfico", () => {
+    expect(trafficEditLocked(null, false)).toBe(false);
   });
 });

@@ -127,6 +127,11 @@ const search = ref("");
 const comentarios = ref("");
 const codigo_pago = ref("");
 const radio = ref<number | string>(1);
+const invoiceOptions = [
+  { value: "1", label: "Factura Fiscal", icon: "mdi-receipt-text-outline" },
+  { value: "2", label: "Proforma", icon: "mdi-file-document-outline" },
+  { value: "3", label: "Otros (ej. email)", icon: "mdi-email-outline" },
+];
 const e1 = ref(1);
 const egresos = ref<EgresoForm>({
   id: null,
@@ -622,13 +627,24 @@ function validarSolicitudPago(egreso: EgresoProveedor) {
     });
   } else if (!!statusAdmin_noPagado) {
     Swal.fire({
-      icon: "question",
-      html: `<b>Ya se ha realizado una solicitud de pago a administración. ¿Desea generar una solicitud nueva y eliminar la anterior?</b>`,
+      icon: "warning",
+      iconColor: "#f59e0b",
+      title: "Ya existe una solicitud de pago",
+      text: "¿Deseas eliminar la anterior y generar una nueva?",
       showCancelButton: true,
-      confirmButtonColor: "#28a745",
-      cancelButtonColor: "#d33",
-      confirmButtonText: "Si",
-      cancelButtonText: "No",
+      buttonsStyling: false,
+      reverseButtons: true,
+      confirmButtonText: `<span class="spago-confirm-content"><i class="fas fa-trash-alt"></i><span>Eliminar y generar nueva</span></span>`,
+      cancelButtonText: "Cancelar",
+      customClass: {
+        popup: "spago-popup",
+        icon: "spago-icon",
+        title: "spago-title",
+        htmlContainer: "spago-text",
+        actions: "spago-actions",
+        confirmButton: "spago-confirm",
+        cancelButton: "spago-cancel",
+      },
     }).then(async (res) => {
       if (res.isConfirmed) {
         await _getSPaymentPro(egreso);
@@ -1341,7 +1357,7 @@ async function _generateSolicitud() {
   }
   const proveedor = masterEgresos.value.map((element) => {
     return {
-      nameproveedor: element.nombre_proveedor,
+      nameProveedor: element.nombre_proveedor,
       total_pr: parseFloat(String(element.total_total_pr)).toFixed(2),
       total_op: parseFloat(String(element.total_total_op)).toFixed(2),
     };
@@ -2814,107 +2830,124 @@ onMounted(async () => {
     </v-dialog>
     <!-- --------------------------- -->
     <v-dialog
-      width="80%"
+      max-width="760"
       v-model="dialogInvoice"
     >
-      <v-card>
-        <v-card-title>
-          <h3>Subir factura o proforma para {{ nameproveedor }}</h3>
-        </v-card-title>
-        <v-card-text>
-          <v-container>
-            <v-row density="compact">
-              <v-col
-                cols="12"
-                md="12"
+      <v-card class="inv-card">
+        <div class="inv-header">
+          <div class="inv-header-icon">
+            <v-icon size="34">
+              mdi-file-upload-outline
+            </v-icon>
+          </div>
+          <div class="inv-header-text">
+            <h3 class="inv-title">
+              Proveedor: {{ nameproveedor }}
+            </h3>
+            <span class="inv-subtitle">Cargar documento a pagar</span>
+          </div>
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="inv-close"
+            @click="dialogInvoice = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+
+        <v-card-text class="inv-body">
+          <p class="inv-section-label">
+            Escoge una opción
+          </p>
+          <v-radio-group
+            v-model="radio"
+            hide-details
+            class="inv-radio-group"
+          >
+            <div class="inv-options">
+              <div
+                v-for="opt in invoiceOptions"
+                :key="opt.value"
+                class="inv-option"
+                :class="{ 'inv-option--active': radio == opt.value }"
+                @click="radio = opt.value"
               >
-                <v-radio-group
-                  v-model="radio"
-                  inline
+                <v-radio
+                  :value="opt.value"
+                  color="primary"
+                  density="compact"
+                  class="inv-option-radio"
+                />
+                <v-icon
+                  size="30"
+                  class="inv-option-icon"
                 >
-                  <v-radio
-                    label="Factura"
-                    value="1"
-                  />
-                  <v-radio
-                    label="Performance"
-                    value="2"
-                  />
-                  <v-radio
-                    label="Otro"
-                    value="3"
-                  />
-                </v-radio-group>
-              </v-col>
-              <v-col
-                cols="12"
-                md="4"
-              >
-                <v-text-field
-                  density="compact"
-                  label="Fecha de Operación"
-                  prepend-icon="mdi-calendar"
-                  type="date"
-                  v-model="date"
-                  :rules="[(v) => !!v || 'Dato Requerido']"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="4"
-              >
-                <v-text-field
-                  density="compact"
-                  v-model="nro_invoice"
-                  :label="`Nro de ${
-                    radio == 1
-                      ? 'Factura'
-                      : String('') || radio == 2
-                        ? 'Performance'
-                        : 'Otro'
-                  }`"
-                />
-              </v-col>
-              <v-col
-                cols="12"
-                md="4"
-              >
-                <v-text-field
-                  density="compact"
-                  v-model="monto_factura"
-                  label="Monto de la Factura"
-                  :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
-                  @change="validarMontoFactura"
-                />
-              </v-col>
-              <v-col
-                md="12"
-                cols="12"
-              >
-                <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
-              </v-col>
-            </v-row>
-          </v-container>
+                  {{ opt.icon }}
+                </v-icon>
+                <span class="inv-option-label">{{ opt.label }}</span>
+              </div>
+            </div>
+          </v-radio-group>
+
+          <div class="inv-fields">
+            <v-text-field
+              hide-details="auto"
+              density="compact"
+              variant="outlined"
+              label="Fecha de Operación"
+              prepend-inner-icon="mdi-calendar"
+              type="date"
+              v-model="date"
+              :rules="[(v) => !!v || 'Dato Requerido']"
+            />
+            <v-text-field
+              hide-details="auto"
+              density="compact"
+              variant="outlined"
+              v-model="nro_invoice"
+              :label="`Nro de ${
+                radio == 1
+                  ? 'Factura'
+                  : String('') || radio == 2
+                    ? 'Performance'
+                    : 'Otro'
+              }`"
+            />
+            <v-text-field
+              hide-details="auto"
+              density="compact"
+              variant="outlined"
+              v-model="monto_factura"
+              label="Monto de la Factura"
+              :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
+              @change="validarMontoFactura"
+            />
+          </div>
+
+          <div class="inv-dropzone">
+            <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
+          </div>
         </v-card-text>
-        <v-card-actions>
+
+        <v-card-actions class="inv-actions">
           <v-spacer />
           <v-btn
-            color="primary"
+            variant="outlined"
+            class="inv-btn-cancel"
+            @click="dialogInvoice = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            variant="flat"
+            color="#0878dc"
+            class="inv-btn-save"
             @click="_setInvoice()"
             :disabled="!filesStore.payPath || !monto_factura"
           >
-            GUARDAR
-            {{
-              radio == 1 ? "Factura" : String("") || radio == 2 ? "Performance" : "Otro"
-            }}
-          </v-btn>
-
-          <v-btn
-            variant="outlined"
-            color="red"
-            @click="dialogInvoice = !dialogInvoice"
-          >
-            Cerrar
+            Guardar Documento
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -4247,6 +4280,281 @@ onMounted(async () => {
   align-items: center !important;
 
   gap: 0 !important;
+}
+
+/* =====================================================
+   MODAL SOLICITUD DE PAGO EXISTENTE
+   ===================================================== */
+
+.spago-popup {
+  border-radius: 18px !important;
+  padding: 26px 24px 24px !important;
+  width: 440px !important;
+  max-width: calc(100vw - 32px) !important;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18) !important;
+}
+
+.spago-icon {
+  margin: 0 auto 10px !important;
+  width: 64px !important;
+  height: 64px !important;
+  border-width: 4px !important;
+}
+
+.spago-icon .swal2-icon-content {
+  font-size: 44px !important;
+  font-weight: 700 !important;
+}
+
+.spago-title {
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  padding: 0 !important;
+  margin: 0 0 6px !important;
+}
+
+.spago-text {
+  font-size: 14px !important;
+  color: #475569 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.spago-actions {
+  width: 100% !important;
+  margin: 22px 0 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 12px !important;
+}
+
+.spago-confirm,
+.spago-cancel {
+  height: 42px !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.spago-cancel {
+  flex: 0 0 38%;
+  background: #eef0f4 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.spago-cancel:hover {
+  background: #e2e8f0 !important;
+}
+
+.spago-confirm {
+  flex: 1 1 auto;
+  background: #0878dc !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 0 16px !important;
+}
+
+.spago-confirm:hover {
+  background: #0669c4 !important;
+}
+
+.spago-confirm-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* =====================================================
+   MODAL CARGAR FACTURA / PROFORMA
+   ===================================================== */
+
+.inv-card {
+  border-radius: 18px !important;
+  overflow: hidden;
+}
+
+.inv-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 24px 8px;
+}
+
+.inv-header-icon {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 14px;
+  background: #e3effc;
+  color: #0b5cad;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inv-header-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 16px;
+  border-left: 1px solid #e2e8f0;
+}
+
+.inv-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.inv-subtitle {
+  font-size: 15px;
+  color: #64748b;
+}
+
+.inv-close {
+  align-self: flex-start;
+  color: #475569 !important;
+}
+
+.inv-body {
+  padding: 12px 24px 4px !important;
+}
+
+.inv-section-label {
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 10px;
+}
+
+.inv-radio-group .v-selection-control-group {
+  display: block !important;
+}
+
+.inv-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+}
+
+.inv-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 14px 8px 6px;
+  border: 1px solid #d5dce5;
+  border-radius: 10px;
+  background: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inv-option:hover {
+  border-color: #93c0ec;
+}
+
+.inv-option--active {
+  border: 1.5px solid #1a73e8;
+  background: #eef5fe;
+  box-shadow: 0 1px 4px rgba(26, 115, 232, 0.15);
+}
+
+.inv-option-radio {
+  flex: 0 0 auto;
+}
+
+.inv-option-icon {
+  color: #1e3a5f !important;
+}
+
+.inv-option-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.inv-fields {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+  align-items: start;
+}
+
+.inv-fields .v-field {
+  border-radius: 10px;
+}
+
+.inv-dropzone .drop-area {
+  height: 130px !important;
+  border: 1.5px dashed #cbd5e1 !important;
+  border-radius: 12px !important;
+  background: #f8fafc !important;
+  color: #334155;
+  font-weight: 600;
+}
+
+.inv-dropzone .drop-area:hover {
+  border-color: #1a73e8 !important;
+  background: #f1f6fd !important;
+}
+
+.inv-dropzone .drop-area label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+}
+
+.inv-dropzone .drop-area .v-icon {
+  font-size: 40px !important;
+  color: #475569 !important;
+  margin: 0 !important;
+}
+
+.inv-actions {
+  padding: 16px 24px 22px !important;
+  gap: 10px;
+}
+
+.inv-btn-cancel,
+.inv-btn-save {
+  height: 44px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-size: 15px !important;
+  padding: 0 26px !important;
+}
+
+.inv-btn-cancel {
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+.inv-btn-save {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+@media (max-width: 700px) {
+  .inv-options,
+  .inv-fields {
+    grid-template-columns: 1fr;
+  }
 }
 
 .egreso-summary-table table {

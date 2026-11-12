@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, shallowRef, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import dataGen from "@/components/folderHouse/DataGenVer.vue";
@@ -26,9 +26,14 @@ import { useHousesStore } from "@/stores/houses";
 import { usePermissions } from "@/composables/usePermissions";
 import { provideHouseScreen } from "@/composables/useHouseScreen";
 import TrafficFileBar from "@/components/folderTraffic/TrafficFileBar.vue";
+import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
+import { askAdminCredentials } from "@/utils/adminCredentials";
+import { trafficEditLocked } from "@/utils/trafficSend";
 import type { HouseNotice, NotificacionHouse } from "@/types/operaciones";
+import type { TrafficFileOfHouse } from "@/types/traffic";
 
 const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
+const SENT_FILE_EDIT_REASON = "Este embarque ya se envió a Operaciones. Para editarlo desde Tráfico, un administrador debe autorizarlo.";
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -45,7 +50,11 @@ const editRoute = isTrafficFile ? "trafficEditar" : "controlHouseEditar";
 provideHouseScreen(() => permissionScreen);
 const houseEdit = useHouseEditStore();
 const { can } = usePermissions();
-const isEditing = computed(() => route.name === editRoute && can(permissionScreen, "MODIFICAR"));
+const adminAuthorization = useAdminAuthorizationStore();
+const trafficFile = shallowRef<TrafficFileOfHouse | null | undefined>(isTrafficFile ? undefined : null);
+const editLocked = computed(() => trafficEditLocked(trafficFile.value, Boolean(adminAuthorization.credentials)));
+const editIcon = computed(() => (trafficFile.value?.sent ? "mdi-pencil-lock" : "mdi-pencil"));
+const isEditing = computed(() => route.name === editRoute && can(permissionScreen, "MODIFICAR") && !editLocked.value);
 const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can(permissionScreen, action));
 const hasHeaderTarget = ref(Boolean(document.querySelector("#house-header-actions")));
 
@@ -68,11 +77,17 @@ async function reloadHouse() {
   await housesStore.verHouse({ id: houseId.value });
 }
 
-function startEditing() {
+async function startEditing() {
+  if (trafficFile.value?.sent && !adminAuthorization.credentials) {
+    const admin = await askAdminCredentials(SENT_FILE_EDIT_REASON);
+    if (!admin) return;
+    adminAuthorization.credentials = admin;
+  }
   appRouter.replace({ name: editRoute, params: { id: houseId.value } });
 }
 
 async function finishEditing() {
+  adminAuthorization.credentials = null;
   await reloadHouse();
   await appRouter.replace({ name: viewRoute, params: { id: houseId.value } });
 }
@@ -231,6 +246,8 @@ onMounted(async () => {
   if (isEditing.value) await houseEdit.start(housesStore.house);
   appStore.spiner = false;
 });
+
+onUnmounted(() => (adminAuthorization.credentials = null));
 </script>
 
 <template>
@@ -248,7 +265,7 @@ onMounted(async () => {
         v-if="!isEditing && can(permissionScreen, 'MODIFICAR')"
         color="light-green-lighten-1"
         variant="elevated"
-        prepend-icon="mdi-pencil"
+        :prepend-icon="editIcon"
         @click="startEditing"
       >
         Editar
@@ -273,6 +290,7 @@ onMounted(async () => {
         <TrafficFileBar
           v-if="isTrafficFile"
           :house-id="houseId"
+          @loaded="trafficFile = $event"
         />
         <v-row density="compact">
           <v-col
@@ -433,7 +451,7 @@ onMounted(async () => {
               @click="startEditing"
             >
               <v-icon start>
-                mdi-pencil
+                {{ editIcon }}
               </v-icon>
               Editar
             </v-btn>

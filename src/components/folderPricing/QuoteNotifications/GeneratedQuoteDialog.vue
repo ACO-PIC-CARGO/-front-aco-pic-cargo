@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
@@ -28,6 +28,21 @@ const pricingStore = usePricingStore();
 const { notices, current, dismiss, dismissAll } = useGeneratedQuoteNotices(props.socket);
 // A second notice arriving while one is open turns the dialog into the grouped list.
 const isList = computed(() => notices.value.length > 1);
+// Rows already opened (or removed) in the grouped list are hidden but stay queued, so the
+// dialog keeps its list layout and only closes with "Cancelar".
+const hidden = ref(new Set<GeneratedQuoteNotice>());
+const visibleNotices = computed(() => notices.value.filter((notice) => !hidden.value.has(notice)));
+watch(
+  () => notices.value.length,
+  (length) => {
+    if (!length) hidden.value = new Set();
+  },
+);
+
+function hideOrDismiss(notice: GeneratedQuoteNotice) {
+  if (isList.value) hidden.value = new Set(hidden.value).add(notice);
+  else dismiss(notice);
+}
 
 const SOURCE_LABELS = { bot: "Bot de cotizaciones", calculadora: "Calculadora de Fletes" };
 
@@ -66,7 +81,7 @@ function viewQuote(notice: GeneratedQuoteNotice, modality: QuoteModality) {
   const location = generatedQuoteLocation(notice, modality);
   if (!location) return;
   window.open(router.resolve(location).href, "_blank", "noopener");
-  dismiss(notice);
+  hideOrDismiss(notice);
 }
 
 async function reloadList() {
@@ -102,11 +117,11 @@ async function reloadList() {
         <span class="generated-quote__divider" />
         <span class="generated-quote__title">Cotizaciones<br>nuevas</span>
         <v-spacer />
-        <span class="generated-quote__count">{{ notices.length }}</span>
+        <span class="generated-quote__count">{{ visibleNotices.length }}</span>
       </div>
       <v-card-text class="generated-quote__list pa-3">
         <div
-          v-for="(notice, index) in notices"
+          v-for="(notice, index) in visibleNotices"
           :key="`${notice.source}-${notice.nro_cotizacion}-${index}`"
           class="generated-quote__item"
         >
@@ -195,11 +210,17 @@ async function reloadList() {
               v-if="!modalitiesOf(notice).length"
               variant="text"
               size="small"
-              @click="dismiss(notice)"
+              @click="hideOrDismiss(notice)"
             >
               Quitar
             </v-btn>
           </div>
+        </div>
+        <div
+          v-if="!visibleNotices.length"
+          class="text-center text-medium-emphasis py-6"
+        >
+          Ya revisaste todas las cotizaciones nuevas.
         </div>
       </v-card-text>
       <v-card-actions class="flex-column ga-1 px-4 pb-3 pt-1">

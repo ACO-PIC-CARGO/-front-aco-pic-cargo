@@ -38,6 +38,7 @@ export interface TrafficFilters {
   hasta?: string | null;
   sentido?: number | null;
   id_operador?: number | null;
+  correlativo?: string | null;
 }
 
 export interface TrafficStatus {
