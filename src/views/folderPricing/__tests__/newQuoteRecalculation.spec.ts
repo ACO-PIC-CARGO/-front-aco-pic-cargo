@@ -160,7 +160,19 @@ test("a draft whose OneDrive link fails is still reported as saved and leaves th
   expect(Swal.fire).toHaveBeenCalledWith(
     expect.objectContaining({ title: "Cotización guardada", text: expect.stringContaining("OneDrive") }),
   );
-  expect(push).toHaveBeenCalledWith({ name: "lstQuote" });
+  expect(push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 55 } });
+});
+
+test("closing the saved-draft notice opens the saved quote instead of the list", async () => {
+  const screen = await openNewQuote();
+  quoteWithFreight();
+  responses.setQuote = { ...accepted([]), insertId: 56, nro_quote: "1235-P", msg: "Cotización ingresada" };
+
+  await screen.guardar!();
+  await flushPromises();
+
+  expect(push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 56 } });
+  expect(push).not.toHaveBeenCalledWith({ name: "lstQuote" });
 });
 
 test("opening the comparison from the stepper header recalculates it", async () => {

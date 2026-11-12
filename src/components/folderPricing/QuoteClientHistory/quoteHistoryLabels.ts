@@ -9,7 +9,9 @@ const TRANSPORT_ICONS: Record<string, string> = {
   "Terrestre": "mdi-truck",
 };
 
-export function modalityLabel(item: ClientQuoteHistoryItem): string {
+type ModalityFields = Pick<ClientQuoteHistoryItem, "shipment_name" | "group_flag" | "individual_flag" | "containers">;
+
+export function modalityLabel(item: ModalityFields): string {
   const shipment = item.shipment_name ?? "";
   if (item.containers.length) return `${shipment} ${item.containers.map((container) => container.name).join(", ")}`;
   if (shipment !== "LCL") return shipment;
@@ -22,12 +24,19 @@ export function modalityColor(item: ClientQuoteHistoryItem): string {
   return modalityLabel(item) === "LCL Individual" ? "light-green-lighten-2" : "blue-lighten-3";
 }
 
-export function cargoDetail(item: ClientQuoteHistoryItem): string {
+function loadDetail(item: ClientQuoteHistoryItem): string {
   if (item.containers.length) {
     return item.containers.map((container) => `Contenedor: ${container.name} | Cantidad: ${container.cantidad}`).join(", ");
   }
   const weight = `Peso: ${number(item.weight, 0)} kg`;
   return Number(item.volume) > 0 ? `${weight} | Volumen: ${number(item.volume, 2)} m³` : weight;
+}
+
+const goodsValueDetail = (amount: number | null) =>
+  Number(amount) > 0 ? ` | Valor: USD ${Number(amount).toLocaleString("en-US", { maximumFractionDigits: 0 })}` : "";
+
+export function cargoDetail(item: ClientQuoteHistoryItem): string {
+  return loadDetail(item) + goodsValueDetail(item.amount);
 }
 
 export function transportIcon(transportName: string | null): string {

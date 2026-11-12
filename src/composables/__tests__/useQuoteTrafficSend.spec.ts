@@ -119,4 +119,18 @@ describe("useQuoteTrafficSend", () => {
 
     expect(router.push).toHaveBeenCalledWith({ name: "controlHouseVer", params: { id: 90 } });
   });
+
+  test("a quote with its own ending after Operaciones gets the sent master instead of the house offer", async () => {
+    const sent = { code_master: "2026MBL01742", id_master: 2701, id_house: 90 };
+    respond({ traffic_by_quote: accepted([pendingFile]), "traffic/4/send_to_operations": accepted([sent]) });
+    const finishOnMaster = vi.fn();
+    const send = useQuoteTrafficSend({ quoteKind: "PRICING", quoteId: () => 15376, approved: () => true, finishOnMaster });
+    await send.load();
+    const payload = { nuevoexpediente: false, id_exp: 2701, fecha_validez: null };
+
+    expect(await send.sendToOperations(payload)).toBe(true);
+
+    expect(finishOnMaster).toHaveBeenCalledWith({ ...sent, mensaje: "ok" }, payload);
+    expect(router.push).not.toHaveBeenCalled();
+  });
 });

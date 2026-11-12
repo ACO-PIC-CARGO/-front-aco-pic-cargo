@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
+import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
@@ -12,6 +13,7 @@ const push = vi.fn();
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn() } }));
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
+vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const SendStub = { name: "TrafficSendToOperations", props: ["file"], template: "<div />" };
 const pendingFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, quote_kind: "PRICING", id_quote: 15376, sent: false };
@@ -67,11 +69,16 @@ test("the expense control opens the house's own control de gastos", async () => 
 
 const quotelessFile = { ...pendingFile, quote_kind: null, id_quote: null };
 
-test("a file without a quote offers no quote to open but can still be sent", async () => {
+test("a file without a quote offers no quote to open and is not sent until one is associated", async () => {
   await mountAs(["VER", "MODIFICAR"], quotelessFile as never);
 
   expect(buttonNamed("Ver cotización")).toBeUndefined();
-  expect(buttonNamed("Enviar a Operaciones")).toBeDefined();
+  await buttonNamed("Enviar a Operaciones")!.trigger("click");
+
+  expect(Swal.fire).toHaveBeenCalledWith(
+    expect.objectContaining({ text: "Este expediente no tiene cotización. Asóciale una desde el house para enviarlo a Operaciones." }),
+  );
+  expect(wrapper!.findComponent({ name: "TrafficSendToOperations" }).exists()).toBe(false);
 });
 
 test("the bar reloads its file once a quote is associated to the house", async () => {

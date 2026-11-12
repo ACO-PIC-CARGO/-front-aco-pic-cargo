@@ -17,6 +17,7 @@ export function usePermissions() {
   const can = (route: string, action: string): boolean =>
     !controlled.has(route) || (granted.get(route) ?? []).includes(action);
   const canOpen = (route: string): boolean => can(route, VIEW_ACTION);
+  const screenName = (route: string): string | null => permissions?.screenNames?.[route] ?? null;
 
-  return { can, canOpen };
+  return { can, canOpen, screenName };
 }

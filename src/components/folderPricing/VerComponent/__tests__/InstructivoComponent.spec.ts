@@ -4,8 +4,11 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import InstructivoComponent from "@/components/folderPricing/VerComponent/InstructivoComponent.vue";
+import router from "@/router";
+import { useControlGastosStore } from "@/stores/controlGastos";
+import { useFilesStore } from "@/stores/files";
 import { usePricingStore } from "@/stores/pricing";
-import type { AprobacionCotizacion, OpcionCosto } from "@/types/cotizacion";
+import type { AprobacionCotizacion, ExpedienteMaster, OpcionCosto } from "@/types/cotizacion";
 
 vi.mock("vue-router", () => ({ useRoute: () => ({ params: { id: "77" } }), useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: {} } } } }));
@@ -22,6 +25,7 @@ interface InstructivoState {
   seleccionQuoteAprobar: boolean;
   continuarAprobarHouses(): Promise<void>;
   continuarAprobar(): Promise<void>;
+  onMasterSelected(master: ExpedienteMaster): void;
   approveQuote(details: AprobacionCotizacion): Promise<void>;
   imprimir(): Promise<void>;
 }
@@ -40,6 +44,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers({ toFake: ["setTimeout"] });
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id: 176, id_branch: 1 }]));
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -127,6 +132,34 @@ test("with a pending Tráfico file, creating a new master sends the file to Oper
 
   expect(approve).not.toHaveBeenCalled();
   expect(sentToOperations()!.data).toEqual({ nuevoexpediente: true, id_exp: null, fecha_validez: "2026-12-01" });
+});
+
+test("with a pending Tráfico file, sending to Operaciones ends like an approval: the master's folder gets the files and the expense control is offered", async () => {
+  answerAsQuoteInTraffic();
+  const { pricing, screen } = await mountInstructivo();
+  pricing.datosPrincipales = { nombre: "ZEVALLOS" } as never;
+  const moveFiles = vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
+  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
+
+  screen.onMasterSelected({ id: 2701, code_master: "2026MBL01742", url_folderonedrive: "https://drive/2701" });
+  await flushPromises();
+
+  expect(moveFiles).toHaveBeenCalledWith(expect.objectContaining({ destinationFolderUrl: "https://drive/2701", id: 2701, nroMaster: "2026MBL01742 - ZEVALLOS" }));
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ confirmButtonText: "Ir al control de gastos" }));
+});
+
+test("with a pending Tráfico file, choosing the emails after Operaciones opens this quote on its emails step", async () => {
+  answerAsQuoteInTraffic();
+  vi.mocked(Swal.fire).mockResolvedValue({ isDenied: true } as never);
+  const { pricing, screen } = await mountInstructivo();
+  pricing.datosPrincipales = { nombre: "ZEVALLOS" } as never;
+  vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
+  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
+
+  screen.onMasterSelected({ id: 2701, code_master: "2026MBL01742", url_folderonedrive: "https://drive/2701" });
+  await flushPromises();
+
+  expect(router.push).toHaveBeenCalledWith({ name: "verQuote", params: { id: "77", step: 5 } });
 });
 
 test("printing the instructivo prints each chosen option", async () => {

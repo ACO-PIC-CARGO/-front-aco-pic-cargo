@@ -756,6 +756,15 @@ export interface AprobacionCotizacion {
   [campo: string]: unknown;
 }
 
+export interface ApprovalOnMaster {
+  id_master: number;
+  code_master?: string;
+  mensaje: string;
+  nuevoexpediente?: boolean;
+  url_folderonedrive?: string | null;
+  quoteId: number | string | string[] | null | undefined;
+}
+
 export interface ParametrosTextoWhatsapp {
   id_shipment?: number | string | TipoCarga;
   id_quote?: number | string;

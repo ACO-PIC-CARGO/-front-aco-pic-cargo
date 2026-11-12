@@ -1514,10 +1514,20 @@ describe("pricing store", () => {
       pricing.datosPrincipales = { id: 77, id_town: 12 };
       pricing.tiporeporte = "TOTAL";
 
-      await pricing.copiarQuote({});
+      expect(await pricing.copiarQuote({})).toBeNull();
 
       expect(sentConfig("copiar_cotizacion")!.data).toEqual({ id: 77, id_town: 12 });
       expect([pricing.id, pricing.nro_quote, pricing.mensaje, pricing.tiporeporte]).toEqual([601, "16000-P", "Copiado", ""]);
+    });
+
+    test("copiarQuote reports why a refused copy failed and keeps the quote on screen", async () => {
+      respond({ copiar_cotizacion: rejected("No tienes el permiso PRICING › COTIZACIÓN › LISTADO COTIZACION › COPIAR.", "TMSGADV") });
+      const pricing = usePricingStore();
+      pricing.id = 77;
+      pricing.datosPrincipales = { id: 77, id_town: 12 };
+
+      expect(await pricing.copiarQuote({})).toBe("No tienes el permiso PRICING › COTIZACIÓN › LISTADO COTIZACION › COPIAR.");
+      expect(pricing.id).toBe(77);
     });
 
     test("getQuote loads the quote into the form, its options and flags, then reads its files and WhatsApp texts", async () => {

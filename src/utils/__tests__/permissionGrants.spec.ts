@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { grantsFromCatalog, permissionsPayload, setAction, setActions } from "@/utils/permissionGrants";
+import { grantedCount, grantsFromCatalog, permissionsPayload, setAction, setActions } from "@/utils/permissionGrants";
 import type { CatalogScreen } from "@/types/roles";
 
 const action = (name: string, granted = false, grantable = true) => ({ id: 1, code: "0", name, granted, grantable });
@@ -16,6 +16,12 @@ const screen = (menu_id: number, actions: ReturnType<typeof action>[]): CatalogS
 });
 
 describe("permission grants", () => {
+  test("the count covers the matrix actions the screens offer and how many of them are granted", () => {
+    const screens = [screen(7, [action("VER"), action("NUEVO"), action("FILTRAR")]), screen(8, [action("VER")])];
+
+    expect(grantedCount(screens, { 7: ["VER", "FILTRAR"], 8: [], 9: ["VER"] })).toEqual({ granted: 1, total: 3 });
+  });
+
   test("checking any action also grants VER", () => {
     expect(setAction({}, 7, "NUEVO", true)).toEqual({ 7: ["VER", "NUEVO"] });
   });

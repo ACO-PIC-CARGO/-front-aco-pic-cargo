@@ -20,7 +20,7 @@ const securitysStore = useSecuritysStore();
 const tab = ref("datos");
 const headersPosition = [
   { title: "Código", key: "code" },
-  { title: "Posición", key: "name" },
+  { title: "Rol", key: "name" },
   { title: "Acción", key: "action" },
 ] as const;
 
@@ -174,7 +174,7 @@ async function agregarPosicion() {
       if (userStore.positions.some((v) => v.id_position == selected.id && !v.status)) {
         userStore.positions.filter((v) => v.id_position == selected.id)[0]!.status = true;
       } else {
-        errPosition.value = "La posición ya se encuentra asignada.";
+        errPosition.value = "Este rol ya está asignado al usuario.";
       }
     } else {
       userStore.positions.push({ ...selected, id_position: selected.id, status: true });
@@ -496,8 +496,8 @@ async function guardarUsuario() {
                 item-value="id"
                 v-model="itemPositon"
                 return-object
-                label="Posición"
-                placeholder="Posición"
+                label="Rol"
+                placeholder="Rol"
                 :rules="[(v) => !!v || 'Dato Requerido']"
                 :error-messages="errPosition"
               />
