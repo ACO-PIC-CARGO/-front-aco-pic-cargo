@@ -154,14 +154,20 @@ function formatoFechaHora(valor: string | null) {
 }
 
 function aprobaciones(s: SolicitudPagoControl) {
-  const lista: { area: string; usuario: string | null; fecha: string | null }[] = [];
-  if (s.aprobadoadministracionflag) {
-    lista.push({ area: "Adm.", usuario: s.usuario_aprobadoadministracion, fecha: s.fecha_aprobadoadministracion });
-  }
-  if (s.aprobadogerenciaflag) {
-    lista.push({ area: "Ger.", usuario: s.usuario_aprobadogerencia, fecha: s.fecha_aprobadogerencia });
-  }
-  return lista;
+  return [
+    {
+      area: "administracion",
+      aprobado: !!s.aprobadoadministracionflag,
+      usuario: s.usuario_aprobadoadministracion,
+      fecha: s.fecha_aprobadoadministracion,
+    },
+    {
+      area: "gerencia",
+      aprobado: !!s.aprobadogerenciaflag,
+      usuario: s.usuario_aprobadogerencia,
+      fecha: s.fecha_aprobadogerencia,
+    },
+  ];
 }
 
 function hoy() {
@@ -544,8 +550,18 @@ defineExpose({ cargar });
             <th>Método de pago</th>
             <th>Código / N° de cuenta</th>
             <th>Estado</th>
-            <th>Usuario</th>
-            <th>Fecha</th>
+            <th class="text-center">
+              Administración
+              <div class="solpago__thsub">
+                Aprobado por
+              </div>
+            </th>
+            <th class="text-center">
+              Gerencia
+              <div class="solpago__thsub">
+                Aprobado por
+              </div>
+            </th>
             <th>Fecha de pago</th>
             <th class="text-center">
               Soporte
@@ -645,27 +661,16 @@ defineExpose({ cargar });
                 </div>
               </v-tooltip>
             </td>
-            <td class="solpago__aprob">
-              <template v-if="aprobaciones(s).length">
-                <div
-                  v-for="a in aprobaciones(s)"
-                  :key="a.area"
-                >
-                  <span class="solpago__area">{{ a.area }}</span>
+            <td
+              v-for="a in aprobaciones(s)"
+              :key="a.area"
+              class="solpago__aprob text-center"
+            >
+              <template v-if="a.aprobado">
+                <div class="solpago__aprobuser">
                   {{ a.usuario || "—" }}
                 </div>
-              </template>
-              <span v-else>—</span>
-            </td>
-            <td class="solpago__aprob text-no-wrap">
-              <template v-if="aprobaciones(s).length">
-                <div
-                  v-for="a in aprobaciones(s)"
-                  :key="a.area"
-                >
-                  <span class="solpago__area">{{ a.area }}</span>
-                  {{ formatoFechaHora(a.fecha) }}
-                </div>
+                <span class="solpago__aprobfecha">{{ formatoFechaHora(a.fecha) }}</span>
               </template>
               <span v-else>—</span>
             </td>
@@ -1405,11 +1410,25 @@ defineExpose({ cargar });
   font-size: 0.8rem;
   line-height: 1.5;
 }
-.solpago__area {
-  display: inline-block;
-  min-width: 34px;
+.solpago__thsub {
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--sp-muted);
-  font-weight: 700;
+}
+.solpago__aprobuser {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.solpago__aprobfecha {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: #e7efff;
+  color: var(--sp-primary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 .solpago__monto {
   font-weight: 700;
