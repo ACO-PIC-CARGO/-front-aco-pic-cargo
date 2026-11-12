@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
 import Swal from "sweetalert2";
+import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { availabilityBaseDate, isEtaBeforeEtd } from "@/utils/masters";
 
@@ -89,10 +90,9 @@ function _validaDate() {
         cols="12"
         md="6"
       >
-        <v-text-field
+        <FormatFecha
           v-model="mastersStore.master_fecha_etd"
-          @change="_getDate()"
-          type="date"
+          @update:model-value="_getDate()"
           label="Salida (ETD)"
         />
       </v-col>
@@ -110,10 +110,9 @@ function _validaDate() {
         cols="12"
         md="6"
       >
-        <v-text-field
+        <FormatFecha
           v-model="mastersStore.master_fecha_eta"
-          @change="_getDate()"
-          type="date"
+          @update:model-value="_getDate()"
           label="Llegada (ETA)"
         />
       </v-col>
@@ -134,10 +133,9 @@ function _validaDate() {
         align="right"
         justify="right"
       >
-        <v-text-field
+        <FormatFecha
           v-model="mastersStore.master_fecha_disponibilidad"
-          type="date"
-          @change="_validaDate()"
+          @update:model-value="_validaDate()"
           label="Fecha de Disponibilidad"
         />
       </v-col>
@@ -178,9 +176,8 @@ function _validaDate() {
         cols="12"
         md="6"
       >
-        <v-text-field
+        <FormatFecha
           v-model="mastersStore.fecha_libre_almacenaje"
-          type="date"
           label="Fecha Máxima Libre de Almacenaje"
         />
       </v-col>
@@ -204,9 +201,8 @@ function _validaDate() {
         md="6"
         v-if="!(isAereo() || isLCL())"
       >
-        <v-text-field
+        <FormatFecha
           v-model="mastersStore.fecha_libre_sobreestadia"
-          type="date"
           label="Libre de Sobreestadía Hasta"
         />
       </v-col>
