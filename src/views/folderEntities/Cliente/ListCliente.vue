@@ -11,13 +11,16 @@ const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
 
 onMounted(() => {
-  appStore.mainTitle = `LISTADO DE CLIENTES`;
+  appStore.mainTitle = "Listado de Clientes";
 });
 </script>
 
 <template>
   <v-container fluid>
-    <v-card>
+    <v-card
+      flat
+      class="bg-transparent"
+    >
       <ListClienteComponentVue />
     </v-card>
     <v-navigation-drawer

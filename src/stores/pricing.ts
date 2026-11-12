@@ -3031,6 +3031,7 @@ export const usePricingStore = defineStore("pricing", () => {
             : datosPrincipales.value.idtipocarga)
       )[0]!.embarque,
       icoterm: listIncoterms.value.filter((v) => v.id == datosPrincipales.value.idincoterms)[0]!.name,
+      descripcioncarga: String(datosPrincipales.value.descripcioncarga ?? "").trim().toUpperCase(),
       //
       datosFlete: isFlete == true ? datosFlete : [],
       datosOrigen: isOrigen == true ? datosOrigen : [],

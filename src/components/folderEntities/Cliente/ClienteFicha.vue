@@ -381,9 +381,17 @@ onMounted(async () => {
 
 <style scoped>
 .ver-cliente {
+  display: flex;
+  flex-direction: column;
   background: #fafbfc;
   border-radius: 4px;
-  overflow: hidden;
+  /* clip (not hidden) so the sticky footer keeps working. */
+  overflow: clip;
+}
+
+/* On its own page the sheet fills the viewport so the action buttons sit at the bottom of every tab. */
+.v-main .ver-cliente {
+  min-height: calc(100vh - var(--v-layout-top, 64px) - 32px);
 }
 
 .ver-cliente__edit,
@@ -439,15 +447,22 @@ onMounted(async () => {
 }
 
 .ver-cliente__content {
+  flex: 1 0 auto;
   padding: 14px 16px;
 }
 
 .ver-cliente__footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
   display: flex;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 4px 16px 18px;
+  padding: 12px 16px;
+  background: #fafbfc;
+  border-top: 1px solid #e3eaf3;
+  box-shadow: 0 -4px 12px rgba(20, 38, 78, 0.06);
 }
 
 .ver-cliente__action--next {
@@ -459,5 +474,12 @@ onMounted(async () => {
   .ver-cliente__tabs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+</style>
+
+<style>
+/* The page card around the sheet must not clip, or the sticky footer scrolls away with the content. */
+.v-main .v-card:has(.ver-cliente) {
+  overflow: visible;
 }
 </style>

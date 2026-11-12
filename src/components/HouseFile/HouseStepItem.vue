@@ -21,6 +21,8 @@ const commentsId = computed(() => `house-step-${props.step.id}-comments`);
 const confirmed = computed(() => props.step.state === "confirmed");
 const tone = computed(() => (confirmed.value ? "primary" : "neutral"));
 const validationLines = computed(() => stepValidationLines(props.step, timeZone.value));
+// ETD, ETA and availability take their date from Fechas; without it the step cannot be confirmed nor sent.
+const houseDateMissing = computed(() => !confirmed.value && Boolean(props.step.house_date_name) && !props.step.scheduled_at);
 // The switch only asks to confirm or unconfirm; cancelling the click keeps its checked state equal to the confirmation.
 function requestToggle() {
   if (confirmed.value) emit("unconfirm");
@@ -28,6 +30,7 @@ function requestToggle() {
 }
 const switchLabel = computed(() => {
   if (confirmed.value) return `${props.step.name} confirmado`;
+  if (houseDateMissing.value) return `Confirmar ${props.step.name}. Primero registra «${props.step.house_date_name}» en Fechas`;
   if (props.blockedBy) return `Confirmar ${props.step.name}. Primero confirma «${props.blockedBy}»`;
   return `Confirmar ${props.step.name}`;
 });
@@ -88,6 +91,26 @@ function toggleFromRow(event: MouseEvent) {
           Confirmado el {{ stepDateTimeLabel(step.confirmed_at, timeZone) }}. Haz clic para corregir.
         </v-tooltip>
       </v-btn>
+      <span
+        v-else-if="step.house_date_name"
+        class="d-inline-flex align-center ga-1 px-1 text-body-small"
+        :class="step.scheduled_at ? 'text-medium-emphasis' : 'text-warning-strong font-weight-bold'"
+      >
+        <v-icon
+          v-if="!step.scheduled_at"
+          icon="mdi-alert-circle-outline"
+          size="16"
+        />
+        {{ step.scheduled_at ? dateLabel(step.scheduled_at, timeZone) : `Falta ${step.house_date_name}` }}
+        <v-tooltip
+          activator="parent"
+          location="top"
+        >
+          {{ step.scheduled_at
+            ? `Viene de «${step.house_date_name}» en Fechas. Cámbiala allí.`
+            : `Registra «${step.house_date_name}» en Fechas para confirmar y enviar este paso.` }}
+        </v-tooltip>
+      </span>
       <v-btn
         v-else
         variant="text"
@@ -127,11 +150,18 @@ function toggleFromRow(event: MouseEvent) {
           inset
           hide-details
           density="compact"
-          :disabled="step.state === 'blocked'"
+          :disabled="step.state === 'blocked' || houseDateMissing"
           @click.prevent="requestToggle"
         />
         <v-tooltip
-          v-if="blockedBy"
+          v-if="houseDateMissing"
+          activator="parent"
+          location="top"
+        >
+          Primero registra «{{ step.house_date_name }}» en Fechas
+        </v-tooltip>
+        <v-tooltip
+          v-else-if="blockedBy"
           activator="parent"
           location="top"
         >

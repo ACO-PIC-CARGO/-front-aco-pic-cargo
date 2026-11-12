@@ -202,6 +202,13 @@ export interface EntidadListado {
   address?: string;
   estado?: string;
   status?: number | string | boolean;
+  tipo_proveedor?: string | null;
+  /** Fecha de creación como "YYYY-MM-DD". */
+  created_at?: string | null;
+  /** Primer teléfono activo. */
+  telefono?: string | null;
+  /** Primer correo activo. */
+  email?: string | null;
 }
 
 export interface EntidadCoincidencia {

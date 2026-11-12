@@ -107,9 +107,15 @@ export function useGeneratedQuoteNotices(socket: NoticeSocket) {
   onMounted(() => listeners.forEach(({ event, listener }) => socket.on(event, listener)));
   onBeforeUnmount(() => listeners.forEach(({ event, listener }) => socket.off(event, listener)));
 
-  function dismiss() {
-    queue.value = queue.value.slice(1);
+  // Without an argument it drops the oldest notice; with one, that notice (from the grouped list).
+  function dismiss(notice?: GeneratedQuoteNotice) {
+    queue.value = notice ? queue.value.filter((queued) => queued !== notice) : queue.value.slice(1);
   }
 
-  return { current: computed(() => queue.value[0] ?? null), dismiss };
+  // Drops every pending notice, or only the ones matching the predicate.
+  function dismissAll(predicate?: (notice: GeneratedQuoteNotice) => boolean) {
+    queue.value = predicate ? queue.value.filter((notice) => !predicate(notice)) : [];
+  }
+
+  return { notices: computed(() => queue.value), current: computed(() => queue.value[0] ?? null), dismiss, dismissAll };
 }

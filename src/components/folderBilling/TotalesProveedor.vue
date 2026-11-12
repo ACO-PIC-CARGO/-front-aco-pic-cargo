@@ -492,7 +492,10 @@ async function _generateSolicitud() {
         totalPagar: TotalLocal.value,
         expediente: appStore.dataHouse_exp,
         fecha: currentDate(),
-        totalProveedores: appStore.itemsDataTotalesProveedor,
+        totalProveedores: appStore.itemsDataTotalesProveedor.map((item: { nameproveedor?: string }) => ({
+          ...item,
+          nameProveedor: item.nameproveedor,
+        })),
         comentarios: comentarios.value,
         codigo_pago: codigo_pago.value,
         codigo_master: codigo_master.value,

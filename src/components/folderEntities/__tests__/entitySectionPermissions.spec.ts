@@ -59,7 +59,7 @@ const sections: Section[] = [
   viewSection("provider phones", "listProveedor", ProviderPhones, "EDITAR PROVEEDOR"),
   viewSection("provider agreements", "listProveedor", ProviderAgreements, "EDITAR PROVEEDOR"),
   viewSection("provider bank accounts", "listProveedor", ProviderBankAccounts, "EDITAR PROVEEDOR"),
-  { name: "provider rate contacts", screen: "listProveedor", component: ProviderRateContacts, readonly: false, control: "GUARDAR" },
+  { name: "provider rate contacts", screen: "listProveedor", component: ProviderRateContacts, readonly: false, control: "GUARDAR CONTACTOS" },
 ];
 
 let wrapper: VueWrapper | undefined;
