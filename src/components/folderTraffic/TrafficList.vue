@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
-import { trafficStatusLabel } from "@/utils/trafficSend";
+import { QUOTELESS_SEND_MESSAGE, trafficStatusLabel } from "@/utils/trafficSend";
 import TrafficCorrelativeDialog from "./TrafficCorrelativeDialog.vue";
 import TrafficFileCreateDialog from "./TrafficFileCreateDialog.vue";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
@@ -59,6 +60,11 @@ const openFile = (file: TrafficFile) => router.push({ name: "trafficVer", params
 async function onRelabelled() {
   relabelling.value = null;
   await load();
+}
+
+function startSending(file: TrafficFile) {
+  if (file.id_quote) sending.value = file;
+  else Swal.fire({ icon: "warning", title: "Falta la cotización", text: QUOTELESS_SEND_MESSAGE });
 }
 
 async function onSent() {
@@ -187,7 +193,7 @@ onMounted(async () => {
                 variant="text"
                 color="primary"
                 :aria-label="`Enviar ${item.code_traffic} a Operaciones`"
-                @click="sending = item"
+                @click="startSending(item)"
               />
             </template>
           </v-tooltip>

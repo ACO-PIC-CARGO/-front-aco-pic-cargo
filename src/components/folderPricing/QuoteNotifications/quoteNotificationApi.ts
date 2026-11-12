@@ -13,6 +13,16 @@ export interface QuoteNotice {
   created_by_name: string | null;
   pricing_notes: string | null;
   created_at: string;
+  client_phone: string | null;
+  transport_name: string | null;
+  shipment_name: string | null;
+  individual_flag: boolean;
+  group_flag: boolean;
+  containers: { name?: string | null }[];
+  origin: string | null;
+  goods_value: number | null;
+  weight: number | null;
+  volume: number | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;

@@ -6,7 +6,13 @@ import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
 import TrafficSendToOperations from "@/components/folderTraffic/TrafficSendToOperations.vue";
+import router from "@/router";
+import { useAppStore } from "@/stores/app";
+import { useControlGastosStore } from "@/stores/controlGastos";
+import { useFilesStore } from "@/stores/files";
+import { useHousesStore } from "@/stores/houses";
 import { usePricingStore } from "@/stores/pricing";
 import { URL_MAIN, accepted, httpMock, rejected, respond } from "@/stores/__tests__/catalogHttp";
 import type { QuoteKind } from "@/types/traffic";
@@ -52,6 +58,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   setActivePinia(createPinia());
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id: 176, id_branch: 1 }]));
+  vi.spyOn(useHousesStore(), "guardarCarpetaHouse").mockResolvedValue(undefined);
+  vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
+  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
 });
 afterEach(() => wrapper?.unmount());
 
@@ -71,17 +81,124 @@ const sentPayloads = () =>
     .filter((config) => config.url === URL_MAIN + "traffic/4/send_to_operations")
     .map((config) => ({ data: config.data, key: config.headers!["idempotency-key"] }));
 
-test("a pricing file opens its quote's instructivo before choosing the master", async () => {
-  respond({ "traffic/4/masters": accepted([]) });
+const quoteMaster = { id: 3831, code_master: "2026MBL01741", url_folderonedrive: "https://drive/3831" };
+
+async function continuePricingInstructivo() {
+  vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  usePricingStore().datosPrincipales = { nombre: "ZEVALLOS" } as never;
+  const app = useAppStore();
+  const loadMasters = vi.spyOn(app, "cargarMaster").mockImplementation(async () => {
+    app.itemsMasterList = [quoteMaster];
+  });
+  await mountFlow();
+  wrapper!.findComponent({ name: "FileSequenceInstructivo" }).vm.$emit("continuar");
+  await flushPromises();
+  return loadMasters;
+}
+
+const expedienteQuestion = expect.objectContaining({ confirmButtonText: "CREAR NUEVO EXPEDIENTE", denyButtonText: "SELECCIONAR EXPEDIENTE YA CREADO" });
+
+test("a pricing file opens its quote's instructivo and then asks the quote's expediente question, not a master form of its own", async () => {
+  vi.mocked(Swal.fire).mockResolvedValue({ isDismissed: true } as never);
   const getQuote = vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  const loadMasters = vi.spyOn(useAppStore(), "cargarMaster").mockResolvedValue(undefined);
 
   const flow = await mountFlow();
-
   expect(getQuote).toHaveBeenCalledWith({ id: "15376" });
   expect(flow.step).toBe("instructivo");
   wrapper!.findComponent({ name: "FileSequenceInstructivo" }).vm.$emit("continuar");
   await flushPromises();
-  expect(flow.step).toBe("master");
+
+  expect(loadMasters).toHaveBeenCalledWith(usePricingStore().datosPrincipales);
+  expect(Swal.fire).toHaveBeenCalledWith(expedienteQuestion);
+  expect(document.body.textContent).not.toContain("Crear un master nuevo");
+});
+
+test("creating a new expediente sends the pricing file with the master's availability date", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ id_master: 1 }]) });
+  vi.mocked(Swal.fire)
+    .mockResolvedValueOnce({ isConfirmed: true } as never)
+    .mockResolvedValueOnce({ isConfirmed: true, value: "2099-01-15" } as never)
+    .mockResolvedValue({ isConfirmed: false } as never);
+
+  await continuePricingInstructivo();
+
+  expect(sentPayloads().map((sent) => sent.data)).toEqual([{ nuevoexpediente: true, id_exp: null, fecha_validez: "2099-01-15" }]);
+  expect(wrapper!.emitted("sent")).toHaveLength(1);
+});
+
+test("selecting an existing expediente sends the pricing file with the master picked in the quote's master dialog", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ id_master: 3831 }]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isConfirmed: false } as never);
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  expect(sentPayloads().map((sent) => sent.data)).toEqual([{ nuevoexpediente: false, id_exp: 3831, fecha_validez: null }]);
+  expect(wrapper!.emitted("sent")).toHaveLength(1);
+});
+
+test("closing the expediente question sends nothing and closes the flow", async () => {
+  vi.mocked(Swal.fire).mockResolvedValue({ isDismissed: true } as never);
+
+  await continuePricingInstructivo();
+
+  expect(sentPayloads()).toEqual([]);
+  expect(wrapper!.emitted("close")).toHaveLength(1);
+});
+
+test("a refused pricing send shows the server's reason", async () => {
+  respond({ "traffic/4/send_to_operations": rejected("El master elegido no pertenece a tu empresa.", "TMSGADV") });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isConfirmed: false } as never);
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "error", text: "El master elegido no pertenece a tu empresa." }));
+  expect(wrapper!.emitted("sent")).toBeUndefined();
+});
+
+test("a new expediente ends like an approved quote: the master gets its folder and expense control, and the expense control is offered", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026-01760", id_master: 3900, id_house: 90 }]) });
+  vi.mocked(Swal.fire)
+    .mockResolvedValueOnce({ isConfirmed: true } as never)
+    .mockResolvedValueOnce({ isConfirmed: true, value: "2099-01-15" } as never)
+    .mockResolvedValue({ isConfirmed: true } as never);
+
+  await continuePricingInstructivo();
+
+  expect(useHousesStore().guardarCarpetaHouse).toHaveBeenCalledWith(expect.objectContaining({ nroMaster: "2026-01760 - ZEVALLOS", id: 3900 }));
+  expect(useControlGastosStore().imprimirGuardarControlDetallado).toHaveBeenCalledWith({ guardarEnCarpeta: false, asociadoflag: true, id: 3900, id_branch: 1 });
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ confirmButtonText: "Ir al control de gastos", denyButtonText: "Ahora continuaremos con los Email." }));
+  expect(router.push).toHaveBeenCalledWith({ name: "editControlGasto", params: { id: 3900, id_branch: 1 } });
+});
+
+test("an existing expediente moves the quote's files into that master's folder", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026MBL01741", id_master: 3831, id_house: 90 }]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isConfirmed: false } as never);
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  expect(useFilesStore().moveFileToOneDrive).toHaveBeenCalledWith(
+    expect.objectContaining({ destinationFolderUrl: "https://drive/3831", nroMaster: "2026MBL01741 - ZEVALLOS", id: 3831 }),
+  );
+});
+
+test("choosing the emails opens this file's quote on its emails step", async () => {
+  respond({ "traffic/4/send_to_operations": accepted([{ code_master: "2026MBL01741", id_master: 3831, id_house: 90 }]) });
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never).mockResolvedValue({ isDenied: true } as never);
+  vi.useFakeTimers({ toFake: ["setTimeout"] });
+
+  await continuePricingInstructivo();
+  wrapper!.findComponent(MasterSelectDialog).vm.$emit("select", quoteMaster);
+  await flushPromises();
+
+  vi.useRealTimers();
+  expect(router.push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 15376, step: 5 } });
 });
 
 test("an aduana file goes straight to the master choice", async () => {
@@ -143,9 +260,10 @@ test("a refused send shows the server's reason and the retry uses a new key", as
   expect(wrapper!.emitted("sent")).toBeUndefined();
 });
 
-test("inside a read-only host form, like the house screen, the instructivo and the master choice stay editable", async () => {
-  respond({ "traffic/4/masters": accepted([{ id: 3831, code_master: "2026MBL01741" }]) });
+test("inside a read-only host form, like the house screen, the instructivo and the quote's master dialog stay editable", async () => {
+  vi.mocked(Swal.fire).mockResolvedValueOnce({ isDenied: true } as never);
   vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  vi.spyOn(useAppStore(), "cargarMaster").mockResolvedValue(undefined);
   const InstructivoWithField = { ...InstructivoStub, template: "<v-text-field id='instructivo-field' />" };
   const ReadOnlyHouseForm = defineComponent(() => () => h(components.VForm, { readonly: true }, () => h(TrafficSendToOperations, { file: pricingFile })));
   wrapper = mount(ReadOnlyHouseForm, {
@@ -158,40 +276,6 @@ test("inside a read-only host form, like the house screen, the instructivo and t
   expect(field("#instructivo-field").readOnly).toBe(false);
   wrapper.findComponent({ name: "FileSequenceInstructivo" }).vm.$emit("continuar");
   await flushPromises();
-  expect(field("#traffic-master-availability").readOnly).toBe(false);
-  field("input[aria-label='Enlazar a un master existente']").click();
-  await flushPromises();
-  expect(document.querySelector("#traffic-master")).not.toBeNull();
-});
-
-const quotelessFile: FileToSend = { ...pricingFile, quote_kind: null, id_quote: null };
-
-test("a file without a quote asks before sending and then goes to the master choice", async () => {
-  respond({ "traffic/4/masters": accepted([]) });
-  vi.mocked(Swal.fire).mockResolvedValueOnce({ isConfirmed: true } as never);
-  const getQuote = vi.spyOn(usePricingStore(), "getQuote");
-
-  const flow = await mountFlow(quotelessFile);
-
-  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ title: "¿Enviar sin cotización?", confirmButtonText: "Enviar sin cotización" }));
-  expect(getQuote).not.toHaveBeenCalled();
-  expect(flow.step).toBe("master");
-});
-
-test("cancelling the quote-less send closes the flow and sends nothing", async () => {
-  respond({ "traffic/4/masters": accepted([]) });
-
-  await mountFlow(quotelessFile);
-
-  expect(wrapper!.emitted("close")).toHaveLength(1);
-  expect(sentPayloads()).toEqual([]);
-});
-
-test("while the quote-less confirmation is open, the master choice stays hidden", async () => {
-  respond({ "traffic/4/masters": accepted([]) });
-  vi.mocked(Swal.fire).mockReturnValueOnce(new Promise(() => {}) as never);
-
-  await mountFlow(quotelessFile);
-
-  expect(document.body.textContent).not.toContain("Enviar TR-00004 a Operaciones");
+  const masterField = [...document.querySelectorAll<HTMLElement>(".v-autocomplete")].find((el) => el.textContent?.includes("Expediente"))!;
+  expect(masterField.querySelector("input")!.readOnly).toBe(false);
 });

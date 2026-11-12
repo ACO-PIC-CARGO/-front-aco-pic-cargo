@@ -778,20 +778,9 @@ async function guardar() {
     icon: "success",
     title: "Cotización guardada",
     text: `${pricingStore.mensaje} ${avisoCarpeta}`.trim(),
-    confirmButtonText: "Ir al listado",
+    confirmButtonText: "Ver cotización",
     showConfirmButton: true,
-  }).then((result) => {
-    if (result.isConfirmed) {
-      router.push({
-        name: "lstQuote",
-      });
-    }
-    if (result.isDismissed) {
-      router.push({
-        name: "lstQuote",
-      });
-    }
-  });
+  }).then(() => router.push({ name: "verQuote", params: { id: pricingStore.id } }));
 }
 async function crearCarpetaCotizacion() {
   if (![1, 2].includes(sessionBranchId())) return "";

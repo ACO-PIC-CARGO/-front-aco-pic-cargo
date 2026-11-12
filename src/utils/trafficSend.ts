@@ -9,6 +9,9 @@ export interface TrafficFileOfQuote {
   sent: boolean;
 }
 
+export const QUOTELESS_SEND_MESSAGE =
+  "Este expediente no tiene cotización. Asóciale una desde el house para enviarlo a Operaciones.";
+
 export const SEND_TARGET_LABELS: Record<SendTarget, string> = {
   OPERATIONS: "Enviar a Operaciones",
   TRAFFIC: "Enviar a Tráfico",

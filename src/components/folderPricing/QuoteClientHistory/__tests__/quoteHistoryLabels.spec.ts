@@ -28,4 +28,12 @@ describe("cargoDetail", () => {
     expect(cargoDetail(item({}))).toBe("Peso: 1,100 kg | Volumen: 1.50 m³");
     expect(cargoDetail(item({ weight: 180, volume: 0 }))).toBe("Peso: 180 kg");
   });
+
+  test("the quote's goods value follows the cargo, only when the quote has one", () => {
+    expect(cargoDetail(item({ amount: 12500.4 }))).toBe("Peso: 1,100 kg | Volumen: 1.50 m³ | Valor: USD 12,500");
+    expect(cargoDetail(item({ amount: 3000, containers: [{ id_containers: 20, cantidad: 1, name: "20' STD" }] }))).toBe(
+      "Contenedor: 20' STD | Cantidad: 1 | Valor: USD 3,000",
+    );
+    expect(cargoDetail(item({ amount: null as never }))).toBe("Peso: 1,100 kg | Volumen: 1.50 m³");
+  });
 });

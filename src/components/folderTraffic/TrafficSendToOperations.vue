@@ -3,9 +3,13 @@ import { onMounted, ref, shallowRef } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import FileSequenceInstructivo from "@/components/comun/FileSequenceInstructivo.vue";
+import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
+import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useTrafficStore } from "@/stores/traffic";
-import type { QuoteKind, TrafficMasterOption } from "@/types/traffic";
+import type { ExpedienteMaster } from "@/types/cotizacion";
+import type { QuoteKind, TrafficMasterOption, TrafficToOperationsPayload } from "@/types/traffic";
+import { askExpedienteKind, askMasterAvailabilityDate } from "@/utils/expedienteChoice";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { masterChoiceProblem } from "@/utils/trafficSend";
 
@@ -21,13 +25,13 @@ const props = defineProps<{ file: TrafficFileToSend }>();
 const emit = defineEmits<{ close: []; sent: [] }>();
 
 const router = useRouter();
+const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const trafficStore = useTrafficStore();
-const firstStep = () => {
-  if (props.file.id_quote === null) return "confirm";
-  return props.file.quote_kind === "PRICING" ? "loading" : "master";
-};
-const step = shallowRef<"confirm" | "loading" | "instructivo" | "master">(firstStep());
+const step = shallowRef<"loading" | "instructivo" | "expediente" | "master">(
+  props.file.quote_kind === "PRICING" ? "loading" : "master",
+);
+const choosingQuoteMaster = shallowRef(false);
 const isNew = shallowRef(true);
 const availability = shallowRef("");
 const masterId = shallowRef<number | null>(null);
@@ -48,35 +52,35 @@ async function openInstructivo() {
   step.value = "instructivo";
 }
 
-async function send() {
-  problem.value = masterChoiceProblem(
-    { isNew: isNew.value, availability: availability.value, masterId: masterId.value },
-    today(),
-  );
-  if (problem.value) return;
-
+async function sendToOperations(payload: TrafficToOperationsPayload) {
   sending.value = true;
-  const answer = await trafficStore.sendToOperations(
-    props.file.id_traffic,
-    {
-      nuevoexpediente: isNew.value,
-      id_exp: isNew.value ? null : masterId.value,
-      fecha_validez: isNew.value ? availability.value : null,
-    },
-    idempotencyKey,
-  );
+  const answer = await trafficStore.sendToOperations(props.file.id_traffic, payload, idempotencyKey);
   sending.value = false;
+  if (answer.estadoflag) emit("sent");
+  else idempotencyKey = generateIdempotencyKey();
+  return answer;
+}
+
+async function sendPricingFile(payload: TrafficToOperationsPayload, url_folderonedrive?: string) {
+  const answer = await sendToOperations(payload);
   if (!answer.estadoflag) {
-    idempotencyKey = generateIdempotencyKey();
-    problem.value = answer.mensaje;
+    Swal.fire({ icon: "error", title: "No se pudo enviar", text: answer.mensaje });
     return;
   }
+  pricingStore.finishApprovalOnMaster({
+    ...answer.data[0]!,
+    mensaje: answer.mensaje,
+    nuevoexpediente: payload.nuevoexpediente,
+    url_folderonedrive,
+    quoteId: props.file.id_quote,
+  });
+}
 
-  emit("sent");
+async function offerSentHouse(mensaje: string) {
   const choice = await Swal.fire({
     icon: "success",
     title: "Enviado a Operaciones",
-    text: answer.mensaje,
+    text: mensaje,
     confirmButtonText: "Ver house",
     showCancelButton: true,
     cancelButtonText: "Quedarme en Tráfico",
@@ -84,29 +88,46 @@ async function send() {
   if (choice.isConfirmed) router.push({ name: "controlHouseVer", params: { id: props.file.id_house } });
 }
 
-async function confirmWithoutQuote() {
-  const choice = await Swal.fire({
-    icon: "question",
-    title: "¿Enviar sin cotización?",
-    text:
-      "Este expediente no tiene cotización. Se enviará a Operaciones con los datos del expediente (cliente, ruta y carga), " +
-      "sin instructivo ni costos de una cotización. Después puedes asociarle una cotización desde el house y completar su instructivo.",
-    confirmButtonText: "Enviar sin cotización",
-    showCancelButton: true,
-    cancelButtonText: "Cancelar",
-  });
-  if (!choice.isConfirmed) {
-    emit("close");
+async function chooseQuoteExpediente() {
+  step.value = "expediente";
+  await appStore.cargarMaster(pricingStore.datosPrincipales as Parameters<typeof appStore.cargarMaster>[0]);
+  const kind = await askExpedienteKind(appStore.itemsMasterList.length > 0);
+  if (kind === "existing") {
+    choosingQuoteMaster.value = true;
     return;
   }
-  step.value = "master";
+  const availabilityDate = kind === "new" ? await askMasterAvailabilityDate() : null;
+  if (availabilityDate) await sendPricingFile({ nuevoexpediente: true, id_exp: null, fecha_validez: availabilityDate });
+  else emit("close");
+}
+
+function sendWithQuoteMaster(master: ExpedienteMaster) {
+  return sendPricingFile({ nuevoexpediente: false, id_exp: master.id, fecha_validez: null }, master.url_folderonedrive);
+}
+
+function closeQuoteMasterDialog(open: boolean) {
+  if (!open) emit("close");
+}
+
+async function send() {
+  problem.value = masterChoiceProblem(
+    { isNew: isNew.value, availability: availability.value, masterId: masterId.value },
+    today(),
+  );
+  if (problem.value) return;
+
+  const answer = await sendToOperations({
+    nuevoexpediente: isNew.value,
+    id_exp: isNew.value ? null : masterId.value,
+    fecha_validez: isNew.value ? availability.value : null,
+  });
+  problem.value = answer.estadoflag ? "" : answer.mensaje;
+  if (answer.estadoflag) await offerSentHouse(answer.mensaje);
 }
 
 onMounted(async () => {
-  const loadingMasters = trafficStore.mastersFor(props.file.id_traffic);
-  if (step.value === "confirm") await confirmWithoutQuote();
-  if (step.value === "loading") await openInstructivo();
-  masters.value = await loadingMasters;
+  if (step.value === "loading") return openInstructivo();
+  masters.value = await trafficStore.mastersFor(props.file.id_traffic);
 });
 </script>
 
@@ -146,13 +167,23 @@ onMounted(async () => {
             :quote-id="file.id_quote ?? undefined"
             :aprobadoflag="false"
             destino="OPERATIONS"
-            @continuar="step = 'master'"
+            @continuar="chooseQuoteExpediente"
             @cerrar-dialogo="emit('close')"
           />
         </v-form>
       </v-card-text>
     </v-card>
   </v-dialog>
+
+  <MasterSelectDialog
+    v-else-if="step === 'expediente'"
+    v-model="choosingQuoteMaster"
+    :masters="appStore.itemsMasterList"
+    :quote="pricingStore.datosPrincipales"
+    :loading="sending"
+    @select="sendWithQuoteMaster"
+    @update:model-value="closeQuoteMasterDialog"
+  />
 
   <v-dialog
     v-else-if="step === 'master'"

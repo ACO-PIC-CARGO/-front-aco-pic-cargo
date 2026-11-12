@@ -614,14 +614,14 @@ async function copiarCotizacion() {
       },
     });
 
-    await pricingStore
-      .copiarQuote({
-        fullflag: true,
-        id: route.params.id,
-      })
-      .catch((err: unknown) => {
-        console.error("copiarQuote", err);
-      });
+    const copyFailure = await pricingStore.copiarQuote({
+      fullflag: true,
+      id: route.params.id,
+    });
+    if (copyFailure) {
+      Swal.fire({ icon: "error", title: "No se pudo copiar la cotización", text: copyFailure });
+      return;
+    }
 
     const userStr = sessionStorage.getItem("dataUser");
     const id_branch = userStr ? JSON.parse(userStr)[0].id_branch : null;

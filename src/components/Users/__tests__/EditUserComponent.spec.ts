@@ -87,7 +87,7 @@ test("a role added and removed before saving is not sent at all", async () => {
   const wrapper = await mountEditor(userDetail());
   await wrapper.findAll(".v-tab").find((tab) => tab.text().includes("Módulos a Usar"))!.trigger("click");
   await flushPromises();
-  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Posición")!;
+  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Rol")!;
   picker.vm.$emit("update:modelValue", { id: 5, code: "05", name: "MASTER SISTEMA", estado: true });
   await flushPromises();
   await clickButton(wrapper, "Agregar");
@@ -137,7 +137,7 @@ test("the role picker offers the roles the user may assign, and a role added fro
   const wrapper = await mountEditor(userDetail());
   await wrapper.findAll(".v-tab").find((tab) => tab.text().includes("Módulos a Usar"))!.trigger("click");
   await flushPromises();
-  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Posición")!;
+  const picker = wrapper.findAllComponents(VAutocomplete).find((field) => field.props("label") === "Rol")!;
 
   expect(picker.props("items")).toEqual(roleOptions);
   picker.vm.$emit("update:modelValue", { ...roleOptions[0] });

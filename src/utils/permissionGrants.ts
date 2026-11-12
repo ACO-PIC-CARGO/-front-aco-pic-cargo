@@ -21,6 +21,15 @@ export function setAction(grants: Grants, menuId: number, action: string, on: bo
 export const setActions = (grants: Grants, cells: GrantCell[], on: boolean): Grants =>
   cells.reduce((next, cell) => setAction(next, cell.menuId, cell.action, on), grants);
 
+export function grantedCount(screens: CatalogScreen[], grants: Grants): { granted: number; total: number } {
+  const offered = screens.flatMap((screen) =>
+    screen.actions
+      .filter((action) => (ACTIONS as readonly string[]).includes(action.name))
+      .map((action) => (grants[screen.menu_id] ?? []).includes(action.name)),
+  );
+  return { granted: offered.filter(Boolean).length, total: offered.length };
+}
+
 export const grantsFromCatalog = (catalog: CatalogScreen[]): Grants =>
   Object.fromEntries(
     catalog.map((screen) => [screen.menu_id, screen.actions.filter((action) => action.granted).map((action) => action.name)]),

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
+import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
 import { useHousesStore } from "@/stores/houses";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFileOfHouse } from "@/types/traffic";
-import { quoteRouteOf } from "@/utils/trafficSend";
+import { QUOTELESS_SEND_MESSAGE, quoteRouteOf } from "@/utils/trafficSend";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 
 const props = defineProps<{ houseId: number }>();
@@ -19,6 +20,11 @@ const sending = shallowRef(false);
 
 async function loadFile() {
   file.value = await trafficStore.fileOfHouse(props.houseId);
+}
+
+function startSending() {
+  if (file.value!.id_quote) sending.value = true;
+  else Swal.fire({ icon: "warning", title: "Falta la cotización", text: QUOTELESS_SEND_MESSAGE });
 }
 
 async function onSent() {
@@ -71,7 +77,7 @@ const openExpenses = () => router.push({ name: "billControlGastos", params: { id
         v-if="!file.sent && canSend"
         size="small"
         color="primary"
-        @click="sending = true"
+        @click="startSending"
       >
         Enviar a Operaciones
       </v-btn>

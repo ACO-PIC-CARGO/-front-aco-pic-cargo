@@ -86,6 +86,9 @@ test("a new role is sent with its name, description, estado and the screens chec
 
   await typeInto("Nombre (*)", "Ventas");
   await typeInto("Descripción", "Equipo comercial");
+  for (const panel of ["SEGURIDAD", "EMPRESA Y USUARIO"]) {
+    await wrapper!.findAll("button").find((button) => button.text().startsWith(`${panel} `))!.trigger("click");
+  }
   await wrapper!.find('input[aria-label="Nuevo en Pantalla 7"]').setValue(true);
   await clickButton("Guardar");
 

@@ -22,7 +22,9 @@ Object.defineProperty(window, "visualViewport", {
 const vuetify = createVuetify({ components, directives });
 const notice = (id: number, fields: Partial<QuoteNotice>): QuoteNotice => ({
   notification_id: String(id), kind: "pricing_request", branch_id: 1, quote_id: id, quote_code: "14963-P",
-  client_name: "ZEVALLOS ALFONSO", created_by_name: "VENTAS", pricing_notes: null, created_at: "09/11/2026 10:00", ...fields,
+  client_name: "ZEVALLOS ALFONSO", created_by_name: "VENTAS", pricing_notes: null, created_at: "09/11/2026 10:00",
+  client_phone: null, transport_name: "Marítimo", shipment_name: "LCL", individual_flag: true, group_flag: false,
+  containers: [], origin: null, goods_value: null, weight: null, volume: null, ...fields,
 });
 const button = (label: string) => [...document.querySelectorAll("button")].find((b) => b.textContent?.trim() === label) as HTMLButtonElement;
 
@@ -44,15 +46,14 @@ afterEach(() => {
 test("Ver cotización opens the quote in a new tab, marks it seen and shows the next notice", async () => {
   mount(QuoteNotificationPopup, { props: { socket: { on: vi.fn(), off: vi.fn() } }, global: { plugins: [vuetify] }, attachTo: document.body });
   await flushPromises();
-  expect(document.body.textContent).toContain("VENTAS te pide revisar la cotización 14963-P de ZEVALLOS ALFONSO.");
+  expect(document.body.textContent).toContain("Te solicitaron una");
   expect(document.body.textContent).toContain("Revisar flete");
   vi.advanceTimersByTime(DISMISS_GUARD_MS);
 
-  button("Ver cotización").click();
+  button("Ver Cotización").click();
   await flushPromises();
 
   expect(window.open).toHaveBeenCalledWith("/home/folderPricing/verQuote/5", "_blank", "noopener");
   expect(markQuoteNotificationSeen).toHaveBeenCalledWith("5");
-  expect(document.body.textContent).toContain("Cotización enviada al cliente");
-  expect(document.body.textContent).toContain("VENTAS envió la cotización 14963-P a ZEVALLOS ALFONSO por WhatsApp.");
+  expect(document.body.textContent).toContain("VENTAS ya le envió la cotización.");
 });

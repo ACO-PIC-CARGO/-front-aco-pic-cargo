@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { flushPromises, mount, type VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
+import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import { VDataTableServer } from "vuetify/components";
@@ -107,6 +108,17 @@ test("sending a pending file to Operaciones opens the send flow without leaving 
 
   expect(push).not.toHaveBeenCalled();
   expect(wrapper!.findComponent({ name: "TrafficSendToOperations" }).props("file")).toMatchObject({ id_traffic: 4, id_quote: 15376 });
+});
+
+test("a file without a quote is not sent until one is associated", async () => {
+  await mountAs(["VER", "MODIFICAR"], [{ ...pending, quote_kind: null, id_quote: null, quote_number: null }]);
+
+  await labelled("Enviar TR-00004 a Operaciones").trigger("click");
+
+  expect(Swal.fire).toHaveBeenCalledWith(
+    expect.objectContaining({ text: "Este expediente no tiene cotización. Asóciale una desde el house para enviarlo a Operaciones." }),
+  );
+  expect(wrapper!.findComponent({ name: "TrafficSendToOperations" }).exists()).toBe(false);
 });
 
 test("a file already sent is not offered to be sent or re-labelled", async () => {
