@@ -79,6 +79,10 @@ const merchandiseAmount = computed(() =>
     datosCarga.value.monto,
   ].find((value) => value !== undefined && value !== null && value !== ""),
 );
+// Same text the PDF prints: always uppercase, hidden when the quote has no description.
+const cargoDescription = computed(() =>
+  String(datosCarga.value.descripcioncarga ?? "").trim().toUpperCase(),
+);
 const weightDisplay = computed(() =>
   withUnit(quote.value?.peso ?? datosCarga.value.peso, "kg") || "—",
 );
@@ -351,6 +355,10 @@ onBeforeUnmount(() => {
           <div>
             <dt>Tipo de embarque:</dt>
             <dd>{{ quote.embarque || "—" }}</dd>
+          </div>
+          <div v-if="cargoDescription">
+            <dt>Descripción de carga:</dt>
+            <dd>{{ cargoDescription }}</dd>
           </div>
         </dl>
         <dl>
