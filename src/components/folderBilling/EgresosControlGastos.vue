@@ -28,6 +28,7 @@ import type {
   Monto,
   ProveedorItem,
   SolicitudPagoListada,
+  TipoPagoSolicitud,
 } from "@/types/billingEntries";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
@@ -64,6 +65,7 @@ const emit = defineEmits<{
   recalcularProfit: [];
   statusBtn: [status: number];
   recargarDatos: [];
+  solicitudPagoRegistrada: [];
 }>();
 
 const appStore = useAppStore();
@@ -1811,6 +1813,102 @@ watch(checkMaster, () => {
   }
 });
 
+// ------------------------- SOLICITUD DE PAGO (table_solitudpago) -------------------------
+const dialogSolicitudPagoNueva = ref(false);
+const solicitudPagoProveedor = ref<EgresoProveedor | null>(null);
+const tiposPagoSolicitud = ref<TipoPagoSolicitud[]>([]);
+const solicitudPagoForm = ref({
+  id_tipopago: null as number | null,
+  id_cuenta: null as number | null,
+  codigopago: "",
+  comentario: "",
+});
+const guardandoSolicitudPago = ref(false);
+
+const tipoPagoSeleccionado = computed(
+  () => tiposPagoSolicitud.value.find((t) => t.id === solicitudPagoForm.value.id_tipopago)?.codigo,
+);
+const conceptosSolicitudPago = computed(() =>
+  (solicitudPagoProveedor.value?.detalle || []).filter((d) => !d.pagado),
+);
+const totalSolicitudPago = computed(() =>
+  conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
+);
+const cuentasSolicitudPago = computed(() =>
+  (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]).map((c) => ({
+    title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
+    value: c.id,
+  })),
+);
+const solicitudPagoValida = computed(() => {
+  const f = solicitudPagoForm.value;
+  if (!f.id_tipopago) return false;
+  if (tipoPagoSeleccionado.value === "01") return !!f.id_cuenta;
+  return !!f.codigopago.trim();
+});
+
+async function cargarTiposPagoSolicitud() {
+  if (tiposPagoSolicitud.value.length) return;
+  const response = await request<TipoPagoSolicitud>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "cargar_master_detalle_tipo_pago_solicitud",
+  });
+  tiposPagoSolicitud.value = response.estadoflag ? response.data : [];
+}
+
+async function abrirSolicitudPagoNueva(item: EgresoProveedor) {
+  solicitudPagoProveedor.value = item;
+  proveedorId = item.id_proveedor;
+  id_tipotransaccion =
+    (appStore.itemsProveedorList.find((v: ProveedorItem) => v.id == item.id_proveedor) || {})
+      .id_tipotransaccion || "";
+  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
+  appStore.itemsDataAccountsNumberList = [];
+  dialogSolicitudPagoNueva.value = true;
+  await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
+  solicitudPagoForm.value.id_tipopago = tiposPagoSolicitud.value[0]?.id ?? null;
+}
+
+async function registrarSolicitudPago() {
+  const item = solicitudPagoProveedor.value;
+  if (!item || !solicitudPagoValida.value) return;
+  const { isConfirmed } = await Swal.fire({
+    icon: "question",
+    html: `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
+    showCancelButton: true,
+    confirmButtonText: "Sí, enviar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#1e5bd8",
+  });
+  if (!isConfirmed) return;
+
+  guardandoSolicitudPago.value = true;
+  const f = solicitudPagoForm.value;
+  const response = await request({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_insertar",
+    data: {
+      id_master: item.id_master,
+      id_proveedor: item.id_proveedor,
+      id_correlativo: item.id_correlativo,
+      id_tipopago: f.id_tipopago,
+      id_cuenta: tipoPagoSeleccionado.value === "01" ? f.id_cuenta : null,
+      codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
+      comentario: f.comentario,
+    },
+  });
+  guardandoSolicitudPago.value = false;
+  if (warnIfRefused(response)) return;
+  dialogSolicitudPagoNueva.value = false;
+  Swal.fire({ icon: "success", text: response.mensaje });
+  emit("solicitudPagoRegistrada");
+}
+
+watch(tipoPagoSeleccionado, () => {
+  solicitudPagoForm.value.id_cuenta = null;
+  solicitudPagoForm.value.codigopago = "";
+});
+
 onMounted(async () => {
   await Promise.all([
     bankStore.getBanksListCargar(),
@@ -1907,7 +2005,6 @@ onMounted(async () => {
                   Solicitar a Administración
                 </th>
                 <th
-                  v-if="editable"
                   width="16%"
                   class="text-left"
                 >
@@ -2023,12 +2120,23 @@ onMounted(async () => {
                     </v-icon>
                   </v-btn>
                 </td>
-                <td v-if="editable">
+                <td>
+                  <v-btn
+                    v-if="can('listControlGastos', 'NUEVO')"
+                    color="primary"
+                    size="small"
+                    variant="tonal"
+                    class="mb-1 text-no-wrap"
+                    prepend-icon="mdi-cash-fast"
+                    @click.stop="abrirSolicitudPagoNueva(egresoProveedor)"
+                  >
+                    Solicitud de Pago
+                  </v-btn>
                   <v-btn
                     color="indigo"
                     size="small"
                     class="mb-1 text-no-wrap"
-                    v-if="mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
+                    v-if="editable && mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
                     @click="abrirModalCambiarExpediente(egresoProveedor)"
                   >
                     Cambiar expediente
@@ -2812,6 +2920,160 @@ onMounted(async () => {
       </v-card>
     </v-dialog>
     <!--  -->
+    <!-- SOLICITUD DE PAGO (table_solitudpago) -->
+    <v-dialog
+      v-model="dialogSolicitudPagoNueva"
+      max-width="680"
+      persistent
+    >
+      <v-card
+        v-if="solicitudPagoProveedor"
+        rounded="xl"
+        class="solnueva"
+      >
+        <div class="solnueva__head">
+          <div class="solnueva__icon">
+            <v-icon
+              color="primary"
+              size="28"
+            >
+              mdi-cash-fast
+            </v-icon>
+          </div>
+          <div class="solnueva__titles">
+            <h3>Solicitud de Pago</h3>
+            <p>{{ solicitudPagoProveedor.nombre_proveedor }}</p>
+          </div>
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="ml-auto"
+            :disabled="guardandoSolicitudPago"
+            @click="dialogSolicitudPagoNueva = false"
+          >
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </div>
+
+        <v-card-text class="pt-2">
+          <div class="solnueva__conceptos">
+            <div
+              v-for="c in conceptosSolicitudPago"
+              :key="c.id"
+              class="solnueva__concepto"
+            >
+              <span>{{ c.concepto }}</span>
+              <span>{{ c.acronym }} {{ Number(c.total_op || 0).toFixed(2) }}</span>
+            </div>
+            <div
+              v-if="!conceptosSolicitudPago.length"
+              class="text-medium-emphasis"
+            >
+              No hay conceptos pendientes de pago.
+            </div>
+            <div class="solnueva__total">
+              <span>Total a pagar</span>
+              <span>{{ totalSolicitudPago.toFixed(2) }}</span>
+            </div>
+          </div>
+
+          <h4 class="mt-4 mb-2">
+            Tipo de pago
+          </h4>
+          <div class="solnueva__tipos">
+            <button
+              v-for="t in tiposPagoSolicitud"
+              :key="t.id"
+              type="button"
+              class="solnueva__tipo"
+              :class="{ 'solnueva__tipo--active': solicitudPagoForm.id_tipopago === t.id }"
+              @click="solicitudPagoForm.id_tipopago = t.id"
+            >
+              <v-icon :color="solicitudPagoForm.id_tipopago === t.id ? 'primary' : 'grey'">
+                {{ solicitudPagoForm.id_tipopago === t.id ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+              </v-icon>
+              <v-icon color="primary">
+                {{ t.codigo === "01" ? "mdi-bank-transfer" : "mdi-barcode" }}
+              </v-icon>
+              {{ t.descripcion }}
+            </button>
+          </div>
+
+          <div
+            v-if="tipoPagoSeleccionado === '01'"
+            class="mt-4"
+          >
+            <div class="d-flex align-center mb-1">
+              <b>Cuenta bancaria del proveedor</b>
+              <v-spacer />
+              <v-btn
+                v-if="can('listControlGastos', 'NUEVO')"
+                size="small"
+                variant="text"
+                color="primary"
+                prepend-icon="mdi-plus"
+                @click="abrirModalCuentaBancaria()"
+              >
+                Nueva cuenta
+              </v-btn>
+            </div>
+            <v-select
+              v-model="solicitudPagoForm.id_cuenta"
+              :items="cuentasSolicitudPago"
+              placeholder="Selecciona la cuenta"
+              variant="outlined"
+              density="comfortable"
+              :no-data-text="'El proveedor no tiene cuentas registradas'"
+              hide-details="auto"
+            />
+          </div>
+          <v-text-field
+            v-else-if="tipoPagoSeleccionado"
+            v-model="solicitudPagoForm.codigopago"
+            class="mt-4"
+            :label="`Código de pago ${nombreCodigoPago}`"
+            variant="outlined"
+            density="comfortable"
+            hide-details="auto"
+          />
+
+          <v-textarea
+            v-model="solicitudPagoForm.comentario"
+            class="mt-4"
+            label="Observaciones (opcional)"
+            rows="2"
+            auto-grow
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
+        </v-card-text>
+
+        <v-card-actions class="px-6 pb-5">
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            rounded="lg"
+            :disabled="guardandoSolicitudPago"
+            @click="dialogSolicitudPagoNueva = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-send"
+            :loading="guardandoSolicitudPago"
+            :disabled="!solicitudPagoValida || !conceptosSolicitudPago.length"
+            @click="registrarSolicitudPago"
+          >
+            Enviar solicitud
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-dialog
       width="80%"
       v-model="dialogSolicitud"
@@ -3996,5 +4258,83 @@ onMounted(async () => {
 .egreso-summary-table td:first-child {
   white-space: normal;
   overflow-wrap: anywhere;
+}
+
+/* Solicitud de pago (nueva) */
+.solnueva__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 22px 6px;
+}
+.solnueva__icon {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: #e8f0fe;
+  flex: 0 0 50px;
+}
+.solnueva__titles {
+  padding-left: 14px;
+  border-left: 1px solid #d5dbe6;
+  min-width: 0;
+}
+.solnueva__titles h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #172036;
+}
+.solnueva__titles p {
+  margin: 2px 0 0;
+  color: #5b6b86;
+}
+.solnueva__conceptos {
+  border: 1px solid #dbe5f5;
+  border-radius: 12px;
+  background: #f6f9ff;
+  padding: 10px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.solnueva__concepto,
+.solnueva__total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.solnueva__total {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px dashed #c5d3ea;
+  font-weight: 800;
+  color: #1e3a8a;
+}
+.solnueva__tipos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+.solnueva__tipo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid #d5dbe6;
+  border-radius: 10px;
+  background: #fff;
+  font-weight: 700;
+  text-align: left;
+}
+.solnueva__tipo:hover {
+  border-color: #1e5bd8;
+}
+.solnueva__tipo--active {
+  border-color: #1e5bd8;
+  background: #eef4ff;
+  box-shadow: 0 0 0 1px #1e5bd8 inset;
 }
 </style>

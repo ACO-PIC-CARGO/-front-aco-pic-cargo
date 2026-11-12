@@ -286,3 +286,60 @@ export interface ProformaFiscalForm {
   status?: number;
   id_house?: number;
 }
+
+export interface TipoPagoSolicitud {
+  id: number;
+  codigo: string;
+  descripcion: string;
+}
+
+export type EstadoSolicitudPago = "LISTO" | "PENGER" | "PENADM" | "PAGADO";
+
+export interface ConceptoSolicitudPago {
+  id_egreso: number;
+  concepto: string;
+  monto_op: number;
+  igv_op: number;
+  total_op: number;
+  totalopcuentabanco: number | null;
+}
+
+export interface SolicitudPagoControl {
+  id: number;
+  id_master: number;
+  expediente: string;
+  id_proveedor: number;
+  id_correlativo: number | null;
+  proveedor: string;
+  correlativo_proveedor: string | null;
+  correlativo: string | null;
+  monto: number | string;
+  moneda: string | null;
+  id_tipopago: number;
+  codigo_tipopago: string;
+  tipopago: string;
+  banco: string | null;
+  nrocuenta: string | null;
+  beneficiario: string | null;
+  codigopago: string | null;
+  comentario: string | null;
+  fechasolicitud: string;
+  usuario_solicitud: string | null;
+  aprobadoadministracionflag: boolean;
+  fecha_aprobadoadministracion: string | null;
+  usuario_aprobadoadministracion: string | null;
+  aprobadogerenciaflag: boolean;
+  fecha_aprobadogerencia: string | null;
+  usuario_aprobadogerencia: string | null;
+  pagadoflag: boolean;
+  fechapago: string | null;
+  usuario_pagado: string | null;
+  fecha_registropago: string | null;
+  tiposoporte: number | null;
+  soporte_path: string | null;
+  soporte_nombre: string | null;
+  codigo_estado: EstadoSolicitudPago;
+  estado: string;
+  orden: number;
+  conceptos: ConceptoSolicitudPago[];
+}

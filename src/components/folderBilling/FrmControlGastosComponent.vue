@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
+import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -14,6 +14,7 @@ withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
 
 const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"));
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
+const SolicitudesPago = defineAsyncComponent(() => import("./SolicitudesPagoControlGastos.vue"));
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -22,6 +23,8 @@ const router = useRouter();
 const controlGastosStore = useControlGastosStore();
 const bancosStore = useBancosStore();
 const enterprisesStore = useEnterprisesStore();
+const solicitudesPago = useTemplateRef<{ cargar: () => Promise<void> }>("solicitudesPago");
+const idMasterSolicitudes = computed(() => controlGastosStore.listControlGastos[0]?.master_id ?? null);
 
 const id_coins = ref<number | string | null>(null);
 const ingreso_pr = ref(0);
@@ -532,6 +535,14 @@ onMounted(async () => {
           @recargar-datos="recargarDatos()"
           :editable="editable"
           :master_egresos="controlGastosStore.master_egresos"
+          @solicitud-pago-registrada="solicitudesPago?.cargar()"
+        />
+      </v-col>
+      <!-- SOLICITUDES DE PAGO -->
+      <v-col cols="12">
+        <SolicitudesPago
+          ref="solicitudesPago"
+          :id-master="idMasterSolicitudes"
         />
       </v-col>
     </v-row>
