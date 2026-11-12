@@ -66,20 +66,20 @@ test("the deleted quotes filter lists only deleted quotes, and clearing the filt
   expect(lastListParams()).toMatchObject({ estado: "1" });
 });
 
-test("executive and pricing filters use the cargar_ejecutivo values like NewQuote", async () => {
-  const executives = [{ id: 21, id_entitie: 91, nombrecompleto: "ANA PEREZ", name: "ANA" }];
-  httpMock.mockImplementation(async (config) => ({
-    data: config.url === URL_MAIN + "cargar_ejecutivo" ? accepted(executives) : accepted([]),
-  }));
+test("executive and pricing filters reuse the executives loaded by the list panel without fetching again", async () => {
+  const executives = [{ id_branch: 1, id_entitie: 91, status: 1, name: "ANA PEREZ" }];
   await mountFiltroQuote();
+  usePricingStore().listEjecutivo = executives;
+  await flushPromises();
 
-  const filters = wrapper.findAllComponents(VAutocomplete);
+  const filters = wrapper!.findAllComponents(VAutocomplete);
   for (const label of ["Ejecutivo.", "Pricing."]) {
     const filter = filters.find((item) => item.props("label") === label);
     expect(filter?.props("items")).toEqual(executives);
-    expect(filter?.props("itemTitle")).toBe("nombrecompleto");
-    expect(filter?.props("itemValue")).toBe("id");
+    expect(filter?.props("itemTitle")).toBe("name");
+    expect(filter?.props("itemValue")).toBe("id_entitie");
   }
-  expect(httpMock.mock.calls.some(([config]) => config.url === URL_MAIN + "cargar_ejecutivo")).toBe(true);
-  expect(httpMock.mock.calls.some(([config]) => config.url === URL_MAIN + "getModulesEntities")).toBe(false);
+  for (const endpoint of ["cargar_ejecutivo", "cargar_trabajadores", "get_personal_pricing", "getModulesEntities"]) {
+    expect(httpMock.mock.calls.some(([config]) => String(config.url).startsWith(URL_MAIN + endpoint))).toBe(false);
+  }
 });
