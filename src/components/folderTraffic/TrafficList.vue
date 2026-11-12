@@ -4,6 +4,7 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import { usePermissions } from "@/composables/usePermissions";
+import { useTrafficWithdraw } from "@/composables/useTrafficWithdraw";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFile, TrafficState } from "@/types/traffic";
 import { QUOTELESS_SEND_MESSAGE, trafficStatusLabel } from "@/utils/trafficSend";
@@ -50,6 +51,7 @@ const statusOptions = computed(() => [
   ...trafficStore.statuses.map((option) => ({ title: option.name, value: option.id })),
 ]);
 const emptyText = "No hay expedientes de tráfico con esos filtros. Cambia el estado, el estatus o el correlativo.";
+const withdraw = useTrafficWithdraw();
 
 async function load() {
   loading.value = true;
@@ -75,6 +77,10 @@ function startSending(file: TrafficFile) {
 async function onSent() {
   sending.value = null;
   await load();
+}
+
+async function startWithdrawing(file: TrafficFile) {
+  if (await withdraw(file)) await load();
 }
 
 const reloadFromFirstPage = () => (page.value === 1 ? load() : (page.value = 1));
@@ -216,6 +222,23 @@ onMounted(async () => {
             </template>
           </v-tooltip>
         </template>
+        <v-tooltip
+          v-if="item.sent_at"
+          text="Retirar de Operaciones"
+          location="top"
+        >
+          <template #activator="{ props: tooltip }">
+            <v-btn
+              v-bind="tooltip"
+              icon="mdi-undo-variant"
+              size="small"
+              variant="text"
+              color="warning"
+              :aria-label="`Retirar ${item.code_traffic} de Operaciones`"
+              @click="startWithdrawing(item)"
+            />
+          </template>
+        </v-tooltip>
       </template>
     </v-data-table-server>
   </v-card>

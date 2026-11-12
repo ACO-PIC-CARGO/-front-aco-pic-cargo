@@ -18,7 +18,9 @@ import type {
   TrafficToOperations,
   TrafficToOperationsPayload,
 } from "@/types/traffic";
+import type { AdminCredentials } from "@/types/seguridad";
 import type { TrafficFileOfQuote } from "@/utils/trafficSend";
+import { withAuthorization } from "@/utils/adminCredentials";
 import { downloadPdf } from "@/utils/pdfDownload";
 import { request } from "@/utils/request";
 
@@ -75,6 +77,14 @@ export const useTrafficStore = defineStore("traffic", () => {
       data: payload,
     });
 
+  const withdrawFromOperations = (trafficId: number, admin: AdminCredentials, idempotencyKey: string) =>
+    request({
+      method: "put",
+      url: url(`traffic/${trafficId}/withdraw_from_operations`),
+      headers: withKey(idempotencyKey),
+      data: withAuthorization(admin),
+    });
+
   async function loadFiles(filters: TrafficFilters, page: TrafficPage) {
     const load = ++latestLoad;
     const answer = await request<TrafficFile>({ method: "get", url: url("traffic_list"), headers: JSON_HEADERS, params: { ...filters, ...page } });
@@ -122,6 +132,7 @@ export const useTrafficStore = defineStore("traffic", () => {
     createFile,
     associableQuotes,
     sendToOperations,
+    withdrawFromOperations,
     mastersFor,
     loadFiles,
     setFileStatus,

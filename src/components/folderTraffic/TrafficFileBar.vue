@@ -3,6 +3,7 @@ import { ref, shallowRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
+import { useTrafficWithdraw } from "@/composables/useTrafficWithdraw";
 import { useHousesStore } from "@/stores/houses";
 import { useTrafficStore } from "@/stores/traffic";
 import type { TrafficFileOfHouse } from "@/types/traffic";
@@ -17,6 +18,7 @@ const housesStore = useHousesStore();
 const canSend = usePermissions().can("lstTraffic", "MODIFICAR");
 const file = ref<TrafficFileOfHouse | null>(null);
 const sending = shallowRef(false);
+const withdraw = useTrafficWithdraw();
 
 async function loadFile() {
   file.value = await trafficStore.fileOfHouse(props.houseId);
@@ -30,6 +32,10 @@ function startSending() {
 async function onSent() {
   sending.value = false;
   await loadFile();
+}
+
+async function startWithdrawing() {
+  if (await withdraw(file.value!)) await Promise.all([loadFile(), housesStore.verHouse({ id: props.houseId })]);
 }
 
 watch(() => [props.houseId, housesStore.house?.id_cot, housesStore.house?.id_quoteaduana], loadFile, { immediate: true });
@@ -80,6 +86,16 @@ const openExpenses = () => router.push({ name: "billControlGastos", params: { id
         @click="startSending"
       >
         Enviar a Operaciones
+      </v-btn>
+      <v-btn
+        v-if="file.sent"
+        size="small"
+        color="warning"
+        variant="tonal"
+        prepend-icon="mdi-undo-variant"
+        @click="startWithdrawing"
+      >
+        Retirar de Operaciones
       </v-btn>
     </div>
   </v-alert>
