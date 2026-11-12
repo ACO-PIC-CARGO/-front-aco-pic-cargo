@@ -92,8 +92,8 @@ const openExpenses = () => router.push({ name: "billControlGastos", params: { id
       <v-btn
         v-if="file.sent"
         size="small"
-        color="warning"
-        variant="tonal"
+        color="error"
+        variant="flat"
         prepend-icon="mdi-undo-variant"
         @click="startWithdrawing"
       >
