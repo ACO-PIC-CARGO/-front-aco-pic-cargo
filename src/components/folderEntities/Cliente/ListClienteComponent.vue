@@ -7,6 +7,7 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { EntidadListado } from "@/types/entidades";
 import { usePermissions } from "@/composables/usePermissions";
+import EntityListTable from "@/components/folderEntities/EntityListTable.vue";
 
 const router = useRouter();
 const { can } = usePermissions();
@@ -15,17 +16,7 @@ const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const dialogTelCont = ref(false);
-const search = ref("");
 const nombrecompleto = ref("");
-const headers = [
-  { title: "Correlativo", key: "correlativo" },
-  { title: "Documento", key: "documento" },
-  { title: "Nombre Completo", key: "nombrecompleto" },
-  { title: "Ubigeo", key: "ubigeo" },
-  { title: "Dirección", key: "address" },
-  { title: "Estado", key: "estado" },
-  { title: "Acciones", key: "action" },
-] as const;
 const headersTel = [
   { title: "Tipo de Teléfono", key: "tipotelefono", width: "30%" },
   { title: "Nro Teléfono", key: "nro_telefono", width: "50%" },
@@ -114,126 +105,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="6">
-        <v-btn
-          v-if="can('listClientes', 'NUEVO')"
-          rounded
-          size="small"
-          class="mx-1"
-          color="success"
-          @click="cambiarRuta({ nameRuta: 'nuevoClientes' })"
-        >
-          NUEVO
-        </v-btn>
-        <v-btn
-          rounded
-          size="small"
-          class="mx-1"
-          color="secondary"
-          @click="
-            entitiesStore.filtrarProveedor =
-              !entitiesStore.filtrarProveedor
-          "
-        >
-          FILTRAR
-        </v-btn>
-        <v-btn
-          v-if="can('listClientes', 'EXPORTAR')"
-          rounded
-          size="small"
-          class="mx-1"
-          color="warning"
-          @click="exportCliente()"
-        >
-          EXPORTAR
-        </v-btn>
-      </v-col>
-      <v-col cols="6">
-        <v-spacer />
-        <v-text-field
-          name="Buscar"
-          label="Buscar"
-          v-model="search"
-        />
-      </v-col>
-      <v-col cols="12">
-        <v-data-table
-          :headers="headers"
-          :items="entitiesStore.lstProveedor"
-          item-value="id"
-          :search="search"
-        >
-          <template #[`item.documento`]="{ item }">
-            {{ item.acronym_document }}-{{ item.document }}
-          </template>
-          <template #[`item.ubigeo`]="{ item }">
-            {{
-              item.pais && item.city
-                ? item.pais.concat("-", item.city)
-                : item.pais || item.city
-            }}
-          </template>
-          <template #[`item.action`]="{ item }">
-            <v-btn-toggle>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                @click="obtenerTelContactoProveedor(item)"
-              >
-                <v-icon color="blue-grey-darken-3">
-                  mdi-phone
-                </v-icon>
-              </v-btn>
-              <!-- <v-btn x-small icon @click="editar(item.id)">
-                <v-icon color="green">mdi-currency-usd</v-icon>
-              </v-btn> -->
-              <v-btn
-                variant="text"
-                v-if="item.status == 1 && can('listClientes', 'MODIFICAR')"
-                size="x-small"
-                icon
-                @click="irAEditar(item)"
-              >
-                <v-icon color="#E65100">
-                  mdi-pencil
-                </v-icon>
-              </v-btn>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                @click="
-                  $router.push({
-                    name: 'verCliente',
-                    params: { id: item.id },
-                  })
-                "
-              >
-                <v-icon color="info">
-                  mdi-eye
-                </v-icon>
-              </v-btn>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                v-if="item.status == 1 && can('listClientes', 'ELIMINAR')"
-                @click="eliminar(item)"
-              >
-                <v-icon
-                  color="red"
-                >
-                  mdi-delete
-                </v-icon>
-              </v-btn>
-            </v-btn-toggle>
-          </template>
-        </v-data-table>
-      </v-col>
-    </v-row>
+  <div>
+    <EntityListTable
+      :items="entitiesStore.lstProveedor"
+      plural="clientes"
+      new-label="Nuevo Cliente"
+      search-placeholder="Buscar cliente..."
+      :can-create="can('listClientes', 'NUEVO')"
+      :can-export="can('listClientes', 'EXPORTAR')"
+      :can-edit="can('listClientes', 'MODIFICAR')"
+      :can-delete="can('listClientes', 'ELIMINAR')"
+      @create="cambiarRuta({ nameRuta: 'nuevoClientes' })"
+      @filter="entitiesStore.filtrarProveedor = !entitiesStore.filtrarProveedor"
+      @export="exportCliente()"
+      @phones="obtenerTelContactoProveedor"
+      @edit="irAEditar"
+      @view="(item) => router.push({ name: 'verCliente', params: { id: item.id } })"
+      @remove="eliminar"
+    />
     <v-dialog
       v-model="dialogTelCont"
       persistent
@@ -358,7 +247,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <style></style>

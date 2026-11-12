@@ -232,6 +232,28 @@ describe("entities store", () => {
     expect(entities.proveedor.contactoActual).toBe(entities.lstContactos[0]);
   });
 
+  test("verCliente loads a client whose phones or contacts have no type", async () => {
+    respond({
+      ver_cliente: accepted([
+        {
+          id: 9,
+          ...detailLists,
+          lsttelefonos: [{ id: 1, id_tipotelefono: null, telefono: "999" }],
+          lstcontactos: [{ id: 2, nombre: "Luis", id_tipotelefono: null, telefono: "888" }],
+          lstshippers: [],
+          informacionentrega: [],
+        },
+      ]),
+    });
+    const entities = useEntitiesStore();
+
+    await entities.verCliente(9);
+
+    expect(entities.lstTelefonos).toEqual([{ id: 1, id_tipotelefono: "", telefono: "999" }]);
+    expect(entities.lstContactos).toEqual([{ id: 2, nombre: "Luis", id_tipotelefono: "", telefono: "888" }]);
+    expect(entities.cliente.contactoActual).toBe(entities.lstContactos[0]);
+  });
+
   test("getVerProveedor loads a provider whose phones or contacts have no type", async () => {
     respond({
       ver_proveedor: accepted([

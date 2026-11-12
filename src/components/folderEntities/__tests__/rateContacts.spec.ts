@@ -31,7 +31,7 @@ const saveRateContacts = async (answer: unknown) => {
   await flushPromises();
   vi.mocked(Swal.fire).mockClear();
 
-  await wrapper.findAll("button").find((button) => button.text() === "Guardar")!.trigger("click");
+  await wrapper.findAll("button").find((button) => button.text() === "Guardar contactos")!.trigger("click");
   await flushPromises();
   wrapper.unmount();
 };

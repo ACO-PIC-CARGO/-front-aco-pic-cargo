@@ -405,9 +405,11 @@ function calcularTotal() {
     if (symbol.value === "USD") {
       return acc + parseFloat(String(item.montoparcial || 0));
     } else {
-      const porcentagePago =
-        ((item.montoparcial || 0 * 100) as number) / (item.monto_original_total as number);
-      return acc + parseFloat(String((item.totaldolar as number) * porcentagePago));
+      const montoIngresado = parseFloat(String(item.montoparcial)) || 0;
+      const saldoLocal = parseFloat(String(item.total_mon_local)) || 0;
+      const saldoDolares = parseFloat(String(item.totaldolar)) || 0;
+      if (saldoLocal <= 0) return acc;
+      return acc + saldoDolares * (montoIngresado / saldoLocal);
     }
   }, 0);
 

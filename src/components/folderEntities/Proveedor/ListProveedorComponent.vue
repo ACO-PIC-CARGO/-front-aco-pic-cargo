@@ -7,6 +7,7 @@ import { useEntitiesStore } from "@/stores/entities";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { EntidadListado } from "@/types/entidades";
 import { usePermissions } from "@/composables/usePermissions";
+import EntityListTable from "@/components/folderEntities/EntityListTable.vue";
 
 const router = useRouter();
 const { can } = usePermissions();
@@ -15,22 +16,6 @@ const entitiesStore = useEntitiesStore();
 const masterusuariosStore = useMasterusuariosStore();
 
 const dialogTelCont = ref(false);
-const search = ref("");
-const headers = [
-  { title: "Cat", key: "codigo", width: "3%" },
-  { title: "Correlativo", key: "correlativo", width: "5%" },
-  { title: "Documento", key: "documento", width: "10%" },
-  {
-    title: "Nombre Comercial/ Razón Social",
-    key: "nombrecompleto",
-    width: "20%",
-  },
-  { title: "Tipo Proveedor", key: "tipo_proveedor", width: "6.5%" },
-  { title: "Ubigeo", key: "ubigeo", width: "8%" },
-  { title: "Dirección", key: "address" },
-  { title: "Estado", key: "estado", width: "6.5%" },
-  { title: "Acciones", key: "action", width: "7.5%" },
-] as const;
 const headersTel = [
   { title: "Tipo de Teléfono", key: "tipotelefono", width: "30%" },
   { title: "Nro Teléfono", key: "nro_telefono", width: "50%" },
@@ -97,134 +82,25 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row>
-      <v-col cols="6">
-        <v-btn
-          v-if="can('listProveedor', 'NUEVO')"
-          rounded
-          size="small"
-          class="mx-1"
-          color="success"
-          @click="cambiarRuta({ nameRuta: 'nuevoProveedor' })"
-        >
-          NUEVO
-        </v-btn>
-        <v-btn
-          rounded
-          size="small"
-          class="mx-1"
-          color="secondary"
-          @click="
-            entitiesStore.filtrarProveedor =
-              !entitiesStore.filtrarProveedor
-          "
-        >
-          FILTRAR
-        </v-btn>
-        <v-btn
-          v-if="can('listProveedor', 'EXPORTAR')"
-          rounded
-          size="small"
-          class="mx-1"
-          color="warning"
-          @click="exportProveedor()"
-        >
-          EXPORTAR
-        </v-btn>
-      </v-col>
-      <v-col cols="6">
-        <v-spacer />
-        <v-text-field
-          name="Buscar"
-          label="Buscar"
-          v-model="search"
-        />
-      </v-col>
-      <v-col cols="12">
-        <v-data-table
-          :headers="headers"
-          :items="entitiesStore.lstProveedor"
-          item-value="id"
-          :search="search"
-        >
-          <template #[`item.codigo`]>
-            PROV
-          </template>
-          <template #[`item.documento`]="{ item }">
-            {{ item.acronym_document }}-{{ item.document }}
-          </template>
-          <template #[`item.ubigeo`]="{ item }">
-            {{
-              item.pais && item.city
-                ? item.pais.concat("-", item.city)
-                : item.pais || item.city
-            }}
-          </template>
-          <template #[`item.action`]="{ item }">
-            <v-btn-toggle>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                @click="obtenerTelContactoProveedor(item.id)"
-              >
-                <v-icon color="blue-grey-darken-3">
-                  mdi-phone
-                </v-icon>
-              </v-btn>
-              <!-- <v-btn x-small icon @click="editar(item.id)">
-                <v-icon color="green">mdi-currency-usd</v-icon>
-              </v-btn> -->
-              <v-btn
-                variant="text"
-                v-if="item.status == 1 && can('listProveedor', 'MODIFICAR')"
-                size="x-small"
-                icon
-                @click="
-                  $router.push({
-                    name: 'editarProveedor',
-                    params: { id: item.id },
-                  })
-                "
-              >
-                <v-icon color="#E65100">
-                  mdi-pencil
-                </v-icon>
-              </v-btn>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                @click="
-                  $router.push({
-                    name: 'verProveedor',
-                    params: { id: item.id },
-                  })
-                "
-              >
-                <v-icon color="info">
-                  mdi-eye
-                </v-icon>
-              </v-btn>
-              <v-btn
-                variant="text"
-                size="x-small"
-                icon
-                v-if="item.status == 1 && can('listProveedor', 'ELIMINAR')"
-                @click="eliminar(item)"
-              >
-                <v-icon
-                  color="red"
-                >
-                  mdi-delete
-                </v-icon>
-              </v-btn>
-            </v-btn-toggle>
-          </template>
-        </v-data-table>
-      </v-col>
-    </v-row>
+  <div>
+    <EntityListTable
+      :items="entitiesStore.lstProveedor"
+      plural="proveedores"
+      new-label="Nuevo Proveedor"
+      search-placeholder="Buscar proveedor..."
+      providers
+      :can-create="can('listProveedor', 'NUEVO')"
+      :can-export="can('listProveedor', 'EXPORTAR')"
+      :can-edit="can('listProveedor', 'MODIFICAR')"
+      :can-delete="can('listProveedor', 'ELIMINAR')"
+      @create="cambiarRuta({ nameRuta: 'nuevoProveedor' })"
+      @filter="entitiesStore.filtrarProveedor = !entitiesStore.filtrarProveedor"
+      @export="exportProveedor()"
+      @phones="(item) => obtenerTelContactoProveedor(item.id)"
+      @edit="(item) => router.push({ name: 'editarProveedor', params: { id: item.id } })"
+      @view="(item) => router.push({ name: 'verProveedor', params: { id: item.id } })"
+      @remove="eliminar"
+    />
     <v-dialog
       v-model="dialogTelCont"
       persistent
@@ -347,7 +223,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-container>
+  </div>
 </template>
 
 <style></style>

@@ -121,3 +121,26 @@ test("a step passed by a later confirmation reads as not confirmed until it is",
   expect(pending.text()).not.toContain("Sin confirmar");
   pending.unmount();
 });
+
+test("an ETD/ETA/availability step shows the date from Fechas and cannot be confirmed while it is missing", () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  const step: HouseTrackingStep = { ...blockedStep, id: 8, name: "ETA (Llegada a Puerto Destino)", state: "next", house_date_name: "Llegada (ETA)" };
+  const wrapper = mount(HouseStepItem, {
+    props: { houseId: 1, step, blockedBy: null },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+  });
+
+  expect(wrapper.text()).toContain("Falta Llegada (ETA)");
+  expect(wrapper.text()).not.toContain("Poner fecha");
+  const toggle = wrapper.find('input[type="checkbox"]');
+  expect(toggle.attributes("disabled")).toBeDefined();
+  expect(toggle.attributes("aria-label")).toContain("Primero registra «Llegada (ETA)» en Fechas");
+
+  wrapper.setProps({ step: { ...step, scheduled_at: "2026-11-26T05:00:00.000Z" } });
+  return nextTick().then(() => {
+    expect(wrapper.text()).not.toContain("Falta");
+    expect(wrapper.find('input[type="checkbox"]').attributes("disabled")).toBeUndefined();
+    wrapper.unmount();
+  });
+});

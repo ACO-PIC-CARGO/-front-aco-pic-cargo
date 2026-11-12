@@ -194,6 +194,12 @@ export interface CuentaBancariaPic {
   cuenta: string;
   cci: string;
   symbol: string;
+  banco?: string;
+  moneda?: string;
+  id_coins?: number;
+  esprincipalflag?: boolean;
+  // Only the accounts flagged for arrival notices are offered to the client.
+  esavisollegada?: boolean;
 }
 
 export interface CuentaBancariaListado {
