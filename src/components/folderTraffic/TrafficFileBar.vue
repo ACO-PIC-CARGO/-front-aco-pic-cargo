@@ -11,6 +11,7 @@ import { QUOTELESS_SEND_MESSAGE, quoteRouteOf } from "@/utils/trafficSend";
 import TrafficSendToOperations from "./TrafficSendToOperations.vue";
 
 const props = defineProps<{ houseId: number }>();
+const emit = defineEmits<{ loaded: [file: TrafficFileOfHouse | null] }>();
 
 const router = useRouter();
 const trafficStore = useTrafficStore();
@@ -22,6 +23,7 @@ const withdraw = useTrafficWithdraw();
 
 async function loadFile() {
   file.value = await trafficStore.fileOfHouse(props.houseId);
+  emit("loaded", file.value);
 }
 
 function startSending() {
