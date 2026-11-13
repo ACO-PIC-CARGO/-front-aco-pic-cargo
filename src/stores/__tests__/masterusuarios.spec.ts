@@ -148,6 +148,16 @@ describe("masterusuarios store", () => {
     expect(Swal.fire).not.toHaveBeenCalled();
   });
 
+  test.each(loaders)("$action resolves with an empty $key when the connection drops", async ({ action, path, key }) => {
+    respond({ [path.split("?")[0]!]: new Error("Network Error") });
+    const store = useMasterusuariosStore();
+    store[key] = [row];
+
+    await expect(store[action]()).resolves.toBeUndefined();
+    expect(store[key]).toEqual([]);
+    expect(Swal.fire).not.toHaveBeenCalled();
+  });
+
   test("the telephone type list screen and its loader fill the same list", async () => {
     respond({ listar_master_detalle_tipotelefono: accepted([row]), cargar_master_detalle_tipo_telefono: accepted([{ id: 2 }]) });
     const store = useMasterusuariosStore();
