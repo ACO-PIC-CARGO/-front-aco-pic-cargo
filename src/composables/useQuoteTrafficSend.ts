@@ -2,7 +2,7 @@ import { computed, readonly, ref, shallowRef } from "vue";
 import Swal from "sweetalert2";
 import router from "@/router";
 import { useTrafficStore } from "@/stores/traffic";
-import type { QuoteKind, TrafficSendPayload, TrafficToOperations, TrafficToOperationsPayload } from "@/types/traffic";
+import type { QuoteKind, TrafficSendPayload } from "@/types/traffic";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { sendTargetsFor, type SendTarget, type TrafficFileOfQuote } from "@/utils/trafficSend";
 
@@ -12,10 +12,9 @@ interface QuoteTrafficOptions {
   quoteKind: QuoteKind;
   quoteId: () => number | string;
   approved: () => boolean;
-  finishOnMaster?: (sent: TrafficToOperations & { mensaje: string }, payload: TrafficToOperationsPayload) => void;
 }
 
-export function useQuoteTrafficSend({ quoteKind, quoteId, approved, finishOnMaster }: QuoteTrafficOptions) {
+export function useQuoteTrafficSend({ quoteKind, quoteId, approved }: QuoteTrafficOptions) {
   const trafficStore = useTrafficStore();
   const trafficFile = ref<TrafficFileOfQuote | null>(null);
   const target = shallowRef<SendTarget | null>(null);
@@ -80,32 +79,6 @@ export function useQuoteTrafficSend({ quoteKind, quoteId, approved, finishOnMast
     return true;
   }
 
-  async function sendToOperations(payload: TrafficToOperationsPayload): Promise<boolean> {
-    const file = pendingFile.value;
-    if (!file) return refuse("Esta cotización ya no está pendiente en Tráfico. Recarga la página.");
-
-    showWorking("Enviando a Operaciones");
-    const answer = await trafficStore.sendToOperations(file.id_traffic, payload, idempotencyKey);
-    if (!answer.estadoflag) return refuse(answer.mensaje);
-
-    if (finishOnMaster) {
-      finishOnMaster({ ...answer.data[0]!, mensaje: answer.mensaje }, payload);
-      await load();
-      return true;
-    }
-    const choice = await Swal.fire({
-      icon: "success",
-      title: "Enviado a Operaciones",
-      text: answer.mensaje,
-      confirmButtonText: "Ver house",
-      showCancelButton: true,
-      cancelButtonText: "Quedarme en la cotización",
-    });
-    if (choice.isConfirmed) router.push({ name: "controlHouseVer", params: { id: file.id_house } });
-    else await load();
-    return true;
-  }
-
   return {
     trafficFile: readonly(trafficFile),
     target,
@@ -114,6 +87,5 @@ export function useQuoteTrafficSend({ quoteKind, quoteId, approved, finishOnMast
     goesToTraffic,
     load,
     sendQuote,
-    sendToOperations,
   };
 }

@@ -60,7 +60,7 @@ const labelled = (label: string) => wrapper!.find(`button[aria-label="${label}"]
 test("without a default status the list starts with every file", async () => {
   await mountAs(["VER"]);
 
-  expect(listParams()).toEqual([{ state: null, status: null, pagina: 1, limit: 10 }]);
+  expect(listParams()).toEqual([{ state: null, status: null, correlativo: null, pagina: 1, limit: 10 }]);
   expect(wrapper!.text()).toContain("TR-00004");
 });
 
@@ -71,7 +71,7 @@ test("choosing another state lists those files", async () => {
   await flushPromises();
 
   const calls = listParams();
-  expect(calls[calls.length - 1]).toEqual({ state: "SENT", status: null, pagina: 1, limit: 10 });
+  expect(calls[calls.length - 1]).toEqual({ state: "SENT", status: null, correlativo: null, pagina: 1, limit: 10 });
 });
 
 test("another page is asked to the server, and another state starts again on the first page", async () => {
@@ -84,6 +84,21 @@ test("another page is asked to the server, and another state starts again on the
   (wrapper!.vm as unknown as { state: string | null }).state = "SENT";
   await flushPromises();
   expect(lastListParams()).toMatchObject({ state: "SENT", pagina: 1 });
+});
+
+test("a typed traffic number lists from the first page, without its surrounding spaces", async () => {
+  await mountAs(["VER"], [{ ...pending, totalregistro: "25", totalenviados: "0" }]);
+  wrapper!.findComponent(VDataTableServer).vm.$emit("update:page", 2);
+  await flushPromises();
+  vi.useFakeTimers({ toFake: ["setTimeout", "Date"] });
+
+  (wrapper!.vm as unknown as { correlativo: string | null }).correlativo = "  tr-0001 ";
+  await flushPromises();
+  vi.advanceTimersByTime(400);
+  vi.useRealTimers();
+  await flushPromises();
+
+  expect(lastListParams()).toMatchObject({ correlativo: "tr-0001", pagina: 1 });
 });
 
 test("no page size asks for more files than the server sends in one page", async () => {
@@ -143,5 +158,5 @@ test("the list starts filtered by the company's default status", async () => {
     { id: 7, name: "Por embarcar", position: 2, is_default: true },
   ]);
 
-  expect(listParams()).toEqual([{ state: null, status: 7, pagina: 1, limit: 10 }]);
+  expect(listParams()).toEqual([{ state: null, status: 7, correlativo: null, pagina: 1, limit: 10 }]);
 });
