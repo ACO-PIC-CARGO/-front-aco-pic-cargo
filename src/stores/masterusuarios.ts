@@ -154,94 +154,35 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
     if (!data.estadoflag) showRejectedResponse(data);
   }
 
-  async function cargarMasterDetalleCanal(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_canal?id_branch=${sessionBranchId()}`,
+  // Lookup lists only feed selects: a failed request (offline, dropped mobile connection) leaves the list empty instead of rejecting into the screen that loads it.
+  async function loadCatalog(method: "get" | "post", path: string): Promise<TipoTransaccion[]> {
+    const data = await request<TipoTransaccion>({
+      method,
+      url: import.meta.env.VITE_URL_MAIN + path,
       headers: { "Content-Type": "application/json" },
-    };
-
-    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstCanales.value = response.data.data;
-      } else {
-        lstCanales.value = [];
-      }
     });
+    if (data.token) sessionStorage.setItem("auth-token", data.token);
+    return data.estadoflag ? data.data : [];
+  }
+
+  async function cargarMasterDetalleCanal(): Promise<void> {
+    lstCanales.value = await loadCatalog("post", `cargar_master_detalle_canal?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarMasterDetalleTipoProveedor(): Promise<void> {
-    const config = {
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_proveedor?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstTipoProveedor.value = response.data.data;
-      } else {
-        // Swal.fire({
-        //   icon: "error",
-        //   text: data.mensaje,
-        // });
-        lstTipoProveedor.value = [];
-      }
-    });
+    lstTipoProveedor.value = await loadCatalog("post", `cargar_master_detalle_tipo_proveedor?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarMasterDetallePercepcionAduana(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_percepcion_aduana?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstPercepcionAduana.value = response.data.data;
-      } else {
-        lstPercepcionAduana.value = [];
-      }
-    });
+    lstPercepcionAduana.value = await loadCatalog("get", `cargar_master_detalle_percepcion_aduana?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarMasterDetalleTipoTransaccion(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_percepcion?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstTipoTransaccion.value = response.data.data;
-      } else {
-        lstTipoTransaccion.value = [];
-      }
-    });
+    lstTipoTransaccion.value = await loadCatalog("get", `cargar_master_detalle_tipo_percepcion?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarTipoTelefono(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_telefono?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstTipoTelefono.value = response.data.data;
-      } else {
-        lstTipoTelefono.value = [];
-      }
-    });
+    lstTipoTelefono.value = await loadCatalog("get", `cargar_master_detalle_tipo_telefono?id_branch=${sessionBranchId()}`);
   }
 
   function RegistrarMasterDetalleTipoTelefono(): Promise<boolean> {
@@ -253,54 +194,15 @@ export const useMasterusuariosStore = defineStore("masterusuarios", () => {
   }
 
   async function cargarTipoPersona(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_tipo_persona?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstTipoPersona.value = response.data.data;
-      } else {
-        lstTipoPersona.value = [];
-      }
-    });
+    lstTipoPersona.value = await loadCatalog("get", `cargar_master_detalle_tipo_persona?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarImpuestoRenta(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_impuesto_renta?id_branch=${sessionBranchId()}`,
-      headers: { "Content-Type": "application/json" },
-    };
-    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstImpRenta.value = response.data.data;
-      } else {
-        lstImpRenta.value = [];
-      }
-    });
+    lstImpRenta.value = await loadCatalog("get", `cargar_master_detalle_impuesto_renta?id_branch=${sessionBranchId()}`);
   }
 
   async function cargarTemperaturaLeds(): Promise<void> {
-    const config = {
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_master_detalle_temperatura_leads`,
-      headers: { "Content-Type": "application/json" },
-    };
-    await axios<ApiResponse<TipoTransaccion[]>>(config).then((response) => {
-      const data = response.data;
-      sessionStorage.setItem("auth-token", data.token!);
-      if (data.estadoflag == true) {
-        lstTemperatura.value = response.data.data;
-      } else {
-        lstTemperatura.value = [];
-      }
-    });
+    lstTemperatura.value = await loadCatalog("get", `cargar_master_detalle_temperatura_leads`);
   }
 
   return {

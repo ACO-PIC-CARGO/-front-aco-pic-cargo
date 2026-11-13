@@ -233,7 +233,7 @@ onMounted(async () => {
               icon="mdi-undo-variant"
               size="small"
               variant="text"
-              color="warning"
+              color="error"
               :aria-label="`Retirar ${item.code_traffic} de Operaciones`"
               @click="startWithdrawing(item)"
             />

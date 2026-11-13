@@ -106,8 +106,8 @@ export const useMastersStore = defineStore("masters", () => {
   const id_canal = ref<Numerico>("");
   const nro_manifiesto = ref<Numerico>("");
   const url_folderonedrive = ref("");
-  const fecha_libre_almacenaje = ref<Numerico>("");
-  const fecha_libre_sobreestadia = ref<Numerico>("");
+  const fecha_libre_almacenaje = ref<string | null>("");
+  const fecha_libre_sobreestadia = ref<string | null>("");
   const almacen_recepcion = ref<Numerico>("");
   const dias_sobreestadia = ref<number | string>(0);
   const grupalflag = ref(false);
