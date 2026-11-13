@@ -43,7 +43,15 @@ let idempotencyKey = generateIdempotencyKey();
 const today = () => new Date().toLocaleDateString("en-CA");
 
 async function openInstructivo() {
-  const failure = await pricingStore.getQuote({ id: String(props.file.id_quote) });
+  // FileSequenceInstructivo reads these catalogs once on mount, as the quote screen leaves them loaded.
+  const [failure] = await Promise.all([
+    pricingStore.getQuote({ id: String(props.file.id_quote) }),
+    pricingStore.getShipment(),
+    pricingStore.getModality(),
+    pricingStore.getIncoterms(),
+    pricingStore.getPersonalPricing(),
+    appStore.cargarProveedores(),
+  ]);
   if (failure) {
     Swal.fire({ icon: "error", title: "No se pudo abrir el instructivo", text: failure });
     emit("close");

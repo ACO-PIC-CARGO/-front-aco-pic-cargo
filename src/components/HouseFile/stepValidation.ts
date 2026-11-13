@@ -2,7 +2,7 @@ import moment from "moment-timezone";
 import { SHORT_MONTHS } from "@/utils/dates";
 import { calendarDateLabel, stepDateTimeLabel, toDateAndTime } from "./houseTrackingFormat";
 import { weightCheckSummary } from "./weightCheck";
-import type { HouseTrackingStep, StepDialogMode } from "@/types/houseTracking";
+import type { HouseTrackingStep } from "@/types/houseTracking";
 
 export interface StepValidationLine {
   label: string;
@@ -19,9 +19,6 @@ const pastValidity = (step: StepWithValidity, at: string, timeZone: string) =>
 
 export const quoteExpiredOn = (step: StepWithValidity, at: string, timeZone: string): boolean =>
   pastValidity(step, at, timeZone) && !step.quote_validity!.kept_at;
-
-export const skipStillSaves = (step: Pick<HouseTrackingStep, "confirmed_at">, mode: StepDialogMode): boolean =>
-  mode === "date" || Boolean(step.confirmed_at);
 
 export const authorizationLabel = (at: moment.MomentInput, timeZone: string): string => {
   const date = moment.tz(at, timeZone);

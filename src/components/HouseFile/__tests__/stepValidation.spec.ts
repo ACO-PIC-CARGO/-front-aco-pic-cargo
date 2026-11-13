@@ -3,7 +3,6 @@ import {
   authorizationLabel,
   quoteExpiredOn,
   quoteValidityBadge,
-  skipStillSaves,
   stepValidationLines,
 } from "@/components/HouseFile/stepValidation";
 import type { HouseTrackingStep } from "@/types/houseTracking";
@@ -36,12 +35,6 @@ test("a date is past the quote validity only from the next local day and while t
   const kept = { quote_id: 7092, valid_until: "2025-11-14", kept_by: "Carlos Ramírez", kept_at: "2026-10-26T15:45:00Z" };
   expect(quoteExpiredOn(step({ quote_validity: kept }), "2025-12-01T15:00:00.000Z", LIMA)).toBe(false);
   expect(quoteExpiredOn(step({ quote_validity: null }), "2025-12-01T15:00:00.000Z", LIMA)).toBe(false);
-});
-
-test("skipping saves the date when estimating or correcting it, never when confirming", () => {
-  expect(skipStillSaves(step(), "confirm")).toBe(false);
-  expect(skipStillSaves(step(), "date")).toBe(true);
-  expect(skipStillSaves(step({ confirmed_at: "2025-11-20T15:00:00Z", state: "confirmed" }), "confirm")).toBe(true);
 });
 
 test("the authorization time reads as day, short month, year and time in the branch time zone", () => {

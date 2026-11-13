@@ -7,6 +7,7 @@ import moment from "moment";
 import axios from "@/api/http";
 import FileSequenceInstructivo from "../../comun/FileSequenceInstructivo.vue";
 import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
+import QuoteInTrafficNotice from "@/components/folderTraffic/QuoteInTrafficNotice.vue";
 import { askExpedienteKind, askMasterAvailabilityDate } from "@/utils/expedienteChoice";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
@@ -32,13 +33,6 @@ const quoteTraffic = useQuoteTrafficSend({
   quoteKind: "PRICING",
   quoteId: () => route.params.id as string,
   approved: () => pricingStore.aprobadoflag,
-  finishOnMaster: (sent, payload) =>
-    pricingStore.finishApprovalOnMaster({
-      ...sent,
-      nuevoexpediente: payload.nuevoexpediente,
-      url_folderonedrive: url_folderonedrive.value,
-      quoteId: route.params.id,
-    }),
 });
 const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
 const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
@@ -350,15 +344,6 @@ async function imprimir() {
     });
 }
 async function approveQuote(details: AprobacionCotizacion) {
-  if (pendingTrafficFile.value) {
-    seleccionQuoteAprobar.value = false;
-    await quoteTraffic.sendToOperations({
-      nuevoexpediente: Boolean(details.nuevoexpediente),
-      id_exp: (details.id_exp as number | string | null) || null,
-      fecha_validez: (details.fecha_validez as string | null) || null,
-    });
-    return;
-  }
   Swal.fire({
     icon: "info",
     title: "Aprobando cotización",
@@ -640,11 +625,6 @@ async function buscarHouseAsociadosAMaster() {
   dialogHouse.value = true;
 }
 function continuarAprobar() {
-  if (pendingTrafficFile.value) {
-    aprobarflag.value = false;
-    seleccionQuoteAprobar.value = false;
-    return quoteTraffic.sendToOperations({ nuevoexpediente: false, id_exp: id_exp.value || null, fecha_validez: null });
-  }
   id_opcion.value = "";
   aprobarflag.value = false;
   dialogCostos.value = true;
@@ -843,6 +823,10 @@ function getProveedor(element: OpcionCosto) {
       >
         <span style="color: #ffffff">Enviar a Operaciones/ Tráfico</span>
       </v-btn>
+      <QuoteInTrafficNotice
+        v-if="pendingTrafficFile"
+        :file="pendingTrafficFile"
+      />
       <center>
         <h3>
           INSTRUCTIVO COMPRA
