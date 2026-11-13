@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { EMAIL_TABLE_FIELDS, fieldValue, quoteEmailFieldValues } from "@/utils/providerQuoteEmailFields";
+import { EMAIL_TABLE_FIELDS, fieldValue, quoteEmailFieldValues, quoteShipmentId } from "@/utils/providerQuoteEmailFields";
 import type { QuoteEmailLists } from "@/utils/providerQuoteEmailFields";
 
 const lists: QuoteEmailLists = {
@@ -62,5 +62,18 @@ describe("the data a provider email row can show", () => {
   test("a zero is kept and a blank text is empty", () => {
     expect(fieldValue("weight", { weight: 0 })).toBe("0");
     expect(fieldValue("commodity", { commodity: "  " })).toBe("");
+  });
+});
+
+describe("the shipment type whose template a rate request uses", () => {
+  test("is the quote's shipment type whether the form holds its id, its id as text or the whole type", () => {
+    expect(quoteShipmentId({ idtipocarga: 4 })).toBe(4);
+    expect(quoteShipmentId({ idtipocarga: "4" })).toBe(4);
+    expect(quoteShipmentId({ idtipocarga: { id: 4, embarque: "LCL" } })).toBe(4);
+  });
+
+  test("is none when the quote has no shipment type yet", () => {
+    expect(quoteShipmentId({ idtipocarga: "" })).toBeNull();
+    expect(quoteShipmentId({})).toBeNull();
   });
 });

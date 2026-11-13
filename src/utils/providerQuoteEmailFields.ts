@@ -52,6 +52,11 @@ const idOf = (value: unknown): unknown =>
 const nameOf = (list: Named[], id: unknown): string | null =>
   list.find((item) => item.id == idOf(id))?.name ?? null;
 
+export const quoteShipmentId = (quote: Pick<DatosPrincipales, "idtipocarga">): number | null => {
+  const id = Number(idOf(quote.idtipocarga));
+  return Number.isInteger(id) && id > 0 ? id : null;
+};
+
 const containersText = (containers: ContenedorCantidad[] | null | undefined): string =>
   (containers ?? [])
     .filter((container) => Number(container.cantidad) > 0)

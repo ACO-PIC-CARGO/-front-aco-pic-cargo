@@ -30,6 +30,8 @@ export interface EmailTableRow {
 }
 
 export interface ProviderQuoteEmailTemplate {
+  id_shipment: number;
+  shipment_name: string;
   language: EmailLanguage;
   intro_html: string;
   closing_html: string;

@@ -5,8 +5,8 @@ import type { EmailLanguage, ProviderQuoteEmailTemplate } from "@/types/provider
 
 const TEMPLATES_URL = "provider_quote_email_templates";
 
-export const TEMPLATES_NOT_LOADED =
-  "Todavía no cargamos la plantilla del correo. Cierra este diálogo y vuelve a abrirlo.";
+export const TEMPLATE_NOT_FOUND =
+  "No encontramos la plantilla del correo para el tipo de embarque de esta cotización. Revisa que ese tipo de embarque esté activo o cierra este diálogo y vuelve a abrirlo.";
 
 export const useProviderQuoteEmailTemplateStore = defineStore("providerQuoteEmailTemplate", () => {
   const templates = ref<ProviderQuoteEmailTemplate[]>([]);
@@ -21,20 +21,23 @@ export const useProviderQuoteEmailTemplateStore = defineStore("providerQuoteEmai
     return response.estadoflag ? null : response.mensaje;
   }
 
-  const templateFor = (language: EmailLanguage): ProviderQuoteEmailTemplate | null =>
-    templates.value.find((template) => template.language === language) ?? null;
+  const isFor = (template: ProviderQuoteEmailTemplate, shipmentId: number, language: EmailLanguage) =>
+    template.id_shipment === shipmentId && template.language === language;
+
+  const templateFor = (shipmentId: number, language: EmailLanguage): ProviderQuoteEmailTemplate | null =>
+    templates.value.find((template) => isFor(template, shipmentId, language)) ?? null;
 
   async function save(template: ProviderQuoteEmailTemplate): Promise<string | null> {
-    const { language, intro_html, closing_html, table_header, table_rows } = template;
+    const { id_shipment, language, intro_html, closing_html, table_header, table_rows } = template;
     saving.value = true;
     const response = await request({
       method: "put",
-      url: `${TEMPLATES_URL}/${language}`,
+      url: `${TEMPLATES_URL}/${id_shipment}/${language}`,
       data: { intro_html, closing_html, table_header, table_rows },
     });
     saving.value = false;
     if (!response.estadoflag) return response.mensaje;
-    templates.value = templates.value.map((saved) => (saved.language === language ? { ...template } : saved));
+    templates.value = templates.value.map((saved) => (isFor(saved, id_shipment, language) ? { ...template } : saved));
     notifySuccess(response.mensaje);
     return null;
   }

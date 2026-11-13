@@ -58,9 +58,9 @@ import { useHousesStore } from "@/stores/houses";
 import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
 import { mostrarAvisoVigenciaFlete } from "./avisoVigenciaFlete";
-import { TEMPLATES_NOT_LOADED, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
+import { TEMPLATE_NOT_FOUND, useProviderQuoteEmailTemplateStore } from "@/stores/providerQuoteEmailTemplate";
 import { buildProviderQuoteEmail, buildProviderQuoteSubject } from "@/utils/providerQuoteEmail";
-import { quoteEmailFieldValues } from "@/utils/providerQuoteEmailFields";
+import { quoteEmailFieldValues, quoteShipmentId } from "@/utils/providerQuoteEmailFields";
 import type { QuoteEmailLists } from "@/utils/providerQuoteEmailFields";
 import type { EmailLanguage } from "@/types/providerQuoteEmailTemplate";
 
@@ -456,9 +456,10 @@ async function abrirCorreoSend(language: EmailLanguage) {
     return;
   }
 
-  const template = providerQuoteEmailTemplateStore.templateFor(language);
+  const shipmentId = quoteShipmentId(pricingStore.datosPrincipales);
+  const template = shipmentId === null ? null : providerQuoteEmailTemplateStore.templateFor(shipmentId, language);
   if (!template) {
-    Swal.fire({ icon: "warning", text: templateLoadError.value ?? TEMPLATES_NOT_LOADED });
+    Swal.fire({ icon: "warning", text: templateLoadError.value ?? TEMPLATE_NOT_FOUND });
     return;
   }
 
@@ -1523,7 +1524,7 @@ watch(idRole, async () => {
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
-        CORREO
+        SOLICITAR TARIFA
       </v-btn>
 
       <v-btn
@@ -1534,7 +1535,7 @@ watch(idRole, async () => {
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
-        CORREO
+        SOLICITAR TARIFA
       </v-btn>
 
       <v-btn
