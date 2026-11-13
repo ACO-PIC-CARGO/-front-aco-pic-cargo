@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
+import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
-import { useFilesStore } from "@/stores/files";
 import { usePermissions } from "@/composables/usePermissions";
+import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/useRevisionSolicitudPago";
+import SoportePagoDialog from "./SoportePagoDialog.vue";
 import { sessionUser } from "@/utils/sesion";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
@@ -14,10 +16,11 @@ import type {
 } from "@/types/billingEntries";
 
 const props = defineProps<{ idMaster?: number | null }>();
+const emit = defineEmits<{ actualizado: [] }>();
 
 const { can } = usePermissions();
 const { smAndDown } = useDisplay();
-const filesStore = useFilesStore();
+const router = useRouter();
 
 const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 
@@ -26,11 +29,7 @@ const ESTADOS: { codigo: EstadoSolicitudPago; titulo: string; icono: string }[] 
   { codigo: "PENGER", titulo: "Pendiente por Gerencia", icono: "mdi-clock-outline" },
   { codigo: "PENADM", titulo: "Pendiente por Administración", icono: "mdi-account-outline" },
   { codigo: "PAGADO", titulo: "Pagado", icono: "mdi-cash-check" },
-];
-const TIPOS_SOPORTE = [
-  { valor: 1, titulo: "Factura Fiscal", icono: "mdi-file-certificate-outline" },
-  { valor: 2, titulo: "Proforma", icono: "mdi-file-document-outline" },
-  { valor: 3, titulo: "Otros (ej. email)", icono: "mdi-email-outline" },
+  { codigo: "RECHAZADA", titulo: "Rechazada", icono: "mdi-close-circle-outline" },
 ];
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -48,22 +47,15 @@ const filtroDesde = ref("");
 const filtroHasta = ref("");
 const mostrarFiltrosMovil = ref(false);
 
+// modal soporte
+const dialogSoporte = ref(false);
+const solicitudSoporte = ref<SolicitudPagoControl | null>(null);
+
 // móvil
 const gruposCerrados = ref<Record<string, boolean>>({});
 const tarjetasAbiertas = ref<Record<number, boolean>>({});
 const fechaPagoMovil = ref<Record<number, string>>({});
 
-// modal soporte
-const dialogSoporte = ref(false);
-const solicitudSoporte = ref<SolicitudPagoControl | null>(null);
-const tipoSoporte = ref(1);
-const fechaPago = ref("");
-const subiendo = ref(false);
-const arrastrando = ref(false);
-const archivoSoporte = ref<{ id: number; nombre: string; ruta: string } | null>(null);
-const inputArchivo = ref<HTMLInputElement | null>(null);
-const inputFecha = ref<{ focus: () => void } | null>(null);
-const guardandoSoporte = ref(false);
 
 // modal anexos
 const dialogAnexos = ref(false);
@@ -79,6 +71,9 @@ const logo = computed(() => {
   }
 });
 const puedeAprobar = computed(() => can("listControlGastos", "MODIFICAR"));
+// Administración: perfil 04 | Gerencia: perfil 01
+const { revisando, revisar: aprobar } = useRevisionSolicitudPago(() => cargar());
+const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
 
 const opcionesProveedor = computed(() =>
   unicos(solicitudes.value.map((s) => ({ title: etiquetaProveedor(s), value: s.id_proveedor })), "value"),
@@ -157,15 +152,21 @@ function aprobaciones(s: SolicitudPagoControl) {
   return [
     {
       area: "administracion",
+      tipo: "ADM" as const,
       aprobado: !!s.aprobadoadministracionflag,
       usuario: s.usuario_aprobadoadministracion,
       fecha: s.fecha_aprobadoadministracion,
+      rechazado: !!s.rechazadoflag && s.area_rechazo === "ADM",
+      pendiente: s.codigo_estado === "PENADM",
     },
     {
       area: "gerencia",
+      tipo: "GER" as const,
       aprobado: !!s.aprobadogerenciaflag,
       usuario: s.usuario_aprobadogerencia,
       fecha: s.fecha_aprobadogerencia,
+      rechazado: !!s.rechazadoflag && s.area_rechazo === "GER",
+      pendiente: s.codigo_estado === "PENGER",
     },
   ];
 }
@@ -206,6 +207,7 @@ async function cargar() {
     return;
   }
   solicitudes.value = response.estadoflag ? response.data : [];
+  emit("actualizado");
 }
 
 async function copiar(texto: string | null) {
@@ -218,111 +220,33 @@ async function copiar(texto: string | null) {
   }
 }
 
-async function aprobar(s: SolicitudPagoControl, tipo: "ADM" | "GER") {
-  const area = tipo === "ADM" ? "Administración" : "Gerencia";
-  const { isConfirmed } = await Swal.fire({
-    icon: "question",
-    html: `¿Aprobar por <b>${area}</b> la solicitud de <b>${etiquetaProveedor(s)}</b> por <b>${s.moneda ?? ""} ${formatoMonto(s.monto)}</b>?`,
-    showCancelButton: true,
-    confirmButtonText: "Sí, aprobar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#1e5bd8",
-  });
-  if (!isConfirmed) return;
+
+// PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
+async function transferir(s: SolicitudPagoControl) {
   procesando.value = s.id;
-  const response = await request({
+  const response = await request<{ token: string }>({
     method: "put",
-    url: URL_MAIN + "solicitud_pago_aprobar/" + s.id,
-    data: { tipo },
+    url: URL_MAIN + "solicitud_pago_transferir/" + s.id,
   });
   procesando.value = null;
-  if (!response.estadoflag) {
+  const token = response.estadoflag ? response.data[0]?.token : null;
+  if (!token) {
     avisar(response);
+    await cargar();
     return;
   }
-  notifySuccess(response.mensaje);
-  await cargar();
+  router.push({ name: "registroPagoSolicitud", params: { token } });
+}
+
+function verSalida(s: SolicitudPagoControl) {
+  if (s.id_pagoegreso) window.open(`/home/FolderBanks/verPagosPorProveedor/${s.id_pagoegreso}`, "_blank");
 }
 
 function abrirSoporte(s: SolicitudPagoControl) {
   solicitudSoporte.value = s;
-  tipoSoporte.value = 1;
-  fechaPago.value = fechaPagoMovil.value[s.id] || "";
-  archivoSoporte.value = null;
   dialogSoporte.value = true;
 }
 
-function seleccionarArchivo() {
-  if (!subiendo.value) inputArchivo.value?.click();
-}
-
-async function alSoltar(event: DragEvent) {
-  arrastrando.value = false;
-  const archivo = event.dataTransfer?.files?.[0];
-  if (archivo) await subirArchivo(archivo);
-}
-
-async function alElegir(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const archivo = input.files?.[0];
-  input.value = "";
-  if (archivo) await subirArchivo(archivo);
-}
-
-async function subirArchivo(archivo: File) {
-  if (!(archivo.type === "application/pdf" || archivo.type.startsWith("image/"))) {
-    Swal.fire({ icon: "error", title: "Formato no válido", text: "Sube una imagen o un archivo PDF." });
-    return;
-  }
-  subiendo.value = true;
-  try {
-    const error = await filesStore._uploadFile(archivo);
-    if (error || !filesStore.payPath) {
-      Swal.fire({ icon: "error", text: error || "No pudimos subir el archivo. Intenta de nuevo." });
-      return;
-    }
-    archivoSoporte.value = {
-      id: Number(filesStore.payPath),
-      nombre: archivo.name,
-      ruta: filesStore.datosPath?.ruta || "",
-    };
-  } finally {
-    subiendo.value = false;
-  }
-  // Al cargar el soporte se solicita automáticamente la fecha de pago
-  if (!fechaPago.value) {
-    await nextTick();
-    inputFecha.value?.focus();
-  }
-}
-
-async function guardarSoporte() {
-  const s = solicitudSoporte.value;
-  if (!s) return;
-  if (!archivoSoporte.value) {
-    Swal.fire({ icon: "warning", text: "Sube el soporte de pago." });
-    return;
-  }
-  if (!fechaPago.value) {
-    Swal.fire({ icon: "warning", text: "Indica la fecha de pago." });
-    inputFecha.value?.focus();
-    return;
-  }
-  guardandoSoporte.value = true;
-  const response = await request({
-    method: "put",
-    url: URL_MAIN + "solicitud_pago_pagar/" + s.id,
-    data: { id_path: archivoSoporte.value.id, tiposoporte: tipoSoporte.value, fechapago: fechaPago.value },
-  });
-  guardandoSoporte.value = false;
-  if (!response.estadoflag) {
-    avisar(response);
-    return;
-  }
-  dialogSoporte.value = false;
-  notifySuccess(response.mensaje);
-  await cargar();
-}
 
 async function verAnexo(s: SolicitudPagoControl) {
   anexoProveedor.value = etiquetaProveedor(s);
@@ -545,7 +469,6 @@ defineExpose({ cargar });
             <th class="text-right">
               Monto
             </th>
-            <th>Moneda</th>
             <th>Banco</th>
             <th>Método de pago</th>
             <th>Código / N° de cuenta</th>
@@ -566,15 +489,12 @@ defineExpose({ cargar });
             <th class="text-center">
               Soporte
             </th>
-            <th class="text-center">
-              Acción
-            </th>
           </tr>
         </thead>
         <tbody>
           <tr v-if="!filtradas.length">
             <td
-              colspan="14"
+              colspan="12"
               class="solpago__empty"
             >
               {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago registradas." }}
@@ -614,11 +534,8 @@ defineExpose({ cargar });
                 </v-icon> Ver anexo
               </button>
             </td>
-            <td class="text-right solpago__monto">
-              {{ formatoMonto(s.monto) }}
-            </td>
-            <td>
-              <span class="solpago__coin">{{ s.moneda }}</span>
+            <td class="text-right solpago__monto text-no-wrap">
+              {{ formatoMonto(s.monto) }} <span class="solpago__coin">{{ s.moneda }}</span>
             </td>
             <td class="font-weight-bold">
               {{ s.banco || "—" }}
@@ -672,23 +589,76 @@ defineExpose({ cargar });
                 </div>
                 <span class="solpago__aprobfecha">{{ formatoFechaHora(a.fecha) }}</span>
               </template>
+              <div
+                v-else-if="a.rechazado"
+                class="solpago__rechazo"
+                :title="s.motivo_rechazo ? `Motivo: ${s.motivo_rechazo}` : ''"
+              >
+                <span class="solpago__rechazotag">Rechazado</span>
+                <div class="solpago__aprobuser">
+                  {{ s.usuario_rechazo || "—" }}
+                </div>
+                <span class="solpago__aprobfecha solpago__aprobfecha--rechazo">{{ formatoFechaHora(s.fecha_rechazo ?? null) }}</span>
+              </div>
+              <v-btn
+                v-else-if="a.pendiente && puedeAprobar && tienePerfilRevision(a.tipo)"
+                size="small"
+                :color="a.tipo === 'ADM' ? 'deep-purple' : 'amber-darken-3'"
+                variant="tonal"
+                class="solpago__revisar"
+                :loading="revisando === s.id"
+                @click="aprobar(s, a.tipo)"
+              >
+                Aprobar
+              </v-btn>
               <span v-else>—</span>
             </td>
             <td class="text-center text-no-wrap">
               {{ s.pagadoflag ? formatoFecha(s.fechapago) : "—" }}
             </td>
             <td class="text-center">
-              <v-btn
+              <div
                 v-if="s.pagadoflag"
-                icon
-                variant="text"
-                size="small"
-                color="primary"
-                title="Ver soporte de pago"
-                @click="abrir(s.soporte_path)"
+                class="solpago__soporte"
               >
-                <v-icon>mdi-file-eye-outline</v-icon>
-              </v-btn>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="small"
+                  color="primary"
+                  title="Ver soporte de pago"
+                  @click="abrir(s.soporte_path)"
+                >
+                  <v-icon>mdi-file-eye-outline</v-icon>
+                </v-btn>
+                <!-- con el soporte cargado ya se puede registrar el pago en Bancos -->
+                <button
+                  v-if="s.id_pagoegreso"
+                  type="button"
+                  class="solpago__salida"
+                  title="Ver la salida registrada en Bancos"
+                  @click="verSalida(s)"
+                >
+                  <v-icon
+                    size="16"
+                    color="success"
+                  >
+                    mdi-check-decagram
+                  </v-icon>
+                  Salida N° {{ s.numerooperacion_pago }}
+                </button>
+                <v-btn
+                  v-else-if="puedeTransferir"
+                  size="small"
+                  color="success"
+                  variant="flat"
+                  prepend-icon="mdi-bank-transfer-out"
+                  :loading="procesando === s.id"
+                  @click="transferir(s)"
+                >
+                  Transferir
+                </v-btn>
+              </div>
               <v-btn
                 v-else
                 icon
@@ -701,47 +671,6 @@ defineExpose({ cargar });
               >
                 <v-icon>mdi-file-upload-outline</v-icon>
               </v-btn>
-            </td>
-            <td class="text-center">
-              <template v-if="puedeAprobar">
-                <v-btn
-                  v-if="s.codigo_estado === 'PENADM'"
-                  size="small"
-                  color="deep-purple"
-                  variant="tonal"
-                  :loading="procesando === s.id"
-                  @click="aprobar(s, 'ADM')"
-                >
-                  Aprobar Administración
-                </v-btn>
-                <v-btn
-                  v-else-if="s.codigo_estado === 'PENGER'"
-                  size="small"
-                  color="amber-darken-3"
-                  variant="tonal"
-                  :loading="procesando === s.id"
-                  @click="aprobar(s, 'GER')"
-                >
-                  Aprobar Gerencia
-                </v-btn>
-                <v-btn
-                  v-else-if="s.codigo_estado === 'LISTO'"
-                  size="small"
-                  color="success"
-                  variant="flat"
-                  prepend-icon="mdi-bank-transfer-out"
-                  @click="abrirSoporte(s)"
-                >
-                  Transferir
-                </v-btn>
-                <v-icon
-                  v-else
-                  color="success"
-                  title="Pagado"
-                >
-                  mdi-check-decagram
-                </v-icon>
-              </template>
             </td>
           </tr>
         </tbody>
@@ -875,6 +804,22 @@ defineExpose({ cargar });
                         </dt>
                         <dd>{{ s.usuario_aprobadogerencia }} · {{ s.fecha_aprobadogerencia }}</dd>
                       </template>
+                      <template v-if="s.rechazadoflag">
+                        <dt class="text-error">
+                          <v-icon size="16">
+                            mdi-close-circle-outline
+                          </v-icon> Rechazado ({{ s.area_rechazo === "ADM" ? "Adm." : "Ger." }}):
+                        </dt>
+                        <dd>
+                          {{ s.usuario_rechazo }} · {{ s.fecha_rechazo }}
+                          <div
+                            v-if="s.motivo_rechazo"
+                            class="text-medium-emphasis"
+                          >
+                            {{ s.motivo_rechazo }}
+                          </div>
+                        </dd>
+                      </template>
                     </dl>
 
                     <div class="solpago__paydate">
@@ -906,6 +851,29 @@ defineExpose({ cargar });
                       >
                         Ver soporte
                       </v-btn>
+                      <v-btn
+                        v-if="s.id_pagoegreso"
+                        size="small"
+                        variant="tonal"
+                        color="success"
+                        rounded="pill"
+                        prepend-icon="mdi-check-decagram"
+                        @click="verSalida(s)"
+                      >
+                        Salida N° {{ s.numerooperacion_pago }}
+                      </v-btn>
+                      <v-btn
+                        v-else-if="puedeTransferir"
+                        size="small"
+                        variant="flat"
+                        color="success"
+                        rounded="pill"
+                        prepend-icon="mdi-bank-transfer-out"
+                        :loading="procesando === s.id"
+                        @click="transferir(s)"
+                      >
+                        Transferir
+                      </v-btn>
                     </template>
                     <template v-else-if="puedeAprobar">
                       <v-btn
@@ -920,23 +888,23 @@ defineExpose({ cargar });
                         Subir soporte
                       </v-btn>
                       <v-btn
-                        v-else-if="s.codigo_estado === 'PENADM'"
+                        v-else-if="s.codigo_estado === 'PENADM' && tienePerfilRevision('ADM')"
                         size="small"
                         color="deep-purple"
                         variant="tonal"
                         rounded="pill"
-                        :loading="procesando === s.id"
+                        :loading="revisando === s.id"
                         @click="aprobar(s, 'ADM')"
                       >
                         Aprobar Administración
                       </v-btn>
                       <v-btn
-                        v-else-if="s.codigo_estado === 'PENGER'"
+                        v-else-if="s.codigo_estado === 'PENGER' && tienePerfilRevision('GER')"
                         size="small"
                         color="amber-darken-3"
                         variant="tonal"
                         rounded="pill"
-                        :loading="procesando === s.id"
+                        :loading="revisando === s.id"
                         @click="aprobar(s, 'GER')"
                       >
                         Aprobar Gerencia
@@ -968,188 +936,13 @@ defineExpose({ cargar });
       Al registrar el soporte de pago, será obligatorio ingresar la fecha de pago.
     </div>
 
-    <!-- ======================= MODAL SOPORTE ======================= -->
-    <v-dialog
+    <SoportePagoDialog
       v-model="dialogSoporte"
-      max-width="720"
-      :fullscreen="smAndDown"
-      persistent
-    >
-      <v-card
-        v-if="solicitudSoporte"
-        class="soporte"
-        rounded="xl"
-      >
-        <div class="soporte__head">
-          <div class="soporte__icon">
-            <v-icon
-              color="primary"
-              size="30"
-            >
-              mdi-file-upload-outline
-            </v-icon>
-          </div>
-          <div class="soporte__titles">
-            <h3>
-              Proveedor: {{ etiquetaProveedor(solicitudSoporte) }}<template v-if="solicitudSoporte.correlativo">
-                - {{ solicitudSoporte.correlativo }}
-              </template>
-            </h3>
-            <p>
-              Cargar documento a pagar · {{ solicitudSoporte.moneda }} {{ formatoMonto(solicitudSoporte.monto) }}
-            </p>
-          </div>
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            class="ml-auto"
-            :disabled="guardandoSoporte"
-            @click="dialogSoporte = false"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </div>
+      :solicitud="solicitudSoporte"
+      :fecha-inicial="solicitudSoporte ? fechaPagoMovil[solicitudSoporte.id] : ''"
+      @guardado="cargar"
+    />
 
-        <div class="soporte__body">
-          <h4>Escoge una opción</h4>
-          <div class="soporte__options">
-            <button
-              v-for="t in TIPOS_SOPORTE"
-              :key="t.valor"
-              type="button"
-              class="soporte__option"
-              :class="{ 'soporte__option--active': tipoSoporte === t.valor }"
-              @click="tipoSoporte = t.valor"
-            >
-              <v-icon
-                size="20"
-                :color="tipoSoporte === t.valor ? 'primary' : 'grey'"
-              >
-                {{ tipoSoporte === t.valor ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-              </v-icon>
-              <v-icon
-                size="26"
-                color="primary"
-              >
-                {{ t.icono }}
-              </v-icon>
-              <span>{{ t.titulo }}</span>
-            </button>
-          </div>
-
-          <div
-            v-if="!archivoSoporte"
-            class="soporte__drop"
-            :class="{ 'soporte__drop--over': arrastrando }"
-            role="button"
-            tabindex="0"
-            @click="seleccionarArchivo"
-            @keydown.enter="seleccionarArchivo"
-            @dragover.prevent="arrastrando = true"
-            @dragleave.prevent="arrastrando = false"
-            @drop.prevent="alSoltar"
-          >
-            <template v-if="!subiendo">
-              <v-icon
-                size="40"
-                color="grey-darken-1"
-              >
-                mdi-cloud-upload-outline
-              </v-icon>
-              <strong>Arrastra y suelta el archivo aquí</strong>
-              <span>o haz clic para seleccionar</span>
-            </template>
-            <template v-else>
-              <v-progress-circular
-                indeterminate
-                color="primary"
-              />
-              <span>Subiendo archivo...</span>
-            </template>
-            <input
-              ref="inputArchivo"
-              type="file"
-              accept="image/*,application/pdf"
-              hidden
-              @change="alElegir"
-            >
-          </div>
-          <div
-            v-else
-            class="soporte__file"
-          >
-            <v-icon color="success">
-              mdi-check-circle-outline
-            </v-icon>
-            <span class="text-truncate"><b>Soporte cargado:</b> {{ archivoSoporte.nombre }}</span>
-            <v-btn
-              v-if="archivoSoporte.ruta"
-              icon
-              variant="text"
-              size="small"
-              color="primary"
-              title="Ver"
-              @click="abrir(archivoSoporte.ruta)"
-            >
-              <v-icon>mdi-eye</v-icon>
-            </v-btn>
-            <v-btn
-              icon
-              variant="text"
-              size="small"
-              color="red"
-              title="Quitar"
-              @click="archivoSoporte = null"
-            >
-              <v-icon>mdi-close-circle</v-icon>
-            </v-btn>
-          </div>
-
-          <v-expand-transition>
-            <div
-              v-if="archivoSoporte"
-              class="soporte__fecha"
-            >
-              <v-text-field
-                ref="inputFecha"
-                v-model="fechaPago"
-                type="date"
-                label="Fecha de pago *"
-                prepend-inner-icon="mdi-calendar-check-outline"
-                variant="outlined"
-                density="comfortable"
-                :max="hoy()"
-                :rules="[(v: string) => !!v || 'Indica la fecha de pago']"
-                hint="Obligatoria al registrar el soporte de pago"
-                persistent-hint
-              />
-            </div>
-          </v-expand-transition>
-        </div>
-
-        <div class="soporte__actions">
-          <v-btn
-            variant="outlined"
-            rounded="lg"
-            :disabled="guardandoSoporte"
-            @click="dialogSoporte = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            color="primary"
-            variant="flat"
-            rounded="lg"
-            :loading="guardandoSoporte"
-            :disabled="!archivoSoporte || !fechaPago || subiendo"
-            @click="guardarSoporte"
-          >
-            Guardar Documento
-          </v-btn>
-        </div>
-      </v-card>
-    </v-dialog>
 
     <!-- ======================= MODAL ANEXOS ======================= -->
     <v-dialog
@@ -1236,6 +1029,9 @@ defineExpose({ cargar });
   --sp-purple: #8b5cf6;
   --sp-blue-bg: #dbeafe;
   --sp-blue-fg: #1e40af;
+  --sp-red-bg: #fde2e2;
+  --sp-red-fg: #b42318;
+  --sp-red: #ef4444;
   background: linear-gradient(180deg, #f7faff 0%, #f1f5fd 100%);
   border: 1px solid var(--sp-border);
   border-radius: 18px;
@@ -1389,6 +1185,27 @@ defineExpose({ cargar });
   font-weight: 700;
   color: var(--sp-primary);
 }
+.solpago__soporte {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.solpago__salida {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.12);
+  color: #1f7a35;
+  font-weight: 600;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 .solpago__anexo {
   display: inline-flex;
   align-items: center;
@@ -1409,6 +1226,20 @@ defineExpose({ cargar });
 .solpago__aprob {
   font-size: 0.8rem;
   line-height: 1.5;
+}
+.solpago__rechazotag {
+  display: inline-block;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--sp-red-bg);
+  color: var(--sp-red-fg);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.solpago__aprobfecha--rechazo {
+  background: var(--sp-red-bg);
+  color: var(--sp-red-fg);
 }
 .solpago__thsub {
   font-size: 0.7rem;
@@ -1477,6 +1308,10 @@ defineExpose({ cargar });
   background: var(--sp-purple-bg);
   color: var(--sp-purple-fg);
 }
+.solpago__chip--RECHAZADA {
+  background: var(--sp-red-bg);
+  color: var(--sp-red-fg);
+}
 .solpago__chip--PAGADO {
   background: var(--sp-blue-bg);
   color: var(--sp-blue-fg);
@@ -1526,6 +1361,10 @@ defineExpose({ cargar });
   background: var(--sp-purple-bg);
   color: #3b1a7a;
 }
+.solpago__grouphead--RECHAZADA {
+  background: var(--sp-red-bg);
+  color: var(--sp-red-fg);
+}
 .solpago__grouphead--PAGADO {
   background: var(--sp-blue-bg);
   color: var(--sp-blue-fg);
@@ -1547,6 +1386,9 @@ defineExpose({ cargar });
 }
 .solpago__card--PENADM {
   border-left-color: var(--sp-purple);
+}
+.solpago__card--RECHAZADA {
+  border-left-color: var(--sp-red);
 }
 .solpago__card--PAGADO {
   border-left-color: var(--sp-accent);
@@ -1642,113 +1484,6 @@ defineExpose({ cargar });
   margin-top: 10px;
 }
 
-/* ---------- modal soporte ---------- */
-.soporte__head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 20px 22px 8px;
-}
-.soporte__icon {
-  display: grid;
-  place-items: center;
-  width: 54px;
-  height: 54px;
-  border-radius: 14px;
-  background: #e8f0fe;
-  flex: 0 0 54px;
-}
-.soporte__titles {
-  padding-left: 14px;
-  border-left: 1px solid #d5dbe6;
-  min-width: 0;
-}
-.soporte__titles h3 {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #172036;
-}
-.soporte__titles p {
-  margin: 2px 0 0;
-  color: #5b6b86;
-}
-.soporte__body {
-  padding: 12px 22px;
-}
-.soporte__body h4 {
-  font-size: 1.02rem;
-  font-weight: 700;
-  margin-bottom: 10px;
-}
-.soporte__options {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.soporte__option {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid #d5dbe6;
-  border-radius: 10px;
-  background: #fff;
-  font-weight: 700;
-  text-align: left;
-  transition: all 0.15s ease;
-}
-.soporte__option:hover {
-  border-color: #1e5bd8;
-}
-.soporte__option--active {
-  border-color: #1e5bd8;
-  background: #eef4ff;
-  box-shadow: 0 0 0 1px #1e5bd8 inset;
-}
-.soporte__drop {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 140px;
-  padding: 18px;
-  border: 2px dashed #b9c3d3;
-  border-radius: 12px;
-  background: #f8fafc;
-  color: #5b6b86;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.15s ease;
-}
-.soporte__drop strong {
-  color: #2b3446;
-}
-.soporte__drop:hover,
-.soporte__drop--over {
-  border-color: #1e5bd8;
-  background: #eef4ff;
-}
-.soporte__file {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border: 1px solid #a5d6a7;
-  border-radius: 10px;
-  background: #e8f5e9;
-}
-.soporte__fecha {
-  margin-top: 16px;
-}
-.soporte__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  padding: 8px 22px 22px;
-}
 
 @media (max-width: 600px) {
   .solpago {
@@ -1766,12 +1501,6 @@ defineExpose({ cargar });
   }
   .solpago__clear {
     width: 100%;
-  }
-  .soporte__options {
-    grid-template-columns: 1fr;
-  }
-  .soporte__actions .v-btn {
-    flex: 1;
   }
 }
 </style>

@@ -24,6 +24,7 @@ const controlGastosStore = useControlGastosStore();
 const bancosStore = useBancosStore();
 const enterprisesStore = useEnterprisesStore();
 const solicitudesPago = useTemplateRef<{ cargar: () => Promise<void> }>("solicitudesPago");
+const egresos = useTemplateRef<{ cargarSolicitudesExistentes: () => Promise<void> }>("egresos");
 const idMasterSolicitudes = computed(() => controlGastosStore.listControlGastos[0]?.master_id ?? null);
 
 const id_coins = ref<number | string | null>(null);
@@ -525,6 +526,7 @@ onMounted(async () => {
       <!-- EGRESOS -->
       <v-col cols="12">
         <Egresos
+          ref="egresos"
           :status-btn="statusBtn"
           :pr-flag="prFlag"
           :op-flag="opFlag"
@@ -542,6 +544,7 @@ onMounted(async () => {
       <v-col cols="12">
         <SolicitudesPago
           ref="solicitudesPago"
+          @actualizado="egresos?.cargarSolicitudesExistentes()"
           :id-master="idMasterSolicitudes"
         />
       </v-col>

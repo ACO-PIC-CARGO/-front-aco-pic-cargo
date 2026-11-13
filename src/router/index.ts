@@ -396,6 +396,19 @@ const routes = [
         component: () => import("../views/FolderBanks/RegistroPagoProveedorView.vue"),
       },
       {
+        // Administración > Bancos > Solicitudes de Pago (pendientes / rechazadas / histórico)
+        path: "FolderBanks/solicitudesPago",
+        name: "solicitudesPagoBancos",
+        component: () => import("../views/FolderBanks/SolicitudesPagoBancosView.vue"),
+      },
+      {
+        // Nueva salida precargada desde una Solicitud de Pago (Control de Gastos > Transferir)
+        path: "FolderBanks/registroPagoSolicitud/:token",
+        name: "registroPagoSolicitud",
+        meta: { menuRoute: "registroPayForProveedor" },
+        component: () => import("../views/FolderBanks/RegistroPagoSolicitudView.vue"),
+      },
+      {
         path: "FolderBanks/verPagosPorProveedor/:id",
         name: "verPagosPorProveedor",
         meta: { menuRoute: "listBankCxP" },

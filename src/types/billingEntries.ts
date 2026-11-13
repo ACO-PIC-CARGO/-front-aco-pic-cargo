@@ -293,7 +293,7 @@ export interface TipoPagoSolicitud {
   descripcion: string;
 }
 
-export type EstadoSolicitudPago = "LISTO" | "PENGER" | "PENADM" | "PAGADO";
+export type EstadoSolicitudPago = "LISTO" | "PENGER" | "PENADM" | "PAGADO" | "RECHAZADA";
 
 export interface ConceptoSolicitudPago {
   id_egreso: number;
@@ -342,4 +342,94 @@ export interface SolicitudPagoControl {
   estado: string;
   orden: number;
   conceptos: ConceptoSolicitudPago[];
+  /** Se genera al presionar Transferir */
+  token?: string | null;
+  /** Salida registrada en Bancos (table_pagoegresos) desde la solicitud */
+  id_pagoegreso?: number | string | null;
+  numerooperacion_pago?: string | null;
+  id_cuenta?: number | null;
+  id_cuentasalida?: number | null;
+  /** Rechazada por Administración o Gerencia: el solicitante la edita y la vuelve a enviar */
+  rechazadoflag?: boolean;
+  area_rechazo?: "ADM" | "GER" | null;
+  usuario_rechazo?: string | null;
+  fecha_rechazo?: string | null;
+  motivo_rechazo?: string | null;
+}
+
+/** Datos de la solicitud para precargar Bancos > Nueva salida */
+export interface SolicitudPagoTransferencia {
+  id: number | string;
+  id_master: number;
+  expediente: string;
+  id_proveedor: number;
+  proveedor: string;
+  id_correlativo: number;
+  correlativo: string | null;
+  monto: number | string;
+  moneda: string | null;
+  id_coins: number | null;
+  fechapago: string | null;
+  id_path_soporte: number | null;
+  soporte_path: string | null;
+  soporte_nombre: string | null;
+  tiposoporte: number | null;
+  comentario: string | null;
+  /** Cuenta de la empresa (bank_details) elegida al solicitar */
+  id_cuentasalida: number | null;
+}
+
+// Bancos > Solicitudes de Pago (bandeja paginada)
+export type TabBandejaSolicitudPago = "PEN" | "REC" | "HIS";
+export type EstadoBandejaSolicitudPago = EstadoSolicitudPago | "ELIMINADA";
+
+export interface SolicitudPagoBandeja {
+  total: number | string;
+  id: number;
+  fechasolicitud: string;
+  id_master: number;
+  expediente: string;
+  id_proveedor: number;
+  proveedor: string;
+  correlativo: string | null;
+  monto: number | string;
+  moneda: string | null;
+  codigo_tipopago: string | null;
+  tipopago: string | null;
+  banco: string | null;
+  nrocuenta: string | null;
+  beneficiario: string | null;
+  codigopago: string | null;
+  comentario: string | null;
+  codigo_estado: EstadoBandejaSolicitudPago;
+  estado: string;
+  usuario_solicitud: string | null;
+  usuario_aprobadoadministracion: string | null;
+  fecha_aprobadoadministracion: string | null;
+  usuario_aprobadogerencia: string | null;
+  fecha_aprobadogerencia: string | null;
+  fechapago: string | null;
+  soporte_path: string | null;
+  numerooperacion_pago: string | null;
+  area_rechazo: "ADM" | "GER" | null;
+  usuario_rechazo: string | null;
+  fecha_rechazo: string | null;
+  motivo_rechazo: string | null;
+  usuario_anulado: string | null;
+  fecha_anulado: string | null;
+}
+
+export interface OpcionFiltroSolicitudPago {
+  tipo: "PROV" | "BANCO" | "METODO";
+  valor: string;
+  titulo: string;
+}
+
+export interface FiltrosBandejaSolicitudPago {
+  estado: EstadoBandejaSolicitudPago | null;
+  id_proveedor: number | null;
+  banco: string | null;
+  tipopago: string | null;
+  desde: string;
+  hasta: string;
 }

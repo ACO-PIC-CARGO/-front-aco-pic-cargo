@@ -10,6 +10,8 @@ import SolicitudesPago from "@/components/folderBilling/SolicitudesPagoControlGa
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
+const push = vi.fn();
+vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) } }));
 globalThis.ResizeObserver ??= class {
   observe() {}
@@ -39,13 +41,16 @@ const ROWS = [
   { ...base, id: 2, id_proveedor: 11850, proveedor: "VAN CARGO", monto: 480, codigo_estado: "PENGER", estado: "Pendiente por Gerencia", aprobadoadministracionflag: true, usuario_aprobadoadministracion: "admin.qa", fecha_aprobadoadministracion: "2026-11-12 09:45" },
   { ...base, id: 3, id_proveedor: 11792, proveedor: "PLS ADUANA", monto: 1433.64, codigo_estado: "PENADM", estado: "Pendiente por Administración" },
   { ...base, id: 4, id_proveedor: 40, proveedor: "MSL", monto: 650, codigo_estado: "PAGADO", estado: "Pagado", pagadoflag: true, fechapago: "2026-11-10", soporte_path: "https://example.com/s.pdf" },
+  { ...base, id: 5, id_proveedor: 41, proveedor: "TRANSFERIDO SAC", monto: 90, codigo_estado: "PAGADO", estado: "Pagado", pagadoflag: true, fechapago: "2026-11-11", id_pagoegreso: 77, numerooperacion_pago: "OP-123" },
+  { ...base, id: 6, id_proveedor: 42, proveedor: "RECHAZO SAC", monto: 15, codigo_estado: "RECHAZADA", estado: "Rechazada", rechazadoflag: true, area_rechazo: "ADM", usuario_rechazo: "adm.rechazo", fecha_rechazo: "2026-11-12 11:00", motivo_rechazo: "Cuenta errada" },
 ];
 
 let wrapper: VueWrapper | undefined;
 
 beforeEach(() => {
   vi.clearAllMocks();
-  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1 }]));
+  // Administración la revisa el perfil 04 y Gerencia el 01
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1, position_code: ["01", "04"] }]));
   httpMock.mockImplementation(async () => ({ data: accepted(ROWS) }));
 });
 afterEach(() => wrapper?.unmount());
@@ -53,7 +58,13 @@ afterEach(() => wrapper?.unmount());
 async function render(actions: string[]) {
   sessionStorage.setItem(
     "permissions",
-    JSON.stringify({ screens: [{ route: "listControlGastos", actions }], controlled: ["listControlGastos"] }),
+    JSON.stringify({
+      screens: [
+        { route: "listControlGastos", actions },
+        { route: "registroPayForProveedor", actions },
+      ],
+      controlled: ["listControlGastos", "registroPayForProveedor"],
+    }),
   );
   const pinia = createPinia();
   setActivePinia(pinia);
@@ -71,12 +82,23 @@ test("lists the requests with the action that each state needs", async () => {
     expect.objectContaining({ url: URL_MAIN + "solicitud_pago_listar", params: { id_master: 10 } }),
   );
   const rows = w.findAll("tbody tr");
-  expect(rows).toHaveLength(4);
-  expect(rows[0]!.text()).toContain("Transferir");
-  expect(rows[1]!.text()).toContain("Aprobar Gerencia");
-  expect(rows[2]!.text()).toContain("Aprobar Administración");
-  expect(rows[3]!.find(".mdi-check-decagram").exists()).toBe(true);
-  expect(w.text()).toContain("4 resultados");
+  expect(rows).toHaveLength(6);
+  const aprobacion = (fila: number) => rows[fila]!.findAll(".solpago__aprob").map((c) => c.text());
+  expect(w.find("thead").text()).not.toContain("Acción");
+  // LISTO: se sube el soporte desde la columna Soporte; Transferir aparece recién con el soporte
+  expect(rows[0]!.find('[title="Subir soporte de pago"]').attributes("disabled")).toBeUndefined();
+  expect(rows[0]!.text()).not.toContain("Transferir");
+  // el botón de cada área está en su columna y desaparece al aprobar
+  expect(aprobacion(1)).toEqual(["admin.qa12-Nov-2026 09:45", "Aprobar"]);
+  expect(aprobacion(2)).toEqual(["Aprobar", "—"]);
+  expect(rows[3]!.text()).toContain("Transferir");
+  expect(rows[4]!.text()).toContain("Salida N° OP-123");
+  expect(rows[4]!.text()).not.toContain("Transferir");
+  expect(aprobacion(5)[0]).toContain("Rechazado");
+  expect(aprobacion(5)[0]).toContain("adm.rechazo");
+  // monto y moneda en una sola columna
+  expect(rows[2]!.find(".solpago__monto").text()).toBe("1,433.64 USD");
+  expect(w.text()).toContain("6 resultados");
 });
 
 test("the web table shows who approved and when", async () => {
@@ -89,7 +111,7 @@ test("the web table shows who approved and when", async () => {
 
 test("approving sends the approval type and reloads the list", async () => {
   const w = await render(["VER", "MODIFICAR"]);
-  const button = w.findAll("button").find((b) => b.text() === "Aprobar Administración")!;
+  const button = w.findAll("tbody tr")[2]!.find(".solpago__revisar");
   await button.trigger("click");
   await flushPromises();
   expect(Swal.fire).toHaveBeenCalled();
@@ -98,9 +120,42 @@ test("approving sends the approval type and reloads the list", async () => {
   );
 });
 
+test("transferring a paid request opens the bank payment with its token", async () => {
+  const w = await render(["VER", "NUEVO", "MODIFICAR"]);
+  httpMock.mockImplementation(async (config: { url: string }) =>
+    ({ data: accepted(config.url.includes("transferir") ? [{ token: "tok-1" }] : ROWS) }));
+  await w.findAll("button").find((b) => b.text() === "Transferir")!.trigger("click");
+  await flushPromises();
+  expect(httpMock).toHaveBeenCalledWith(
+    expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_transferir/4" }),
+  );
+  expect(push).toHaveBeenCalledWith({ name: "registroPagoSolicitud", params: { token: "tok-1" } });
+});
+
+test("rejecting asks for the reason and sends it", async () => {
+  const w = await render(["VER", "MODIFICAR"]);
+  vi.mocked(Swal.fire)
+    .mockResolvedValueOnce({ isConfirmed: false, isDenied: true, isDismissed: false })
+    .mockResolvedValueOnce({ isConfirmed: true, isDenied: false, isDismissed: false, value: "Monto errado" });
+  await w.findAll("tbody tr")[1]!.find(".solpago__revisar").trigger("click");
+  await flushPromises();
+  expect(httpMock).toHaveBeenCalledWith(
+    expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_rechazar/2", data: { tipo: "GER", motivo: "Monto errado" } }),
+  );
+});
+
+test("each area is reviewed only by its profile (04 Administración, 01 Gerencia)", async () => {
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1, position_code: ["01"] }]));
+  const w = await render(["VER", "MODIFICAR"]);
+  const rows = w.findAll("tbody tr");
+  // fila 2: pendiente por Administración -> sin perfil 04 no hay botón
+  expect(rows[2]!.find(".solpago__revisar").exists()).toBe(false);
+  // fila 1: pendiente por Gerencia -> el perfil 01 sí revisa
+  expect(rows[1]!.find(".solpago__revisar").exists()).toBe(true);
+});
+
 test("without Modificar nobody can approve or transfer", async () => {
   const w = await render(["VER"]);
-  expect(w.text()).not.toContain("Aprobar Administración");
-  expect(w.text()).not.toContain("Aprobar Gerencia");
+  expect(w.find(".solpago__revisar").exists()).toBe(false);
   expect(w.text()).not.toContain("Transferir");
 });

@@ -474,6 +474,11 @@ export const useBankStore = defineStore("bank", () => {
     registerPayment("registro_egresos", data, "listBankCxP", "registroPayForProveedor", (row) =>
       imprimirComprobanteEgreso({ id: row.v_id }));
 
+  // Salida registrada desde una Solicitud de Pago (proveedor y soporte salen de la solicitud)
+  const setRegistroEgresosSolicitud = (data: Record<string, unknown>) =>
+    registerPayment("solicitud_pago_registrar_egreso", data, "listBankCxP", "registroPayForProveedor", (row) =>
+      imprimirComprobanteEgreso({ id: row.v_id }));
+
   const updateRegistroEgresos = (data: Record<string, unknown>) => updatePayment("actualizar_egresos", data, "listBankCxP");
 
   const updateRegistroIgresos = (data: Record<string, unknown>) => updatePayment("actualizar_ingresos", data, "listBankCxC");
@@ -657,6 +662,7 @@ export const useBankStore = defineStore("bank", () => {
     getDeudaAProveedorPorSucursal,
     getDeudaDeClientePorSucursal,
     setRegistroEgresos,
+    setRegistroEgresosSolicitud,
     updateRegistroEgresos,
     updateRegistroIgresos,
     setRegistroIgresos,

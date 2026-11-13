@@ -12,6 +12,12 @@ import type {
   DetalleEgreso,
   ErroresPagoProveedor,
 } from "@/types/banksProveedor";
+import type { SolicitudPagoTransferencia } from "@/types/billingEntries";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+
+// token: Nueva salida desde una Solicitud de Pago (Control de Gastos > Transferir).
+// El proveedor, el correlativo del master, la fecha de pago y el soporte vienen de la solicitud.
+const props = defineProps<{ tipo?: string; token?: string }>();
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -45,6 +51,12 @@ const id_path = ref<number | null>(null);
 const selected = ref<DetalleEgreso[]>([]);
 const invoicesOnPage = ref<DetalleEgreso[]>([]);
 const loading = ref(false);
+const solicitud = ref<SolicitudPagoTransferencia | null>(null);
+const errorSolicitud = ref("");
+const desdeSolicitud = computed(() => !!props.token);
+// Sin token: correlativos del proveedor con solicitud de pago activa (no se pagan por este menú)
+type SolicitudActiva = { id: number; id_master: number; id_correlativo: number | null; expediente: string; correlativo: string | null; estado: string };
+const solicitudesActivas = ref<SolicitudActiva[]>([]);
 const headers = [
   { title: "Abono Completo o Parcial", key: "parcialflag" },
   { title: "Moneda Y Monto", key: "montopagar" },
@@ -130,7 +142,12 @@ const totalGeneralAbonadoMonLocalSeleccionado = computed(() => {
   return parseFloat(String(monto)).toFixed(2);
 });
 const itemsOrdenados = computed(() => {
-  const items = [...bankStore.deudaAProveedor] as unknown as DetalleEgreso[];
+  let items = [...bankStore.deudaAProveedor] as unknown as DetalleEgreso[];
+  // Desde una solicitud solo se paga el correlativo de su master
+  if (solicitud.value) {
+    const sol = solicitud.value;
+    items = items.filter((d) => esCorrelativoSolicitud(d, sol));
+  }
   return items.sort((a, b) => {
     const aSeleccionado = selected.value.some((sel) => sel.id === a.id);
     const bSeleccionado = selected.value.some((sel) => sel.id === b.id);
@@ -148,6 +165,78 @@ const montoFinal = computed(() => {
   return total.toFixed(2);
 });
 
+function solicitudActivaDe(d: DetalleEgreso) {
+  if (desdeSolicitud.value || d.tipo_gasto !== "O") return undefined;
+  const fila = d as DetalleEgreso & { id_master?: number | string; id_correlativo?: number | string };
+  return solicitudesActivas.value.find(
+    (s) => Number(s.id_master) === Number(fila.id_master) && Number(s.id_correlativo || 0) === Number(fila.id_correlativo || 0),
+  );
+}
+function avisarSolicitudActiva(s: SolicitudActiva) {
+  Swal.fire({
+    icon: "warning",
+    title: "Tiene una solicitud de pago",
+    html: `El expediente <b>${s.expediente}</b>${s.correlativo ? ` (correlativo <b>${s.correlativo}</b>)` : ""} tiene una solicitud de pago
+      <b>N° ${s.id}</b> (${s.estado}).<br><br>No puede pagar por Bancos. Por favor actualice o elimine la solicitud de pago.`,
+    confirmButtonText: "Entendido",
+    confirmButtonColor: "#3085d6",
+  });
+}
+async function cargarSolicitudesActivas() {
+  solicitudesActivas.value = [];
+  if (desdeSolicitud.value || !proveedor.value) return;
+  const response = await request<SolicitudActiva>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_activas_proveedor",
+    params: { id_proveedor: proveedor.value },
+  });
+  solicitudesActivas.value = response.estadoflag ? response.data : [];
+}
+function esCorrelativoSolicitud(d: DetalleEgreso, sol: SolicitudPagoTransferencia) {
+  const fila = d as DetalleEgreso & { id_master?: number | string; id_correlativo?: number | string };
+  return (
+    d.tipo_gasto === "O" &&
+    Number(fila.id_master) === Number(sol.id_master) &&
+    Number(fila.id_correlativo) === Number(sol.id_correlativo)
+  );
+}
+async function cargarSolicitud() {
+  const response = await request<SolicitudPagoTransferencia>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_por_token",
+    params: { token: props.token },
+  });
+  const sol = response.estadoflag ? response.data[0] : null;
+  if (!sol) {
+    errorSolicitud.value = response.mensaje || CONNECTION_ERROR_MESSAGE;
+    return;
+  }
+  solicitud.value = sol;
+  proveedor.value = sol.id_proveedor;
+  await bankStore.getDeudaAProveedorPorSucursal(sol.id_proveedor);
+  fechaoperacion.value = sol.fechapago;
+  id_path.value = sol.id_path_soporte;
+  comentarios.value = sol.comentario || "";
+  if (!itemsOrdenados.value.length) {
+    errorSolicitud.value = `El correlativo ${sol.correlativo ?? ""} del expediente ${sol.expediente} ya no tiene saldo pendiente con este proveedor.`;
+    return;
+  }
+  symbol.value = sol.moneda || "USD";
+  monto_local.value = Number(sol.monto).toFixed(2);
+  mostrarDetalle.value = true;
+  seleccionarCorrelativoSolicitud();
+}
+// Marca como abono completo el correlativo de la solicitud
+function seleccionarCorrelativoSolicitud() {
+  if (!solicitud.value) return;
+  const items = itemsOrdenados.value;
+  items.forEach((item) => {
+    item.parcialflag = false;
+    item.montoparcial = item.saldo_pendiente_local;
+  });
+  selected.value = [...items];
+  calcularTotal();
+}
 function cancelarllenadoDeMonto() {
   dialogLlenarMontoDepositadoBanco.value = false;
   monto_local.value = null;
@@ -170,9 +259,17 @@ function confirmarDeposito() {
   if (monto_local.value) {
     dialogLlenarMontoDepositadoBanco.value = false;
     mostrarDetalle.value = true;
+    seleccionarCorrelativoSolicitud();
   }
 }
 async function onItemSelected({ item, value }: { item: DetalleEgreso; value: boolean }) {
+  const activa = value ? solicitudActivaDe(item) : undefined;
+  if (activa) {
+    selected.value = selected.value.filter((i) => i.id !== item.id);
+    calcularTotal();
+    avisarSolicitudActiva(activa);
+    return;
+  }
   if (value) {
     console.log("Item seleccionado:", item);
     if (item.symbol !== symbol.value) {
@@ -212,6 +309,14 @@ async function onItemSelected({ item, value }: { item: DetalleEgreso; value: boo
   calcularTotal();
 }
 function onSelectAll({ items, value }: { items: DetalleEgreso[]; value: boolean }) {
+  if (value) {
+    const bloqueadas = items.filter((i) => solicitudActivaDe(i));
+    if (bloqueadas.length) {
+      selected.value = selected.value.filter((i) => !bloqueadas.some((b) => b.id === i.id));
+      items = items.filter((i) => !bloqueadas.includes(i));
+      avisarSolicitudActiva(solicitudActivaDe(bloqueadas[0]!)!);
+    }
+  }
   items.forEach((item) => {
     if (value) {
       item.parcialflag = false;
@@ -262,12 +367,13 @@ async function obtenerListado() {
     appStore.spiner = true;
 
     try {
-      await bankStore.getDeudaAProveedorPorSucursal(proveedor.value);
+      await Promise.all([bankStore.getDeudaAProveedorPorSucursal(proveedor.value), cargarSolicitudesActivas()]);
     } finally {
       appStore.spiner = false;
     }
   } else {
     bankStore.deudaAProveedor = [];
+    solicitudesActivas.value = [];
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -480,8 +586,15 @@ async function finalizarOperacion() {
     id_soporte: id_path.value,
   };
   loading.value = true;
-  // @ts-expect-error er is not defined
-  await bankStore.setRegistroEgresos(data).catch(() => console.error(er));
+  if (props.token) {
+    // proveedor y soporte los toma el backend de la solicitud
+    const datos: Record<string, unknown> = { ...data, token: props.token };
+    delete datos.id_proveedor;
+    delete datos.id_soporte;
+    await bankStore.setRegistroEgresosSolicitud(datos).catch((er) => console.error(er));
+  } else {
+    await bankStore.setRegistroEgresos(data).catch((er) => console.error(er));
+  }
   loading.value = false;
 }
 function fn_totalAbonado(item: DetalleEgreso) {
@@ -539,7 +652,7 @@ function buscarOperacionAlEscribir() {
 
 watch(id_cuenta, (newVal, oldVal) => {
   if (newVal && newVal.id && (!oldVal || newVal.id !== oldVal.id)) {
-    if (oldVal && oldVal.id && selected.value.length > 0) {
+    if (oldVal && oldVal.id && selected.value.length > 0 && !solicitud.value) {
       selected.value = [];
 
       monto.value = 0;
@@ -553,6 +666,15 @@ watch(id_cuenta, (newVal, oldVal) => {
 
     // this.calcularTotal();
 
+    // Desde una solicitud: si la cuenta está en su moneda, el monto debitado es el solicitado
+    if (solicitud.value) {
+      if (symbol.value === solicitud.value.moneda) {
+        monto_local.value = Number(solicitud.value.monto).toFixed(2);
+        calcularTotal();
+        return;
+      }
+      monto_local.value = null;
+    }
     dialogLlenarMontoDepositadoBanco.value = true;
   }
 });
@@ -571,19 +693,41 @@ watch(selected, () => {
 
 onMounted(async () => {
   bankStore.deudaAProveedor = [];
-  appStore.mainTitle = "BANCOS - NUEVA SALIDA";
-  await Promise.all([
-    appStore.cargarProveedores(),
-    appStore._getCoinsList(),
-    bancosStore.getListBanksDetailsCargar(),
-  ]);
+  appStore.mainTitle = desdeSolicitud.value ? "BANCOS - NUEVA SALIDA (SOLICITUD DE PAGO)" : "BANCOS - NUEVA SALIDA";
+  if (desdeSolicitud.value) appStore.spiner = true;
+  try {
+    await Promise.all([
+      appStore.cargarProveedores(),
+      appStore._getCoinsList(),
+      bancosStore.getListBanksDetailsCargar(),
+      desdeSolicitud.value ? cargarSolicitud() : Promise.resolve(),
+    ]);
+  } finally {
+    if (desdeSolicitud.value) appStore.spiner = false;
+  }
+  // Autoselecciona la cuenta de salida elegida en la solicitud
+  const cuentaSolicitud = solicitud.value?.id_cuentasalida;
+  if (cuentaSolicitud && !errorSolicitud.value) {
+    const cuenta = (bancosStore.cuentas as unknown as CuentaIngreso[]).find((c) => Number(c.id) === Number(cuentaSolicitud));
+    if (cuenta) id_cuenta.value = cuenta;
+  }
 });
 </script>
 
 <template>
   <v-card>
     <v-container fluid>
-      <v-row>
+      <template v-if="desdeSolicitud">
+        <v-alert
+          v-if="errorSolicitud"
+          type="warning"
+          variant="tonal"
+          class="mb-3"
+        >
+          {{ errorSolicitud }}
+        </v-alert>
+      </template>
+      <v-row v-if="!desdeSolicitud || (solicitud && !errorSolicitud)">
         <v-col
           cols="12"
           md="4"
@@ -598,7 +742,8 @@ onMounted(async () => {
             item-value="id"
             placeholder="Proveedor"
             v-model="proveedor"
-            clearable
+            :clearable="!desdeSolicitud"
+            :readonly="desdeSolicitud"
             @update:model-value="obtenerListado()"
             hide-details
             :error-messages="errorMesage.proveedor"
@@ -608,7 +753,7 @@ onMounted(async () => {
           cols="12"
           md="2"
           class="pb-0"
-          v-if="Object.keys(id_cuenta).length > 0"
+          v-if="Object.keys(id_cuenta).length > 0 || !!solicitud"
         >
           <v-text-field
             label="Monto Debitado En Banco"
@@ -617,6 +762,7 @@ onMounted(async () => {
             v-model="monto_local"
             type="number"
             :prefix="symbol"
+            :readonly="desdeSolicitud"
             :error-messages="errorMesage.monto_local"
             @update:model-value="
               monto_local
@@ -648,7 +794,7 @@ onMounted(async () => {
           cols="12"
           md="2"
           class="pb-0"
-          v-if="Object.keys(id_cuenta).length > 0"
+          v-if="Object.keys(id_cuenta).length > 0 || !!solicitud"
         >
           <v-text-field
             label="Total Factura Seleccionada"
@@ -724,6 +870,7 @@ onMounted(async () => {
                     return-object
                     variant="outlined"
                     density="compact"
+                    :readonly="desdeSolicitud"
                     :error-messages="errorMesage.id_cuenta"
                     @update:model-value="errorMesage.id_cuenta = null"
                   />
@@ -741,7 +888,8 @@ onMounted(async () => {
                     :disabled="itemsOrdenados.length == 0"
                     density="compact"
                     v-if="
-                      id_cuenta &&
+                      !desdeSolicitud &&
+                        id_cuenta &&
                         Object.keys(id_cuenta).length > 0 &&
                         !!id_cuenta.id
                     "
@@ -764,7 +912,7 @@ onMounted(async () => {
                       width="450px"
                       color="purple"
                     >
-                      <b>SELECCIONE UNA(S) FACTURA PARA CONTINUAR</b>
+                      <b>{{ desdeSolicitud ? "CORRELATIVO DE LA SOLICITUD DE PAGO" : "SELECCIONE UNA(S) FACTURA PARA CONTINUAR" }}</b>
                     </v-alert>
                   </div>
                   <!-- @vue-expect-error the current-items handler parameter has no type -->
@@ -791,6 +939,7 @@ onMounted(async () => {
                       <v-checkbox-btn
                         :model-value="allSelected"
                         :indeterminate="someSelected && !allSelected"
+                        :disabled="desdeSolicitud"
                         @update:model-value="
                           (value) => {
                             selectAll(value);
@@ -838,6 +987,7 @@ onMounted(async () => {
                       <v-checkbox-btn
                         :model-value="isSelected(internalItem)"
                         :aria-label="`Seleccionar factura ${item.code_master}`"
+                        :disabled="desdeSolicitud"
                         @update:model-value="
                           (value) => {
                             toggleSelect(internalItem);
@@ -848,6 +998,21 @@ onMounted(async () => {
                     </template>
                     <template #[`item.totalabonado`]="{ item }">
                       {{ fn_totalAbonado(item) }}
+                    </template>
+                    <template #[`item.code_master`]="{ item }">
+                      {{ item.code_master }}
+                      <v-chip
+                        v-if="solicitudActivaDe(item)"
+                        size="x-small"
+                        color="warning"
+                        variant="flat"
+                        prepend-icon="mdi-email-alert-outline"
+                        class="ml-1"
+                        :title="`Solicitud de pago N° ${solicitudActivaDe(item)!.id} (${solicitudActivaDe(item)!.estado})`"
+                        @click="avisarSolicitudActiva(solicitudActivaDe(item)!)"
+                      >
+                        Solicitud de pago
+                      </v-chip>
                     </template>
                     <template #[`item.action`]="{ item }">
                       <v-btn
@@ -867,7 +1032,7 @@ onMounted(async () => {
                         v-model="item.parcialflag"
                         density="compact"
                         variant="outlined"
-                        :disabled="!selected.includes(item)"
+                        :disabled="desdeSolicitud || !selected.includes(item)"
                         style="max-width: 200px"
                         hide-details
                       />
@@ -880,7 +1045,7 @@ onMounted(async () => {
                         variant="outlined"
                         v-model="item.montoparcial"
                         :disabled="
-                          !selected.includes(item) || !item.parcialflag
+                          desdeSolicitud || !selected.includes(item) || !item.parcialflag
                         "
                         style="max-width: 120px"
                         :prefix="item.symbol"
@@ -1019,6 +1184,7 @@ onMounted(async () => {
                     :dense="true"
                     label="Fecha Operación"
                     v-model="fechaoperacion"
+                    :disabled="desdeSolicitud"
                     :error-messages="errorMesage.fechaoperacion"
                   />
                 </v-col>
@@ -1107,10 +1273,22 @@ onMounted(async () => {
                   cols="12"
                   class="py-1"
                 >
-                  <p class="my-1">
-                    Soporte de Pago:
-                  </p>
-                  <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
+                  <template v-if="solicitud">
+                    <p class="my-1">
+                      Soporte de Pago:
+                    </p>
+                    <ArrastraYSolarComponent
+                      :initial-url="solicitud.soporte_path || undefined"
+                      :initial-id="solicitud.id_path_soporte"
+                      read-only
+                    />
+                  </template>
+                  <template v-else>
+                    <p class="my-1">
+                      Soporte de Pago:
+                    </p>
+                    <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
+                  </template>
                 </v-col>
                 <v-col
                   cols="12"

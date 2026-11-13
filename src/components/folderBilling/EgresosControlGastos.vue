@@ -13,6 +13,7 @@ import { useFilesStore } from "@/stores/files";
 import { useMastersStore } from "@/stores/masters";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { useBankStore } from "@/stores/bank";
+import { useBancosStore } from "@/stores/bancos";
 import type { ControlGastoHouse } from "@/types/finanzas";
 import type {
   CuentaBancariaForm,
@@ -29,6 +30,7 @@ import type {
   ProveedorItem,
   SolicitudPagoListada,
   TipoPagoSolicitud,
+  SolicitudPagoControl,
 } from "@/types/billingEntries";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
@@ -1113,6 +1115,7 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }, 
     }
   });
 }
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- botón oculto: lo reemplaza la Solicitud de Pago
 async function openPayments(egreso: EgresoProveedor) {
   paymentsProvider = egreso;
   dialogPayment.value = true;
@@ -1836,16 +1839,74 @@ const tiposPagoSolicitud = ref<TipoPagoSolicitud[]>([]);
 const solicitudPagoForm = ref({
   id_tipopago: null as number | null,
   id_cuenta: null as number | null,
+  id_cuentasalida: null as number | null,
   codigopago: "",
   comentario: "",
 });
 const guardandoSolicitudPago = ref(false);
+const bancosStore = useBancosStore();
+// Una sola solicitud por master / proveedor / correlativo
+const solicitudesExistentes = ref<Map<string, SolicitudPagoControl>>(new Map());
+// nuevo: primera vez | editar: rechazada | ver: enviada, solo lectura
+const modoSolicitudPago = ref<"nuevo" | "editar" | "ver">("nuevo");
+const solicitudPagoActual = ref<SolicitudPagoControl | null>(null);
+const claveSolicitud = (id_master: unknown, id_proveedor: unknown, id_correlativo: unknown) =>
+  `${Number(id_master)}-${Number(id_proveedor)}-${Number(id_correlativo || 0)}`;
+const solicitudPagoDe = (e: EgresoProveedor) =>
+  solicitudesExistentes.value.get(claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo));
+
+async function cargarSolicitudesExistentes() {
+  const masters = [...new Set((masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean))];
+  const respuestas = await Promise.all(
+    masters.map((id_master) =>
+      request<SolicitudPagoControl>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_listar",
+        params: { id_master },
+      })),
+  );
+  solicitudesExistentes.value = new Map(
+    respuestas.flatMap((r) =>
+      r.estadoflag ? r.data.map((x) => [claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo), x] as const) : []),
+  );
+}
 
 const tipoPagoSeleccionado = computed(
   () => tiposPagoSolicitud.value.find((t) => t.id === solicitudPagoForm.value.id_tipopago)?.codigo,
 );
 const conceptosSolicitudPago = computed(() =>
   (solicitudPagoProveedor.value?.detalle || []).filter((d) => !d.pagado),
+);
+// Moneda de los conceptos (Moneda de Banco Salida): solo se ofrecen cuentas de la empresa en esa moneda
+const monedaSolicitudPago = computed(() => {
+  const monedas = [...new Set(conceptosSolicitudPago.value.map((d) => Number(d.id_coins)).filter(Boolean))];
+  return monedas.length === 1 ? monedas[0]! : null;
+});
+const cuentasSalidaSolicitudPago = computed(() => {
+  if (modoSolicitudPago.value === "ver") return bancosStore.cuentas;
+  return monedaSolicitudPago.value
+    ? bancosStore.cuentas.filter((c) => Number(c.id_coins) === monedaSolicitudPago.value)
+    : [];
+});
+const soloLecturaSolicitudPago = computed(() => modoSolicitudPago.value === "ver");
+// En "ver" se muestran los conceptos guardados en la solicitud
+const conceptosModalSolicitudPago = computed(() =>
+  modoSolicitudPago.value === "ver" && solicitudPagoActual.value
+    ? solicitudPagoActual.value.conceptos.map((c) => ({
+      id: c.id_egreso,
+      concepto: c.concepto,
+      acronym: solicitudPagoActual.value?.moneda ?? "",
+      total_op: c.total_op,
+    }))
+    : conceptosSolicitudPago.value.map((c) => ({ id: c.id, concepto: c.concepto, acronym: c.acronym, total_op: c.total_op })),
+);
+const totalModalSolicitudPago = computed(() =>
+  modoSolicitudPago.value === "ver" && solicitudPagoActual.value
+    ? Number(solicitudPagoActual.value.monto || 0)
+    : totalSolicitudPago.value,
+);
+const simboloSolicitudPago = computed(
+  () => cuentasSalidaSolicitudPago.value[0]?.symbol || conceptosSolicitudPago.value[0]?.acronym || "",
 );
 const totalSolicitudPago = computed(() =>
   conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
@@ -1858,9 +1919,9 @@ const cuentasSolicitudPago = computed(() =>
 );
 const solicitudPagoValida = computed(() => {
   const f = solicitudPagoForm.value;
-  if (!f.id_tipopago) return false;
-  if (tipoPagoSeleccionado.value === "01") return !!f.id_cuenta;
-  return !!f.codigopago.trim();
+  // La cuenta del proveedor se pide siempre (transferencia o código de pago)
+  if (!f.id_tipopago || !f.id_cuentasalida || !f.id_cuenta) return false;
+  return tipoPagoSeleccionado.value === "01" || !!f.codigopago.trim();
 });
 
 async function cargarTiposPagoSolicitud() {
@@ -1873,24 +1934,49 @@ async function cargarTiposPagoSolicitud() {
 }
 
 async function abrirSolicitudPagoNueva(item: EgresoProveedor) {
+  const existente = solicitudPagoDe(item) ?? null;
+  solicitudPagoActual.value = existente;
+  modoSolicitudPago.value = !existente ? "nuevo" : existente.codigo_estado === "RECHAZADA" ? "editar" : "ver";
   solicitudPagoProveedor.value = item;
   proveedorId = item.id_proveedor;
   id_tipotransaccion =
     (appStore.itemsProveedorList.find((v: ProveedorItem) => v.id == item.id_proveedor) || {})
       .id_tipotransaccion || "";
-  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
+  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, id_cuentasalida: null, codigopago: "", comentario: "" };
   appStore.itemsDataAccountsNumberList = [];
   dialogSolicitudPagoNueva.value = true;
-  await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
+  await Promise.all([
+    cargarTiposPagoSolicitud(),
+    _getAccountsNumber(),
+    bancosStore.cuentas.length ? Promise.resolve() : bancosStore.getListBanksDetailsCargar(),
+  ]);
+  if (existente) {
+    solicitudPagoForm.value = {
+      // los ids bigint llegan como texto: se toma el id tal cual viene en el listado de tipos
+      id_tipopago: tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(existente.id_tipopago))?.id ?? null,
+      id_cuenta: existente.id_cuenta ?? null,
+      id_cuentasalida: existente.id_cuentasalida ?? null,
+      codigopago: existente.codigopago ?? "",
+      comentario: existente.comentario ?? "",
+    };
+    return;
+  }
   solicitudPagoForm.value.id_tipopago = tiposPagoSolicitud.value[0]?.id ?? null;
+  // Si solo hay una cuenta en la moneda de los conceptos, se elige sola
+  if (cuentasSalidaSolicitudPago.value.length === 1) {
+    solicitudPagoForm.value.id_cuentasalida = cuentasSalidaSolicitudPago.value[0]!.id;
+  }
 }
 
 async function registrarSolicitudPago() {
   const item = solicitudPagoProveedor.value;
-  if (!item || !solicitudPagoValida.value) return;
+  if (!item || !solicitudPagoValida.value || modoSolicitudPago.value === "ver") return;
+  const editando = modoSolicitudPago.value === "editar" && !!solicitudPagoActual.value;
   const { isConfirmed } = await Swal.fire({
     icon: "question",
-    html: `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
+    html: editando
+      ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`
+      : `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
     showCancelButton: true,
     confirmButtonText: "Sí, enviar",
     cancelButtonText: "Cancelar",
@@ -1900,30 +1986,76 @@ async function registrarSolicitudPago() {
 
   guardandoSolicitudPago.value = true;
   const f = solicitudPagoForm.value;
-  const response = await request({
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_insertar",
-    data: {
-      id_master: item.id_master,
-      id_proveedor: item.id_proveedor,
-      id_correlativo: item.id_correlativo,
-      id_tipopago: f.id_tipopago,
-      id_cuenta: tipoPagoSeleccionado.value === "01" ? f.id_cuenta : null,
-      codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
-      comentario: f.comentario,
-    },
-  });
+  const datos = {
+    id_tipopago: f.id_tipopago,
+    id_cuenta: f.id_cuenta,
+    codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
+    comentario: f.comentario,
+    id_cuentasalida: f.id_cuentasalida,
+  };
+  const response = editando
+    ? await request({
+      method: "put",
+      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_editar/" + solicitudPagoActual.value!.id,
+      data: datos,
+    })
+    : await request({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_insertar",
+      data: { ...datos, id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+    });
   guardandoSolicitudPago.value = false;
   if (warnIfRefused(response)) return;
   dialogSolicitudPagoNueva.value = false;
   Swal.fire({ icon: "success", text: response.mensaje });
+  await cargarSolicitudesExistentes();
   emit("solicitudPagoRegistrada");
 }
 
-watch(tipoPagoSeleccionado, () => {
-  solicitudPagoForm.value.id_cuenta = null;
-  solicitudPagoForm.value.codigopago = "";
-});
+// "12/11/2026 – 10:24 a. m." (el listado devuelve YYYY-MM-DD HH24:MI)
+function formatoFechaSolicitud(valor: string | null) {
+  if (!valor) return "";
+  const [fecha = "", hora = ""] = valor.split(" ");
+  const [anio, mes, dia] = fecha.split("-");
+  if (!hora) return `${dia}/${mes}/${anio}`;
+  const [hh = 0, mm = "00"] = hora.split(":").map((v, i) => (i === 0 ? Number(v) : v)) as [number, string];
+  const h12 = hh % 12 || 12;
+  return `${dia}/${mes}/${anio} – ${String(h12).padStart(2, "0")}:${mm} ${hh < 12 ? "a. m." : "p. m."}`;
+}
+
+const eliminandoSolicitudPago = ref<number | null>(null);
+async function eliminarSolicitudPago(item: EgresoProveedor) {
+  const solicitud = solicitudPagoDe(item);
+  if (!solicitud) return;
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    html: `¿Eliminar la solicitud de pago N° <b>${solicitud.id}</b> de <b>${item.nombre_proveedor}</b>?`,
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#d33",
+  });
+  if (!isConfirmed) return;
+  eliminandoSolicitudPago.value = solicitud.id;
+  const response = await request({
+    method: "put",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_eliminar/" + solicitud.id,
+  });
+  eliminandoSolicitudPago.value = null;
+  if (warnIfRefused(response)) return;
+  Swal.fire({ icon: "success", text: response.mensaje });
+  await cargarSolicitudesExistentes();
+  emit("solicitudPagoRegistrada");
+}
+
+defineExpose({ cargarSolicitudesExistentes });
+
+watch(
+  () => (masterEgresos.value || []).map((e) => e.id_master).join(","),
+  () => cargarSolicitudesExistentes(),
+  { immediate: true },
+);
+
 
 onMounted(async () => {
   await Promise.all([
@@ -2014,17 +2146,10 @@ onMounted(async () => {
                   Generar PDF de pago
                 </th>
                 <th
-                  v-if="editable"
-                  width="9%"
+                  width="20%"
                   class="text-left"
                 >
                   Solicitar a Administración
-                </th>
-                <th
-                  width="16%"
-                  class="text-left"
-                >
-                  Más Acciones
                 </th>
                 <!-- <th width="10%">Acciones</th> -->
                 <!-- <th width="10%">Acciones</th> -->
@@ -2090,6 +2215,15 @@ onMounted(async () => {
                       Copiar Montos Pr->Op
                     </v-btn>
                   </template>
+                  <v-btn
+                    color="indigo"
+                    size="x-small"
+                    class="my-1 mx-1"
+                    v-if="mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
+                    @click.stop="abrirModalCambiarExpediente(egresoProveedor)"
+                  >
+                    Cambiar expediente
+                  </v-btn>
                 </td>
                 <td v-if="editable">
                   <v-btn
@@ -2121,42 +2255,81 @@ onMounted(async () => {
                   </v-btn>
                 </td>
 
-                <td v-if="editable">
-                  <v-btn
-                    variant="text"
-                    size="small"
-                    :color="egresoProveedor.solicitudes > 0 ? 'blue' : 'grey'"
-                    icon
-                    @click="openPayments(egresoProveedor)"
-                    @click.stop="abrirExpandEgreso(index)"
-                    :disabled="!(egresoProveedor.solicitudes && egresoProveedor.solicitudes > 0)"
+                <td
+                  class="solreq-cell"
+                  @click.stop
+                >
+                  <!-- Solicitud de pago del correlativo: solicitar / ver / editar si la rechazaron / eliminar -->
+                  <div
+                    v-if="solicitudPagoDe(egresoProveedor)"
+                    class="solreq"
+                    :class="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
                   >
-                    <v-icon :color="'blue'">
-                      mdi-email-arrow-right
-                    </v-icon>
-                  </v-btn>
-                </td>
-                <td>
+                    <button
+                      type="button"
+                      class="solreq__info"
+                      :title="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'Editar solicitud de pago' : 'Ver solicitud de pago'"
+                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                    >
+                      <span class="solreq__badge">
+                        <v-icon size="18">
+                          {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}
+                        </v-icon>
+                      </span>
+                      <span class="solreq__text">
+                        <span class="solreq__title">
+                          {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "Solicitud Rechazada" : "Solicitado a Administración" }}
+                        </span>
+                        <span class="solreq__date">
+                          {{
+                            formatoFechaSolicitud(
+                              solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA"
+                                ? solicitudPagoDe(egresoProveedor)!.fecha_rechazo ?? null
+                                : solicitudPagoDe(egresoProveedor)!.fechasolicitud,
+                            )
+                          }}
+                        </span>
+                      </span>
+                    </button>
+                    <v-btn
+                      v-if="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' && can('listControlGastos', 'NUEVO')"
+                      icon="mdi-pencil-outline"
+                      size="small"
+                      variant="text"
+                      color="primary"
+                      class="solreq__del"
+                      title="Editar solicitud de pago"
+                      aria-label="Editar solicitud de pago"
+                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                    />
+                    <v-btn
+                      v-else-if="!solicitudPagoDe(egresoProveedor)!.pagadoflag && can('listControlGastos', 'ELIMINAR')"
+                      icon="mdi-delete-outline"
+                      size="small"
+                      variant="text"
+                      color="error"
+                      class="solreq__del"
+                      title="Eliminar solicitud de pago"
+                      aria-label="Eliminar solicitud de pago"
+                      :loading="eliminandoSolicitudPago === solicitudPagoDe(egresoProveedor)!.id"
+                      @click="eliminarSolicitudPago(egresoProveedor)"
+                    />
+                  </div>
                   <v-btn
-                    v-if="can('listControlGastos', 'NUEVO')"
+                    v-else-if="can('listControlGastos', 'NUEVO')"
+                    size="small"
+                    variant="flat"
                     color="primary"
-                    size="small"
-                    variant="tonal"
-                    class="mb-1 text-no-wrap"
-                    prepend-icon="mdi-cash-fast"
-                    @click.stop="abrirSolicitudPagoNueva(egresoProveedor)"
+                    prepend-icon="mdi-send-outline"
+                    class="solreq__btn"
+                    @click="abrirSolicitudPagoNueva(egresoProveedor)"
                   >
-                    Solicitud de Pago
+                    Solicitar
                   </v-btn>
-                  <v-btn
-                    color="indigo"
-                    size="small"
-                    class="mb-1 text-no-wrap"
-                    v-if="editable && mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
-                    @click="abrirModalCambiarExpediente(egresoProveedor)"
-                  >
-                    Cambiar expediente
-                  </v-btn>
+                  <span
+                    v-else
+                    class="text-medium-emphasis"
+                  >—</span>
                 </td>
               </tr>
             </tbody>
@@ -2974,9 +3147,17 @@ onMounted(async () => {
             </v-icon>
           </div>
           <div class="solnueva__titles">
-            <h3>Solicitud de Pago</h3>
+            <h3>
+              {{ modoSolicitudPago === "editar" ? "Editar Solicitud de Pago" : "Solicitud de Pago" }}
+              <span v-if="solicitudPagoActual"> N° {{ solicitudPagoActual.id }}</span>
+            </h3>
             <p>{{ solicitudPagoProveedor.nombre_proveedor }}</p>
           </div>
+          <span
+            v-if="solicitudPagoActual"
+            class="solnueva__estado"
+            :class="`solnueva__estado--${solicitudPagoActual.codigo_estado}`"
+          >{{ solicitudPagoActual.estado }}</span>
           <v-btn
             icon
             variant="text"
@@ -2990,9 +3171,23 @@ onMounted(async () => {
         </div>
 
         <v-card-text class="pt-2">
+          <v-alert
+            v-if="modoSolicitudPago === 'editar' && solicitudPagoActual"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mb-3"
+          >
+            Rechazada por {{ solicitudPagoActual.area_rechazo === "ADM" ? "Administración" : "Gerencia" }}
+            ({{ solicitudPagoActual.usuario_rechazo }} · {{ solicitudPagoActual.fecha_rechazo }}).
+            <div v-if="solicitudPagoActual.motivo_rechazo">
+              <b>Motivo:</b> {{ solicitudPagoActual.motivo_rechazo }}
+            </div>
+            Corrige los datos y vuelve a enviarla.
+          </v-alert>
           <div class="solnueva__conceptos">
             <div
-              v-for="c in conceptosSolicitudPago"
+              v-for="c in conceptosModalSolicitudPago"
               :key="c.id"
               class="solnueva__concepto"
             >
@@ -3000,16 +3195,37 @@ onMounted(async () => {
               <span>{{ c.acronym }} {{ Number(c.total_op || 0).toFixed(2) }}</span>
             </div>
             <div
-              v-if="!conceptosSolicitudPago.length"
+              v-if="!conceptosModalSolicitudPago.length"
               class="text-medium-emphasis"
             >
               No hay conceptos pendientes de pago.
             </div>
             <div class="solnueva__total">
               <span>Total a pagar</span>
-              <span>{{ totalSolicitudPago.toFixed(2) }}</span>
+              <span>{{ totalModalSolicitudPago.toFixed(2) }}</span>
             </div>
           </div>
+
+          <h4 class="mt-4 mb-1">
+            Cuenta de salida (empresa)
+            <span
+              v-if="simboloSolicitudPago && !soloLecturaSolicitudPago"
+              class="text-medium-emphasis text-body-small"
+            >· solo cuentas en {{ simboloSolicitudPago }}</span>
+          </h4>
+          <v-autocomplete
+            v-model="solicitudPagoForm.id_cuentasalida"
+            :items="cuentasSalidaSolicitudPago"
+            item-title="label"
+            item-value="id"
+            placeholder="Cuenta de la empresa de donde sale el pago"
+            variant="outlined"
+            density="comfortable"
+            prepend-inner-icon="mdi-bank-outline"
+            :readonly="soloLecturaSolicitudPago"
+            :no-data-text="monedaSolicitudPago ? 'No hay cuentas de la empresa en esa moneda' : 'Los conceptos tienen monedas diferentes o no tienen moneda'"
+            hide-details="auto"
+          />
 
           <h4 class="mt-4 mb-2">
             Tipo de pago
@@ -3021,6 +3237,7 @@ onMounted(async () => {
               type="button"
               class="solnueva__tipo"
               :class="{ 'solnueva__tipo--active': solicitudPagoForm.id_tipopago === t.id }"
+              :disabled="soloLecturaSolicitudPago"
               @click="solicitudPagoForm.id_tipopago = t.id"
             >
               <v-icon :color="solicitudPagoForm.id_tipopago === t.id ? 'primary' : 'grey'">
@@ -3033,15 +3250,12 @@ onMounted(async () => {
             </button>
           </div>
 
-          <div
-            v-if="tipoPagoSeleccionado === '01'"
-            class="mt-4"
-          >
+          <div class="mt-4">
             <div class="d-flex align-center mb-1">
               <b>Cuenta bancaria del proveedor</b>
               <v-spacer />
               <v-btn
-                v-if="can('listControlGastos', 'NUEVO')"
+                v-if="can('listControlGastos', 'NUEVO') && !soloLecturaSolicitudPago"
                 size="small"
                 variant="text"
                 color="primary"
@@ -3058,12 +3272,14 @@ onMounted(async () => {
               variant="outlined"
               density="comfortable"
               :no-data-text="'El proveedor no tiene cuentas registradas'"
+              :readonly="soloLecturaSolicitudPago"
               hide-details="auto"
             />
           </div>
           <v-text-field
-            v-else-if="tipoPagoSeleccionado"
+            v-if="tipoPagoSeleccionado === '02'"
             v-model="solicitudPagoForm.codigopago"
+            :readonly="soloLecturaSolicitudPago"
             class="mt-4"
             :label="`Código de pago ${nombreCodigoPago}`"
             variant="outlined"
@@ -3073,6 +3289,7 @@ onMounted(async () => {
 
           <v-textarea
             v-model="solicitudPagoForm.comentario"
+            :readonly="soloLecturaSolicitudPago"
             class="mt-4"
             label="Observaciones (opcional)"
             rows="2"
@@ -3091,9 +3308,10 @@ onMounted(async () => {
             :disabled="guardandoSolicitudPago"
             @click="dialogSolicitudPagoNueva = false"
           >
-            Cancelar
+            {{ soloLecturaSolicitudPago ? "Cerrar" : "Cancelar" }}
           </v-btn>
           <v-btn
+            v-if="!soloLecturaSolicitudPago && can('listControlGastos', 'NUEVO')"
             color="primary"
             variant="flat"
             rounded="lg"
@@ -3102,7 +3320,7 @@ onMounted(async () => {
             :disabled="!solicitudPagoValida || !conceptosSolicitudPago.length"
             @click="registrarSolicitudPago"
           >
-            Enviar solicitud
+            {{ modoSolicitudPago === "editar" ? "Reenviar solicitud" : "Enviar solicitud" }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -3888,6 +4106,93 @@ onMounted(async () => {
 
 <style>
 /* =====================================================
+   SOLICITAR A ADMINISTRACIÓN (solicitud de pago)
+   ===================================================== */
+.solreq-cell {
+  min-width: 240px;
+}
+.solreq {
+  --solreq-fg: #1d4ed8;
+  --solreq-bg: #eff4ff;
+  --solreq-border: #d1defc;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 320px;
+  padding: 6px 6px 6px 8px;
+  border: 1px solid var(--solreq-border);
+  border-radius: 10px;
+  background: var(--solreq-bg);
+}
+.solreq--rechazada {
+  --solreq-fg: #c0261b;
+  --solreq-bg: #fef3f2;
+  --solreq-border: #fbd3cf;
+}
+.solreq__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.solreq__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--solreq-fg);
+  box-shadow: 0 0 0 1px var(--solreq-border);
+}
+.solreq__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.solreq__title {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--solreq-fg);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.solreq__date {
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #667085;
+  white-space: nowrap;
+}
+.solreq__info:hover .solreq__title,
+.solreq__info:focus-visible .solreq__title {
+  text-decoration: underline;
+}
+.solreq__info:focus-visible {
+  outline: 2px solid var(--solreq-fg);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.solreq__btn {
+  flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.solreq__del {
+  flex-shrink: 0;
+}
+
+/* =====================================================
    MODAL ELIMINAR
    ===================================================== */
 
@@ -4569,6 +4874,32 @@ onMounted(async () => {
 }
 
 /* Solicitud de pago (nueva) */
+.solnueva__estado {
+  margin-left: 8px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  background: #dbeafe;
+  color: #1e40af;
+}
+.solnueva__estado--LISTO {
+  background: #d9f7e1;
+  color: #166534;
+}
+.solnueva__estado--PENGER {
+  background: #fdf0c4;
+  color: #7a5a00;
+}
+.solnueva__estado--PENADM {
+  background: #ece2fc;
+  color: #5b21b6;
+}
+.solnueva__estado--RECHAZADA {
+  background: #fde2e2;
+  color: #b42318;
+}
 .solnueva__head {
   display: flex;
   align-items: center;
