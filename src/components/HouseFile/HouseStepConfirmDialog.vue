@@ -7,7 +7,7 @@ import { useDialogSave } from "@/composables/useDialogSave";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { fromDateAndTime, stepDialogPreset, toDateAndTime } from "./houseTrackingFormat";
-import { quoteExpiredOn, skipStillSaves } from "./stepValidation";
+import { quoteExpiredOn } from "./stepValidation";
 import type { HouseTrackingStep, StepDialogMode, WeightCheck } from "@/types/houseTracking";
 
 const props = defineProps<{
@@ -48,11 +48,6 @@ async function submit() {
     return;
   }
   await save();
-}
-
-function afterSkip() {
-  if (skipStillSaves(props.step!, props.mode)) save();
-  else open.value = false;
 }
 </script>
 
@@ -122,7 +117,7 @@ function afterSkip() {
       v-model="quoteDialog"
       :house-id="houseId"
       :step="step"
-      @skip="afterSkip"
+      @skip="save"
       @kept="save"
     />
   </v-dialog>
