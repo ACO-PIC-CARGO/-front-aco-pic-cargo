@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
@@ -7,8 +8,10 @@ import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/useRevisionSolicitudPago";
 import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
-import { CONNECTION_ERROR_MESSAGE, hasFailed, request } from "@/utils/request";
+import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type {
+  FacturaProveedorCargada,
   EstadoBandejaSolicitudPago,
   FiltrosBandejaSolicitudPago,
   OpcionFiltroSolicitudPago,
@@ -16,7 +19,8 @@ import type {
   TabBandejaSolicitudPago,
 } from "@/types/billingEntries";
 
-// Una pestaña de Bancos > Solicitudes de Pago: listado paginado en el servidor, solo lectura
+// Una pestaña de Bancos > Solicitudes de Pago: listado paginado en el servidor.
+// Tiene las mismas acciones que Pagos Pendientes de Control de Gastos.
 const props = defineProps<{
   tab: TabBandejaSolicitudPago;
   opciones: OpcionFiltroSolicitudPago[];
@@ -43,7 +47,74 @@ const ICONO_ESTADO: Record<EstadoBandejaSolicitudPago, string> = {
 };
 
 const { can } = usePermissions();
+const router = useRouter();
 const puedeModificar = computed(() => can("solicitudesPagoBancos", "MODIFICAR"));
+const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
+const procesando = ref<number | null>(null);
+
+// ver solicitud (ojito)
+const dialogVer = ref(false);
+const idSolicitudVer = ref<number | null>(null);
+function verSolicitud(s: SolicitudPagoBandeja) {
+  idSolicitudVer.value = s.id;
+  dialogVer.value = true;
+}
+
+// anexos (facturas / proformas del proveedor)
+const dialogAnexos = ref(false);
+const anexos = ref<FacturaProveedorCargada[]>([]);
+const anexoProveedor = ref("");
+const cargandoAnexos = ref(false);
+async function verAnexo(s: SolicitudPagoBandeja) {
+  anexoProveedor.value = proveedor(s);
+  anexos.value = [];
+  cargandoAnexos.value = true;
+  dialogAnexos.value = true;
+  const response = await request<FacturaProveedorCargada>({
+    method: "get",
+    url: URL_MAIN + "list_invoice_path",
+    params: { id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo },
+  });
+  cargandoAnexos.value = false;
+  anexos.value = response.estadoflag ? response.data.filter((a) => !!a.path) : [];
+}
+function nombreAnexo(a: FacturaProveedorCargada) {
+  const tipo = a.type_pago == 1 ? "Factura" : a.type_pago == 2 ? "Proforma" : "Otro";
+  return `${tipo}${a.number ? " - " + a.number : ""}`;
+}
+
+async function copiar(texto: string | null) {
+  if (!texto) return;
+  try {
+    await navigator.clipboard.writeText(texto);
+    notifySuccess("Copiado al portapapeles");
+  } catch {
+    Swal.fire({ icon: "warning", text: "No se pudo copiar. Selecciona el texto y cópialo manualmente." });
+  }
+}
+
+// PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
+async function transferir(s: SolicitudPagoBandeja) {
+  procesando.value = s.id;
+  const response = await request<{ token: string }>({
+    method: "put",
+    url: URL_MAIN + "solicitud_pago_transferir/" + s.id,
+  });
+  procesando.value = null;
+  const token = response.estadoflag ? response.data[0]?.token : null;
+  if (!token) {
+    Swal.fire({
+      icon: response.tipomensaje === "TMSGERR" ? "error" : "warning",
+      text: response.mensaje || CONNECTION_ERROR_MESSAGE,
+    });
+    emit("actualizado");
+    return;
+  }
+  router.push({ name: "registroPagoSolicitud", params: { token } });
+}
+function verSalida(s: SolicitudPagoBandeja) {
+  if (s.id_pagoegreso) window.open(`/home/FolderBanks/verPagosPorProveedor/${s.id_pagoegreso}`, "_blank");
+}
 
 // Aprobar / rechazar: Administración perfil 04, Gerencia perfil 01. Al cambiar, se recargan todas las pestañas
 const { revisando, revisar } = useRevisionSolicitudPago(() => emit("actualizado"));
@@ -121,7 +192,6 @@ const headers = computed(() => [
   { title: "Expediente", key: "expediente", sortable: false },
   { title: "Proveedor", key: "proveedor", sortable: false },
   { title: "Monto", key: "monto", sortable: false, align: "end" as const },
-  { title: "Moneda", key: "moneda", sortable: false, align: "center" as const },
   { title: "Banco", key: "banco", sortable: false },
   { title: "Método de pago", key: "tipopago", sortable: false },
   { title: "Código / N° de cuenta", key: "cuenta", sortable: false },
@@ -371,7 +441,18 @@ onMounted(cargar);
           <span class="text-no-wrap">{{ formatoFecha(item.fechasolicitud) }}</span>
         </template>
         <template #[`item.expediente`]="{ item }">
-          <span class="spb__pill">{{ item.expediente }}</span>
+          <div class="spb__exp">
+            <v-btn
+              icon="mdi-eye-outline"
+              variant="tonal"
+              size="x-small"
+              color="primary"
+              title="Ver solicitud de pago"
+              aria-label="Ver solicitud de pago"
+              @click="verSolicitud(item)"
+            />
+            <span class="spb__pill">{{ item.expediente }}</span>
+          </div>
           <div
             v-if="item.correlativo"
             class="spb__sub"
@@ -380,13 +461,30 @@ onMounted(cargar);
           </div>
         </template>
         <template #[`item.proveedor`]="{ item }">
-          <span class="spb__prov">{{ proveedor(item) }}</span>
+          <div class="spb__provrow">
+            <v-btn
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar proveedor"
+              aria-label="Copiar proveedor"
+              @click="copiar(proveedor(item))"
+            />
+            <span class="spb__prov">{{ proveedor(item) }}</span>
+          </div>
+          <button
+            type="button"
+            class="spb__anexo"
+            @click="verAnexo(item)"
+          >
+            <v-icon size="14">
+              mdi-paperclip
+            </v-icon> Ver anexo
+          </button>
         </template>
         <template #[`item.monto`]="{ item }">
-          <span class="spb__monto">{{ formatoMonto(item.monto) }}</span>
-        </template>
-        <template #[`item.moneda`]="{ item }">
-          <span class="spb__coin">{{ item.moneda || "—" }}</span>
+          <span class="spb__monto">{{ formatoMonto(item.monto) }} {{ item.moneda || "" }}</span>
         </template>
         <template #[`item.banco`]="{ item }">
           <span class="font-weight-bold">{{ item.banco || "—" }}</span>
@@ -403,7 +501,19 @@ onMounted(cargar);
           </span>
         </template>
         <template #[`item.cuenta`]="{ item }">
-          <span class="text-no-wrap">{{ cuentaOCodigo(item) || "—" }}</span>
+          <div class="spb__cuenta">
+            <span>{{ cuentaOCodigo(item) || "—" }}</span>
+            <v-btn
+              v-if="cuentaOCodigo(item)"
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar"
+              aria-label="Copiar código o número de cuenta"
+              @click="copiar(cuentaOCodigo(item))"
+            />
+          </div>
         </template>
         <template #[`item.estado`]="{ item }">
           <v-tooltip location="top">
@@ -513,16 +623,47 @@ onMounted(cargar);
           <span class="text-no-wrap">{{ item.fechapago ? formatoFecha(item.fechapago) : "—" }}</span>
         </template>
         <template #[`item.soporte`]="{ item }">
-          <v-btn
+          <div
             v-if="item.soporte_path"
-            icon="mdi-file-eye-outline"
-            variant="text"
-            size="small"
-            color="primary"
-            title="Ver soporte de pago"
-            aria-label="Ver soporte de pago"
-            @click="abrir(item.soporte_path)"
-          />
+            class="spb__soporte"
+          >
+            <v-btn
+              icon="mdi-file-eye-outline"
+              variant="text"
+              size="small"
+              color="primary"
+              title="Ver soporte de pago"
+              aria-label="Ver soporte de pago"
+              @click="abrir(item.soporte_path)"
+            />
+            <!-- con el soporte cargado ya se puede registrar el pago en Bancos -->
+            <button
+              v-if="item.id_pagoegreso"
+              type="button"
+              class="spb__salida"
+              title="Ver la salida registrada en Bancos"
+              @click="verSalida(item)"
+            >
+              <v-icon
+                size="16"
+                color="success"
+              >
+                mdi-check-decagram
+              </v-icon>
+              Salida N° {{ item.numerooperacion_pago }}
+            </button>
+            <v-btn
+              v-else-if="item.pagadoflag && item.codigo_estado === 'PAGADO' && puedeTransferir"
+              size="small"
+              color="success"
+              variant="flat"
+              prepend-icon="mdi-bank-transfer-out"
+              :loading="procesando === item.id"
+              @click="transferir(item)"
+            >
+              REGISTRAR EN BANCO
+            </v-btn>
+          </div>
           <!-- con las dos aprobaciones se carga el soporte (pide la fecha de pago) -->
           <v-btn
             v-else-if="item.codigo_estado !== 'ELIMINADA'"
@@ -551,6 +692,73 @@ onMounted(cargar);
       :solicitud="solicitudSoporte"
       @guardado="emit('actualizado')"
     />
+
+    <SolicitudPagoVerDialog
+      v-model="dialogVer"
+      :id-solicitud="idSolicitudVer"
+    />
+
+    <!-- anexos -->
+    <v-dialog
+      v-model="dialogAnexos"
+      max-width="520"
+    >
+      <v-card rounded="xl">
+        <v-card-title class="d-flex align-center">
+          <v-icon
+            color="primary"
+            class="mr-2"
+          >
+            mdi-paperclip
+          </v-icon>
+          Anexos de {{ anexoProveedor }}
+          <v-spacer />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            size="small"
+            aria-label="Cerrar"
+            @click="dialogAnexos = false"
+          />
+        </v-card-title>
+        <v-card-text>
+          <v-progress-linear
+            v-if="cargandoAnexos"
+            indeterminate
+            color="primary"
+          />
+          <p
+            v-else-if="!anexos.length"
+            class="text-medium-emphasis"
+          >
+            El proveedor no tiene facturas o proformas cargadas para este expediente.
+          </p>
+          <v-list
+            v-else
+            density="compact"
+          >
+            <v-list-item
+              v-for="a in anexos"
+              :key="a.id"
+              :title="nombreAnexo(a)"
+              :subtitle="a.originalname || ''"
+              @click="abrir(a.path ?? null)"
+            >
+              <template #prepend>
+                <v-icon :color="a.type === 'pdf' ? 'red' : 'blue-grey'">
+                  {{ a.type === "pdf" ? "mdi-file-pdf-box" : "mdi-file-image" }}
+                </v-icon>
+              </template>
+              <template #append>
+                <v-icon size="18">
+                  mdi-open-in-new
+                </v-icon>
+              </template>
+            </v-list-item>
+          </v-list>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- filtros: panel a la derecha -->
     <v-navigation-drawer
@@ -751,6 +959,46 @@ onMounted(cargar);
 .spb__muted {
   color: var(--spb-muted);
 }
+.spb__exp,
+.spb__provrow,
+.spb__cuenta,
+.spb__soporte {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+.spb__anexo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0 28px;
+  padding: 1px 10px;
+  border: 1px solid #1e5bd8;
+  border-radius: 999px;
+  background: #fff;
+  color: #1e5bd8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.spb__anexo:hover {
+  background: #eef4ff;
+}
+.spb__salida {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.12);
+  color: #1f7a35;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
 .spb__prov {
   font-weight: 700;
   color: var(--spb-primary);
@@ -758,15 +1006,6 @@ onMounted(cargar);
 .spb__monto {
   font-weight: 700;
   white-space: nowrap;
-}
-.spb__coin {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: #dbeafe;
-  color: #1e40af;
-  font-weight: 700;
-  font-size: 0.8rem;
 }
 .spb__metodo {
   display: inline-flex;

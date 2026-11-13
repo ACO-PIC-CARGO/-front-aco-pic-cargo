@@ -371,44 +371,68 @@ function mostrarBtnGuardar() {
       v-if="dialogVersion"
       persistent
       v-model="dialogVersion"
-      :width="smAndDown ? '100%' : '25%'"
+      max-width="560"
+      :width="smAndDown ? '100%' : undefined"
     >
       <v-card
-        class="px-1 py-2 text-center align-center"
-        elevation="2"
+        class="update-card"
+        elevation="5"
       >
-        <v-icon
-          color="success"
-          style="font-size: 6em"
-        >
-          mdi-check-circle-outline
-        </v-icon>
-        <h2 class="my-2">
-          Hemos mejorado ACO para ti
+        <span
+          class="update-card__corner"
+          aria-hidden="true"
+        />
+        <div class="update-card__icon">
+          <v-icon size="52">
+            mdi-tray-arrow-down
+          </v-icon>
+        </div>
+        <h2 class="update-card__title">
+          NUEVA VERSIÓN
+          <span class="update-card__accent">
+            <span
+              class="update-card__spark"
+              aria-hidden="true"
+            />
+            DISPONIBLE
+            <span
+              class="update-card__spark update-card__spark--end"
+              aria-hidden="true"
+            />
+          </span>
         </h2>
-        <div v-if="!cargando">
-          Actualiza y Activa las nuevas funciones
+        <p class="update-card__subtitle">
+          Hemos mejorado ACO para ti.
+        </p>
+        <template v-if="!cargando">
           <v-btn
-            class="my-2"
-            color="success"
+            class="update-card__btn"
+            color="#0b4fbf"
+            variant="flat"
+            size="x-large"
+            block
+            prepend-icon="mdi-tray-arrow-down"
             @click="actualizar"
           >
-            Actualizar Ahora
+            ACTUALIZAR AHORA
           </v-btn>
-          <p class="my-2">
-            <v-icon>mdi-clock</v-icon> Solo tomará 5 segundos
-          </p>
-        </div>
-        <div v-else>
+          <div class="update-card__foot">
+            <v-icon color="#0b4fbf">
+              mdi-information-outline
+            </v-icon>
+            Solo tomará 5 segundos.
+          </div>
+        </template>
+        <div
+          v-else
+          class="update-card__loading"
+        >
           <v-progress-circular
             indeterminate
-            color="primary"
+            color="#0b4fbf"
             size="40"
-            class="my-3"
           />
-          <p class="my-2">
-            Actualizando... Por favor espera
-          </p>
+          <p>Actualizando... Por favor espera</p>
         </div>
       </v-card>
     </v-dialog>
@@ -1250,6 +1274,113 @@ function mostrarBtnGuardar() {
 }
 .ocultar {
   display: none !important;
+}
+
+/* Modal "Nueva versión disponible" */
+.update-card.v-card {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 32px 22px;
+  border-radius: 28px !important;
+  text-align: center;
+  color: #0a1f44;
+}
+.update-card__corner {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 150px;
+  height: 120px;
+  background: linear-gradient(135deg, #bfdcff 0%, #5aa7f5 100%);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  opacity: 0.85;
+  pointer-events: none;
+}
+.update-card__icon {
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 104px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  background: #d6e8fd;
+  color: #0b4fbf;
+}
+.update-card__title {
+  margin: 0;
+  font-size: clamp(1.9rem, 6vw, 2.7rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+.update-card__accent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #0b5fd6;
+}
+.update-card__spark {
+  position: relative;
+  width: 26px;
+  height: 26px;
+}
+.update-card__spark::before,
+.update-card__spark::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  width: 22px;
+  height: 4px;
+  border-radius: 4px;
+  background: #4aa1f2;
+}
+.update-card__spark::before {
+  top: 2px;
+  transform: rotate(30deg);
+}
+.update-card__spark::after {
+  bottom: 2px;
+  transform: rotate(-30deg);
+}
+.update-card__spark--end {
+  transform: scaleX(-1);
+}
+.update-card__subtitle {
+  margin: 12px 0 20px;
+  font-size: 1.25rem;
+  color: #3b4a63;
+}
+.update-card__btn.v-btn {
+  position: relative;
+  z-index: 1;
+  border-radius: 14px;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+.update-card__foot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid #dbe6f5;
+  font-size: 1.1rem;
+  color: #3b4a63;
+}
+.update-card__loading {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  color: #3b4a63;
 }
 </style>
 <style>

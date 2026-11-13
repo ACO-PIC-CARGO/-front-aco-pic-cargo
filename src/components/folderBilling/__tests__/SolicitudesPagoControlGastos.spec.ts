@@ -87,13 +87,13 @@ test("lists the requests with the action that each state needs", async () => {
   expect(w.find("thead").text()).not.toContain("Acción");
   // LISTO: se sube el soporte desde la columna Soporte; Transferir aparece recién con el soporte
   expect(rows[0]!.find('[title="Subir soporte de pago"]').attributes("disabled")).toBeUndefined();
-  expect(rows[0]!.text()).not.toContain("Transferir");
+  expect(rows[0]!.text()).not.toContain("REGISTRAR EN BANCO");
   // el botón de cada área está en su columna y desaparece al aprobar
   expect(aprobacion(1)).toEqual(["admin.qa12-Nov-2026 09:45", "Aprobar"]);
   expect(aprobacion(2)).toEqual(["Aprobar", "—"]);
-  expect(rows[3]!.text()).toContain("Transferir");
+  expect(rows[3]!.text()).toContain("REGISTRAR EN BANCO");
   expect(rows[4]!.text()).toContain("Salida N° OP-123");
-  expect(rows[4]!.text()).not.toContain("Transferir");
+  expect(rows[4]!.text()).not.toContain("REGISTRAR EN BANCO");
   expect(aprobacion(5)[0]).toContain("Rechazado");
   expect(aprobacion(5)[0]).toContain("adm.rechazo");
   // monto y moneda en una sola columna
@@ -124,7 +124,7 @@ test("transferring a paid request opens the bank payment with its token", async 
   const w = await render(["VER", "NUEVO", "MODIFICAR"]);
   httpMock.mockImplementation(async (config: { url: string }) =>
     ({ data: accepted(config.url.includes("transferir") ? [{ token: "tok-1" }] : ROWS) }));
-  await w.findAll("button").find((b) => b.text() === "Transferir")!.trigger("click");
+  await w.findAll("button").find((b) => b.text() === "REGISTRAR EN BANCO")!.trigger("click");
   await flushPromises();
   expect(httpMock).toHaveBeenCalledWith(
     expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_transferir/4" }),
@@ -157,5 +157,5 @@ test("each area is reviewed only by its profile (04 Administración, 01 Gerencia
 test("without Modificar nobody can approve or transfer", async () => {
   const w = await render(["VER"]);
   expect(w.find(".solpago__revisar").exists()).toBe(false);
-  expect(w.text()).not.toContain("Transferir");
+  expect(w.text()).not.toContain("REGISTRAR EN BANCO");
 });

@@ -1,0 +1,84 @@
+/* Bancos > Nueva Salida / Nuevo Ingreso: pestaña "Detalles Bancarios" en tarjetas */
+.bank-form {
+  --bank-title-bg: #dcebfd;
+  --bank-title-fg: #0a1f44;
+  --bank-border: #d5e3f5;
+  --bank-accent: #1976d2;
+  padding-top: 12px;
+}
+.bank-card {
+  height: 100%;
+  border: 1px solid var(--bank-border);
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(10, 31, 68, 0.06);
+}
+.bank-card__title {
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--bank-title-bg);
+  color: var(--bank-title-fg);
+  font-size: 1rem;
+  font-weight: 700;
+}
+.bank-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 14px 6px;
+}
+.bank-card__body .v-field {
+  border-radius: 8px;
+  background: #fff;
+}
+.bank-card__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.bank-drop .drop-area {
+  min-height: 110px;
+  height: auto !important;
+  border: 2px dashed var(--bank-accent) !important;
+  border-radius: 10px !important;
+  background: #f1f7ff !important;
+  color: var(--bank-title-fg);
+  font-weight: 700;
+}
+.bank-drop .drop-area:hover,
+.bank-drop .drop-area:focus-visible {
+  outline: none;
+  background: #e5f0fd !important;
+}
+.bank-drop .drop-area label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 110px;
+  padding: 10px;
+  font-size: 1.05rem;
+}
+.bank-drop .drop-area .v-icon {
+  margin: 0 !important;
+  font-size: 40px !important;
+  color: var(--bank-accent) !important;
+}
+.bank-actions {
+  display: flex;
+  gap: 10px;
+  padding: 4px 0 20px;
+}
+.bank-actions .v-btn {
+  min-width: 110px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+@media (max-width: 600px) {
+  .bank-card__row {
+    grid-template-columns: 1fr;
+  }
+}

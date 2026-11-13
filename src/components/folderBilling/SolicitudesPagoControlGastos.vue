@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
 import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "./SoportePagoDialog.vue";
+import SolicitudPagoVerDialog from "./SolicitudPagoVerDialog.vue";
 import { sessionUser } from "@/utils/sesion";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
@@ -37,15 +38,9 @@ const solicitudes = ref<SolicitudPagoControl[]>([]);
 const cargando = ref(false);
 const procesando = ref<number | null>(null);
 
-// filtros
-const filtroTexto = ref("");
-const filtroEstado = ref<EstadoSolicitudPago | null>(null);
-const filtroProveedor = ref<number | null>(null);
-const filtroBanco = ref<string | null>(null);
-const filtroMetodo = ref<string | null>(null);
-const filtroDesde = ref("");
-const filtroHasta = ref("");
-const mostrarFiltrosMovil = ref(false);
+// modal ver solicitud (ojito)
+const dialogVer = ref(false);
+const idSolicitudVer = ref<number | null>(null);
 
 // modal soporte
 const dialogSoporte = ref(false);
@@ -75,55 +70,11 @@ const puedeAprobar = computed(() => can("listControlGastos", "MODIFICAR"));
 const { revisando, revisar: aprobar } = useRevisionSolicitudPago(() => cargar());
 const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
 
-const opcionesProveedor = computed(() =>
-  unicos(solicitudes.value.map((s) => ({ title: etiquetaProveedor(s), value: s.id_proveedor })), "value"),
-);
-const opcionesBanco = computed(() =>
-  [...new Set(solicitudes.value.map((s) => s.banco).filter((b): b is string => !!b))].map((b) => ({ title: b, value: b })),
-);
-const opcionesMetodo = computed(() =>
-  [...new Set(solicitudes.value.map((s) => s.tipopago).filter(Boolean))].map((m) => ({ title: m, value: m })),
-);
-const opcionesEstado = ESTADOS.map((e) => ({ title: e.titulo, value: e.codigo }));
-
-const hayFiltros = computed(
-  () =>
-    !!filtroTexto.value ||
-    !!filtroEstado.value ||
-    !!filtroProveedor.value ||
-    !!filtroBanco.value ||
-    !!filtroMetodo.value ||
-    !!filtroDesde.value ||
-    !!filtroHasta.value,
-);
-
-const filtradas = computed(() => {
-  const texto = filtroTexto.value.trim().toLowerCase();
-  return solicitudes.value.filter((s) => {
-    const fecha = s.fechasolicitud.slice(0, 10);
-    if (filtroEstado.value && s.codigo_estado !== filtroEstado.value) return false;
-    if (filtroProveedor.value && s.id_proveedor !== filtroProveedor.value) return false;
-    if (filtroBanco.value && s.banco !== filtroBanco.value) return false;
-    if (filtroMetodo.value && s.tipopago !== filtroMetodo.value) return false;
-    if (filtroDesde.value && fecha < filtroDesde.value) return false;
-    if (filtroHasta.value && fecha > filtroHasta.value) return false;
-    if (!texto) return true;
-    return [etiquetaProveedor(s), s.expediente, s.nrocuenta, s.codigopago, s.banco]
-      .filter(Boolean)
-      .some((v) => String(v).toLowerCase().includes(texto));
-  });
-});
-
 const grupos = computed(() =>
-  ESTADOS.map((e) => ({ ...e, items: filtradas.value.filter((s) => s.codigo_estado === e.codigo) })).filter(
+  ESTADOS.map((e) => ({ ...e, items: solicitudes.value.filter((s) => s.codigo_estado === e.codigo) })).filter(
     (g) => g.items.length > 0,
   ),
 );
-
-function unicos<T extends Record<string, unknown>>(items: T[], clave: keyof T) {
-  const vistos = new Set<unknown>();
-  return items.filter((i) => (vistos.has(i[clave]) ? false : (vistos.add(i[clave]), true)));
-}
 
 function etiquetaProveedor(s: SolicitudPagoControl) {
   return `${s.proveedor} (${s.id_proveedor})`;
@@ -174,16 +125,6 @@ function aprobaciones(s: SolicitudPagoControl) {
 function hoy() {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-}
-
-function limpiarFiltros() {
-  filtroTexto.value = "";
-  filtroEstado.value = null;
-  filtroProveedor.value = null;
-  filtroBanco.value = null;
-  filtroMetodo.value = null;
-  filtroDesde.value = "";
-  filtroHasta.value = "";
 }
 
 function avisar(response: ApiResponse) {
@@ -240,6 +181,11 @@ async function transferir(s: SolicitudPagoControl) {
 
 function verSalida(s: SolicitudPagoControl) {
   if (s.id_pagoegreso) window.open(`/home/FolderBanks/verPagosPorProveedor/${s.id_pagoegreso}`, "_blank");
+}
+
+function verSolicitud(s: SolicitudPagoControl) {
+  idSolicitudVer.value = s.id;
+  dialogVer.value = true;
 }
 
 function abrirSoporte(s: SolicitudPagoControl) {
@@ -299,152 +245,10 @@ defineExpose({ cargar });
           Pagos Pendientes
         </h2>
       </div>
-
-      <template v-if="!smAndDown">
-        <v-text-field
-          v-model="filtroTexto"
-          class="solpago__search"
-          density="compact"
-          variant="outlined"
-          hide-details
-          clearable
-          prepend-inner-icon="mdi-magnify"
-          placeholder="Buscar por proveedor, código o cuenta..."
-        />
-        <div class="solpago__dates">
-          <v-icon
-            color="primary"
-            size="20"
-          >
-            mdi-calendar-month-outline
-          </v-icon>
-          <input
-            v-model="filtroDesde"
-            type="date"
-            aria-label="Desde"
-          >
-          <span>-</span>
-          <input
-            v-model="filtroHasta"
-            type="date"
-            aria-label="Hasta"
-          >
-        </div>
-      </template>
-      <v-btn
-        v-else
-        variant="outlined"
-        color="primary"
-        rounded="lg"
-        prepend-icon="mdi-filter-outline"
-        @click="mostrarFiltrosMovil = !mostrarFiltrosMovil"
-      >
-        Filtros
-      </v-btn>
     </header>
 
-    <!-- FILTROS -->
-    <v-expand-transition>
-      <div
-        v-show="!smAndDown || mostrarFiltrosMovil"
-        class="solpago__filters"
-      >
-        <v-text-field
-          v-if="smAndDown"
-          v-model="filtroTexto"
-          density="compact"
-          variant="outlined"
-          hide-details
-          clearable
-          prepend-inner-icon="mdi-magnify"
-          placeholder="Buscar por proveedor, código o cuenta..."
-        />
-        <div
-          v-if="smAndDown"
-          class="solpago__dates solpago__dates--block"
-        >
-          <v-icon
-            color="primary"
-            size="20"
-          >
-            mdi-calendar-month-outline
-          </v-icon>
-          <input
-            v-model="filtroDesde"
-            type="date"
-            aria-label="Desde"
-          >
-          <span>-</span>
-          <input
-            v-model="filtroHasta"
-            type="date"
-            aria-label="Hasta"
-          >
-        </div>
-        <div class="solpago__field">
-          <label>Estado</label>
-          <v-select
-            v-model="filtroEstado"
-            :items="opcionesEstado"
-            placeholder="Todos los estados"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </div>
-        <div class="solpago__field">
-          <label>Proveedor</label>
-          <v-select
-            v-model="filtroProveedor"
-            :items="opcionesProveedor"
-            placeholder="Todos los proveedores"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </div>
-        <div class="solpago__field">
-          <label>Banco</label>
-          <v-select
-            v-model="filtroBanco"
-            :items="opcionesBanco"
-            placeholder="Todos los bancos"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </div>
-        <div class="solpago__field">
-          <label>Método de pago</label>
-          <v-select
-            v-model="filtroMetodo"
-            :items="opcionesMetodo"
-            placeholder="Todos los métodos"
-            density="compact"
-            variant="outlined"
-            hide-details
-            clearable
-          />
-        </div>
-        <v-btn
-          class="solpago__clear"
-          variant="outlined"
-          color="primary"
-          rounded="lg"
-          prepend-icon="mdi-refresh"
-          :disabled="!hayFiltros"
-          @click="limpiarFiltros"
-        >
-          Limpiar filtros
-        </v-btn>
-      </div>
-    </v-expand-transition>
-
     <div class="solpago__count">
-      {{ filtradas.length }} {{ filtradas.length === 1 ? "resultado" : "resultados" }}
+      {{ solicitudes.length }} {{ solicitudes.length === 1 ? "resultado" : "resultados" }}
       <v-progress-circular
         v-if="cargando"
         indeterminate
@@ -492,7 +296,7 @@ defineExpose({ cargar });
           </tr>
         </thead>
         <tbody>
-          <tr v-if="!filtradas.length">
+          <tr v-if="!solicitudes.length">
             <td
               colspan="12"
               class="solpago__empty"
@@ -501,14 +305,26 @@ defineExpose({ cargar });
             </td>
           </tr>
           <tr
-            v-for="s in filtradas"
+            v-for="s in solicitudes"
             :key="s.id"
           >
             <td class="text-no-wrap">
               {{ formatoFecha(s.fechasolicitud) }}
             </td>
             <td>
-              <span class="solpago__pill">{{ s.expediente }}</span>
+              <div class="solpago__exp">
+                <v-btn
+                  icon="mdi-eye-outline"
+                  variant="tonal"
+                  size="x-small"
+                  color="primary"
+                  title="Ver solicitud de pago"
+                  aria-label="Ver solicitud de pago"
+                  data-modo-ver="permitido"
+                  @click="verSolicitud(s)"
+                />
+                <span class="solpago__pill">{{ s.expediente }}</span>
+              </div>
             </td>
             <td>
               <div class="solpago__prov">
@@ -518,6 +334,7 @@ defineExpose({ cargar });
                   size="x-small"
                   color="primary"
                   title="Copiar proveedor"
+                  data-modo-ver="permitido"
                   @click="copiar(etiquetaProveedor(s))"
                 >
                   <v-icon>mdi-content-copy</v-icon>
@@ -527,6 +344,7 @@ defineExpose({ cargar });
               <button
                 type="button"
                 class="solpago__anexo"
+                data-modo-ver="permitido"
                 @click="verAnexo(s)"
               >
                 <v-icon size="14">
@@ -535,7 +353,7 @@ defineExpose({ cargar });
               </button>
             </td>
             <td class="text-right solpago__monto text-no-wrap">
-              {{ formatoMonto(s.monto) }} <span class="solpago__coin">{{ s.moneda }}</span>
+              {{ formatoMonto(s.monto) }} {{ s.moneda }}
             </td>
             <td class="font-weight-bold">
               {{ s.banco || "—" }}
@@ -551,6 +369,7 @@ defineExpose({ cargar });
                   size="x-small"
                   color="primary"
                   title="Copiar"
+                  data-modo-ver="permitido"
                   @click="copiar(cuentaOCodigo(s))"
                 >
                   <v-icon>mdi-content-copy</v-icon>
@@ -627,6 +446,7 @@ defineExpose({ cargar });
                   size="small"
                   color="primary"
                   title="Ver soporte de pago"
+                  data-modo-ver="permitido"
                   @click="abrir(s.soporte_path)"
                 >
                   <v-icon>mdi-file-eye-outline</v-icon>
@@ -637,6 +457,7 @@ defineExpose({ cargar });
                   type="button"
                   class="solpago__salida"
                   title="Ver la salida registrada en Bancos"
+                  data-modo-ver="permitido"
                   @click="verSalida(s)"
                 >
                   <v-icon
@@ -656,7 +477,7 @@ defineExpose({ cargar });
                   :loading="procesando === s.id"
                   @click="transferir(s)"
                 >
-                  Transferir
+                  REGISTRAR EN BANCO
                 </v-btn>
               </div>
               <v-btn
@@ -683,7 +504,7 @@ defineExpose({ cargar });
       class="solpago__mobile"
     >
       <div
-        v-if="!filtradas.length"
+        v-if="!solicitudes.length"
         class="solpago__empty"
       >
         {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago registradas." }}
@@ -697,6 +518,7 @@ defineExpose({ cargar });
           type="button"
           class="solpago__grouphead"
           :class="`solpago__grouphead--${g.codigo}`"
+          data-modo-ver="permitido"
           @click="gruposCerrados[g.codigo] = !gruposCerrados[g.codigo]"
         >
           <v-icon>{{ g.icono }}</v-icon>
@@ -717,10 +539,12 @@ defineExpose({ cargar });
               <button
                 type="button"
                 class="solpago__cardhead"
+                data-modo-ver="permitido"
                 @click="tarjetasAbiertas[s.id] = !tarjetasAbiertas[s.id]"
               >
                 <span
                   class="solpago__cardicon"
+                  data-modo-ver="permitido"
                   @click.stop="copiar(etiquetaProveedor(s))"
                 >
                   <v-icon
@@ -777,6 +601,7 @@ defineExpose({ cargar });
                           variant="text"
                           size="x-small"
                           color="primary"
+                          data-modo-ver="permitido"
                           @click="copiar(cuentaOCodigo(s))"
                         >
                           <v-icon>mdi-content-copy</v-icon>
@@ -847,6 +672,7 @@ defineExpose({ cargar });
                         color="primary"
                         rounded="pill"
                         prepend-icon="mdi-file-eye-outline"
+                        data-modo-ver="permitido"
                         @click="abrir(s.soporte_path)"
                       >
                         Ver soporte
@@ -858,6 +684,7 @@ defineExpose({ cargar });
                         color="success"
                         rounded="pill"
                         prepend-icon="mdi-check-decagram"
+                        data-modo-ver="permitido"
                         @click="verSalida(s)"
                       >
                         Salida N° {{ s.numerooperacion_pago }}
@@ -872,7 +699,7 @@ defineExpose({ cargar });
                         :loading="procesando === s.id"
                         @click="transferir(s)"
                       >
-                        Transferir
+                        REGISTRAR EN BANCO
                       </v-btn>
                     </template>
                     <template v-else-if="puedeAprobar">
@@ -916,9 +743,21 @@ defineExpose({ cargar });
                       color="primary"
                       rounded="pill"
                       prepend-icon="mdi-paperclip"
+                      data-modo-ver="permitido"
                       @click="verAnexo(s)"
                     >
                       Ver anexo
+                    </v-btn>
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      rounded="pill"
+                      prepend-icon="mdi-eye-outline"
+                      data-modo-ver="permitido"
+                      @click="verSolicitud(s)"
+                    >
+                      Ver solicitud
                     </v-btn>
                   </div>
                 </div>
@@ -935,6 +774,11 @@ defineExpose({ cargar });
       </v-icon>
       Al registrar el soporte de pago, será obligatorio ingresar la fecha de pago.
     </div>
+
+    <SolicitudPagoVerDialog
+      v-model="dialogVer"
+      :id-solicitud="idSolicitudVer"
+    />
 
     <SoportePagoDialog
       v-model="dialogSoporte"
@@ -1071,61 +915,6 @@ defineExpose({ cargar });
   letter-spacing: -0.02em;
   margin: 0;
 }
-.solpago__search {
-  flex: 0 1 420px;
-  min-width: 240px;
-  background: var(--sp-surface);
-  border-radius: 10px;
-}
-.solpago__dates {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border: 1px solid var(--sp-border);
-  border-radius: 10px;
-  background: var(--sp-surface);
-  font-size: 0.9rem;
-}
-.solpago__dates input {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--sp-text);
-  font: inherit;
-  max-width: 132px;
-}
-.solpago__dates--block {
-  justify-content: space-between;
-}
-.solpago__filters {
-  display: flex;
-  align-items: flex-end;
-  gap: 14px;
-  flex-wrap: wrap;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--sp-soft);
-  border: 1px solid var(--sp-border);
-}
-.solpago__field {
-  flex: 1 1 180px;
-  min-width: 160px;
-}
-.solpago__field label {
-  display: block;
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: var(--sp-text);
-}
-.solpago__field :deep(.v-field) {
-  background: var(--sp-surface);
-  border-radius: 10px;
-}
-.solpago__clear {
-  background: var(--sp-surface);
-}
 .solpago__count {
   display: flex;
   align-items: center;
@@ -1175,6 +964,11 @@ defineExpose({ cargar });
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
+}
+.solpago__exp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 .solpago__prov {
   display: flex;
@@ -1264,15 +1058,6 @@ defineExpose({ cargar });
 .solpago__monto {
   font-weight: 700;
   white-space: nowrap;
-}
-.solpago__coin {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: var(--sp-blue-bg);
-  color: var(--sp-blue-fg);
-  font-weight: 700;
-  font-size: 0.8rem;
 }
 .solpago__cuenta {
   display: flex;
@@ -1495,12 +1280,6 @@ defineExpose({ cargar });
   }
   .solpago__logo {
     height: 30px;
-  }
-  .solpago__field {
-    flex-basis: 100%;
-  }
-  .solpago__clear {
-    width: 100%;
   }
 }
 </style>

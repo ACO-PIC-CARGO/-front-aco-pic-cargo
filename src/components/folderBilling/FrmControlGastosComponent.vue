@@ -9,8 +9,11 @@ import { useControlGastosStore } from "@/stores/controlGastos";
 import { sessionBranchId } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
 import { usePermissions } from "@/composables/usePermissions";
+import { useModoVer } from "@/composables/useModoVer";
 
-withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
+const props = withDefaults(defineProps<{ editable?: boolean }>(), { editable: true });
+// Modo ver: se muestra igual que el editar; las acciones se bloquean con un aviso (useModoVer)
+const modoVer = computed(() => !props.editable);
 
 const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"));
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
@@ -56,6 +59,12 @@ let payfile: unknown;
 let boolFile: boolean;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let codigo_master: unknown;
+
+const guardModoVer = useModoVer({
+  activo: () => modoVer.value,
+  puedeEditar: () => can("listControlGastos", "MODIFICAR"),
+  irAEditar: () => irAEditar(),
+});
 
 // ...mapAction([])
 // --------------------
@@ -457,7 +466,7 @@ onMounted(async () => {
           class="my-1"
           block
           size="small"
-          v-if="!editable && can('listControlGastos', 'MODIFICAR')"
+          v-if="modoVer && can('listControlGastos', 'MODIFICAR')"
           @click="irAEditar()"
         >
           <v-icon class="mx-1">
@@ -511,7 +520,10 @@ onMounted(async () => {
           </v-icon> ABRIR CARPETA
         </v-btn>
       </v-col>
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        v-bind="guardModoVer"
+      >
         <Ingresos
           @recargar-datos="recargarDatos()"
           :pr-flag="prFlag"
@@ -519,12 +531,15 @@ onMounted(async () => {
           :ingreso_pr="ingreso_pr"
           :ingreso_op="ingreso_op"
           @recalcular-profit="calcularProfit()"
-          :editable="editable"
+          :editable="true"
           :master_houses="controlGastosStore.master_houses"
         />
       </v-col>
       <!-- EGRESOS -->
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        v-bind="guardModoVer"
+      >
         <Egresos
           ref="egresos"
           :status-btn="statusBtn"
@@ -535,13 +550,16 @@ onMounted(async () => {
           @recalcular-profit="calcularProfit()"
           @status-btn="statusBtn = $event"
           @recargar-datos="recargarDatos()"
-          :editable="editable"
+          :editable="true"
           :master_egresos="controlGastosStore.master_egresos"
           @solicitud-pago-registrada="solicitudesPago?.cargar()"
         />
       </v-col>
       <!-- SOLICITUDES DE PAGO -->
-      <v-col cols="12">
+      <v-col
+        cols="12"
+        v-bind="guardModoVer"
+      >
         <SolicitudesPago
           ref="solicitudesPago"
           @actualizado="egresos?.cargarSolicitudesExistentes()"
