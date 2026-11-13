@@ -18,8 +18,8 @@ export const SEND_TARGET_LABELS: Record<SendTarget, string> = {
 };
 
 export const sendTargetsFor = (approved: boolean, trafficFile: TrafficFileOfQuote | null): SendTarget[] => {
-  if (trafficFile) return trafficFile.sent ? [] : ["OPERATIONS"];
-  return approved ? [] : ["OPERATIONS", "TRAFFIC"];
+  if (trafficFile || approved) return [];
+  return ["OPERATIONS", "TRAFFIC"];
 };
 
 export const trafficEditLocked = (file: TrafficFileOfHouse | null | undefined, authorizedByAdmin: boolean) =>

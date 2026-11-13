@@ -4,9 +4,6 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import http from "@/api/http";
 import InstructivoComponent from "@/components/folderPricing/VerComponent/InstructivoComponent.vue";
-import router from "@/router";
-import { useControlGastosStore } from "@/stores/controlGastos";
-import { useFilesStore } from "@/stores/files";
 import { usePricingStore } from "@/stores/pricing";
 import type { AprobacionCotizacion, ExpedienteMaster, OpcionCosto } from "@/types/cotizacion";
 
@@ -93,73 +90,6 @@ test.each([0, ""])("creating a new house (%o) needs no payment check, shows no e
   expect(checks).toHaveLength(0);
   expect(screen.textValidacionPago).toBe("");
   expect(screen.activarBtnContinuar).toBe(false);
-});
-
-const pendingTrafficFile = { id_traffic: 4, code_traffic: "TR-00004", id_house: 90, sent: false };
-
-function answerAsQuoteInTraffic() {
-  vi.mocked(http).mockImplementation((async (config: { url: string }) => {
-    if (config.url.endsWith("traffic_by_quote")) return { data: { estadoflag: true, data: [pendingTrafficFile] } };
-    if (config.url.endsWith("traffic/4/send_to_operations")) {
-      return { data: { estadoflag: true, mensaje: "ok", data: [{ code_master: "2026MBL01742", id_master: 2701, id_house: 90 }] } };
-    }
-    return { data: { estadoflag: false, mensaje: "No se encontraron registros", data: [] } };
-  }) as never);
-}
-
-const sentToOperations = () =>
-  vi.mocked(http).mock.calls.map(([config]) => config as unknown as { url: string; data: unknown }).find((config) => config.url.endsWith("send_to_operations"));
-
-test("with a pending Tráfico file, choosing an existing master sends the file to Operaciones instead of approving again", async () => {
-  answerAsQuoteInTraffic();
-  const { pricing, screen } = await mountInstructivo();
-  screen.id_exp = 5;
-  const approve = vi.spyOn(pricing, "aprobarCotizacion");
-
-  await screen.continuarAprobar();
-
-  expect(approve).not.toHaveBeenCalled();
-  expect(sentToOperations()!.data).toEqual({ nuevoexpediente: false, id_exp: 5, fecha_validez: null });
-  expect(screen.seleccionQuoteAprobar).toBe(false);
-});
-
-test("with a pending Tráfico file, creating a new master sends the file to Operaciones with the master's date", async () => {
-  answerAsQuoteInTraffic();
-  const { pricing, screen } = await mountInstructivo();
-  const approve = vi.spyOn(pricing, "aprobarCotizacion");
-
-  await screen.approveQuote({ id_quote: "77", nuevoexpediente: true, id_exp: "", fecha_validez: "2026-12-01" } as AprobacionCotizacion);
-
-  expect(approve).not.toHaveBeenCalled();
-  expect(sentToOperations()!.data).toEqual({ nuevoexpediente: true, id_exp: null, fecha_validez: "2026-12-01" });
-});
-
-test("with a pending Tráfico file, sending to Operaciones ends like an approval: the master's folder gets the files and the expense control is offered", async () => {
-  answerAsQuoteInTraffic();
-  const { pricing, screen } = await mountInstructivo();
-  pricing.datosPrincipales = { nombre: "ZEVALLOS" } as never;
-  const moveFiles = vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
-  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
-
-  screen.onMasterSelected({ id: 2701, code_master: "2026MBL01742", url_folderonedrive: "https://drive/2701" });
-  await flushPromises();
-
-  expect(moveFiles).toHaveBeenCalledWith(expect.objectContaining({ destinationFolderUrl: "https://drive/2701", id: 2701, nroMaster: "2026MBL01742 - ZEVALLOS" }));
-  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ confirmButtonText: "Ir al control de gastos" }));
-});
-
-test("with a pending Tráfico file, choosing the emails after Operaciones opens this quote on its emails step", async () => {
-  answerAsQuoteInTraffic();
-  vi.mocked(Swal.fire).mockResolvedValue({ isDenied: true } as never);
-  const { pricing, screen } = await mountInstructivo();
-  pricing.datosPrincipales = { nombre: "ZEVALLOS" } as never;
-  vi.spyOn(useFilesStore(), "moveFileToOneDrive").mockResolvedValue(undefined);
-  vi.spyOn(useControlGastosStore(), "imprimirGuardarControlDetallado").mockResolvedValue(undefined);
-
-  screen.onMasterSelected({ id: 2701, code_master: "2026MBL01742", url_folderonedrive: "https://drive/2701" });
-  await flushPromises();
-
-  expect(router.push).toHaveBeenCalledWith({ name: "verQuote", params: { id: "77", step: 5 } });
 });
 
 test("printing the instructivo prints each chosen option", async () => {

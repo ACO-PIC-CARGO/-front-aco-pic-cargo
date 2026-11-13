@@ -17,8 +17,8 @@ describe("Opciones para enviar una cotización", () => {
     expect(sendTargetsFor(false, null)).toEqual(["OPERATIONS", "TRAFFIC"]);
   });
 
-  test("a quote whose Tráfico file is pending can only go on to Operaciones", () => {
-    expect(sendTargetsFor(true, pendingFile)).toEqual(["OPERATIONS"]);
+  test("a quote in Tráfico goes on to Operaciones only from Embarques, so the quote offers nothing", () => {
+    expect(sendTargetsFor(true, pendingFile)).toEqual([]);
   });
 
   test("a quote already sent to Operaciones has nothing left to send", () => {

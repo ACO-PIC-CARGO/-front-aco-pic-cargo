@@ -33,13 +33,13 @@ describe("useQuoteTrafficSend", () => {
     vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
   });
 
-  test("a quote whose Tráfico file is pending can only go on to Operaciones", async () => {
+  test("a quote whose Tráfico file is pending offers no destination and names its file", async () => {
     respond({ traffic_by_quote: accepted([pendingFile]) });
     const send = sendFor(true);
 
     await send.load();
 
-    expect(send.targets.value).toEqual(["OPERATIONS"]);
+    expect(send.targets.value).toEqual([]);
     expect(send.target.value).toBeNull();
     expect(send.pendingFile.value).toEqual(pendingFile);
   });
@@ -105,32 +105,5 @@ describe("useQuoteTrafficSend", () => {
     expect(await sendFor(false).sendQuote(amounts)).toBe(false);
 
     expect(keysSentTo("traffic_send")).toEqual([]);
-  });
-
-  test("after sending to Operaciones the user can open the house", async () => {
-    respond({
-      traffic_by_quote: accepted([pendingFile]),
-      "traffic/4/send_to_operations": accepted([{ code_master: "2026MBL01742", id_master: 2701, id_house: 90 }]),
-    });
-    const send = sendFor(true);
-    await send.load();
-
-    expect(await send.sendToOperations({ nuevoexpediente: true, id_exp: null, fecha_validez: "2026-12-01" })).toBe(true);
-
-    expect(router.push).toHaveBeenCalledWith({ name: "controlHouseVer", params: { id: 90 } });
-  });
-
-  test("a quote with its own ending after Operaciones gets the sent master instead of the house offer", async () => {
-    const sent = { code_master: "2026MBL01742", id_master: 2701, id_house: 90 };
-    respond({ traffic_by_quote: accepted([pendingFile]), "traffic/4/send_to_operations": accepted([sent]) });
-    const finishOnMaster = vi.fn();
-    const send = useQuoteTrafficSend({ quoteKind: "PRICING", quoteId: () => 15376, approved: () => true, finishOnMaster });
-    await send.load();
-    const payload = { nuevoexpediente: false, id_exp: 2701, fecha_validez: null };
-
-    expect(await send.sendToOperations(payload)).toBe(true);
-
-    expect(finishOnMaster).toHaveBeenCalledWith({ ...sent, mensaje: "ok" }, payload);
-    expect(router.push).not.toHaveBeenCalled();
   });
 });
