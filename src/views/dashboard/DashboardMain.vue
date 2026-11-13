@@ -2024,17 +2024,17 @@ watch(idRole, async () => {
 
 <style>
 .freight-alert.swal2-popup {
-  width: min(460px, calc(100vw - 32px));
-  padding: 12px 16px 16px;
-  border-radius: 14px;
-  color: #071d40;
+  width: min(620px, calc(100vw - 32px));
+  padding: 18px 22px 22px;
+  border-radius: 22px;
+  color: #0a1f44;
 }
 .freight-alert .swal2-icon {
-  width: 76px;
-  height: 54px;
-  margin: 0 auto 4px;
+  width: 92px;
+  height: 64px;
+  margin: 4px auto 6px;
   border: 0;
-  color: #fa6900;
+  color: #0b74e5;
 }
 .freight-alert .swal2-icon.swal2-error {
   color: #d8392b;
@@ -2046,96 +2046,114 @@ watch(idRole, async () => {
 }
 .freight-alert-title.swal2-title {
   padding: 0;
-  font-size: clamp(1.35rem, 5vw, 1.8rem);
+  color: #0a1f44;
+  font-size: clamp(1.6rem, 6vw, 2.3rem);
   font-weight: 900;
 }
 .freight-alert-content.swal2-html-container {
-  margin: 4px 0 0;
+  margin: 8px 0 0;
   overflow: visible;
-  color: #071d40;
+  color: #0a1f44;
 }
 .freight-alert-heading {
-  padding: 4px 12px;
-  border-radius: 12px;
-  background: #fa6900;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #0b5fd6 0%, #0846a8 100%);
   color: white;
-  font-size: clamp(1.35rem, 5vw, 1.8rem);
+  font-size: clamp(1.5rem, 6vw, 2.1rem);
   font-weight: 900;
   line-height: 1.15;
 }
+.freight-alert .swal2-icon.swal2-error ~ .swal2-html-container .freight-alert-heading {
+  background: #d8392b;
+}
 .freight-alert-deadline {
-  margin-top: 10px;
+  margin-top: 12px;
   padding: 8px;
-  border-radius: 12px;
-  background: #f0f1f3;
-  color: #071d40;
-  font-size: clamp(1.1rem, 4vw, 1.4rem);
+  border-radius: 16px;
+  background: #dcebfd;
+  color: #0a1f44;
+  font-size: clamp(1.3rem, 5vw, 1.8rem);
   font-weight: 800;
 }
 .freight-alert-deadline-value {
-  color: #e85c00;
+  color: #0b74e5;
 }
 .freight-alert-date {
-  margin-top: 6px;
-  color: #5b6372;
-  font-size: 0.8rem;
+  margin-top: 8px;
+  color: #4a5670;
+  font-size: 1rem;
 }
-.freight-alert-message {
-  display: flex;
+/* SweetAlert pone display en línea a las acciones y botones: se fuerza el layout */
+.freight-alert-actions.swal2-actions {
+  display: grid !important;
+  grid-template-columns: 1fr auto auto;
+  gap: 10px;
+  width: 100%;
+  margin: 18px 0 0;
+}
+.freight-alert-continue.swal2-cancel {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  padding: 4px 6px 4px 14px !important;
+}
+.freight-alert-actions .swal2-styled {
+  display: inline-flex !important;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  margin: 10px 0;
-  text-align: left;
+  gap: 6px;
+  min-height: 46px;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 12px;
+  font-weight: 800;
   font-size: 0.85rem;
 }
-.freight-alert-message strong {
-  font-size: 1.05rem;
+.freight-alert-update.swal2-confirm {
+  background: linear-gradient(180deg, #43b02a 0%, #2f9a1f 100%);
+}
+.freight-alert-update .mdi {
+  font-size: 1.3rem;
+}
+.freight-alert-config.swal2-deny {
+  background: #dcebfd;
+  color: #0a1f44;
+}
+.freight-alert-continue.swal2-cancel {
+  background: #e9edf3;
+  color: #0a1f44;
+}
+.freight-alert-actions .swal2-styled:disabled {
+  opacity: 1;
+  cursor: not-allowed;
 }
 .freight-alert-countdown {
   --freight-progress: 100%;
   display: grid;
-  flex: 0 0 54px;
-  height: 54px;
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  box-sizing: border-box;
   place-items: center;
-  border: 7px solid transparent;
+  border: 4px solid transparent;
   border-radius: 50%;
   background: linear-gradient(white, white) padding-box,
-    conic-gradient(#fa6900 var(--freight-progress), #ffd5b5 0) border-box;
-  color: #f26700;
-  font-size: 1.2rem;
-  font-weight: 800;
+    conic-gradient(#0b5fd6 var(--freight-progress), #cfd8e6 0) border-box;
+  color: #0b5fd6;
+  font-size: 0.85rem;
+  font-weight: 900;
+  white-space: nowrap;
 }
-.freight-alert-actions.swal2-actions {
-  gap: 8px;
-  margin: 8px 0 0;
-}
-.freight-alert-actions .swal2-styled {
-  margin: 0;
-  padding: 8px 10px;
-  border-radius: 9px;
-  font-weight: 700;
-  font-size: 0.8rem;
-}
-.freight-alert-update.swal2-confirm {
-  background: #075ae0;
-}
-.freight-alert-config.swal2-deny {
-  background: #e8f0fe;
-  color: #17448e;
-}
-.freight-alert-continue.swal2-cancel {
-  background: #e9ebee;
-  color: #253953;
-}
-.freight-alert-actions .swal2-styled:disabled {
-  background: #e9ebee;
-  color: #7d8795;
-  opacity: 1;
-  cursor: not-allowed;
-}
-.freight-alert-actions .mdi {
-  margin-right: 6px;
+@media (max-width: 480px) {
+  .freight-alert-actions.swal2-actions {
+    grid-template-columns: 1fr;
+  }
+  .freight-alert-actions .swal2-styled {
+    white-space: normal;
+  }
 }
 .socket-notification-snackbar .v-snackbar__wrapper,
 .socket-notification-snackbar.v-snackbar__wrapper {

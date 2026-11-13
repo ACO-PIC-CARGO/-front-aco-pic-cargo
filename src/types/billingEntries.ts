@@ -379,6 +379,48 @@ export interface SolicitudPagoTransferencia {
   id_cuentasalida: number | null;
 }
 
+/** Modo ver de una solicitud de pago (ojito) */
+export interface PagoPendienteExpediente {
+  id_proveedor: number;
+  id_correlativo: number | null;
+  proveedor: string;
+  correlativo: string | null;
+  moneda: string | null;
+  total: number | string;
+  estado: string;
+}
+
+export interface SolicitudPagoDetalle {
+  id: number;
+  id_master: number;
+  expediente: string;
+  fechasolicitud: string;
+  id_proveedor: number;
+  proveedor: string;
+  id_correlativo: number | null;
+  correlativo: string | null;
+  monto: number | string;
+  moneda: string | null;
+  codigo_tipopago: string | null;
+  tipopago: string | null;
+  banco: string | null;
+  nrocuenta: string | null;
+  beneficiario: string | null;
+  codigopago: string | null;
+  comentario: string | null;
+  codigo_estado: EstadoBandejaSolicitudPago;
+  estado: string;
+  pagadoflag: boolean;
+  fechapago: string | null;
+  usuario_solicitud: string | null;
+  usuario_aprobadoadministracion: string | null;
+  fecha_aprobadoadministracion: string | null;
+  usuario_aprobadogerencia: string | null;
+  fecha_aprobadogerencia: string | null;
+  clientes: string | null;
+  pendientes: PagoPendienteExpediente[];
+}
+
 // Bancos > Solicitudes de Pago (bandeja paginada)
 export type TabBandejaSolicitudPago = "PEN" | "REC" | "HIS";
 export type EstadoBandejaSolicitudPago = EstadoSolicitudPago | "ELIMINADA";
@@ -417,6 +459,9 @@ export interface SolicitudPagoBandeja {
   motivo_rechazo: string | null;
   usuario_anulado: string | null;
   fecha_anulado: string | null;
+  id_correlativo: number | null;
+  pagadoflag: boolean | null;
+  id_pagoegreso: number | string | null;
 }
 
 export interface OpcionFiltroSolicitudPago {

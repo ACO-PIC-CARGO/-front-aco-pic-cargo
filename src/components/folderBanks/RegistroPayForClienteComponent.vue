@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import "@/styles/bank-form.css";
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useAppStore } from "@/stores/app";
@@ -978,200 +979,173 @@ onMounted(async () => {
             </v-tabs-window-item>
             <v-tabs-window-item key="datosPrincipales">
               <v-form ref="validacionDatosPrincipales">
-                <v-row class="mt-1">
+                <v-row class="bank-form">
                   <v-col
                     cols="12"
                     md="6"
                     class="py-1"
                   >
-                    <v-autocomplete
-                      :items="appStore.itemsDataBanksList"
-                      v-model="id_banco_origen"
-                      label="Banco Origen"
-                      item-title="acronym"
-                      item-value="id"
-                      variant="outlined"
-                      density="compact"
-                      :rules="[(v) => !!v || 'Dato Requerido']"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-autocomplete
-                      :items="bancosStore.cuentas"
-                      item-title="label"
-                      item-value="id"
-                      label="Cuenta y Banco Ingreso de Banco"
-                      v-model="selectedAccount"
-                      return-object
-                      variant="outlined"
-                      density="compact"
-                      readonly
-                      :rules="[
-                        (v) =>
-                          (v && Object.keys(v).length > 0 && !!v.id) ||
-                          'Dato Requerido',
-                      ]"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-text-field
-                      readonly
-                      v-model="id_cuenta.banco"
-                      label="Banco:"
-                      variant="outlined"
-                      density="compact"
-                    />
-                  </v-col>
+                    <section class="bank-card">
+                      <h3 class="bank-card__title">
+                        Datos Banco Emisor
+                      </h3>
+                      <div class="bank-card__body">
+                        <v-autocomplete
+                          :items="appStore.itemsDataBanksList"
+                          v-model="id_banco_origen"
+                          label="Banco Origen"
+                          item-title="acronym"
+                          item-value="id"
+                          variant="outlined"
+                          density="compact"
+                          :rules="[(v) => !!v || 'Dato Requerido']"
+                        />
+                        <FormatFecha
+                          outlined
+                          dense
+                          label="Fecha Operación"
+                          v-model="fecha_operacion"
+                          :rules="[(v) => !!fecha_operacion || 'Dato Requerido']"
+                        />
+                        <v-text-field
+                          label="Número de Operación"
+                          variant="outlined"
+                          density="compact"
+                          v-model="nro_operacion"
+                          :rules="[(v) => !!v || 'Dato Requerido']"
+                          @update:model-value="
+                            nro_operacion !== ''
+                              ? ((errorMesage.nro_operacion = null),
+                                 buscarOperacionAlEscribir())
+                              : ((errorMesage.nro_operacion =
+                                   'Número de Operación es requerido'),
+                                 (operacionesSimilares = []),
+                                 (esDuplicado = false))
+                          "
+                        />
 
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-text-field
-                      readonly
-                      v-model="id_cuenta.cuenta"
-                      label="N° Cuenta:"
-                      variant="outlined"
-                      density="compact"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-text-field
-                      readonly
-                      v-model="id_cuenta.cci"
-                      label="CCI:"
-                      variant="outlined"
-                      density="compact"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <FormatFecha
-                      outlined
-                      dense
-                      label="Fecha Operación"
-                      v-model="fecha_operacion"
-                      :rules="[(v) => !!fecha_operacion || 'Dato Requerido']"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-text-field
-                      readonly
-                      v-model="id_cuenta.moneda"
-                      label="Moneda:"
-                      variant="outlined"
-                      density="compact"
-                    />
-                  </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-text-field
-                      label="Número de Operación"
-                      variant="outlined"
-                      density="compact"
-                      v-model="nro_operacion"
-                      :rules="[(v) => !!v || 'Dato Requerido']"
-                      @update:model-value="
-                        nro_operacion !== ''
-                          ? ((errorMesage.nro_operacion = null),
-                             buscarOperacionAlEscribir())
-                          : ((errorMesage.nro_operacion =
-                               'Número de Operación es requerido'),
-                             (operacionesSimilares = []),
-                             (esDuplicado = false))
-                      "
-                    />
-
-                    <div
-                      v-if="
-                        operacionesSimilares.length > 0 &&
-                          operacionesSimilares[0]!.id !== null
-                      "
-                    >
-                      <p
-                        v-if="esDuplicado"
-                        class="text-red text-body-small font-weight-bold pl-2"
-                      >
-                        ⚠️ Ya existe un registro con este número exacto.
-                      </p>
-
-                      <div
-                        v-else
-                        class="pl-2"
-                      >
-                        <div class="d-flex flex-wrap gap-1 mt-1">
-                          <v-chip
-                            v-for="(item, index) in operacionesSimilares"
-                            :key="index"
-                            size="small"
-                            variant="tonal"
-                            class="mr-1 mb-1"
+                        <div
+                          v-if="
+                            operacionesSimilares.length > 0 &&
+                              operacionesSimilares[0]!.id !== null
+                          "
+                        >
+                          <p
+                            v-if="esDuplicado"
+                            class="text-red text-body-small font-weight-bold pl-2"
                           >
-                            {{ item.numerooperacion }}
-                          </v-chip>
+                            ⚠️ Ya existe un registro con este número exacto.
+                          </p>
+
+                          <div
+                            v-else
+                            class="pl-2"
+                          >
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                              <v-chip
+                                v-for="(item, index) in operacionesSimilares"
+                                :key="index"
+                                size="small"
+                                variant="tonal"
+                                class="mr-1 mb-1"
+                              >
+                                {{ item.numerooperacion }}
+                              </v-chip>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </v-col>
-
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
-                    <v-textarea
-                      label="Comentarios Usuario"
-                      rows="1"
-                      variant="outlined"
-                      density="compact"
-                      auto-grow
-                      v-model="comentarios"
-                    />
+                    </section>
                   </v-col>
                   <v-col
                     cols="12"
                     md="6"
                     class="py-1"
                   >
-                    <v-textarea
-                      label="Comentarios Administrativos"
-                      rows="1"
-                      variant="outlined"
-                      density="compact"
-                      auto-grow
-                      v-model="comentariosadmin"
-                    />
+                    <section class="bank-card">
+                      <h3 class="bank-card__title">
+                        Cuenta de Banco de Ingreso
+                      </h3>
+                      <div class="bank-card__body">
+                        <v-autocomplete
+                          :items="bancosStore.cuentas"
+                          item-title="label"
+                          item-value="id"
+                          label="Cuenta y Banco Ingreso de Banco"
+                          v-model="selectedAccount"
+                          return-object
+                          variant="outlined"
+                          density="compact"
+                          readonly
+                          :rules="[
+                            (v) =>
+                              (v && Object.keys(v).length > 0 && !!v.id) ||
+                              'Dato Requerido',
+                          ]"
+                        />
+                        <v-text-field
+                          readonly
+                          v-model="id_cuenta.banco"
+                          label="Banco:"
+                          variant="outlined"
+                          density="compact"
+                        />
+                        <v-text-field
+                          readonly
+                          v-model="id_cuenta.cuenta"
+                          label="N° Cuenta:"
+                          variant="outlined"
+                          density="compact"
+                        />
+                        <v-text-field
+                          readonly
+                          v-model="id_cuenta.cci"
+                          label="CCI:"
+                          variant="outlined"
+                          density="compact"
+                        />
+                        <v-text-field
+                          readonly
+                          v-model="id_cuenta.moneda"
+                          label="Moneda:"
+                          variant="outlined"
+                          density="compact"
+                        />
+                      </div>
+                    </section>
                   </v-col>
                   <v-col
                     cols="12"
                     class="py-1"
                   >
-                    <p class="my-1">
-                      Soporte de Pago:
-                    </p>
+                    <section class="bank-card">
+                      <h3 class="bank-card__title">
+                        Comentarios
+                      </h3>
+                      <div class="bank-card__body bank-card__row">
+                        <v-textarea
+                          label="Comentarios Usuario"
+                          rows="1"
+                          variant="outlined"
+                          density="compact"
+                          auto-grow
+                          v-model="comentarios"
+                        />
+                        <v-textarea
+                          label="Comentarios Administrativos"
+                          rows="1"
+                          variant="outlined"
+                          density="compact"
+                          auto-grow
+                          v-model="comentariosadmin"
+                        />
+                      </div>
+                    </section>
+                  </v-col>
+                  <v-col
+                    cols="12"
+                    class="py-1 bank-drop"
+                  >
                     <ArrastraYSolarComponent
                       @id-archivo-cargado="recibirId"
                       :rules="[
@@ -1181,27 +1155,24 @@ onMounted(async () => {
                   </v-col>
                   <v-col
                     cols="12"
-                    class="pt-1 pb-5"
+                    class="bank-actions"
                   >
-                    <v-spacer />
                     <v-btn
                       color="primary"
                       @click="continuarDetalles()"
                     >
-                      Continuar Comisión Bancaría
+                      Continuar Comisión Bancaria
                     </v-btn>
                     <v-btn
-                      class="mx-1"
                       color="error"
                       @click="pasos = 0"
                     >
-                      Cancel
+                      Cancelar
                     </v-btn>
                   </v-col>
                 </v-row>
               </v-form>
             </v-tabs-window-item>
-
             <v-tabs-window-item key="gastoBancario">
               <v-row class="mt-1">
                 <v-col cols="12">

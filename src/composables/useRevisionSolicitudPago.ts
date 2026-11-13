@@ -2,20 +2,26 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import { sessionUser } from "@/utils/sesion";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
+import "@/styles/solicitud-pago-aprobacion.css";
 
 export type AreaRevision = "ADM" | "GER";
 
 // Quién revisa cada paso de una solicitud de pago (position_code de la sesión).
+// Administración: 04 o 01 | Gerencia: 01 (el 01 ve los dos botones).
 // El backend valida lo mismo en function_solicitudpago_rol_revision.
-export const PERFIL_REVISION: Record<AreaRevision, string> = { ADM: "04", GER: "01" };
+export const PERFIL_REVISION: Record<AreaRevision, string[]> = { ADM: ["04", "01"], GER: ["01"] };
 
 export function tienePerfilRevision(tipo: AreaRevision): boolean {
   try {
-    return (sessionUser().position_code ?? []).map(String).includes(PERFIL_REVISION[tipo]);
+    const perfiles = (sessionUser().position_code ?? []).map(String);
+    return PERFIL_REVISION[tipo].some((p) => perfiles.includes(p));
   } catch {
     return false;
   }
 }
+
+const escapar = (valor: unknown) =>
+  String(valor ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export interface SolicitudARevisar {
   id: number;
@@ -46,19 +52,37 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown) {
   }
 
   async function revisar(s: SolicitudARevisar, tipo: AreaRevision) {
-    const area = tipo === "ADM" ? "Administración" : "Gerencia";
+    const area = tipo === "ADM" ? "ADMINISTRACIÓN" : "GERENCIA";
     const monto = Number(s.monto || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const fila = (icono: string, etiqueta: string, valor: string) =>
+      `<div class="aprob-modal__row"><i class="mdi ${icono}" aria-hidden="true"></i>` +
+      `<span class="aprob-modal__label">${etiqueta}</span><span class="aprob-modal__value">${valor}</span></div>`;
     const decision = await Swal.fire({
-      icon: "question",
-      title: `Revisión de ${area}`,
-      html: `¿Deseas <b>aprobar</b> o <b>rechazar</b> la solicitud de <b>${s.proveedor} (${s.id_proveedor})</b> por <b>${monto} ${s.moneda ?? ""}</b>?`,
+      iconHtml: '<i class="mdi mdi-file-document-check-outline" aria-hidden="true"></i>',
+      title: `APROBACIÓN POR ${area}`,
+      html:
+        '<p class="aprob-modal__question">¿DESEAS APROBAR ESTA SOLICITUD?</p>' +
+        '<div class="aprob-modal__box">' +
+        fila("mdi-storefront-outline", "ID PROVEEDOR:", escapar(s.id_proveedor)) +
+        fila("mdi-account-outline", "PROVEEDOR:", escapar(s.proveedor)) +
+        fila("mdi-cash-multiple", "MONTO:", `${escapar(s.moneda ?? "")} ${monto}`.trim()) +
+        "</div>",
       showCancelButton: true,
       showDenyButton: true,
-      confirmButtonText: "Aprobar",
-      denyButtonText: "Rechazar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#1e5bd8",
-      denyButtonColor: "#d33",
+      buttonsStyling: false,
+      confirmButtonText: '<i class="mdi mdi-check" aria-hidden="true"></i> APROBAR',
+      denyButtonText: '<i class="mdi mdi-close" aria-hidden="true"></i> RECHAZAR',
+      cancelButtonText: '<i class="mdi mdi-close" aria-hidden="true"></i> CANCELAR',
+      customClass: {
+        popup: "aprob-modal",
+        icon: "aprob-modal__icon",
+        title: "aprob-modal__title",
+        htmlContainer: "aprob-modal__content",
+        actions: "aprob-modal__actions",
+        confirmButton: "aprob-modal__btn aprob-modal__btn--ok",
+        denyButton: "aprob-modal__btn aprob-modal__btn--deny",
+        cancelButton: "aprob-modal__btn aprob-modal__btn--cancel",
+      },
     });
     if (decision.isConfirmed) {
       await enviar(s, "solicitud_pago_aprobar", { tipo });

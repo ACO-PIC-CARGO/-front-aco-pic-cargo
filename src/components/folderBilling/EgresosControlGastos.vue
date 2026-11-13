@@ -13,7 +13,6 @@ import { useFilesStore } from "@/stores/files";
 import { useMastersStore } from "@/stores/masters";
 import { useControlGastosStore } from "@/stores/controlGastos";
 import { useBankStore } from "@/stores/bank";
-import { useBancosStore } from "@/stores/bancos";
 import type { ControlGastoHouse } from "@/types/finanzas";
 import type {
   CuentaBancariaForm,
@@ -134,6 +133,22 @@ const invoiceOptions = [
   { value: "2", label: "Proforma", icon: "mdi-file-document-outline" },
   { value: "3", label: "Otros (ej. email)", icon: "mdi-email-outline" },
 ];
+const invTipoRef = ref<{ focus: () => void } | null>(null);
+// "ALFOSAC(11960) - 0001" -> nombre, id y correlativo para la cabecera del modal
+const proveedorInvoice = computed(() => {
+  const texto = nameproveedor.value ?? "";
+  const m = /^(.*?)\s*\((\d+)\)\s*(?:-\s*(.+))?$/.exec(texto);
+  return {
+    nombre: (m?.[1] ?? texto).trim(),
+    id: m?.[2] ?? String(egreso.value?.id_proveedor ?? ""),
+    correlativo: m?.[3]?.trim() ?? "",
+  };
+});
+const monedaInvoice = computed(() => {
+  const acronimo = egreso.value?.detalle?.[0]?.acronym ?? "";
+  const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
+  return [acronimo, moneda?.name].filter(Boolean).join(" - ") || "—";
+});
 const e1 = ref(1);
 const egresos = ref<EgresoForm>({
   id: null,
@@ -1637,7 +1652,7 @@ function cargarFactura() {
 
     dialogInvoice.value = false;
   } else {
-    radio.value = "1";
+    radio.value = "";
     date.value = moment().format("YYYY-MM-DD");
     nro_invoice.value = "";
     monto_factura.value = "";
@@ -1645,6 +1660,8 @@ function cargarFactura() {
     boolFile.value = false;
 
     dialogInvoice.value = true;
+    // el foco arranca en "Tipo de documento" y desde ahí se avanza con Tab
+    nextTick(() => invTipoRef.value?.focus());
   }
 }
 function validarMontoFactura() {
@@ -1839,12 +1856,10 @@ const tiposPagoSolicitud = ref<TipoPagoSolicitud[]>([]);
 const solicitudPagoForm = ref({
   id_tipopago: null as number | null,
   id_cuenta: null as number | null,
-  id_cuentasalida: null as number | null,
   codigopago: "",
   comentario: "",
 });
 const guardandoSolicitudPago = ref(false);
-const bancosStore = useBancosStore();
 // Una sola solicitud por master / proveedor / correlativo
 const solicitudesExistentes = ref<Map<string, SolicitudPagoControl>>(new Map());
 // nuevo: primera vez | editar: rechazada | ver: enviada, solo lectura
@@ -1877,17 +1892,7 @@ const tipoPagoSeleccionado = computed(
 const conceptosSolicitudPago = computed(() =>
   (solicitudPagoProveedor.value?.detalle || []).filter((d) => !d.pagado),
 );
-// Moneda de los conceptos (Moneda de Banco Salida): solo se ofrecen cuentas de la empresa en esa moneda
-const monedaSolicitudPago = computed(() => {
-  const monedas = [...new Set(conceptosSolicitudPago.value.map((d) => Number(d.id_coins)).filter(Boolean))];
-  return monedas.length === 1 ? monedas[0]! : null;
-});
-const cuentasSalidaSolicitudPago = computed(() => {
-  if (modoSolicitudPago.value === "ver") return bancosStore.cuentas;
-  return monedaSolicitudPago.value
-    ? bancosStore.cuentas.filter((c) => Number(c.id_coins) === monedaSolicitudPago.value)
-    : [];
-});
+// La cuenta de salida (empresa) se elige al cargar el soporte de pago, no al solicitar
 const soloLecturaSolicitudPago = computed(() => modoSolicitudPago.value === "ver");
 // En "ver" se muestran los conceptos guardados en la solicitud
 const conceptosModalSolicitudPago = computed(() =>
@@ -1905,9 +1910,6 @@ const totalModalSolicitudPago = computed(() =>
     ? Number(solicitudPagoActual.value.monto || 0)
     : totalSolicitudPago.value,
 );
-const simboloSolicitudPago = computed(
-  () => cuentasSalidaSolicitudPago.value[0]?.symbol || conceptosSolicitudPago.value[0]?.acronym || "",
-);
 const totalSolicitudPago = computed(() =>
   conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
 );
@@ -1919,9 +1921,9 @@ const cuentasSolicitudPago = computed(() =>
 );
 const solicitudPagoValida = computed(() => {
   const f = solicitudPagoForm.value;
-  // La cuenta del proveedor se pide siempre (transferencia o código de pago)
-  if (!f.id_tipopago || !f.id_cuentasalida || !f.id_cuenta) return false;
-  return tipoPagoSeleccionado.value === "01" || !!f.codigopago.trim();
+  if (!f.id_tipopago) return false;
+  // Transferencia: cuenta del proveedor | Código de pago: solo el código
+  return tipoPagoSeleccionado.value === "02" ? !!f.codigopago.trim() : !!f.id_cuenta;
 });
 
 async function cargarTiposPagoSolicitud() {
@@ -1942,30 +1944,21 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor) {
   id_tipotransaccion =
     (appStore.itemsProveedorList.find((v: ProveedorItem) => v.id == item.id_proveedor) || {})
       .id_tipotransaccion || "";
-  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, id_cuentasalida: null, codigopago: "", comentario: "" };
+  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
   appStore.itemsDataAccountsNumberList = [];
   dialogSolicitudPagoNueva.value = true;
-  await Promise.all([
-    cargarTiposPagoSolicitud(),
-    _getAccountsNumber(),
-    bancosStore.cuentas.length ? Promise.resolve() : bancosStore.getListBanksDetailsCargar(),
-  ]);
+  await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
   if (existente) {
     solicitudPagoForm.value = {
       // los ids bigint llegan como texto: se toma el id tal cual viene en el listado de tipos
       id_tipopago: tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(existente.id_tipopago))?.id ?? null,
       id_cuenta: existente.id_cuenta ?? null,
-      id_cuentasalida: existente.id_cuentasalida ?? null,
       codigopago: existente.codigopago ?? "",
       comentario: existente.comentario ?? "",
     };
     return;
   }
   solicitudPagoForm.value.id_tipopago = tiposPagoSolicitud.value[0]?.id ?? null;
-  // Si solo hay una cuenta en la moneda de los conceptos, se elige sola
-  if (cuentasSalidaSolicitudPago.value.length === 1) {
-    solicitudPagoForm.value.id_cuentasalida = cuentasSalidaSolicitudPago.value[0]!.id;
-  }
 }
 
 async function registrarSolicitudPago() {
@@ -1988,10 +1981,9 @@ async function registrarSolicitudPago() {
   const f = solicitudPagoForm.value;
   const datos = {
     id_tipopago: f.id_tipopago,
-    id_cuenta: f.id_cuenta,
+    id_cuenta: tipoPagoSeleccionado.value === "02" ? null : f.id_cuenta,
     codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
     comentario: f.comentario,
-    id_cuentasalida: f.id_cuentasalida,
   };
   const response = editando
     ? await request({
@@ -3003,27 +2995,30 @@ onMounted(async () => {
     </v-dialog>
     <!-- --------------------------- -->
     <v-dialog
-      max-width="760"
+      max-width="620"
       v-model="dialogInvoice"
     >
       <v-card class="inv-card">
         <div class="inv-header">
           <div class="inv-header-icon">
-            <v-icon size="34">
+            <v-icon size="40">
               mdi-file-upload-outline
             </v-icon>
           </div>
           <div class="inv-header-text">
             <h3 class="inv-title">
-              Proveedor: {{ nameproveedor }}
+              CARGAR DOCUMENTO A PAGAR
             </h3>
-            <span class="inv-subtitle">Cargar documento a pagar</span>
+            <span class="inv-subtitle">ADJUNTA LA FACTURA, PROFORMA U OTRO DOCUMENTO.</span>
           </div>
+          <!-- fuera del orden de tabulación: el primer Tab va al Tipo de documento -->
           <v-btn
             icon
             variant="text"
             size="small"
             class="inv-close"
+            tabindex="-1"
+            aria-label="Cerrar"
             @click="dialogInvoice = false"
           >
             <v-icon>mdi-close</v-icon>
@@ -3031,72 +3026,119 @@ onMounted(async () => {
         </div>
 
         <v-card-text class="inv-body">
-          <p class="inv-section-label">
-            Escoge una opción
-          </p>
-          <v-radio-group
-            v-model="radio"
-            hide-details
-            class="inv-radio-group"
-          >
-            <div class="inv-options">
-              <div
-                v-for="opt in invoiceOptions"
-                :key="opt.value"
-                class="inv-option"
-                :class="{ 'inv-option--active': radio == opt.value }"
-                @click="radio = opt.value"
-              >
-                <v-radio
-                  :value="opt.value"
-                  color="primary"
-                  density="compact"
-                  class="inv-option-radio"
-                />
-                <v-icon
-                  size="30"
-                  class="inv-option-icon"
-                >
-                  {{ opt.icon }}
-                </v-icon>
-                <span class="inv-option-label">{{ opt.label }}</span>
-              </div>
+          <div class="inv-prov">
+            <div class="inv-prov-row">
+              <v-icon class="inv-prov-icon">
+                mdi-storefront-outline
+              </v-icon>
+              <span class="inv-prov-label">ID PROVEEDOR:</span>
+              <span class="inv-prov-value">{{ proveedorInvoice.id }}{{ proveedorInvoice.correlativo ? ` - ${proveedorInvoice.correlativo}` : "" }}</span>
             </div>
-          </v-radio-group>
+            <div class="inv-prov-row">
+              <v-icon class="inv-prov-icon">
+                mdi-account-outline
+              </v-icon>
+              <span class="inv-prov-label">NOMBRE:</span>
+              <span class="inv-prov-value">{{ proveedorInvoice.nombre }}</span>
+            </div>
+          </div>
 
-          <div class="inv-fields">
-            <v-text-field
-              hide-details="auto"
-              density="compact"
-              variant="outlined"
-              label="Fecha de Operación"
-              prepend-inner-icon="mdi-calendar"
-              type="date"
-              v-model="date"
-              :rules="[(v) => !!v || 'Dato Requerido']"
-            />
-            <v-text-field
-              hide-details="auto"
-              density="compact"
-              variant="outlined"
-              v-model="nro_invoice"
-              :label="`Nro de ${
-                radio == 1
-                  ? 'Factura'
-                  : String('') || radio == 2
-                    ? 'Performance'
-                    : 'Otro'
-              }`"
-            />
-            <v-text-field
-              hide-details="auto"
-              density="compact"
-              variant="outlined"
-              v-model="monto_factura"
-              label="Monto de la Factura"
-              :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
-              @change="validarMontoFactura"
-            />
+          <label
+            class="inv-label"
+            for="inv-tipo"
+          >TIPO DE DOCUMENTO <span class="inv-req">*</span></label>
+          <v-select
+            id="inv-tipo"
+            ref="invTipoRef"
+            v-model="radio"
+            :items="invoiceOptions"
+            item-title="label"
+            item-value="value"
+            placeholder="SELECCIONAR TIPO DE DOCUMENTO"
+            prepend-inner-icon="mdi-file-document-outline"
+            variant="outlined"
+            density="comfortable"
+            hide-details="auto"
+            class="inv-input"
+            :rules="[(v) => !!v || 'Selecciona el tipo de documento']"
+          >
+            <template #item="{ props: itemProps, item }">
+              <v-list-item
+                v-bind="itemProps"
+                :prepend-icon="item.icon"
+              />
+            </template>
+          </v-select>
+
+          <label
+            class="inv-label"
+            for="inv-fecha"
+          >FECHA DE DOCUMENTO <span class="inv-req">*</span></label>
+          <v-text-field
+            id="inv-fecha"
+            v-model="date"
+            type="date"
+            prepend-inner-icon="mdi-calendar-blank-outline"
+            variant="outlined"
+            density="comfortable"
+            hide-details="auto"
+            class="inv-input"
+            :rules="[(v) => !!v || 'Dato Requerido']"
+          />
+
+          <label
+            class="inv-label"
+            for="inv-numero"
+          >N° DE {{ radio == 2 ? "PROFORMA" : radio == 3 ? "DOCUMENTO" : "FACTURA" }} / REFERENCIA</label>
+          <v-text-field
+            id="inv-numero"
+            v-model="nro_invoice"
+            placeholder="EJ. F001-12345"
+            prepend-inner-icon="mdi-pound-box-outline"
+            variant="outlined"
+            density="comfortable"
+            hide-details="auto"
+            class="inv-input"
+          />
+
+          <div class="inv-row">
+            <div>
+              <label
+                class="inv-label"
+                for="inv-moneda"
+              >MONEDA <span class="inv-req">*</span></label>
+              <!-- el documento se registra en la moneda de los conceptos del proveedor -->
+              <v-text-field
+                id="inv-moneda"
+                :model-value="monedaInvoice"
+                prepend-inner-icon="mdi-cash-multiple"
+                variant="outlined"
+                density="comfortable"
+                hide-details
+                readonly
+                tabindex="-1"
+                class="inv-input inv-input--readonly"
+              />
+            </div>
+            <div>
+              <label
+                class="inv-label"
+                for="inv-monto"
+              >MONTO <span class="inv-req">*</span></label>
+              <v-text-field
+                id="inv-monto"
+                v-model="monto_factura"
+                placeholder="INGRESE EL MONTO"
+                prepend-inner-icon="mdi-cash"
+                inputmode="decimal"
+                variant="outlined"
+                density="comfortable"
+                hide-details="auto"
+                class="inv-input"
+                :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
+                @change="validarMontoFactura"
+              />
+            </div>
           </div>
 
           <div class="inv-dropzone">
@@ -3105,22 +3147,22 @@ onMounted(async () => {
         </v-card-text>
 
         <v-card-actions class="inv-actions">
-          <v-spacer />
           <v-btn
             variant="outlined"
             class="inv-btn-cancel"
             @click="dialogInvoice = false"
           >
-            Cancelar
+            CANCELAR
           </v-btn>
           <v-btn
             variant="flat"
-            color="#0878dc"
+            color="#0b5fd6"
             class="inv-btn-save"
+            prepend-icon="mdi-tray-arrow-up"
+            :disabled="!radio || !date || !filesStore.payPath || !monto_factura"
             @click="_setInvoice()"
-            :disabled="!filesStore.payPath || !monto_factura"
           >
-            Guardar Documento
+            GUARDAR DOCUMENTO
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -3206,27 +3248,6 @@ onMounted(async () => {
             </div>
           </div>
 
-          <h4 class="mt-4 mb-1">
-            Cuenta de salida (empresa)
-            <span
-              v-if="simboloSolicitudPago && !soloLecturaSolicitudPago"
-              class="text-medium-emphasis text-body-small"
-            >· solo cuentas en {{ simboloSolicitudPago }}</span>
-          </h4>
-          <v-autocomplete
-            v-model="solicitudPagoForm.id_cuentasalida"
-            :items="cuentasSalidaSolicitudPago"
-            item-title="label"
-            item-value="id"
-            placeholder="Cuenta de la empresa de donde sale el pago"
-            variant="outlined"
-            density="comfortable"
-            prepend-inner-icon="mdi-bank-outline"
-            :readonly="soloLecturaSolicitudPago"
-            :no-data-text="monedaSolicitudPago ? 'No hay cuentas de la empresa en esa moneda' : 'Los conceptos tienen monedas diferentes o no tienen moneda'"
-            hide-details="auto"
-          />
-
           <h4 class="mt-4 mb-2">
             Tipo de pago
           </h4>
@@ -3250,7 +3271,11 @@ onMounted(async () => {
             </button>
           </div>
 
-          <div class="mt-4">
+          <!-- con Código de pago no se pide la cuenta del proveedor -->
+          <div
+            v-if="tipoPagoSeleccionado !== '02'"
+            class="mt-4"
+          >
             <div class="d-flex align-center mb-1">
               <b>Cuenta bancaria del proveedor</b>
               <v-spacer />
@@ -4682,24 +4707,25 @@ onMounted(async () => {
    ===================================================== */
 
 .inv-card {
-  border-radius: 18px !important;
+  border-radius: 22px !important;
   overflow: hidden;
+  color: #0a1f44;
 }
 
 .inv-header {
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 22px 24px 8px;
+  padding: 22px 24px 10px;
 }
 
 .inv-header-icon {
   flex: 0 0 auto;
-  width: 60px;
-  height: 60px;
-  border-radius: 14px;
-  background: #e3effc;
-  color: #0b5cad;
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: #dcebfd;
+  color: #0b5fd6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4709,111 +4735,113 @@ onMounted(async () => {
   flex: 1 1 auto;
   min-width: 0;
   padding-left: 16px;
-  border-left: 1px solid #e2e8f0;
+  border-left: 2px solid #0b5fd6;
 }
 
 .inv-title {
   margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-  color: #0f172a;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
+  font-size: 24px;
+  font-weight: 900;
+  color: #0a1f44;
+  line-height: 1.15;
 }
 
 .inv-subtitle {
-  font-size: 15px;
-  color: #64748b;
+  font-size: 13px;
+  font-weight: 600;
+  color: #3b4a63;
 }
 
 .inv-close {
   align-self: flex-start;
-  color: #475569 !important;
+  color: #0a1f44 !important;
 }
 
 .inv-body {
-  padding: 12px 24px 4px !important;
+  padding: 8px 24px 4px !important;
 }
 
-.inv-section-label {
-  font-size: 17px;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0 0 10px;
+.inv-prov {
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  border-radius: 14px;
+  background: #dcebfd;
 }
 
-.inv-radio-group .v-selection-control-group {
-  display: block !important;
-}
-
-.inv-options {
+.inv-prov-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  width: 100%;
-}
-
-.inv-option {
-  display: flex;
+  grid-template-columns: 28px 130px 1fr;
   align-items: center;
-  gap: 12px;
-  min-height: 64px;
-  padding: 8px 14px 8px 6px;
-  border: 1px solid #d5dce5;
-  border-radius: 10px;
-  background: #ffffff;
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+  gap: 8px;
+  padding: 6px 0;
 }
 
-.inv-option:hover {
-  border-color: #93c0ec;
+.inv-prov-row + .inv-prov-row {
+  border-top: 1px solid #a9c6ee;
 }
 
-.inv-option--active {
-  border: 1.5px solid #1a73e8;
-  background: #eef5fe;
-  box-shadow: 0 1px 4px rgba(26, 115, 232, 0.15);
+.inv-prov-icon {
+  color: #0b5fd6 !important;
 }
 
-.inv-option-radio {
-  flex: 0 0 auto;
-}
-
-.inv-option-icon {
-  color: #1e3a5f !important;
-}
-
-.inv-option-label {
-  font-size: 16px;
+.inv-prov-label {
+  font-size: 14px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1e2c44;
 }
 
-.inv-fields {
+.inv-prov-value {
+  font-size: 18px;
+  font-weight: 900;
+  color: #0a1f44;
+  overflow-wrap: anywhere;
+}
+
+.inv-label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #0a1f44;
+}
+
+.inv-req {
+  color: #e11d2e;
+}
+
+.inv-input .v-field {
+  border-radius: 12px;
+}
+
+.inv-input .v-field--focused {
+  box-shadow: 0 0 0 3px rgba(11, 95, 214, 0.15);
+}
+
+.inv-input--readonly .v-field {
+  background: #f4f7fb;
+}
+
+.inv-row {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 14px;
-  margin: 18px 0;
-  align-items: start;
-}
-
-.inv-fields .v-field {
-  border-radius: 10px;
+  margin-bottom: 16px;
 }
 
 .inv-dropzone .drop-area {
   height: 130px !important;
-  border: 1.5px dashed #cbd5e1 !important;
-  border-radius: 12px !important;
-  background: #f8fafc !important;
-  color: #334155;
-  font-weight: 600;
+  border: 2px dashed #0b5fd6 !important;
+  border-radius: 14px !important;
+  background: #f1f6fd !important;
+  color: #0a1f44;
+  font-weight: 700;
 }
 
-.inv-dropzone .drop-area:hover {
-  border-color: #1a73e8 !important;
-  background: #f1f6fd !important;
+.inv-dropzone .drop-area:hover,
+.inv-dropzone .drop-area:focus-visible {
+  outline: none;
+  border-color: #0846a8 !important;
+  background: #e5effd !important;
 }
 
 .inv-dropzone .drop-area label {
@@ -4825,40 +4853,48 @@ onMounted(async () => {
 }
 
 .inv-dropzone .drop-area .v-icon {
-  font-size: 40px !important;
-  color: #475569 !important;
+  font-size: 44px !important;
+  color: #0b5fd6 !important;
   margin: 0 !important;
 }
 
 .inv-actions {
-  padding: 16px 24px 22px !important;
-  gap: 10px;
+  display: grid !important;
+  grid-template-columns: 1fr 1.4fr;
+  padding: 18px 24px 22px !important;
+  gap: 14px;
 }
 
 .inv-btn-cancel,
 .inv-btn-save {
-  height: 44px !important;
-  border-radius: 8px !important;
+  height: 50px !important;
+  margin: 0 !important;
+  border-radius: 12px !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  font-size: 15px !important;
-  padding: 0 26px !important;
+  font-size: 16px !important;
+  font-weight: 800 !important;
 }
 
 .inv-btn-cancel {
-  color: #0f172a !important;
+  color: #0a1f44 !important;
   border-color: #94a3b8 !important;
 }
 
 .inv-btn-save {
   color: #ffffff !important;
-  font-weight: 600 !important;
 }
 
-@media (max-width: 700px) {
-  .inv-options,
-  .inv-fields {
+@media (max-width: 600px) {
+  .inv-row,
+  .inv-actions {
     grid-template-columns: 1fr;
+  }
+  .inv-prov-row {
+    grid-template-columns: 28px 1fr;
+  }
+  .inv-prov-value {
+    grid-column: 2;
   }
 }
 

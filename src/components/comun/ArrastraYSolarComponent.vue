@@ -230,9 +230,14 @@ function eliminarFile() {
           <div
             class="drop-area"
             :class="{ 'drop-area-error': errorState }"
+            role="button"
+            tabindex="0"
+            aria-label="Seleccionar archivo"
             @dragover.prevent
             @drop="handleDrop"
             @click="openFileInput"
+            @keydown.enter.prevent="openFileInput"
+            @keydown.space.prevent="openFileInput"
             v-if="!loading"
           >
             <label class="cursor-pointer">

@@ -15,8 +15,9 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   popup = document.createElement("div");
-  popup.innerHTML = '<div class="freight-alert-deadline"><span class="freight-alert-deadline-label"></span> <span class="freight-alert-deadline-value"></span></div><div class="freight-alert-date"></div><div class="freight-alert-countdown"></div>';
+  popup.innerHTML = '<div class="freight-alert-deadline"><span class="freight-alert-deadline-label"></span> <span class="freight-alert-deadline-value"></span></div><div class="freight-alert-date"></div>';
   continueButton = document.createElement("button");
+  continueButton.innerHTML = '<span class="freight-alert-cancel-label">CANCELAR EN</span><span class="freight-alert-countdown"></span>';
   configButton = document.createElement("button");
   vi.mocked(Swal.getCancelButton).mockReturnValue(continueButton);
   vi.mocked(Swal.getDenyButton).mockReturnValue(configButton);
@@ -36,42 +37,38 @@ function openAlert(days: number, date?: string) {
   return options;
 }
 
-test("mantiene Configurar y Continuar visibles y deshabilitados durante cinco segundos", () => {
+test("solo Cancelar queda deshabilitado durante cinco segundos; Configurar flete está disponible", () => {
   const options = openAlert(2, "2026-11-08");
-  const countdown = popup.querySelector(".freight-alert-countdown")!;
+  const countdown = continueButton.querySelector(".freight-alert-countdown")!;
   const configure = vi.fn();
-  const proceed = vi.fn();
+  const cancel = vi.fn();
   configButton.addEventListener("click", configure);
-  continueButton.addEventListener("click", proceed);
+  continueButton.addEventListener("click", cancel);
   expect(options.allowOutsideClick).toBe(false);
   expect(options.allowEscapeKey).toBe(false);
   expect(popup.querySelector(".freight-alert-deadline-label")?.textContent).toBe("Vence en:");
   expect(popup.querySelector(".freight-alert-deadline-value")?.textContent).toBe("2 días");
   expect(options.iconHtml).toContain("<svg");
+  expect(options.confirmButtonText).toContain("ACTUALIZAR AHORA");
   expect(popup.querySelector(".freight-alert-date")?.textContent).toBe("Fecha de vigencia: 2026-11-08");
-  expect(countdown.textContent).toBe("5s");
+  expect(countdown.textContent).toBe("5 s");
   expect(options.showDenyButton).toBe(true);
   expect(options.showCancelButton).toBe(true);
-  expect(continueButton.hidden).toBe(false);
-  expect(continueButton.style.display).not.toBe("none");
-  expect(configButton.disabled).toBe(true);
-  expect(continueButton.disabled).toBe(true);
-  configButton.click();
-  continueButton.click();
-  expect(configure).not.toHaveBeenCalled();
-  expect(proceed).not.toHaveBeenCalled();
-  vi.advanceTimersByTime(4000);
-  expect(countdown.textContent).toBe("1s");
-  expect(configButton.disabled).toBe(true);
-  expect(continueButton.disabled).toBe(true);
-  vi.advanceTimersByTime(1000);
-  expect(countdown.textContent).toBe("✓");
   expect(configButton.disabled).toBe(false);
-  expect(continueButton.disabled).toBe(false);
+  expect(continueButton.disabled).toBe(true);
   configButton.click();
   continueButton.click();
   expect(configure).toHaveBeenCalledOnce();
-  expect(proceed).toHaveBeenCalledOnce();
+  expect(cancel).not.toHaveBeenCalled();
+  vi.advanceTimersByTime(4000);
+  expect(countdown.textContent).toBe("1 s");
+  expect(continueButton.disabled).toBe(true);
+  vi.advanceTimersByTime(1000);
+  expect(continueButton.querySelector(".freight-alert-countdown")).toBeNull();
+  expect(continueButton.textContent).toBe("CANCELAR");
+  expect(continueButton.disabled).toBe(false);
+  continueButton.click();
+  expect(cancel).toHaveBeenCalledOnce();
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -96,6 +93,5 @@ test("la fecha se inserta como texto y se detiene el temporizador al cerrar ante
   options.didClose!();
   expect(vi.getTimerCount()).toBe(0);
   vi.advanceTimersByTime(5000);
-  expect(configButton.disabled).toBe(true);
   expect(continueButton.disabled).toBe(true);
 });
