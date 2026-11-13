@@ -56,6 +56,7 @@ let wrapper: VueWrapper | undefined;
 
 beforeEach(() => {
   vi.clearAllMocks();
+  httpMock.mockResolvedValue({ data: rejected() });
   setActivePinia(createPinia());
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
   sessionStorage.setItem("dataUser", JSON.stringify([{ id: 176, id_branch: 1 }]));
@@ -112,6 +113,41 @@ test("a pricing file opens its quote's instructivo and then asks the quote's exp
   expect(loadMasters).toHaveBeenCalledWith(usePricingStore().datosPrincipales);
   expect(Swal.fire).toHaveBeenCalledWith(expedienteQuestion);
   expect(document.body.textContent).not.toContain("Crear un master nuevo");
+});
+
+test("a pricing file's instructivo mounts with the catalogs the quote screen loads, so its shipment type, sentido, incoterm, advisers and coloader are filled", async () => {
+  vi.spyOn(usePricingStore(), "getQuote").mockResolvedValue(null);
+  respond({
+    getShipment: accepted([{ id: 2, code: "LCL" }]),
+    getModality: accepted([{ id: 1, name: "Importación" }]),
+    getIncoterms: accepted([{ id: 5, name: "FOB" }]),
+    get_personal_pricing: accepted([{ id_entitie: 9, name: "GARCIA MORALES KIARA" }]),
+    CargarProveedores: accepted([{ id: 7, namelong: "COLOADER SAC" }]),
+  });
+  let catalogsAtMount: Record<string, number> = {};
+  const InstructivoReadingCatalogsOnMount = {
+    ...InstructivoStub,
+    setup() {
+      const pricing = usePricingStore();
+      catalogsAtMount = {
+        shipment: pricing.listShipment.length,
+        sentido: pricing.listModality.length,
+        incoterms: pricing.listIncoterms.length,
+        advisers: pricing.listEjecutivo.length,
+        providers: useAppStore().provedores.length,
+      };
+      return () => h("div");
+    },
+  };
+
+  wrapper = mount(TrafficSendToOperations, {
+    props: { file: pricingFile },
+    global: { plugins: [createVuetify({ components, directives })], stubs: { FileSequenceInstructivo: InstructivoReadingCatalogsOnMount } },
+    attachTo: document.body,
+  });
+  await flushPromises();
+
+  expect(catalogsAtMount).toEqual({ shipment: 1, sentido: 1, incoterms: 1, advisers: 1, providers: 1 });
 });
 
 test("creating a new expediente sends the pricing file with the master's availability date", async () => {
