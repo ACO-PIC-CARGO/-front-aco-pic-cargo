@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
+import FolderTabs from "@/components/comun/FolderTabs.vue";
 import RichTextEditor from "@/components/comun/RichTextEditor.vue";
 import ProviderEmailTableEditor from "@/components/folderPricing/ProviderEmailTableEditor.vue";
 import { useAppStore } from "@/stores/app";
@@ -19,15 +20,24 @@ const templateStore = useProviderQuoteEmailTemplateStore();
 const { loading, saving } = storeToRefs(templateStore);
 const { can } = usePermissions();
 
+const shipmentId = ref(0);
 const language = ref<EmailLanguage>("es");
 const drafts = ref<ProviderQuoteEmailTemplate[]>([]);
 const loadError = ref<string | null>(null);
 const saveError = ref<string | null>(null);
 
+const shipmentTabs = computed(() =>
+  drafts.value
+    .filter((draft, index, all) => all.findIndex((other) => other.id_shipment === draft.id_shipment) === index)
+    .map((draft) => ({ value: draft.id_shipment, title: draft.shipment_name })),
+);
+const shipmentDrafts = computed(() => drafts.value.filter((draft) => draft.id_shipment === shipmentId.value));
+
 onMounted(async () => {
   appStore.mainTitle = "Plantilla del correo para solicitar tarifas a proveedores";
   loadError.value = await templateStore.load();
   drafts.value = templateStore.templates.map((template) => ({ ...template }));
+  shipmentId.value = drafts.value[0]?.id_shipment ?? 0;
 });
 
 async function save(draft: ProviderQuoteEmailTemplate) {
@@ -36,16 +46,23 @@ async function save(draft: ProviderQuoteEmailTemplate) {
 </script>
 
 <template>
-  <v-card :loading="loading">
-    <v-alert
-      v-if="loadError"
-      type="warning"
-      variant="tonal"
-      class="ma-4"
+  <v-alert
+    v-if="loadError"
+    type="warning"
+    variant="tonal"
+    class="ma-4"
+  >
+    {{ loadError }} Recarga la página para intentarlo de nuevo.
+  </v-alert>
+  <div v-else>
+    <FolderTabs
+      v-model="shipmentId"
+      :items="shipmentTabs"
+    />
+    <v-card
+      :loading="loading"
+      class="mx-4 mb-4 rounded-ts-0"
     >
-      {{ loadError }} Recarga la página para intentarlo de nuevo.
-    </v-alert>
-    <template v-else>
       <v-tabs
         v-model="language"
         align-tabs="center"
@@ -61,8 +78,8 @@ async function save(draft: ProviderQuoteEmailTemplate) {
       </v-tabs>
       <v-tabs-window v-model="language">
         <v-tabs-window-item
-          v-for="draft in drafts"
-          :key="draft.language"
+          v-for="draft in shipmentDrafts"
+          :key="`${draft.id_shipment}-${draft.language}`"
           :value="draft.language"
           class="pa-4"
         >
@@ -102,6 +119,6 @@ async function save(draft: ProviderQuoteEmailTemplate) {
           </div>
         </v-tabs-window-item>
       </v-tabs-window>
-    </template>
-  </v-card>
+    </v-card>
+  </div>
 </template>
