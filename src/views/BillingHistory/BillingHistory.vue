@@ -21,11 +21,13 @@ const HEADERS = [
   { title: "Factura", key: "invoice", sortable: false },
 ] as const;
 
+const { screen } = defineProps<{ screen: string }>();
+
 const appStore = useAppStore();
 const subscriptionsStore = useSubscriptionsStore();
 const branchTimeZoneStore = useBranchTimeZoneStore();
 const { can } = usePermissions();
-const canDownloadInvoice = can("billingHistory", "EXPORTAR");
+const canDownloadInvoice = can(screen, "EXPORTAR");
 const { billingRows: rows, paymentCard } = storeToRefs(subscriptionsStore);
 
 const loadState = ref("loading");
@@ -36,7 +38,7 @@ const emptyMessage = EMPTY_MESSAGE;
 const headers = HEADERS;
 
 const canUpdatePaymentMethod = computed(
-  () => subscriptionsStore.billingHistory.can_update_payment_method && can("billingHistory", "MODIFICAR"),
+  () => subscriptionsStore.billingHistory.can_update_payment_method && can(screen, "MODIFICAR"),
 );
 
 onMounted(() => {

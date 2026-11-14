@@ -796,11 +796,13 @@ const routes = [
         path: "historial-facturacion",
         name: "billingHistory",
         component: BillingHistory,
+        props: { screen: "billingHistory" },
       },
       {
         path: "facturacion-membresia",
         name: "lstFacturacionMembresia",
         component: BillingHistory,
+        props: { screen: "lstFacturacionMembresia" },
       },
       // {
       //   path: "suscripcion3",

@@ -51,11 +51,13 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-const shownWith = async (actions: string[]) => {
-  sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: "billingHistory", actions }], controlled: ["billingHistory"] }));
+const BILLING_SCREENS = ["billingHistory", "lstFacturacionMembresia"];
+
+const shownWith = async (screen: string, actions: string[]) => {
+  sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route: screen, actions }], controlled: BILLING_SCREENS }));
   const pinia = createPinia();
   setActivePinia(pinia);
-  wrapper = mount(defineComponent({ render: () => h(components.VApp, () => h(BillingHistory)) }), {
+  wrapper = mount(defineComponent({ render: () => h(components.VApp, () => h(BillingHistory, { screen })) }), {
     global: { plugins: [createVuetify({ components, directives }), pinia] },
     attachTo: document.body,
   });
@@ -63,18 +65,20 @@ const shownWith = async (actions: string[]) => {
 };
 const button = (text: string) => [...document.body.querySelectorAll("button")].some((candidate) => candidate.textContent?.includes(text));
 
-describe.each([
-  ["Cambiar método de pago", "MODIFICAR"],
-  ["Descargar", "EXPORTAR"],
-])("%s on the billing history", (text, action) => {
+describe.each(
+  BILLING_SCREENS.flatMap((screen) => [
+    [screen, "Cambiar método de pago", "MODIFICAR"],
+    [screen, "Descargar", "EXPORTAR"],
+  ]),
+)("on %s, %s", (screen, text, action) => {
   test(`is hidden without ${action}`, async () => {
-    await shownWith(ALL_ACTIONS.filter((granted) => granted !== action));
+    await shownWith(screen, ALL_ACTIONS.filter((granted) => granted !== action));
 
     expect(button(text)).toBe(false);
   });
 
   test(`shows with ${action}`, async () => {
-    await shownWith(["VER", action]);
+    await shownWith(screen, ["VER", action]);
 
     expect(button(text)).toBe(true);
   });
