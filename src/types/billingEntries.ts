@@ -377,6 +377,10 @@ export interface SolicitudPagoTransferencia {
   comentario: string | null;
   /** Cuenta de la empresa (bank_details) elegida al solicitar */
   id_cuentasalida: number | null;
+  /** Banco, N° de cuenta y moneda del proveedor indicados en la solicitud */
+  id_banco_proveedor: number | null;
+  nrocuenta_proveedor: string | null;
+  id_coins_proveedor: number | null;
 }
 
 /** Modo ver de una solicitud de pago (ojito) */

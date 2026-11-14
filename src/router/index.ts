@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
+import resetMainTitle from "./resetMainTitle";
 import signedInGuard from "./signedInGuard";
 import trafficHouseGuard from "./trafficHouseGuard";
 
@@ -1002,4 +1003,5 @@ router.beforeEach(permissionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
 router.beforeEach(trafficHouseGuard);
+router.afterEach(resetMainTitle);
 export default router;

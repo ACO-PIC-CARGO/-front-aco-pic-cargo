@@ -20,7 +20,11 @@ vi.mock("vue-router", () => ({
 }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: false }) } }));
 
-const payment = { id: 1, id_pago: 1, detalle: [], detalles: [], table_comisionbancaria: [], comisionbancaria: [] };
+const payment = {
+  id: 1, id_pago: 1, detalle: [], detalles: [], table_comisionbancaria: [], comisionbancaria: [],
+  // banco del proveedor: obligatorio para guardar la salida
+  id_banco_proveedor: 2, nrocuenta_proveedor: "191-0000000-0-00", id_coins_proveedor: 1,
+};
 const editState = (verflag: boolean) => ({ verflag });
 const admin = { usuario: "admin", clave: "clave-admin" };
 const authorizedByAdmin = () => void (useAdminAuthorizationStore().credentials = admin);

@@ -6,6 +6,7 @@ import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import ArrastraYSolarComponent from "../comun/ArrastraYSolarComponent.vue";
+import FormatFecha from "../comun/FormatFecha.vue";
 import { useCoinsStore } from "@/stores/coins";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
@@ -135,15 +136,16 @@ const invoiceOptions = [
 ];
 const invTipoRef = ref<{ focus: () => void } | null>(null);
 // "ALFOSAC(11960) - 0001" -> nombre, id y correlativo para la cabecera del modal
-const proveedorInvoice = computed(() => {
-  const texto = nameproveedor.value ?? "";
+// "ALFOSAC(11960) - 0001" -> { nombre: "ALFOSAC", id: "11960", correlativo: "0001" }
+function partesProveedor(texto: string, idProveedor: unknown) {
   const m = /^(.*?)\s*\((\d+)\)\s*(?:-\s*(.+))?$/.exec(texto);
   return {
     nombre: (m?.[1] ?? texto).trim(),
-    id: m?.[2] ?? String(egreso.value?.id_proveedor ?? ""),
+    id: m?.[2] ?? String(idProveedor ?? ""),
     correlativo: m?.[3]?.trim() ?? "",
   };
-});
+}
+const proveedorInvoice = computed(() => partesProveedor(nameproveedor.value ?? "", egreso.value?.id_proveedor));
 const monedaInvoice = computed(() => {
   const acronimo = egreso.value?.detalle?.[0]?.acronym ?? "";
   const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
@@ -621,6 +623,16 @@ function calcularE() {
   }
 }
 function validarSolicitudPago(egreso: EgresoProveedor) {
+  // con solicitud de pago no se genera un nuevo PDF: primero se elimina la solicitud
+  const solicitud = solicitudPagoDe(egreso);
+  if (solicitud) {
+    Swal.fire({
+      icon: "warning",
+      title: "No se puede generar un nuevo PDF",
+      html: `Tiene la solicitud de pago N° <b>${solicitud.id}</b>. Elimine primero la solicitud de pago.`,
+    });
+    return;
+  }
   const tipocambio = egreso.detalle[0]!.tipocambio;
   let correcto = true;
   egreso.detalle.forEach((element) => {
@@ -663,25 +675,14 @@ function validarSolicitudPago(egreso: EgresoProveedor) {
         cancelButton: "spago-cancel",
       },
     }).then(async (res) => {
-      if (res.isConfirmed) {
-        await _getSPaymentPro(egreso);
-        if (itemsSPayment.value[0] && itemsSPayment.value[0].id) {
-          await eliminar(itemsSPayment.value[0].id);
-
-          selected.value = [];
-          TotalLocal = egreso.detalle.reduce((suma, element) => {
-            return suma + parseFloat(String(element.total_op));
-          }, 0);
-          total = 0;
-          proveedorId = egreso.id_proveedor;
-          nameproveedor.value = egreso.nombre_proveedor;
-          conceptos.value = egreso.detalle;
-          id_correlativo.value = egreso.id_correlativo;
-          id_master = egreso.id_master;
-
-          await _generateSolicitud();
-        }
-      }
+      if (!res.isConfirmed) return;
+      await _getSPaymentPro(egreso);
+      const anterior = itemsSPayment.value?.[0];
+      // se elimina el PDF anterior y se vuelve a elegir banco o código de pago en el formulario
+      if (anterior?.id && !(await eliminar(anterior.id, false))) return;
+      // sin PDF anterior (la lista estaba desactualizada) se sigue el flujo normal
+      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+      solicitar(egreso, false);
     });
   } else if (!!correcto) {
     solicitar(egreso);
@@ -797,7 +798,7 @@ async function _setData() {
   dialog.value = false;
   emit("recalcularProfit");
 }
-function solicitar(egreso: EgresoProveedor) {
+function solicitar(egreso: EgresoProveedor, confirmar = true) {
   selected.value = [];
   let TLocal = 0;
   // this.TotalLocal = egreso.detalle.reduce(monto);
@@ -819,6 +820,10 @@ function solicitar(egreso: EgresoProveedor) {
       ) || {}
     ).id_tipotransaccion || "";
 
+  if (!confirmar) {
+    mostrarModalSolicitudPago(egreso);
+    return;
+  }
   Swal.fire({
     html: "<b>¿Desea realizar una solicitud de pago? Recuerde que luego de generarse la solicitud no se podrá editar.</b>",
     // showDenyButton: true,
@@ -895,6 +900,32 @@ async function _setInvoice() {
   await _getInvoice(egreso.value);
 }
 async function _delInvoice(id: number) {
+  const proveedor = egreso.value as EgresoProveedor | undefined;
+  // Caso 2: con solicitud de pago no se elimina; primero se elimina la solicitud
+  const solicitud = proveedor ? solicitudPagoDe(proveedor) : undefined;
+  if (solicitud) {
+    Swal.fire({
+      icon: "warning",
+      title: "No se puede eliminar",
+      html: `Tiene la solicitud de pago N° <b>${solicitud.id}</b>. Elimine primero la solicitud de pago.`,
+    });
+    return;
+  }
+  // Caso 1: con PDF de pago, al confirmar se eliminan la factura y el PDF
+  const tienePdf = Number(proveedor?.solicitudes) > 0;
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    title: "¿Eliminar el documento?",
+    html: tienePdf
+      ? "Tiene un PDF de pago generado. Si lo eliminas, <b>también se eliminará el PDF de pago</b> y tendrás que volver a generarlo."
+      : "Esta acción no se puede deshacer.",
+    showCancelButton: true,
+    reverseButtons: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#d33",
+  });
+  if (!isConfirmed) return;
   const config = {
     method: "post",
     url: import.meta.env.VITE_URL_MAIN + "delInvoice/" + id,
@@ -906,8 +937,12 @@ async function _delInvoice(id: number) {
   const response = await request(config);
   if (warnIfRefused(response)) return;
   itemsInvoice = response.data;
-  _getInvoice(egreso.value);
   dialogInvoice.value = false;
+  await Promise.all([
+    _getInvoice(egreso.value),
+    controlGastosStore.getListControlGastosMaster(route.params.id as string),
+  ]);
+  Swal.fire({ icon: "success", text: response.mensaje });
 }
 async function InsertarActualizarPorcentajeProveedor() {
   if (
@@ -1310,10 +1345,12 @@ function sendAdmin(id: number) {
 
   nameproveedorLocal = nameproveedor.value;
 }
-async function eliminar(id: number) {
+// avisar=false: lo usa "Eliminar y generar nueva" (sin aviso de éxito; devuelve si se eliminó)
+async function eliminar(id: number, avisar = true): Promise<boolean> {
   const data = {
     id: id,
   };
+  let eliminado = false;
 
   appStore.spiner = true;
 
@@ -1331,6 +1368,8 @@ async function eliminar(id: number) {
       sessionStorage.setItem("auth-token", response.data.token);
 
       const res = response.data;
+      eliminado = !!res.estadoflag;
+      if (eliminado && !avisar) return;
 
       Swal.fire({
         icon: res.estadoflag ? "success" : "warning",
@@ -1346,9 +1385,11 @@ async function eliminar(id: number) {
     })
     .catch(function (error) {
       console.error(error);
+      Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
     });
 
   appStore.spiner = false;
+  return eliminado;
 }
 async function _generateSolicitud() {
   loading.value = true;
@@ -1378,6 +1419,11 @@ async function _generateSolicitud() {
       nameProveedor: element.nombre_proveedor,
       total_pr: parseFloat(String(element.total_total_pr)).toFixed(2),
       total_op: parseFloat(String(element.total_total_op)).toFixed(2),
+      // para el PDF: status del proveedor y fila del proveedor que se paga
+      pagado: element.detalle.length > 0 && element.detalle.every((d) => !!d.pagado),
+      actual:
+        Number(element.id_proveedor) === Number(proveedorId) &&
+        String(element.id_correlativo ?? "") === String(id_correlativo.value ?? ""),
     };
   });
 
@@ -1416,6 +1462,9 @@ async function _generateSolicitud() {
         fecha: currentDate(),
         totalProveedores: proveedor,
         comentarios: comentarios.value,
+        // el PDF se pinta según el tipo: por código de pago o por cuenta de banco
+        tipo_pago: checkPago.value ? "CODIGO" : "BANCO",
+        ya_pago: concepto.length > 0 && concepto.every((d) => !!d.pagado),
         codigo_pago: codigo_pago.value,
         codigo_master:
           controlGastosStore.listControlGastos[0]!
@@ -1436,11 +1485,28 @@ async function _generateSolicitud() {
       await controlGastosStore.getListControlGastosMaster(route.params.id as string);
       dialogSolicitudDivision.value = false;
       dialogSolicitud.value = false;
+      await abrirSolicitudTrasPdf();
     })
     .catch(function (error) {
       console.error(error);
     });
   loading.value = false;
+}
+// Paso 3: al generar el PDF se abre directamente "Solicitar a Administración"
+async function abrirSolicitudTrasPdf() {
+  if (!can("listControlGastos", "NUEVO")) return;
+  await nextTick();
+  await cargarSolicitudesExistentes();
+  const item = (masterEgresos.value || []).find(
+    (e) =>
+      Number(e.id_master) === Number(id_master) &&
+      Number(e.id_proveedor) === Number(proveedorId) &&
+      String(e.id_correlativo ?? "") === String(id_correlativo.value ?? ""),
+  );
+  if (!item) return;
+  const existente = solicitudPagoDe(item);
+  if (existente && existente.codigo_estado !== "RECHAZADA") return;
+  await abrirSolicitudPagoNueva(item);
 }
 function _calcularTotales() {
   total = 0;
@@ -1886,6 +1952,8 @@ async function cargarSolicitudesExistentes() {
   );
 }
 
+const proveedorSolicitud = computed(() =>
+  partesProveedor(solicitudPagoProveedor.value?.nombre_proveedor ?? "", solicitudPagoProveedor.value?.id_proveedor));
 const tipoPagoSeleccionado = computed(
   () => tiposPagoSolicitud.value.find((t) => t.id === solicitudPagoForm.value.id_tipopago)?.codigo,
 );
@@ -1909,6 +1977,10 @@ const totalModalSolicitudPago = computed(() =>
   modoSolicitudPago.value === "ver" && solicitudPagoActual.value
     ? Number(solicitudPagoActual.value.monto || 0)
     : totalSolicitudPago.value,
+);
+// la moneda siempre va a la derecha del monto: "329.63 USD"
+const monedaModalSolicitudPago = computed(
+  () => conceptosModalSolicitudPago.value.find((c) => c.acronym)?.acronym || solicitudPagoActual.value?.moneda || "",
 );
 const totalSolicitudPago = computed(() =>
   conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
@@ -1935,10 +2007,38 @@ async function cargarTiposPagoSolicitud() {
   tiposPagoSolicitud.value = response.estadoflag ? response.data : [];
 }
 
-async function abrirSolicitudPagoNueva(item: EgresoProveedor) {
+// Con aprobación de Administración o Gerencia, editar o eliminar pide la clave de un administrador
+const tieneAprobaciones = (s: SolicitudPagoControl) => !!(s.aprobadoadministracionflag || s.aprobadogerenciaflag);
+// Con salida registrada en Bancos ya no se edita ni elimina
+const tieneSalidaBancos = (s: SolicitudPagoControl) => !!s.id_pagoegreso;
+const adminEdicionSolicitud = ref<AdminCredentials | null>(null);
+// Pagada en Bancos (salida registrada): no se edita ni elimina hasta eliminar ese movimiento
+function avisarSalidaBancos(item: EgresoProveedor) {
+  const s = solicitudPagoDe(item);
+  if (!s || !tieneSalidaBancos(s)) return false;
+  Swal.fire({
+    icon: "warning",
+    title: "Ya está pagada en Bancos",
+    html: `La solicitud de pago N° <b>${s.id}</b> ya tiene la salida${s.numerooperacion_pago ? ` N° <b>${s.numerooperacion_pago}</b>` : ""} en Bancos.<br><br>
+      Elimine primero ese movimiento en <b>Bancos &gt; Salidas</b>.`,
+  });
+  return true;
+}
+
+async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
+  if (editar && avisarSalidaBancos(item)) return;
   const existente = solicitudPagoDe(item) ?? null;
+  const modo = !existente ? "nuevo" : (editar || existente.codigo_estado === "RECHAZADA") && !tieneSalidaBancos(existente) ? "editar" : "ver";
+  adminEdicionSolicitud.value = null;
+  if (modo === "editar" && existente && tieneAprobaciones(existente)) {
+    const admin = await askAdminCredentials(
+      "La solicitud ya tiene aprobación de Administración o Gerencia. Para editarla, escribe el usuario y la clave de un administrador.",
+    );
+    if (!admin) return;
+    adminEdicionSolicitud.value = admin;
+  }
   solicitudPagoActual.value = existente;
-  modoSolicitudPago.value = !existente ? "nuevo" : existente.codigo_estado === "RECHAZADA" ? "editar" : "ver";
+  modoSolicitudPago.value = modo;
   solicitudPagoProveedor.value = item;
   proveedorId = item.id_proveedor;
   id_tipotransaccion =
@@ -1968,7 +2068,8 @@ async function registrarSolicitudPago() {
   const { isConfirmed } = await Swal.fire({
     icon: "question",
     html: editando
-      ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`
+      ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?` +
+        (tieneAprobaciones(solicitudPagoActual.value!) ? "<br><br>Las aprobaciones y el soporte de pago se reiniciarán." : "")
       : `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
     showCancelButton: true,
     confirmButtonText: "Sí, enviar",
@@ -1989,7 +2090,7 @@ async function registrarSolicitudPago() {
     ? await request({
       method: "put",
       url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_editar/" + solicitudPagoActual.value!.id,
-      data: datos,
+      data: { ...datos, ...withAuthorization(adminEdicionSolicitud.value) },
     })
     : await request({
       method: "post",
@@ -2018,7 +2119,7 @@ function formatoFechaSolicitud(valor: string | null) {
 const eliminandoSolicitudPago = ref<number | null>(null);
 async function eliminarSolicitudPago(item: EgresoProveedor) {
   const solicitud = solicitudPagoDe(item);
-  if (!solicitud) return;
+  if (!solicitud || avisarSalidaBancos(item)) return;
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
     html: `¿Eliminar la solicitud de pago N° <b>${solicitud.id}</b> de <b>${item.nombre_proveedor}</b>?`,
@@ -2028,10 +2129,19 @@ async function eliminarSolicitudPago(item: EgresoProveedor) {
     confirmButtonColor: "#d33",
   });
   if (!isConfirmed) return;
+  // con aprobación de Administración o Gerencia se pide la clave de un administrador
+  let admin: AdminCredentials | undefined;
+  if (tieneAprobaciones(solicitud)) {
+    admin = await askAdminCredentials(
+      "La solicitud ya tiene aprobación de Administración o Gerencia. Para eliminarla, escribe el usuario y la clave de un administrador.",
+    );
+    if (!admin) return;
+  }
   eliminandoSolicitudPago.value = solicitud.id;
   const response = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_eliminar/" + solicitud.id,
+    data: withAuthorization(admin),
   });
   eliminandoSolicitudPago.value = null;
   if (warnIfRefused(response)) return;
@@ -2218,33 +2328,44 @@ onMounted(async () => {
                   </v-btn>
                 </td>
                 <td v-if="editable">
+                  <!-- Paso 1: abre el listado de facturas (con "Cargar Nueva"); con facturas cargadas se muestra el ojo -->
                   <v-btn
                     variant="text"
                     icon
                     size="small"
                     :loading="loading"
-                    :color="egresoProveedor.docs > 0 ? 'blue' : 'grey'"
-                    @click="openInvoice(egresoProveedor)"
-                    @click.stop="abrirExpandEgreso(index)"
-                    :disabled="!(egresoProveedor.solicitudes && egresoProveedor.solicitudes > 0)"
+                    color="blue"
+                    :title="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Facturas o proformas'"
+                    :aria-label="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Facturas o proformas'"
+                    @click.stop="openInvoice(egresoProveedor)"
                   >
-                    <v-icon>mdi-file-compare</v-icon>
+                    <v-icon>{{ egresoProveedor.docs > 0 ? "mdi-eye" : "mdi-file-compare" }}</v-icon>
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <v-btn
+                  <!-- Paso 2: el PDF de pago solo se genera cuando ya hay factura y no hay solicitud de pago -->
+                  <span
                     v-if="can('listControlGastos', 'NUEVO')"
-                    variant="text"
-                    size="small"
-                    color="white"
-                    icon
-                    @click.stop="validarSolicitudPago(egresoProveedor)"
-                    @click="abrirExpandEgreso(index)"
+                    class="d-inline-block"
+                    :title="!(egresoProveedor.docs > 0)
+                      ? 'Primero carga la factura o proforma'
+                      : solicitudPagoDe(egresoProveedor)
+                        ? 'Tiene solicitud de pago: elimínela primero para generar un nuevo PDF'
+                        : 'Generar PDF de pago'"
+                    @click.stop
                   >
-                    <v-icon color="blue">
-                      mdi-send
-                    </v-icon>
-                  </v-btn>
+                    <v-btn
+                      variant="text"
+                      size="small"
+                      icon
+                      :color="egresoProveedor.docs > 0 && !solicitudPagoDe(egresoProveedor) ? 'blue' : 'grey'"
+                      :disabled="!(egresoProveedor.docs > 0)"
+                      aria-label="Generar PDF de pago"
+                      @click.stop="validarSolicitudPago(egresoProveedor)"
+                    >
+                      <v-icon>mdi-send</v-icon>
+                    </v-btn>
+                  </span>
                 </td>
 
                 <td
@@ -2283,41 +2404,56 @@ onMounted(async () => {
                         </span>
                       </span>
                     </button>
-                    <v-btn
-                      v-if="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' && can('listControlGastos', 'NUEVO')"
-                      icon="mdi-pencil-outline"
-                      size="small"
-                      variant="text"
-                      color="primary"
-                      class="solreq__del"
-                      title="Editar solicitud de pago"
-                      aria-label="Editar solicitud de pago"
-                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
-                    />
-                    <v-btn
-                      v-else-if="!solicitudPagoDe(egresoProveedor)!.pagadoflag && can('listControlGastos', 'ELIMINAR')"
-                      icon="mdi-delete-outline"
-                      size="small"
-                      variant="text"
-                      color="error"
-                      class="solreq__del"
-                      title="Eliminar solicitud de pago"
-                      aria-label="Eliminar solicitud de pago"
-                      :loading="eliminandoSolicitudPago === solicitudPagoDe(egresoProveedor)!.id"
-                      @click="eliminarSolicitudPago(egresoProveedor)"
-                    />
+                    <!-- editar y eliminar en todo estado; con aprobaciones piden clave de administrador;
+                         con salida en Bancos avisan que primero se elimine ese movimiento -->
+                    <div class="solreq__acciones">
+                      <v-btn
+                        v-if="can('listControlGastos', 'NUEVO')"
+                        icon="mdi-pencil-outline"
+                        size="x-small"
+                        variant="text"
+                        class="solreq__del"
+                        :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'primary'"
+                        :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
+                          ? 'Ya está pagada en Bancos: elimine primero el movimiento'
+                          : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Editar solicitud de pago (requiere clave de administrador)' : 'Editar solicitud de pago'"
+                        aria-label="Editar solicitud de pago"
+                        @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
+                      />
+                      <v-btn
+                        v-if="can('listControlGastos', 'ELIMINAR')"
+                        icon="mdi-delete-outline"
+                        size="x-small"
+                        variant="text"
+                        class="solreq__del"
+                        :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'error'"
+                        :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
+                          ? 'Ya está pagada en Bancos: elimine primero el movimiento'
+                          : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Eliminar solicitud de pago (requiere clave de administrador)' : 'Eliminar solicitud de pago'"
+                        aria-label="Eliminar solicitud de pago"
+                        :loading="eliminandoSolicitudPago === solicitudPagoDe(egresoProveedor)!.id"
+                        @click="eliminarSolicitudPago(egresoProveedor)"
+                      />
+                    </div>
                   </div>
-                  <v-btn
+                  <!-- Paso 3: solo se solicita con factura (paso 1) y PDF de pago generado (paso 2) -->
+                  <span
                     v-else-if="can('listControlGastos', 'NUEVO')"
-                    size="small"
-                    variant="flat"
-                    color="primary"
-                    prepend-icon="mdi-send-outline"
-                    class="solreq__btn"
-                    @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                    class="d-inline-block"
+                    :title="!(egresoProveedor.docs > 0) ? 'Primero carga la factura o proforma' : egresoProveedor.solicitudes > 0 ? 'Solicitar a Administración' : 'Primero genera el PDF de pago'"
                   >
-                    Solicitar
-                  </v-btn>
+                    <v-btn
+                      size="small"
+                      variant="flat"
+                      color="primary"
+                      prepend-icon="mdi-send-outline"
+                      class="solreq__btn"
+                      :disabled="!(egresoProveedor.docs > 0 && egresoProveedor.solicitudes > 0)"
+                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                    >
+                      Solicitar
+                    </v-btn>
+                  </span>
                   <span
                     v-else
                     class="text-medium-emphasis"
@@ -2997,11 +3133,12 @@ onMounted(async () => {
     <v-dialog
       max-width="620"
       v-model="dialogInvoice"
+      scrollable
     >
       <v-card class="inv-card">
         <div class="inv-header">
           <div class="inv-header-icon">
-            <v-icon size="40">
+            <v-icon size="32">
               mdi-file-upload-outline
             </v-icon>
           </div>
@@ -3057,7 +3194,7 @@ onMounted(async () => {
             placeholder="SELECCIONAR TIPO DE DOCUMENTO"
             prepend-inner-icon="mdi-file-document-outline"
             variant="outlined"
-            density="comfortable"
+            density="compact"
             hide-details="auto"
             class="inv-input"
             :rules="[(v) => !!v || 'Selecciona el tipo de documento']"
@@ -3074,15 +3211,16 @@ onMounted(async () => {
             class="inv-label"
             for="inv-fecha"
           >FECHA DE DOCUMENTO <span class="inv-req">*</span></label>
-          <v-text-field
+          <FormatFecha
             id="inv-fecha"
             v-model="date"
-            type="date"
+            label=""
+            placeholder="SELECCIONAR FECHA"
             prepend-inner-icon="mdi-calendar-blank-outline"
-            variant="outlined"
-            density="comfortable"
+            outlined
+            density="compact"
             hide-details="auto"
-            class="inv-input"
+            field-class="inv-input"
             :rules="[(v) => !!v || 'Dato Requerido']"
           />
 
@@ -3096,7 +3234,7 @@ onMounted(async () => {
             placeholder="EJ. F001-12345"
             prepend-inner-icon="mdi-pound-box-outline"
             variant="outlined"
-            density="comfortable"
+            density="compact"
             hide-details="auto"
             class="inv-input"
           />
@@ -3113,7 +3251,7 @@ onMounted(async () => {
                 :model-value="monedaInvoice"
                 prepend-inner-icon="mdi-cash-multiple"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 hide-details
                 readonly
                 tabindex="-1"
@@ -3132,7 +3270,7 @@ onMounted(async () => {
                 prepend-inner-icon="mdi-cash"
                 inputmode="decimal"
                 variant="outlined"
-                density="comfortable"
+                density="compact"
                 hide-details="auto"
                 class="inv-input"
                 :rules="[(v) => v > 0 || 'Debe ser un monto numérico']"
@@ -3173,27 +3311,27 @@ onMounted(async () => {
       v-model="dialogSolicitudPagoNueva"
       max-width="680"
       persistent
+      scrollable
     >
       <v-card
         v-if="solicitudPagoProveedor"
-        rounded="xl"
-        class="solnueva"
+        class="solnueva inv-card"
       >
-        <div class="solnueva__head">
-          <div class="solnueva__icon">
-            <v-icon
-              color="primary"
-              size="28"
-            >
+        <div class="inv-header">
+          <div class="inv-header-icon">
+            <v-icon size="32">
               mdi-cash-fast
             </v-icon>
           </div>
-          <div class="solnueva__titles">
-            <h3>
-              {{ modoSolicitudPago === "editar" ? "Editar Solicitud de Pago" : "Solicitud de Pago" }}
-              <span v-if="solicitudPagoActual"> N° {{ solicitudPagoActual.id }}</span>
+          <div class="inv-header-text">
+            <h3 class="inv-title">
+              {{ modoSolicitudPago === "editar" ? "EDITAR SOLICITUD DE PAGO" : "ENVIAR A ADMINISTRACIÓN" }}<template v-if="solicitudPagoActual">
+                N° {{ solicitudPagoActual.id }}
+              </template>
             </h3>
-            <p>{{ solicitudPagoProveedor.nombre_proveedor }}</p>
+            <span class="inv-subtitle">
+              {{ modoSolicitudPago === "ver" ? "DETALLE DE LA SOLICITUD ENVIADA A ADMINISTRACIÓN." : "SOLICITA A ADMINISTRACIÓN EL PAGO AL PROVEEDOR." }}
+            </span>
           </div>
           <span
             v-if="solicitudPagoActual"
@@ -3204,7 +3342,8 @@ onMounted(async () => {
             icon
             variant="text"
             size="small"
-            class="ml-auto"
+            class="inv-close"
+            aria-label="Cerrar"
             :disabled="guardandoSolicitudPago"
             @click="dialogSolicitudPagoNueva = false"
           >
@@ -3212,7 +3351,23 @@ onMounted(async () => {
           </v-btn>
         </div>
 
-        <v-card-text class="pt-2">
+        <v-card-text class="inv-body">
+          <div class="inv-prov">
+            <div class="inv-prov-row">
+              <v-icon class="inv-prov-icon">
+                mdi-storefront-outline
+              </v-icon>
+              <span class="inv-prov-label">ID PROVEEDOR:</span>
+              <span class="inv-prov-value">{{ proveedorSolicitud.id }}{{ proveedorSolicitud.correlativo ? ` - ${proveedorSolicitud.correlativo}` : "" }}</span>
+            </div>
+            <div class="inv-prov-row">
+              <v-icon class="inv-prov-icon">
+                mdi-account-outline
+              </v-icon>
+              <span class="inv-prov-label">NOMBRE:</span>
+              <span class="inv-prov-value">{{ proveedorSolicitud.nombre }}</span>
+            </div>
+          </div>
           <v-alert
             v-if="modoSolicitudPago === 'editar' && solicitudPagoActual"
             type="error"
@@ -3234,7 +3389,7 @@ onMounted(async () => {
               class="solnueva__concepto"
             >
               <span>{{ c.concepto }}</span>
-              <span>{{ c.acronym }} {{ Number(c.total_op || 0).toFixed(2) }}</span>
+              <span>{{ Number(c.total_op || 0).toFixed(2) }} {{ c.acronym }}</span>
             </div>
             <div
               v-if="!conceptosModalSolicitudPago.length"
@@ -3244,7 +3399,7 @@ onMounted(async () => {
             </div>
             <div class="solnueva__total">
               <span>Total a pagar</span>
-              <span>{{ totalModalSolicitudPago.toFixed(2) }}</span>
+              <span>{{ totalModalSolicitudPago.toFixed(2) }} {{ monedaModalSolicitudPago }}</span>
             </div>
           </div>
 
@@ -3279,7 +3434,7 @@ onMounted(async () => {
             <div class="d-flex align-center mb-1">
               <b>Cuenta bancaria del proveedor</b>
               <v-spacer />
-              <v-btn
+              <!-- <v-btn
                 v-if="can('listControlGastos', 'NUEVO') && !soloLecturaSolicitudPago"
                 size="small"
                 variant="text"
@@ -3288,7 +3443,7 @@ onMounted(async () => {
                 @click="abrirModalCuentaBancaria()"
               >
                 Nueva cuenta
-              </v-btn>
+              </v-btn> -->
             </div>
             <v-select
               v-model="solicitudPagoForm.id_cuenta"
@@ -4134,7 +4289,7 @@ onMounted(async () => {
    SOLICITAR A ADMINISTRACIÓN (solicitud de pago)
    ===================================================== */
 .solreq-cell {
-  min-width: 240px;
+  min-width: 250px;
 }
 .solreq {
   --solreq-fg: #1d4ed8;
@@ -4142,9 +4297,9 @@ onMounted(async () => {
   --solreq-border: #d1defc;
   display: flex;
   align-items: center;
-  gap: 6px;
-  max-width: 320px;
-  padding: 6px 6px 6px 8px;
+  gap: 10px;
+  max-width: 360px;
+  padding: 6px 6px 6px 10px;
   border: 1px solid var(--solreq-border);
   border-radius: 10px;
   background: var(--solreq-bg);
@@ -4193,10 +4348,12 @@ onMounted(async () => {
   text-overflow: ellipsis;
 }
 .solreq__date {
+  overflow: hidden;
   margin-top: 2px;
   font-size: 0.75rem;
   color: #667085;
   white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .solreq__info:hover .solreq__title,
 .solreq__info:focus-visible .solreq__title {
@@ -4215,6 +4372,16 @@ onMounted(async () => {
 }
 .solreq__del {
   flex-shrink: 0;
+}
+/* editar / eliminar apilados y separados del texto: dejan el ancho al título y la fecha */
+.solreq__acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  padding-left: 6px;
+  border-left: 1px solid var(--solreq-border);
 }
 
 /* =====================================================
@@ -4706,24 +4873,32 @@ onMounted(async () => {
    MODAL CARGAR FACTURA / PROFORMA
    ===================================================== */
 
+/* cabecera y botones fijos; solo el cuerpo hace scroll si no entra en pantalla */
 .inv-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
   border-radius: 22px !important;
   overflow: hidden;
   color: #0a1f44;
+}
+.inv-card > .inv-header,
+.inv-card > .v-card-actions {
+  flex: 0 0 auto;
 }
 
 .inv-header {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 22px 24px 10px;
+  gap: 14px;
+  padding: 18px 22px 8px;
 }
 
 .inv-header-icon {
   flex: 0 0 auto;
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
   background: #dcebfd;
   color: #0b5fd6;
   display: flex;
@@ -4734,20 +4909,20 @@ onMounted(async () => {
 .inv-header-text {
   flex: 1 1 auto;
   min-width: 0;
-  padding-left: 16px;
+  padding-left: 14px;
   border-left: 2px solid #0b5fd6;
 }
 
 .inv-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 21px;
   font-weight: 900;
   color: #0a1f44;
   line-height: 1.15;
 }
 
 .inv-subtitle {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: #3b4a63;
 }
@@ -4758,22 +4933,25 @@ onMounted(async () => {
 }
 
 .inv-body {
-  padding: 8px 24px 4px !important;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 22px 4px !important;
 }
 
 .inv-prov {
-  padding: 10px 16px;
-  margin-bottom: 14px;
-  border-radius: 14px;
+  padding: 6px 14px;
+  margin-bottom: 4px;
+  border-radius: 12px;
   background: #dcebfd;
 }
 
 .inv-prov-row {
   display: grid;
-  grid-template-columns: 28px 130px 1fr;
+  grid-template-columns: 26px 120px 1fr;
   align-items: center;
-  gap: 8px;
-  padding: 6px 0;
+  gap: 6px;
+  padding: 4px 0;
 }
 
 .inv-prov-row + .inv-prov-row {
@@ -4785,13 +4963,13 @@ onMounted(async () => {
 }
 
 .inv-prov-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #1e2c44;
 }
 
 .inv-prov-value {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   color: #0a1f44;
   overflow-wrap: anywhere;
@@ -4799,8 +4977,8 @@ onMounted(async () => {
 
 .inv-label {
   display: block;
-  margin: 12px 0 6px;
-  font-size: 14px;
+  margin: 10px 0 4px;
+  font-size: 13px;
   font-weight: 800;
   color: #0a1f44;
 }
@@ -4810,7 +4988,7 @@ onMounted(async () => {
 }
 
 .inv-input .v-field {
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .inv-input .v-field--focused {
@@ -4825,11 +5003,11 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .inv-dropzone .drop-area {
-  height: 130px !important;
+  height: 112px !important;
   border: 2px dashed #0b5fd6 !important;
   border-radius: 14px !important;
   background: #f1f6fd !important;
@@ -4853,26 +5031,37 @@ onMounted(async () => {
 }
 
 .inv-dropzone .drop-area .v-icon {
-  font-size: 44px !important;
+  font-size: 40px !important;
   color: #0b5fd6 !important;
   margin: 0 !important;
+}
+
+.inv-dropzone .clsArchivoCargado {
+  min-height: 0;
+  padding: 4px 8px 4px 12px;
+  border-radius: 12px;
+}
+
+.inv-dropzone .clsArchivoCargado .v-btn--icon {
+  width: 32px;
+  height: 32px;
 }
 
 .inv-actions {
   display: grid !important;
   grid-template-columns: 1fr 1.4fr;
-  padding: 18px 24px 22px !important;
-  gap: 14px;
+  padding: 14px 22px 18px !important;
+  gap: 12px;
 }
 
 .inv-btn-cancel,
 .inv-btn-save {
-  height: 50px !important;
+  height: 44px !important;
   margin: 0 !important;
-  border-radius: 12px !important;
+  border-radius: 10px !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
-  font-size: 16px !important;
+  font-size: 15px !important;
   font-weight: 800 !important;
 }
 
@@ -4891,7 +5080,7 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
   .inv-prov-row {
-    grid-template-columns: 28px 1fr;
+    grid-template-columns: 26px 1fr;
   }
   .inv-prov-value {
     grid-column: 2;
@@ -4935,36 +5124,6 @@ onMounted(async () => {
 .solnueva__estado--RECHAZADA {
   background: #fde2e2;
   color: #b42318;
-}
-.solnueva__head {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 20px 22px 6px;
-}
-.solnueva__icon {
-  display: grid;
-  place-items: center;
-  width: 50px;
-  height: 50px;
-  border-radius: 14px;
-  background: #e8f0fe;
-  flex: 0 0 50px;
-}
-.solnueva__titles {
-  padding-left: 14px;
-  border-left: 1px solid #d5dbe6;
-  min-width: 0;
-}
-.solnueva__titles h3 {
-  margin: 0;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #172036;
-}
-.solnueva__titles p {
-  margin: 2px 0 0;
-  color: #5b6b86;
 }
 .solnueva__conceptos {
   border: 1px solid #dbe5f5;

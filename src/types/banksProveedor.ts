@@ -182,6 +182,10 @@ export type RegistroEgresoVer = {
   detalles: DetalleEgreso[];
   id_soporte: number;
   comisionbancaria: { concepto: string; monto: number | string }[];
+  /** Banco del proveedor al que se pagó */
+  id_banco_proveedor: number | null;
+  nrocuenta_proveedor: string | null;
+  id_coins_proveedor: number | null;
 };
 
 export type ProgramacionProveedorFila = {

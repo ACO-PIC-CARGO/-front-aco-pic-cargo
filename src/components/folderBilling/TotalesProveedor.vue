@@ -497,6 +497,8 @@ async function _generateSolicitud() {
           nameProveedor: item.nameproveedor,
         })),
         comentarios: comentarios.value,
+        // el PDF se pinta según el tipo: por código de pago o por cuenta de banco
+        tipo_pago: checkPago.value ? "CODIGO" : "BANCO",
         codigo_pago: codigo_pago.value,
         codigo_master: codigo_master.value,
         cuentas: selectedAccount.value,

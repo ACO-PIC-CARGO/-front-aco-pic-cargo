@@ -11,7 +11,11 @@ import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 const push = vi.fn();
-vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
+// mock parcial: el store de bancos (SoportePagoDialog) carga el router de la app
+vi.mock("vue-router", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("vue-router")>()),
+  useRouter: () => ({ push }),
+}));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) } }));
 globalThis.ResizeObserver ??= class {
   observe() {}
@@ -89,7 +93,8 @@ test("lists the requests with the action that each state needs", async () => {
   expect(rows[0]!.find('[title="Subir soporte de pago"]').attributes("disabled")).toBeUndefined();
   expect(rows[0]!.text()).not.toContain("REGISTRAR EN BANCO");
   // el botón de cada área está en su columna y desaparece al aprobar
-  expect(aprobacion(1)).toEqual(["admin.qa12-Nov-2026 09:45", "Aprobar"]);
+  // fecha y hora van en dos líneas (<br>), por eso el texto queda junto
+  expect(aprobacion(1)).toEqual(["admin.qa12-Nov-202609:45", "Aprobar"]);
   expect(aprobacion(2)).toEqual(["Aprobar", "—"]);
   expect(rows[3]!.text()).toContain("REGISTRAR EN BANCO");
   expect(rows[4]!.text()).toContain("Salida N° OP-123");
@@ -98,14 +103,15 @@ test("lists the requests with the action that each state needs", async () => {
   expect(aprobacion(5)[0]).toContain("adm.rechazo");
   // monto y moneda en una sola columna
   expect(rows[2]!.find(".solpago__monto").text()).toBe("1,433.64 USD");
-  expect(w.text()).toContain("6 resultados");
+  // sin cabecera ni contador: solo la tabla
+  expect(w.text()).not.toContain("resultados");
 });
 
 test("the web table shows who approved and when", async () => {
   const w = await render(["VER"]);
   const row = w.findAll("tbody tr")[1]!;
   expect(row.text()).toContain("admin.qa");
-  expect(row.text()).toContain("12-Nov-2026 09:45");
+  expect(row.find(".solpago__aprobfecha").html()).toMatch(/12-Nov-2026<br[^>]*>\s*09:45/);
   expect(w.findAll("tbody tr")[2]!.findAll(".solpago__aprob").map((c) => c.text())).toEqual(["—", "—"]);
 });
 
@@ -144,13 +150,21 @@ test("rejecting asks for the reason and sends it", async () => {
   );
 });
 
-test("each area is reviewed only by its profile (04 Administración, 01 Gerencia)", async () => {
+test("each area is reviewed by its profile (Administración: 04 o 01, Gerencia: 01)", async () => {
+  sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1, position_code: ["04"] }]));
+  let w = await render(["VER", "MODIFICAR"]);
+  let rows = w.findAll("tbody tr");
+  // fila 2: pendiente por Administración -> el perfil 04 revisa
+  expect(rows[2]!.find(".solpago__revisar").exists()).toBe(true);
+  // fila 1: pendiente por Gerencia -> sin perfil 01 no hay botón
+  expect(rows[1]!.find(".solpago__revisar").exists()).toBe(false);
+  w.unmount();
+
+  // el 01 ve los dos botones
   sessionStorage.setItem("dataUser", JSON.stringify([{ id_branch: 1, position_code: ["01"] }]));
-  const w = await render(["VER", "MODIFICAR"]);
-  const rows = w.findAll("tbody tr");
-  // fila 2: pendiente por Administración -> sin perfil 04 no hay botón
-  expect(rows[2]!.find(".solpago__revisar").exists()).toBe(false);
-  // fila 1: pendiente por Gerencia -> el perfil 01 sí revisa
+  w = await render(["VER", "MODIFICAR"]);
+  rows = w.findAll("tbody tr");
+  expect(rows[2]!.find(".solpago__revisar").exists()).toBe(true);
   expect(rows[1]!.find(".solpago__revisar").exists()).toBe(true);
 });
 

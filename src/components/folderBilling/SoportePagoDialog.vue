@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
+import FormatFecha from "../comun/FormatFecha.vue";
 import Swal from "sweetalert2";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
@@ -17,18 +18,13 @@ export interface SolicitudSoporte {
   monto: number | string;
 }
 
+const DATO_REQUERIDO = "Dato Requerido";
 const props = defineProps<{
   modelValue: boolean;
   solicitud: SolicitudSoporte | null;
   fechaInicial?: string;
 }>();
 const emit = defineEmits<{ "update:modelValue": [valor: boolean]; guardado: [] }>();
-
-const TIPOS_SOPORTE = [
-  { valor: 1, titulo: "Factura Fiscal", icono: "mdi-file-certificate-outline" },
-  { valor: 2, titulo: "Proforma", icono: "mdi-file-document-outline" },
-  { valor: 3, titulo: "Otros (ej. email)", icono: "mdi-email-outline" },
-];
 
 const { smAndDown } = useDisplay();
 const filesStore = useFilesStore();
@@ -38,6 +34,7 @@ const abierto = computed({
   get: () => props.modelValue,
   set: (valor: boolean) => emit("update:modelValue", valor),
 });
+// Tipo de documento: opcional y oculto en la vista; se envía 1 (Factura Fiscal) por defecto
 const tipoSoporte = ref(1);
 const fechaPago = ref("");
 const subiendo = ref(false);
@@ -57,7 +54,7 @@ watch(
   (valor) => {
     if (!valor) return;
     tipoSoporte.value = 1;
-    fechaPago.value = props.fechaInicial || "";
+    fechaPago.value = props.fechaInicial || hoy(); // por defecto: hoy
     archivoSoporte.value = null;
     idCuentaSalida.value = null;
     cargarCuentasSalida();
@@ -169,52 +166,81 @@ async function guardarSoporte() {
 <template>
   <v-dialog
     v-model="abierto"
-    max-width="760"
+    max-width="640"
     :fullscreen="smAndDown"
     persistent
+    scrollable
   >
     <v-card
       v-if="solicitud"
       class="soporte"
+      :class="{ 'soporte--full': smAndDown }"
     >
+      <!-- mismo encabezado que "Cargar Documento a Pagar" (Control de Gastos) -->
       <div class="soporte__head">
         <div class="soporte__icon">
-          <v-icon size="40">
-            mdi-cloud-upload
+          <v-icon size="32">
+            mdi-cloud-upload-outline
           </v-icon>
         </div>
         <div class="soporte__titles">
-          <h3>Cargar Documento de Pago</h3>
-          <p>
-            {{ `${solicitud.proveedor} (${solicitud.id_proveedor})` }}<template v-if="solicitud.correlativo">
-              - {{ solicitud.correlativo }}
-            </template>
-          </p>
+          <h3>CARGAR DOCUMENTO DE PAGO</h3>
+          <span>ADJUNTA EL SOPORTE DEL PAGO REALIZADO AL PROVEEDOR.</span>
         </div>
         <v-btn
-          icon="mdi-close"
+          icon
           variant="text"
+          size="small"
           class="soporte__close"
+          tabindex="-1"
           aria-label="Cerrar"
           :disabled="guardandoSoporte"
           @click="abierto = false"
-        />
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
       </div>
 
       <div class="soporte__body">
+        <div class="soporte__prov">
+          <div class="soporte__prov-row">
+            <v-icon class="soporte__prov-icon">
+              mdi-storefront-outline
+            </v-icon>
+            <span class="soporte__prov-label">ID PROVEEDOR:</span>
+            <span class="soporte__prov-value">{{ solicitud.id_proveedor }}{{ solicitud.correlativo ? ` - ${solicitud.correlativo}` : "" }}</span>
+          </div>
+          <div class="soporte__prov-row">
+            <v-icon class="soporte__prov-icon">
+              mdi-account-outline
+            </v-icon>
+            <span class="soporte__prov-label">NOMBRE:</span>
+            <span class="soporte__prov-value">{{ solicitud.proveedor }}</span>
+          </div>
+        </div>
+
         <div class="soporte__grid">
           <div>
-            <span class="soporte__label">Monto <span class="soporte__req">*</span></span>
+            <span class="soporte__label">MONTO <span class="soporte__req">*</span></span>
             <div class="soporte__static">
-              <span class="soporte__addon">
-                <v-icon size="22">mdi-currency-usd</v-icon>
-              </span>
+              <v-icon
+                size="20"
+                class="soporte__static-icon"
+              >
+                mdi-cash
+              </v-icon>
               <span class="soporte__value">{{ formatoMonto(solicitud.monto) }}</span>
             </div>
           </div>
           <div>
-            <span class="soporte__label">Moneda <span class="soporte__req">*</span></span>
+            <span class="soporte__label">MONEDA <span class="soporte__req">*</span></span>
             <div class="soporte__static">
+              <v-icon
+                size="20"
+                class="soporte__static-icon"
+              >
+                mdi-cash-multiple
+              </v-icon>
               <span class="soporte__value">{{ solicitud.moneda || "—" }}</span>
             </div>
           </div>
@@ -224,7 +250,7 @@ async function guardarSoporte() {
           class="soporte__label"
           for="soporte-cuenta"
         >
-          Banco y Cuenta (de donde salió el pago) <span class="soporte__req">*</span>
+          BANCO Y CUENTA (DE DONDE SALIÓ EL PAGO) <span class="soporte__req">*</span>
         </label>
         <v-autocomplete
           id="soporte-cuenta"
@@ -232,65 +258,39 @@ async function guardarSoporte() {
           :items="cuentasSalida"
           item-title="label"
           item-value="id"
-          placeholder="Seleccionar banco y cuenta"
-          prepend-inner-icon="mdi-bank"
+          placeholder="SELECCIONAR BANCO Y CUENTA"
+          prepend-inner-icon="mdi-bank-outline"
           variant="outlined"
-          density="comfortable"
+          density="compact"
           class="soporte__input"
           :no-data-text="`No hay cuentas de la empresa en ${solicitud.moneda || 'esa moneda'}`"
           hide-details="auto"
+          :error-messages="idCuentaSalida ? '' : DATO_REQUERIDO"
         />
 
-        <div class="soporte__grid">
-          <div>
-            <label
-              class="soporte__label"
-              for="soporte-tipo"
-            >Tipo de documento <span class="soporte__req">*</span></label>
-            <v-select
-              id="soporte-tipo"
-              v-model="tipoSoporte"
-              :items="TIPOS_SOPORTE"
-              item-title="titulo"
-              item-value="valor"
-              prepend-inner-icon="mdi-file-document-outline"
-              variant="outlined"
-              density="comfortable"
-              class="soporte__input"
-              hide-details
-            >
-              <template #item="{ props: itemProps, item }">
-                <v-list-item
-                  v-bind="itemProps"
-                  :prepend-icon="item.icono"
-                />
-              </template>
-            </v-select>
-          </div>
-          <div>
-            <label
-              class="soporte__label"
-              for="soporte-fecha"
-            >Fecha de pago <span class="soporte__req">*</span></label>
-            <v-text-field
-              id="soporte-fecha"
-              ref="inputFecha"
-              v-model="fechaPago"
-              type="date"
-              prepend-inner-icon="mdi-calendar-check-outline"
-              variant="outlined"
-              density="comfortable"
-              class="soporte__input"
-              :max="hoy()"
-              hide-details="auto"
-            />
-          </div>
-        </div>
+        <label
+          class="soporte__label"
+          for="soporte-fecha"
+        >FECHA DE PAGO <span class="soporte__req">*</span></label>
+        <FormatFecha
+          id="soporte-fecha"
+          ref="inputFecha"
+          v-model="fechaPago"
+          label=""
+          placeholder="SELECCIONAR FECHA"
+          prepend-inner-icon="mdi-calendar-blank-outline"
+          outlined
+          density="compact"
+          field-class="soporte__input"
+          :max="hoy()"
+          hide-details="auto"
+          :error-messages="fechaPago ? '' : DATO_REQUERIDO"
+        />
 
         <div
           v-if="!archivoSoporte"
           class="soporte__drop"
-          :class="{ 'soporte__drop--over': arrastrando }"
+          :class="{ 'soporte__drop--over': arrastrando, 'soporte__drop--error': !subiendo }"
           role="button"
           tabindex="0"
           aria-label="Cargar el archivo del soporte de pago"
@@ -303,14 +303,13 @@ async function guardarSoporte() {
         >
           <template v-if="!subiendo">
             <v-icon
-              size="64"
+              size="40"
               color="#0b5fd6"
             >
               mdi-cloud-upload
             </v-icon>
-            <strong>Cargar el archivo aquí</strong>
-            <span>Arrastra y suelta el archivo o haz clic para seleccionar</span>
-            <span>(PDF, JPG o PNG)</span>
+            <strong>CARGAR EL ARCHIVO AQUÍ</strong>
+            <span>Arrastra y suelta el archivo o haz clic para seleccionar (PDF, JPG o PNG)</span>
           </template>
           <template v-else>
             <v-progress-circular
@@ -328,7 +327,13 @@ async function guardarSoporte() {
           >
         </div>
         <div
-          v-else
+          v-if="!archivoSoporte && !subiendo"
+          class="soporte__error"
+        >
+          {{ DATO_REQUERIDO }}
+        </div>
+        <div
+          v-if="archivoSoporte"
           class="soporte__file"
         >
           <v-icon color="success">
@@ -360,22 +365,22 @@ async function guardarSoporte() {
       <div class="soporte__actions">
         <v-btn
           class="soporte__btn soporte__btn--cancel"
-          variant="flat"
+          variant="outlined"
           :disabled="guardandoSoporte"
           @click="abierto = false"
         >
-          Cancelar
+          CANCELAR
         </v-btn>
         <v-btn
           class="soporte__btn"
           color="#178a1e"
           variant="flat"
-          prepend-icon="mdi-send"
+          prepend-icon="mdi-content-save-outline"
           :loading="guardandoSoporte"
           :disabled="!idCuentaSalida || !archivoSoporte || !fechaPago || subiendo"
           @click="guardarSoporte"
         >
-          Guardar Documento de Pago
+          GUARDAR DOCUMENTO DE PAGO
         </v-btn>
       </div>
     </v-card>
@@ -383,85 +388,129 @@ async function guardarSoporte() {
 </template>
 
 <style scoped>
+/* cabecera y botones fijos; solo el cuerpo hace scroll si no entra en pantalla */
 .soporte {
-  border-radius: 24px !important;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 48px);
+  border-radius: 22px !important;
+  overflow: hidden;
   color: #0a1f44;
 }
+.soporte--full {
+  max-height: none;
+  border-radius: 0 !important;
+}
 .soporte__head {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding: 22px 26px 14px;
-  border-bottom: 1px solid #e6ecf4;
+  gap: 14px;
+  padding: 18px 22px 8px;
 }
 .soporte__icon {
-  display: grid;
-  place-items: center;
-  flex: 0 0 72px;
-  width: 72px;
-  height: 64px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
   border-radius: 14px;
   background: #dcebfd;
   color: #0b5fd6;
 }
 .soporte__titles {
+  flex: 1 1 auto;
   min-width: 0;
+  padding-left: 14px;
+  border-left: 2px solid #0b5fd6;
 }
 .soporte__titles h3 {
   margin: 0;
-  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  font-size: 21px;
   font-weight: 900;
-  color: #0a2a6b;
+  color: #0a1f44;
   line-height: 1.15;
 }
-.soporte__titles p {
-  margin: 2px 0 0;
-  color: #4a5670;
+.soporte__titles span {
+  font-size: 12px;
   font-weight: 600;
+  color: #3b4a63;
 }
 .soporte__close {
   align-self: flex-start;
-  margin-left: auto;
+  color: #0a1f44 !important;
 }
 .soporte__body {
-  padding: 16px 26px 6px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 6px 22px 4px;
+}
+.soporte__prov {
+  padding: 6px 14px;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  background: #dcebfd;
+}
+.soporte__prov-row {
+  display: grid;
+  grid-template-columns: 26px 120px 1fr;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+}
+.soporte__prov-row + .soporte__prov-row {
+  border-top: 1px solid #a9c6ee;
+}
+.soporte__prov-icon {
+  color: #0b5fd6 !important;
+}
+.soporte__prov-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e2c44;
+}
+.soporte__prov-value {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0a1f44;
+  overflow-wrap: anywhere;
 }
 .soporte__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
+  gap: 14px;
 }
 .soporte__label {
   display: block;
-  margin: 12px 0 6px;
-  font-size: 1rem;
+  margin: 10px 0 4px;
+  font-size: 13px;
   font-weight: 800;
   color: #0a1f44;
 }
-.soporte__input :deep(.v-field) {
+.soporte__req {
+  color: #e53935;
+}
+.soporte__input :deep(.v-field),
+:deep(.soporte__input .v-field) {
   border-radius: 10px;
 }
 .soporte__static {
   display: flex;
-  align-items: stretch;
-  min-height: 48px;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 12px;
   border: 1px solid #c9d3e1;
   border-radius: 10px;
-  overflow: hidden;
-  background: #fff;
+  background: #f3f6fb;
 }
-.soporte__addon {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  background: #eef2f7;
-  border-right: 1px solid #c9d3e1;
+.soporte__static-icon {
+  color: #5b6b86 !important;
 }
 .soporte__value {
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  font-size: 1.05rem;
+  font-size: 15px;
   font-weight: 700;
 }
 .soporte__drop {
@@ -470,19 +519,20 @@ async function guardarSoporte() {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 190px;
-  margin-top: 18px;
-  padding: 18px;
+  min-height: 112px;
+  margin-top: 12px;
+  padding: 12px;
   border: 2px dashed #0b5fd6;
-  border-radius: 16px;
+  border-radius: 14px;
   background: #f1f7ff;
   color: #3b4a63;
+  font-size: 13px;
   cursor: pointer;
   text-align: center;
   transition: background 0.15s ease;
 }
 .soporte__drop strong {
-  font-size: 1.5rem;
+  font-size: 15px;
   font-weight: 900;
   color: #0a2a6b;
 }
@@ -492,33 +542,41 @@ async function guardarSoporte() {
   outline: none;
   background: #e2eefd;
 }
+/* obligatorios vacíos: en rojo debajo, porque el botón Guardar no se activa sin ellos */
+.soporte__drop--error {
+  border-color: #e53935;
+}
+.soporte__error {
+  margin: 4px 0 0 4px;
+  color: #e53935;
+  font-size: 12px;
+}
 .soporte__file {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 18px;
-  padding: 12px 14px;
+  margin-top: 12px;
+  padding: 8px 12px;
   border: 1px solid #a5d6a7;
   border-radius: 12px;
   background: #e8f5e9;
 }
 .soporte__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 14px;
-  padding: 18px 26px 24px;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 12px;
+  padding: 14px 22px 18px;
 }
 .soporte__btn {
-  min-height: 52px;
-  padding: 0 24px !important;
-  border-radius: 12px !important;
-  font-size: 1.05rem;
+  min-height: 44px;
+  border-radius: 10px !important;
+  font-size: 0.95rem;
   font-weight: 800;
-  text-transform: none;
   letter-spacing: 0;
 }
 .soporte__btn--cancel {
-  background: #e3e7ee !important;
+  border-color: #c9d3e1 !important;
   color: #0a1f44 !important;
 }
 
@@ -527,8 +585,14 @@ async function guardarSoporte() {
     grid-template-columns: 1fr;
     gap: 0;
   }
+  .soporte__prov-row {
+    grid-template-columns: 26px 1fr;
+  }
+  .soporte__prov-value {
+    grid-column: 2;
+  }
   .soporte__actions {
-    flex-direction: column-reverse;
+    grid-template-columns: 1fr;
   }
 }
 </style>

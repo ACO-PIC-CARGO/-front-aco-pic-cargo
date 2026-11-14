@@ -123,7 +123,7 @@ watch(
             class="spver__divider"
           />
           <h2 class="spver__title">
-            Solicitud de Pago
+            Envío a Administración
           </h2>
           <div class="spver__exp">
             <span class="spver__exppill">EXP {{ detalle.expediente }}</span>
@@ -166,7 +166,7 @@ watch(
                 Monto a Pagar
               </div>
               <div class="spver__herovalue spver__herovalue--monto">
-                {{ detalle.moneda }} {{ formatoMonto(detalle.monto) }}
+                {{ formatoMonto(detalle.monto) }} {{ detalle.moneda }}
               </div>
             </div>
           </div>
@@ -304,7 +304,7 @@ watch(
                     >- {{ p.correlativo }}</span>
                   </td>
                   <td class="text-right text-no-wrap">
-                    {{ p.moneda }} {{ formatoMonto(p.total) }}
+                    {{ formatoMonto(p.total) }} {{ p.moneda }}
                   </td>
                   <td class="text-center">
                     <span class="spver__status">{{ p.estado }}</span>
