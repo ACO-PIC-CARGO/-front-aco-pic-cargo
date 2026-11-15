@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, ref } from "vue";
 import moment from "moment";
 import type { ValidationRule } from "vuetify";
 import { shortDate } from "@/utils/dates";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     label?: string;
     outlined?: boolean;
@@ -12,10 +12,18 @@ withDefaults(
     errorMessages?: string | string[];
     verflag?: boolean;
     clearable?: boolean;
-    hideDetails?: boolean;
+    hideDetails?: boolean | "auto";
     disabled?: boolean;
     // Añadir esta prop para interceptar las reglas del padre
     rules?: ValidationRule[];
+    // Opcionales para formularios con diseño propio (ícono dentro del campo, etc.)
+    prependInnerIcon?: string;
+    density?: "default" | "comfortable" | "compact";
+    placeholder?: string;
+    id?: string;
+    fieldClass?: string;
+    min?: string;
+    max?: string;
   }>(),
   {
     label: "Fecha",
@@ -27,16 +35,25 @@ withDefaults(
     hideDetails: false,
     disabled: false,
     rules: () => [],
+    prependInnerIcon: undefined,
+    density: undefined,
+    placeholder: undefined,
+    id: undefined,
+    fieldClass: undefined,
+    min: undefined,
+    max: undefined,
   },
 );
 const model = defineModel<string | null>({ default: null });
 
 const menuDesde = ref(false);
+const campo = ref<{ focus: () => void } | null>(null);
 
 const labelFormateada = computed(() => {
   if (!model.value) return "";
   return shortDate(model.value);
 });
+const densidad = computed(() => props.density ?? (props.dense ? "compact" : undefined));
 
 function selectDate(date: moment.MomentInput) {
   model.value = moment(date).format("YYYY-MM-DD");
@@ -45,6 +62,17 @@ function selectDate(date: moment.MomentInput) {
 function limpiarFecha() {
   model.value = null;
 }
+// Enter / espacio abren el calendario cuando se llega con Tab
+function abrirConTeclado() {
+  if (!props.verflag && !props.disabled) menuDesde.value = true;
+}
+async function focus() {
+  campo.value?.focus();
+  await nextTick();
+  abrirConTeclado();
+}
+
+defineExpose({ focus });
 </script>
 
 <template>
@@ -55,27 +83,36 @@ function limpiarFecha() {
     min-width="auto"
     :disabled="verflag || disabled"
   >
-    <template #activator="{ props }">
+    <template #activator="{ props: activador }">
       <v-text-field
+        :id="id"
+        ref="campo"
         :model-value="labelFormateada"
         :label="label"
-        prepend-icon="mdi-calendar"
+        :placeholder="placeholder"
+        :prepend-icon="prependInnerIcon ? undefined : 'mdi-calendar'"
+        :prepend-inner-icon="prependInnerIcon"
         readonly
         :disabled="verflag"
-        v-bind="verflag ? {} : props"
+        v-bind="verflag ? {} : activador"
         :variant="outlined ? 'outlined' : undefined"
-        :density="dense ? 'compact' : undefined"
+        :density="densidad"
+        :class="fieldClass"
         :error-messages="errorMessages"
         :error="!!errorMessages"
         :clearable="clearable"
         :rules="rules"
         @click:clear="limpiarFecha"
+        @keydown.enter.prevent="abrirConTeclado"
+        @keydown.space.prevent="abrirConTeclado"
         :hide-details="hideDetails"
       />
     </template>
     <v-locale-provider locale="es">
       <v-date-picker
         :model-value="model"
+        :min="min"
+        :max="max"
         @update:model-value="selectDate"
         hide-header
       />

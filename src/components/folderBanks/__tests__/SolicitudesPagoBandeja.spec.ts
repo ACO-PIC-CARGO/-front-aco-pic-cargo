@@ -107,7 +107,7 @@ test("an empty list is not an error", async () => {
   w.unmount();
 });
 
-test("approve buttons follow the profile: 04 Administración, 01 Gerencia", async () => {
+test("approve buttons follow the profile: Administración 04 o 01, Gerencia 01", async () => {
   const pendientes = [
     { ...fila, id: 1, codigo_estado: "PENADM", estado: "Pendiente por Administración", area_rechazo: null, usuario_rechazo: null },
     { ...fila, id: 2, codigo_estado: "PENGER", estado: "Pendiente por Gerencia", area_rechazo: null, usuario_rechazo: null,
@@ -120,7 +120,7 @@ test("approve buttons follow the profile: 04 Administración, 01 Gerencia", asyn
   let w = render("PEN");
   await flushPromises();
   let rows = w.findAll("tbody tr");
-  expect(rows[0]!.find(".spb__revisar").exists()).toBe(false); // sin 04 no aprueba Administración
+  expect(rows[0]!.find(".spb__revisar").exists()).toBe(true); // el 01 también aprueba Administración
   expect(rows[1]!.find(".spb__revisar").exists()).toBe(true); // 01 aprueba Gerencia
   expect(rows[1]!.text()).toContain("adm.qa");
   // LISTO: se habilita subir el soporte

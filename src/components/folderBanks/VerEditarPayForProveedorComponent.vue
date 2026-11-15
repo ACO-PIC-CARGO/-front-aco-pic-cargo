@@ -47,6 +47,20 @@ const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
 const selectedAccount = useSelectModel(id_cuenta);
 const fechaoperacion = ref<string | null>(null);
+// Banco del proveedor al que se pagó
+const idBancoProveedor = ref<number | null>(null);
+const nroCuentaProveedor = ref("");
+const idCoinsProveedor = ref<number | null>(null);
+// Banco, N° de cuenta y moneda del proveedor son obligatorios
+const errorBancoProveedor = ref({ banco: "", cuenta: "", moneda: "" });
+function validarBancoProveedor() {
+  errorBancoProveedor.value = {
+    banco: idBancoProveedor.value ? "" : "Banco del Proveedor es requerido",
+    cuenta: nroCuentaProveedor.value.trim() ? "" : "N° de Cuenta del Proveedor es requerido",
+    moneda: idCoinsProveedor.value ? "" : "Moneda del Proveedor es requerida",
+  };
+  return !Object.values(errorBancoProveedor.value).some(Boolean);
+}
 const tipocambiosVer = ref<number | string>(1);
 const id_path = ref<number | null>(null);
 const selected = ref<DetalleEgreso[]>([]);
@@ -326,6 +340,11 @@ async function subirArchivo() {
 
 //   this.monto = total.toFixed(2);
 // },
+// Abre la ficha del proveedor en una pestaña nueva
+function verDatosProveedor() {
+  if (!proveedor.value) return;
+  window.open(router.resolve({ name: "verProveedor", params: { id: proveedor.value } }).href, "_blank");
+}
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function continuarGastoBancario() {
   if (!monto_local.value) {
@@ -340,6 +359,11 @@ function continuarGastoBancario() {
   editableGastoBancario.value = true;
 }
 async function finalizarOperacion() {
+  if (!validarBancoProveedor()) {
+    pasos.value = 1;
+    Swal.fire({ icon: "warning", text: "Completa el banco, el N° de cuenta y la moneda del proveedor en Detalles Bancarios." });
+    return false;
+  }
   const montos = selected.value.map((item) => item.montoparcial);
   if (!depositMatches(montos, montogastobancario.value, monto_local.value)) {
     Swal.fire({
@@ -365,6 +389,9 @@ async function finalizarOperacion() {
     conceptogastobancario: conceptogastobancario.value,
     numerooperacion: numerooperacion.value,
     id_soporte: id_path.value,
+    id_banco_proveedor: idBancoProveedor.value,
+    nrocuenta_proveedor: nroCuentaProveedor.value,
+    id_coins_proveedor: idCoinsProveedor.value,
     id: route.params.id,
     ...withAuthorization(adminAuthorization.credentials),
   };
@@ -381,8 +408,10 @@ function recalcularTotal() {
   }, Number(montogastobancario.value) || 0);
 }
 
-watch(id_cuenta, (newVal) => {
+watch(id_cuenta, (newVal, oldVal) => {
   const id_coins = newVal.id_coins;
+  // al cambiar la cuenta de salida, la moneda del proveedor pasa a ser la de esa cuenta
+  if (oldVal?.id && newVal.id && newVal.id !== oldVal.id) idCoinsProveedor.value = id_coins ?? null;
   const coins = appStore.itemsCoinsList.find(
     (coin: { id: number }) => coin.id === id_coins,
   );
@@ -411,6 +440,7 @@ onMounted(async () => {
   await Promise.all([
     appStore.cargarProveedores(),
     appStore._getCoinsList(),
+    appStore._getBanksList(),
     bancosStore.getListBanksDetailsCargar(),
   ]);
   const data = (await bankStore.verRegistroEgresos({ id: route.params.id })) as unknown as RegistroEgresoVer;
@@ -423,6 +453,9 @@ onMounted(async () => {
   fechaoperacion.value = data.fechaoperacion;
   numerooperacion.value = data.numerooperacion;
   comentarios.value = data.comentario;
+  idBancoProveedor.value = data.id_banco_proveedor ?? null;
+  nroCuentaProveedor.value = data.nrocuenta_proveedor || "";
+  idCoinsProveedor.value = data.id_coins_proveedor ?? null;
   tipocambiosVer.value = data.tipocambio;
   monto.value = data.totaldolar;
   monto_local.value = data.totalmonedalocal;
@@ -447,21 +480,34 @@ onMounted(async () => {
           class="pb-0"
         >
           Proveedor:
-          <v-autocomplete
-            variant="outlined"
-            density="compact"
-            :items="provedores"
-            item-title="namelong"
-            item-value="id"
-            placeholder="Proveedor"
-            v-model="proveedor"
-            clearable
-            @update:model-value="obtenerListado()"
-            hide-details
-            :error-messages="errorMesage.proveedor"
-            disabled
-            id="cboProveedor"
-          />
+          <div class="d-flex align-center">
+            <v-autocomplete
+              variant="outlined"
+              density="compact"
+              :items="provedores"
+              item-title="namelong"
+              item-value="id"
+              placeholder="Proveedor"
+              v-model="proveedor"
+              clearable
+              @update:model-value="obtenerListado()"
+              hide-details
+              :error-messages="errorMesage.proveedor"
+              disabled
+              id="cboProveedor"
+            />
+            <v-btn
+              v-if="proveedor"
+              icon="mdi-open-in-new"
+              variant="tonal"
+              color="primary"
+              size="small"
+              class="ml-2 flex-shrink-0"
+              title="Ver datos del proveedor (pestaña nueva)"
+              aria-label="Ver datos del proveedor en una pestaña nueva"
+              @click="verDatosProveedor"
+            />
+          </div>
         </v-col>
         <v-col
           cols="12"
@@ -782,6 +828,60 @@ onMounted(async () => {
                         : (errorMesage.numerooperacion =
                           'Número de Operación es requerido')
                     "
+                    :disabled="verflag"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                  class="py-1"
+                >
+                  <v-autocomplete
+                    v-model="idBancoProveedor"
+                    :items="appStore.itemsDataBanksList"
+                    item-title="acronym"
+                    item-value="id"
+                    label="Banco del Proveedor *"
+                    variant="outlined"
+                    density="compact"
+                    clearable
+                    :error-messages="errorBancoProveedor.banco"
+                    @update:model-value="errorBancoProveedor.banco = ''"
+                    :disabled="verflag"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                  class="py-1"
+                >
+                  <v-text-field
+                    v-model="nroCuentaProveedor"
+                    label="N° de Cuenta del Proveedor *"
+                    :error-messages="errorBancoProveedor.cuenta"
+                    @update:model-value="errorBancoProveedor.cuenta = ''"
+                    variant="outlined"
+                    density="compact"
+                    maxlength="100"
+                    :disabled="verflag"
+                  />
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                  class="py-1"
+                >
+                  <v-autocomplete
+                    v-model="idCoinsProveedor"
+                    :items="appStore.itemsCoinsList"
+                    item-title="name"
+                    item-value="id"
+                    label="Moneda del Proveedor *"
+                    :error-messages="errorBancoProveedor.moneda"
+                    @update:model-value="errorBancoProveedor.moneda = ''"
+                    variant="outlined"
+                    density="compact"
+                    clearable
                     :disabled="verflag"
                   />
                 </v-col>

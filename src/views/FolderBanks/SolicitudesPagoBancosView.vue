@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
+import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import { request } from "@/utils/request";
 import SolicitudesPagoBandeja from "@/components/folderBanks/SolicitudesPagoBandejaComponent.vue";
@@ -7,6 +8,8 @@ import type { OpcionFiltroSolicitudPago, TabBandejaSolicitudPago } from "@/types
 
 // Administración > Bancos > Solicitudes de Pago
 const appStore = useAppStore();
+// en celular menos margen para que las tarjetas tengan ancho
+const { smAndDown } = useDisplay();
 const tab = ref<TabBandejaSolicitudPago>("PEN");
 const opciones = ref<OpcionFiltroSolicitudPago[]>([]);
 const totales = ref<Record<TabBandejaSolicitudPago, number | null>>({ PEN: null, REC: null, HIS: null });
@@ -36,10 +39,10 @@ onMounted(async () => {
 <template>
   <v-container
     fluid
-    class="pt-2"
+    :class="smAndDown ? 'pa-1' : 'pt-2'"
   >
     <v-card
-      class="pa-4"
+      :class="smAndDown ? 'pa-2' : 'pa-4'"
       rounded="lg"
     >
       <v-tabs

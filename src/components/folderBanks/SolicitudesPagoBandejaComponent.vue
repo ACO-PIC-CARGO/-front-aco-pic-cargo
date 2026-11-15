@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useDisplay } from "vuetify";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
 import { usePermissions } from "@/composables/usePermissions";
@@ -9,6 +10,15 @@ import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/use
 import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
+import SolicitudesPagoMovil from "@/components/folderBilling/SolicitudesPagoMovil.vue";
+import SolicitudPagoEditarDialog from "@/components/folderBilling/SolicitudPagoEditarDialog.vue";
+import {
+  tieneAprobacionesSolicitud,
+  tieneSalidaBancosSolicitud,
+  useAccionesSolicitudPago,
+} from "@/composables/useAccionesSolicitudPago";
+import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
+import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type {
   FacturaProveedorCargada,
@@ -50,6 +60,8 @@ const { can } = usePermissions();
 const router = useRouter();
 const puedeModificar = computed(() => can("solicitudesPagoBancos", "MODIFICAR"));
 const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
+// móvil: tarjetas por estado (sin Excel, buscador ni Limpiar)
+const { smAndDown } = useDisplay();
 const procesando = ref<number | null>(null);
 
 // ver solicitud (ojito)
@@ -58,6 +70,24 @@ const idSolicitudVer = ref<number | null>(null);
 function verSolicitud(s: SolicitudPagoBandeja) {
   idSolicitudVer.value = s.id;
   dialogVer.value = true;
+}
+
+// Acciones de la solicitud: editar / eliminar (con aprobaciones piden clave de administrador;
+// con salida en Bancos avisan que primero se elimine ese movimiento) y ver
+const {
+  dialogEditar: dialogEditarSolicitud,
+  solicitudEditar,
+  adminEditar,
+  eliminando: eliminandoSolicitud,
+  editar: editarSolicitud,
+  eliminar: eliminarSolicitud,
+} = useAccionesSolicitudPago(() => cargar());
+const puedeEditarSolicitud = computed(() => can("listControlGastos", "NUEVO") || can("solicitudesPagoBancos", "MODIFICAR"));
+const puedeEliminarSolicitud = computed(() => can("listControlGastos", "ELIMINAR") || can("solicitudesPagoBancos", "MODIFICAR"));
+const anuladaSolicitud = (s: SolicitudPagoAccion & { fecha_anulado?: string | null; usuario_anulado?: string | null }) => !!(s.fecha_anulado || s.usuario_anulado);
+function tituloAccion(s: SolicitudPagoAccion, accion: "Editar" | "Eliminar") {
+  if (tieneSalidaBancosSolicitud(s)) return "Ya está pagada en Bancos: elimine primero el movimiento";
+  return `${accion} solicitud de pago${tieneAprobacionesSolicitud(s) ? " (requiere clave de administrador)" : ""}`;
 }
 
 // anexos (facturas / proformas del proveedor)
@@ -187,23 +217,23 @@ const filtrosActivos = computed(() => {
 });
 const hayFiltros = computed(() => filtrosActivos.value.length > 0 || !!busqueda.value.trim());
 
+// mismas columnas y orden que Pagos Pendientes (Control de Gastos), todas centradas
+const columna = (title: string, key: string) => ({ title, key, sortable: false, align: "center" as const });
 const headers = computed(() => [
-  { title: "Fecha de solicitud", key: "fechasolicitud", sortable: false },
-  { title: "Expediente", key: "expediente", sortable: false },
-  { title: "Proveedor", key: "proveedor", sortable: false },
-  { title: "Monto", key: "monto", sortable: false, align: "end" as const },
-  { title: "Banco", key: "banco", sortable: false },
-  { title: "Método de pago", key: "tipopago", sortable: false },
-  { title: "Código / N° de cuenta", key: "cuenta", sortable: false },
-  { title: "Estado", key: "estado", sortable: false },
-  { title: "Administración", key: "adm", sortable: false, align: "center" as const },
-  { title: "Gerencia", key: "ger", sortable: false, align: "center" as const },
+  columna("Fecha de solicitud", "fechasolicitud"),
+  columna("Expediente", "expediente"),
+  columna("Proveedor", "proveedor"),
+  columna("Monto", "monto"),
+  columna("Banco", "banco"),
+  columna("Método de pago", "tipopago"),
+  columna("Código / N° de cuenta", "cuenta"),
+  columna("Estado", "estado"),
+  columna("Administración", "adm"),
+  columna("Gerencia", "ger"),
   ...(esRechazadas.value
-    ? [{ title: "Motivo", key: "motivo_rechazo", sortable: false }]
-    : [
-      { title: "Fecha de pago", key: "fechapago", sortable: false, align: "center" as const },
-      { title: "Soporte", key: "soporte", sortable: false, align: "center" as const },
-    ]),
+    ? [columna("Motivo", "motivo_rechazo")]
+    : [columna("Fecha de pago", "fechapago"), columna("Soporte", "soporte")]),
+  columna("Acciones", "ver"),
 ]);
 
 function parametros(paginar: boolean) {
@@ -253,6 +283,18 @@ function irPrimeraPagina() {
 const buscarConPausa = useDebouncedSearch(irPrimeraPagina, 400);
 watch(busqueda, () => buscarConPausa());
 watch([pagina, porPagina], () => cargar());
+watch(
+  smAndDown,
+  (movil) => {
+    const tamano = movil ? 100 : 10;
+    if (porPagina.value !== tamano) {
+      pagina.value = 1;
+      porPagina.value = tamano;
+    }
+  },
+  { immediate: true },
+);
+const paginasMovil = computed(() => Math.max(1, Math.ceil(total.value / porPagina.value)));
 
 function abrirFiltros() {
   borrador.value = { ...filtros.value };
@@ -314,10 +356,18 @@ function cuentaOCodigo(s: SolicitudPagoBandeja) {
 function formatoMonto(valor: number | string) {
   return Number(valor || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+// el monto se copia como número: 1433.64 (sin separador de miles ni moneda)
+function montoNumero(valor: number | string) {
+  return Number(valor || 0).toFixed(2);
+}
 function formatoFecha(valor: string | null) {
   if (!valor) return "—";
   const [anio, mes, dia] = valor.slice(0, 10).split("-");
   return `${dia}-${MESES[Number(mes) - 1]}-${anio}`;
+}
+// aprobaciones: fecha arriba y hora abajo ("13-Nov-2026" / "18:53")
+function horaDe(valor: string | null | undefined) {
+  return valor ? valor.slice(11, 16) : "";
 }
 function formatoFechaHora(valor: string | null) {
   if (!valor) return "—";
@@ -336,6 +386,7 @@ onMounted(cargar);
     <!-- barra superior: buscar + Excel / Filtrar / Limpiar -->
     <div class="spb__toolbar">
       <v-text-field
+        v-if="!smAndDown"
         v-model="busqueda"
         class="spb__search"
         label="Buscar"
@@ -350,7 +401,7 @@ onMounted(cargar);
       <v-spacer />
       <div class="spb__actions">
         <v-btn
-          v-if="can('solicitudesPagoBancos', 'EXPORTAR')"
+          v-if="!smAndDown && can('solicitudesPagoBancos', 'EXPORTAR')"
           color="success"
           size="small"
           :loading="exportando"
@@ -384,6 +435,7 @@ onMounted(cargar);
           </v-btn>
         </v-badge>
         <v-btn
+          v-if="!smAndDown"
           color="red"
           size="small"
           variant="outlined"
@@ -421,7 +473,40 @@ onMounted(cargar);
       {{ total }} {{ total === 1 ? "resultado" : "resultados" }}
     </div>
 
-    <div class="spb__tablewrap">
+    <!-- ======================= MÓVIL ======================= -->
+    <template v-if="smAndDown">
+      <SolicitudesPagoMovil
+        :items="filas"
+        :cargando="cargando"
+        :puede-aprobar="puedeModificar"
+        :puede-transferir="puedeTransferir"
+        :puede-editar="puedeEditarSolicitud"
+        :puede-eliminar="puedeEliminarSolicitud"
+        :procesando="procesando"
+        :revisando="revisando"
+        :eliminando="eliminandoSolicitud"
+        @aprobar="(sol, tipo) => revisar(sol as SolicitudPagoBandeja, tipo)"
+        @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoBandeja)"
+        @transferir="(sol) => transferir(sol as SolicitudPagoBandeja)"
+        @ver-salida="(sol) => verSalida(sol as SolicitudPagoBandeja)"
+        @ver-anexo="(sol) => verAnexo(sol as SolicitudPagoBandeja)"
+        @editar="editarSolicitud"
+        @eliminar="eliminarSolicitud"
+        @ver="(sol) => verSolicitud(sol as SolicitudPagoBandeja)"
+      />
+      <v-pagination
+        v-if="paginasMovil > 1"
+        v-model="pagina"
+        :length="paginasMovil"
+        density="comfortable"
+        class="mt-2"
+      />
+    </template>
+
+    <div
+      v-else
+      class="spb__tablewrap"
+    >
       <v-data-table-server
         v-model:page="pagina"
         v-model:items-per-page="porPagina"
@@ -441,18 +526,7 @@ onMounted(cargar);
           <span class="text-no-wrap">{{ formatoFecha(item.fechasolicitud) }}</span>
         </template>
         <template #[`item.expediente`]="{ item }">
-          <div class="spb__exp">
-            <v-btn
-              icon="mdi-eye-outline"
-              variant="tonal"
-              size="x-small"
-              color="primary"
-              title="Ver solicitud de pago"
-              aria-label="Ver solicitud de pago"
-              @click="verSolicitud(item)"
-            />
-            <span class="spb__pill">{{ item.expediente }}</span>
-          </div>
+          <span class="spb__pill">{{ item.expediente }}</span>
           <div
             v-if="item.correlativo"
             class="spb__sub"
@@ -462,6 +536,7 @@ onMounted(cargar);
         </template>
         <template #[`item.proveedor`]="{ item }">
           <div class="spb__provrow">
+            <span class="spb__prov">{{ proveedor(item) }}</span>
             <v-btn
               icon="mdi-content-copy"
               variant="text"
@@ -471,7 +546,6 @@ onMounted(cargar);
               aria-label="Copiar proveedor"
               @click="copiar(proveedor(item))"
             />
-            <span class="spb__prov">{{ proveedor(item) }}</span>
           </div>
           <button
             type="button"
@@ -484,7 +558,18 @@ onMounted(cargar);
           </button>
         </template>
         <template #[`item.monto`]="{ item }">
-          <span class="spb__monto">{{ formatoMonto(item.monto) }} {{ item.moneda || "" }}</span>
+          <div class="spb__monto">
+            <span>{{ formatoMonto(item.monto) }} {{ item.moneda || "" }}</span>
+            <v-btn
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar monto"
+              aria-label="Copiar monto"
+              @click="copiar(montoNumero(item.monto))"
+            />
+          </div>
         </template>
         <template #[`item.banco`]="{ item }">
           <span class="font-weight-bold">{{ item.banco || "—" }}</span>
@@ -555,14 +640,14 @@ onMounted(cargar);
                 <div class="spb__aprobuser">
                   {{ a.usuario }}
                 </div>
-                <span class="spb__aprobfecha">{{ formatoFechaHora(a.fecha) }}</span>
+                <span class="spb__aprobfecha">{{ formatoFecha(a.fecha) }}<template v-if="horaDe(a.fecha)"><br>{{ horaDe(a.fecha) }}</template></span>
               </template>
               <template v-else-if="a.rechazado">
                 <span class="spb__rechazotag">Rechazado</span>
                 <div class="spb__aprobuser">
                   {{ item.usuario_rechazo || "—" }}
                 </div>
-                <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFechaHora(item.fecha_rechazo) }}</span>
+                <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
               </template>
               <v-btn
                 v-else-if="a.pendiente && puedeModificar && tienePerfilRevision(a.tipo)"
@@ -592,14 +677,14 @@ onMounted(cargar);
                 <div class="spb__aprobuser">
                   {{ a.usuario }}
                 </div>
-                <span class="spb__aprobfecha">{{ formatoFechaHora(a.fecha) }}</span>
+                <span class="spb__aprobfecha">{{ formatoFecha(a.fecha) }}<template v-if="horaDe(a.fecha)"><br>{{ horaDe(a.fecha) }}</template></span>
               </template>
               <template v-else-if="a.rechazado">
                 <span class="spb__rechazotag">Rechazado</span>
                 <div class="spb__aprobuser">
                   {{ item.usuario_rechazo || "—" }}
                 </div>
-                <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFechaHora(item.fecha_rechazo) }}</span>
+                <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
               </template>
               <v-btn
                 v-else-if="a.pendiente && puedeModificar && tienePerfilRevision(a.tipo)"
@@ -681,12 +766,53 @@ onMounted(cargar);
             class="spb__muted"
           >—</span>
         </template>
+        <template #[`item.ver`]="{ item }">
+          <!-- 1. editar  2. eliminar  3. ver: editar/eliminar con las mismas reglas que Control de Gastos -->
+          <div class="spb__acciones">
+            <v-btn
+              v-if="puedeEditarSolicitud && !anuladaSolicitud(item)"
+              icon="mdi-pencil-outline"
+              variant="text"
+              size="small"
+              :color="tieneSalidaBancosSolicitud(item) ? 'grey' : 'primary'"
+              :title="tituloAccion(item, 'Editar')"
+              aria-label="Editar solicitud de pago"
+              @click="editarSolicitud(item)"
+            />
+            <v-btn
+              v-if="puedeEliminarSolicitud && !anuladaSolicitud(item)"
+              icon="mdi-delete-outline"
+              variant="text"
+              size="small"
+              :color="tieneSalidaBancosSolicitud(item) ? 'grey' : 'error'"
+              :title="tituloAccion(item, 'Eliminar')"
+              aria-label="Eliminar solicitud de pago"
+              :loading="eliminandoSolicitud === item.id"
+              @click="eliminarSolicitud(item)"
+            />
+            <v-btn
+              icon="mdi-eye-outline"
+              variant="tonal"
+              size="small"
+              color="primary"
+              title="Ver solicitud de pago"
+              aria-label="Ver solicitud de pago"
+              @click="verSolicitud(item)"
+            />
+          </div>
+        </template>
         <template #[`item.motivo_rechazo`]="{ item }">
           <span class="spb__motivo">{{ item.motivo_rechazo || "Sin motivo" }}</span>
         </template>
       </v-data-table-server>
     </div>
 
+    <SolicitudPagoEditarDialog
+      v-model="dialogEditarSolicitud"
+      :solicitud="solicitudEditar"
+      :admin="adminEditar"
+      @guardado="cargar()"
+    />
     <SoportePagoDialog
       v-model="dialogSoporte"
       :solicitud="solicitudSoporte"
@@ -789,21 +915,25 @@ onMounted(cargar);
         <div class="spb__field">
           <label>Fecha de solicitud</label>
           <div class="spb__dates">
-            <v-text-field
+            <FormatFecha
               v-model="borrador.desde"
-              type="date"
               label="Desde"
-              variant="outlined"
-              density="compact"
+              prepend-inner-icon="mdi-calendar"
+              outlined
+              dense
+              clearable
               hide-details
+              :max="borrador.hasta || undefined"
             />
-            <v-text-field
+            <FormatFecha
               v-model="borrador.hasta"
-              type="date"
               label="Hasta"
-              variant="outlined"
-              density="compact"
+              prepend-inner-icon="mdi-calendar"
+              outlined
+              dense
+              clearable
               hide-details
+              :min="borrador.desde || undefined"
             />
           </div>
         </div>
@@ -959,20 +1089,25 @@ onMounted(cargar);
 .spb__muted {
   color: var(--spb-muted);
 }
-.spb__exp,
 .spb__provrow,
 .spb__cuenta,
+.spb__monto,
 .spb__soporte {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 4px;
   white-space: nowrap;
+}
+/* soporte: ver soporte arriba, registrar en banco / salida abajo */
+.spb__soporte {
+  flex-direction: column;
 }
 .spb__anexo {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  margin: 4px 0 0 28px;
+  margin: 4px 0 0;
   padding: 1px 10px;
   border: 1px solid #1e5bd8;
   border-radius: 999px;
@@ -1059,8 +1194,10 @@ onMounted(cargar);
 .spb__aprobfecha {
   display: inline-block;
   margin-top: 2px;
-  padding: 1px 8px;
-  border-radius: 999px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  line-height: 1.3;
+  text-align: center;
   background: #e7efff;
   color: var(--spb-primary);
   font-size: 0.72rem;
@@ -1129,5 +1266,14 @@ onMounted(cargar);
   justify-content: flex-end;
   padding: 12px 16px;
   border-top: 1px solid var(--spb-border);
+}
+
+/* acciones: editar, eliminar y ver */
+.spb__acciones {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  white-space: nowrap;
 }
 </style>

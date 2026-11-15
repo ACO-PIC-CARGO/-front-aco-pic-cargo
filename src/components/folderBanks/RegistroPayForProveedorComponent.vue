@@ -2,6 +2,7 @@
 import "@/styles/bank-form.css";
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, watch } from "vue";
 import { useSelectModel } from "@/composables/useSelectModel";
+import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
@@ -21,6 +22,7 @@ import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 const props = defineProps<{ tipo?: string; token?: string }>();
 
 const appStore = useAppStore();
+const router = useRouter();
 const { can } = usePermissions();
 const bankStore = useBankStore();
 const bancosStore = useBancosStore();
@@ -48,6 +50,20 @@ const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
 const selectedAccount = useSelectModel(id_cuenta);
 const fechaoperacion = ref<string | null>(null);
+// Banco del proveedor al que se paga (desde una solicitud se propone lo solicitado)
+const idBancoProveedor = ref<number | null>(null);
+const nroCuentaProveedor = ref("");
+const idCoinsProveedor = ref<number | null>(null);
+// Banco, N° de cuenta y moneda del proveedor son obligatorios
+const errorBancoProveedor = ref({ banco: "", cuenta: "", moneda: "" });
+function validarBancoProveedor() {
+  errorBancoProveedor.value = {
+    banco: idBancoProveedor.value ? "" : "Banco del Proveedor es requerido",
+    cuenta: nroCuentaProveedor.value.trim() ? "" : "N° de Cuenta del Proveedor es requerido",
+    moneda: idCoinsProveedor.value ? "" : "Moneda del Proveedor es requerida",
+  };
+  return !Object.values(errorBancoProveedor.value).some(Boolean);
+}
 const id_path = ref<number | null>(null);
 const selected = ref<DetalleEgreso[]>([]);
 const invoicesOnPage = ref<DetalleEgreso[]>([]);
@@ -218,6 +234,9 @@ async function cargarSolicitud() {
   fechaoperacion.value = sol.fechapago;
   id_path.value = sol.id_path_soporte;
   comentarios.value = sol.comentario || "";
+  idBancoProveedor.value = sol.id_banco_proveedor ?? null;
+  nroCuentaProveedor.value = sol.nrocuenta_proveedor || "";
+  idCoinsProveedor.value = sol.id_coins_proveedor ?? sol.id_coins ?? null;
   if (!itemsOrdenados.value.length) {
     errorSolicitud.value = `El correlativo ${sol.correlativo ?? ""} del expediente ${sol.expediente} ya no tiene saldo pendiente con este proveedor.`;
     return;
@@ -237,6 +256,11 @@ function seleccionarCorrelativoSolicitud() {
   });
   selected.value = [...items];
   calcularTotal();
+}
+// Abre la ficha del proveedor en una pestaña nueva
+function verDatosProveedor() {
+  if (!proveedor.value) return;
+  window.open(router.resolve({ name: "verProveedor", params: { id: proveedor.value } }).href, "_blank");
 }
 function cancelarllenadoDeMonto() {
   dialogLlenarMontoDepositadoBanco.value = false;
@@ -358,6 +382,9 @@ async function obtenerListado() {
 
   fechaoperacion.value = null;
   numerooperacion.value = "";
+  idBancoProveedor.value = null;
+  nroCuentaProveedor.value = "";
+  idCoinsProveedor.value = null;
 
   id_path.value = null;
 
@@ -412,7 +439,9 @@ function continuarDetalles() {
     fechaoperacion: "",
     numerooperacion: "",
   };
+  const bancoProveedorOk = validarBancoProveedor();
   if (
+    bancoProveedorOk &&
     Object.keys(id_cuenta.value).length > 0 &&
     fechaoperacion.value &&
     numerooperacion.value &&
@@ -585,6 +614,9 @@ async function finalizarOperacion() {
     conceptogastobancario: conceptogastobancario.value,
     numerooperacion: numerooperacion.value,
     id_soporte: id_path.value,
+    id_banco_proveedor: idBancoProveedor.value,
+    nrocuenta_proveedor: nroCuentaProveedor.value,
+    id_coins_proveedor: idCoinsProveedor.value,
   };
   loading.value = true;
   if (props.token) {
@@ -660,6 +692,8 @@ watch(id_cuenta, (newVal, oldVal) => {
       calcularTotal();
     }
     const id_coins = newVal.id_coins;
+    // por defecto el proveedor recibe en la misma moneda de la cuenta de salida
+    idCoinsProveedor.value = id_coins ?? null;
     const coins = appStore.itemsCoinsList.find(
       (coin: { id: number }) => coin.id === id_coins,
     );
@@ -700,6 +734,7 @@ onMounted(async () => {
     await Promise.all([
       appStore.cargarProveedores(),
       appStore._getCoinsList(),
+      appStore._getBanksList(),
       bancosStore.getListBanksDetailsCargar(),
       desdeSolicitud.value ? cargarSolicitud() : Promise.resolve(),
     ]);
@@ -734,21 +769,34 @@ onMounted(async () => {
           md="4"
           class="pb-0"
         >
-          <v-autocomplete
-            variant="outlined"
-            label="Proveedor"
-            density="compact"
-            :items="provedores"
-            item-title="namelong"
-            item-value="id"
-            placeholder="Proveedor"
-            v-model="proveedor"
-            :clearable="!desdeSolicitud"
-            :readonly="desdeSolicitud"
-            @update:model-value="obtenerListado()"
-            hide-details
-            :error-messages="errorMesage.proveedor"
-          />
+          <div class="d-flex align-center">
+            <v-autocomplete
+              variant="outlined"
+              label="Proveedor"
+              density="compact"
+              :items="provedores"
+              item-title="namelong"
+              item-value="id"
+              placeholder="Proveedor"
+              v-model="proveedor"
+              :clearable="!desdeSolicitud"
+              :readonly="desdeSolicitud"
+              @update:model-value="obtenerListado()"
+              hide-details
+              :error-messages="errorMesage.proveedor"
+            />
+            <v-btn
+              v-if="proveedor"
+              icon="mdi-open-in-new"
+              variant="tonal"
+              color="primary"
+              size="small"
+              class="ml-2 flex-shrink-0"
+              title="Ver datos del proveedor (pestaña nueva)"
+              aria-label="Ver datos del proveedor en una pestaña nueva"
+              @click="verDatosProveedor"
+            />
+          </div>
         </v-col>
         <v-col
           cols="12"
@@ -1212,29 +1260,41 @@ onMounted(async () => {
                 >
                   <section class="bank-card">
                     <h3 class="bank-card__title">
-                      Datos del Banco
+                      Banco del Proveedor
                     </h3>
                     <div class="bank-card__body">
-                      <v-text-field
-                        readonly
-                        v-model="id_cuenta.banco"
-                        label="Banco:"
+                      <v-autocomplete
+                        v-model="idBancoProveedor"
+                        :items="appStore.itemsDataBanksList"
+                        item-title="acronym"
+                        item-value="id"
+                        label="Banco del Proveedor *"
                         variant="outlined"
                         density="compact"
+                        clearable
+                        :error-messages="errorBancoProveedor.banco"
+                        @update:model-value="errorBancoProveedor.banco = ''"
                       />
                       <v-text-field
-                        readonly
-                        v-model="id_cuenta.cuenta"
-                        label="N° Cuenta:"
+                        v-model="nroCuentaProveedor"
+                        label="N° de Cuenta del Proveedor *"
+                        :error-messages="errorBancoProveedor.cuenta"
+                        @update:model-value="errorBancoProveedor.cuenta = ''"
                         variant="outlined"
                         density="compact"
+                        maxlength="100"
                       />
-                      <v-text-field
-                        readonly
-                        v-model="id_cuenta.cci"
-                        label="CCI:"
+                      <v-autocomplete
+                        v-model="idCoinsProveedor"
+                        :items="appStore.itemsCoinsList"
+                        item-title="name"
+                        item-value="id"
+                        label="Moneda del Proveedor *"
+                        :error-messages="errorBancoProveedor.moneda"
+                        @update:model-value="errorBancoProveedor.moneda = ''"
                         variant="outlined"
                         density="compact"
+                        clearable
                       />
                     </div>
                   </section>

@@ -2087,15 +2087,22 @@ watch(idRole, async () => {
 /* SweetAlert pone display en línea a las acciones y botones: se fuerza el layout */
 .freight-alert-actions.swal2-actions {
   display: grid !important;
-  grid-template-columns: 1fr auto auto;
+  /* Actualizar un poco más ancho; Configurar flete y Cancelar, el mismo ancho */
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr) minmax(0, 1.2fr);
   gap: 10px;
   width: 100%;
   margin: 18px 0 0;
 }
 .freight-alert-continue.swal2-cancel {
   flex-wrap: nowrap;
-  white-space: nowrap;
-  padding: 4px 6px 4px 14px !important;
+  padding: 4px 6px !important;
+}
+/* en su columna el texto puede pasar a dos líneas en vez de desbordar */
+.freight-alert-actions .swal2-styled.freight-alert-config,
+.freight-alert-actions .swal2-styled.freight-alert-continue {
+  white-space: normal;
+  line-height: 1.15;
+  text-align: center;
 }
 .freight-alert-actions .swal2-styled {
   display: inline-flex !important;

@@ -65,7 +65,7 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown) {
         '<div class="aprob-modal__box">' +
         fila("mdi-storefront-outline", "ID PROVEEDOR:", escapar(s.id_proveedor)) +
         fila("mdi-account-outline", "PROVEEDOR:", escapar(s.proveedor)) +
-        fila("mdi-cash-multiple", "MONTO:", `${escapar(s.moneda ?? "")} ${monto}`.trim()) +
+        fila("mdi-cash-multiple", "MONTO:", `${monto} ${escapar(s.moneda ?? "")}`.trim()) +
         "</div>",
       showCancelButton: true,
       showDenyButton: true,
