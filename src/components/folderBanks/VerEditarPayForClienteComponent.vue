@@ -50,6 +50,11 @@ const monto = ref<number | string>(0);
 const loading = ref(false);
 const nro_operacion = ref("");
 const cliente = ref<number | null>(null);
+// Abre la ficha del cliente en una pestaña nueva
+function verDatosCliente() {
+  if (!cliente.value) return;
+  window.open(router.resolve({ name: "verCliente", params: { id: cliente.value } }).href, "_blank");
+}
 const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
 const selectedAccount = useSelectModel(id_cuenta);
@@ -471,21 +476,34 @@ onMounted(async () => {
           class="pb-0"
         >
           Cliente:
-          <v-autocomplete
-            variant="outlined"
-            density="compact"
-            :items="clientes"
-            item-title="namelong"
-            item-value="id"
-            placeholder="Clientes"
-            v-model="cliente"
-            clearable
-            @update:model-value="obtenerListado()"
-            hide-details
-            :error-messages="errorMesage.cliente"
-            id="cboProveedor"
-            disabled
-          />
+          <div class="d-flex align-center">
+            <v-autocomplete
+              variant="outlined"
+              density="compact"
+              :items="clientes"
+              item-title="namelong"
+              item-value="id"
+              placeholder="Clientes"
+              v-model="cliente"
+              clearable
+              @update:model-value="obtenerListado()"
+              hide-details
+              :error-messages="errorMesage.cliente"
+              id="cboProveedor"
+              disabled
+            />
+            <v-btn
+              v-if="cliente"
+              icon="mdi-eye"
+              variant="tonal"
+              color="primary"
+              size="small"
+              class="ml-2 flex-shrink-0"
+              title="Ver datos del cliente (pestaña nueva)"
+              aria-label="Ver datos del cliente en una pestaña nueva"
+              @click="verDatosCliente"
+            />
+          </div>
         </v-col>
         <v-col
           cols="12"

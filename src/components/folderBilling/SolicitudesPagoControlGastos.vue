@@ -8,6 +8,7 @@ import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/use
 import SoportePagoDialog from "./SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "./SolicitudPagoVerDialog.vue";
 import SolicitudesPagoMovil from "./SolicitudesPagoMovil.vue";
+import ClientePagoChip from "./ClientePagoChip.vue";
 import SolicitudPagoEditarDialog from "@/components/folderBilling/SolicitudPagoEditarDialog.vue";
 import {
   tieneAprobacionesSolicitud,
@@ -250,6 +251,9 @@ defineExpose({ cargar });
             <th>Banco</th>
             <th>Método de pago</th>
             <th>Código / N° de cuenta</th>
+            <th class="text-center">
+              Cliente Pagó
+            </th>
             <th>Estado</th>
             <th class="text-center">
               Administración
@@ -275,7 +279,7 @@ defineExpose({ cargar });
         <tbody>
           <tr v-if="!solicitudes.length">
             <td
-              colspan="13"
+              colspan="14"
               class="solpago__empty"
             >
               {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago registradas." }}
@@ -358,6 +362,9 @@ defineExpose({ cargar });
                   <v-icon>mdi-content-copy</v-icon>
                 </v-btn>
               </div>
+            </td>
+            <td class="text-center">
+              <ClientePagoChip :estado="s.cliente_pago" />
             </td>
             <td>
               <v-tooltip location="top">

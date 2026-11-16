@@ -304,10 +304,14 @@ export interface ConceptoSolicitudPago {
   totalopcuentabanco: number | null;
 }
 
+/** "Cliente Pagó" de una solicitud de pago: pagó todo, una parte o nada */
+export type ClientePagoEstado = "SI" | "PARCIAL" | "NO";
+
 export interface SolicitudPagoControl {
   id: number;
   id_master: number;
   expediente: string;
+  cliente_pago?: ClientePagoEstado | null;
   id_proveedor: number;
   id_correlativo: number | null;
   proveedor: string;
@@ -391,6 +395,9 @@ export interface PagoPendienteExpediente {
   correlativo: string | null;
   moneda: string | null;
   total: number | string;
+  total_pr: number | string;
+  total_op: number | string;
+  pagado: boolean;
   estado: string;
 }
 
@@ -423,6 +430,10 @@ export interface SolicitudPagoDetalle {
   fecha_aprobadogerencia: string | null;
   clientes: string | null;
   pendientes: PagoPendienteExpediente[];
+  /** N° de expediente como sale en el PDF de pago (EXP 1747) */
+  nro_master: string | null;
+  moneda_cuenta: string | null;
+  cci: string | null;
 }
 
 // Bancos > Solicitudes de Pago (bandeja paginada)
@@ -433,6 +444,7 @@ export interface SolicitudPagoBandeja {
   total: number | string;
   id: number;
   fechasolicitud: string;
+  cliente_pago?: ClientePagoEstado | null;
   id_master: number;
   expediente: string;
   id_proveedor: number;

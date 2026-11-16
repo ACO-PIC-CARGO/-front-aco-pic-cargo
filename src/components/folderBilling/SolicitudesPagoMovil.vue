@@ -8,6 +8,8 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { tieneAprobacionesSolicitud, tieneSalidaBancosSolicitud } from "@/composables/useAccionesSolicitudPago";
 import { notifySuccess } from "@/utils/request";
+import type { ClientePagoEstado } from "@/types/billingEntries";
+import ClientePagoChip from "./ClientePagoChip.vue";
 
 export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   expediente: string;
@@ -28,6 +30,7 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   pagadoflag: boolean | null;
   fechapago: string | null;
   soporte_path: string | null;
+  cliente_pago?: ClientePagoEstado | null;
 }
 
 const props = defineProps<{
@@ -236,6 +239,14 @@ function abrir(url: string | null | undefined) {
                       {{ formatoFecha(s.fechasolicitud) }}<template v-if="s.usuario_solicitud">
                         · {{ s.usuario_solicitud }}
                       </template>
+                    </dd>
+                    <dt>
+                      <v-icon size="16">
+                        mdi-account-cash-outline
+                      </v-icon> Cliente pagó:
+                    </dt>
+                    <dd>
+                      <ClientePagoChip :estado="s.cliente_pago" />
                     </dd>
                     <template v-if="s.usuario_aprobadoadministracion">
                       <dt>

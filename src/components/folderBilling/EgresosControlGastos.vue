@@ -108,10 +108,6 @@ const dialogListInvoice = ref(false);
 const dialogInvoice = ref(false);
 const dialogPorcentajeProveedor = ref(false);
 const dialogPayment = ref(false);
-const dialogSolicitudDivision = ref(false);
-const dialogSolicitud = ref(false);
-const checkPago = ref(false);
-const checkMaster = ref(false);
 const date = ref(moment().format("YYYY-MM-DD"));
 const id_correlativo = ref<Monto | undefined>("");
 const tipocambio = ref<Monto | undefined>(1);
@@ -123,11 +119,8 @@ const boolFile = ref(false);
 const errFile = ref("");
 const msgFile = ref<string | null>("");
 const nro_invoice = ref("");
-const conceptos = ref("" as unknown as EgresoDetalle[]);
 const codigo_master = ref<string | null | undefined>(null);
 const search = ref("");
-const comentarios = ref("");
-const codigo_pago = ref("");
 const radio = ref<number | string>(1);
 const invoiceOptions = [
   { value: "1", label: "Factura Fiscal", icon: "mdi-receipt-text-outline" },
@@ -151,7 +144,6 @@ const monedaInvoice = computed(() => {
   const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
   return [acronimo, moneda?.name].filter(Boolean).join(" - ") || "—";
 });
-const e1 = ref(1);
 const egresos = ref<EgresoForm>({
   id: null,
   id_orders: "",
@@ -230,18 +222,6 @@ const headersPdf = [
     key: "accions",
   },
 ] as const;
-const headersAccount = [
-  { title: "Beneficiario", key: "beneficiario" },
-  {
-    title: "Cuenta",
-    align: "start",
-    sortable: false,
-    key: "nameaccount",
-  },
-  { title: "Banco", key: "namebanks" },
-  { title: "Moneda", key: "namecoins" },
-  { title: "Número de cuenta", key: "accountnumber" },
-] as const;
 const headers = ref<EncabezadoColumna[]>([
   {
     title: "Concepto",
@@ -270,8 +250,6 @@ const headers = ref<EncabezadoColumna[]>([
 const itemsListInvoice = ref<FacturaProveedorCargada[]>([]);
 const dataList = ref([] as unknown as boolean);
 const itemsSPayment = ref<SolicitudPagoListada[]>([]);
-const selectedAccount = ref<CuentaBancariaProveedor[]>([]);
-const selected = ref<EgresoDetalle[]>([]);
 const showSeccion2NuevoEgreso = ref(false);
 const showSeccion3NuevoEgreso = ref(false);
 const showSeccion4NuevoEgreso = ref(false);
@@ -299,17 +277,12 @@ let payPath: number | undefined;
 let msgfile: string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let errfile: string | undefined;
-let TotalLocal: number | undefined;
-let total: number | string | undefined;
 let proveedorId: number | undefined;
-let id_master: number | undefined;
 let dataProveedor: EgresoProveedor | undefined;
 let id_tipotransaccion: number | string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let itemsInvoice: unknown;
 let paymentsProvider: EgresoProveedor | undefined;
-// openPaymentFile is not defined in this component, so the template call throws
-const openPaymentFile = undefined as unknown as (path?: string) => void;
 const masterEgresos = computed(() => componentProps.master_egresos as unknown as EgresoProveedor[]);
 const ingreso_pr = undefined as unknown as number;
 const ingreso_op = undefined as unknown as number;
@@ -487,6 +460,7 @@ function groupDetallePorCliente(detalle: EgresoDetalle[]) {
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function abrirExpandEgreso(index: number) {}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- la usa el botón "Nueva cuenta" (comentado) de Enviar a Administración
 function abrirModalCuentaBancaria() {
   dialogCuentaBancaria.value = true;
 }
@@ -622,80 +596,6 @@ function calcularE() {
     );
   }
 }
-function validarSolicitudPago(egreso: EgresoProveedor) {
-  // con solicitud de pago no se genera un nuevo PDF: primero se elimina la solicitud
-  const solicitud = solicitudPagoDe(egreso);
-  if (solicitud) {
-    Swal.fire({
-      icon: "warning",
-      title: "No se puede generar un nuevo PDF",
-      html: `Tiene la solicitud de pago N° <b>${solicitud.id}</b>. Elimine primero la solicitud de pago.`,
-    });
-    return;
-  }
-  const tipocambio = egreso.detalle[0]!.tipocambio;
-  let correcto = true;
-  egreso.detalle.forEach((element) => {
-// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    tipocambio == element.tipocambio
-      ? (correcto = correcto)
-      : (correcto = false);
-  });
-
-  const statusPagado = egreso.detalle.some((v) => !!v.pagado);
-  const statusAdmin_noPagado = egreso.detalle.some(
-    (v) => !!v.statusadmin && !v.pagado,
-  );
-
-  if (!!statusPagado) {
-    Swal.fire({
-      icon: "error",
-      html: `<b>No se puede realizar una solicitud de pago, porque todos los registros ya han sido pagados</b>`,
-      confirmButtonColor: "#3085d6",
-      confirmButtonText: "ACEPTAR",
-    });
-  } else if (!!statusAdmin_noPagado) {
-    Swal.fire({
-      icon: "warning",
-      iconColor: "#f59e0b",
-      title: "Ya existe una solicitud de pago",
-      text: "¿Deseas eliminar la anterior y generar una nueva?",
-      showCancelButton: true,
-      buttonsStyling: false,
-      reverseButtons: true,
-      confirmButtonText: `<span class="spago-confirm-content"><i class="fas fa-trash-alt"></i><span>Eliminar y generar nueva</span></span>`,
-      cancelButtonText: "Cancelar",
-      customClass: {
-        popup: "spago-popup",
-        icon: "spago-icon",
-        title: "spago-title",
-        htmlContainer: "spago-text",
-        actions: "spago-actions",
-        confirmButton: "spago-confirm",
-        cancelButton: "spago-cancel",
-      },
-    }).then(async (res) => {
-      if (!res.isConfirmed) return;
-      await _getSPaymentPro(egreso);
-      const anterior = itemsSPayment.value?.[0];
-      // se elimina el PDF anterior y se vuelve a elegir banco o código de pago en el formulario
-      if (anterior?.id && !(await eliminar(anterior.id, false))) return;
-      // sin PDF anterior (la lista estaba desactualizada) se sigue el flujo normal
-      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-      solicitar(egreso, false);
-    });
-  } else if (!!correcto) {
-    solicitar(egreso);
-  } else {
-    Swal.fire({
-      icon: "error",
-      html: `<p style="text-align: center;"><strong>&iexcl;Advertencia!</strong></p>
-                1. Debe registrar cada factura con un solo n&uacute;mero de correlativo y tipo de cambio. <br>
-                2. Se han detectado que hay dos tipos de cambios distintos para el mismo correlativo en la factura.
-                `,
-    });
-  }
-}
 async function abrirModalPorcentajeProveedor(item: EgresoProveedor) {
   appStore.cuota = [];
   appStore.fechacuota = [];
@@ -797,64 +697,6 @@ async function _setData() {
   await controlGastosStore.getListControlGastosMaster(route.params.id as string);
   dialog.value = false;
   emit("recalcularProfit");
-}
-function solicitar(egreso: EgresoProveedor, confirmar = true) {
-  selected.value = [];
-  let TLocal = 0;
-  // this.TotalLocal = egreso.detalle.reduce(monto);
-  egreso.detalle.forEach((element) => {
-    TLocal = parseFloat(String(TLocal)) + parseFloat(String(element.total_op));
-  });
-  TotalLocal = TLocal;
-  total = 0;
-
-  proveedorId = egreso.id_proveedor;
-  nameproveedor.value = egreso.nombre_proveedor;
-  conceptos.value = egreso.detalle;
-  id_correlativo.value = egreso.id_correlativo;
-  id_master = egreso.id_master;
-  id_tipotransaccion =
-    (
-      appStore.itemsProveedorList.find(
-        (v: ProveedorItem) => v.id == egreso.id_proveedor,
-      ) || {}
-    ).id_tipotransaccion || "";
-
-  if (!confirmar) {
-    mostrarModalSolicitudPago(egreso);
-    return;
-  }
-  Swal.fire({
-    html: "<b>¿Desea realizar una solicitud de pago? Recuerde que luego de generarse la solicitud no se podrá editar.</b>",
-    // showDenyButton: true,
-    showCancelButton: true,
-    confirmButtonText: "Si",
-    denyButtonText: `No`,
-    cancelButtonText: "Cancelar",
-    icon: "warning",
-    // imageUrl: "https://point.qreport.site/files/alto_icono.png",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      await mostrarModalSolicitudPago(egreso);
-    } else if (result.isDenied) {
-      dialogSolicitudDivision.value = !dialogSolicitudDivision.value;
-    }
-  });
-}
-async function mostrarModalSolicitudPago(egresoSeleccionado: EgresoProveedor) {
-  egreso.value = egresoSeleccionado;
-
-  e1.value = 1;
-  checkPago.value = false;
-  checkMaster.value = false;
-  codigo_pago.value = "";
-  codigo_master.value = "";
-  selectedAccount.value = [];
-  comentarios.value = "";
-
-  dialogSolicitud.value = !dialogSolicitud.value;
-
-  await _getAccountsNumber();
 }
 async function _setInvoice() {
   Swal.fire({
@@ -1391,140 +1233,6 @@ async function eliminar(id: number, avisar = true): Promise<boolean> {
   appStore.spiner = false;
   return eliminado;
 }
-async function _generateSolicitud() {
-  loading.value = true;
-  _calcularTotales();
-  Swal.fire({
-    icon: "info",
-    title: "Generando PDF...",
-    text: "Por favor espere",
-  });
-
-  let pago;
-  if ((total as number) > 0) {
-    pago = total;
-  } else {
-    pago = TotalLocal;
-  }
-
-  let concepto: EgresoDetalle[] = [];
-
-  if (selected.value.length > 0) {
-    concepto = selected.value;
-  } else {
-    concepto = conceptos.value;
-  }
-  const proveedor = masterEgresos.value.map((element) => {
-    return {
-      nameProveedor: element.nombre_proveedor,
-      total_pr: parseFloat(String(element.total_total_pr)).toFixed(2),
-      total_op: parseFloat(String(element.total_total_op)).toFixed(2),
-      // para el PDF: status del proveedor y fila del proveedor que se paga
-      pagado: element.detalle.length > 0 && element.detalle.every((d) => !!d.pagado),
-      actual:
-        Number(element.id_proveedor) === Number(proveedorId) &&
-        String(element.id_correlativo ?? "") === String(id_correlativo.value ?? ""),
-    };
-  });
-
-  const datas = {
-    id_proveedor: proveedorId,
-    conceptos: concepto,
-    monto: pago,
-    id_correlativo: id_correlativo.value,
-    id_master: id_master,
-    status: 1,
-  };
-  const config = {
-    method: "post",
-    url: import.meta.env.VITE_URL_MAIN + "setSPaymentPro",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    data: datas,
-  };
-  const clientes = controlGastosStore.master_houses
-    .map((element) => {
-      return element.consigner;
-    })
-    .join(", ");
-
-  await axios(config)
-    .then(async function (response) {
-      if (warnIfRefused(response.data)) return;
-      const data = {
-        nameProveedor: nameproveedor.value,
-        nameConsignatario: clientes,
-        totalPagar: TotalLocal,
-        expediente:
-          controlGastosStore.listControlGastos[0]!
-            .master_nromaster,
-        fecha: currentDate(),
-        totalProveedores: proveedor,
-        comentarios: comentarios.value,
-        // el PDF se pinta según el tipo: por código de pago o por cuenta de banco
-        tipo_pago: checkPago.value ? "CODIGO" : "BANCO",
-        ya_pago: concepto.length > 0 && concepto.every((d) => !!d.pagado),
-        codigo_pago: codigo_pago.value,
-        codigo_master:
-          controlGastosStore.listControlGastos[0]!
-            .master_nromaster,
-        cuentas: selectedAccount.value,
-        operador: appStore.dataHouse_operador,
-        conceptos: conceptos.value,
-        selected: selected.value,
-        totalSelected: total,
-        number: response.data.data[0].number,
-        url_logo: sessionUser().path,
-        id_master,
-      };
-      await downloadPdf(
-        { method: "post", url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud", data },
-        `SOLICITUD_EXPEDIENTE_${data.expediente}_${data.number}.pdf`,
-      );
-      await controlGastosStore.getListControlGastosMaster(route.params.id as string);
-      dialogSolicitudDivision.value = false;
-      dialogSolicitud.value = false;
-      await abrirSolicitudTrasPdf();
-    })
-    .catch(function (error) {
-      console.error(error);
-    });
-  loading.value = false;
-}
-// Paso 3: al generar el PDF se abre directamente "Solicitar a Administración"
-async function abrirSolicitudTrasPdf() {
-  if (!can("listControlGastos", "NUEVO")) return;
-  await nextTick();
-  await cargarSolicitudesExistentes();
-  const item = (masterEgresos.value || []).find(
-    (e) =>
-      Number(e.id_master) === Number(id_master) &&
-      Number(e.id_proveedor) === Number(proveedorId) &&
-      String(e.id_correlativo ?? "") === String(id_correlativo.value ?? ""),
-  );
-  if (!item) return;
-  const existente = solicitudPagoDe(item);
-  if (existente && existente.codigo_estado !== "RECHAZADA") return;
-  await abrirSolicitudPagoNueva(item);
-}
-function _calcularTotales() {
-  total = 0;
-  let calculo = 0;
-  if (selected.value.length > 0) {
-    let calculo = 0;
-    selected.value.map((item) => {
-      calculo = calculo + parseFloat(String(item.total_op));
-      total = calculo.toFixed(2);
-    });
-  } else {
-    conceptos.value.map((item) => {
-      calculo = calculo + parseFloat(String(item.total_op));
-
-      total = calculo.toFixed(2);
-    });
-  }
-}
 function currentDate() {
   const monthNames = [
     "Enero",
@@ -1562,15 +1270,24 @@ async function uploadFile() {
     errfile = "Dato Requerido";
   }
 }
-async function openInvoice(egresoSeleccionado: EgresoProveedor) {
+// el loading va solo en el botón pulsado de esa fila (cargar u ojo)
+const abriendoFacturas = ref<string | null>(null);
+const claveFacturas = (e: EgresoProveedor, boton: "cargar" | "ver") =>
+  `${boton}-${e.id_master}-${e.id_proveedor}-${e.id_correlativo ?? 0}`;
+async function openInvoice(egresoSeleccionado: EgresoProveedor, boton: "cargar" | "ver" = "cargar") {
   msgFile.value = null;
   loading.value = true;
+  abriendoFacturas.value = claveFacturas(egresoSeleccionado, boton);
   itemsListInvoice.value = [];
   proveedorId = egresoSeleccionado.id_proveedor;
   egreso.value = egresoSeleccionado;
   nameproveedor.value = egresoSeleccionado.nombre_proveedor;
-  await _getInvoice(egresoSeleccionado);
-  loading.value = false;
+  try {
+    await _getInvoice(egresoSeleccionado);
+  } finally {
+    loading.value = false;
+    abriendoFacturas.value = null;
+  }
 }
 async function _getInvoice(egreso: EgresoProveedor) {
   console.log("-----");
@@ -1606,16 +1323,6 @@ async function _getInvoice(egreso: EgresoProveedor) {
 }
 function openDoc(path: string) {
   window.open(path, "_blank");
-}
-function validarStep2Solicitud() {
-  if (!checkPago.value && !selectedAccount.value.length) {
-    Swal.fire({
-      icon: "error",
-      text: "Para avanzar al paso 3, debe seleccionar al menos una cuenta bancaria",
-    });
-  } else {
-    e1.value = 3;
-  }
 }
 function isProveedorInternacional() {
   const val = masterusuariosStore.lstTipoTransaccion.some(
@@ -1907,13 +1614,6 @@ watch(tipocambio, (newValue) => {
     showSeccion4NuevoEgreso.value = true;
   }
 }, { immediate: true });
-watch(checkMaster, () => {
-  codigo_master.value = "";
-  if (!!checkMaster.value) {
-    codigo_master.value =
-      controlGastosStore.listControlGastos[0]!.master_codemaster;
-  }
-});
 
 // ------------------------- SOLICITUD DE PAGO (table_solitudpago) -------------------------
 const dialogSolicitudPagoNueva = ref(false);
@@ -1935,6 +1635,201 @@ const claveSolicitud = (id_master: unknown, id_proveedor: unknown, id_correlativ
   `${Number(id_master)}-${Number(id_proveedor)}-${Number(id_correlativo || 0)}`;
 const solicitudPagoDe = (e: EgresoProveedor) =>
   solicitudesExistentes.value.get(claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo));
+
+// ---------- Enviar a Administración > Generar PDF (vista previa del PDF de pago) ----------
+// Flujo: llenar datos -> Generar PDF (vista previa) -> Generar PDF (PDF de pago) -> Enviar solicitud
+const pasoSolicitudPago = ref<"datos" | "preview">("datos");
+const previewPdfPago = ref("");
+const cargandoPreviewPdfPago = ref(false);
+const generandoPdfPago = ref(false);
+// PDF ya generado en este modal: el formulario se bloquea (sus datos ya están en el PDF)
+const pdfGeneradoEnModal = ref(false);
+// el proveedor del modal con los datos recién cargados (tras generar el PDF se recarga el listado)
+const egresoSolicitudPago = computed(() => {
+  const item = solicitudPagoProveedor.value;
+  if (!item) return null;
+  const clave = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
+  return (masterEgresos.value || []).find((e) => claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === clave) ?? item;
+});
+// ya tiene PDF de pago (table_spaymentpro): habilita "Enviar solicitud" y el botón pasa a "Eliminar y Generar PDF"
+const tienePdfPago = computed(() => Number(egresoSolicitudPago.value?.solicitudes || 0) > 0);
+
+// Los datos del PDF salen del formulario de Enviar a Administración (tipo de pago por código, no por id)
+function datosPdfPago(item: EgresoProveedor, number: number | null) {
+  const f = solicitudPagoForm.value;
+  const esCodigo = tipoPagoSeleccionado.value === "02";
+  const master = controlGastosStore.listControlGastos[0]!;
+  const cuenta = (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]).find((c) => c.id === f.id_cuenta);
+  const totalPagar = item.detalle.reduce((suma, d) => suma + Number(d.total_op || 0), 0);
+  return {
+    nameProveedor: item.nombre_proveedor,
+    nameConsignatario: controlGastosStore.master_houses.map((h) => h.consigner).join(", "),
+    totalPagar,
+    expediente: master.master_nromaster,
+    fecha: currentDate(),
+    totalProveedores: masterEgresos.value.map((e) => ({
+      nameProveedor: e.nombre_proveedor,
+      total_pr: Number(e.total_total_pr || 0).toFixed(2),
+      total_op: Number(e.total_total_op || 0).toFixed(2),
+      pagado: e.detalle.length > 0 && e.detalle.every((d) => !!d.pagado),
+      actual: claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo),
+    })),
+    comentarios: f.comentario,
+    tipo_pago: esCodigo ? "CODIGO" : "BANCO",
+    ya_pago: item.detalle.length > 0 && item.detalle.every((d) => !!d.pagado),
+    codigo_pago: esCodigo ? f.codigopago : "",
+    codigo_master: "",
+    cuentas: !esCodigo && cuenta ? [cuenta] : [],
+    operador: appStore.dataHouse_operador,
+    conceptos: item.detalle,
+    selected: [],
+    totalSelected: totalPagar.toFixed(2),
+    number,
+    url_logo: sessionUser().path,
+    id_master: item.id_master,
+  };
+}
+
+// Mismas validaciones que tenía "Generar PDF de pago"
+async function validarGenerarPdfPago(item: EgresoProveedor) {
+  const solicitud = solicitudPagoDe(item);
+  if (solicitud) {
+    Swal.fire({
+      icon: "warning",
+      title: "No se puede generar un nuevo PDF",
+      html: `Tiene la solicitud de pago N° <b>${solicitud.id}</b>. Elimine primero la solicitud de pago.`,
+    });
+    return false;
+  }
+  if (item.detalle.some((d) => !!d.pagado)) {
+    Swal.fire({
+      icon: "error",
+      html: "<b>No se puede realizar una solicitud de pago, porque todos los registros ya han sido pagados</b>",
+      confirmButtonColor: "#3085d6",
+      confirmButtonText: "ACEPTAR",
+    });
+    return false;
+  }
+  const tipocambio = item.detalle[0]?.tipocambio;
+  if (item.detalle.some((d) => d.tipocambio != tipocambio)) {
+    Swal.fire({
+      icon: "error",
+      html: `<p style="text-align: center;"><strong>&iexcl;Advertencia!</strong></p>
+        1. Debe registrar cada factura con un solo n&uacute;mero de correlativo y tipo de cambio. <br>
+        2. Se han detectado que hay dos tipos de cambios distintos para el mismo correlativo en la factura.`,
+    });
+    return false;
+  }
+  if (!tienePdfPago.value) return true;
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    iconColor: "#f59e0b",
+    title: "Ya existe un PDF de pago",
+    text: "¿Deseas eliminar el anterior y generar uno nuevo?",
+    showCancelButton: true,
+    buttonsStyling: false,
+    reverseButtons: true,
+    confirmButtonText: `<span class="spago-confirm-content"><i class="fas fa-trash-alt"></i><span>Eliminar y generar nuevo</span></span>`,
+    cancelButtonText: "Cancelar",
+    customClass: {
+      popup: "spago-popup",
+      icon: "spago-icon",
+      title: "spago-title",
+      htmlContainer: "spago-text",
+      actions: "spago-actions",
+      confirmButton: "spago-confirm",
+      cancelButton: "spago-cancel",
+    },
+  });
+  return isConfirmed;
+}
+
+// Paso 2: vista previa con el mismo HTML del PDF (pdf-solicitud.ejs)
+async function abrirPreviewPdfPago() {
+  const item = egresoSolicitudPago.value;
+  if (!item || !solicitudPagoValida.value || !(await validarGenerarPdfPago(item))) return;
+  cargandoPreviewPdfPago.value = true;
+  const response = await request<{ html: string }>({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "pdfSolicitudPreview",
+    data: datosPdfPago(item, null),
+  });
+  cargandoPreviewPdfPago.value = false;
+  if (warnIfRefused(response)) return;
+  previewPdfPago.value = response.data[0]?.html ?? "";
+  pasoSolicitudPago.value = "preview";
+}
+
+// Paso 4: genera el PDF de pago (table_spaymentpro + PDF guardado) y envía la solicitud a Administración.
+// Si el envío falla, vuelve al formulario bloqueado (los datos ya están en el PDF) para reintentar el envío.
+async function generarPdfPago() {
+  const item = egresoSolicitudPago.value;
+  if (!item) return;
+  generandoPdfPago.value = true;
+  try {
+    if (tienePdfPago.value) {
+      await _getSPaymentPro(item);
+      const anterior = itemsSPayment.value?.[0];
+      if (anterior?.id && !(await eliminar(anterior.id, false))) return;
+    }
+    const creado = await request<{ number: number }>({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "setSPaymentPro",
+      data: {
+        id_proveedor: item.id_proveedor,
+        conceptos: item.detalle,
+        monto: item.detalle.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
+        id_correlativo: item.id_correlativo,
+        id_master: item.id_master,
+        status: 1,
+      },
+    });
+    if (warnIfRefused(creado)) return;
+    const datos = datosPdfPago(item, creado.data[0]!.number);
+    const pdfGenerado = await downloadPdf(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud", data: datos },
+      `SOLICITUD_EXPEDIENTE_${datos.expediente}_${datos.number}.pdf`,
+    );
+    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    pasoSolicitudPago.value = "datos";
+    if (!pdfGenerado) return;
+    pdfGeneradoEnModal.value = true;
+    await registrarSolicitudPago(false);
+  } finally {
+    generandoPdfPago.value = false;
+  }
+}
+
+// "Solicitar a Administración" > ojo: abre en otra pestaña el último PDF de pago guardado
+const abriendoPdfPago = ref<string | null>(null);
+async function verPdfPago(item: EgresoProveedor) {
+  // la pestaña se abre antes de la petición para que el navegador no la bloquee
+  const ventana = window.open("", "_blank");
+  abriendoPdfPago.value = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
+  try {
+    const { data } = await axios<Blob>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "pdfSolicitudVer",
+      params: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+      responseType: "blob",
+    });
+    if (data.type.includes("pdf")) {
+      const url = URL.createObjectURL(data);
+      if (ventana) ventana.location.href = url;
+      else window.open(url, "_blank");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+      return;
+    }
+    ventana?.close();
+    const respuesta = JSON.parse(await data.text()) as { mensaje?: string; tipomensaje?: string };
+    Swal.fire({ icon: respuesta.tipomensaje === "TMSGERR" ? "error" : "info", text: respuesta.mensaje || CONNECTION_ERROR_MESSAGE });
+  } catch {
+    ventana?.close();
+    Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
+  } finally {
+    abriendoPdfPago.value = null;
+  }
+}
 
 async function cargarSolicitudesExistentes() {
   const masters = [...new Set((masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean))];
@@ -1962,6 +1857,8 @@ const conceptosSolicitudPago = computed(() =>
 );
 // La cuenta de salida (empresa) se elige al cargar el soporte de pago, no al solicitar
 const soloLecturaSolicitudPago = computed(() => modoSolicitudPago.value === "ver");
+// campos bloqueados: modo ver o PDF ya generado en este modal
+const formularioSolicitudBloqueado = computed(() => soloLecturaSolicitudPago.value || pdfGeneradoEnModal.value);
 // En "ver" se muestran los conceptos guardados en la solicitud
 const conceptosModalSolicitudPago = computed(() =>
   modoSolicitudPago.value === "ver" && solicitudPagoActual.value
@@ -2039,6 +1936,9 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   }
   solicitudPagoActual.value = existente;
   modoSolicitudPago.value = modo;
+  pasoSolicitudPago.value = "datos";
+  previewPdfPago.value = "";
+  pdfGeneradoEnModal.value = false;
   solicitudPagoProveedor.value = item;
   proveedorId = item.id_proveedor;
   id_tipotransaccion =
@@ -2061,11 +1961,12 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   solicitudPagoForm.value.id_tipopago = tiposPagoSolicitud.value[0]?.id ?? null;
 }
 
-async function registrarSolicitudPago() {
+// confirmar=false: viene de "Generar PDF" en la vista previa (ya se confirmó ahí)
+async function registrarSolicitudPago(confirmar = true) {
   const item = solicitudPagoProveedor.value;
   if (!item || !solicitudPagoValida.value || modoSolicitudPago.value === "ver") return;
   const editando = modoSolicitudPago.value === "editar" && !!solicitudPagoActual.value;
-  const { isConfirmed } = await Swal.fire({
+  const { isConfirmed } = !confirmar ? { isConfirmed: true } : await Swal.fire({
     icon: "question",
     html: editando
       ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?` +
@@ -2100,7 +2001,15 @@ async function registrarSolicitudPago() {
   guardandoSolicitudPago.value = false;
   if (warnIfRefused(response)) return;
   dialogSolicitudPagoNueva.value = false;
-  Swal.fire({ icon: "success", text: response.mensaje });
+  pdfGeneradoEnModal.value = false;
+  // aviso final del flujo: PDF de pago generado y solicitud enviada
+  Swal.fire({
+    icon: "success",
+    title: editando ? "Solicitud reenviada a Administración" : "Solicitud enviada a Administración",
+    html: confirmar
+      ? `La solicitud de pago de <b>${item.nombre_proveedor}</b> quedó pendiente de aprobación.`
+      : `Se generó el PDF de pago y se envió la solicitud de pago de <b>${item.nombre_proveedor}</b>.<br>Quedó pendiente de aprobación.`,
+  });
   await cargarSolicitudesExistentes();
   emit("solicitudPagoRegistrada");
 }
@@ -2238,20 +2147,30 @@ onMounted(async () => {
                   width="9%"
                   class="text-left"
                 >
-                  Facturas o Proformance
-                </th>
-                <th
-                  v-if="editable"
-                  width="9%"
-                  class="text-left"
-                >
-                  Generar PDF de pago
+                  Factura o Proforma
                 </th>
                 <th
                   width="20%"
                   class="text-left"
                 >
                   Solicitar a Administración
+                  <v-tooltip
+                    location="top"
+                    text="Para solicitar a administración debe registrar una Factura o Proforma; el PDF de pago se genera al solicitar"
+                  >
+                    <template #activator="{ props: tip }">
+                      <v-icon
+                        v-bind="tip"
+                        size="16"
+                        color="info"
+                        class="egreso-info"
+                        aria-label="Para solicitar a administración debe registrar una Factura o Proforma; el PDF de pago se genera al solicitar"
+                        @click.stop
+                      >
+                        mdi-information-outline
+                      </v-icon>
+                    </template>
+                  </v-tooltip>
                 </th>
                 <!-- <th width="10%">Acciones</th> -->
                 <!-- <th width="10%">Acciones</th> -->
@@ -2328,136 +2247,171 @@ onMounted(async () => {
                   </v-btn>
                 </td>
                 <td v-if="editable">
-                  <!-- Paso 1: abre el listado de facturas (con "Cargar Nueva"); con facturas cargadas se muestra el ojo -->
-                  <v-btn
-                    variant="text"
-                    icon
-                    size="small"
-                    :loading="loading"
-                    color="blue"
-                    :title="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Facturas o proformas'"
-                    :aria-label="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Facturas o proformas'"
-                    @click.stop="openInvoice(egresoProveedor)"
-                  >
-                    <v-icon>{{ egresoProveedor.docs > 0 ? "mdi-eye" : "mdi-file-compare" }}</v-icon>
-                  </v-btn>
-                </td>
-                <td v-if="editable">
-                  <!-- Paso 2: el PDF de pago solo se genera cuando ya hay factura y no hay solicitud de pago -->
-                  <span
-                    v-if="can('listControlGastos', 'NUEVO')"
-                    class="d-inline-block"
-                    :title="!(egresoProveedor.docs > 0)
-                      ? 'Primero carga la factura o proforma'
-                      : solicitudPagoDe(egresoProveedor)
-                        ? 'Tiene solicitud de pago: elimínela primero para generar un nuevo PDF'
-                        : 'Generar PDF de pago'"
-                    @click.stop
-                  >
-                    <v-btn
-                      variant="text"
-                      size="small"
-                      icon
-                      :color="egresoProveedor.docs > 0 && !solicitudPagoDe(egresoProveedor) ? 'blue' : 'grey'"
-                      :disabled="!(egresoProveedor.docs > 0)"
-                      aria-label="Generar PDF de pago"
-                      @click.stop="validarSolicitudPago(egresoProveedor)"
+                  <!-- Paso 1: cargar factura o proforma (solo mientras no tenga ninguna);
+                       con facturas se desactiva y se activa el ojo -->
+                  <div class="egreso-acciones">
+                    <span
+                      class="d-inline-block"
+                      :title="egresoProveedor.docs > 0 ? 'Ya tiene factura o proforma: véala con el ojo' : 'Cargar factura o proforma'"
+                      @click.stop
                     >
-                      <v-icon>mdi-send</v-icon>
-                    </v-btn>
-                  </span>
+                      <v-btn
+                        variant="text"
+                        icon
+                        size="small"
+                        :loading="abriendoFacturas === claveFacturas(egresoProveedor, 'cargar')"
+                        color="blue"
+                        :disabled="egresoProveedor.docs > 0"
+                        aria-label="Cargar factura o proforma"
+                        @click.stop="openInvoice(egresoProveedor, 'cargar')"
+                      >
+                        <v-icon>mdi-file-compare</v-icon>
+                      </v-btn>
+                    </span>
+                    <span
+                      class="d-inline-block"
+                      :title="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Aún no hay facturas o proformas'"
+                      @click.stop
+                    >
+                      <v-btn
+                        variant="text"
+                        icon
+                        size="small"
+                        color="blue"
+                        :disabled="!(egresoProveedor.docs > 0)"
+                        :loading="abriendoFacturas === claveFacturas(egresoProveedor, 'ver')"
+                        aria-label="Ver facturas o proformas"
+                        @click.stop="openInvoice(egresoProveedor, 'ver')"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                      </v-btn>
+                    </span>
+                  </div>
                 </td>
-
                 <td
                   class="solreq-cell"
                   @click.stop
                 >
-                  <!-- Solicitud de pago del correlativo: solicitar / ver / editar si la rechazaron / eliminar -->
-                  <div
-                    v-if="solicitudPagoDe(egresoProveedor)"
-                    class="solreq"
-                    :class="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
-                  >
-                    <button
-                      type="button"
-                      class="solreq__info"
-                      :title="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'Editar solicitud de pago' : 'Ver solicitud de pago'"
-                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                  <div class="solreq-fila">
+                    <!-- Solicitud de pago del correlativo: solicitar / ver / editar si la rechazaron / eliminar -->
+                    <div
+                      v-if="solicitudPagoDe(egresoProveedor)"
+                      class="solreq"
+                      :class="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
                     >
-                      <span class="solreq__badge">
-                        <v-icon size="18">
-                          {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}
-                        </v-icon>
-                      </span>
-                      <span class="solreq__text">
-                        <span class="solreq__title">
-                          {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "Solicitud Rechazada" : "Solicitado a Administración" }}
+                      <button
+                        type="button"
+                        class="solreq__info"
+                        :title="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'Editar solicitud de pago' : 'Ver solicitud de pago'"
+                        @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                      >
+                        <span class="solreq__badge">
+                          <v-icon size="18">
+                            {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}
+                          </v-icon>
                         </span>
-                        <span class="solreq__date">
-                          {{
-                            formatoFechaSolicitud(
-                              solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA"
-                                ? solicitudPagoDe(egresoProveedor)!.fecha_rechazo ?? null
-                                : solicitudPagoDe(egresoProveedor)!.fechasolicitud,
-                            )
-                          }}
+                        <span class="solreq__text">
+                          <span class="solreq__title">
+                            {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "Solicitud Rechazada" : "Solicitado a Administración" }}
+                          </span>
+                          <span class="solreq__date">
+                            {{
+                              formatoFechaSolicitud(
+                                solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA"
+                                  ? solicitudPagoDe(egresoProveedor)!.fecha_rechazo ?? null
+                                  : solicitudPagoDe(egresoProveedor)!.fechasolicitud,
+                              )
+                            }}
+                          </span>
                         </span>
-                      </span>
-                    </button>
-                    <!-- editar y eliminar en todo estado; con aprobaciones piden clave de administrador;
-                         con salida en Bancos avisan que primero se elimine ese movimiento -->
-                    <div class="solreq__acciones">
-                      <v-btn
-                        v-if="can('listControlGastos', 'NUEVO')"
-                        icon="mdi-pencil-outline"
-                        size="x-small"
-                        variant="text"
-                        class="solreq__del"
-                        :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'primary'"
-                        :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
-                          ? 'Ya está pagada en Bancos: elimine primero el movimiento'
-                          : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Editar solicitud de pago (requiere clave de administrador)' : 'Editar solicitud de pago'"
-                        aria-label="Editar solicitud de pago"
-                        @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
-                      />
-                      <v-btn
-                        v-if="can('listControlGastos', 'ELIMINAR')"
-                        icon="mdi-delete-outline"
-                        size="x-small"
-                        variant="text"
-                        class="solreq__del"
-                        :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'error'"
-                        :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
-                          ? 'Ya está pagada en Bancos: elimine primero el movimiento'
-                          : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Eliminar solicitud de pago (requiere clave de administrador)' : 'Eliminar solicitud de pago'"
-                        aria-label="Eliminar solicitud de pago"
-                        :loading="eliminandoSolicitudPago === solicitudPagoDe(egresoProveedor)!.id"
-                        @click="eliminarSolicitudPago(egresoProveedor)"
-                      />
+                      </button>
+                      <!-- editar y eliminar en todo estado; con aprobaciones piden clave de administrador;
+                           con salida en Bancos avisan que primero se elimine ese movimiento -->
+                      <div class="solreq__acciones">
+                        <!-- ojo: el último PDF de pago generado -->
+                        <v-btn
+                          icon="mdi-eye"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          color="blue"
+                          :disabled="!(egresoProveedor.solicitudes > 0)"
+                          :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
+                          aria-label="Ver PDF de pago"
+                          :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          @click="verPdfPago(egresoProveedor)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'NUEVO')"
+                          icon="mdi-pencil-outline"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'primary'"
+                          :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
+                            ? 'Ya está pagada en Bancos: elimine primero el movimiento'
+                            : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Editar solicitud de pago (requiere clave de administrador)' : 'Editar solicitud de pago'"
+                          aria-label="Editar solicitud de pago"
+                          @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'ELIMINAR')"
+                          icon="mdi-delete-outline"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          :color="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!) ? 'grey' : 'error'"
+                          :title="tieneSalidaBancos(solicitudPagoDe(egresoProveedor)!)
+                            ? 'Ya está pagada en Bancos: elimine primero el movimiento'
+                            : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Eliminar solicitud de pago (requiere clave de administrador)' : 'Eliminar solicitud de pago'"
+                          aria-label="Eliminar solicitud de pago"
+                          :loading="eliminandoSolicitudPago === solicitudPagoDe(egresoProveedor)!.id"
+                          @click="eliminarSolicitudPago(egresoProveedor)"
+                        />
+                      </div>
                     </div>
-                  </div>
-                  <!-- Paso 3: solo se solicita con factura (paso 1) y PDF de pago generado (paso 2) -->
-                  <span
-                    v-else-if="can('listControlGastos', 'NUEVO')"
-                    class="d-inline-block"
-                    :title="!(egresoProveedor.docs > 0) ? 'Primero carga la factura o proforma' : egresoProveedor.solicitudes > 0 ? 'Solicitar a Administración' : 'Primero genera el PDF de pago'"
-                  >
-                    <v-btn
-                      size="small"
-                      variant="flat"
-                      color="primary"
-                      prepend-icon="mdi-send-outline"
-                      class="solreq__btn"
-                      :disabled="!(egresoProveedor.docs > 0 && egresoProveedor.solicitudes > 0)"
-                      @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                    <!-- Paso 2: con factura (paso 1) se abre Enviar a Administración; ahí se genera el PDF de pago -->
+                    <span
+                      v-else-if="can('listControlGastos', 'NUEVO')"
+                      class="d-inline-block"
+                      :title="egresoProveedor.docs > 0 ? 'Solicitar a Administración' : 'Primero carga la factura o proforma'"
                     >
-                      Solicitar
-                    </v-btn>
-                  </span>
-                  <span
-                    v-else
-                    class="text-medium-emphasis"
-                  >—</span>
+                      <v-btn
+                        size="small"
+                        variant="flat"
+                        color="primary"
+                        prepend-icon="mdi-send-outline"
+                        class="solreq__btn"
+                        :disabled="!(egresoProveedor.docs > 0)"
+                        @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                      >
+                        Solicitar
+                      </v-btn>
+                    </span>
+                    <span
+                      v-else
+                      class="text-medium-emphasis"
+                    >—</span>
+                    <!-- ojo: el último PDF de pago generado (sin solicitud; con solicitud va dentro de la tarjeta) -->
+                    <span
+                      v-if="!solicitudPagoDe(egresoProveedor)"
+                      class="d-inline-block"
+                      :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
+                    >
+                      <v-btn
+                        variant="text"
+                        size="small"
+                        icon
+                        color="blue"
+                        :disabled="!(egresoProveedor.solicitudes > 0)"
+                        :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                        aria-label="Ver PDF de pago"
+                        @click="verPdfPago(egresoProveedor)"
+                      >
+                        <v-icon>mdi-eye</v-icon>
+                      </v-btn>
+                    </span>
+                  </div>
                 </td>
               </tr>
             </tbody>
@@ -3309,7 +3263,7 @@ onMounted(async () => {
     <!-- SOLICITUD DE PAGO (table_solitudpago) -->
     <v-dialog
       v-model="dialogSolicitudPagoNueva"
-      max-width="680"
+      :max-width="pasoSolicitudPago === 'preview' ? 900 : 680"
       persistent
       scrollable
     >
@@ -3320,10 +3274,25 @@ onMounted(async () => {
         <div class="inv-header">
           <div class="inv-header-icon">
             <v-icon size="32">
-              mdi-cash-fast
+              {{ pasoSolicitudPago === "preview" ? "mdi-file-eye-outline" : "mdi-cash-fast" }}
             </v-icon>
           </div>
-          <div class="inv-header-text">
+          <!-- vista previa del PDF de pago -->
+          <div
+            v-if="pasoSolicitudPago === 'preview'"
+            class="inv-header-text"
+          >
+            <h3 class="inv-title">
+              PREVISUALIZACIÓN DE PDF A GENERAR
+            </h3>
+            <span class="inv-subtitle">
+              REVISA EL PDF DE PAGO: AL GENERARLO SE ENVÍA LA SOLICITUD A ADMINISTRACIÓN.
+            </span>
+          </div>
+          <div
+            v-else
+            class="inv-header-text"
+          >
             <h3 class="inv-title">
               {{ modoSolicitudPago === "editar" ? "EDITAR SOLICITUD DE PAGO" : "ENVIAR A ADMINISTRACIÓN" }}<template v-if="solicitudPagoActual">
                 N° {{ solicitudPagoActual.id }}
@@ -3344,14 +3313,17 @@ onMounted(async () => {
             size="small"
             class="inv-close"
             aria-label="Cerrar"
-            :disabled="guardandoSolicitudPago"
+            :disabled="guardandoSolicitudPago || generandoPdfPago"
             @click="dialogSolicitudPagoNueva = false"
           >
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </div>
 
-        <v-card-text class="inv-body">
+        <v-card-text
+          v-if="pasoSolicitudPago === 'datos'"
+          class="inv-body"
+        >
           <div class="inv-prov">
             <div class="inv-prov-row">
               <v-icon class="inv-prov-icon">
@@ -3413,7 +3385,7 @@ onMounted(async () => {
               type="button"
               class="solnueva__tipo"
               :class="{ 'solnueva__tipo--active': solicitudPagoForm.id_tipopago === t.id }"
-              :disabled="soloLecturaSolicitudPago"
+              :disabled="formularioSolicitudBloqueado"
               @click="solicitudPagoForm.id_tipopago = t.id"
             >
               <v-icon :color="solicitudPagoForm.id_tipopago === t.id ? 'primary' : 'grey'">
@@ -3452,14 +3424,14 @@ onMounted(async () => {
               variant="outlined"
               density="comfortable"
               :no-data-text="'El proveedor no tiene cuentas registradas'"
-              :readonly="soloLecturaSolicitudPago"
+              :readonly="formularioSolicitudBloqueado"
               hide-details="auto"
             />
           </div>
           <v-text-field
             v-if="tipoPagoSeleccionado === '02'"
             v-model="solicitudPagoForm.codigopago"
-            :readonly="soloLecturaSolicitudPago"
+            :readonly="formularioSolicitudBloqueado"
             class="mt-4"
             :label="`Código de pago ${nombreCodigoPago}`"
             variant="outlined"
@@ -3469,7 +3441,7 @@ onMounted(async () => {
 
           <v-textarea
             v-model="solicitudPagoForm.comentario"
-            :readonly="soloLecturaSolicitudPago"
+            :readonly="formularioSolicitudBloqueado"
             class="mt-4"
             label="Observaciones (opcional)"
             rows="2"
@@ -3478,342 +3450,104 @@ onMounted(async () => {
             density="comfortable"
             hide-details
           />
+          <v-alert
+            v-if="pdfGeneradoEnModal"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            class="mt-4"
+          >
+            El PDF de pago ya se generó con estos datos, por eso están bloqueados. Vuelve a enviar la solicitud.
+          </v-alert>
+          <v-alert
+            v-else-if="modoSolicitudPago === 'nuevo'"
+            type="info"
+            variant="tonal"
+            density="compact"
+            class="mt-4"
+          >
+            Llena los datos y genera el PDF: al confirmarlo se genera el PDF de pago y se envía la solicitud a Administración.
+          </v-alert>
         </v-card-text>
 
-        <v-card-actions class="px-6 pb-5">
+        <!-- vista previa: el mismo HTML del PDF de pago (pdf-solicitud.ejs) -->
+        <v-card-text
+          v-else
+          class="solnueva__preview"
+        >
+          <iframe
+            :srcdoc="previewPdfPago"
+            title="Vista previa del PDF de pago"
+            class="solnueva__iframe"
+          />
+        </v-card-text>
+
+        <v-card-actions
+          v-if="pasoSolicitudPago === 'datos'"
+          class="px-6 pb-5"
+        >
           <v-spacer />
           <v-btn
             variant="outlined"
             rounded="lg"
-            :disabled="guardandoSolicitudPago"
+            :disabled="guardandoSolicitudPago || cargandoPreviewPdfPago"
             @click="dialogSolicitudPagoNueva = false"
           >
             {{ soloLecturaSolicitudPago ? "Cerrar" : "Cancelar" }}
           </v-btn>
+          <!-- nuevo: Generar PDF -> vista previa -> PDF de pago + solicitud enviada -->
           <v-btn
-            v-if="!soloLecturaSolicitudPago && can('listControlGastos', 'NUEVO')"
+            v-if="modoSolicitudPago === 'nuevo' && !pdfGeneradoEnModal && can('listControlGastos', 'NUEVO')"
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            :prepend-icon="tienePdfPago ? 'mdi-file-document-remove' : 'mdi-file-pdf-box'"
+            :loading="cargandoPreviewPdfPago"
+            :disabled="!solicitudPagoValida || !conceptosSolicitudPago.length || guardandoSolicitudPago"
+            @click="abrirPreviewPdfPago"
+          >
+            {{ tienePdfPago ? "Eliminar y Generar PDF" : "Generar PDF" }}
+          </v-btn>
+          <!-- editar (rechazada) o reintento del envío cuando el PDF ya se generó en este modal -->
+          <v-btn
+            v-if="(modoSolicitudPago === 'editar' || pdfGeneradoEnModal) && can('listControlGastos', 'NUEVO')"
             color="primary"
             variant="flat"
             rounded="lg"
             prepend-icon="mdi-send"
             :loading="guardandoSolicitudPago"
-            :disabled="!solicitudPagoValida || !conceptosSolicitudPago.length"
-            @click="registrarSolicitudPago"
+            :disabled="!tienePdfPago || !solicitudPagoValida || !conceptosSolicitudPago.length"
+            @click="registrarSolicitudPago()"
           >
             {{ modoSolicitudPago === "editar" ? "Reenviar solicitud" : "Enviar solicitud" }}
           </v-btn>
         </v-card-actions>
-      </v-card>
-    </v-dialog>
-    <v-dialog
-      width="80%"
-      v-model="dialogSolicitud"
-    >
-      <v-card class="px-5 py-5">
-        <h2>{{ egreso.nombre_proveedor }}</h2>
-        <v-stepper v-model="e1">
-          <v-stepper-header>
-            <v-stepper-item
-              :complete="e1 > 1"
-              :value="1"
-              title="Códigos"
-            />
-
-            <v-divider />
-
-            <v-stepper-item
-              :complete="e1 > 2"
-              :value="2"
-              title="Cuentas Bancarias"
-            />
-            <v-divider />
-
-            <v-stepper-item
-              :complete="e1 > 3"
-              :value="3"
-              title="Observaciones"
-            />
-          </v-stepper-header>
-
-          <v-stepper-window>
-            <v-stepper-window-item :value="1">
-              <v-card
-                class="mb-12"
-                elevation="0"
-                height="200px"
-              >
-                <v-card-text>
-                  <v-row density="compact">
-                    <v-col
-                      md="6"
-                      cols="12"
-                    >
-                      <v-checkbox
-                        v-model="checkPago"
-                        :label="`Aplica código de pago ${nombreCodigoPago}`"
-                      />
-                      <v-text-field
-                        density="compact"
-                        v-if="checkPago"
-                        v-model="codigo_pago"
-                        label="CODIGO DE PAGO"
-                      >
-                        CODIGO DE PAGO
-                      </v-text-field>
-                    </v-col>
-                    <v-col
-                      md="6"
-                      cols="12"
-                    >
-                      <v-checkbox
-                        v-model="checkMaster"
-                        label="Aplica Número de Expediente"
-                      />
-                      <v-text-field
-                        density="compact"
-                        v-if="checkMaster"
-                        v-model="codigo_master"
-                        label="CODIGO DE MASTER BL"
-                        readonly
-                      >
-                        CODIGO DE MASTER BL
-                      </v-text-field>
-                    </v-col>
-                  </v-row>
-                </v-card-text>
-              </v-card>
-
-              <v-btn
-                color="primary"
-                @click="e1 = 2"
-              >
-                Continuar
-              </v-btn>
-              <v-btn
-                variant="text"
-                @click="dialogSolicitud = false"
-              >
-                Cerrar
-              </v-btn>
-            </v-stepper-window-item>
-
-            <v-stepper-window-item :value="2">
-              <v-card
-                class="mb-12"
-                elevation="0"
-                min-height="200px"
-              >
-                <v-card-text>
-                  <div class="text-right">
-                    <v-btn
-                      v-if="can('listControlGastos', 'NUEVO')"
-                      size="small"
-                      color="primary"
-                      @click="abrirModalCuentaBancaria()"
-                    >
-                      Nueva Cuenta Bancaria
-                    </v-btn>
-                  </div>
-                  <b>Cuentas</b>
-                  <v-data-table
-                    v-if="!checkPago"
-                    v-model="selectedAccount"
-                    :headers="headersAccount"
-                    :items="appStore.itemsDataAccountsNumberList"
-                    hide-default-footer
-                    item-value="id"
-                    return-object
-                    show-select
-                    class="elevation-0"
-                    density="compact"
-                  />
-                  <h2
-                    v-else
-                    class="mt-5"
-                  >
-                    Ya seleccionó el codigo de pago
-                  </h2>
-                </v-card-text>
-              </v-card>
-
-              <v-btn
-                color="primary"
-                @click="validarStep2Solicitud"
-              >
-                Continuar
-              </v-btn>
-              <v-btn
-                variant="text"
-                @click="e1 = 1"
-              >
-                Volver
-              </v-btn>
-              <v-btn
-                variant="text"
-                @click="dialogSolicitud = false"
-              >
-                Cerrar
-              </v-btn>
-            </v-stepper-window-item>
-
-            <v-stepper-window-item :value="3">
-              <v-card
-                class="mb-12"
-                elevation="0"
-                height="200px"
-              >
-                <v-card-text>
-                  <v-textarea
-                    v-model="comentarios"
-                    rows="3"
-                    label="Observación Adicionales"
-                  />
-                  <v-btn
-                    block
-                    @click="_generateSolicitud()"
-                    class="mt-2"
-                    color="primary"
-                  >
-                    ENVIAR A ADMINISTRACIÓN UNA SOLICITUD DE PAGO
-                  </v-btn>
-                </v-card-text>
-              </v-card>
-
-              <v-btn
-                variant="text"
-                @click="e1 = 2"
-              >
-                Volver
-              </v-btn>
-              <v-btn
-                variant="text"
-                @click="dialogSolicitud = false"
-              >
-                Cerrar
-              </v-btn>
-            </v-stepper-window-item>
-          </v-stepper-window>
-        </v-stepper>
-      </v-card>
-    </v-dialog>
-    <!-- ------------------------------------------------- -->
-    <v-dialog
-      width="80%"
-      v-model="dialogSolicitudDivision"
-    >
-      <v-card>
-        <v-card-title> Solicitar pago por concepto</v-card-title>
-
-        <v-card-text>
-          <v-row density="compact">
-            <v-col
-              md="6"
-              cols="12"
-            >
-              <v-text-field
-                density="compact"
-                v-model="codigo_pago"
-                label="CODIGO DE PAGO"
-              >
-                CODIGO DE PAGO
-              </v-text-field>
-            </v-col>
-            <v-col
-              md="6"
-              cols="12"
-            >
-              <v-text-field
-                density="compact"
-                v-model="codigo_master"
-                label="CODIGO DE MASTER BL"
-                readonly
-              >
-                CODIGO DE MASTER BL
-              </v-text-field>
-            </v-col>
-          </v-row>
-
-          <v-textarea
-            v-model="comentarios"
-            rows="3"
-            label="Observación Adicionales"
-          />
-
-          <h2>Seleccione los conceptos</h2>
-
-          <v-data-table
-            v-model="selected"
-            :headers="headers"
-            :items="conceptos"
-            hide-default-footer
-            item-value="concepto"
-            return-object
-            :items-per-page-options="[10, 20, 30, 40, 50]"
-            :items-per-page="30"
-            density="compact"
-            show-select
-            class="elevation-0"
-          >
-            <template #[`item.data-table-select`]="{ item, props }">
-              <!-- @vue-expect-error the checkbox condition compares a boolean with 1 -->
-              <v-checkbox-btn
-                v-bind="props"
-                :readonly="item.pagado == 1"
-                v-if="!item.pagado == 1"
-              />
-            </template>
-            <template #[`item.pagado`]="{ item }">
-              <v-chip
-                v-if="item.pagado == 1"
-                class="ma-2 text-white"
-                color="green"
-                size="small"
-                variant="flat"
-              >
-                {{ item.pagado == 1 ? "Pagado" : "" }}
-              </v-chip>
-
-              <v-icon
-                class="btn__add mr-2"
-                size="large"
-                color="grey"
-                v-if="item.pagado == 1"
-                @click="openPaymentFile(item.path)"
-              >
-                mdi-eye
-              </v-icon>
-            </template>
-            <template #[`item.monto`]="{ item }">
-              {{ parseFloat(String(item.monto_op)).toFixed(2) }}
-            </template>
-          </v-data-table>
-
-          <b>Cuentas</b>
-          <v-data-table
-            v-model="selectedAccount"
-            :headers="headersAccount"
-            :items="appStore.itemsDataAccountsNumberList"
-            hide-default-footer
-            item-value="id"
-            return-object
-            show-select
-            density="compact"
-            class="elevation-0"
-          />
-
+        <v-card-actions
+          v-else
+          class="px-6 pb-5"
+        >
+          <v-spacer />
           <v-btn
-            block
-            @click="_generateSolicitud()"
-            class="mt-2"
-            color="primary"
-            :loading="loading"
+            variant="outlined"
+            rounded="lg"
+            :disabled="generandoPdfPago"
+            @click="pasoSolicitudPago = 'datos'"
           >
-            GENERAR SOLICITUD
+            Cancelar
           </v-btn>
-        </v-card-text>
+          <v-btn
+            color="primary"
+            variant="flat"
+            rounded="lg"
+            prepend-icon="mdi-file-pdf-box"
+            :loading="generandoPdfPago"
+            @click="generarPdfPago"
+          >
+            Generar PDF
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
-    <!--  -->
     <v-dialog
       width="80%"
       v-model="dialogPayment"
@@ -4289,7 +4023,38 @@ onMounted(async () => {
    SOLICITAR A ADMINISTRACIÓN (solicitud de pago)
    ===================================================== */
 .solreq-cell {
-  min-width: 250px;
+  min-width: 320px;
+}
+/* Factura o Proforma: acción + ojo */
+.egreso-acciones {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+.egreso-info {
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  cursor: help;
+}
+/* Solicitar a Administración: solicitud o botón + ojo del PDF de pago */
+.solreq-fila {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+/* Enviar a Administración > Generar PDF: vista previa del PDF de pago */
+.solnueva__preview {
+  padding: 0 16px !important;
+  background: #eef2f8;
+}
+.solnueva__iframe {
+  display: block;
+  width: 100%;
+  height: 70vh;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
 }
 .solreq {
   --solreq-fg: #1d4ed8;
@@ -4376,7 +4141,7 @@ onMounted(async () => {
 /* editar / eliminar apilados y separados del texto: dejan el ancho al título y la fecha */
 .solreq__acciones {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
