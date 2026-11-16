@@ -1187,13 +1187,13 @@ onMounted(async () => {
                         :error-messages="errorMesage.id_cuenta"
                         @update:model-value="errorMesage.id_cuenta = null"
                       />
-                      <v-text-field
+                      <!-- <v-text-field
                         readonly
                         v-model="id_cuenta.moneda"
                         label="Moneda:"
                         variant="outlined"
                         density="compact"
-                      />
+                      /> -->
                       <FormatFecha
                         :outlined="true"
                         :dense="true"
@@ -1458,9 +1458,11 @@ onMounted(async () => {
                     v-model="totalGeneralAbonadoMonLocal"
                   />
                 </v-col>
-                <v-col cols="12">
+                <v-col
+                  cols="12"
+                  class="bank-actions"
+                >
                   <v-btn
-                    class="mx-1"
                     color="success"
                     :loading="loading"
                     v-if="can('registroPayForProveedor', 'NUEVO')"
@@ -1553,4 +1555,11 @@ onMounted(async () => {
   </v-card>
 </template>
 
-<style></style>
+<style scoped>
+/* Bancos > Nueva salida: botones de los tabs 2 y 3 a la derecha */
+.bank-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+</style>

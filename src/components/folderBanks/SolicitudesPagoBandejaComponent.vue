@@ -491,6 +491,7 @@ onMounted(cargar);
         @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoBandeja)"
         @transferir="(sol) => transferir(sol as SolicitudPagoBandeja)"
         @ver-salida="(sol) => verSalida(sol as SolicitudPagoBandeja)"
+        ver-anexo
         @ver-anexo="(sol) => verAnexo(sol as SolicitudPagoBandeja)"
         @editar="editarSolicitud"
         @eliminar="eliminarSolicitud"
