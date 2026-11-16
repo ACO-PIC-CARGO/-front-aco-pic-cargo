@@ -11,6 +11,7 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
 import SolicitudesPagoMovil from "@/components/folderBilling/SolicitudesPagoMovil.vue";
+import ClientePagoChip from "@/components/folderBilling/ClientePagoChip.vue";
 import SolicitudPagoEditarDialog from "@/components/folderBilling/SolicitudPagoEditarDialog.vue";
 import {
   tieneAprobacionesSolicitud,
@@ -227,6 +228,7 @@ const headers = computed(() => [
   columna("Banco", "banco"),
   columna("Método de pago", "tipopago"),
   columna("Código / N° de cuenta", "cuenta"),
+  columna("Cliente Pagó", "cliente_pago"),
   columna("Estado", "estado"),
   columna("Administración", "adm"),
   columna("Gerencia", "ger"),
@@ -599,6 +601,9 @@ onMounted(cargar);
               @click="copiar(cuentaOCodigo(item))"
             />
           </div>
+        </template>
+        <template #[`item.cliente_pago`]="{ item }">
+          <ClientePagoChip :estado="item.cliente_pago" />
         </template>
         <template #[`item.estado`]="{ item }">
           <v-tooltip location="top">

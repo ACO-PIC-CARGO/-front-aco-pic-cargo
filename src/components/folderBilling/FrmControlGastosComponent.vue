@@ -560,6 +560,9 @@ onMounted(async () => {
         cols="12"
         v-bind="guardModoVer"
       >
+        <h3 class="mb-2">
+          Solicitudes de Pagos Administración
+        </h3>
         <SolicitudesPago
           ref="solicitudesPago"
           @actualizado="egresos?.cargarSolicitudesExistentes()"

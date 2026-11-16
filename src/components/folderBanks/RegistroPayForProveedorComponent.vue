@@ -787,7 +787,7 @@ onMounted(async () => {
             />
             <v-btn
               v-if="proveedor"
-              icon="mdi-open-in-new"
+              icon="mdi-eye"
               variant="tonal"
               color="primary"
               size="small"

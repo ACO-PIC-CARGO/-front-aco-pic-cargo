@@ -2,29 +2,63 @@
 import { computed, ref, watch } from "vue";
 import { sessionUser } from "@/utils/sesion";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
-import type { SolicitudPagoDetalle } from "@/types/billingEntries";
+import type { FacturaProveedorCargada, SolicitudPagoDetalle } from "@/types/billingEntries";
 
-// Modo ver (ojito) de una solicitud de pago: Control de Gastos y Bancos > Solicitudes de Pago
+// Modo ver (ojito) de una solicitud de pago: Control de Gastos y Bancos > Solicitudes de Pago.
+// Una pestaña por cada factura / proforma cargada del proveedor y, siempre al final, la solicitud de pago,
+// que se ve igual al PDF de pago (Backend-Aco/src/views/pdf-solicitud.ejs).
 const props = defineProps<{ idSolicitud: number | null }>();
 const abierto = defineModel<boolean>({ default: false });
 
-const URL_MAIN = import.meta.env.VITE_URL_MAIN;
-const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const MESES = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
+];
+const LOGO_POR_DEFECTO = "https://point.qreport.site/files/logopiccargo.svg";
 
 const detalle = ref<SolicitudPagoDetalle | null>(null);
 const cargando = ref(false);
 const error = ref("");
 
+// facturas / proformas cargadas (Control de Gastos > Factura o Proforma) del proveedor y correlativo
+const TAB_SOLICITUD = "solicitud";
+const facturas = ref<FacturaProveedorCargada[]>([]);
+const tab = ref<string | number>(TAB_SOLICITUD);
+
+// "FACTURA - 0001-123", igual que el listado de facturas o proformas
+function nombreFactura(f: FacturaProveedorCargada) {
+  const tipo = f.type_pago == 1 ? "FACTURA" : f.type_pago == 2 ? "PROFORMA" : "OTRO";
+  return `${tipo}${f.number ? ` - ${f.number}` : ""}`;
+}
+
+// el tipo llega como extensión ("pdf") o como MIME ("image/jpeg")
+function tipoArchivo(f: FacturaProveedorCargada): "pdf" | "imagen" | "otro" {
+  const tipo = `${f.type ?? ""} ${f.path ?? ""}`.toLowerCase();
+  if (tipo.includes("pdf")) return "pdf";
+  if (/image\/|\b(png|jpe?g|gif|webp|bmp)\b|\.(png|jpe?g|gif|webp|bmp)$/.test(tipo)) return "imagen";
+  return "otro";
+}
+
+const facturaActual = computed(() => facturas.value.find((f) => f.id === tab.value) ?? null);
+
+async function cargarFacturas(d: SolicitudPagoDetalle) {
+  const response = await request<FacturaProveedorCargada>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "list_invoice_path",
+    params: { id_master: d.id_master, id_proveedor: d.id_proveedor, id_correlativo: d.id_correlativo },
+  });
+  facturas.value = response.estadoflag ? response.data.filter((f) => f.estadoflag !== false && f.path) : [];
+}
+
 const logo = computed(() => {
   try {
-    return sessionUser().path || "";
+    return sessionUser().path || LOGO_POR_DEFECTO;
   } catch {
-    return "";
+    return LOGO_POR_DEFECTO;
   }
 });
 
 const esCodigo = computed(() => detalle.value?.codigo_tipopago === "02");
-const cuenta = computed(() => (esCodigo.value ? detalle.value?.codigopago : detalle.value?.nrocuenta) || "—");
 const autorizadoPor = computed(
   () => detalle.value?.usuario_aprobadogerencia || detalle.value?.usuario_aprobadoadministracion || "",
 );
@@ -36,10 +70,16 @@ function formatoMonto(valor: number | string | null | undefined) {
   return Number(valor || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+// "15 de Noviembre del 2026", como la fecha del PDF de pago
 function formatoFecha(valor: string | null | undefined) {
-  if (!valor) return "—";
+  if (!valor) return "";
   const [anio, mes, dia] = valor.slice(0, 10).split("-");
-  return `${dia}-${MESES[Number(mes) - 1]}-${anio}`;
+  return `${Number(dia)} de ${MESES[Number(mes) - 1]} del ${anio}`;
+}
+
+// "PLUS AGENCIA DE ADUANAS(11792) - 0001", como en el PDF de pago
+function nombreProveedor(nombre: string, id: number, correlativo: string | null) {
+  return `${nombre}(${id})${correlativo ? ` - ${correlativo}` : ""}`;
 }
 
 function esActual(p: SolicitudPagoDetalle["pendientes"][number]) {
@@ -52,15 +92,21 @@ async function cargar() {
   cargando.value = true;
   error.value = "";
   detalle.value = null;
+  facturas.value = [];
+  tab.value = TAB_SOLICITUD;
   const response = await request<SolicitudPagoDetalle>({
     method: "get",
-    url: URL_MAIN + "solicitud_pago_ver/" + props.idSolicitud,
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_ver/" + props.idSolicitud,
   });
-  cargando.value = false;
   if (!response.estadoflag || !response.data[0]) {
+    cargando.value = false;
     error.value = response.mensaje || CONNECTION_ERROR_MESSAGE;
     return;
   }
+  await cargarFacturas(response.data[0]);
+  // preseleccionada la primera pestaña (la primera factura); sin facturas, la solicitud
+  tab.value = facturas.value[0]?.id ?? TAB_SOLICITUD;
+  cargando.value = false;
   detalle.value = response.data[0];
 }
 
@@ -76,7 +122,7 @@ watch(
 <template>
   <v-dialog
     v-model="abierto"
-    max-width="600"
+    max-width="760"
     scrollable
   >
     <v-card class="spver">
@@ -106,66 +152,128 @@ watch(
         <v-icon>mdi-alert-circle-outline</v-icon> {{ error }}
       </div>
 
+      <!-- pestañas: facturas / proformas cargadas y, al final, la solicitud de pago -->
+      <v-tabs
+        v-if="detalle && facturas.length"
+        v-model="tab"
+        color="primary"
+        density="comfortable"
+        show-arrows
+        class="spver__tabs"
+      >
+        <v-tab
+          v-for="f in facturas"
+          :key="f.id"
+          :value="f.id"
+          :prepend-icon="tipoArchivo(f) === 'pdf' ? 'mdi-file-pdf-box' : tipoArchivo(f) === 'imagen' ? 'mdi-file-image' : 'mdi-file-outline'"
+        >
+          {{ nombreFactura(f) }}
+        </v-tab>
+        <v-tab
+          :value="TAB_SOLICITUD"
+          prepend-icon="mdi-file-document-outline"
+        >
+          Solicitud de Pago
+        </v-tab>
+      </v-tabs>
+
+      <!-- archivo de la factura / proforma -->
+      <div
+        v-if="detalle && facturaActual"
+        class="spver__doc"
+      >
+        <iframe
+          v-if="tipoArchivo(facturaActual) === 'pdf'"
+          :src="facturaActual.path"
+          :title="nombreFactura(facturaActual)"
+          class="spver__docframe"
+        />
+        <img
+          v-else-if="tipoArchivo(facturaActual) === 'imagen'"
+          :src="facturaActual.path"
+          :alt="nombreFactura(facturaActual)"
+          class="spver__docimg"
+        >
+        <div
+          v-else
+          class="spver__state"
+        >
+          <v-icon>mdi-file-outline</v-icon>
+          No se puede mostrar este archivo aquí.
+          <a
+            :href="facturaActual.path"
+            target="_blank"
+            rel="noopener"
+          >Abrir archivo</a>
+        </div>
+      </div>
+
       <div
         v-else-if="detalle"
         class="spver__body"
       >
         <!-- cabecera -->
-        <header class="spver__head">
+        <header class="head">
           <img
-            v-if="logo"
+            class="head__logo"
             :src="logo"
             alt=""
-            class="spver__logo"
           >
-          <span
-            v-if="logo"
-            class="spver__divider"
-          />
-          <h2 class="spver__title">
-            Envío a Administración
-          </h2>
-          <div class="spver__exp">
-            <span class="spver__exppill">EXP {{ detalle.expediente }}</span>
-            <span class="spver__expdate">{{ formatoFecha(detalle.fechasolicitud) }}</span>
+          <div class="head__title">
+            Solicitud de Pago
+          </div>
+          <div class="head__exp">
+            <div class="head__pill">
+              EXP {{ detalle.nro_master || detalle.expediente }}
+            </div>
+            <div class="head__date">
+              {{ formatoFecha(detalle.fechasolicitud) }}
+            </div>
           </div>
         </header>
 
         <!-- proveedor y monto -->
-        <section class="spver__hero">
-          <div class="spver__heroitem">
-            <v-icon
-              size="34"
-              color="#0b3d91"
-            >
-              mdi-storefront-outline
-            </v-icon>
+        <section class="hero">
+          <div class="hero__item">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ><path d="M3 9l1.5-5h15L21 9M3 9h18M3 9a3 3 0 006 0 3 3 0 006 0 3 3 0 006 0M5 12v8h14v-8M9 20v-5h6v5" /></svg>
             <div>
-              <div class="spver__herolabel">
+              <div class="hero__label">
                 Proveedor
               </div>
-              <div class="spver__herovalue">
-                {{ detalle.proveedor }} ({{ detalle.id_proveedor }})
-                <span
-                  v-if="detalle.correlativo"
-                  class="spver__corr"
-                >- {{ detalle.correlativo }}</span>
+              <div class="hero__value">
+                {{ nombreProveedor(detalle.proveedor, detalle.id_proveedor, detalle.correlativo) }}
               </div>
             </div>
           </div>
-          <span class="spver__herosep" />
-          <div class="spver__heroitem">
-            <v-icon
-              size="34"
-              color="#0b3d91"
-            >
-              mdi-cash-multiple
-            </v-icon>
+          <div class="hero__item">
+            <svg
+              class="ico"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ><ellipse
+              cx="9"
+              cy="7"
+              rx="6"
+              ry="3"
+            /><path d="M3 7v4c0 1.7 2.7 3 6 3s6-1.3 6-3V7M3 11v4c0 1.7 2.7 3 6 3 1 0 2-.1 2.8-.4" /><ellipse
+              cx="16"
+              cy="15"
+              rx="5"
+              ry="2.5"
+            /><path d="M11 15v3c0 1.4 2.2 2.5 5 2.5s5-1.1 5-2.5v-3" /></svg>
             <div>
-              <div class="spver__herolabel">
+              <div class="hero__label">
                 Monto a Pagar
               </div>
-              <div class="spver__herovalue spver__herovalue--monto">
+              <div class="hero__value hero__value--monto">
                 {{ formatoMonto(detalle.monto) }} {{ detalle.moneda }}
               </div>
             </div>
@@ -173,111 +281,258 @@ watch(
         </section>
 
         <!-- cliente / ya pagó -->
-        <section class="spver__client">
-          <v-icon color="#0b5fd6">
-            mdi-account-outline
-          </v-icon>
-          <div class="spver__clienttext">
-            <div class="spver__herolabel">
+        <section class="client">
+          <svg
+            class="ico ico--sm"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.6"
+          ><circle
+            cx="12"
+            cy="8"
+            r="4"
+          /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+          <div class="client__data">
+            <div class="client__label">
               Cliente
             </div>
-            <div>{{ detalle.clientes || "—" }}</div>
+            <div class="client__name">
+              {{ detalle.clientes || "—" }}
+            </div>
           </div>
-          <div class="spver__paid">
-            <span>¿Ya pagó?</span>
-            <span
-              class="spver__paidpill"
-              :class="{ 'spver__paidpill--si': detalle.pagadoflag }"
-            >{{ detalle.pagadoflag ? "Sí" : "No" }}</span>
+          <div class="client__paid">
+            ¿Ya pagó? <b :class="{ si: detalle.pagadoflag }">{{ detalle.pagadoflag ? "Sí" : "No" }}</b>
           </div>
         </section>
 
         <!-- datos para el pago -->
-        <section class="spver__card">
-          <h3 class="spver__cardtitle">
-            <v-icon color="#0b5fd6">
-              mdi-wallet-outline
-            </v-icon>
+        <section class="card">
+          <div class="card__head">
+            <svg
+              class="ico ico--sm"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ><rect
+              x="3"
+              y="5"
+              width="18"
+              height="14"
+              rx="2"
+            /><path d="M3 10h18M16 15h2" /></svg>
             Datos para el Pago
-          </h3>
-          <dl class="spver__dl">
-            <dt>
-              <v-icon
-                size="20"
-                color="#0b5fd6"
-              >
-                mdi-bank-outline
-              </v-icon> Banco:
-            </dt>
-            <dd>{{ detalle.banco || "—" }}</dd>
-            <dt>
-              <v-icon
-                size="20"
-                color="#0b5fd6"
-              >
-                mdi-credit-card-outline
-              </v-icon> Método:
-            </dt>
-            <dd><span class="spver__metodo">{{ detalle.tipopago || "—" }}</span></dd>
-            <dt>
-              <v-icon
-                size="20"
-                color="#0b5fd6"
-              >
-                {{ esCodigo ? "mdi-barcode" : "mdi-card-account-details-outline" }}
-              </v-icon>
-              {{ esCodigo ? "Código:" : "N° de Cuenta:" }}
-            </dt>
-            <dd>{{ cuenta }}</dd>
-            <template v-if="detalle.beneficiario">
-              <dt>
-                <v-icon
-                  size="20"
-                  color="#0b5fd6"
-                >
-                  mdi-account-cash-outline
-                </v-icon> Beneficiario:
-              </dt>
-              <dd>{{ detalle.beneficiario }}</dd>
-            </template>
-          </dl>
+          </div>
+          <div
+            v-if="esCodigo"
+            class="rows"
+          >
+            <div class="row">
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><rect
+                x="3"
+                y="6"
+                width="18"
+                height="12"
+                rx="2"
+              /><path d="M7 10h2M7 14h6" /></svg>
+              <span class="row__label">Método:</span>
+              <span class="row__value"><span class="pill">Código de Pago</span></span>
+            </div>
+            <div class="row">
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18" /></svg>
+              <span class="row__label">Código de pago:</span>
+              <span class="row__value">{{ detalle.codigopago || "—" }}</span>
+            </div>
+          </div>
+          <div
+            v-else-if="detalle.nrocuenta || detalle.banco"
+            class="rows"
+          >
+            <div class="row">
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20h18" /></svg>
+              <span class="row__label">Banco:</span>
+              <span class="row__value">{{ detalle.banco || "—" }}</span>
+            </div>
+            <div class="row">
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><rect
+                x="3"
+                y="6"
+                width="18"
+                height="12"
+                rx="2"
+              /><path d="M7 10h2M7 14h6" /></svg>
+              <span class="row__label">Método:</span>
+              <span class="row__value"><span class="pill">Transferencia Bancaria</span></span>
+            </div>
+            <div class="row">
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><rect
+                x="3"
+                y="6"
+                width="18"
+                height="12"
+                rx="2"
+              /><path d="M3 10h18M7 15h4" /></svg>
+              <span class="row__label">N° de Cuenta:</span>
+              <span class="row__value">
+                {{ detalle.nrocuenta || "—" }}
+                <span
+                  v-if="detalle.moneda_cuenta"
+                  class="row__coin"
+                >({{ detalle.moneda_cuenta }})</span>
+              </span>
+            </div>
+            <div
+              v-if="detalle.cci"
+              class="row"
+            >
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><rect
+                x="3"
+                y="6"
+                width="18"
+                height="12"
+                rx="2"
+              /><path d="M3 10h18M7 15h4" /></svg>
+              <span class="row__label">CCI:</span>
+              <span class="row__value">{{ detalle.cci }}</span>
+            </div>
+            <div
+              v-if="detalle.beneficiario"
+              class="row"
+            >
+              <svg
+                class="ico ico--sm"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.6"
+              ><circle
+                cx="12"
+                cy="8"
+                r="4"
+              /><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7" /></svg>
+              <span class="row__label">Beneficiario:</span>
+              <span class="row__value">{{ detalle.beneficiario }}</span>
+            </div>
+          </div>
+          <div
+            v-else
+            class="comentario"
+          >
+            Sin cuenta bancaria seleccionada.
+          </div>
+          <div
+            v-if="detalle.comentario"
+            class="comentario comentario--sep"
+          >
+            <b>Comentarios:</b> {{ detalle.comentario }}
+          </div>
         </section>
 
         <!-- autorización -->
-        <section class="spver__auth">
-          <div class="spver__authtitle">
-            <v-icon color="#0b5fd6">
-              mdi-shield-check-outline
-            </v-icon>
+        <section class="auth">
+          <div class="auth__title">
+            <svg
+              class="ico ico--sm"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+            ><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" /><path d="M8.5 12l2.5 2.5 4.5-5" /></svg>
             Autorización para el Pago
           </div>
-          <div class="spver__authcol">
-            <span class="spver__authlabel">Autorizado por:</span>
-            <span class="spver__authline">{{ autorizadoPor }}</span>
+          <div class="auth__field">
+            Solicitado por:
+            <div class="auth__value">
+              {{ detalle.usuario_solicitud }}
+            </div>
           </div>
-          <div class="spver__authcol">
-            <span class="spver__authlabel">Fecha:</span>
-            <span class="spver__authline">{{ fechaAutorizacion ? formatoFecha(fechaAutorizacion) : "" }}</span>
+          <div class="auth__field">
+            Autorizado por:
+            <div class="auth__line">
+              {{ autorizadoPor }}
+            </div>
+          </div>
+          <div class="auth__field">
+            Fecha:
+            <div class="auth__line">
+              {{ formatoFecha(fechaAutorizacion) }}
+            </div>
           </div>
         </section>
 
-        <!-- pendientes del expediente -->
+        <!-- pagos del expediente -->
         <section>
-          <h3 class="spver__cardtitle spver__cardtitle--plain">
-            <v-icon color="#0b5fd6">
-              mdi-format-list-bulleted
-            </v-icon>
+          <div class="pend__title">
+            <svg
+              class="ico ico--sm"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            ><path d="M9 6h12M9 12h12M9 18h12" /><circle
+              cx="4"
+              cy="6"
+              r="1"
+            /><circle
+              cx="4"
+              cy="12"
+              r="1"
+            /><circle
+              cx="4"
+              cy="18"
+              r="1"
+            /></svg>
             Pagos Pendientes del Expediente
-          </h3>
-          <div class="spver__tablewrap">
-            <table class="spver__table">
+          </div>
+          <div class="tabla">
+            <table>
               <thead>
                 <tr>
                   <th>Proveedor / Concepto</th>
-                  <th class="text-right">
-                    Total
+                  <th class="num">
+                    Pricing ({{ detalle.moneda || "USD" }})
                   </th>
-                  <th class="text-center">
+                  <th class="num">
+                    Operaciones ({{ detalle.moneda || "USD" }})
+                  </th>
+                  <th class="center">
                     Status
                   </th>
                 </tr>
@@ -285,29 +540,29 @@ watch(
               <tbody>
                 <tr v-if="!detalle.pendientes.length">
                   <td
-                    colspan="3"
-                    class="text-center text-medium-emphasis"
+                    colspan="4"
+                    class="center text-medium-emphasis"
                   >
-                    No hay pagos pendientes en el expediente.
+                    No hay pagos en el expediente.
                   </td>
                 </tr>
                 <tr
                   v-for="p in detalle.pendientes"
                   :key="`${p.id_proveedor}-${p.id_correlativo}`"
-                  :class="{ 'spver__row--actual': esActual(p) }"
+                  :class="{ actual: esActual(p) }"
                 >
-                  <td class="font-weight-bold">
-                    {{ p.proveedor }} ({{ p.id_proveedor }})
+                  <td>{{ nombreProveedor(p.proveedor, p.id_proveedor, p.correlativo) }}</td>
+                  <td class="num">
+                    {{ formatoMonto(p.total_pr) }}
+                  </td>
+                  <td class="num">
+                    {{ formatoMonto(p.total_op ?? p.total) }}
+                  </td>
+                  <td class="center">
                     <span
-                      v-if="p.correlativo"
-                      class="spver__corr"
-                    >- {{ p.correlativo }}</span>
-                  </td>
-                  <td class="text-right text-no-wrap">
-                    {{ formatoMonto(p.total) }} {{ p.moneda }}
-                  </td>
-                  <td class="text-center">
-                    <span class="spver__status">{{ p.estado }}</span>
+                      class="status"
+                      :class="{ 'status--pagado': p.pagado }"
+                    >{{ p.pagado ? "Pagado" : "Pendiente" }}</span>
                   </td>
                 </tr>
               </tbody>
@@ -315,28 +570,25 @@ watch(
           </div>
         </section>
 
-        <p
-          v-if="detalle.comentario"
-          class="spver__comment"
-        >
-          <b>Observaciones:</b> {{ detalle.comentario }}
+        <p class="nota">
+          * Toda solicitud de efectivo debe ser rendida o sustentada con comprobantes de pago.
+          * Las hojas de movilidad deben estar firmadas por el jefe inmediato o quien autorizó el gasto.
+          · Solicitud N° {{ detalle.id }}
         </p>
       </div>
-      <span
-        class="spver__wave"
-        aria-hidden="true"
-      />
     </v-card>
   </v-dialog>
 </template>
 
 <style scoped>
+/* Mismos tamaños y colores que el PDF de pago (pdf-solicitud.ejs) */
 .spver {
   position: relative;
   overflow: hidden;
   border-radius: 20px !important;
   color: #0a1f44;
   background: #fff;
+  font-size: 0.95rem;
 }
 .spver__close {
   position: absolute;
@@ -352,277 +604,349 @@ watch(
   min-height: 220px;
   padding: 24px;
 }
+.spver__tabs {
+  flex-shrink: 0;
+  padding-right: 44px;
+  border-bottom: 1px solid #dce5f2;
+}
+/* factura / proforma: el archivo ocupa el modal */
+.spver__doc {
+  display: flex;
+  justify-content: center;
+  height: 75vh;
+  padding: 12px;
+  overflow: auto;
+  background: #eef2f8;
+}
+.spver__docframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+}
+.spver__docimg {
+  max-width: 100%;
+  height: auto;
+  align-self: flex-start;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(10, 31, 68, 0.15);
+}
 .spver__body {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 22px 22px 56px;
+  padding: 24px 28px;
   overflow-y: auto;
 }
-.spver__head {
+/* sin esto las tarjetas (overflow: hidden) se encogen y "Datos para el Pago" queda vacío */
+.spver__body > * {
+  flex-shrink: 0;
+}
+.ico {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  color: #0b5fd6;
+}
+.ico--sm {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+}
+
+/* cabecera */
+.head {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding-right: 32px;
+  gap: 18px;
+  padding-right: 28px;
 }
-.spver__logo {
-  height: 42px;
-  max-width: 130px;
+.head__logo {
+  height: 52px;
+  max-width: 170px;
   object-fit: contain;
 }
-.spver__divider {
-  width: 2px;
-  height: 40px;
-  background: #0b5fd6;
+.head__title {
+  flex: 1;
+  padding-left: 18px;
+  border-left: 2px solid #c9d6ea;
+  font-size: 1.85rem;
+  font-weight: 900;
+  line-height: 1.15;
 }
-.spver__title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #0a1f44;
+.head__exp {
+  text-align: center;
 }
-.spver__exp {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-left: auto;
-}
-.spver__exppill {
-  padding: 4px 12px;
-  border-radius: 8px;
+.head__pill {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 10px;
   background: #dcebfd;
-  color: #0b3d91;
-  font-weight: 800;
+  font-size: 1.15rem;
+  font-weight: 900;
   white-space: nowrap;
 }
-.spver__expdate {
-  margin-top: 2px;
-  font-size: 0.8rem;
-  color: #4a5670;
-}
-.spver__hero {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: #e8f1fd;
-}
-.spver__heroitem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1 1 0;
-  min-width: 0;
-}
-.spver__herosep {
-  width: 1px;
-  align-self: stretch;
-  background: #b7cff0;
-}
-.spver__herolabel {
-  font-size: 0.82rem;
-  font-weight: 700;
+.head__date {
+  margin-top: 6px;
+  font-size: 0.78rem;
   color: #3b4a63;
 }
-.spver__herovalue {
-  font-size: 1.2rem;
-  font-weight: 900;
-  overflow-wrap: anywhere;
+
+/* proveedor y monto */
+.hero {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #e3eefc;
 }
-.spver__herovalue--monto {
-  white-space: nowrap;
-}
-.spver__corr {
-  font-weight: 600;
-  color: #4a5670;
-  font-size: 0.85em;
-}
-.spver__client {
+.hero__item {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 4px 6px 12px;
-  border-bottom: 1px solid #e3e9f3;
-  font-size: 0.9rem;
-}
-.spver__clienttext {
-  flex: 1 1 auto;
   min-width: 0;
 }
-.spver__paid {
+.hero__item + .hero__item {
+  padding-left: 18px;
+  border-left: 2px solid #b9cdea;
+}
+.hero__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.hero__value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.hero__value--monto {
+  white-space: nowrap;
+}
+
+.client {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-left: 14px;
-  border-left: 1px solid #e3e9f3;
+  gap: 12px;
+  padding: 0 6px 12px;
+  border-bottom: 1px solid #e3e9f2;
+}
+.client__data {
+  flex: 1;
+  min-width: 0;
+}
+.client__label {
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.client__name {
+  font-size: 0.85rem;
+}
+.client__paid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 16px;
+  border-left: 1px solid #e3e9f2;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.spver__paidpill {
-  padding: 4px 14px;
+.client__paid b {
+  padding: 6px 16px;
   border-radius: 8px;
-  background: #e5e9f0;
-  font-weight: 800;
+  background: #e9edf3;
+  font-size: 1rem;
 }
-.spver__paidpill--si {
-  background: #d9f7e1;
-  color: #166534;
+.client__paid b.si {
+  background: #d8f0d2;
+  color: #1d6b12;
 }
-.spver__card {
-  border: 1px solid #dbe5f5;
+
+/* tarjetas */
+.card {
+  border: 1px solid #dce5f2;
   border-radius: 14px;
   overflow: hidden;
 }
-.spver__cardtitle {
+.card__head {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 0;
   padding: 10px 16px;
-  background: #e8f1fd;
-  font-size: 1.05rem;
-  font-weight: 800;
-}
-.spver__cardtitle--plain {
-  padding: 4px 0 10px;
-  background: transparent;
-}
-.spver__dl {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  margin: 0;
-}
-.spver__dl dt,
-.spver__dl dd {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0;
-  padding: 10px 16px;
-  border-top: 1px solid #edf1f8;
-}
-.spver__dl dt {
+  background: #e3eefc;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: #3b4a63;
-  white-space: nowrap;
 }
-.spver__dl dd {
-  font-size: 1.05rem;
-  font-weight: 800;
+.rows {
+  padding: 2px 16px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+}
+.row + .row {
+  border-top: 1px solid #e8edf5;
+}
+.row__label {
+  width: 120px;
+  flex: 0 0 120px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+.row__value {
+  flex: 1;
+  min-width: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
   overflow-wrap: anywhere;
 }
-.spver__metodo {
-  padding: 3px 12px;
+.row__coin {
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+.pill {
+  display: inline-block;
+  padding: 5px 14px;
   border-radius: 8px;
   background: #dcebfd;
-  color: #0a1f44;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
-.spver__auth {
-  display: grid;
-  grid-template-columns: auto 1fr 1fr;
-  align-items: end;
-  gap: 16px;
-  padding: 12px 16px;
-  border: 1px solid #dbe5f5;
+.comentario {
+  padding: 10px 16px;
+  font-size: 0.85rem;
+}
+.comentario--sep {
+  border-top: 1px solid #e8edf5;
+}
+
+/* autorización */
+.auth {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid #dce5f2;
   border-radius: 14px;
+  overflow: hidden;
 }
-.spver__authtitle {
+.auth__title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 16px;
-  border-right: 1px solid #dbe5f5;
-  font-weight: 800;
-  align-self: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #e3eefc;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
-.spver__authcol {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.auth__field {
+  flex: 1;
   min-width: 0;
+  padding: 8px 16px 12px;
+  border-left: 1px solid #dce5f2;
+  font-size: 0.72rem;
 }
-.spver__authlabel {
-  font-size: 0.8rem;
-  color: #4a5670;
-}
-.spver__authline {
-  min-height: 24px;
-  border-bottom: 1px solid #8a97ab;
+.auth__value {
+  margin-top: 8px;
+  font-size: 0.85rem;
   font-weight: 700;
   overflow-wrap: anywhere;
 }
-.spver__tablewrap {
-  overflow-x: auto;
-  border: 1px solid #dbe5f5;
-  border-radius: 12px;
+.auth__line {
+  min-height: 22px;
+  margin-top: 8px;
+  border-bottom: 1px solid #8a97ad;
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
-.spver__table {
+
+/* pagos del expediente */
+.pend__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+.tabla {
+  overflow-x: auto;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+}
+table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
-.spver__table th {
-  padding: 10px 14px;
-  background: #e8f1fd;
-  font-weight: 700;
+th {
+  padding: 9px 14px;
+  background: #e3eefc;
   text-align: left;
+  font-size: 0.78rem;
 }
-.spver__table td {
-  padding: 10px 14px;
-  border-top: 1px solid #edf1f8;
+td {
+  padding: 8px 14px;
+  border-top: 1px solid #e8edf5;
+  font-weight: 700;
 }
-.spver__row--actual td {
-  background: #fff7dc;
+.num {
+  text-align: right;
+  white-space: nowrap;
 }
-.spver__status {
+.center {
+  text-align: center;
+}
+tr.actual td {
+  background: #fdf3d8;
+}
+.status {
   display: inline-block;
-  padding: 2px 12px;
-  border-radius: 8px;
+  padding: 3px 12px;
+  border-radius: 6px;
   background: #fde9a8;
-  color: #6b4e00;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
   white-space: nowrap;
 }
-.spver__comment {
+.status--pagado {
+  background: #d8f0d2;
+  color: #1d6b12;
+}
+
+.nota {
   margin: 0;
-  font-size: 0.88rem;
-  color: #3b4a63;
+  font-size: 0.68rem;
+  color: #4a5670;
 }
-.spver__wave {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 48px;
-  background: linear-gradient(90deg, #0b3d91, #0b5fd6);
-  clip-path: path("M0 30 C 180 0, 360 60, 600 14 L 600 48 L 0 48 Z");
-  pointer-events: none;
-}
-@media (max-width: 560px) {
-  .spver__head {
+@media (max-width: 600px) {
+  .head {
     flex-wrap: wrap;
   }
-  .spver__exp {
-    margin-left: 0;
-    align-items: flex-start;
+  .head__title {
+    font-size: 1.4rem;
   }
-  .spver__hero {
+  .hero,
+  .auth {
     flex-direction: column;
     align-items: stretch;
   }
-  .spver__herosep {
-    width: auto;
-    height: 1px;
+  .hero__item + .hero__item {
+    margin-top: 12px;
+    padding: 12px 0 0;
+    border-left: 0;
+    border-top: 2px solid #b9cdea;
   }
-  .spver__auth {
-    grid-template-columns: 1fr;
-  }
-  .spver__authtitle {
-    border-right: 0;
+  .auth__field {
+    border-left: 0;
+    border-top: 1px solid #dce5f2;
   }
 }
 </style>
