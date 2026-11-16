@@ -72,6 +72,10 @@ onMounted(async () => {
     }
   });
 
+  window.addEventListener("sw-updated", () => {
+    dialogVersion.value = true;
+  });
+
   appStore.drawer = false;
 
   if (route.params.id) {
