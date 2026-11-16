@@ -36,9 +36,14 @@ import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
 import { usePermissions } from "@/composables/usePermissions";
 import type { ApiResponse } from "@/types/api";
-import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  confirmarEliminarSolicitud,
+  mensajeClaveSolicitud,
+  tieneAprobacionesSolicitud,
+} from "@/composables/useAccionesSolicitudPago";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -1642,6 +1647,8 @@ const pasoSolicitudPago = ref<"datos" | "preview">("datos");
 const previewPdfPago = ref("");
 const cargandoPreviewPdfPago = ref(false);
 const generandoPdfPago = ref(false);
+// botón de la vista previa en curso: "Guardar solicitud" o "Guardar y enviar a Administración"
+const accionPdfPago = ref<"guardar" | "enviar" | null>(null);
 // PDF ya generado en este modal: el formulario se bloquea (sus datos ya están en el PDF)
 const pdfGeneradoEnModal = ref(false);
 // el proveedor del modal con los datos recién cargados (tras generar el PDF se recarga el listado)
@@ -1756,16 +1763,23 @@ async function abrirPreviewPdfPago() {
   });
   cargandoPreviewPdfPago.value = false;
   if (warnIfRefused(response)) return;
-  previewPdfPago.value = response.data[0]?.html ?? "";
+  // en la vista previa no va la ola azul del pie de página (el PDF generado sí la lleva)
+  previewPdfPago.value = (response.data[0]?.html ?? "").replace(
+    "</head>",
+    "<style>.ola { display: none !important; } body { padding-bottom: 0.6cm !important; }</style></head>",
+  );
   pasoSolicitudPago.value = "preview";
 }
 
-// Paso 4: genera el PDF de pago (table_spaymentpro + PDF guardado) y envía la solicitud a Administración.
-// Si el envío falla, vuelve al formulario bloqueado (los datos ya están en el PDF) para reintentar el envío.
-async function generarPdfPago() {
+// Paso 4: genera el PDF de pago (table_spaymentpro + PDF guardado con los datos del formulario).
+// enviar=false ("Guardar solicitud"): queda "Listo para Enviar a Administración".
+// enviar=true ("Guardar y enviar"): además envía la solicitud; si el envío falla, vuelve al formulario
+// bloqueado (los datos ya están en el PDF) para reintentar el envío.
+async function generarPdfPago(enviar: boolean) {
   const item = egresoSolicitudPago.value;
   if (!item) return;
   generandoPdfPago.value = true;
+  accionPdfPago.value = enviar ? "enviar" : "guardar";
   try {
     if (tienePdfPago.value) {
       await _getSPaymentPro(item);
@@ -1782,6 +1796,7 @@ async function generarPdfPago() {
         id_correlativo: item.id_correlativo,
         id_master: item.id_master,
         status: 1,
+        solicitud_datos: datosFormularioSolicitud(),
       },
     });
     if (warnIfRefused(creado)) return;
@@ -1794,9 +1809,61 @@ async function generarPdfPago() {
     pasoSolicitudPago.value = "datos";
     if (!pdfGenerado) return;
     pdfGeneradoEnModal.value = true;
-    await registrarSolicitudPago(false);
+    if (enviar) {
+      await registrarSolicitudPago(false);
+      return;
+    }
+    dialogSolicitudPagoNueva.value = false;
+    pdfGeneradoEnModal.value = false;
+    Swal.fire({
+      icon: "success",
+      title: "Solicitud guardada",
+      html: `Se generó el PDF de pago de <b>${item.nombre_proveedor}</b>.<br>Quedó <b>Listo para Enviar a Administración</b>.`,
+    });
   } finally {
     generandoPdfPago.value = false;
+    accionPdfPago.value = null;
+  }
+}
+
+// PDF de pago guardado sin solicitud enviada: "Listo para Enviar a Administración"
+const listoParaEnviar = (e: EgresoProveedor) => !solicitudPagoDe(e) && Number(e.solicitudes || 0) > 0;
+
+// Lo que se envía a Administración (y se guarda con el PDF para enviarlo después)
+function datosFormularioSolicitud() {
+  const f = solicitudPagoForm.value;
+  return {
+    id_tipopago: f.id_tipopago,
+    id_cuenta: tipoPagoSeleccionado.value === "02" ? null : f.id_cuenta,
+    codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
+    comentario: f.comentario,
+  };
+}
+
+// "Listo para Enviar" > eliminar: borra el PDF de pago guardado (vuelve "Solicitar")
+const eliminandoPdfGuardado = ref<string | null>(null);
+async function eliminarPdfGuardado(item: EgresoProveedor) {
+  const { isConfirmed } = await Swal.fire({
+    icon: "warning",
+    html: `¿Eliminar la solicitud guardada (PDF de pago) de <b>${item.nombre_proveedor}</b>?`,
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#d33",
+  });
+  if (!isConfirmed) return;
+  eliminandoPdfGuardado.value = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
+  try {
+    await _getSPaymentPro(item);
+    let eliminados = 0;
+    for (const pdf of itemsSPayment.value.filter((x) => x.id)) {
+      if (!(await eliminar(pdf.id, false))) break;
+      eliminados++;
+    }
+    if (eliminados) notifySuccess("Solicitud guardada eliminada.");
+    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  } finally {
+    eliminandoPdfGuardado.value = null;
   }
 }
 
@@ -1888,6 +1955,15 @@ const cuentasSolicitudPago = computed(() =>
     value: c.id,
   })),
 );
+// Enviar a Administración (nuevo): pasos con el actual resaltado
+const pasosGuiaSolicitud = computed(() => {
+  const datosListos = solicitudPagoValida.value;
+  return [
+    { titulo: "Llena los datos", detalle: "Tipo de pago y cuenta o código", estado: datosListos ? "hecho" : "actual" },
+    { titulo: "Generar PDF", detalle: "Revisa la vista previa", estado: datosListos ? "actual" : "pendiente" },
+    { titulo: "Guarda o envía", detalle: "Guardar solicitud o Guardar y enviar", estado: "pendiente" },
+  ] as const;
+});
 const solicitudPagoValida = computed(() => {
   const f = solicitudPagoForm.value;
   if (!f.id_tipopago) return false;
@@ -1904,8 +1980,8 @@ async function cargarTiposPagoSolicitud() {
   tiposPagoSolicitud.value = response.estadoflag ? response.data : [];
 }
 
-// Con aprobación de Administración o Gerencia, editar o eliminar pide la clave de un administrador
-const tieneAprobaciones = (s: SolicitudPagoControl) => !!(s.aprobadoadministracionflag || s.aprobadogerenciaflag);
+// Con aprobaciones (Administración o Gerencia) o soporte de pago, editar o eliminar pide la clave de un administrador
+const tieneAprobaciones = (s: SolicitudPagoControl) => tieneAprobacionesSolicitud(s);
 // Con salida registrada en Bancos ya no se edita ni elimina
 const tieneSalidaBancos = (s: SolicitudPagoControl) => !!s.id_pagoegreso;
 const adminEdicionSolicitud = ref<AdminCredentials | null>(null);
@@ -1928,9 +2004,7 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   const modo = !existente ? "nuevo" : (editar || existente.codigo_estado === "RECHAZADA") && !tieneSalidaBancos(existente) ? "editar" : "ver";
   adminEdicionSolicitud.value = null;
   if (modo === "editar" && existente && tieneAprobaciones(existente)) {
-    const admin = await askAdminCredentials(
-      "La solicitud ya tiene aprobación de Administración o Gerencia. Para editarla, escribe el usuario y la clave de un administrador.",
-    );
+    const admin = await askAdminCredentials(mensajeClaveSolicitud(existente, "editarla"));
     if (!admin) return;
     adminEdicionSolicitud.value = admin;
   }
@@ -1959,6 +2033,20 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
     return;
   }
   solicitudPagoForm.value.id_tipopago = tiposPagoSolicitud.value[0]?.id ?? null;
+  // "Listo para Enviar": se precargan los datos con los que se guardó el PDF y solo se envía.
+  // Con el lápiz (editar) el formulario queda libre para "Eliminar y Generar PDF".
+  if (!tienePdfPago.value) return;
+  await _getSPaymentPro(item);
+  const guardado = itemsSPayment.value.find((x) => x.id)?.solicitud_datos as Partial<typeof solicitudPagoForm.value> | null | undefined;
+  const tipo = guardado && tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(guardado.id_tipopago));
+  if (!guardado || !tipo) return;
+  solicitudPagoForm.value = {
+    id_tipopago: tipo.id,
+    id_cuenta: guardado.id_cuenta ?? null,
+    codigopago: guardado.codigopago ?? "",
+    comentario: guardado.comentario ?? "",
+  };
+  pdfGeneradoEnModal.value = !editar;
 }
 
 // confirmar=false: viene de "Generar PDF" en la vista previa (ya se confirmó ahí)
@@ -1980,13 +2068,7 @@ async function registrarSolicitudPago(confirmar = true) {
   if (!isConfirmed) return;
 
   guardandoSolicitudPago.value = true;
-  const f = solicitudPagoForm.value;
-  const datos = {
-    id_tipopago: f.id_tipopago,
-    id_cuenta: tipoPagoSeleccionado.value === "02" ? null : f.id_cuenta,
-    codigopago: tipoPagoSeleccionado.value === "01" ? null : f.codigopago,
-    comentario: f.comentario,
-  };
+  const datos = datosFormularioSolicitud();
   const response = editando
     ? await request({
       method: "put",
@@ -2029,21 +2111,11 @@ const eliminandoSolicitudPago = ref<number | null>(null);
 async function eliminarSolicitudPago(item: EgresoProveedor) {
   const solicitud = solicitudPagoDe(item);
   if (!solicitud || avisarSalidaBancos(item)) return;
-  const { isConfirmed } = await Swal.fire({
-    icon: "warning",
-    html: `¿Eliminar la solicitud de pago N° <b>${solicitud.id}</b> de <b>${item.nombre_proveedor}</b>?`,
-    showCancelButton: true,
-    confirmButtonText: "Sí, eliminar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#d33",
-  });
-  if (!isConfirmed) return;
-  // con aprobación de Administración o Gerencia se pide la clave de un administrador
+  if (!(await confirmarEliminarSolicitud(solicitud, item.nombre_proveedor))) return;
+  // con aprobaciones o soporte de pago se pide la clave de un administrador
   let admin: AdminCredentials | undefined;
   if (tieneAprobaciones(solicitud)) {
-    admin = await askAdminCredentials(
-      "La solicitud ya tiene aprobación de Administración o Gerencia. Para eliminarla, escribe el usuario y la clave de un administrador.",
-    );
+    admin = await askAdminCredentials(mensajeClaveSolicitud(solicitud, "eliminarla"));
     if (!admin) return;
   }
   eliminandoSolicitudPago.value = solicitud.id;
@@ -2055,7 +2127,8 @@ async function eliminarSolicitudPago(item: EgresoProveedor) {
   eliminandoSolicitudPago.value = null;
   if (warnIfRefused(response)) return;
   Swal.fire({ icon: "success", text: response.mensaje });
-  await cargarSolicitudesExistentes();
+  // también se eliminó el PDF de pago: se recarga el listado (ojo desactivado y vuelve "Generar PDF")
+  await Promise.all([cargarSolicitudesExistentes(), controlGastosStore.getListControlGastosMaster(route.params.id as string)]);
   emit("solicitudPagoRegistrada");
 }
 
@@ -2370,6 +2443,62 @@ onMounted(async () => {
                         />
                       </div>
                     </div>
+                    <!-- PDF de pago guardado, falta enviarlo: clic para enviarlo; lápiz para generar otro; eliminar el PDF -->
+                    <div
+                      v-else-if="listoParaEnviar(egresoProveedor)"
+                      class="solreq solreq--listo"
+                    >
+                      <button
+                        type="button"
+                        class="solreq__info"
+                        title="Enviar a Administración"
+                        @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                      >
+                        <span class="solreq__badge">
+                          <v-icon size="18">mdi-file-check-outline</v-icon>
+                        </span>
+                        <span class="solreq__text">
+                          <span class="solreq__title">Listo para Enviar a Administración</span>
+                          <span class="solreq__date">PDF de pago guardado</span>
+                        </span>
+                      </button>
+                      <div class="solreq__acciones">
+                        <v-btn
+                          icon="mdi-eye"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          color="blue"
+                          title="Ver PDF de pago"
+                          aria-label="Ver PDF de pago"
+                          :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          @click="verPdfPago(egresoProveedor)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'NUEVO')"
+                          icon="mdi-pencil-outline"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          color="primary"
+                          title="Cambiar los datos y generar un nuevo PDF"
+                          aria-label="Editar solicitud guardada"
+                          @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'ELIMINAR')"
+                          icon="mdi-delete-outline"
+                          size="x-small"
+                          variant="text"
+                          class="solreq__del"
+                          color="error"
+                          title="Eliminar solicitud guardada (PDF de pago)"
+                          aria-label="Eliminar solicitud guardada"
+                          :loading="eliminandoPdfGuardado === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          @click="eliminarPdfGuardado(egresoProveedor)"
+                        />
+                      </div>
+                    </div>
                     <!-- Paso 2: con factura (paso 1) se abre Enviar a Administración; ahí se genera el PDF de pago -->
                     <span
                       v-else-if="can('listControlGastos', 'NUEVO')"
@@ -2394,7 +2523,7 @@ onMounted(async () => {
                     >—</span>
                     <!-- ojo: el último PDF de pago generado (sin solicitud; con solicitud va dentro de la tarjeta) -->
                     <span
-                      v-if="!solicitudPagoDe(egresoProveedor)"
+                      v-if="!solicitudPagoDe(egresoProveedor) && !listoParaEnviar(egresoProveedor)"
                       class="d-inline-block"
                       :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
                     >
@@ -3286,7 +3415,7 @@ onMounted(async () => {
               PREVISUALIZACIÓN DE PDF A GENERAR
             </h3>
             <span class="inv-subtitle">
-              REVISA EL PDF DE PAGO: AL GENERARLO SE ENVÍA LA SOLICITUD A ADMINISTRACIÓN.
+              REVISA EL PDF DE PAGO: GUÁRDALO O GUÁRDALO Y ENVÍALO A ADMINISTRACIÓN.
             </span>
           </div>
           <div
@@ -3457,17 +3586,42 @@ onMounted(async () => {
             density="compact"
             class="mt-4"
           >
-            El PDF de pago ya se generó con estos datos, por eso están bloqueados. Vuelve a enviar la solicitud.
+            El PDF de pago ya se generó con estos datos, por eso están bloqueados. Envía la solicitud a Administración
+            o, para cambiarlos, usa el lápiz y genera un nuevo PDF.
           </v-alert>
-          <v-alert
+          <!-- guía del flujo: el paso actual resaltado; el 1 se marca al completar los datos -->
+          <div
             v-else-if="modoSolicitudPago === 'nuevo'"
-            type="info"
-            variant="tonal"
-            density="compact"
-            class="mt-4"
+            class="solguia mt-4"
+            role="note"
           >
-            Llena los datos y genera el PDF: al confirmarlo se genera el PDF de pago y se envía la solicitud a Administración.
-          </v-alert>
+            <div class="solguia__head">
+              <v-icon size="20">
+                mdi-map-marker-path
+              </v-icon>
+              ¿Cómo enviar la solicitud?
+            </div>
+            <ol class="solguia__pasos">
+              <li
+                v-for="(p, i) in pasosGuiaSolicitud"
+                :key="p.titulo"
+                class="solguia__paso"
+                :class="`solguia__paso--${p.estado}`"
+              >
+                <span class="solguia__num">
+                  <v-icon
+                    v-if="p.estado === 'hecho'"
+                    size="16"
+                  >mdi-check-bold</v-icon>
+                  <template v-else>{{ i + 1 }}</template>
+                </span>
+                <span class="solguia__texto">
+                  <b>{{ p.titulo }}</b>
+                  <small>{{ p.detalle }}</small>
+                </span>
+              </li>
+            </ol>
+          </div>
         </v-card-text>
 
         <!-- vista previa: el mismo HTML del PDF de pago (pdf-solicitud.ejs) -->
@@ -3519,7 +3673,7 @@ onMounted(async () => {
             :disabled="!tienePdfPago || !solicitudPagoValida || !conceptosSolicitudPago.length"
             @click="registrarSolicitudPago()"
           >
-            {{ modoSolicitudPago === "editar" ? "Reenviar solicitud" : "Enviar solicitud" }}
+            {{ modoSolicitudPago === "editar" ? "Reenviar solicitud" : "Enviar a Administración" }}
           </v-btn>
         </v-card-actions>
         <v-card-actions
@@ -3530,20 +3684,36 @@ onMounted(async () => {
           <v-btn
             variant="outlined"
             rounded="lg"
+            size="large"
             :disabled="generandoPdfPago"
             @click="pasoSolicitudPago = 'datos'"
           >
             Cancelar
           </v-btn>
+          <!-- solo guarda y genera el PDF: queda "Listo para Enviar a Administración" -->
           <v-btn
             color="primary"
             variant="flat"
             rounded="lg"
-            prepend-icon="mdi-file-pdf-box"
-            :loading="generandoPdfPago"
-            @click="generarPdfPago"
+            size="large"
+            prepend-icon="mdi-content-save-outline"
+            :loading="accionPdfPago === 'guardar'"
+            :disabled="generandoPdfPago"
+            @click="generarPdfPago(false)"
           >
-            Generar PDF
+            Guardar solicitud
+          </v-btn>
+          <v-btn
+            color="success"
+            variant="flat"
+            rounded="lg"
+            size="large"
+            prepend-icon="mdi-send"
+            :loading="accionPdfPago === 'enviar'"
+            :disabled="generandoPdfPago"
+            @click="generarPdfPago(true)"
+          >
+            Guardar y enviar a Administración
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -4068,6 +4238,11 @@ onMounted(async () => {
   border: 1px solid var(--solreq-border);
   border-radius: 10px;
   background: var(--solreq-bg);
+}
+.solreq--listo {
+  --solreq-fg: #15803d;
+  --solreq-bg: #ecfdf3;
+  --solreq-border: #b7ebc9;
 }
 .solreq--rechazada {
   --solreq-fg: #c0261b;
@@ -4911,6 +5086,100 @@ onMounted(async () => {
   border-top: 1px dashed #c5d3ea;
   font-weight: 800;
   color: #1e3a8a;
+}
+/* guía de pasos de Enviar a Administración */
+.solguia {
+  padding: 12px 14px;
+  border: 1px solid #f5c26b;
+  border-left: 5px solid #f59e0b;
+  border-radius: 12px;
+  background: #fff8eb;
+  animation: solguia-entrada 0.35s ease-out;
+}
+.solguia__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: #92400e;
+  font-weight: 800;
+}
+.solguia__pasos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.solguia__paso {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #64748b;
+}
+.solguia__num {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+.solguia__texto {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+.solguia__texto b {
+  font-size: 0.88rem;
+}
+.solguia__texto small {
+  font-size: 0.75rem;
+}
+.solguia__paso--actual {
+  border-color: #1e5bd8;
+  background: #fff;
+  color: #1e3a8a;
+  box-shadow: 0 2px 8px rgba(30, 91, 216, 0.18);
+}
+.solguia__paso--actual .solguia__num {
+  background: #1e5bd8;
+  color: #fff;
+  animation: solguia-pulso 1.6s ease-in-out infinite;
+}
+.solguia__paso--hecho {
+  color: #15803d;
+}
+.solguia__paso--hecho .solguia__num {
+  background: #22c55e;
+  color: #fff;
+}
+@keyframes solguia-pulso {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(30, 91, 216, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(30, 91, 216, 0); }
+}
+@keyframes solguia-entrada {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .solguia,
+  .solguia__paso--actual .solguia__num {
+    animation: none;
+  }
+}
+@media (max-width: 600px) {
+  .solguia__pasos {
+    grid-template-columns: 1fr;
+  }
 }
 .solnueva__tipos {
   display: grid;

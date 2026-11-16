@@ -44,6 +44,8 @@ const props = defineProps<{
   procesando?: number | null;
   revisando?: number | null;
   eliminando?: number | null;
+  /** botón "Ver anexo" (solo Bancos > Solicitudes de Pago; en Control de Gastos se quitó) */
+  verAnexo?: boolean;
 }>();
 const emit = defineEmits<{
   aprobar: [s: SolicitudPagoMovilItem, tipo: AreaRevision];
@@ -375,6 +377,7 @@ function abrir(url: string | null | undefined) {
                     </v-btn>
                   </template>
                   <v-btn
+                    v-if="verAnexo"
                     size="small"
                     variant="outlined"
                     color="primary"

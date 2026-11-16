@@ -39,6 +39,20 @@ function tipoArchivo(f: FacturaProveedorCargada): "pdf" | "imagen" | "otro" {
   return "otro";
 }
 
+// "Ver Proforma – 1909" | "Solicitud de Pago" (la solicitud siempre al final)
+function tituloPestana(f: FacturaProveedorCargada) {
+  const tipo = f.type_pago == 1 ? "Factura" : f.type_pago == 2 ? "Proforma" : "Archivo";
+  return `Ver ${tipo}${f.number ? ` – ${f.number}` : ""}`;
+}
+const pestanas = computed(() => [
+  ...facturas.value.map((f) => ({
+    value: f.id as string | number,
+    titulo: tituloPestana(f),
+    icono: tipoArchivo(f) === "imagen" ? "mdi-file-image-outline" : "mdi-file-document-outline",
+  })),
+  { value: TAB_SOLICITUD as string | number, titulo: "Solicitud de Pago", icono: "mdi-wallet-outline" },
+]);
+
 const facturaActual = computed(() => facturas.value.find((f) => f.id === tab.value) ?? null);
 
 async function cargarFacturas(d: SolicitudPagoDetalle) {
@@ -59,12 +73,10 @@ const logo = computed(() => {
 });
 
 const esCodigo = computed(() => detalle.value?.codigo_tipopago === "02");
-const autorizadoPor = computed(
-  () => detalle.value?.usuario_aprobadogerencia || detalle.value?.usuario_aprobadoadministracion || "",
-);
-const fechaAutorizacion = computed(
-  () => detalle.value?.fecha_aprobadogerencia || detalle.value?.fecha_aprobadoadministracion || null,
-);
+const autorizaciones = computed(() => [
+  { titulo: "Revisado por:", usuario: detalle.value?.usuario_aprobadoadministracion ?? "", fecha: detalle.value?.fecha_aprobadoadministracion ?? null },
+  { titulo: "Aprobado por:", usuario: detalle.value?.usuario_aprobadogerencia ?? "", fecha: detalle.value?.fecha_aprobadogerencia ?? null },
+]);
 
 function formatoMonto(valor: number | string | null | undefined) {
   return Number(valor || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -153,29 +165,27 @@ watch(
       </div>
 
       <!-- pestañas: facturas / proformas cargadas y, al final, la solicitud de pago -->
-      <v-tabs
+      <div
         v-if="detalle && facturas.length"
-        v-model="tab"
-        color="primary"
-        density="comfortable"
-        show-arrows
         class="spver__tabs"
+        role="tablist"
       >
-        <v-tab
-          v-for="f in facturas"
-          :key="f.id"
-          :value="f.id"
-          :prepend-icon="tipoArchivo(f) === 'pdf' ? 'mdi-file-pdf-box' : tipoArchivo(f) === 'imagen' ? 'mdi-file-image' : 'mdi-file-outline'"
+        <button
+          v-for="t in pestanas"
+          :key="t.value"
+          type="button"
+          role="tab"
+          class="spver__tab"
+          :class="{ 'spver__tab--activa': tab === t.value }"
+          :aria-selected="tab === t.value"
+          @click="tab = t.value"
         >
-          {{ nombreFactura(f) }}
-        </v-tab>
-        <v-tab
-          :value="TAB_SOLICITUD"
-          prepend-icon="mdi-file-document-outline"
-        >
-          Solicitud de Pago
-        </v-tab>
-      </v-tabs>
+          <v-icon size="26">
+            {{ t.icono }}
+          </v-icon>
+          <span>{{ t.titulo }}</span>
+        </button>
+      </div>
 
       <!-- archivo de la factura / proforma -->
       <div
@@ -465,34 +475,40 @@ watch(
           </div>
         </section>
 
-        <!-- autorización -->
-        <section class="auth">
-          <div class="auth__title">
+        <!-- autorizaciones: Revisado (Administración) / Aprobado (Gerencia), como el PDF de pago -->
+        <div class="auth__head">
+          <div class="auth__pill">
             <svg
               class="ico ico--sm"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              stroke-width="1.6"
+              stroke-width="1.8"
             ><path d="M12 3l8 3v6c0 4.5-3.4 8.3-8 9-4.6-.7-8-4.5-8-9V6z" /><path d="M8.5 12l2.5 2.5 4.5-5" /></svg>
-            Autorización para el Pago
+            Autorizaciones
           </div>
-          <div class="auth__field">
-            Solicitado por:
-            <div class="auth__value">
-              {{ detalle.usuario_solicitud }}
+        </div>
+        <section class="auth">
+          <div
+            v-for="a in autorizaciones"
+            :key="a.titulo"
+            class="auth__col"
+          >
+            <div class="auth__label">
+              {{ a.titulo }}
             </div>
-          </div>
-          <div class="auth__field">
-            Autorizado por:
-            <div class="auth__line">
-              {{ autorizadoPor }}
+            <div class="auth__sign">
+              {{ a.usuario }}
             </div>
-          </div>
-          <div class="auth__field">
-            Fecha:
-            <div class="auth__line">
-              {{ formatoFecha(fechaAutorizacion) }}
+            <div class="auth__date">
+              <v-icon
+                size="18"
+                color="#0b5fd6"
+              >
+                mdi-calendar-month-outline
+              </v-icon>
+              Fecha:
+              <span class="auth__dateline">{{ formatoFecha(a.fecha) }}</span>
             </div>
           </div>
         </section>
@@ -604,10 +620,55 @@ watch(
   min-height: 220px;
   padding: 24px;
 }
+/* pestañas grandes: activa en azul sólido, el resto en celeste con borde */
 .spver__tabs {
+  display: flex;
   flex-shrink: 0;
-  padding-right: 44px;
+  gap: 10px;
+  padding: 16px 56px 0 20px;
+  overflow-x: auto;
   border-bottom: 1px solid #dce5f2;
+}
+.spver__tab {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: 10px 26px;
+  border: 1.5px solid #c9dafa;
+  border-bottom-width: 0;
+  border-radius: 14px 14px 0 0;
+  background: #eef4ff;
+  color: #0b4fd6;
+  font-size: 1.15rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s;
+}
+.spver__tab:hover {
+  background: #e0ebff;
+}
+.spver__tab--activa,
+.spver__tab--activa:hover {
+  border-color: #0b4fd6;
+  background: #0b4fd6;
+  color: #fff;
+  box-shadow: inset 0 -4px 0 #4f8ef7;
+}
+.spver__tab:focus-visible {
+  outline: 2px solid #4f8ef7;
+  outline-offset: 2px;
+}
+@media (max-width: 600px) {
+  .spver__tabs {
+    padding: 12px 48px 0 12px;
+  }
+  .spver__tab {
+    min-height: 46px;
+    padding: 8px 16px;
+    font-size: 1rem;
+  }
 }
 /* factura / proforma: el archivo ocupa el modal */
 .spver__doc {
@@ -828,43 +889,81 @@ watch(
   border-top: 1px solid #e8edf5;
 }
 
-/* autorización */
-.auth {
+/* autorizaciones */
+.auth__head {
   display: flex;
-  align-items: stretch;
-  border: 1px solid #dce5f2;
-  border-radius: 14px;
-  overflow: hidden;
+  align-items: center;
 }
-.auth__title {
+.auth__head::before,
+.auth__head::after {
+  content: "";
+  flex: 1;
+  border-top: 2px solid #0b2f6b;
+}
+.auth__pill {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  background: #e3eefc;
+  padding: 8px 30px;
+  border-radius: 999px;
+  background: #0b2f6b;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.auth__pill .ico {
+  color: #fff;
+}
+.auth {
+  display: flex;
+  padding: 18px 0;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+}
+.auth__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+}
+.auth__col + .auth__col {
+  border-left: 1px solid #c9d6ea;
+}
+.auth__label {
   font-size: 0.95rem;
   font-weight: 700;
 }
-.auth__field {
+.auth__sign {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 85%;
+  min-height: 40px;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid #0a1f44;
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.auth__date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 92%;
+  margin-top: 14px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #e3eefc;
+  font-size: 0.75rem;
+}
+.auth__dateline {
   flex: 1;
-  min-width: 0;
-  padding: 8px 16px 12px;
-  border-left: 1px solid #dce5f2;
-  font-size: 0.72rem;
-}
-.auth__value {
-  margin-top: 8px;
-  font-size: 0.85rem;
+  min-height: 18px;
+  border-bottom: 1px solid #0a1f44;
   font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.auth__line {
-  min-height: 22px;
-  margin-top: 8px;
-  border-bottom: 1px solid #8a97ad;
-  font-size: 0.85rem;
-  font-weight: 700;
-  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 /* pagos del expediente */
@@ -944,9 +1043,13 @@ tr.actual td {
     border-left: 0;
     border-top: 2px solid #b9cdea;
   }
-  .auth__field {
+  .auth {
+    gap: 16px;
+  }
+  .auth__col + .auth__col {
+    padding-top: 16px;
     border-left: 0;
-    border-top: 1px solid #dce5f2;
+    border-top: 1px solid #c9d6ea;
   }
 }
 </style>

@@ -21,11 +21,18 @@ export interface SolicitudPagoAccion {
   usuario_aprobadogerencia?: string | null;
   id_pagoegreso?: number | string | null;
   numerooperacion_pago?: string | null;
+  pagadoflag?: boolean | null;
+  soporte_path?: string | null;
 }
 
-// Con aprobación de Administración o Gerencia, editar o eliminar pide la clave de un administrador
-export const tieneAprobacionesSolicitud = (s: SolicitudPagoAccion) =>
+const tieneAprobaciones = (s: SolicitudPagoAccion) =>
   !!(s.aprobadoadministracionflag || s.aprobadogerenciaflag || s.usuario_aprobadoadministracion || s.usuario_aprobadogerencia);
+
+// Con soporte de pago cargado
+export const tieneSoporteSolicitud = (s: SolicitudPagoAccion) => !!(s.pagadoflag || s.soporte_path);
+
+// Con aprobaciones (Administración o Gerencia) o con soporte de pago, editar o eliminar pide la clave de un administrador
+export const tieneAprobacionesSolicitud = (s: SolicitudPagoAccion) => tieneAprobaciones(s) || tieneSoporteSolicitud(s);
 
 // Con salida registrada en Bancos no se edita ni elimina hasta eliminar ese movimiento
 export const tieneSalidaBancosSolicitud = (s: SolicitudPagoAccion) => !!s.id_pagoegreso;
@@ -41,10 +48,54 @@ export function avisarSalidaBancosSolicitud(s: SolicitudPagoAccion) {
   return true;
 }
 
-const pedirClave = (accion: "editarla" | "eliminarla") =>
-  askAdminCredentials(
-    `La solicitud ya tiene aprobación de Administración o Gerencia. Para ${accion}, escribe el usuario y la clave de un administrador.`,
-  );
+export const mensajeClaveSolicitud = (s: SolicitudPagoAccion, accion: "editarla" | "eliminarla") =>
+  `La solicitud ya tiene ${tieneSoporteSolicitud(s) ? "soporte de pago" : "aprobación de Administración o Gerencia"}. Para ${accion}, escribe el usuario y la clave de un administrador.`;
+
+const escapar = (texto: string) =>
+  texto.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+
+/**
+ * Confirmación antes de eliminar. Si ya tiene soporte de pago o aprobaciones, el aviso lo dice
+ * en grande ("YA TIENE ...") antes de pedir la clave de un administrador.
+ */
+export async function confirmarEliminarSolicitud(s: SolicitudPagoAccion, proveedor = s.proveedor) {
+  const pregunta = `¿Eliminar la solicitud de pago N° <b>${s.id}</b> de <b>${escapar(proveedor ?? "")}</b>?`;
+  if (!tieneAprobacionesSolicitud(s)) {
+    const { isConfirmed } = await Swal.fire({
+      icon: "warning",
+      html: pregunta,
+      showCancelButton: true,
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    return isConfirmed;
+  }
+  const usuario = (u?: string | null) => (u ? ` <span style="color:#475569">(${escapar(u)})</span>` : "");
+  const items = [
+    tieneSoporteSolicitud(s) && "Soporte de pago cargado",
+    (s.aprobadoadministracionflag || s.usuario_aprobadoadministracion) &&
+      `Aprobada por Administración${usuario(s.usuario_aprobadoadministracion)}`,
+    (s.aprobadogerenciaflag || s.usuario_aprobadogerencia) && `Aprobada por Gerencia${usuario(s.usuario_aprobadogerencia)}`,
+  ].filter(Boolean);
+  const { isConfirmed } = await Swal.fire({
+    icon: "error",
+    title: "¡Atención! YA TIENE",
+    html: `<ul style="margin:0 auto 14px;padding:12px 16px;max-width:360px;list-style:none;text-align:left;
+        border:2px solid #f87171;border-radius:12px;background:#fef2f2;color:#991b1b;font-weight:700;line-height:1.9">
+        ${items.map((i) => `<li>⚠ ${i}</li>`).join("")}
+      </ul>
+      ${pregunta}<br><small style="color:#64748b">Se necesitará la clave de un administrador.</small>`,
+    showCancelButton: true,
+    focusCancel: true,
+    confirmButtonText: "Sí, eliminar de todos modos",
+    cancelButtonText: "No, cancelar",
+    confirmButtonColor: "#d33",
+  });
+  return isConfirmed;
+}
+
+const pedirClave = (s: SolicitudPagoAccion, accion: "editarla" | "eliminarla") => askAdminCredentials(mensajeClaveSolicitud(s, accion));
 
 /** Editar / eliminar una solicitud de pago con las mismas reglas en todos los listados */
 export function useAccionesSolicitudPago(alTerminar: () => unknown) {
@@ -57,7 +108,7 @@ export function useAccionesSolicitudPago(alTerminar: () => unknown) {
     if (avisarSalidaBancosSolicitud(s)) return;
     adminEditar.value = null;
     if (tieneAprobacionesSolicitud(s)) {
-      const admin = await pedirClave("editarla");
+      const admin = await pedirClave(s, "editarla");
       if (!admin) return;
       adminEditar.value = admin;
     }
@@ -67,18 +118,10 @@ export function useAccionesSolicitudPago(alTerminar: () => unknown) {
 
   async function eliminar(s: SolicitudPagoAccion) {
     if (avisarSalidaBancosSolicitud(s)) return;
-    const { isConfirmed } = await Swal.fire({
-      icon: "warning",
-      html: `¿Eliminar la solicitud de pago N° <b>${s.id}</b> de <b>${s.proveedor}</b>?`,
-      showCancelButton: true,
-      confirmButtonText: "Sí, eliminar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
-    });
-    if (!isConfirmed) return;
+    if (!(await confirmarEliminarSolicitud(s))) return;
     let admin: AdminCredentials | undefined;
     if (tieneAprobacionesSolicitud(s)) {
-      admin = await pedirClave("eliminarla");
+      admin = await pedirClave(s, "eliminarla");
       if (!admin) return;
     }
     eliminando.value = s.id;

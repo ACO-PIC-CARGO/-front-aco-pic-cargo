@@ -18,10 +18,7 @@ import {
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
-import type {
-  FacturaProveedorCargada,
-  SolicitudPagoControl,
-} from "@/types/billingEntries";
+import type { SolicitudPagoControl } from "@/types/billingEntries";
 
 const props = defineProps<{ idMaster?: number | null }>();
 const emit = defineEmits<{ actualizado: [] }>();
@@ -48,11 +45,6 @@ const solicitudSoporte = ref<SolicitudPagoControl | null>(null);
 
 
 
-// modal anexos
-const dialogAnexos = ref(false);
-const anexos = ref<FacturaProveedorCargada[]>([]);
-const anexoProveedor = ref("");
-const cargandoAnexos = ref(false);
 
 const puedeAprobar = computed(() => can("listControlGastos", "MODIFICAR"));
 // Administración: perfil 04 | Gerencia: perfil 01
@@ -190,20 +182,6 @@ function abrirSoporte(s: SolicitudPagoControl) {
 }
 
 
-async function verAnexo(s: SolicitudPagoControl) {
-  anexoProveedor.value = etiquetaProveedor(s);
-  anexos.value = [];
-  cargandoAnexos.value = true;
-  dialogAnexos.value = true;
-  const response = await request<FacturaProveedorCargada>({
-    method: "get",
-    url: URL_MAIN + "list_invoice_path",
-    params: { id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo },
-  });
-  cargandoAnexos.value = false;
-  anexos.value = response.estadoflag ? response.data.filter((a) => !!a.path) : [];
-}
-
 // el monto se copia como número: 1433.64 (sin separador de miles ni moneda)
 function montoNumero(valor: number | string) {
   return Number(valor || 0).toFixed(2);
@@ -211,11 +189,6 @@ function montoNumero(valor: number | string) {
 
 function abrir(url: string | null | undefined) {
   if (url) window.open(url, "_blank");
-}
-
-function nombreAnexo(a: FacturaProveedorCargada) {
-  const tipo = a.type_pago == 1 ? "Factura" : a.type_pago == 2 ? "Proforma" : "Otro";
-  return `${tipo}${a.number ? " - " + a.number : ""}`;
 }
 
 watch(
@@ -316,16 +289,6 @@ defineExpose({ cargar });
                   <v-icon>mdi-content-copy</v-icon>
                 </v-btn>
               </div>
-              <button
-                type="button"
-                class="solpago__anexo"
-                data-modo-ver="permitido"
-                @click="verAnexo(s)"
-              >
-                <v-icon size="14">
-                  mdi-paperclip
-                </v-icon> Ver anexo
-              </button>
             </td>
             <td class="solpago__monto text-no-wrap">
               {{ formatoMonto(s.monto) }} {{ s.moneda }}
@@ -540,7 +503,6 @@ defineExpose({ cargar });
       @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoControl)"
       @transferir="(sol) => transferir(sol as SolicitudPagoControl)"
       @ver-salida="(sol) => verSalida(sol as SolicitudPagoControl)"
-      @ver-anexo="(sol) => verAnexo(sol as SolicitudPagoControl)"
       @editar="editarSolicitud"
       @eliminar="eliminarSolicitud"
       @ver="(sol) => verSolicitud(sol as SolicitudPagoControl)"
@@ -569,70 +531,6 @@ defineExpose({ cargar });
       :solicitud="solicitudSoporte"
       @guardado="cargar"
     />
-
-
-    <!-- ======================= MODAL ANEXOS ======================= -->
-    <v-dialog
-      v-model="dialogAnexos"
-      max-width="520"
-    >
-      <v-card rounded="xl">
-        <v-card-title class="d-flex align-center">
-          <v-icon
-            color="primary"
-            class="mr-2"
-          >
-            mdi-paperclip
-          </v-icon>
-          Anexos de {{ anexoProveedor }}
-          <v-spacer />
-          <v-btn
-            icon
-            variant="text"
-            size="small"
-            @click="dialogAnexos = false"
-          >
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        <v-card-text>
-          <v-progress-linear
-            v-if="cargandoAnexos"
-            indeterminate
-            color="primary"
-          />
-          <p
-            v-else-if="!anexos.length"
-            class="text-medium-emphasis"
-          >
-            El proveedor no tiene facturas o proformas cargadas para este expediente.
-          </p>
-          <v-list
-            v-else
-            density="compact"
-          >
-            <v-list-item
-              v-for="a in anexos"
-              :key="a.id"
-              :title="nombreAnexo(a)"
-              :subtitle="a.originalname || ''"
-              @click="abrir(a.path)"
-            >
-              <template #prepend>
-                <v-icon :color="a.type === 'pdf' ? 'red' : 'blue-grey'">
-                  {{ a.type === "pdf" ? "mdi-file-pdf-box" : "mdi-file-image" }}
-                </v-icon>
-              </template>
-              <template #append>
-                <v-icon size="18">
-                  mdi-open-in-new
-                </v-icon>
-              </template>
-            </v-list-item>
-          </v-list>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
   </section>
 </template>
 
@@ -744,23 +642,6 @@ defineExpose({ cargar });
   cursor: pointer;
 }
 
-.solpago__anexo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  margin: 4px 0 0;
-  padding: 1px 10px;
-  border: 1px solid var(--sp-accent);
-  border-radius: 999px;
-  color: var(--sp-accent);
-  font-size: 0.78rem;
-  font-weight: 600;
-  white-space: nowrap;
-  background: var(--sp-surface);
-}
-.solpago__anexo:hover {
-  background: var(--sp-soft);
-}
 .solpago__aprob {
   font-size: 0.8rem;
   line-height: 1.5;
