@@ -20,14 +20,13 @@ vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn(), di
 const RUNNING_VERSION = "3.01";
 let wrapper: VueWrapper | undefined;
 
-const isAskingToUpdate = () => (wrapper!.vm as unknown as { dialogVersion: boolean }).dialogVersion;
-
 beforeEach(async () => {
   vi.useFakeTimers();
   vi.stubEnv("VITE_VERSION", RUNNING_VERSION);
   vi.stubGlobal("localStorage", { getItem: () => null, setItem: vi.fn(), removeItem: vi.fn() });
   sessionStorage.clear();
   sessionStorage.setItem("auth-token", "token");
+  vi.mocked(checkForUpdate).mockClear();
   vi.mocked(http).mockResolvedValue({ data: { data: [{ version: RUNNING_VERSION, power: 1 }] } } as never);
 
   const pinia = createPinia();
@@ -44,11 +43,11 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-test("a deploy of the same version does not ask to update by itself", () => {
-  expect(isAskingToUpdate()).toBe(false);
+test("opening the system on the current version does not look for an update", () => {
+  expect(checkForUpdate).not.toHaveBeenCalled();
 });
 
-test("a new version announced by the server makes the service worker go fetch it", async () => {
+test("a different server version only makes the service worker look for a real new build", async () => {
   wrapper!.unmount();
   vi.mocked(checkForUpdate).mockClear();
   vi.mocked(http).mockResolvedValue({ data: { data: [{ version: "9.99", power: 1 }] } } as never);
@@ -57,6 +56,5 @@ test("a new version announced by the server makes the service worker go fetch it
   await vi.runAllTimersAsync();
   await flushPromises();
 
-  expect(isAskingToUpdate()).toBe(true);
   expect(checkForUpdate).toHaveBeenCalled();
 });

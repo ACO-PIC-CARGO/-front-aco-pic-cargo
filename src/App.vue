@@ -2,14 +2,12 @@
 import { defineAsyncComponent, onBeforeMount, onMounted, ref, useTemplateRef, watch } from "vue";
 import { io } from "socket.io-client";
 import { useRoute } from "vue-router";
-import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import axios from "@/api/http";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
-import { claimUpdatePrompt } from "@/utils/versionPrompt";
-import { applyUpdate, checkForUpdate, swUpdate } from "@/utils/swUpdate";
+import { applyUpdate, checkForUpdate } from "@/utils/swUpdate";
 import AvisoActualizacion from "@/components/comun/AvisoActualizacion.vue";
 
 const ControlServices = defineAsyncComponent(
@@ -31,7 +29,6 @@ const EditarCliente = defineAsyncComponent(
 const route = useRoute();
 const appStore = useAppStore();
 const entitiesStore = useEntitiesStore();
-const { smAndDown } = useDisplay();
 
 const socket = io(import.meta.env.VITE_URL_MAIN, {
   transports: ["polling"],
@@ -42,9 +39,7 @@ socket.on("connect_error", (err) => {
 
 const listAgente = ref(false);
 const dialogWelcome = ref(false);
-const dialogVersion = ref(false);
 const dialogExito = ref(false);
-const cargando = ref(false);
 const dialogPower = ref(false);
 const id = ref<string | string[]>("");
 const newquote = false;
@@ -68,11 +63,8 @@ onMounted(async () => {
       if (data.power == 1) {
         dialogPower.value = false;
       }
-      if (claimUpdatePrompt(data.version)) {
-        dialogVersion.value = true;
-        // Que el Service Worker busque ya la versión nueva: el aviso con el barco toma el relevo.
-        checkForUpdate();
-      }
+      // Solo se busca la nueva build; el aviso aparece si el Service Worker realmente la descarga.
+      if (data.version !== import.meta.env.VITE_VERSION) checkForUpdate();
     }
   });
 
@@ -87,7 +79,6 @@ onMounted(async () => {
   }
   if (localStorage.getItem("actualizando") === "1") {
     localStorage.removeItem("actualizando");
-    dialogVersion.value = false;
     dialogExito.value = true;
   }
 });
@@ -100,7 +91,6 @@ onBeforeMount(async () => {
 async function actualizar() {
   // Con una versión ya descargada por el Service Worker basta activarla (skipWaiting) y recargar.
   if (applyUpdate()) return;
-  cargando.value = true;
   localStorage.setItem("actualizando", "1");
 
   if (window.caches) {
@@ -188,10 +178,8 @@ async function _getVersion() {
   try {
     await axios<ApiResponse<VersionSistema[]>>(config)
       .then(function (response) {
-        if (claimUpdatePrompt(response.data.data[0]!.version)) {
-          dialogVersion.value = true;
-          checkForUpdate();
-        }
+        // Sin aviso directo: comparar versiones daba falsos "nueva versión" al abrir el sistema.
+        if (response.data.data[0]!.version !== import.meta.env.VITE_VERSION) checkForUpdate();
 
         if (response.data.data[0]!.power != 1) {
           dialogPower.value = true;
@@ -375,78 +363,6 @@ function mostrarBtnGuardar() {
     </v-dialog>
 
     <AvisoActualizacion :fallback="actualizar" />
-    <!-- Plan B (versión avisada por el servidor sin Service Worker activo): mientras el SW
-         descarga o tiene lista la versión, manda el aviso no bloqueante de arriba. -->
-    <v-dialog
-      v-if="dialogVersion && swUpdate.fase === 'idle'"
-      persistent
-      v-model="dialogVersion"
-      max-width="560"
-      :width="smAndDown ? '100%' : undefined"
-    >
-      <v-card
-        class="update-card"
-        elevation="5"
-      >
-        <span
-          class="update-card__corner"
-          aria-hidden="true"
-        />
-        <div class="update-card__icon">
-          <v-icon size="52">
-            mdi-tray-arrow-down
-          </v-icon>
-        </div>
-        <h2 class="update-card__title">
-          NUEVA VERSIÓN
-          <span class="update-card__accent">
-            <span
-              class="update-card__spark"
-              aria-hidden="true"
-            />
-            DISPONIBLE
-            <span
-              class="update-card__spark update-card__spark--end"
-              aria-hidden="true"
-            />
-          </span>
-        </h2>
-        <p class="update-card__subtitle">
-          Hemos mejorado ACO para ti.
-        </p>
-        <template v-if="!cargando">
-          <v-btn
-            class="update-card__btn"
-            color="#0b4fbf"
-            variant="flat"
-            size="x-large"
-            block
-            prepend-icon="mdi-tray-arrow-down"
-            @click="actualizar"
-          >
-            ACTUALIZAR AHORA
-          </v-btn>
-          <div class="update-card__foot">
-            <v-icon color="#0b4fbf">
-              mdi-information-outline
-            </v-icon>
-            Solo tomará 5 segundos.
-          </div>
-        </template>
-        <div
-          v-else
-          class="update-card__loading"
-        >
-          <v-progress-circular
-            indeterminate
-            color="#0b4fbf"
-            size="40"
-          />
-          <p>Actualizando... Por favor espera</p>
-        </div>
-      </v-card>
-    </v-dialog>
-
     <v-dialog
       v-model="dialogExito"
       max-width="400"
@@ -1284,113 +1200,6 @@ function mostrarBtnGuardar() {
 }
 .ocultar {
   display: none !important;
-}
-
-/* Modal "Nueva versión disponible" */
-.update-card.v-card {
-  position: relative;
-  overflow: hidden;
-  padding: 28px 32px 22px;
-  border-radius: 28px !important;
-  text-align: center;
-  color: #0a1f44;
-}
-.update-card__corner {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 150px;
-  height: 120px;
-  background: linear-gradient(135deg, #bfdcff 0%, #5aa7f5 100%);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  opacity: 0.85;
-  pointer-events: none;
-}
-.update-card__icon {
-  display: grid;
-  place-items: center;
-  width: 104px;
-  height: 104px;
-  margin: 0 auto 14px;
-  border-radius: 50%;
-  background: #d6e8fd;
-  color: #0b4fbf;
-}
-.update-card__title {
-  margin: 0;
-  font-size: clamp(1.9rem, 6vw, 2.7rem);
-  font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-}
-.update-card__accent {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  color: #0b5fd6;
-}
-.update-card__spark {
-  position: relative;
-  width: 26px;
-  height: 26px;
-}
-.update-card__spark::before,
-.update-card__spark::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  width: 22px;
-  height: 4px;
-  border-radius: 4px;
-  background: #4aa1f2;
-}
-.update-card__spark::before {
-  top: 2px;
-  transform: rotate(30deg);
-}
-.update-card__spark::after {
-  bottom: 2px;
-  transform: rotate(-30deg);
-}
-.update-card__spark--end {
-  transform: scaleX(-1);
-}
-.update-card__subtitle {
-  margin: 12px 0 20px;
-  font-size: 1.25rem;
-  color: #3b4a63;
-}
-.update-card__btn.v-btn {
-  position: relative;
-  z-index: 1;
-  border-radius: 14px;
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-  text-transform: none;
-}
-.update-card__foot {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid #dbe6f5;
-  font-size: 1.1rem;
-  color: #3b4a63;
-}
-.update-card__loading {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  color: #3b4a63;
 }
 </style>
 <style>
