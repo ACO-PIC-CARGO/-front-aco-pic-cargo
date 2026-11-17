@@ -461,15 +461,19 @@ function abriModalCopiar(house: HouseIngreso, bloquearCopiarMontos: boolean) {
     dialogCopiar.value = true;
   }
 }
+// un solo copiado por clic: el loading se activa antes de validar y se libera aunque falle
 async function copiarMontos() {
-  if ((await frmCopiar.value!.validate()).valid) {
-    loadingCopiarMonto.value = true;
+  if (loadingCopiarMonto.value) return;
+  loadingCopiarMonto.value = true;
+  try {
+    if (!(await frmCopiar.value!.validate()).valid) return;
     await controlGastosStore.copiarCGingresos({
       ...ingresos.value,
       tipocambio: ingresos.value.tipocambio || 1,
     });
     await controlGastosStore.getListControlGastosHouses(route.params.id as string);
     dialogCopiar.value = false;
+  } finally {
     loadingCopiarMonto.value = false;
   }
 }
@@ -1803,7 +1807,7 @@ onMounted(async () => {
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'ELIMINAR')"
-                          icon="mdi-delete-outline"
+                          icon="mdi-trash-can-outline"
                           size="x-small"
                           variant="text"
                           :color="solicitudCobroEnviada(houseIngreso)!.id_pagoingreso ? 'grey' : 'error'"
@@ -1818,13 +1822,13 @@ onMounted(async () => {
                       v-if="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
                       size="small"
                       variant="flat"
-                      color="green-darken-2"
+                      color="success"
                       prepend-icon="mdi-bank-transfer-in"
                       class="cobreq__registrar"
                       :loading="cobroProcesando === solicitudCobroEnviada(houseIngreso)!.codigo"
                       @click="cobro.registrarEnBancos(solicitudCobroEnviada(houseIngreso)!)"
                     >
-                      Registrar en Bancos
+                      REGISTRAR EN BANCO
                     </v-btn>
                   </div>
                   <div
@@ -1858,7 +1862,7 @@ onMounted(async () => {
                       />
                       <v-btn
                         v-if="can('listControlGastos', 'ELIMINAR')"
-                        icon="mdi-delete-outline"
+                        icon="mdi-trash-can-outline"
                         size="x-small"
                         variant="text"
                         color="error"
@@ -3541,6 +3545,7 @@ onMounted(async () => {
           </v-btn>
           <v-btn
             color="danger"
+            :disabled="loadingCopiarMonto"
             @click="dialogCopiar = !dialogCopiar"
           >
             CANCELAR
@@ -3682,8 +3687,6 @@ onMounted(async () => {
   height: 24px !important;
 }
 .cobreq__registrar {
-  text-transform: none;
-  letter-spacing: 0;
   font-weight: 600;
 }
 @media (max-width: 960px) {

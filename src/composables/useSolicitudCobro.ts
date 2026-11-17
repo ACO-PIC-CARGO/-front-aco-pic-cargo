@@ -60,7 +60,7 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
       icon: "question",
       title: "Enviar a Administración",
       html: `Se enviará la solicitud de cobro de <b>${s.cliente}</b>
-        por <b>${montoCobro(s.monto, s.moneda)}</b> para que Administración y Gerencia confirmen el ingreso.`,
+        por <b>${montoCobro(s.monto, s.moneda)}</b> para que Administración y Gerencia lo aprueben.`,
       showCancelButton: true,
       confirmButtonText: "Enviar",
       cancelButtonText: "Cancelar",
@@ -95,7 +95,7 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
     await ejecutar(s.codigo, "put", "solicitud_cobro_eliminar", withAuthorization(admin));
   }
 
-  // Confirmar (aprobar) o rechazar con el mismo modal que las solicitudes de pago
+  // Aprobar o rechazar con el mismo modal que las solicitudes de pago
   const revision = useRevisionSolicitudPago(alTerminar, {
     rutaAprobar: "solicitud_cobro_aprobar",
     rutaRechazar: "solicitud_cobro_rechazar",
@@ -110,6 +110,8 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
   // Bancos > Nuevo Ingreso precargado con la solicitud confirmada
   async function registrarEnBancos(s: SolicitudCobroFila) {
     if (avisarIngresoBancosCobro(s)) return;
+    // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
+    const pestana = window.open("", "_blank");
     procesando.value = s.codigo;
     const response = await request<{ token: string }>({
       method: "put",
@@ -118,10 +120,13 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
     procesando.value = null;
     const token = response.estadoflag ? response.data[0]?.token : null;
     if (!token) {
+      pestana?.close();
       avisarError(response);
       return;
     }
-    router.push({ name: "registroCobroSolicitud", params: { token } });
+    const destino = router.resolve({ name: "registroCobroSolicitud", params: { token } }).href;
+    if (pestana) pestana.location.href = destino;
+    else window.open(destino, "_blank");
   }
 
   return { procesando, revisando: revision.revisando, enviar, eliminar, revisar, registrarEnBancos, claveSiAprobada };

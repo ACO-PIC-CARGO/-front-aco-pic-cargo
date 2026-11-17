@@ -713,19 +713,7 @@ onMounted(async () => {
   <v-card>
     <v-container fluid>
       <v-alert
-        v-if="solicitud"
-        type="info"
-        variant="tonal"
-        density="compact"
-        class="mb-2"
-        icon="mdi-cash-check"
-      >
-        Solicitud de cobro · {{ solicitud.expediente }}{{ solicitud.correlativo ? ` - ${solicitud.correlativo}` : "" }}
-        · <b>{{ solicitud.moneda }} {{ Number(solicitud.monto).toFixed(2) }}</b> (monto total, sin abonos parciales).
-        El voucher del cliente se usa como soporte.
-      </v-alert>
-      <v-alert
-        v-else-if="desdeSolicitud && errorSolicitud"
+        v-if="desdeSolicitud && errorSolicitud"
         type="warning"
         variant="tonal"
         density="compact"
@@ -1310,6 +1298,7 @@ onMounted(async () => {
                       v-if="solicitud"
                       :initial-url="solicitud.voucher_path || undefined"
                       :initial-id="solicitud.id_path_voucher"
+                      :initial-name="solicitud.voucher_nombre"
                       read-only
                     />
                     <ArrastraYSolarComponent

@@ -4,15 +4,18 @@ import { useDisplay } from "vuetify";
 import Swal from "sweetalert2";
 import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
 import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
+import SolicitudCobroCardMovil from "./SolicitudCobroCardMovil.vue";
 import { usePermissions } from "@/composables/usePermissions";
 import { tienePerfilRevision } from "@/composables/useRevisionSolicitudPago";
 import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import { avisarIngresoBancosCobro, montoCobro, tieneAprobacionesCobro, useSolicitudCobro } from "@/composables/useSolicitudCobro";
+import { useRouter } from "vue-router";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 import type { AdminCredentials } from "@/types/seguridad";
 import type { DestinoPagoCliente, SolicitudCobro } from "@/types/solicitudCobro";
 import { CONNECTION_ERROR_MESSAGE, hasFailed } from "@/utils/request";
 import { shortDate } from "@/utils/dates";
+import { descargarArchivo } from "@/utils/descargarArchivo";
 
 // Control de Gastos > "Solicitudes de Cobro" del expediente (debajo de Costos, encima de Pagos).
 // Usa los mismos datos que la columna "Envíos / Administración" de Ingresos (una sola llamada).
@@ -85,6 +88,17 @@ function fecha(valor: string | null | undefined) {
 function abrir(url: string | null | undefined) {
   if (url) window.open(url, "_blank");
 }
+// aprobaciones como en Pagos: fecha arriba (helper de FormatFecha) y hora abajo
+function soloFecha(valor: string | null | undefined) {
+  return valor ? shortDate(valor.slice(0, 10)) : "—";
+}
+function horaDe(valor: string | null | undefined) {
+  return valor ? valor.slice(11, 16) : "";
+}
+const router = useRouter();
+function verIngreso(s: SolicitudCobro) {
+  if (s.id_pagoingreso) window.open(router.resolve({ name: "verPagosPorCliente", params: { id: s.id_pagoingreso } }).href, "_blank");
+}
 function aprobacion(s: SolicitudCobro, tipo: AreaRevision) {
   const adm = tipo === "ADM";
   return {
@@ -134,11 +148,20 @@ defineExpose({ cargar });
             <th>Cuenta de depósito</th>
             <th>Banco del cliente</th>
             <th>Depósito / N° Op.</th>
-            <th>Voucher</th>
             <th>Estado</th>
-            <th>Administración</th>
-            <th>Gerencia</th>
-            <th>Ingreso en Bancos</th>
+            <th>
+              Administración
+              <div class="solcob__thsub">
+                Aprobado por
+              </div>
+            </th>
+            <th>
+              Gerencia
+              <div class="solcob__thsub">
+                Aprobado por
+              </div>
+            </th>
+            <th>Soporte</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -166,18 +189,6 @@ defineExpose({ cargar });
               </div>
             </td>
             <td>
-              <v-btn
-                icon="mdi-file-eye-outline"
-                size="small"
-                variant="text"
-                color="primary"
-                :disabled="!s.voucher_path"
-                :title="s.voucher_nombre || 'Ver voucher'"
-                aria-label="Ver voucher del cliente"
-                @click="abrir(s.voucher_path)"
-              />
-            </td>
-            <td>
               <span
                 class="solcob__estado"
                 :class="`bg-${COLOR_ESTADO[s.codigo_estado] ?? 'grey'}`"
@@ -193,33 +204,92 @@ defineExpose({ cargar });
               v-for="tipo in AREAS"
               :key="tipo"
             >
-              <v-btn
-                v-if="puedeRevisarArea(s, tipo)"
-                size="x-small"
-                variant="flat"
-                :color="tipo === 'ADM' ? 'orange-darken-2' : 'amber-darken-3'"
-                :loading="revisando === s.codigo"
-                @click="revisar(s, tipo)"
-              >
-                Confirmar
-              </v-btn>
-              <span
-                v-else-if="aprobacion(s, tipo).usuario"
-                class="solcob__aprob"
-              >
-                <v-icon
-                  size="14"
-                  color="success"
-                >mdi-check-circle</v-icon>
-                {{ aprobacion(s, tipo).usuario }}<br>{{ fecha(aprobacion(s, tipo).fecha) }}
-              </span>
-              <span
-                v-else-if="aprobacion(s, tipo).rechazado"
-                class="text-error"
-              >Rechazó</span>
-              <span v-else>{{ aprobacion(s, tipo).pendiente ? "Pendiente" : "—" }}</span>
+              <div class="solcob__aprob">
+                <template v-if="aprobacion(s, tipo).usuario">
+                  <div class="solcob__aprobuser">
+                    {{ aprobacion(s, tipo).usuario }}
+                  </div>
+                  <span class="solcob__aprobfecha">{{ soloFecha(aprobacion(s, tipo).fecha) }}<template v-if="horaDe(aprobacion(s, tipo).fecha)"><br>{{ horaDe(aprobacion(s, tipo).fecha) }}</template></span>
+                </template>
+                <template v-else-if="aprobacion(s, tipo).rechazado">
+                  <span class="solcob__rechazotag">Rechazado</span>
+                  <div class="solcob__aprobuser">
+                    {{ s.usuario_rechazo || "—" }}
+                  </div>
+                  <span class="solcob__aprobfecha solcob__aprobfecha--rechazo">{{ soloFecha(s.fecha_rechazo) }}<template v-if="horaDe(s.fecha_rechazo)"><br>{{ horaDe(s.fecha_rechazo) }}</template></span>
+                </template>
+                <v-btn
+                  v-else-if="puedeRevisarArea(s, tipo)"
+                  size="small"
+                  variant="tonal"
+                  :color="tipo === 'ADM' ? 'deep-purple' : 'amber-darken-3'"
+                  class="solcob__revisar"
+                  :loading="revisando === s.codigo"
+                  @click="revisar(s, tipo)"
+                >
+                  Aprobar
+                </v-btn>
+                <span
+                  v-else
+                  class="solcob__muted"
+                >—</span>
+              </div>
             </td>
-            <td>{{ s.numerooperacion_ingreso ? `N° ${s.numerooperacion_ingreso}` : "—" }}</td>
+            <td>
+              <div class="solcob__soporte">
+                <div class="solcob__soporteicons">
+                  <v-btn
+                    icon="mdi-file-eye-outline"
+                    variant="text"
+                    size="small"
+                    color="primary"
+                    :disabled="!s.voucher_path"
+                    title="Ver voucher del cliente"
+                    aria-label="Ver voucher del cliente"
+                    data-modo-ver="permitido"
+                    @click="abrir(s.voucher_path)"
+                  />
+                  <v-btn
+                    icon="mdi-download"
+                    variant="text"
+                    size="small"
+                    color="primary"
+                    :disabled="!s.voucher_path"
+                    title="Descargar voucher del cliente"
+                    aria-label="Descargar voucher del cliente"
+                    data-modo-ver="permitido"
+                    @click="descargarArchivo(s.voucher_path, s.voucher_nombre)"
+                  />
+                </div>
+                <button
+                  v-if="s.id_pagoingreso"
+                  type="button"
+                  class="solcob__salida"
+                  title="Ver el ingreso registrado en Bancos"
+                  data-modo-ver="permitido"
+                  @click="verIngreso(s)"
+                >
+                  <v-icon
+                    size="16"
+                    color="success"
+                  >
+                    mdi-check-decagram
+                  </v-icon>
+                  Ingreso N° {{ s.numerooperacion_ingreso }}
+                </button>
+                <v-btn
+                  v-else-if="s.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
+                  size="small"
+                  color="success"
+                  variant="flat"
+                  prepend-icon="mdi-bank-transfer-in"
+                  :loading="procesando === s.codigo"
+                  @click="registrarEnBancos(s)"
+                >
+                  REGISTRAR EN BANCO
+                </v-btn>
+              </div>
+            </td>
             <td>
               <div class="solcob__acciones">
                 <v-btn
@@ -234,17 +304,6 @@ defineExpose({ cargar });
                   Enviar
                 </v-btn>
                 <v-btn
-                  v-if="s.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
-                  size="x-small"
-                  variant="flat"
-                  color="green-darken-2"
-                  prepend-icon="mdi-bank-transfer-in"
-                  :loading="procesando === s.codigo"
-                  @click="registrarEnBancos(s)"
-                >
-                  Registrar en Bancos
-                </v-btn>
-                <v-btn
                   v-if="can('listControlGastos', 'NUEVO')"
                   icon="mdi-pencil-outline"
                   size="x-small"
@@ -256,7 +315,7 @@ defineExpose({ cargar });
                 />
                 <v-btn
                   v-if="can('listControlGastos', 'ELIMINAR')"
-                  icon="mdi-delete-outline"
+                  icon="mdi-trash-can-outline"
                   size="x-small"
                   variant="text"
                   :color="s.id_pagoingreso ? 'grey' : 'error'"
@@ -287,113 +346,35 @@ defineExpose({ cargar });
       v-else
       class="solcob__cards"
     >
-      <article
-        v-for="s in solicitudes"
+      <template
+        v-for="(s, i) in solicitudes"
         :key="s.codigo"
-        class="solcob-card"
-        :class="`solcob-card--${s.codigo_estado.toLowerCase()}`"
       >
-        <span
-          class="solcob__estado"
-          :class="`bg-${COLOR_ESTADO[s.codigo_estado] ?? 'grey'}`"
-        >{{ s.estado }}</span>
-        <div class="solcob-card__cliente">
-          {{ s.cliente }} · Corr. {{ s.correlativo }}
-        </div>
-        <div class="solcob-card__monto">
-          {{ montoCobro(s.monto, s.moneda) }}
-        </div>
-        <dl class="solcob-card__datos">
-          <dt>Cuenta</dt>
-          <dd>{{ s.cuenta }}</dd>
-          <dt>Banco cliente</dt>
-          <dd>{{ s.banco_origen || "—" }}</dd>
-          <dt>Depósito</dt>
-          <dd>{{ fecha(s.fechadeposito) }} · N° {{ s.numerooperacion }}</dd>
-          <template v-if="s.codigo_estado === 'RECHAZADA'">
-            <dt>Motivo</dt>
-            <dd class="text-error">
-              {{ s.motivo_rechazo || "Sin motivo" }}
-            </dd>
-          </template>
-          <template v-if="s.numerooperacion_ingreso">
-            <dt>Ingreso</dt>
-            <dd>N° {{ s.numerooperacion_ingreso }}</dd>
-          </template>
-        </dl>
-        <footer class="solcob-card__acciones">
-          <v-btn
-            size="small"
-            variant="tonal"
-            color="primary"
-            prepend-icon="mdi-file-eye-outline"
-            :disabled="!s.voucher_path"
-            @click="abrir(s.voucher_path)"
-          >
-            Voucher
-          </v-btn>
-          <v-btn
-            v-if="s.codigo_estado === 'BORRADOR' && can('listControlGastos', 'NUEVO')"
-            size="small"
-            variant="flat"
-            color="primary"
-            :loading="procesando === s.codigo"
-            @click="enviar(s)"
-          >
-            Enviar
-          </v-btn>
-          <v-btn
-            v-for="tipo in AREAS.filter((t) => puedeRevisarArea(s, t))"
-            :key="tipo"
-            size="small"
-            variant="flat"
-            :color="tipo === 'ADM' ? 'orange-darken-2' : 'amber-darken-3'"
-            :loading="revisando === s.codigo"
-            @click="revisar(s, tipo)"
-          >
-            Confirmar {{ tipo === "ADM" ? "Adm." : "Ger." }}
-          </v-btn>
-          <v-btn
-            v-if="s.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
-            size="small"
-            variant="flat"
-            color="green-darken-2"
-            :loading="procesando === s.codigo"
-            @click="registrarEnBancos(s)"
-          >
-            Registrar
-          </v-btn>
-          <v-btn
-            v-if="can('listControlGastos', 'NUEVO')"
-            icon="mdi-pencil-outline"
-            size="small"
-            variant="text"
-            color="primary"
-            aria-label="Editar solicitud de cobro"
-            @click="editar(s)"
-          />
-          <v-btn
-            v-if="can('listControlGastos', 'ELIMINAR')"
-            icon="mdi-delete-outline"
-            size="small"
-            variant="text"
-            color="error"
-            aria-label="Eliminar solicitud de cobro"
-            :loading="procesando === s.codigo"
-            @click="eliminar(s)"
-          />
-            <v-btn
-              icon="mdi-eye-outline"
-              variant="tonal"
-              size="small"
-              color="primary"
-              title="Ver solicitud de cobro"
-              aria-label="Ver solicitud de cobro"
-              data-modo-ver="permitido"
-              @click="verSolicitud(s)"
-            />
-        </footer>
-      </article>
+        <!-- separador marcado entre solicitudes -->
+        <v-divider
+          v-if="i > 0"
+          class="solcob__sep"
+          :thickness="2"
+          opacity="1"
+        />
+        <SolicitudCobroCardMovil
+          :s="s"
+          :aprobar="AREAS.filter((t) => puedeRevisarArea(s, t))"
+          :puede-enviar="can('listControlGastos', 'NUEVO')"
+          :puede-registrar="can('registroPayForCliente', 'NUEVO')"
+          :puede-editar="can('listControlGastos', 'NUEVO')"
+          :puede-eliminar="can('listControlGastos', 'ELIMINAR')"
+          :procesando="procesando === s.codigo"
+          :revisando="revisando === s.codigo"
+          @enviar="enviar(s)"
+          @aprobar="(tipo) => revisar(s, tipo)"
+          @registrar="registrarEnBancos(s)"
+          @ver-ingreso="verIngreso(s)"
+          @editar="editar(s)"
+          @eliminar="eliminar(s)"
+          @ver="verSolicitud(s)"
+        />
+      </template>
     </div>
 
     <CargarPagoClienteDialog
@@ -476,9 +457,78 @@ defineExpose({ cargar });
   color: #c62828;
   font-size: 11.5px;
 }
+.solcob__soporte {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.solcob__soporteicons {
+  display: inline-flex;
+  align-items: center;
+}
+.solcob__thsub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #667085;
+}
 .solcob__aprob {
-  font-size: 11.5px;
-  line-height: 1.25;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.solcob__aprobuser {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.solcob__aprobfecha {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  line-height: 1.3;
+  text-align: center;
+  background: #e7efff;
+  color: #1e3a8a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.solcob__aprobfecha--rechazo {
+  background: #fde2e2;
+  color: #b42318;
+}
+.solcob__rechazotag {
+  display: inline-block;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fde2e2;
+  color: #b42318;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.solcob__revisar {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.solcob__muted {
+  color: #98a2b3;
+}
+.solcob__salida {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.12);
+  color: #1f7a35;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .solcob__acciones {
   display: flex;
@@ -486,64 +536,14 @@ defineExpose({ cargar });
   justify-content: center;
   gap: 4px;
 }
+/* separador entre solicitudes (móvil): marcado para no confundir una tarjeta con otra */
+.solcob__sep {
+  margin: 2px 8px;
+  border-color: #9fb4d6;
+}
 .solcob__cards {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-.solcob-card {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 10px 12px;
-  border: 1px solid #d6dde8;
-  border-left: 5px solid #90a4ae;
-  border-radius: 12px;
-  background: #fff;
-}
-.solcob-card--penadm { border-left-color: #f57c00; }
-.solcob-card--penger { border-left-color: #ff8f00; }
-.solcob-card--listo { border-left-color: #1e88e5; }
-.solcob-card--cobrado { border-left-color: #2e7d32; }
-.solcob-card--rechazada { border-left-color: #e53935; }
-.solcob-card .solcob__estado {
-  align-self: flex-start;
-}
-.solcob-card__codigo {
-  font-weight: 800;
-  color: #0a1f44;
-}
-.solcob-card__cliente {
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.solcob-card__monto {
-  font-size: 18px;
-  font-weight: 900;
-  color: #1b5e20;
-}
-.solcob-card__datos {
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: 2px 8px;
-  margin: 0;
-  font-size: 12.5px;
-}
-.solcob-card__datos dt {
-  color: #6b7a90;
-}
-.solcob-card__datos dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-.solcob-card__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-@media (max-width: 600px) {
-  .solcob-card__acciones .v-btn:not(.v-btn--icon) {
-    flex: 1 1 calc(50% - 6px);
-  }
 }
 </style>

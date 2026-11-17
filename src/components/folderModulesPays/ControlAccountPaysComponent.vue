@@ -935,6 +935,7 @@ onMounted(async () => {
             <ArrastraYSolarComponent
               :initial-url="payPath"
               :initial-id="id_path"
+              :initial-name="payPathName"
               :read-only="tipo === 'ver'"
               :rules="[(v) => !!v || 'El archivo soporte es obligatorio']"
               @id-archivo-cargado="recibirId"

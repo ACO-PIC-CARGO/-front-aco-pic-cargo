@@ -12,10 +12,12 @@ const props = withDefaults(
     initialUrl?: string;
     // ID previo del archivo (si la tienes desde BD)
     initialId?: string | number | null;
+    // Nombre con el que se subió el archivo (table_allpath.name), ej. "3 ositos.jpg"
+    initialName?: string | null;
     // Si se pasa true, deshabilita eliminar y subir (Ideal para tipo == 'ver')
     readOnly?: boolean;
   }>(),
-  { rules: () => [], initialUrl: undefined, initialId: null, readOnly: false },
+  { rules: () => [], initialUrl: undefined, initialId: null, initialName: null, readOnly: false },
 );
 const emit = defineEmits<{
   idArchivoCargado: [payload: { id: unknown; archivo: unknown }];
@@ -30,6 +32,8 @@ const errorState = ref(false);
 // Manejo local cuando se pasa prop previa
 const existingUrl = ref<string | null | undefined>(null);
 const existingId = ref<string | number | null>(null);
+// nombre del archivo que se acaba de subir: se guarda antes de limpiar `file`
+const nombreSubido = ref<string | null>(null);
 const fileInput = useTemplateRef("fileInput");
 
 // Evalúa si hay archivo (ya sea subido nuevo o enviado por Props)
@@ -47,18 +51,16 @@ const urlVisor = computed(() => {
   }
   return existingUrl.value || null;
 });
-// Nombre a mostrar en la tarjeta
-// Nombre a mostrar en la tarjeta
+// Nombre a mostrar: siempre el nombre con el que se subió el archivo ("3 ositos.jpg"),
+// aunque la API lo guarde renombrado
 const nombreArchivo = computed(() => {
   if (file.value) return file.value.name;
-  if (existingUrl.value !== null && existingUrl.value !== undefined) {
-    // Convierte a String por si acaso se pasa un número por error desde el padre
-    const urlStr = String(existingUrl.value);
-    // Extrae el nombre del archivo si es una URL válida, o muestra el valor/ID
-    const filename = urlStr.includes("/") ? urlStr.split("/").pop() : urlStr;
-    return filename || "Soporte adjunto";
-  }
-  return "Soporte adjunto";
+  if (nombreSubido.value) return nombreSubido.value;
+  if (filesStore.datosPath?.name) return filesStore.datosPath.name;
+  if (props.initialName) return props.initialName;
+  // sin nombre registrado: el último tramo de la URL
+  const url = String(existingUrl.value ?? "");
+  return decodeURIComponent(url.split("?")[0]?.split("/").pop() || "");
 });
 
 watch(
@@ -117,9 +119,11 @@ async function uploadFile() {
   }
 
   loading.value = true;
+  const nombre = file.value.name;
 
   try {
     await filesStore._uploadFile(file.value);
+    nombreSubido.value = nombre;
 
     existingUrl.value = null;
     existingId.value = null;
@@ -155,6 +159,7 @@ function eliminarFile() {
   existingUrl.value = null;
   existingId.value = null;
   file.value = null;
+  nombreSubido.value = null;
   emit("idArchivoCargado", { id: null, archivo: null });
 }
 </script>

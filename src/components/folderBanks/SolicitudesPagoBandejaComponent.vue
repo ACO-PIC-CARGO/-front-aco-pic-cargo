@@ -21,6 +21,7 @@ import {
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
+import { descargarArchivo } from "@/utils/descargarArchivo";
 import type {
   FacturaProveedorCargada,
   EstadoBandejaSolicitudPago,
@@ -32,12 +33,13 @@ import type {
 
 // Una pestaña de Bancos > Solicitudes de Pago: listado paginado en el servidor.
 // Tiene las mismas acciones que Pagos Pendientes de Control de Gastos.
-const props = defineProps<{
+// activa = true por defecto: Vue convierte un boolean ausente en false y la pestaña nunca cargaría
+const props = withDefaults(defineProps<{
   tab: TabBandejaSolicitudPago;
   opciones: OpcionFiltroSolicitudPago[];
   // pestaña visible: las demás no consultan hasta que se abren
   activa?: boolean;
-}>();
+}>(), { activa: true });
 const emit = defineEmits<{ total: [valor: number]; actualizado: [] }>();
 
 const URL_MAIN = import.meta.env.VITE_URL_MAIN;
@@ -103,19 +105,20 @@ const dialogAnexos = ref(false);
 const anexos = ref<FacturaProveedorCargada[]>([]);
 const anexoProveedor = ref("");
 const cargandoAnexos = ref(false);
-async function verAnexo(s: SolicitudPagoBandeja) {
-  anexoProveedor.value = proveedor(s);
-  anexos.value = [];
-  cargandoAnexos.value = true;
-  dialogAnexos.value = true;
-  const response = await request<FacturaProveedorCargada>({
-    method: "get",
-    url: URL_MAIN + "list_invoice_path",
-    params: { id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo },
-  });
-  cargandoAnexos.value = false;
-  anexos.value = response.estadoflag ? response.data.filter((a) => !!a.path) : [];
-}
+// "Ver anexo" no se usa por ahora (el botón está comentado en la plantilla)
+// async function verAnexo(s: SolicitudPagoBandeja) {
+//   anexoProveedor.value = proveedor(s);
+//   anexos.value = [];
+//   cargandoAnexos.value = true;
+//   dialogAnexos.value = true;
+//   const response = await request<FacturaProveedorCargada>({
+//     method: "get",
+//     url: URL_MAIN + "list_invoice_path",
+//     params: { id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo },
+//   });
+//   cargandoAnexos.value = false;
+//   anexos.value = response.estadoflag ? response.data.filter((a) => !!a.path) : [];
+// }
 function nombreAnexo(a: FacturaProveedorCargada) {
   const tipo = a.type_pago == 1 ? "Factura" : a.type_pago == 2 ? "Proforma" : "Otro";
   return `${tipo}${a.number ? " - " + a.number : ""}`;
@@ -133,6 +136,8 @@ async function copiar(texto: string | null) {
 
 // PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
 async function transferir(s: SolicitudPagoBandeja) {
+  // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
+  const pestana = window.open("", "_blank");
   procesando.value = s.id;
   const response = await request<{ token: string }>({
     method: "put",
@@ -141,6 +146,7 @@ async function transferir(s: SolicitudPagoBandeja) {
   procesando.value = null;
   const token = response.estadoflag ? response.data[0]?.token : null;
   if (!token) {
+    pestana?.close();
     Swal.fire({
       icon: response.tipomensaje === "TMSGERR" ? "error" : "warning",
       text: response.mensaje || CONNECTION_ERROR_MESSAGE,
@@ -148,7 +154,10 @@ async function transferir(s: SolicitudPagoBandeja) {
     emit("actualizado");
     return;
   }
-  router.push({ name: "registroPagoSolicitud", params: { token } });
+  // Bancos > Nueva salida en una pestaña nueva (como Solicitudes de Cobro)
+  const destino = router.resolve({ name: "registroPagoSolicitud", params: { token } }).href;
+  if (pestana) pestana.location.href = destino;
+  else window.open(destino, "_blank");
 }
 function verSalida(s: SolicitudPagoBandeja) {
   if (s.id_pagoegreso) window.open(`/home/FolderBanks/verPagosPorProveedor/${s.id_pagoegreso}`, "_blank");
@@ -583,7 +592,7 @@ onMounted(cargarSiVisible);
               @click="copiar(proveedor(item))"
             />
           </div>
-          <button
+          <!-- <button
             type="button"
             class="spb__anexo"
             @click="verAnexo(item)"
@@ -591,7 +600,7 @@ onMounted(cargarSiVisible);
             <v-icon size="14">
               mdi-paperclip
             </v-icon> Ver anexo
-          </button>
+          </button> -->
         </template>
         <template #[`item.monto`]="{ item }">
           <div class="spb__monto">
@@ -762,8 +771,17 @@ onMounted(cargarSiVisible);
                 @click="abrir(item.soporte_path)"
               />
               <v-btn
+                icon="mdi-download"
+                variant="text"
+                size="small"
+                color="primary"
+                title="Descargar soporte de pago"
+                aria-label="Descargar soporte de pago"
+                @click="descargarArchivo(item.soporte_path)"
+              />
+              <v-btn
                 v-if="puedeEliminarSoporte(item)"
-                icon="mdi-file-remove-outline"
+                icon="mdi-trash-can-outline"
                 variant="text"
                 size="small"
                 color="error"

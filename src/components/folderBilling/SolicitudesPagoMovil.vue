@@ -8,8 +8,8 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { tieneAprobacionesSolicitud, tieneSalidaBancosSolicitud } from "@/composables/useAccionesSolicitudPago";
 import { notifySuccess } from "@/utils/request";
+import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ClientePagoEstado } from "@/types/billingEntries";
-import ClientePagoChip from "./ClientePagoChip.vue";
 
 export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   expediente: string;
@@ -30,6 +30,7 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   pagadoflag: boolean | null;
   fechapago: string | null;
   soporte_path: string | null;
+  soporte_nombre?: string | null;
   cliente_pago?: ClientePagoEstado | null;
   correlativo?: string | null;
   /** totales del proveedor en el expediente: Pricing y Operaciones (tarjeta cerrada) */
@@ -111,6 +112,37 @@ function iconoProveedor(nombre: string) {
 const codigoProveedor = (s: SolicitudPagoMovilItem) => `${s.id_proveedor}${s.correlativo ? ` - ${s.correlativo}` : ""}`;
 const tieneTotales = (s: SolicitudPagoMovilItem) => s.total_pr != null || s.total_op != null;
 const fechaHora = (v: string | null | undefined) => (v ? `${formatoFecha(v)} ${v.slice(11, 16)}`.trim() : "");
+// "Cliente pagó" como una sola píldora centrada (tarjeta abierta)
+const CLIENTE_PAGO: Record<ClientePagoEstado, { texto: string; icono: string }> = {
+  SI: { texto: "Sí", icono: "mdi-check-circle" },
+  PARCIAL: { texto: "Parcial", icono: "mdi-circle-half-full" },
+  NO: { texto: "No", icono: "mdi-close-circle" },
+};
+function seguimiento(s: SolicitudPagoMovilItem) {
+  const filas: { titulo: string; icono: string; fecha: string; usuario: string | null; nota?: string | null; error?: boolean }[] = [
+    { titulo: "Solicitado:", icono: "mdi-calendar-check-outline", fecha: formatoFecha(s.fechasolicitud), usuario: s.usuario_solicitud },
+  ];
+  if (s.usuario_aprobadoadministracion) {
+    filas.push({ titulo: "Administración:", icono: "mdi-account-check-outline", fecha: fechaHora(s.fecha_aprobadoadministracion), usuario: s.usuario_aprobadoadministracion });
+  }
+  if (s.usuario_aprobadogerencia) {
+    filas.push({ titulo: "Gerencia:", icono: "mdi-account-tie-outline", fecha: fechaHora(s.fecha_aprobadogerencia), usuario: s.usuario_aprobadogerencia });
+  }
+  if (s.usuario_rechazo) {
+    filas.push({
+      titulo: `Rechazado (${s.area_rechazo === "ADM" ? "Adm." : "Ger."}):`,
+      icono: "mdi-close-circle-outline",
+      fecha: fechaHora(s.fecha_rechazo),
+      usuario: s.usuario_rechazo,
+      nota: s.motivo_rechazo,
+      error: true,
+    });
+  }
+  if (eliminada(s)) {
+    filas.push({ titulo: "Eliminada:", icono: "mdi-trash-can-outline", fecha: fechaHora(s.fecha_anulado), usuario: s.usuario_anulado ?? null, error: true });
+  }
+  return filas;
+}
 function tituloAccion(s: SolicitudPagoMovilItem, accion: "Editar" | "Eliminar") {
   if (tieneSalidaBancosSolicitud(s)) return "Ya está pagada en Bancos: elimine primero el movimiento";
   return `${accion} solicitud de pago${tieneAprobacionesSolicitud(s) ? " (requiere clave de administrador)" : ""}`;
@@ -157,97 +189,38 @@ function abrir(url: string | null | undefined) {
 
       <v-expand-transition>
         <div v-show="!gruposCerrados[g.codigo]">
-          <article
-            v-for="s in g.items"
+          <template
+            v-for="(s, i) in g.items"
             :key="s.id"
-            class="mov__card"
-            :class="`mov__card--${s.codigo_estado}`"
           >
-            <!-- cerrada: proveedor, código, estado, Pricing / Operaciones y "Ver más" -->
-            <div
-              v-if="!tarjetasAbiertas[s.id]"
-              class="mov__resumen"
+            <!-- separador marcado entre solicitudes -->
+            <v-divider
+              v-if="i > 0"
+              class="mov__sep"
+              :thickness="2"
+              opacity="1"
+            />
+            <article
+              class="mov__card"
+              :class="`mov__card--${s.codigo_estado}`"
             >
-              <div class="mov__resumenhead">
-                <span class="mov__resumenicon">
-                  <v-icon size="24">{{ iconoProveedor(s.proveedor) }}</v-icon>
-                </span>
-                <div class="mov__resumenname">
-                  <div class="mov__resumenprov">
-                    {{ s.proveedor }}
-                  </div>
-                  <div class="mov__resumencode">
-                    Código: {{ codigoProveedor(s) }}
-                  </div>
-                </div>
-                <span
-                  class="mov__chip"
-                  :class="`mov__chip--${s.codigo_estado}`"
-                >
-                  <v-icon size="14">{{ iconoEstado(s.codigo_estado) }}</v-icon>
-                  {{ s.estado }}
-                </span>
-              </div>
+              <!-- cerrada: proveedor, código, estado, Pricing / Operaciones y "Ver más" -->
               <div
-                v-if="tieneTotales(s)"
-                class="mov__montos"
+                v-if="!tarjetasAbiertas[s.id]"
+                class="mov__resumen"
               >
-                <div>
-                  <span class="mov__montolabel"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ s.moneda || "USD" }})</span>
-                  <b>{{ formatoMonto(s.total_pr ?? 0) }}</b>
-                </div>
-                <div>
-                  <span class="mov__montolabel"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ s.moneda || "USD" }})</span>
-                  <b>{{ formatoMonto(s.total_op ?? 0) }}</b>
-                </div>
-              </div>
-              <div
-                v-else
-                class="mov__montos mov__montos--uno"
-              >
-                <div>
-                  <span class="mov__montolabel"><v-icon size="16">mdi-cash</v-icon> Monto ({{ s.moneda || "USD" }})</span>
-                  <b>{{ formatoMonto(s.monto) }}</b>
-                </div>
-              </div>
-              <div class="mov__resumenfoot">
-                <span class="mov__meta">
-                  <span class="mov__pill">{{ s.expediente }}</span>
-                  <!-- ya registrada en Bancos > Salidas -->
-                  <span
-                    v-if="s.id_pagoegreso"
-                    class="mov__chip mov__chip--salida"
-                  >
-                    <v-icon size="14">mdi-check-decagram</v-icon>
-                    Salida N° {{ s.numerooperacion_pago }}
+                <div class="mov__resumenhead">
+                  <span class="mov__resumenicon">
+                    <v-icon size="24">{{ iconoProveedor(s.proveedor) }}</v-icon>
                   </span>
-                </span>
-                <v-btn
-                  size="small"
-                  variant="tonal"
-                  color="primary"
-                  rounded="pill"
-                  append-icon="mdi-chevron-down"
-                  data-modo-ver="permitido"
-                  class="mov__vermas"
-                  @click="tarjetasAbiertas[s.id] = true"
-                >
-                  Ver más
-                </v-btn>
-              </div>
-            </div>
-            <button
-              v-else
-              type="button"
-              class="mov__cardhead"
-              data-modo-ver="permitido"
-              @click="tarjetasAbiertas[s.id] = !tarjetasAbiertas[s.id]"
-            >
-              <!-- nombre completo arriba; expediente y estado debajo (pasan a otra línea si no entran) -->
-              <span class="mov__cardmain">
-                <span class="mov__provname">{{ etiquetaProveedor(s) }}</span>
-                <span class="mov__meta">
-                  <span class="mov__pill">{{ s.expediente }}</span>
+                  <div class="mov__resumenname">
+                    <div class="mov__resumenprov">
+                      {{ s.proveedor }}
+                    </div>
+                    <div class="mov__resumencode">
+                      Código: {{ codigoProveedor(s) }}
+                    </div>
+                  </div>
                   <span
                     class="mov__chip"
                     :class="`mov__chip--${s.codigo_estado}`"
@@ -255,290 +228,389 @@ function abrir(url: string | null | undefined) {
                     <v-icon size="14">{{ iconoEstado(s.codigo_estado) }}</v-icon>
                     {{ s.estado }}
                   </span>
-                  <!-- ya registrada en Bancos > Salidas: el mismo N° de operación que al abrirla -->
-                  <span
-                    v-if="s.id_pagoegreso"
-                    class="mov__chip mov__chip--salida"
-                  >
-                    <v-icon size="14">mdi-check-decagram</v-icon>
-                    Salida N° {{ s.numerooperacion_pago }}
-                  </span>
-                </span>
-              </span>
-              <!-- copiar: siempre a la derecha -->
-              <span
-                class="mov__cardicon"
-                data-modo-ver="permitido"
-                title="Copiar proveedor"
-                @click.stop="copiar(etiquetaProveedor(s))"
-              >
-                <v-icon
-                  size="18"
-                  color="primary"
-                >mdi-content-copy</v-icon>
-              </span>
-              <span class="mov__cardmonto">
-                {{ formatoMonto(s.monto) }} <small>{{ s.moneda }}</small>
-              </span>
-              <v-icon size="20">
-                {{ tarjetasAbiertas[s.id] ? "mdi-chevron-up" : "mdi-chevron-right" }}
-              </v-icon>
-            </button>
-
-            <v-expand-transition>
-              <div
-                v-show="tarjetasAbiertas[s.id]"
-                class="mov__cardbody"
-              >
-                <div class="mov__detail">
-                  <dl>
-                    <dt>
-                      <v-icon size="16">
-                        mdi-bank-outline
-                      </v-icon> Banco:
-                    </dt>
-                    <dd>{{ s.banco || "—" }}</dd>
-                    <dt>
-                      <v-icon size="16">
-                        mdi-credit-card-outline
-                      </v-icon> Método de pago:
-                    </dt>
-                    <dd>{{ s.tipopago || "—" }}</dd>
-                    <dt>
-                      <v-icon size="16">
-                        mdi-wallet-outline
-                      </v-icon>
-                      {{ s.codigo_tipopago === "02" ? "Código:" : "N.° de cuenta:" }}
-                    </dt>
-                    <dd class="mov__cuenta">
-                      <span>{{ cuentaOCodigo(s) || "—" }}</span>
-                      <v-btn
-                        v-if="cuentaOCodigo(s)"
-                        icon
-                        variant="text"
-                        size="x-small"
-                        color="primary"
-                        title="Copiar"
-                        data-modo-ver="permitido"
-                        @click="copiar(cuentaOCodigo(s))"
-                      >
-                        <v-icon>mdi-content-copy</v-icon>
-                      </v-btn>
-                    </dd>
-                    <dt>
-                      <v-icon size="16">
-                        mdi-calendar-outline
-                      </v-icon> Solicitado:
-                    </dt>
-                    <dd>
-                      {{ formatoFecha(s.fechasolicitud) }}<template v-if="s.usuario_solicitud">
-                        · {{ s.usuario_solicitud }}
-                      </template>
-                    </dd>
-                    <dt>
-                      <v-icon size="16">
-                        mdi-account-cash-outline
-                      </v-icon> Cliente pagó:
-                    </dt>
-                    <dd>
-                      <ClientePagoChip :estado="s.cliente_pago" />
-                    </dd>
-                    <template v-if="s.usuario_aprobadoadministracion">
-                      <dt>
-                        <v-icon size="16">
-                          mdi-account-check-outline
-                        </v-icon> Administración:
-                      </dt>
-                      <dd>{{ s.usuario_aprobadoadministracion }} · {{ fechaHora(s.fecha_aprobadoadministracion) }}</dd>
-                    </template>
-                    <template v-if="s.usuario_aprobadogerencia">
-                      <dt>
-                        <v-icon size="16">
-                          mdi-account-tie-outline
-                        </v-icon> Gerencia:
-                      </dt>
-                      <dd>{{ s.usuario_aprobadogerencia }} · {{ fechaHora(s.fecha_aprobadogerencia) }}</dd>
-                    </template>
-                    <template v-if="s.usuario_rechazo">
-                      <dt class="text-error">
-                        <v-icon size="16">
-                          mdi-close-circle-outline
-                        </v-icon>
-                        Rechazado ({{ s.area_rechazo === "ADM" ? "Adm." : "Ger." }}):
-                      </dt>
-                      <dd>
-                        {{ s.usuario_rechazo }} · {{ fechaHora(s.fecha_rechazo) }}
-                        <div
-                          v-if="s.motivo_rechazo"
-                          class="text-medium-emphasis"
-                        >
-                          {{ s.motivo_rechazo }}
-                        </div>
-                      </dd>
-                    </template>
-                    <template v-if="eliminada(s)">
-                      <dt class="text-error">
-                        <v-icon size="16">
-                          mdi-delete-outline
-                        </v-icon> Eliminada:
-                      </dt>
-                      <dd>{{ s.usuario_anulado || "—" }} · {{ fechaHora(s.fecha_anulado) }}</dd>
-                    </template>
-                  </dl>
-
-                  <div class="mov__paydate">
-                    <span><v-icon size="16">mdi-calendar-check-outline</v-icon> Fecha de pago:</span>
-                    <strong v-if="s.pagadoflag">{{ formatoFecha(s.fechapago) }}</strong>
-                    <span
-                      v-else
-                      class="text-medium-emphasis"
-                    >{{ s.codigo_estado === "LISTO" ? "Se ingresa al subir el soporte" : "Pendiente" }}</span>
+                </div>
+                <div
+                  v-if="tieneTotales(s)"
+                  class="mov__montos"
+                >
+                  <div>
+                    <span class="mov__montolabel"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ s.moneda || "USD" }})</span>
+                    <b>{{ formatoMonto(s.total_pr ?? 0) }}</b>
+                  </div>
+                  <div>
+                    <span class="mov__montolabel"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ s.moneda || "USD" }})</span>
+                    <b>{{ formatoMonto(s.total_op ?? 0) }}</b>
                   </div>
                 </div>
-
-                <div class="mov__cardactions">
-                  <template v-if="s.pagadoflag && !eliminada(s)">
-                    <v-btn
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      rounded="pill"
-                      prepend-icon="mdi-file-eye-outline"
-                      data-modo-ver="permitido"
-                      @click="abrir(s.soporte_path)"
-                    >
-                      Ver soporte
-                    </v-btn>
-                    <!-- ya se pagó: el soporte solo se elimina con la clave del Super administrador -->
-                    <v-btn
-                      v-if="puedeEliminar && !s.id_pagoegreso"
-                      size="small"
-                      variant="tonal"
-                      color="error"
-                      rounded="pill"
-                      prepend-icon="mdi-file-remove-outline"
-                      title="Eliminar soporte de pago (requiere clave del Super administrador)"
-                      :loading="eliminandoSoporte === s.id"
-                      @click="emit('eliminar-soporte', s)"
-                    >
-                      Eliminar soporte
-                    </v-btn>
-                    <v-btn
-                      v-if="s.id_pagoegreso"
-                      size="small"
-                      variant="tonal"
-                      color="success"
-                      rounded="pill"
-                      prepend-icon="mdi-check-decagram"
-                      data-modo-ver="permitido"
-                      @click="emit('ver-salida', s)"
-                    >
-                      Salida N° {{ s.numerooperacion_pago }}
-                    </v-btn>
-                    <v-btn
-                      v-else-if="puedeTransferir"
-                      size="small"
-                      variant="flat"
-                      color="success"
-                      rounded="pill"
-                      prepend-icon="mdi-bank-transfer-out"
-                      :loading="procesando === s.id"
-                      @click="emit('transferir', s)"
-                    >
-                      REGISTRAR EN BANCO
-                    </v-btn>
-                  </template>
-                  <template v-else-if="puedeAprobar && !eliminada(s)">
-                    <v-btn
-                      v-if="s.codigo_estado === 'LISTO'"
-                      size="small"
-                      variant="outlined"
-                      color="primary"
-                      rounded="pill"
-                      prepend-icon="mdi-upload"
-                      @click="emit('subir-soporte', s)"
-                    >
-                      Subir soporte
-                    </v-btn>
-                    <v-btn
-                      v-else-if="s.codigo_estado === 'PENADM' && tienePerfilRevision('ADM')"
-                      size="small"
-                      color="deep-purple"
-                      variant="tonal"
-                      rounded="pill"
-                      :loading="revisando === s.id"
-                      @click="emit('aprobar', s, 'ADM')"
-                    >
-                      Aprobar Administración
-                    </v-btn>
-                    <v-btn
-                      v-else-if="s.codigo_estado === 'PENGER' && tienePerfilRevision('GER')"
-                      size="small"
-                      color="amber-darken-3"
-                      variant="tonal"
-                      rounded="pill"
-                      :loading="revisando === s.id"
-                      @click="emit('aprobar', s, 'GER')"
-                    >
-                      Aprobar Gerencia
-                    </v-btn>
-                  </template>
-                  <v-btn
-                    v-if="verAnexo"
-                    size="small"
-                    variant="outlined"
-                    color="primary"
-                    rounded="pill"
-                    prepend-icon="mdi-paperclip"
-                    data-modo-ver="permitido"
-                    @click="emit('ver-anexo', s)"
-                  >
-                    Ver anexo
-                  </v-btn>
+                <div
+                  v-else
+                  class="mov__montos mov__montos--uno"
+                >
+                  <div>
+                    <span class="mov__montolabel"><v-icon size="16">mdi-cash</v-icon> Monto ({{ s.moneda || "USD" }})</span>
+                    <b>{{ formatoMonto(s.monto) }}</b>
+                  </div>
                 </div>
-
-                <!-- 1. editar  2. eliminar  3. ver -->
-                <div class="mov__cardactions mov__cardactions--fin">
-                  <v-btn
-                    v-if="puedeEditar && !eliminada(s)"
-                    size="small"
-                    variant="tonal"
-                    :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'primary'"
-                    rounded="pill"
-                    prepend-icon="mdi-pencil-outline"
-                    :title="tituloAccion(s, 'Editar')"
-                    @click="emit('editar', s)"
-                  >
-                    Editar
-                  </v-btn>
-                  <v-btn
-                    v-if="puedeEliminar && !eliminada(s)"
-                    size="small"
-                    variant="tonal"
-                    :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'error'"
-                    rounded="pill"
-                    prepend-icon="mdi-delete-outline"
-                    :title="tituloAccion(s, 'Eliminar')"
-                    :loading="eliminando === s.id"
-                    @click="emit('eliminar', s)"
-                  >
-                    Eliminar
-                  </v-btn>
+                <div class="mov__resumenfoot">
+                  <span class="mov__meta">
+                    <span class="mov__pill">{{ s.expediente }}</span>
+                    <!-- ya registrada en Bancos > Salidas -->
+                    <span
+                      v-if="s.id_pagoegreso"
+                      class="mov__chip mov__chip--salida"
+                    >
+                      <v-icon size="14">mdi-check-decagram</v-icon>
+                      Salida N° {{ s.numerooperacion_pago }}
+                    </span>
+                  </span>
                   <v-btn
                     size="small"
                     variant="tonal"
                     color="primary"
                     rounded="pill"
-                    prepend-icon="mdi-eye-outline"
+                    append-icon="mdi-chevron-down"
                     data-modo-ver="permitido"
-                    @click="emit('ver', s)"
+                    class="mov__vermas"
+                    @click="tarjetasAbiertas[s.id] = true"
                   >
-                    Ver solicitud
+                    Ver más
                   </v-btn>
                 </div>
               </div>
-            </v-expand-transition>
-          </article>
+              <!-- abierta (diseño móvil): proveedor + copiar, monto, cliente pagó, expediente y estado -->
+              <div
+                v-else
+                class="mov__xhead"
+              >
+                <span class="mov__xicon">
+                  <v-icon size="26">mdi-bank-outline</v-icon>
+                </span>
+                <span class="mov__xprov">{{ etiquetaProveedor(s) }}</span>
+                <v-btn
+                  icon
+                  variant="tonal"
+                  size="small"
+                  color="primary"
+                  title="Copiar proveedor"
+                  aria-label="Copiar proveedor"
+                  data-modo-ver="permitido"
+                  @click="copiar(etiquetaProveedor(s))"
+                >
+                  <v-icon size="18">
+                    mdi-content-copy
+                  </v-icon>
+                </v-btn>
+              </div>
+
+              <v-expand-transition>
+                <div
+                  v-show="tarjetasAbiertas[s.id]"
+                  class="mov__cardbody"
+                >
+                  <div class="mov__xmonto">
+                    <v-icon
+                      size="34"
+                      class="mov__xmontoicon"
+                    >
+                      mdi-database
+                    </v-icon>
+                    <span class="mov__xmontoval">{{ formatoMonto(s.monto) }} {{ s.moneda || "USD" }}</span>
+                  </div>
+
+                  <div
+                    v-if="s.cliente_pago"
+                    class="mov__xcenter"
+                  >
+                    <span
+                      class="mov__xclipago"
+                      :class="`mov__xclipago--${s.cliente_pago}`"
+                    >
+                      <v-icon size="18">{{ CLIENTE_PAGO[s.cliente_pago].icono }}</v-icon>
+                      Cliente pagó: {{ CLIENTE_PAGO[s.cliente_pago].texto }}
+                    </span>
+                  </div>
+
+                  <div class="mov__xexp">
+                    Expediente: <b>{{ s.expediente }}</b>
+                  </div>
+
+                  <div class="mov__xestado">
+                    <span
+                      class="mov__chip mov__chip--lg"
+                      :class="`mov__chip--${s.codigo_estado}`"
+                    >
+                      <v-icon size="20">{{ iconoEstado(s.codigo_estado) }}</v-icon>
+                      {{ s.estado }}
+                    </span>
+                    <span
+                      v-if="s.id_pagoegreso"
+                      class="mov__chip mov__chip--salida"
+                    >
+                      <v-icon size="14">mdi-check-decagram</v-icon>
+                      Salida N° {{ s.numerooperacion_pago }}
+                    </span>
+                    <!-- "Ver más" abre la tarjeta; "Ver menos" la cierra -->
+                    <v-btn
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      rounded="pill"
+                      append-icon="mdi-chevron-up"
+                      class="ml-auto mov__vermas"
+                      data-modo-ver="permitido"
+                      @click="tarjetasAbiertas[s.id] = false"
+                    >
+                      Ver menos
+                    </v-btn>
+                  </div>
+
+                  <div class="mov__detail">
+                    <dl>
+                      <dt>
+                        <v-icon size="18">
+                          mdi-bank-outline
+                        </v-icon> Banco:
+                      </dt>
+                      <dd>{{ s.banco || "—" }}</dd>
+                      <dt>
+                        <v-icon size="18">
+                          mdi-credit-card-outline
+                        </v-icon> Método de pago:
+                      </dt>
+                      <dd>{{ s.tipopago || "—" }}</dd>
+                      <dt>
+                        <v-icon size="18">
+                          mdi-wallet-outline
+                        </v-icon>
+                        {{ s.codigo_tipopago === "02" ? "Código:" : "N.° de cuenta:" }}
+                      </dt>
+                      <dd class="mov__cuenta">
+                        <span>{{ cuentaOCodigo(s) || "—" }}</span>
+                        <v-btn
+                          v-if="cuentaOCodigo(s)"
+                          icon
+                          variant="text"
+                          size="x-small"
+                          color="primary"
+                          title="Copiar"
+                          data-modo-ver="permitido"
+                          @click="copiar(cuentaOCodigo(s))"
+                        >
+                          <v-icon>mdi-content-copy</v-icon>
+                        </v-btn>
+                      </dd>
+                    </dl>
+                  </div>
+
+                  <div
+                    v-if="s.total_pr != null"
+                    class="mov__xpricing"
+                  >
+                    <v-icon
+                      size="24"
+                      color="#1e5bd8"
+                    >
+                      mdi-database
+                    </v-icon>
+                    <span class="mov__xpricinglabel">Monto según Pricing:</span>
+                    <b>{{ formatoMonto(s.total_pr) }} {{ s.moneda || "USD" }}</b>
+                  </div>
+
+                  <!-- seguimiento: etiqueta arriba y "fecha | usuario" debajo -->
+                  <div class="mov__xlinea">
+                    <div
+                      v-for="f in seguimiento(s)"
+                      :key="f.titulo"
+                      class="mov__xrow"
+                      :class="{ 'mov__xrow--error': f.error }"
+                    >
+                      <div class="mov__xrowlabel">
+                        <v-icon size="20">
+                          {{ f.icono }}
+                        </v-icon>
+                        {{ f.titulo }}
+                      </div>
+                      <div class="mov__xrowpill">
+                        <span>{{ f.fecha }}</span>
+                        <span class="mov__xrowuser">{{ f.usuario || "—" }}</span>
+                      </div>
+                      <div
+                        v-if="f.nota"
+                        class="mov__xrownota"
+                      >
+                        {{ f.nota }}
+                      </div>
+                    </div>
+                    <div class="mov__xrow mov__xrow--inline">
+                      <div class="mov__xrowlabel">
+                        <v-icon size="20">
+                          mdi-calendar-check-outline
+                        </v-icon>
+                        Fecha de pago:
+                      </div>
+                      <strong v-if="s.pagadoflag">{{ formatoFecha(s.fechapago) }}</strong>
+                      <span
+                        v-else
+                        class="mov__xpendiente"
+                      >{{ s.codigo_estado === "LISTO" ? "Se ingresa al subir el soporte" : "Pendiente" }}</span>
+                    </div>
+                  </div>
+
+                  <div class="mov__cardactions">
+                    <template v-if="s.pagadoflag && !eliminada(s)">
+                      <v-btn
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        rounded="pill"
+                        prepend-icon="mdi-file-eye-outline"
+                        data-modo-ver="permitido"
+                        @click="abrir(s.soporte_path)"
+                      >
+                        Ver soporte
+                      </v-btn>
+                      <v-btn
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        rounded="pill"
+                        prepend-icon="mdi-download"
+                        data-modo-ver="permitido"
+                        @click="descargarArchivo(s.soporte_path, s.soporte_nombre)"
+                      >
+                        Descargar
+                      </v-btn>
+                      <!-- ya se pagó: el soporte solo se elimina con la clave del Super administrador -->
+                      <v-btn
+                        v-if="puedeEliminar && !s.id_pagoegreso"
+                        size="small"
+                        variant="tonal"
+                        color="error"
+                        rounded="pill"
+                        prepend-icon="mdi-trash-can-outline"
+                        title="Eliminar soporte de pago (requiere clave del Super administrador)"
+                        :loading="eliminandoSoporte === s.id"
+                        @click="emit('eliminar-soporte', s)"
+                      >
+                        Eliminar soporte
+                      </v-btn>
+                      <v-btn
+                        v-if="s.id_pagoegreso"
+                        size="small"
+                        variant="tonal"
+                        color="success"
+                        rounded="pill"
+                        prepend-icon="mdi-check-decagram"
+                        data-modo-ver="permitido"
+                        @click="emit('ver-salida', s)"
+                      >
+                        Salida N° {{ s.numerooperacion_pago }}
+                      </v-btn>
+                      <v-btn
+                        v-else-if="puedeTransferir"
+                        size="small"
+                        variant="flat"
+                        color="success"
+                        rounded="pill"
+                        prepend-icon="mdi-bank-transfer-out"
+                        :loading="procesando === s.id"
+                        @click="emit('transferir', s)"
+                      >
+                        REGISTRAR EN BANCO
+                      </v-btn>
+                    </template>
+                    <template v-else-if="puedeAprobar && !eliminada(s)">
+                      <v-btn
+                        v-if="s.codigo_estado === 'LISTO'"
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        rounded="pill"
+                        prepend-icon="mdi-upload"
+                        @click="emit('subir-soporte', s)"
+                      >
+                        Subir soporte
+                      </v-btn>
+                      <v-btn
+                        v-else-if="s.codigo_estado === 'PENADM' && tienePerfilRevision('ADM')"
+                        size="small"
+                        color="deep-purple"
+                        variant="tonal"
+                        rounded="pill"
+                        :loading="revisando === s.id"
+                        @click="emit('aprobar', s, 'ADM')"
+                      >
+                        Aprobar Administración
+                      </v-btn>
+                      <v-btn
+                        v-else-if="s.codigo_estado === 'PENGER' && tienePerfilRevision('GER')"
+                        size="small"
+                        color="amber-darken-3"
+                        variant="tonal"
+                        rounded="pill"
+                        :loading="revisando === s.id"
+                        @click="emit('aprobar', s, 'GER')"
+                      >
+                        Aprobar Gerencia
+                      </v-btn>
+                    </template>
+                    <v-btn
+                      v-if="verAnexo"
+                      size="small"
+                      variant="outlined"
+                      color="primary"
+                      rounded="pill"
+                      prepend-icon="mdi-paperclip"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-anexo', s)"
+                    >
+                      Ver anexo
+                    </v-btn>
+                  </div>
+
+                  <!-- 1. editar  2. eliminar  3. ver -->
+                  <div class="mov__cardactions mov__cardactions--fin">
+                    <v-btn
+                      v-if="puedeEditar && !eliminada(s)"
+                      size="small"
+                      variant="tonal"
+                      :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'primary'"
+                      rounded="pill"
+                      prepend-icon="mdi-pencil-outline"
+                      :title="tituloAccion(s, 'Editar')"
+                      @click="emit('editar', s)"
+                    >
+                      Editar
+                    </v-btn>
+                    <v-btn
+                      v-if="puedeEliminar && !eliminada(s)"
+                      size="small"
+                      variant="tonal"
+                      :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'error'"
+                      rounded="pill"
+                      prepend-icon="mdi-trash-can-outline"
+                      :title="tituloAccion(s, 'Eliminar')"
+                      :loading="eliminando === s.id"
+                      @click="emit('eliminar', s)"
+                    >
+                      Eliminar
+                    </v-btn>
+                    <v-btn
+                      size="small"
+                      variant="flat"
+                      color="primary"
+                      rounded="pill"
+                      prepend-icon="mdi-eye-outline"
+                      data-modo-ver="permitido"
+                      @click="emit('ver', s)"
+                    >
+                      Ver solicitud
+                    </v-btn>
+                  </div>
+                </div>
+              </v-expand-transition>
+            </article>
+          </template>
         </div>
       </v-expand-transition>
     </div>
@@ -600,21 +672,21 @@ function abrir(url: string | null | undefined) {
 .mov__grouphead--RECHAZADA { background: var(--sp-red-bg); color: var(--sp-red-fg); }
 .mov__grouphead--PAGADO { background: var(--sp-blue-bg); color: var(--sp-blue-fg); }
 .mov__grouphead--ELIMINADA { background: var(--sp-grey-bg); color: var(--sp-grey-fg); }
+/* sin borde izquierdo en móvil: todo el ancho para el contenido */
 .mov__card {
   position: relative;
   margin-bottom: 10px;
   overflow: hidden;
-  border-left: 6px solid var(--sp-border);
+  border: 1px solid var(--sp-border);
   border-radius: 16px;
   background: var(--sp-surface);
   box-shadow: 0 4px 14px rgba(30, 58, 138, 0.08);
 }
-.mov__card--LISTO { border-left-color: var(--sp-green); }
-.mov__card--PENGER { border-left-color: var(--sp-amber); }
-.mov__card--PENADM { border-left-color: var(--sp-purple); }
-.mov__card--RECHAZADA { border-left-color: var(--sp-red); }
-.mov__card--PAGADO { border-left-color: var(--sp-accent); }
-.mov__card--ELIMINADA { border-left-color: #98a2b3; }
+/* separador entre solicitudes: marcado para no confundir una tarjeta con otra */
+.mov__sep {
+  margin: 4px 8px 14px;
+  border-color: #9fb4d6;
+}
 .mov__cardhead {
   display: flex;
   align-items: center;
@@ -793,6 +865,160 @@ function abrir(url: string | null | undefined) {
   text-transform: none;
   letter-spacing: 0;
   font-weight: 800;
+}
+/* tarjeta abierta (diseño móvil) */
+.mov__xhead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 12px 10px;
+}
+.mov__xicon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  color: var(--sp-text);
+}
+.mov__xprov {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1.2;
+  color: var(--sp-text);
+  word-break: break-word;
+}
+.mov__xmonto {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 14px;
+  background: #fff4e5;
+}
+.mov__xmontoicon {
+  padding-right: 14px;
+  border-right: 2px solid #f4a259;
+  color: #f59e0b;
+}
+.mov__xmontoval {
+  font-size: 1.9rem;
+  font-weight: 900;
+  line-height: 1.1;
+  color: #f2600c;
+  overflow-wrap: anywhere;
+}
+.mov__xcenter {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.mov__xclipago {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+.mov__xclipago--NO { background: var(--sp-red-bg); color: var(--sp-red-fg); }
+.mov__xclipago--PARCIAL { background: #ffedd5; color: #c2410c; }
+.mov__xclipago--SI { background: var(--sp-green-bg); color: var(--sp-green-fg); }
+.mov__xexp {
+  margin: 10px 8px 0;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: #e8edf6;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.mov__xestado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 0 8px;
+}
+.mov__chip--lg {
+  padding: 6px 14px 6px 8px;
+  font-size: 0.95rem;
+}
+.mov__xpricing {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #e8f0fe;
+}
+.mov__xpricinglabel {
+  flex: 1 1 auto;
+  padding-right: 10px;
+  border-right: 1px solid #1e5bd8;
+  font-weight: 700;
+}
+.mov__xpricing b {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #1e5bd8;
+  white-space: nowrap;
+}
+.mov__xlinea {
+  margin-top: 6px;
+}
+.mov__xrow {
+  padding: 8px 0;
+  border-bottom: 1px solid #e6ebf3;
+}
+.mov__xrowlabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--sp-text);
+}
+.mov__xrowpill {
+  display: flex;
+  align-items: center;
+  margin: 4px 0 0 28px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #f1f4f9;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+.mov__xrowpill > span:first-child {
+  flex: 0 0 auto;
+  padding-right: 10px;
+  border-right: 1px solid #b8c4d8;
+  white-space: nowrap;
+}
+.mov__xrowuser {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-left: 10px;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.mov__xrownota {
+  margin: 4px 0 0 28px;
+  font-size: 0.82rem;
+  color: var(--sp-muted);
+}
+.mov__xrow--error .mov__xrowlabel {
+  color: var(--sp-red-fg);
+}
+.mov__xrow--inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mov__xpendiente {
+  font-style: italic;
+  color: var(--sp-muted);
 }
 .mov__detail {
   padding: 10px 12px;

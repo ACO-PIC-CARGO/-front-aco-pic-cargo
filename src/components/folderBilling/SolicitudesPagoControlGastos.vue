@@ -17,6 +17,7 @@ import {
 } from "@/composables/useAccionesSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
+import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ApiResponse } from "@/types/api";
 import type { SolicitudPagoControl } from "@/types/billingEntries";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
@@ -131,6 +132,8 @@ async function copiar(texto: string | null) {
 
 // PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
 async function transferir(s: SolicitudPagoControl) {
+  // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
+  const pestana = window.open("", "_blank");
   procesando.value = s.id;
   const response = await request<{ token: string }>({
     method: "put",
@@ -139,11 +142,15 @@ async function transferir(s: SolicitudPagoControl) {
   procesando.value = null;
   const token = response.estadoflag ? response.data[0]?.token : null;
   if (!token) {
+    pestana?.close();
     avisar(response);
     await cargar();
     return;
   }
-  router.push({ name: "registroPagoSolicitud", params: { token } });
+  // Bancos > Nueva salida en una pestaña nueva (como Solicitudes de Cobro)
+  const destino = router.resolve({ name: "registroPagoSolicitud", params: { token } }).href;
+  if (pestana) pestana.location.href = destino;
+  else window.open(destino, "_blank");
 }
 
 function verSalida(s: SolicitudPagoControl) {
@@ -419,6 +426,18 @@ defineExpose({ cargar });
                   >
                     <v-icon>mdi-file-eye-outline</v-icon>
                   </v-btn>
+                  <v-btn
+                    icon
+                    variant="text"
+                    size="small"
+                    color="primary"
+                    title="Descargar soporte de pago"
+                    aria-label="Descargar soporte de pago"
+                    data-modo-ver="permitido"
+                    @click="descargarArchivo(s.soporte_path, s.soporte_nombre)"
+                  >
+                    <v-icon>mdi-download</v-icon>
+                  </v-btn>
                   <!-- ya se pagó: el soporte solo se elimina con la clave del Super administrador -->
                   <v-btn
                     v-if="puedeEliminarSolicitud && !s.id_pagoegreso && !anuladaSolicitud(s)"
@@ -431,7 +450,7 @@ defineExpose({ cargar });
                     :loading="eliminandoSoporte === s.id"
                     @click="eliminarSoporte(s)"
                   >
-                    <v-icon>mdi-file-remove-outline</v-icon>
+                    <v-icon>mdi-trash-can-outline</v-icon>
                   </v-btn>
                 </span>
                 <!-- con el soporte cargado ya se puede registrar el pago en Bancos -->
@@ -491,7 +510,7 @@ defineExpose({ cargar });
                 />
                 <v-btn
                   v-if="puedeEliminarSolicitud && !anuladaSolicitud(s)"
-                  icon="mdi-delete-outline"
+                  icon="mdi-trash-can-outline"
                   variant="text"
                   size="small"
                   :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'error'"

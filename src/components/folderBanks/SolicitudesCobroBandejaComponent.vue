@@ -6,6 +6,7 @@ import axios from "@/api/http";
 import Swal from "sweetalert2";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import SolicitudCobroVerDialog from "@/components/folderBilling/SolicitudCobroVerDialog.vue";
+import SolicitudCobroCardMovil from "@/components/folderBilling/SolicitudCobroCardMovil.vue";
 import { usePermissions } from "@/composables/usePermissions";
 import { useDebouncedSearch } from "@/composables/useDebouncedSearch";
 import { tienePerfilRevision } from "@/composables/useRevisionSolicitudPago";
@@ -14,6 +15,7 @@ import { montoCobro, tieneAprobacionesCobro, useSolicitudCobro } from "@/composa
 import { CONNECTION_ERROR_MESSAGE, hasFailed, request } from "@/utils/request";
 import { shortDate } from "@/utils/dates";
 import { sessionBranchId } from "@/utils/sesion";
+import { descargarArchivo } from "@/utils/descargarArchivo";
 import type {
   CodigoEstadoSolicitudCobro,
   OpcionFiltroSolicitudCobro,
@@ -101,11 +103,11 @@ const headers = computed(() => [
   columna("Monto", "monto"),
   columna("Cuenta de depósito", "cuenta"),
   columna("Depósito / N° Op.", "deposito"),
-  columna("Voucher", "voucher"),
   columna("Estado", "estado"),
   columna("Administración", "adm"),
   columna("Gerencia", "ger"),
-  ...(esRechazadas.value ? [columna("Motivo", "motivo_rechazo")] : [columna("Ingreso en Bancos", "ingreso")]),
+  ...(esRechazadas.value ? [columna("Motivo", "motivo_rechazo")] : []),
+  columna("Soporte", "soporte"),
   columna("Acciones", "acciones"),
 ]);
 
@@ -205,6 +207,13 @@ function fecha(valor: string | null | undefined) {
 function abrir(url: string | null | undefined) {
   if (url) window.open(url, "_blank");
 }
+// aprobaciones como en Pagos: fecha arriba (helper de FormatFecha) y hora abajo
+function soloFecha(valor: string | null | undefined) {
+  return valor ? shortDate(valor.slice(0, 10)) : "—";
+}
+function horaDe(valor: string | null | undefined) {
+  return valor ? valor.slice(11, 16) : "";
+}
 function verExpediente(s: SolicitudCobroBandeja) {
   const destino = router.resolve({ name: "verControlGasto", params: { id: s.id_master, id_branch: sessionBranchId() } });
   window.open(destino.href, "_blank");
@@ -220,6 +229,22 @@ function verSolicitud(s: { codigo: string }) {
   codigoVer.value = s.codigo;
   dialogVer.value = true;
 }
+const AREAS_REV: AreaRevision[] = ["ADM", "GER"];
+
+// celular: grupos por estado que se pliegan (como Solicitudes de Pago)
+const GRUPOS = [
+  { codigo: "LISTO", titulo: "Listo para registrar en Bancos", icono: "mdi-check-circle" },
+  { codigo: "PENGER", titulo: "Pendiente por Gerencia", icono: "mdi-clock-outline" },
+  { codigo: "PENADM", titulo: "Pendiente por Administración", icono: "mdi-account-outline" },
+  { codigo: "BORRADOR", titulo: "Sin enviar", icono: "mdi-pencil-circle-outline" },
+  { codigo: "COBRADO", titulo: "Registrado en Bancos", icono: "mdi-cash-check" },
+  { codigo: "RECHAZADA", titulo: "Rechazada", icono: "mdi-close-circle-outline" },
+  { codigo: "ELIMINADA", titulo: "Eliminada", icono: "mdi-trash-can-outline" },
+];
+const gruposCerrados = ref<Record<string, boolean>>({});
+const grupos = computed(() =>
+  GRUPOS.map((g) => ({ ...g, items: filas.value.filter((f) => f.codigo_estado === g.codigo) })).filter((g) => g.items.length),
+);
 const vigente = (s: SolicitudCobroBandeja) => !["ELIMINADA", "COBRADO"].includes(s.codigo_estado);
 // botón de confirmar del área que toca, solo para el perfil que revisa (04 / 01)
 function puedeRevisar(s: SolicitudCobroBandeja, tipo: AreaRevision) {
@@ -265,6 +290,7 @@ onMounted(cargarSiVisible);
   <div class="scb">
     <div class="scb__toolbar">
       <v-text-field
+        v-if="!smAndDown"
         v-model="busqueda"
         class="scb__search"
         label="Buscar"
@@ -296,14 +322,21 @@ onMounted(cargarSiVisible);
         >
           ACTUALIZAR
         </v-btn>
-        <v-btn
-          color="primary"
-          size="small"
-          prepend-icon="mdi-filter-variant"
-          @click="abrirFiltros"
+        <v-badge
+          :model-value="smAndDown && !!busqueda"
+          dot
+          color="error"
         >
-          FILTRAR
-        </v-btn>
+          <v-btn
+            color="info"
+            size="small"
+            append-icon="mdi-filter"
+            class="scb__filtrar"
+            @click="abrirFiltros"
+          >
+            Filtrar
+          </v-btn>
+        </v-badge>
         <v-btn
           v-if="hayFiltros"
           variant="tonal"
@@ -314,6 +347,10 @@ onMounted(cargarSiVisible);
           LIMPIAR
         </v-btn>
       </div>
+    </div>
+
+    <div class="scb__count">
+      {{ total }} {{ total === 1 ? "resultado" : "resultados" }}
     </div>
 
     <!-- escritorio: tabla -->
@@ -358,18 +395,6 @@ onMounted(cargarSiVisible);
           {{ item.numerooperacion }}
         </div>
       </template>
-      <template #[`item.voucher`]="{ item }">
-        <v-btn
-          icon="mdi-file-eye-outline"
-          size="small"
-          variant="text"
-          color="primary"
-          :disabled="!item.voucher_path"
-          :title="item.voucher_nombre || 'Ver voucher'"
-          aria-label="Ver voucher del cliente"
-          @click="abrir(item.voucher_path)"
-        />
-      </template>
       <template #[`item.estado`]="{ item }">
         <v-chip
           size="small"
@@ -384,28 +409,36 @@ onMounted(cargarSiVisible);
           v-for="a in aprobaciones(item).filter((x) => x.tipo === 'ADM')"
           :key="a.tipo"
         >
-          <v-btn
-            v-if="puedeRevisar(item, 'ADM')"
-            size="x-small"
-            color="orange-darken-2"
-            variant="flat"
-            :loading="revisando === item.codigo"
-            @click="revisar(item, 'ADM')"
-          >
-            Confirmar
-          </v-btn>
-          <span
-            v-else-if="a.usuario"
-            class="scb__aprob"
-          ><v-icon
-            size="14"
-            color="success"
-          >mdi-check-circle</v-icon> {{ a.usuario }}<br>{{ fecha(a.fecha) }}</span>
-          <span
-            v-else-if="a.rechazado"
-            class="text-error"
-          >Rechazó</span>
-          <span v-else>{{ a.pendiente ? "Pendiente" : "—" }}</span>
+          <div class="scb__aprob">
+            <template v-if="a.usuario">
+              <div class="scb__aprobuser">
+                {{ a.usuario }}
+              </div>
+              <span class="scb__aprobfecha">{{ soloFecha(a.fecha) }}<template v-if="horaDe(a.fecha)"><br>{{ horaDe(a.fecha) }}</template></span>
+            </template>
+            <template v-else-if="a.rechazado">
+              <span class="scb__rechazotag">Rechazado</span>
+              <div class="scb__aprobuser">
+                {{ item.usuario_rechazo || "—" }}
+              </div>
+              <span class="scb__aprobfecha scb__aprobfecha--rechazo">{{ soloFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
+            </template>
+            <v-btn
+              v-else-if="puedeRevisar(item, 'ADM')"
+              size="small"
+              variant="tonal"
+              :color="a.tipo === 'ADM' ? 'deep-purple' : 'amber-darken-3'"
+              class="scb__revisar"
+              :loading="revisando === item.codigo"
+              @click="revisar(item, 'ADM')"
+            >
+              Aprobar
+            </v-btn>
+            <span
+              v-else
+              class="scb__muted"
+            >—</span>
+          </div>
         </template>
       </template>
       <template #[`item.ger`]="{ item }">
@@ -413,28 +446,36 @@ onMounted(cargarSiVisible);
           v-for="a in aprobaciones(item).filter((x) => x.tipo === 'GER')"
           :key="a.tipo"
         >
-          <v-btn
-            v-if="puedeRevisar(item, 'GER')"
-            size="x-small"
-            color="amber-darken-3"
-            variant="flat"
-            :loading="revisando === item.codigo"
-            @click="revisar(item, 'GER')"
-          >
-            Confirmar
-          </v-btn>
-          <span
-            v-else-if="a.usuario"
-            class="scb__aprob"
-          ><v-icon
-            size="14"
-            color="success"
-          >mdi-check-circle</v-icon> {{ a.usuario }}<br>{{ fecha(a.fecha) }}</span>
-          <span
-            v-else-if="a.rechazado"
-            class="text-error"
-          >Rechazó</span>
-          <span v-else>{{ a.pendiente ? "Pendiente" : "—" }}</span>
+          <div class="scb__aprob">
+            <template v-if="a.usuario">
+              <div class="scb__aprobuser">
+                {{ a.usuario }}
+              </div>
+              <span class="scb__aprobfecha">{{ soloFecha(a.fecha) }}<template v-if="horaDe(a.fecha)"><br>{{ horaDe(a.fecha) }}</template></span>
+            </template>
+            <template v-else-if="a.rechazado">
+              <span class="scb__rechazotag">Rechazado</span>
+              <div class="scb__aprobuser">
+                {{ item.usuario_rechazo || "—" }}
+              </div>
+              <span class="scb__aprobfecha scb__aprobfecha--rechazo">{{ soloFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
+            </template>
+            <v-btn
+              v-else-if="puedeRevisar(item, 'GER')"
+              size="small"
+              variant="tonal"
+              :color="a.tipo === 'ADM' ? 'deep-purple' : 'amber-darken-3'"
+              class="scb__revisar"
+              :loading="revisando === item.codigo"
+              @click="revisar(item, 'GER')"
+            >
+              Aprobar
+            </v-btn>
+            <span
+              v-else
+              class="scb__muted"
+            >—</span>
+          </div>
         </template>
       </template>
       <template #[`item.motivo_rechazo`]="{ item }">
@@ -445,31 +486,66 @@ onMounted(cargarSiVisible);
           </div>
         </div>
       </template>
-      <template #[`item.ingreso`]="{ item }">
-        <a
-          v-if="item.id_pagoingreso"
-          href="#"
-          class="scb__link"
-          @click.prevent="verIngreso(item)"
-        >N° {{ item.numerooperacion_ingreso }}</a>
-        <span v-else>—</span>
-      </template>
-      <template #[`item.acciones`]="{ item }">
-        <div class="scb__acciones">
+      <template #[`item.soporte`]="{ item }">
+        <div class="scb__soporte">
+          <div class="scb__soporteicons">
+            <v-btn
+              icon="mdi-file-eye-outline"
+              variant="text"
+              size="small"
+              color="primary"
+              :disabled="!item.voucher_path"
+              title="Ver voucher del cliente"
+              aria-label="Ver voucher del cliente"
+              data-modo-ver="permitido"
+              @click="abrir(item.voucher_path)"
+            />
+            <v-btn
+              icon="mdi-download"
+              variant="text"
+              size="small"
+              color="primary"
+              :disabled="!item.voucher_path"
+              title="Descargar voucher del cliente"
+              aria-label="Descargar voucher del cliente"
+              data-modo-ver="permitido"
+              @click="descargarArchivo(item.voucher_path, item.voucher_nombre)"
+            />
+          </div>
+          <button
+            v-if="item.id_pagoingreso"
+            type="button"
+            class="scb__salida"
+            title="Ver el ingreso registrado en Bancos"
+            data-modo-ver="permitido"
+            @click="verIngreso(item)"
+          >
+            <v-icon
+              size="16"
+              color="success"
+            >
+              mdi-check-decagram
+            </v-icon>
+            Ingreso N° {{ item.numerooperacion_ingreso }}
+          </button>
           <v-btn
-            v-if="item.codigo_estado === 'LISTO' && puedeRegistrar"
-            size="x-small"
-            color="green-darken-2"
+            v-else-if="item.codigo_estado === 'LISTO' && puedeRegistrar"
+            size="small"
+            color="success"
             variant="flat"
             prepend-icon="mdi-bank-transfer-in"
             :loading="procesando === item.codigo"
             @click="registrarEnBancos(item)"
           >
-            Registrar en Bancos
+            REGISTRAR EN BANCO
           </v-btn>
+        </div>
+      </template>
+      <template #[`item.acciones`]="{ item }">
+        <div class="scb__acciones">
           <v-btn
             v-if="vigente(item) && puedeEliminar"
-            icon="mdi-delete-outline"
+            icon="mdi-trash-can-outline"
             size="x-small"
             variant="text"
             color="error"
@@ -478,16 +554,16 @@ onMounted(cargarSiVisible);
             :loading="procesando === item.codigo"
             @click="eliminar(item)"
           />
-              <v-btn
-                icon="mdi-eye-outline"
-                variant="tonal"
-                size="small"
-                color="primary"
-                title="Ver solicitud de cobro"
-                aria-label="Ver solicitud de cobro"
-                data-modo-ver="permitido"
-                @click="verSolicitud(item)"
-              />
+          <v-btn
+            icon="mdi-eye-outline"
+            variant="tonal"
+            size="small"
+            color="primary"
+            title="Ver solicitud de cobro"
+            aria-label="Ver solicitud de cobro"
+            data-modo-ver="permitido"
+            @click="verSolicitud(item)"
+          />
         </div>
       </template>
     </v-data-table-server>
@@ -508,111 +584,57 @@ onMounted(cargarSiVisible);
       >
         No hay solicitudes de cobro
       </p>
-      <article
-        v-for="item in filas"
-        :key="item.codigo"
-        class="scb-card"
-        :class="`scb-card--${item.codigo_estado.toLowerCase()}`"
+      <div
+        v-for="g in grupos"
+        :key="g.codigo"
+        class="scb-grupo"
       >
-        <header class="scb-card__head">
-          <v-chip
-            size="x-small"
-            variant="flat"
-            :color="COLOR_ESTADO[item.codigo_estado] ?? 'grey'"
+        <button
+          type="button"
+          class="scb-grupo__head"
+          :class="`scb-grupo__head--${g.codigo}`"
+          data-modo-ver="permitido"
+          @click="gruposCerrados[g.codigo] = !gruposCerrados[g.codigo]"
+        >
+          <v-icon>{{ g.icono }}</v-icon>
+          <span>{{ g.titulo }} ({{ g.items.length }})</span>
+          <v-icon class="ml-auto">
+            {{ gruposCerrados[g.codigo] ? "mdi-chevron-down" : "mdi-chevron-up" }}
+          </v-icon>
+        </button>
+        <v-expand-transition>
+          <div
+            v-show="!gruposCerrados[g.codigo]"
+            class="scb-grupo__items"
           >
-            {{ item.estado }}
-          </v-chip>
-        </header>
-        <div class="scb-card__cliente">
-          {{ item.cliente }}
-        </div>
-        <div class="scb-card__monto">
-          {{ montoCobro(item.monto, item.moneda) }}
-        </div>
-        <dl class="scb-card__datos">
-          <dt>Expediente</dt>
-          <dd>{{ item.expediente }} {{ item.correlativo ? `- ${item.correlativo}` : "" }}</dd>
-          <dt>Cuenta</dt>
-          <dd>{{ item.cuenta }}</dd>
-          <dt>Depósito</dt>
-          <dd>{{ fecha(item.fechadeposito) }} · N° {{ item.numerooperacion }}</dd>
-          <dt>Solicitado</dt>
-          <dd>{{ fecha(item.fechasolicitud) }} · {{ item.usuario_solicitud }}</dd>
-          <template v-if="item.codigo_estado === 'RECHAZADA'">
-            <dt>Motivo</dt>
-            <dd class="text-error">
-              {{ item.motivo_rechazo || "Sin motivo" }}
-            </dd>
-          </template>
-          <template v-if="item.id_pagoingreso">
-            <dt>Ingreso</dt>
-            <dd>N° {{ item.numerooperacion_ingreso }}</dd>
-          </template>
-        </dl>
-        <footer class="scb-card__acciones">
-          <v-btn
-            size="small"
-            variant="tonal"
-            color="primary"
-            prepend-icon="mdi-file-eye-outline"
-            :disabled="!item.voucher_path"
-            @click="abrir(item.voucher_path)"
-          >
-            Voucher
-          </v-btn>
-          <v-btn
-            v-if="puedeRevisar(item, 'ADM')"
-            size="small"
-            variant="flat"
-            color="orange-darken-2"
-            :loading="revisando === item.codigo"
-            @click="revisar(item, 'ADM')"
-          >
-            Confirmar Adm.
-          </v-btn>
-          <v-btn
-            v-if="puedeRevisar(item, 'GER')"
-            size="small"
-            variant="flat"
-            color="amber-darken-3"
-            :loading="revisando === item.codigo"
-            @click="revisar(item, 'GER')"
-          >
-            Confirmar Ger.
-          </v-btn>
-          <v-btn
-            v-if="item.codigo_estado === 'LISTO' && puedeRegistrar"
-            size="small"
-            variant="flat"
-            color="green-darken-2"
-            prepend-icon="mdi-bank-transfer-in"
-            :loading="procesando === item.codigo"
-            @click="registrarEnBancos(item)"
-          >
-            Registrar
-          </v-btn>
-          <v-btn
-            v-if="vigente(item) && puedeEliminar"
-            icon="mdi-delete-outline"
-            size="small"
-            variant="text"
-            color="error"
-            aria-label="Eliminar solicitud de cobro"
-            :loading="procesando === item.codigo"
-            @click="eliminar(item)"
-          />
-            <v-btn
-              icon="mdi-eye-outline"
-              variant="tonal"
-              size="small"
-              color="primary"
-              title="Ver solicitud de cobro"
-              aria-label="Ver solicitud de cobro"
-              data-modo-ver="permitido"
-              @click="verSolicitud(item)"
-            />
-        </footer>
-      </article>
+            <template
+              v-for="(item, i) in g.items"
+              :key="item.codigo"
+            >
+              <!-- separador marcado entre solicitudes -->
+              <v-divider
+                v-if="i > 0"
+                class="scb-cards__sep"
+                :thickness="2"
+                opacity="1"
+              />
+              <SolicitudCobroCardMovil
+                :s="item"
+                :aprobar="AREAS_REV.filter((t) => puedeRevisar(item, t))"
+                :puede-registrar="puedeRegistrar"
+                :puede-eliminar="vigente(item) && puedeEliminar"
+                :procesando="procesando === item.codigo"
+                :revisando="revisando === item.codigo"
+                @aprobar="(tipo) => revisar(item, tipo)"
+                @registrar="registrarEnBancos(item)"
+                @ver-ingreso="verIngreso(item)"
+                @eliminar="eliminar(item)"
+                @ver="verSolicitud(item)"
+              />
+            </template>
+          </div>
+        </v-expand-transition>
+      </div>
       <v-pagination
         v-if="paginas > 1"
         v-model="pagina"
@@ -649,6 +671,19 @@ onMounted(cargarSiVisible);
           />
         </v-card-title>
         <v-card-text>
+          <!-- celular: el buscador va aquí (la barra solo tiene Actualizar y Filtrar) -->
+          <v-text-field
+            v-if="smAndDown"
+            v-model="busqueda"
+            label="Buscar"
+            placeholder="Cliente, expediente, cuenta, N° operación…"
+            variant="outlined"
+            density="compact"
+            append-inner-icon="mdi-text-search"
+            clearable
+            class="mb-2"
+            @click:clear="busqueda = ''"
+          />
           <v-select
             v-if="!esRechazadas"
             v-model="borrador.estado"
@@ -727,8 +762,47 @@ onMounted(cargarSiVisible);
 .scb__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   margin-left: auto;
+}
+.scb__filtrar {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 700;
+}
+.scb__count {
+  margin: 4px 2px 10px;
+  font-weight: 700;
+  color: #1e3a8a;
+}
+/* celular: grupos por estado (como Solicitudes de Pago) */
+.scb-grupo + .scb-grupo {
+  margin-top: 12px;
+}
+.scb-grupo__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  text-align: left;
+}
+.scb-grupo__head--LISTO { background: #d9f7e1; color: #14532d; }
+.scb-grupo__head--PENGER { background: #fdf0c4; color: #4a3600; }
+.scb-grupo__head--PENADM { background: #ece2fc; color: #3b1a7a; }
+.scb-grupo__head--BORRADOR { background: #eceff3; color: #475467; }
+.scb-grupo__head--COBRADO { background: #dbeafe; color: #1e40af; }
+.scb-grupo__head--RECHAZADA { background: #fde2e2; color: #b42318; }
+.scb-grupo__head--ELIMINADA { background: #eceff3; color: #475467; }
+.scb-grupo__items {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .scb__tabla :deep(td) {
   font-size: 12.5px;
@@ -742,9 +816,78 @@ onMounted(cargarSiVisible);
   white-space: normal;
   text-align: left;
 }
+.scb__soporte {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.scb__soporteicons {
+  display: inline-flex;
+  align-items: center;
+}
+/* separador entre solicitudes (móvil): marcado para no confundir una tarjeta con otra */
+.scb-cards__sep {
+  margin: 2px 8px;
+  border-color: #9fb4d6;
+}
 .scb__aprob {
-  font-size: 11.5px;
-  line-height: 1.2;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.scb__aprobuser {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scb__aprobfecha {
+  display: inline-block;
+  margin-top: 2px;
+  padding: 2px 10px;
+  border-radius: 8px;
+  line-height: 1.3;
+  text-align: center;
+  background: #e7efff;
+  color: #1e3a8a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.scb__aprobfecha--rechazo {
+  background: #fde2e2;
+  color: #b42318;
+}
+.scb__rechazotag {
+  display: inline-block;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #fde2e2;
+  color: #b42318;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.scb__revisar {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.scb__muted {
+  color: #98a2b3;
+}
+.scb__salida {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.12);
+  color: #1f7a35;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
 }
 .scb__link {
   color: #0b5fd6;
@@ -773,75 +916,14 @@ onMounted(cargarSiVisible);
   text-align: center;
   color: #6b7a90;
 }
-.scb-card {
-  padding: 10px 12px;
-  border: 1px solid #d6dde8;
-  border-left: 5px solid #90a4ae;
-  border-radius: 12px;
-  background: #fff;
-}
-.scb-card--penadm { border-left-color: #f57c00; }
-.scb-card--penger { border-left-color: #ff8f00; }
-.scb-card--listo { border-left-color: #1e88e5; }
-.scb-card--cobrado { border-left-color: #2e7d32; }
-.scb-card--rechazada { border-left-color: #e53935; }
-.scb-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-.scb-card__codigo {
-  font-weight: 800;
-  color: #0a1f44;
-}
-.scb-card__cliente {
-  margin-top: 4px;
-  font-weight: 700;
-  overflow-wrap: anywhere;
-}
-.scb-card__monto {
-  font-size: 18px;
-  font-weight: 900;
-  color: #1b5e20;
-}
-.scb-card__datos {
-  display: grid;
-  grid-template-columns: 86px 1fr;
-  gap: 2px 8px;
-  margin: 6px 0;
-  font-size: 12.5px;
-}
-.scb-card__datos dt {
-  color: #6b7a90;
-}
-.scb-card__datos dd {
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-.scb-card__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
 @media (max-width: 600px) {
   .scb__search {
     flex-basis: 100%;
     max-width: none;
   }
-  .scb__actions {
-    width: 100%;
-    margin-left: 0;
-  }
-  .scb__actions .v-btn {
-    flex: 1 1 0;
-  }
   .scb__fechas {
     grid-template-columns: 1fr;
     gap: 0;
-  }
-  .scb-card__acciones .v-btn:not(.v-btn--icon) {
-    flex: 1 1 calc(50% - 6px);
   }
 }
 </style>

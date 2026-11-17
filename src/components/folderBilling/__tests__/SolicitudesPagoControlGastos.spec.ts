@@ -14,7 +14,10 @@ const push = vi.fn();
 // mock parcial: el store de bancos (SoportePagoDialog) carga el router de la app
 vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("vue-router")>()),
-  useRouter: () => ({ push }),
+  useRouter: () => ({
+    push,
+    resolve: (to: { params: { token: string } }) => ({ href: `/registroPagoSolicitud/${to.params.token}` }),
+  }),
 }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) } }));
 globalThis.ResizeObserver ??= class {
@@ -126,7 +129,9 @@ test("approving sends the approval type and reloads the list", async () => {
   );
 });
 
-test("transferring a paid request opens the bank payment with its token", async () => {
+test("transferring a paid request opens the bank payment with its token in a new tab", async () => {
+  const pestana = { location: { href: "" }, close: vi.fn() };
+  const open = vi.spyOn(window, "open").mockReturnValue(pestana as unknown as Window);
   const w = await render(["VER", "NUEVO", "MODIFICAR"]);
   httpMock.mockImplementation(async (config: { url: string }) =>
     ({ data: accepted(config.url.includes("transferir") ? [{ token: "tok-1" }] : ROWS) }));
@@ -135,7 +140,10 @@ test("transferring a paid request opens the bank payment with its token", async 
   expect(httpMock).toHaveBeenCalledWith(
     expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_transferir/4" }),
   );
-  expect(push).toHaveBeenCalledWith({ name: "registroPagoSolicitud", params: { token: "tok-1" } });
+  expect(open).toHaveBeenCalledWith("", "_blank");
+  expect(pestana.location.href).toBe("/registroPagoSolicitud/tok-1");
+  expect(push).not.toHaveBeenCalled();
+  open.mockRestore();
 });
 
 test("rejecting asks for the reason and sends it", async () => {

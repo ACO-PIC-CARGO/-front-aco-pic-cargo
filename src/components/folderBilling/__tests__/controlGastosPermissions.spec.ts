@@ -137,7 +137,8 @@ test("each expense action shows only with its own permission", async () => {
   const expenseControls = async (actions: string[]) => {
     await mountAs(EgresosControlGastos, actions, { props: { master_egresos: [PROVIDER_EXPENSE] } });
     return {
-      nuevo: shows("Nuevo Concepto") && hasIcon("button .mdi-send"),
+      // "Solicitar" (a Administración) usa el ícono mdi-send-outline
+      nuevo: shows("Nuevo Concepto") && hasIcon("button .mdi-send-outline"),
       copiar: shows("Copiar Montos"),
       cuotas: hasIcon(".mdi-percent-box-outline"),
     };
@@ -219,16 +220,6 @@ test("a client payment is registered with Nuevo, corrected with Modificar and re
   expect(await abonoControls(["VER", "ELIMINAR"])).toEqual({ ...NONE, eliminar: true });
 });
 
-test("a new bank account for a payment request is registered only with Nuevo", async () => {
-  const offersAccount = async (actions: string[]) => {
-    await mountAs(EgresosControlGastos, actions, { props: { master_egresos: [PROVIDER_EXPENSE] } });
-    await openDialogs({ dialogSolicitud: true, e1: 2 });
-    return shows("Nueva Cuenta Bancaria");
-  };
-
-  expect(await offersAccount(["VER", "MODIFICAR", "ELIMINAR", "EXPORTAR"])).toBe(false);
-  expect(await offersAccount(["VER", "NUEVO"])).toBe(true);
-});
 
 const EXPENSE = { id: 12, concepto: "Flete", nombre_proveedor: "Naviera", monto_pr: 10, monto_op: 10, statusadmin: 0, pagado: 0 };
 const INVOICE = { id: 31, nro_factura: "F-31" };

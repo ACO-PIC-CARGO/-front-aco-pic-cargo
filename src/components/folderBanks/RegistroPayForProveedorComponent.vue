@@ -1327,6 +1327,7 @@ onMounted(async () => {
                     <ArrastraYSolarComponent
                       :initial-url="solicitud.soporte_path || undefined"
                       :initial-id="solicitud.id_path_soporte"
+                      :initial-name="solicitud.soporte_nombre"
                       read-only
                     />
                   </template>

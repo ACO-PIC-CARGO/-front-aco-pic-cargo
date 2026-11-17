@@ -1560,14 +1560,21 @@ function abriModalCopiar(egresoSeleccionado: EgresoProveedor, bloquearCopiarMont
     dialogCopiar.value = true;
   }
 }
+// un solo copiado por clic: mientras copia, el botón queda en loading y no se vuelve a enviar
+const loadingCopiarMonto = ref(false);
 async function copiarMontos() {
-  if ((await frmCopiar.value!.validate()).valid) {
+  if (loadingCopiarMonto.value) return;
+  loadingCopiarMonto.value = true;
+  try {
+    if (!(await frmCopiar.value!.validate()).valid) return;
     await controlGastosStore.copiarCGEgresos({
       ...egreso.value,
       tipocambio: egreso.value.tipocambio || 1,
     });
     await controlGastosStore.getListControlGastosMaster(route.params.id as string);
     dialogCopiar.value = false;
+  } finally {
+    loadingCopiarMonto.value = false;
   }
 }
 
@@ -2510,7 +2517,7 @@ onMounted(async () => {
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'ELIMINAR')"
-                          icon="mdi-delete-outline"
+                          icon="mdi-trash-can-outline"
                           size="x-small"
                           variant="text"
                           class="solreq__del"
@@ -2568,7 +2575,7 @@ onMounted(async () => {
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'ELIMINAR')"
-                          icon="mdi-delete-outline"
+                          icon="mdi-trash-can-outline"
                           size="x-small"
                           variant="text"
                           class="solreq__del"
@@ -4265,12 +4272,14 @@ onMounted(async () => {
           <v-spacer />
           <v-btn
             color="success"
+            :loading="loadingCopiarMonto"
             @click="copiarMontos()"
           >
             COPIAR
           </v-btn>
           <v-btn
             color="danger"
+            :disabled="loadingCopiarMonto"
             @click="dialogCopiar = !dialogCopiar"
           >
             CANCELAR

@@ -107,11 +107,27 @@ function esActual(p: SolicitudPagoDetalle["pendientes"][number]) {
 // y el resto con "Ver más"
 const PENDIENTES_VISIBLES = 4;
 const verTodosPendientes = ref(false);
-const pendientesMovil = computed(() => {
+const pendientesOrdenados = computed(() => {
   const lista = detalle.value?.pendientes ?? [];
+  return [...lista.filter(esActual), ...lista.filter((p) => !esActual(p))];
+});
+const pendientesMovil = computed(() => {
+  const lista = pendientesOrdenados.value;
   return verTodosPendientes.value ? lista : lista.filter((p, i) => i < PENDIENTES_VISIBLES || esActual(p));
 });
 const pendientesOcultos = computed(() => (detalle.value?.pendientes.length ?? 0) - pendientesMovil.value.length);
+// estado de cada pago del expediente: la solicitud actual, pendiente por pagar o pagado
+function estadoPendiente(p: SolicitudPagoDetalle["pendientes"][number]) {
+  if (esActual(p)) return { clase: "status--curso", icono: "mdi-timer-sand", texto: "Solicitud en curso" };
+  if (p.pagado) return { clase: "status--pagado", icono: "mdi-check-circle", texto: "Pagado" };
+  return { clase: "", icono: "mdi-clock-outline", texto: "Pendiente por pagar" };
+}
+const LEYENDA = [
+  { clase: "curso", icono: "mdi-timer-sand", titulo: "Solicitud en curso:", texto: "Solicitud que estás realizando actualmente." },
+  { clase: "pend", icono: "mdi-clock-outline", titulo: "Pendiente por pagar:", texto: "No solicitada aún." },
+  { clase: "pagado", icono: "mdi-check-circle", titulo: "Pagado:", texto: "Pago confirmado." },
+];
+
 // icono según el giro que se lee en el nombre del proveedor
 function iconoProveedor(nombre: string) {
   const n = nombre.toUpperCase();
@@ -608,8 +624,11 @@ watch(
                 </div>
                 <span
                   class="status"
-                  :class="{ 'status--pagado': p.pagado }"
-                >{{ p.pagado ? "Pagado" : "Pendiente" }}</span>
+                  :class="estadoPendiente(p).clase"
+                >
+                  <v-icon size="16">{{ estadoPendiente(p).icono }}</v-icon>
+                  {{ estadoPendiente(p).texto }}
+                </span>
               </div>
               <div class="pmov__montos">
                 <div>
@@ -650,7 +669,7 @@ watch(
                     Operaciones ({{ detalle.moneda || "USD" }})
                   </th>
                   <th class="center">
-                    Status
+                    Estado
                   </th>
                 </tr>
               </thead>
@@ -664,7 +683,7 @@ watch(
                   </td>
                 </tr>
                 <tr
-                  v-for="p in detalle.pendientes"
+                  v-for="p in pendientesOrdenados"
                   :key="`${p.id_proveedor}-${p.id_correlativo}`"
                   :class="{ actual: esActual(p) }"
                 >
@@ -678,12 +697,38 @@ watch(
                   <td class="center">
                     <span
                       class="status"
-                      :class="{ 'status--pagado': p.pagado }"
-                    >{{ p.pagado ? "Pagado" : "Pendiente" }}</span>
+                      :class="estadoPendiente(p).clase"
+                    >
+                      <v-icon size="16">{{ estadoPendiente(p).icono }}</v-icon>
+                      {{ estadoPendiente(p).texto }}
+                    </span>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
+
+          <!-- leyenda de estados -->
+          <div class="leyenda">
+            <div class="leyenda__titulo">
+              Estados:
+            </div>
+            <div
+              v-for="l in LEYENDA"
+              :key="l.clase"
+              class="leyenda__item"
+            >
+              <div
+                class="leyenda__tag"
+                :class="`leyenda__tag--${l.clase}`"
+              >
+                <v-icon size="18">
+                  {{ l.icono }}
+                </v-icon>
+                <span>{{ l.titulo }}</span>
+              </div>
+              {{ l.texto }}
+            </div>
           </div>
         </section>
 
@@ -1175,21 +1220,103 @@ td {
 .center {
   text-align: center;
 }
+/* la solicitud actual va primero y resaltada */
 tr.actual td {
-  background: #fdf3d8;
+  background: #fde3cc;
+}
+tr.actual td:first-child {
+  box-shadow: inset 6px 0 0 #f26b0f;
 }
 .status {
-  display: inline-block;
-  padding: 3px 12px;
-  border-radius: 6px;
-  background: #fde9a8;
-  font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 170px;
+  padding: 4px 12px;
+  border: 1.5px solid #9aa3b2;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f2a44;
+  font-size: 0.8rem;
   font-weight: 700;
   white-space: nowrap;
 }
+.status--curso {
+  border-color: #f26b0f;
+  background: #f26b0f;
+  color: #fff;
+}
 .status--pagado {
-  background: #d8f0d2;
-  color: #1d6b12;
+  border-color: #c9efcf;
+  background: #d8f5dc;
+  color: #14532d;
+}
+.status--pagado .v-icon {
+  color: #16a34a;
+}
+.leyenda {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+  background: #f6f9ff;
+  font-size: 0.78rem;
+}
+.leyenda__titulo {
+  margin-right: 6px;
+  padding-right: 14px;
+  border-right: 1px solid #9fb4d6;
+  font-size: 1rem;
+  font-weight: 700;
+}
+.leyenda__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 0 8px;
+  text-align: center;
+}
+.leyenda__item + .leyenda__item {
+  border-left: 1px solid #9fb4d6;
+}
+.leyenda__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+}
+.leyenda__tag span {
+  padding: 2px 10px;
+  border-radius: 6px;
+}
+.leyenda__tag--curso span { background: #fde3cc; color: #c2410c; }
+.leyenda__tag--curso .v-icon { color: #f26b0f; }
+.leyenda__tag--pend span { background: #e8ebf0; color: #1f2a44; }
+.leyenda__tag--pagado span { background: #d8f5dc; color: #14532d; }
+.leyenda__tag--pagado .v-icon { color: #16a34a; }
+@media (max-width: 600px) {
+  .leyenda {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .leyenda__titulo {
+    border-right: 0;
+  }
+  .leyenda__item + .leyenda__item {
+    padding-top: 8px;
+    border-left: 0;
+    border-top: 1px solid #c9d6ea;
+  }
+  .pmov__head .status {
+    min-width: 0;
+    white-space: normal;
+  }
 }
 
 /* pagos del expediente en celular */
@@ -1206,8 +1333,8 @@ tr.actual td {
   box-shadow: 0 2px 8px rgba(10, 31, 68, 0.05);
 }
 .pmov__card--actual {
-  border-color: #f3d58a;
-  background: #fff8e6;
+  border-color: #f8b98a;
+  background: #fff1e6;
 }
 .pmov__head {
   display: flex;
@@ -1307,6 +1434,17 @@ tr.actual td {
     padding-top: 16px;
     border-left: 0;
     border-top: 1px solid #c9d6ea;
+  }
+  .auth__date {
+    width: 90%;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  .auth__dateline {
+    min-height: 0;
+    padding-left: 12px;
+    border-bottom: 0;
+    border-left: 1px solid #b9cdea;
   }
 }
 </style>

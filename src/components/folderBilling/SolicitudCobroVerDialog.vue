@@ -90,6 +90,18 @@ function monto(valor: number | string | null) {
 function abrir(url: string | null | undefined) {
   if (url) window.open(url, "_blank");
 }
+
+// Autorizaciones: "17 de Noviembre del 2026", igual que en Solicitudes de Pago
+const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+function fechaLarga(valor: string | null | undefined) {
+  if (!valor) return "";
+  const [anio, mes, dia] = valor.slice(0, 10).split("-");
+  return `${Number(dia)} de ${MESES[Number(mes) - 1]} del ${anio}`;
+}
+const autorizaciones = computed(() => [
+  { titulo: "Revisado por:", usuario: detalle.value?.usuario_aprobadoadministracion ?? "", fecha: detalle.value?.fecha_aprobadoadministracion ?? null },
+  { titulo: "Aprobado por:", usuario: detalle.value?.usuario_aprobadogerencia ?? "", fecha: detalle.value?.fecha_aprobadogerencia ?? null },
+]);
 </script>
 
 <template>
@@ -212,19 +224,46 @@ function abrir(url: string | null | undefined) {
                     <dd>{{ detalle.usuario_registro || "—" }}</dd>
                     <dt>Solicitado</dt>
                     <dd>{{ detalle.usuario_solicitud ? `${detalle.usuario_solicitud} · ${fecha(detalle.fechasolicitud)}` : "Sin enviar" }}</dd>
-                    <dt>Administración</dt>
-                    <dd>
-                      {{ detalle.usuario_aprobadoadministracion
-                        ? `${detalle.usuario_aprobadoadministracion} · ${fecha(detalle.fecha_aprobadoadministracion)}` : "—" }}
-                    </dd>
-                    <dt>Gerencia</dt>
-                    <dd>
-                      {{ detalle.usuario_aprobadogerencia
-                        ? `${detalle.usuario_aprobadogerencia} · ${fecha(detalle.fecha_aprobadogerencia)}` : "—" }}
-                    </dd>
                   </dl>
                 </section>
               </div>
+
+              <!-- autorizaciones: Revisado (Administración) / Aprobado (Gerencia), como en Solicitudes de Pago -->
+              <div class="auth__head">
+                <div class="auth__pill">
+                  <v-icon
+                    size="22"
+                    color="#ffffff"
+                  >
+                    mdi-shield-check-outline
+                  </v-icon>
+                  Autorizaciones
+                </div>
+              </div>
+              <section class="auth">
+                <div
+                  v-for="a in autorizaciones"
+                  :key="a.titulo"
+                  class="auth__col"
+                >
+                  <div class="auth__label">
+                    {{ a.titulo }}
+                  </div>
+                  <div class="auth__sign">
+                    {{ a.usuario }}
+                  </div>
+                  <div class="auth__date">
+                    <v-icon
+                      size="18"
+                      color="#0b5fd6"
+                    >
+                      mdi-calendar-month-outline
+                    </v-icon>
+                    Fecha:
+                    <span class="auth__dateline">{{ fechaLarga(a.fecha) }}</span>
+                  </div>
+                </div>
+              </section>
 
               <p
                 v-if="detalle.comentario"
@@ -458,6 +497,103 @@ function abrir(url: string | null | undefined) {
   border-radius: 12px;
 }
 /* celular y tablet: tarjetas en una columna */
+.auth__head {
+  display: flex;
+  align-items: center;
+  margin-top: 16px;
+}
+.auth__head::before,
+.auth__head::after {
+  content: "";
+  flex: 1;
+  border-top: 2px solid #0b2f6b;
+}
+.auth__pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 30px;
+  border-radius: 999px;
+  background: #0b2f6b;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+.auth {
+  display: flex;
+  margin-top: 12px;
+  padding: 18px 0;
+  border: 1px solid #dce5f2;
+  border-radius: 14px;
+}
+.auth__col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 24px;
+}
+.auth__col + .auth__col {
+  border-left: 1px solid #c9d6ea;
+}
+.auth__label {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.auth__sign {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 85%;
+  min-height: 40px;
+  padding-bottom: 2px;
+  border-bottom: 1.5px solid #0a1f44;
+  font-size: 0.85rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.auth__date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 92%;
+  margin-top: 14px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  background: #e3eefc;
+  font-size: 0.75rem;
+}
+.auth__dateline {
+  flex: 1;
+  min-height: 18px;
+  border-bottom: 1px solid #0a1f44;
+  font-weight: 700;
+  text-align: center;
+}
+@media (max-width: 600px) {
+  .auth {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+  .auth__col + .auth__col {
+    padding-top: 16px;
+    border-left: 0;
+    border-top: 1px solid #c9d6ea;
+  }
+  .auth__date {
+    width: 90%;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+  .auth__dateline {
+    min-height: 0;
+    padding-left: 12px;
+    border-bottom: 0;
+    border-left: 1px solid #b9cdea;
+  }
+}
 @media (max-width: 960px) {
   .vercob__grid {
     grid-template-columns: 1fr;
