@@ -7,7 +7,7 @@ import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { MyPermissions } from "@/types/roles";
-import { request } from "@/utils/request";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import type { ItemMenu, SucursalSesion, UsuarioLogin, UsuarioSesion } from "@/types/sesion";
 import { bindSessionBranch, resumeSession } from "@/api/sessionRefresh";
 import { chooseSessionBranch } from "@/utils/sesion";
@@ -65,14 +65,22 @@ export const useSecuritysStore = defineStore("securitys", () => {
 
   async function singin(): Promise<{ estadoflag: boolean }> {
     errorClave.value = "";
-    await request<UsuarioLogin>({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "singin",
-      headers: { "Content-Type": "application/json" },
-      // Necesario para que el navegador guarde la cookie HttpOnly de refresco.
-      withCredentials: true,
-      data: frmLogin.value,
-    }).then(async (res) => {
+    const loginRequest = (persistente: boolean) => {
+      const { recordarme, ...credenciales } = frmLogin.value;
+      return request<UsuarioLogin>({
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "singin",
+        headers: { "Content-Type": "application/json" },
+        // Necesario para que el navegador guarde la cookie HttpOnly de refresco.
+        withCredentials: persistente,
+        data: persistente ? { ...credenciales, recordarme } : credenciales,
+      });
+    };
+    let login = await loginRequest(true);
+    // Si el servidor no acepta credenciales para este origen (CORS), el navegador bloquea la respuesta:
+    // se reintenta como login clásico (token de 8 h, sin cookie) para no dejar al usuario fuera.
+    if (!login.estadoflag && login.mensaje === CONNECTION_ERROR_MESSAGE) login = await loginRequest(false);
+    await Promise.resolve(login).then(async (res) => {
       response.value.estadoflag = res.estadoflag;
 
       if (res.estadoflag) {
