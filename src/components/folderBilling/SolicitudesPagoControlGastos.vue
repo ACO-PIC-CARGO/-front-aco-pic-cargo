@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -19,9 +19,10 @@ import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import type { ApiResponse } from "@/types/api";
 import type { SolicitudPagoControl } from "@/types/billingEntries";
+import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 
 const props = defineProps<{ idMaster?: number | null }>();
-const emit = defineEmits<{ actualizado: [] }>();
+// ya no emite "actualizado": Costos lee las mismas solicitudes del store compartido
 
 const { can } = usePermissions();
 const { smAndDown } = useDisplay();
@@ -31,7 +32,10 @@ const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-const solicitudes = ref<SolicitudPagoControl[]>([]);
+// mismos datos que la columna "Solicitar a Administración" de Costos: una sola llamada
+const solicitudesStore = useSolicitudesMasterStore();
+const solicitudes = computed<SolicitudPagoControl[]>(() =>
+  props.idMaster ? solicitudesStore.pagos[props.idMaster] ?? [] : []);
 const cargando = ref(false);
 const procesando = ref<number | null>(null);
 
@@ -105,21 +109,13 @@ function avisar(response: ApiResponse) {
   });
 }
 
-async function cargar() {
+// forzar = después de una acción o con "Actualizar"; al entrar solo si Costos no lo cargó recién
+async function cargar(forzar = true) {
   if (!props.idMaster) return;
   cargando.value = true;
-  const response = await request<SolicitudPagoControl>({
-    method: "get",
-    url: URL_MAIN + "solicitud_pago_listar",
-    params: { id_master: props.idMaster },
-  });
+  const response = forzar ? await solicitudesStore.cargarPagos(props.idMaster) : await solicitudesStore.asegurarPagos(props.idMaster);
   cargando.value = false;
-  if (hasFailed(response)) {
-    avisar(response);
-    return;
-  }
-  solicitudes.value = response.estadoflag ? response.data : [];
-  emit("actualizado");
+  if (response && hasFailed(response)) avisar(response);
 }
 
 async function copiar(texto: string | null) {
@@ -196,23 +192,30 @@ function abrir(url: string | null | undefined) {
 
 watch(
   () => props.idMaster,
-  () => cargar(),
+  () => cargar(false),
   { immediate: true },
 );
 
-// Bancos > Solicitudes de Pago puede cambiarla en otra pestaña (aprobar, soporte, eliminar):
-// al volver a esta pestaña se recarga para no mostrar datos viejos
-function recargarAlVolver() {
-  if (document.visibilityState === "visible") cargar();
-}
-onMounted(() => document.addEventListener("visibilitychange", recargarAlVolver));
-onBeforeUnmount(() => document.removeEventListener("visibilitychange", recargarAlVolver));
+// Ya no se recarga sola al volver a la pestaña del navegador (era una consulta a la BD cada vez):
+// si Bancos la cambió en otra pestaña, se usa el botón "Actualizar".
 
 defineExpose({ cargar });
 </script>
 
 <template>
   <section class="solpago">
+    <div class="d-flex justify-end mb-1">
+      <v-btn
+        size="small"
+        variant="text"
+        color="primary"
+        prepend-icon="mdi-refresh"
+        :loading="cargando"
+        @click="cargar()"
+      >
+        Actualizar
+      </v-btn>
+    </div>
     <v-progress-linear
       v-if="cargando"
       indeterminate

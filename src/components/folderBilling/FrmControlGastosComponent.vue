@@ -21,6 +21,7 @@ const modoVer = computed(() => !props.editable);
 const Ingresos = defineAsyncComponent(() => import("./IngresosControlGastos.vue"));
 const Egresos = defineAsyncComponent(() => import("./EgresosControlGastos.vue"));
 const SolicitudesPago = defineAsyncComponent(() => import("./SolicitudesPagoControlGastos.vue"));
+const SolicitudesCobro = defineAsyncComponent(() => import("./SolicitudesCobroControlGastos.vue"));
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -716,8 +717,31 @@ onMounted(async () => {
           @recargar-datos="recargarDatos()"
           :editable="true"
           :master_egresos="controlGastosStore.master_egresos"
-          @solicitud-pago-registrada="solicitudesPago?.cargar()"
         />
+      </v-col>
+      <!-- SOLICITUDES DE COBRO (debajo de Costos, encima de Pagos) -->
+      <v-col
+        cols="12"
+        v-bind="guardModoVer"
+      >
+        <h3
+          v-if="!smAndDown"
+          class="mb-2"
+        >
+          Solicitudes de Cobro Administración
+        </h3>
+        <div
+          v-else
+          class="cg-seccion"
+        >
+          <h3 class="cg-seccion__titulo">
+            <v-icon color="success">
+              mdi-cash-check
+            </v-icon>
+            Solicitudes de Cobro Administración
+          </h3>
+        </div>
+        <SolicitudesCobro :id-master="idMasterSolicitudes" />
       </v-col>
       <!-- SOLICITUDES DE PAGO -->
       <v-col
@@ -743,7 +767,6 @@ onMounted(async () => {
         </div>
         <SolicitudesPago
           ref="solicitudesPago"
-          @actualizado="egresos?.cargarSolicitudesExistentes()"
           :id-master="idMasterSolicitudes"
         />
       </v-col>

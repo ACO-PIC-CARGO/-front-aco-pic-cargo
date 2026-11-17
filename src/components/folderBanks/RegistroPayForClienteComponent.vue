@@ -15,6 +15,13 @@ import type {
   FacturaPorCobrar,
   OperacionSimilar,
 } from "@/types/banks";
+import type { SolicitudCobroActiva, SolicitudCobroTransferencia } from "@/types/solicitudCobro";
+import { request } from "@/utils/request";
+
+// token: Nuevo ingreso desde una Solicitud de Cobro confirmada (Ingresos pendientes por confirmar).
+// El cliente, la cuenta donde depositó, el correlativo, la fecha, el N° de operación y el voucher
+// vienen de la solicitud; se cobra el monto total (sin abonos parciales).
+const props = defineProps<{ token?: string }>();
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -22,6 +29,37 @@ const bankStore = useBankStore();
 const bancosStore = useBancosStore();
 const filesStore = useFilesStore();
 const clientes = computed(() => appStore.clientes);
+
+const solicitud = ref<SolicitudCobroTransferencia | null>(null);
+const errorSolicitud = ref(false);
+const desdeSolicitud = computed(() => !!props.token);
+// Sin token: correlativos del cliente con solicitud de cobro activa (se cobran solo con el token)
+const solicitudesActivas = ref<SolicitudCobroActiva[]>([]);
+function solicitudActivaDe(item: FacturaPorCobrar & { id_correlativo?: number | null }) {
+  if (solicitud.value || item.admin_invoice_id) return undefined;
+  return solicitudesActivas.value.find(
+    (s) => s.id_house === item.registro_id && String(s.id_correlativo ?? "") === String(item.id_correlativo ?? ""),
+  );
+}
+function avisarSolicitudActiva(s: SolicitudCobroActiva) {
+  Swal.fire({
+    icon: "warning",
+    title: "Tiene una solicitud de cobro",
+    html: `El expediente <b>${s.expediente}</b>${s.correlativo ? ` (correlativo <b>${s.correlativo}</b>)` : ""} tiene la solicitud de cobro
+      (${s.estado}).<br><br>Regístrala desde <b>Ingresos pendientes por confirmar</b> o elimina la solicitud.`,
+  });
+}
+async function cargarSolicitudesActivas() {
+  solicitudesActivas.value = [];
+  if (!cliente.value || props.token) return;
+  const response = await request<SolicitudCobroActiva>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_activas_cliente",
+    params: { id_cliente: cliente.value },
+  });
+  solicitudesActivas.value = response.estadoflag ? response.data : [];
+}
+
 const validacionDatosPrincipales = useTemplateRef("validacionDatosPrincipales");
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
 const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
@@ -170,7 +208,13 @@ const tipocambio = computed(() => {
   return Number(tc.toFixed(4));
 });
 const itemsOrdenados = computed(() => {
-  const items = [...bankStore.deudaACliente] as unknown as FacturaPorCobrar[];
+  let items = [...bankStore.deudaACliente] as unknown as (FacturaPorCobrar & { id_correlativo?: number | null })[];
+  const sol = solicitud.value;
+  if (sol) {
+    items = items.filter(
+      (i) => !i.admin_invoice_id && i.registro_id === sol.id_house && String(i.id_correlativo ?? "") === String(sol.id_correlativo ?? ""),
+    );
+  }
   return items.sort((a, b) => {
     const aSeleccionado = selected.value.some((sel) => sel.id === a.id);
     const bSeleccionado = selected.value.some((sel) => sel.id === b.id);
@@ -208,11 +252,19 @@ function confirmarDeposito() {
 }
 function checkDeshabilitado(item: FacturaPorCobrar) {
   // Si editaflag es false, devuelve true para deshabilitar el checkbox
-  return item.editaflag === false;
+  return item.editaflag === false || !!solicitudActivaDe(item);
 }
 async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: boolean }) {
   // Si está intentando seleccionar
   if (value) {
+    // con solicitud de cobro activa solo se cobra desde Ingresos pendientes por confirmar
+    const activa = solicitudActivaDe(item);
+    if (activa) {
+      selected.value = selected.value.filter((i) => i.id !== item.id);
+      avisarSolicitudActiva(activa);
+      calcularTotal();
+      return;
+    }
     // Validar que la factura y la cuenta tengan la misma moneda
     if (item.symbol !== symbol.value) {
       const result = await Swal.fire({
@@ -253,6 +305,11 @@ async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: 
   calcularTotal();
 }
 function onSelectAll({ items, value }: { items: FacturaPorCobrar[]; value: boolean }) {
+  const bloqueadas = items.filter((i) => solicitudActivaDe(i));
+  if (value && bloqueadas.length) {
+    selected.value = selected.value.filter((i) => !bloqueadas.some((b) => b.id === i.id));
+    avisarSolicitudActiva(solicitudActivaDe(bloqueadas[0]!)!);
+  }
   items.forEach((item) => {
     if (value) {
       item.parcialflag = false;
@@ -308,7 +365,7 @@ async function obtenerListado() {
     appStore.spiner = true;
 
     try {
-      await bankStore.getDeudaDeClientePorSucursal(cliente.value);
+      await Promise.all([bankStore.getDeudaDeClientePorSucursal(cliente.value), cargarSolicitudesActivas()]);
     } finally {
       appStore.spiner = false;
     }
@@ -494,7 +551,12 @@ async function finalizarOperacion() {
     id_soporte: id_path.value,
   };
   loading.value = true;
-  await bankStore.setRegistroIgresos(data);
+  if (props.token) {
+    // cliente, cuenta y voucher los toma el backend de la solicitud
+    await bankStore.setRegistroIngresosSolicitud({ ...data, token: props.token });
+  } else {
+    await bankStore.setRegistroIgresos(data);
+  }
   loading.value = false;
   // Swal.fire({
   //   icon: "success",
@@ -576,6 +638,12 @@ watch(id_cuenta, (newVal, oldVal) => {
     );
     symbol.value = coins ? coins.symbol : "USD";
 
+    // Desde una solicitud: la cuenta está en la moneda del cobro y el monto recibido es el solicitado
+    if (solicitud.value) {
+      monto_local.value = Number(solicitud.value.monto).toFixed(2);
+      mostrarDetalle.value = true;
+      return;
+    }
     dialogLlenarMontoDepositadoBanco.value = true;
   }
 });
@@ -592,6 +660,42 @@ watch(selected, () => {
   deep: true, // Esto detecta cambios en las propiedades internas de los items
 });
 
+// Precarga el ingreso con la solicitud de cobro (token)
+async function cargarSolicitud() {
+  appStore.spiner = true;
+  const response = await request<SolicitudCobroTransferencia>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_por_token",
+    params: { token: props.token },
+  });
+  appStore.spiner = false;
+  const sol = response.estadoflag ? response.data[0] : undefined;
+  if (!sol) {
+    errorSolicitud.value = true;
+    Swal.fire({ icon: "warning", text: response.mensaje || "No se pudo cargar la solicitud de cobro." });
+    return;
+  }
+  solicitud.value = sol;
+  appStore.mainTitle = "BANCOS - NUEVO INGRESO (SOLICITUD DE COBRO)";
+  cliente.value = sol.id_cliente;
+  await obtenerListado();
+  const cuenta = bancosStore.cuentas.find((c) => c.id === sol.id_cuentabancaria);
+  if (cuenta) id_cuenta.value = { ...cuenta } as CuentaIngreso;
+  // el correlativo de la solicitud, por el monto total
+  const fila = itemsOrdenados.value[0];
+  if (fila) {
+    fila.parcialflag = false;
+    fila.montoparcial = fila.total_mon_local;
+    selected.value = [fila];
+  }
+  fecha_operacion.value = sol.fechadeposito;
+  id_banco_origen.value = sol.id_banco_origen;
+  nro_operacion.value = sol.numerooperacion;
+  id_path.value = sol.id_path_voucher;
+  comentarios.value = ["Solicitud de cobro", sol.comentario].filter(Boolean).join(" - ");
+  calcularTotal();
+}
+
 onMounted(async () => {
   bankStore.deudaACliente = [];
   appStore.mainTitle = "BANCOS - NUEVO INGRESO";
@@ -601,13 +705,34 @@ onMounted(async () => {
     bancosStore.getListBanksDetailsCargar(),
     appStore._getBanksList(),
   ]);
+  if (props.token) await cargarSolicitud();
 });
 </script>
 
 <template>
   <v-card>
     <v-container fluid>
-      <v-row>
+      <v-alert
+        v-if="solicitud"
+        type="info"
+        variant="tonal"
+        density="compact"
+        class="mb-2"
+        icon="mdi-cash-check"
+      >
+        Solicitud de cobro · {{ solicitud.expediente }}{{ solicitud.correlativo ? ` - ${solicitud.correlativo}` : "" }}
+        · <b>{{ solicitud.moneda }} {{ Number(solicitud.monto).toFixed(2) }}</b> (monto total, sin abonos parciales).
+        El voucher del cliente se usa como soporte.
+      </v-alert>
+      <v-alert
+        v-else-if="desdeSolicitud && errorSolicitud"
+        type="warning"
+        variant="tonal"
+        density="compact"
+      >
+        No se pudo cargar la solicitud de cobro. Vuelve a <b>Ingresos pendientes por confirmar</b> y presiona Registrar en Bancos.
+      </v-alert>
+      <v-row v-if="!desdeSolicitud || (solicitud && !errorSolicitud)">
         <v-col
           cols="12"
           md="4"
@@ -623,7 +748,8 @@ onMounted(async () => {
               item-value="id"
               placeholder="Clientes"
               v-model="cliente"
-              clearable
+              :clearable="!solicitud"
+              :readonly="!!solicitud"
               @update:model-value="obtenerListado()"
               hide-details
               :error-messages="errorMesage.cliente"
@@ -759,6 +885,7 @@ onMounted(async () => {
                     return-object
                     variant="outlined"
                     density="compact"
+                    :readonly="!!solicitud"
                     :rules="[
                       (v) =>
                         (v && Object.keys(v).length > 0 && !!v.id) ||
@@ -896,13 +1023,25 @@ onMounted(async () => {
                       </v-btn>
                     </template>
                     <template #[`item.parcialflag`]="{ item }">
+                      <v-chip
+                        v-if="solicitudActivaDe(item)"
+                        size="small"
+                        color="orange-darken-2"
+                        variant="tonal"
+                        prepend-icon="mdi-lock-outline"
+                        :title="`Solicitud de cobro (${solicitudActivaDe(item)!.estado})`"
+                        @click="avisarSolicitudActiva(solicitudActivaDe(item)!)"
+                      >
+                        Solicitud de cobro
+                      </v-chip>
                       <v-select
+                        v-else
                         item-title="text"
                         :items="cboParcial"
                         v-model="item.parcialflag"
                         density="compact"
                         variant="outlined"
-                        :disabled="!selected.includes(item)"
+                        :disabled="!selected.includes(item) || !!solicitud"
                         hide-details
                         @update:model-value="verificarMontoCompleto(item)"
                         style="max-width: 200px"
@@ -1013,6 +1152,7 @@ onMounted(async () => {
                         <v-autocomplete
                           :items="appStore.itemsDataBanksList"
                           v-model="id_banco_origen"
+                          :readonly="!!solicitud && !!solicitud.id_banco_origen"
                           label="Banco Origen"
                           item-title="acronym"
                           item-value="id"
@@ -1167,6 +1307,13 @@ onMounted(async () => {
                     class="py-1 bank-drop"
                   >
                     <ArrastraYSolarComponent
+                      v-if="solicitud"
+                      :initial-url="solicitud.voucher_path || undefined"
+                      :initial-id="solicitud.id_path_voucher"
+                      read-only
+                    />
+                    <ArrastraYSolarComponent
+                      v-else
                       @id-archivo-cargado="recibirId"
                       :rules="[
                         (v) => !!v || 'Debe adjuntar un soporte de pago',

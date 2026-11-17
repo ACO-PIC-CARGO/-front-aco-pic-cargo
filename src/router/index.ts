@@ -403,6 +403,19 @@ const routes = [
         component: () => import("../views/FolderBanks/SolicitudesPagoBancosView.vue"),
       },
       {
+        // Operaciones > Facturación y Bancos > Ingresos pendientes por confirmar (solicitudes de cobro)
+        path: "FolderBanks/ingresosPendientesConfirmar",
+        name: "ingresosPendientesConfirmar",
+        component: () => import("../views/FolderBanks/IngresosPendientesConfirmarView.vue"),
+      },
+      {
+        // Nuevo ingreso precargado desde una Solicitud de Cobro confirmada (Registrar en Bancos)
+        path: "FolderBanks/registroCobroSolicitud/:token",
+        name: "registroCobroSolicitud",
+        meta: { menuRoute: "registroPayForCliente" },
+        component: () => import("../views/FolderBanks/RegistroCobroSolicitudView.vue"),
+      },
+      {
         // Nueva salida precargada desde una Solicitud de Pago (Control de Gastos > Transferir)
         path: "FolderBanks/registroPagoSolicitud/:token",
         name: "registroPagoSolicitud",

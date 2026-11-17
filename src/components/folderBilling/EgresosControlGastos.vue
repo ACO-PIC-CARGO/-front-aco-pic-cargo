@@ -40,6 +40,7 @@ import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 import { avisoDocumentoConSolicitud, avisoSolicitudEnviada, montoConMoneda } from "@/utils/solicitudPagoAvisos";
 import {
   quitarSoporteAntesDeEliminar,
@@ -1631,7 +1632,11 @@ const solicitudPagoForm = ref({
 });
 const guardandoSolicitudPago = ref(false);
 // Una sola solicitud por master / proveedor / correlativo
-const solicitudesExistentes = ref<Map<string, SolicitudPagoControl>>(new Map());
+const solicitudesMasterStore = useSolicitudesMasterStore();
+const solicitudesExistentes = computed(() => new Map(
+  mastersEgresos.value.flatMap((id) =>
+    (solicitudesMasterStore.pagos[id] ?? []).map((x) => [claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo), x] as const)),
+));
 // nuevo: primera vez | editar: rechazada | ver: enviada, solo lectura
 const modoSolicitudPago = ref<"nuevo" | "editar" | "ver">("nuevo");
 const solicitudPagoActual = ref<SolicitudPagoControl | null>(null);
@@ -1918,20 +1923,13 @@ async function verPdfPago(item: EgresoProveedor) {
   }
 }
 
-async function cargarSolicitudesExistentes() {
-  const masters = [...new Set((masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean))];
-  const respuestas = await Promise.all(
-    masters.map((id_master) =>
-      request<SolicitudPagoControl>({
-        method: "get",
-        url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_listar",
-        params: { id_master },
-      })),
-  );
-  solicitudesExistentes.value = new Map(
-    respuestas.flatMap((r) =>
-      r.estadoflag ? r.data.map((x) => [claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo), x] as const) : []),
-  );
+// Las solicitudes del expediente salen del store compartido con "Solicitudes de Pagos Administración":
+// una sola llamada para las dos secciones (antes eran tres al entrar)
+const mastersEgresos = computed(() =>
+  [...new Set((masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean))]);
+async function cargarSolicitudesExistentes(soloSiFalta = false) {
+  await Promise.all(mastersEgresos.value.map((id) =>
+    (soloSiFalta ? solicitudesMasterStore.asegurarPagos(id) : solicitudesMasterStore.cargarPagos(id)).then(() => undefined)));
 }
 
 const proveedorSolicitud = computed(() =>
@@ -2166,7 +2164,7 @@ defineExpose({ cargarSolicitudesExistentes });
 
 watch(
   () => (masterEgresos.value || []).map((e) => e.id_master).join(","),
-  () => cargarSolicitudesExistentes(),
+  () => cargarSolicitudesExistentes(true),
   { immediate: true },
 );
 

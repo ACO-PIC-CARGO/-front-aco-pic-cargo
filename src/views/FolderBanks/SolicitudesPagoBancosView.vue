@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import { request } from "@/utils/request";
@@ -26,14 +26,10 @@ function recargarTodas() {
   bandejas.value.forEach((b) => b.cargar());
 }
 
-// Control de Gastos puede cambiar una solicitud en otra pestaña: al volver aquí se recargan las tres
-function recargarAlVolver() {
-  if (document.visibilityState === "visible") recargarTodas();
-}
-onBeforeUnmount(() => document.removeEventListener("visibilitychange", recargarAlVolver));
+// Ya no se recargan las tres pestañas al volver a la pestaña del navegador (eran 3 consultas cada vez):
+// se usa el botón "Actualizar" de la bandeja.
 
 onMounted(async () => {
-  document.addEventListener("visibilitychange", recargarAlVolver);
   appStore.mainTitle = "BANCOS - SOLICITUDES DE PAGO";
   const response = await request<OpcionFiltroSolicitudPago>({
     method: "get",
@@ -103,7 +99,7 @@ onMounted(async () => {
         </v-tab>
       </v-tabs>
       <v-tabs-window v-model="tab">
-        <!-- eager: cada pestaña carga su primera página para mostrar los totales -->
+        <!-- solo la pestaña visible consulta; el total de las otras aparece al abrirlas -->
         <v-tabs-window-item
           v-for="t in TABS"
           :key="t.valor"
@@ -114,6 +110,7 @@ onMounted(async () => {
             ref="bandejas"
             :tab="t.valor"
             :opciones="opciones"
+            :activa="tab === t.valor"
             @total="totales[t.valor] = $event"
             @actualizado="recargarTodas"
           />

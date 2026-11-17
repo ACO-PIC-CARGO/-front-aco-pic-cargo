@@ -24,17 +24,30 @@ const escapar = (valor: unknown) =>
   String(valor ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export interface SolicitudARevisar {
-  id: number;
+  // id de la solicitud de pago o código de la solicitud de cobro (SC-000001)
+  id: number | string;
   proveedor: string;
   id_proveedor: number;
   monto: number | string;
   moneda: string | null;
 }
 
+// Rutas y etiqueta del modal: por defecto las de la solicitud de pago (proveedor)
+export interface OpcionesRevision {
+  rutaAprobar: string;
+  rutaRechazar: string;
+  etiquetaEntidad: string;
+}
+const REVISION_PAGO: OpcionesRevision = {
+  rutaAprobar: "solicitud_pago_aprobar",
+  rutaRechazar: "solicitud_pago_rechazar",
+  etiquetaEntidad: "PROVEEDOR",
+};
+
 // Aprobar o rechazar (con motivo) una solicitud; alTerminar recarga el listado
-export function useRevisionSolicitudPago(alTerminar: () => unknown) {
+export function useRevisionSolicitudPago(alTerminar: () => unknown, opciones: OpcionesRevision = REVISION_PAGO) {
   const URL_MAIN = import.meta.env.VITE_URL_MAIN;
-  const revisando = ref<number | null>(null);
+  const revisando = ref<number | string | null>(null);
 
   async function enviar(s: SolicitudARevisar, ruta: string, data: Record<string, string>) {
     revisando.value = s.id;
@@ -63,8 +76,8 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown) {
       html:
         '<p class="aprob-modal__question">¿DESEAS APROBAR ESTA SOLICITUD?</p>' +
         '<div class="aprob-modal__box">' +
-        fila("mdi-storefront-outline", "ID PROVEEDOR:", escapar(s.id_proveedor)) +
-        fila("mdi-account-outline", "PROVEEDOR:", escapar(s.proveedor)) +
+        fila("mdi-storefront-outline", `ID ${opciones.etiquetaEntidad}:`, escapar(s.id_proveedor)) +
+        fila("mdi-account-outline", `${opciones.etiquetaEntidad}:`, escapar(s.proveedor)) +
         fila("mdi-cash-multiple", "MONTO:", `${monto} ${escapar(s.moneda ?? "")}`.trim()) +
         "</div>",
       showCancelButton: true,
@@ -85,7 +98,7 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown) {
       },
     });
     if (decision.isConfirmed) {
-      await enviar(s, "solicitud_pago_aprobar", { tipo });
+      await enviar(s, opciones.rutaAprobar, { tipo });
       return;
     }
     if (!decision.isDenied) return;
@@ -101,7 +114,7 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown) {
       confirmButtonColor: "#d33",
     });
     if (!rechazo.isConfirmed) return;
-    await enviar(s, "solicitud_pago_rechazar", { tipo, motivo: rechazo.value || "" });
+    await enviar(s, opciones.rutaRechazar, { tipo, motivo: rechazo.value || "" });
   }
 
   return { revisando, revisar };

@@ -46,7 +46,7 @@ const props = defineProps<{
   puedeEditar: boolean;
   puedeEliminar: boolean;
   procesando?: number | null;
-  revisando?: number | null;
+  revisando?: number | string | null;
   eliminando?: number | null;
   eliminandoSoporte?: number | null;
   /** botón "Ver anexo" (solo Bancos > Solicitudes de Pago; en Control de Gastos se quitó) */

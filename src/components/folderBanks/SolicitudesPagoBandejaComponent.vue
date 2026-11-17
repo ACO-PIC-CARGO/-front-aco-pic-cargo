@@ -35,6 +35,8 @@ import type {
 const props = defineProps<{
   tab: TabBandejaSolicitudPago;
   opciones: OpcionFiltroSolicitudPago[];
+  // pestaña visible: las demás no consultan hasta que se abren
+  activa?: boolean;
 }>();
 const emit = defineEmits<{ total: [valor: number]; actualizado: [] }>();
 
@@ -178,7 +180,8 @@ const total = ref(0);
 const cargando = ref(false);
 const exportando = ref(false);
 const pagina = ref(1);
-const porPagina = ref(10);
+// en celular 100 por página; se fija antes de los watch (antes consultaba dos veces al entrar)
+const porPagina = ref(smAndDown.value ? 100 : 10);
 const busqueda = ref("");
 
 const filtrosVacios = (): FiltrosBandejaSolicitudPago => ({
@@ -290,17 +293,13 @@ function irPrimeraPagina() {
 const buscarConPausa = useDebouncedSearch(irPrimeraPagina, 400);
 watch(busqueda, () => buscarConPausa());
 watch([pagina, porPagina], () => cargar());
-watch(
-  smAndDown,
-  (movil) => {
-    const tamano = movil ? 100 : 10;
-    if (porPagina.value !== tamano) {
-      pagina.value = 1;
-      porPagina.value = tamano;
-    }
-  },
-  { immediate: true },
-);
+watch(smAndDown, (movil) => {
+  const tamano = movil ? 100 : 10;
+  if (porPagina.value !== tamano) {
+    pagina.value = 1;
+    porPagina.value = tamano;
+  }
+});
 const paginasMovil = computed(() => Math.max(1, Math.ceil(total.value / porPagina.value)));
 
 function abrirFiltros() {
@@ -385,8 +384,27 @@ function abrir(url: string | null) {
   if (url) window.open(url, "_blank");
 }
 
-defineExpose({ cargar });
-onMounted(cargar);
+
+// Solo consulta la pestaña visible. Si otra pestaña cambió (aprobar, rechazar, registrar...),
+// esta queda "pendiente" y se consulta recién cuando el usuario la abre.
+let pendiente = true;
+function cargarSiVisible() {
+  if (props.activa === false) {
+    pendiente = true;
+    return;
+  }
+  pendiente = false;
+  cargar();
+}
+watch(
+  () => props.activa,
+  (visible) => {
+    if (visible && pendiente) cargarSiVisible();
+  },
+);
+
+defineExpose({ cargar: cargarSiVisible });
+onMounted(cargarSiVisible);
 </script>
 
 <template>
@@ -421,6 +439,15 @@ onMounted(cargar);
           >
             mdi-file-excel
           </v-icon>
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          size="small"
+          prepend-icon="mdi-refresh"
+          :loading="cargando"
+          @click="cargar()"
+        >
+          ACTUALIZAR
         </v-btn>
         <v-badge
           :model-value="filtrosActivos.length > 0"

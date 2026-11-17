@@ -34,6 +34,12 @@ import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { usePermissions } from "@/composables/usePermissions";
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
+import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
+import { avisarIngresoBancosCobro, useSolicitudCobro } from "@/composables/useSolicitudCobro";
+import type { DestinoPagoCliente, SolicitudCobro } from "@/types/solicitudCobro";
+import { shortDate } from "@/utils/dates";
+import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 
 const componentProps = withDefaults(
   defineProps<{
@@ -1380,7 +1386,90 @@ function mostrarMontoOperativos(ingresos: IngresoDetalle[]) {
   return existeMonedaDiferenteADolar;
 }
 
+// ---------- Solicitud de Cobro: Cargar Pago Cliente / Enviar a Administración ----------
+// mismos datos que la sección "Solicitudes de Cobro": una sola llamada para las dos
+const solicitudesMasterStore = useSolicitudesMasterStore();
+const idMasterCobro = computed(() => Number(route.params.id) || 0);
+const solicitudesCobro = computed<SolicitudCobro[]>(() => solicitudesMasterStore.cobros[idMasterCobro.value] ?? []);
+const dialogPagoCliente = ref(false);
+const destinoPagoCliente = ref<DestinoPagoCliente | null>(null);
+const solicitudPagoCliente = ref<SolicitudCobro | null>(null);
+const adminPagoCliente = ref<AdminCredentials | null>(null);
+
+async function cargarSolicitudesCobro() {
+  if (idMasterCobro.value) await solicitudesMasterStore.cargarCobros(idMasterCobro.value);
+}
+const cobro = useSolicitudCobro(cargarSolicitudesCobro);
+const cobroProcesando = cobro.procesando;
+
+function solicitudCobroDe(house: HouseIngreso) {
+  return solicitudesCobro.value.find(
+    (s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""),
+  );
+}
+// enviada a Administración (no borrador): se muestra la tarjeta de estado
+function solicitudCobroEnviada(house: HouseIngreso) {
+  const s = solicitudCobroDe(house);
+  return s && s.codigo_estado !== "BORRADOR" ? s : undefined;
+}
+// ícono de la tarjeta según el estado (mismo diseño que la solicitud de pago de Costos)
+const ICONO_ESTADO_COBRO: Record<string, string> = {
+  PENADM: "mdi-email-check-outline",
+  PENGER: "mdi-clock-outline",
+  LISTO: "mdi-check-decagram-outline",
+  COBRADO: "mdi-bank-check",
+  RECHAZADA: "mdi-email-remove-outline",
+};
+// fecha con el helper de FormatFecha (DD/MMM/YYYY) y la hora
+function fechaCobro(fecha: string | null) {
+  return fecha ? `${shortDate(fecha.slice(0, 10))} ${fecha.slice(11, 16)}`.trim() : "";
+}
+
+async function abrirCargarPagoCliente(house: HouseIngreso) {
+  const s = solicitudCobroDe(house) ?? null;
+  if (s && avisarIngresoBancosCobro(s)) return;
+  adminPagoCliente.value = null;
+  if (s) {
+    const admin = await cobro.claveSiAprobada(s, "editarla");
+    if (admin === undefined) return;
+    adminPagoCliente.value = admin;
+  } else if (!(Number(getDeudaActual(house)) > 0)) {
+    Swal.fire({
+      icon: "info",
+      text: "El cliente no tiene deuda pendiente en este correlativo. Registra primero los montos de Operaciones.",
+    });
+    return;
+  }
+  destinoPagoCliente.value = {
+    id_house: Number(house.id_house),
+    id_correlativo: house.id_correlativo ? Number(house.id_correlativo) : null,
+    cliente: house.consigner ?? "",
+    correlativo: house.correlativo ?? null,
+    deuda: getDeudaActual(house),
+  };
+  solicitudPagoCliente.value = s;
+  dialogPagoCliente.value = true;
+}
+
+function enviarAdministracionCobro(house: HouseIngreso) {
+  const s = solicitudCobroDe(house);
+  if (!s) {
+    Swal.fire({ icon: "info", text: "Primero carga el pago del cliente (voucher)." });
+    return;
+  }
+  cobro.enviar(s);
+}
+
+// modo ver (ojito), igual que en Solicitudes de Pago
+const dialogVer = ref(false);
+const codigoVer = ref<string | null>(null);
+function verSolicitud(s: { codigo: string }) {
+  codigoVer.value = s.codigo;
+  dialogVer.value = true;
+}
+
 onMounted(async () => {
+  if (idMasterCobro.value) solicitudesMasterStore.asegurarCobros(idMasterCobro.value);
   setTimeout(() => {
     headersFacturas.value[2]!.title =
       enterprisesStore.impuesto.nombre_impuesto!;
@@ -1474,6 +1563,12 @@ onMounted(async () => {
                   Acción
                 </th>
                 <!-- <th v-if="editable" width="6%">Abonos</th> -->
+                <th
+                  v-if="editable"
+                  width="12%"
+                >
+                  Envíos / Administración
+                </th>
                 <th
                   v-if="editable"
                   width="8%"
@@ -1644,6 +1739,149 @@ onMounted(async () => {
                     CARGAR ABONOS
                   </v-btn>
                 </td> -->
+                <!-- Solicitud de Cobro: 1) Cargar Pago Cliente (voucher)  2) Enviar a Administración -->
+                <td
+                  v-if="editable"
+                  data-label="Envíos / Administración"
+                  class="cg-full cobro-cell"
+                  @click.stop
+                >
+                  <!-- mismo diseño que "Solicitar a Administración" de Costos -->
+                  <div
+                    v-if="solicitudCobroEnviada(houseIngreso)"
+                    class="cobreq-col"
+                  >
+                    <div
+                      class="cobreq"
+                      :class="`cobreq--${solicitudCobroEnviada(houseIngreso)!.codigo_estado.toLowerCase()}`"
+                    >
+                      <button
+                        type="button"
+                        class="cobreq__info"
+                        title="Ver solicitud de cobro"
+                        @click="verSolicitud(solicitudCobroEnviada(houseIngreso)!)"
+                      >
+                        <span class="cobreq__badge">
+                          <v-icon size="18">
+                            {{ ICONO_ESTADO_COBRO[solicitudCobroEnviada(houseIngreso)!.codigo_estado] ?? "mdi-email-check-outline" }}
+                          </v-icon>
+                        </span>
+                        <span class="cobreq__text">
+                          <span class="cobreq__title">{{ solicitudCobroEnviada(houseIngreso)!.estado }}</span>
+                          <span
+                            class="cobreq__date"
+                            :title="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'RECHAZADA' ? solicitudCobroEnviada(houseIngreso)!.motivo_rechazo ?? undefined : undefined"
+                          >
+                            {{
+                              solicitudCobroEnviada(houseIngreso)!.codigo_estado === "RECHAZADA"
+                                ? solicitudCobroEnviada(houseIngreso)!.motivo_rechazo || "Sin motivo"
+                                : fechaCobro(solicitudCobroEnviada(houseIngreso)!.fechasolicitud)
+                            }}
+                          </span>
+                        </span>
+                      </button>
+                      <!-- ver / editar / eliminar apilados, como en Costos -->
+                      <div class="cobreq__acciones">
+                        <v-btn
+                          icon="mdi-eye"
+                          size="x-small"
+                          variant="text"
+                          color="blue"
+                          title="Ver solicitud de cobro"
+                          aria-label="Ver solicitud de cobro"
+                          @click="verSolicitud(solicitudCobroEnviada(houseIngreso)!)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'NUEVO')"
+                          icon="mdi-pencil-outline"
+                          size="x-small"
+                          variant="text"
+                          :color="solicitudCobroEnviada(houseIngreso)!.id_pagoingreso ? 'grey' : 'primary'"
+                          :title="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'RECHAZADA' ? 'Editar y enviar de nuevo' : 'Editar solicitud de cobro'"
+                          aria-label="Editar solicitud de cobro"
+                          @click="abrirCargarPagoCliente(houseIngreso)"
+                        />
+                        <v-btn
+                          v-if="can('listControlGastos', 'ELIMINAR')"
+                          icon="mdi-delete-outline"
+                          size="x-small"
+                          variant="text"
+                          :color="solicitudCobroEnviada(houseIngreso)!.id_pagoingreso ? 'grey' : 'error'"
+                          title="Eliminar solicitud de cobro"
+                          aria-label="Eliminar solicitud de cobro"
+                          :loading="cobroProcesando === solicitudCobroEnviada(houseIngreso)!.codigo"
+                          @click="cobro.eliminar(solicitudCobroEnviada(houseIngreso)!)"
+                        />
+                      </div>
+                    </div>
+                    <v-btn
+                      v-if="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
+                      size="small"
+                      variant="flat"
+                      color="green-darken-2"
+                      prepend-icon="mdi-bank-transfer-in"
+                      class="cobreq__registrar"
+                      :loading="cobroProcesando === solicitudCobroEnviada(houseIngreso)!.codigo"
+                      @click="cobro.registrarEnBancos(solicitudCobroEnviada(houseIngreso)!)"
+                    >
+                      Registrar en Bancos
+                    </v-btn>
+                  </div>
+                  <div
+                    v-else
+                    class="cobro-pasos"
+                  >
+                    <v-btn
+                      size="small"
+                      variant="flat"
+                      :color="solicitudCobroDe(houseIngreso) ? 'green-darken-2' : 'grey'"
+                      :prepend-icon="solicitudCobroDe(houseIngreso) ? 'mdi-check-circle-outline' : 'mdi-cloud-upload'"
+                      class="cobro-pasos__btn"
+                      :disabled="!houseIngreso.id_orders || !can('listControlGastos', 'NUEVO')"
+                      :title="solicitudCobroDe(houseIngreso) ? 'Pago cargado: clic para editar' : 'Cargar el voucher del cliente'"
+                      @click="abrirCargarPagoCliente(houseIngreso)"
+                    >
+                      {{ solicitudCobroDe(houseIngreso) ? "Pago Cliente Cargado" : "Cargar Pago Cliente" }}
+                    </v-btn>
+                    <div
+                      v-if="solicitudCobroDe(houseIngreso)"
+                      class="cobro-pasos__extra"
+                    >
+                      <v-btn
+                        icon="mdi-eye"
+                        size="x-small"
+                        variant="text"
+                        color="blue"
+                        title="Ver solicitud de cobro"
+                        aria-label="Ver solicitud de cobro"
+                        @click="verSolicitud(solicitudCobroDe(houseIngreso)!)"
+                      />
+                      <v-btn
+                        v-if="can('listControlGastos', 'ELIMINAR')"
+                        icon="mdi-delete-outline"
+                        size="x-small"
+                        variant="text"
+                        color="error"
+                        title="Eliminar pago cargado"
+                        aria-label="Eliminar pago cargado"
+                        @click="cobro.eliminar(solicitudCobroDe(houseIngreso)!)"
+                      />
+                    </div>
+                    <v-btn
+                      size="small"
+                      variant="flat"
+                      :color="solicitudCobroDe(houseIngreso) ? 'primary' : 'grey-darken-1'"
+                      prepend-icon="mdi-send"
+                      class="cobro-pasos__btn"
+                      :disabled="!solicitudCobroDe(houseIngreso) || !can('listControlGastos', 'NUEVO')"
+                      :loading="!!solicitudCobroDe(houseIngreso) && cobroProcesando === solicitudCobroDe(houseIngreso)!.codigo"
+                      :title="solicitudCobroDe(houseIngreso) ? 'Enviar a Administración' : 'Primero carga el pago del cliente'"
+                      @click="enviarAdministracionCobro(houseIngreso)"
+                    >
+                      Enviar a Administración
+                    </v-btn>
+                  </div>
+                </td>
                 <td
                   data-label="Más acciones"
                   v-if="editable"
@@ -3310,10 +3548,160 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <SolicitudCobroVerDialog
+      v-model="dialogVer"
+      :codigo="codigoVer"
+    />
+    <CargarPagoClienteDialog
+      v-model="dialogPagoCliente"
+      :destino="destinoPagoCliente"
+      :solicitud="solicitudPagoCliente"
+      :admin="adminPagoCliente"
+      @guardado="cargarSolicitudesCobro"
+    />
   </v-container>
 </template>
 
 <style scoped>
+/* Envíos / Administración (solicitud de cobro) */
+.cobro-pasos {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 170px;
+}
+.cobro-pasos__btn {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.cobro-pasos__extra {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin-top: -2px;
+}
+/* Solicitud de cobro enviada: mismo diseño que "Solicitar a Administración" de Costos (.solreq) */
+.cobreq-col {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  max-width: 300px;
+}
+.cobreq {
+  --cobreq-fg: #1d4ed8;
+  --cobreq-bg: #eff4ff;
+  --cobreq-border: #d1defc;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 10px;
+  border: 1px solid var(--cobreq-border);
+  border-radius: 10px;
+  background: var(--cobreq-bg);
+}
+.cobreq--penger {
+  --cobreq-fg: #b45309;
+  --cobreq-bg: #fffbeb;
+  --cobreq-border: #fde68a;
+}
+.cobreq--listo,
+.cobreq--cobrado {
+  --cobreq-fg: #15803d;
+  --cobreq-bg: #ecfdf3;
+  --cobreq-border: #b7ebc9;
+}
+.cobreq--rechazada {
+  --cobreq-fg: #c0261b;
+  --cobreq-bg: #fef3f2;
+  --cobreq-border: #fbd3cf;
+}
+.cobreq__info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.cobreq__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--cobreq-fg);
+  box-shadow: 0 0 0 1px var(--cobreq-border);
+}
+.cobreq__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.cobreq__title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--cobreq-fg);
+}
+.cobreq__date {
+  overflow: hidden;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #667085;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cobreq__info:hover .cobreq__title,
+.cobreq__info:focus-visible .cobreq__title {
+  text-decoration: underline;
+}
+.cobreq__info:focus-visible {
+  outline: 2px solid var(--cobreq-fg);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+.cobreq__acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  padding-left: 6px;
+  border-left: 1px solid var(--cobreq-border);
+}
+.cobreq__acciones .v-btn {
+  height: 24px !important;
+}
+.cobreq__registrar {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+@media (max-width: 960px) {
+  .cobreq-col {
+    max-width: none;
+    width: 100%;
+  }
+}
+/* celular y tablet: los dos pasos a lo ancho de la tarjeta */
+@media (max-width: 960px) {
+  .cobro-pasos {
+    min-width: 0;
+    width: 100%;
+  }
+  .cobro-pasos__btn {
+    min-height: 40px;
+  }
+}
 .blinking {
   padding: 10px 20px;
   /* color: white; */
