@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import moment from "moment";
@@ -60,6 +61,8 @@ const emit = defineEmits<{
 }>();
 
 const appStore = useAppStore();
+// celular: diálogos grandes a pantalla completa
+const { smAndDown } = useDisplay();
 const { can } = usePermissions();
 const route = useRoute();
 const appRouter = useRouter();
@@ -1395,11 +1398,26 @@ onMounted(async () => {
 
 <template>
   <v-container fluid>
-    <h3>
+    <h3 v-if="!smAndDown">
       Ingresos (Venta al cliente) Pricing:
       {{ formatUsd(ingreso_pr) }} / ------- Operaciones:
       {{ formatUsd(ingreso_op) }}
     </h3>
+    <div
+      v-else
+      class="cg-seccion"
+    >
+      <h3 class="cg-seccion__titulo">
+        <v-icon color="success">
+          mdi-cash-plus
+        </v-icon>
+        Ingresos <small>(Venta al cliente)</small>
+      </h3>
+      <div class="cg-seccion__totales">
+        <span class="cg-total cg-total--pr">Pricing: <b>{{ formatUsd(ingreso_pr) }}</b></span>
+        <span class="cg-total cg-total--op">Operaciones: <b>{{ formatUsd(ingreso_op) }}</b></span>
+      </div>
+    </div>
     <!-- <v-btn @click="nuevoIngreso()" color="blue" dark small>
       Nuevo Control Gastos Ingresos
     </v-btn> -->
@@ -1419,7 +1437,7 @@ onMounted(async () => {
             </v-icon>
           </template>
           <v-table
-            class="tabla-resumen-ingresos"
+            class="tabla-resumen-ingresos cg-resp--resumen"
             density="compact"
           >
             <thead>
@@ -1474,8 +1492,16 @@ onMounted(async () => {
             <tbody>
               <tr>
                 <!-- <td>{{ house.code_house }} - {{ house.correlativo }}</td> -->
-                <td>{{ houseIngreso.consigner }} - {{ houseIngreso.correlativo }}</td>
-                <td>
+                <td
+                  data-label="Consignatario"
+                  class="cg-full cg-titulo"
+                >
+                  {{ houseIngreso.consigner }} - {{ houseIngreso.correlativo }}
+                </td>
+                <td
+                  data-label="Cotización"
+                  class="cg-full"
+                >
                   {{ houseIngreso.quote }}
                   <v-btn
                     variant="text"
@@ -1513,10 +1539,29 @@ onMounted(async () => {
                   </v-btn>
                 </td>
 
-                <td>{{ houseIngreso.total_total_pr_ingresos }}</td>
-                <td>{{ houseIngreso.total_total_op_ingresos }}</td>
-                <td>{{ getDeudaActual(houseIngreso) }}</td>
-                <td v-if="editable">
+                <td
+                  data-label="Total Pricing"
+                  class="cg-pr"
+                >
+                  {{ houseIngreso.total_total_pr_ingresos }}
+                </td>
+                <td
+                  data-label="Total Operaciones"
+                  class="cg-op"
+                >
+                  {{ houseIngreso.total_total_op_ingresos }}
+                </td>
+                <td
+                  data-label="Total Deuda"
+                  class="cg-deuda"
+                >
+                  {{ getDeudaActual(houseIngreso) }}
+                </td>
+                <td
+                  data-label="Acción"
+                  class="cg-full"
+                  v-if="editable"
+                >
                   <template v-if="can('listControlGastos', 'NUEVO')">
                     <v-btn
                       v-if="houseIngreso.id_orders"
@@ -1599,7 +1644,10 @@ onMounted(async () => {
                     CARGAR ABONOS
                   </v-btn>
                 </td> -->
-                <td v-if="editable">
+                <td
+                  data-label="Más acciones"
+                  v-if="editable"
+                >
                   <v-btn
                     v-if="houseIngreso.id_orders && can('listControlGastos', 'MODIFICAR')"
                     color="indigo"
@@ -1611,7 +1659,7 @@ onMounted(async () => {
                     Cambiar expediente
                   </v-btn>
                 </td>
-                <td>
+                <td data-label="Ver Proformas">
                   <v-icon
                     :disabled="!houseIngreso.tienefactura"
                     color="info"
@@ -1620,7 +1668,11 @@ onMounted(async () => {
                     mdi-eye
                   </v-icon>
                 </td>
-                <td v-if="editable">
+                <td
+                  data-label="Facturas y Proformas"
+                  class="cg-full"
+                  v-if="editable"
+                >
                   <v-btn
                     :color="!houseIngreso.tienefacturafiscal ? '#616161' : 'primary'"
                     size="small"
@@ -1647,9 +1699,20 @@ onMounted(async () => {
               </tr>
             </tbody>
           </v-table>
+          <!-- celular: indica que el panel tiene detalle (al tocarlo se abre / cierra) -->
+          <div
+            v-if="smAndDown"
+            class="cg-verdetalle"
+          >
+            <span class="cg-verdetalle__ver"><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle</span>
+            <span class="cg-verdetalle__ocultar"><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle</span>
+          </div>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <v-table density="compact">
+          <v-table
+            density="compact"
+            class="cg-resp--detalle"
+          >
             <thead>
               <tr>
                 <th class="text-left">
@@ -1738,33 +1801,53 @@ onMounted(async () => {
                 v-for="item of houseIngreso.ingresos"
                 :key="item.id"
               >
-                <td>{{ item.concepto }}</td>
-                <td style="background: #d6f4ff">
+                <td
+                  data-label="Descripción"
+                  class="cg-full cg-titulo"
+                >
+                  {{ item.concepto }}
+                </td>
+                <td
+                  data-label="Monto Pr"
+                  style="background: #d6f4ff"
+                >
                   {{ parseFloat(String(item.monto_pr)).toFixed(2) }}
                 </td>
                 <td
+                  :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Pr`"
                   style="background: #d6f4ff"
                   v-if="mostrarImpuesto"
                 >
                   {{ parseFloat(String(item.igv_pr)).toFixed(2) }}
                 </td>
-                <td style="background: #d6f4ff">
+                <td
+                  data-label="Total Pr"
+                  style="background: #d6f4ff"
+                >
                   {{ parseFloat(String(item.total_pr)).toFixed(2) }}
                 </td>
-                <td style="background: #ffd6d6">
+                <td
+                  data-label="Monto Op"
+                  style="background: #ffd6d6"
+                >
                   {{ parseFloat(String(item.monto_op)).toFixed(2) }}
                 </td>
                 <td
+                  :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Op`"
                   style="background: #ffd6d6"
                   v-if="mostrarImpuesto"
                 >
                   {{ parseFloat(String(item.igv_op)).toFixed(2) }}
                 </td>
-                <td style="background: #ffd6d6">
+                <td
+                  data-label="Total Op"
+                  style="background: #ffd6d6"
+                >
                   {{ parseFloat(String(item.total_op)).toFixed(2) }}
                 </td>
                 <!-- Monto Op Cuenta Banco -->
                 <td
+                  data-label="Monto Op Cuenta Banco"
                   style="background: #d8ffde"
                   v-if="mostrarMontoOperativos(houseIngreso.ingresos)"
                 >
@@ -1773,6 +1856,7 @@ onMounted(async () => {
                 </td>
                 <!-- IGV Op Cuenta Banco -->
                 <td
+                  :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Op Cuenta Banco`"
                   style="background: #d8ffde"
                   v-if="
                     mostrarImpuesto && mostrarMontoOperativos(houseIngreso.ingresos)
@@ -1783,6 +1867,7 @@ onMounted(async () => {
                 </td>
                 <!-- Total Op Cuenta Banco -->
                 <td
+                  data-label="Total Op Cuenta Banco"
                   style="background: #d8ffde"
                   v-if="mostrarMontoOperativos(houseIngreso.ingresos)"
                 >
@@ -1791,12 +1876,13 @@ onMounted(async () => {
                 </td>
                 <!-- Tipo Cambio Cuenta Banco -->
                 <td
+                  data-label="Tipo Cambio Cuenta Banco"
                   style="background: #d8ffde"
                   v-if="mostrarMontoOperativos(houseIngreso.ingresos)"
                 >
                   {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                 </td>
-                <td>
+                <td data-label="Facturado">
                   <v-chip
                     class="ma-2 text-white"
                     color="orange"
@@ -1820,7 +1906,10 @@ onMounted(async () => {
                     {{ item.nro_factura }}
                   </span>
                 </td>
-                <td v-if="editable">
+                <td
+                  data-label="Acciones"
+                  v-if="editable"
+                >
                   <v-icon
                     color="info"
                     @click="activarFactura(item)"
@@ -1863,6 +1952,7 @@ onMounted(async () => {
       v-model="dialogIngreso"
       width="800"
       persistent
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
@@ -2166,6 +2256,7 @@ onMounted(async () => {
       max-width="90%"
       v-model="dialogDebs"
       persistent
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
@@ -2267,6 +2358,7 @@ onMounted(async () => {
       max-width="80%"
       v-model="dialogNewDebs"
       v-if="dialogNewDebs"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
@@ -2447,6 +2539,7 @@ onMounted(async () => {
     <v-dialog
       max-width="80%"
       v-model="dialogDebsEdit"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
@@ -2633,6 +2726,7 @@ onMounted(async () => {
       max-width="70%"
       transition="dialog-transition"
       v-if="dialogFacturar"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title
@@ -2748,6 +2842,7 @@ onMounted(async () => {
     <v-dialog
       max-width="80%"
       v-model="dialogFacturasFiscales"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
@@ -2842,6 +2937,7 @@ onMounted(async () => {
       width="80%"
       v-model="dialogProformaFiscal"
       v-if="dialogProformaFiscal"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title>
@@ -2941,6 +3037,7 @@ onMounted(async () => {
       :overlay="false"
       max-width="70%"
       transition="dialog-transition"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title primary-title>
@@ -3075,6 +3172,7 @@ onMounted(async () => {
       scrollable
       persistent
       max-width="40%"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
@@ -3162,6 +3260,7 @@ onMounted(async () => {
       scrollable
       persistent
       max-width="40%"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title primary-title>

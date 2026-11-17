@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useRoute } from "vue-router";
+import { useDisplay } from "vuetify";
 import moment from "moment";
 import axios from "@/api/http";
 import Swal from "sweetalert2";
@@ -78,6 +79,8 @@ const emit = defineEmits<{
 }>();
 
 const appStore = useAppStore();
+// celular: diálogos grandes a pantalla completa
+const { smAndDown } = useDisplay();
 const { can } = usePermissions();
 const undeclaredAppState = appStore as typeof appStore & {
   controlgastos: { master_houses: ControlGastoHouse[] };
@@ -2186,7 +2189,7 @@ onMounted(async () => {
 
 <template>
   <div class="">
-    <h3>
+    <h3 v-if="!smAndDown">
       Costos -------------------------------- | Pricing:
       {{ parseFloat(String(egreso_pr)).toFixed(2) }} USD /------ Operaciones:
       {{ parseFloat(String(egreso_op)).toFixed(2) }} USD
@@ -2199,6 +2202,30 @@ onMounted(async () => {
         Nuevo Control Gastos Egresos
       </v-btn>
     </h3>
+    <div
+      v-else
+      class="cg-seccion"
+    >
+      <h3 class="cg-seccion__titulo">
+        <v-icon color="error">
+          mdi-cash-minus
+        </v-icon>
+        Costos
+      </h3>
+      <div class="cg-seccion__totales">
+        <span class="cg-total cg-total--pr">Pricing: <b>{{ parseFloat(String(egreso_pr)).toFixed(2) }} USD</b></span>
+        <span class="cg-total cg-total--op">Operaciones: <b>{{ parseFloat(String(egreso_op)).toFixed(2) }} USD</b></span>
+      </div>
+      <v-btn
+        class="cg-seccion__btn"
+        color="blue"
+        size="small"
+        prepend-icon="mdi-plus"
+        @click="nuevoEngreso()"
+      >
+        Nuevo Control Gastos Egresos
+      </v-btn>
+    </div>
     <v-expansion-panels variant="accordion">
       <v-expansion-panel
         v-for="(egresoProveedor, index) in masterEgresos || []"
@@ -2213,7 +2240,7 @@ onMounted(async () => {
           </template>
           <v-table
             density="compact"
-            class="egreso-summary-table"
+            class="egreso-summary-table cg-resp--resumen"
           >
             <thead>
               <tr>
@@ -2278,7 +2305,10 @@ onMounted(async () => {
             </thead>
             <tbody>
               <tr>
-                <td>
+                <td
+                  data-label="Proveedor"
+                  class="cg-full cg-titulo"
+                >
                   {{ egresoProveedor.nombre_proveedor }}
                   <v-btn
                     variant="text"
@@ -2290,10 +2320,29 @@ onMounted(async () => {
                     <v-icon>mdi-percent-box-outline</v-icon>
                   </v-btn>
                 </td>
-                <td>{{ egresoProveedor.total_total_pr }}</td>
-                <td>{{ egresoProveedor.total_total_op }}</td>
-                <td>{{ egresoProveedor.monto_pagar_op }}</td>
-                <td v-if="editable">
+                <td
+                  data-label="Total Pricing"
+                  class="cg-pr"
+                >
+                  {{ egresoProveedor.total_total_pr }}
+                </td>
+                <td
+                  data-label="Total Operaciones"
+                  class="cg-op"
+                >
+                  {{ egresoProveedor.total_total_op }}
+                </td>
+                <td
+                  data-label="Deuda Actual"
+                  class="cg-deuda"
+                >
+                  {{ egresoProveedor.monto_pagar_op }}
+                </td>
+                <td
+                  data-label="Acciones"
+                  class="cg-full"
+                  v-if="editable"
+                >
                   <!-- uno debajo del otro -->
                   <div class="egreso-botones">
                     <v-btn
@@ -2349,7 +2398,10 @@ onMounted(async () => {
                     </v-btn>
                   </div>
                 </td>
-                <td v-if="editable">
+                <td
+                  data-label="Factura o Proforma"
+                  v-if="editable"
+                >
                   <!-- Paso 1: cargar factura o proforma (solo mientras no tenga ninguna);
                        con facturas se desactiva y se activa el ojo -->
                   <div class="egreso-acciones">
@@ -2392,6 +2444,7 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td
+                  data-label="Solicitar a Administración"
                   class="solreq-cell"
                   @click.stop
                 >
@@ -2575,9 +2628,20 @@ onMounted(async () => {
               </tr>
             </tbody>
           </v-table>
+          <!-- celular: indica que el panel tiene detalle (al tocarlo se abre / cierra) -->
+          <div
+            v-if="smAndDown"
+            class="cg-verdetalle"
+          >
+            <span class="cg-verdetalle__ver"><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle cliente</span>
+            <span class="cg-verdetalle__ocultar"><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle cliente</span>
+          </div>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <v-table density="compact">
+          <v-table
+            density="compact"
+            class="cg-resp--detalle"
+          >
             <thead>
               <tr>
                 <th class="text-left">
@@ -2690,12 +2754,20 @@ onMounted(async () => {
                 >
                   <td
                     :colspan="mostrarImpuesto ? 16 : 13"
-                    class="font-weight-bold"
+                    class="font-weight-bold cg-grupo"
                   >
                     Cliente:
                     {{ grupo.consigner }}
                     <span v-if="grupo.code_house">
                       - {{ grupo.code_house }}
+                    </span>
+                    <!-- celular: 3er nivel (conceptos del cliente) -->
+                    <span
+                      v-if="smAndDown"
+                      class="cg-verdetalle cg-verdetalle--cliente"
+                    >
+                      <v-icon size="18">{{ isClienteAbierto(egresoProveedor, grupo) ? "mdi-chevron-up" : "mdi-chevron-down" }}</v-icon>
+                      {{ isClienteAbierto(egresoProveedor, grupo) ? "Ocultar concepto de costos" : "Ver concepto de costos" }}
                     </span>
                   </td>
                 </tr>
@@ -2709,24 +2781,45 @@ onMounted(async () => {
                       item.id
                     }`"
                   >
-                    <td>{{ item.nombre_proveedor }}</td>
-                    <td>{{ item.concepto }}</td>
-                    <td style="background: #d6f4ff">
+                    <td
+                      data-label="Proveedor"
+                      class="cg-full"
+                    >
+                      {{ item.nombre_proveedor }}
+                    </td>
+                    <td
+                      data-label="Descripción"
+                      class="cg-full cg-titulo"
+                    >
+                      {{ item.concepto }}
+                    </td>
+                    <td
+                      data-label="Monto Pr"
+                      style="background: #d6f4ff"
+                    >
                       {{ parseFloat(String(item.monto_pr)).toFixed(2) }}
                     </td>
                     <td
+                      :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Pr`"
                       style="background: #d6f4ff"
                       v-if="mostrarImpuesto"
                     >
                       {{ parseFloat(String(item.igv_pr)).toFixed(2) }}
                     </td>
-                    <td style="background: #d6f4ff">
+                    <td
+                      data-label="Total Pr"
+                      style="background: #d6f4ff"
+                    >
                       {{ parseFloat(String(item.total_pr)).toFixed(2) }}
                     </td>
-                    <td style="background: #ffd6d6">
+                    <td
+                      data-label="Monto Op"
+                      style="background: #ffd6d6"
+                    >
                       {{ parseFloat(String(item.monto_op)).toFixed(2) }}
                     </td>
                     <td
+                      :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Op`"
                       style="background: #ffd6d6"
                       v-if="mostrarImpuesto"
                     >
@@ -2735,10 +2828,14 @@ onMounted(async () => {
                     <!-- <td style="background: #ffd6d6">
                       {{ parseFloat(item.igv_op).toFixed(2) }}
                     </td> -->
-                    <td style="background: #ffd6d6">
+                    <td
+                      data-label="Total Op"
+                      style="background: #ffd6d6"
+                    >
                       {{ parseFloat(String(item.total_op)).toFixed(2) }}
                     </td>
                     <td
+                      data-label="Monto Op Cuenta Banco"
                       style="background: #d8ffde"
                       v-if="mostrarColumnaMonedaDiferenteDolar(egresoProveedor)"
                     >
@@ -2746,6 +2843,7 @@ onMounted(async () => {
                       {{ item.acronym }}
                     </td>
                     <td
+                      :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Op Cuenta Banco`"
                       style="background: #d8ffde"
                       v-if="
                         mostrarImpuesto &&
@@ -2756,6 +2854,7 @@ onMounted(async () => {
                       {{ item.acronym }}
                     </td>
                     <td
+                      data-label="Total Op Cuenta Banco"
                       style="background: #d8ffde"
                       v-if="mostrarColumnaMonedaDiferenteDolar(egresoProveedor)"
                     >
@@ -2763,12 +2862,16 @@ onMounted(async () => {
                       {{ item.acronym }}
                     </td>
                     <td
+                      data-label="Tipo Cambio Cuenta Banco"
                       style="background: #d8ffde"
                       v-if="mostrarColumnaMonedaDiferenteDolar(egresoProveedor)"
                     >
                       {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                     </td>
-                    <td class="text-center">
+                    <td
+                      data-label="Enviado a Admin."
+                      class="text-center"
+                    >
                       <v-chip
                         v-if="item.statusadmin == 1 && item.pagado == 1"
                         size="small"
@@ -2788,10 +2891,13 @@ onMounted(async () => {
                         SI
                       </v-chip>
                     </td>
-                    <td class="text-center">
+                    <td
+                      data-label="Fecha Pago"
+                      class="text-center"
+                    >
                       {{ item.fecha_pago_letra }}
                     </td>
-                    <td>
+                    <td data-label="Status">
                       <v-chip
                         v-if="item.pagado == 1"
                         size="small"
@@ -2802,7 +2908,11 @@ onMounted(async () => {
                         Pagado
                       </v-chip>
                     </td>
-                    <td v-if="editable">
+                    <td
+                      data-label="Acciones"
+                      class="cg-full"
+                      v-if="editable"
+                    >
                       <v-btn
                         v-if="can('listControlGastos', 'MODIFICAR')"
                         variant="text"
@@ -2843,6 +2953,7 @@ onMounted(async () => {
       v-model="dialog"
       width="70%"
       persistent
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title
@@ -3154,6 +3265,7 @@ onMounted(async () => {
       v-model="dialogListInvoice"
       max-width="860"
       scrollable
+      :fullscreen="smAndDown"
     >
       <v-card class="inv-card fac-card">
         <div class="inv-header fac-header">
@@ -3796,6 +3908,7 @@ onMounted(async () => {
     <v-dialog
       width="80%"
       v-model="dialogPayment"
+      :fullscreen="smAndDown"
     >
       <v-card class="mx-auto">
         <v-toolbar
@@ -3900,6 +4013,7 @@ onMounted(async () => {
       persistent
       max-width="50%"
       transition=""
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title
@@ -3984,6 +4098,7 @@ onMounted(async () => {
       v-model="dialogCuentaBancaria"
       width="30%"
       persistent
+      :fullscreen="smAndDown"
     >
       <v-card class="pa-5">
         <h2>{{ egreso.nombre_proveedor }}</h2>
@@ -4115,6 +4230,7 @@ onMounted(async () => {
       scrollable
       persistent
       max-width="30%"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title primary-title>

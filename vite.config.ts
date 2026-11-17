@@ -14,8 +14,8 @@ export default defineConfig({
       filename: "service-worker.js",
       manifestFilename: "manifest.json",
       manifest: {
-        name: "Sistema ChainSolver",
-        short_name: "ChainSolver",
+        name: "Sistema Operativo ACO",
+        short_name: "ACO",
         theme_color: "#252C32",
         background_color: "#ffffff",
         display: "standalone",
