@@ -9,6 +9,8 @@ import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
 import { claimUpdatePrompt } from "@/utils/versionPrompt";
+import { applyUpdate, checkForUpdate, swUpdate } from "@/utils/swUpdate";
+import AvisoActualizacion from "@/components/comun/AvisoActualizacion.vue";
 
 const ControlServices = defineAsyncComponent(
   () => import("@/components/ServicesControl.vue"),
@@ -68,12 +70,10 @@ onMounted(async () => {
       }
       if (claimUpdatePrompt(data.version)) {
         dialogVersion.value = true;
+        // Que el Service Worker busque ya la versión nueva: el aviso con el barco toma el relevo.
+        checkForUpdate();
       }
     }
-  });
-
-  window.addEventListener("sw-updated", () => {
-    dialogVersion.value = true;
   });
 
   appStore.drawer = false;
@@ -98,6 +98,8 @@ onBeforeMount(async () => {
 });
 
 async function actualizar() {
+  // Con una versión ya descargada por el Service Worker basta activarla (skipWaiting) y recargar.
+  if (applyUpdate()) return;
   cargando.value = true;
   localStorage.setItem("actualizando", "1");
 
@@ -188,6 +190,7 @@ async function _getVersion() {
       .then(function (response) {
         if (claimUpdatePrompt(response.data.data[0]!.version)) {
           dialogVersion.value = true;
+          checkForUpdate();
         }
 
         if (response.data.data[0]!.power != 1) {
@@ -371,8 +374,11 @@ function mostrarBtnGuardar() {
       </v-card>
     </v-dialog>
 
+    <AvisoActualizacion :fallback="actualizar" />
+    <!-- Plan B (versión avisada por el servidor sin Service Worker activo): mientras el SW
+         descarga o tiene lista la versión, manda el aviso no bloqueante de arriba. -->
     <v-dialog
-      v-if="dialogVersion"
+      v-if="dialogVersion && swUpdate.fase === 'idle'"
       persistent
       v-model="dialogVersion"
       max-width="560"

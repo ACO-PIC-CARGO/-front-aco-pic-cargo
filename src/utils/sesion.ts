@@ -1,5 +1,6 @@
 import { isAxiosError } from "axios";
 import type { SucursalSesion, UsuarioSesion } from "@/types/sesion";
+import { bindSessionBranch } from "@/api/sessionRefresh";
 
 export class SessionEndedError extends Error {
   constructor() {
@@ -41,6 +42,7 @@ export const chooseSessionBranch = (branch: SucursalSesion): void => {
     storage.setItem("dataBranch", JSON.stringify([branch]));
     storage.setItem("iso_pais", branch.iso_pais);
   }
+  bindSessionBranch(branch.id);
 };
 
 export const markSessionBranchConfigured = (): void => {

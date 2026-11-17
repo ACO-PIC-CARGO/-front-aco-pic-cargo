@@ -5,7 +5,6 @@ import { useAppStore } from "@/stores/app";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import { useSecuritysStore } from "@/stores/securitys";
 import { chooseSessionBranch } from "@/utils/sesion";
-import type { SucursalSesion } from "@/types/sesion";
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -15,14 +14,17 @@ const currentSlide = ref(0);
 const verClave = ref(false);
 const loading = ref(false);
 const errorSucursal = ref("");
+const retomandoSesion = ref(false);
 
 onMounted(async () => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const dataBranch: SucursalSesion[] | null = JSON.parse(sessionStorage.getItem("dataBranch") as string);
-    
-  // if (val.estadoflag && dataBranch && !dataBranch[0].esnuevoflag) {
-  //   this.$router.push({ name: "Main" }, () => {});
-  // }
+  // Sesión recordada (estilo "Recordarme"): si la cookie de refresco de este navegador sigue
+  // vigente, se entra directo al Main en la sucursal ligada a la sesión, sin pedir la clave.
+  retomandoSesion.value = true;
+  try {
+    if (await securitysStore.retomarSesion()) await router.replace({ name: "Main" });
+  } finally {
+    retomandoSesion.value = false;
+  }
 });
 
 async function acceder() {
@@ -134,22 +136,34 @@ function registroEmpresa() {
                         @keyup.enter="acceder()"
                       />
                     </div>
+                    <label
+                      class="login-recordarme"
+                      :class="{ 'login-recordarme--on': securitysStore.frmLogin.recordarme }"
+                    >
+                      <input
+                        v-model="securitysStore.frmLogin.recordarme"
+                        class="login-recordarme__input"
+                        type="checkbox"
+                      >
+                      <span
+                        class="login-recordarme__box"
+                        aria-hidden="true"
+                      >
+                        <v-icon
+                          v-if="securitysStore.frmLogin.recordarme"
+                          size="18"
+                        >mdi-check-bold</v-icon>
+                      </span>
+                      Mantener sesión iniciada
+                    </label>
                   </v-form>
                   <span class="text-red">
                     {{ securitysStore.errorClave }}</span>
-                  <p class="rigth my-2">
-                    <a
-                      class="text-primary"
-                      @click="securitysStore.ReEstablecerContrasenia()"
-                    ><v-icon
-                      size="small"
-                      class="mr-1 text-medium-emphasis"
-                    >mdi-lock-reset</v-icon> Olvidé Contraseña</a>
-                  </p>
                   <v-btn
-                    class="my-5"
+                    class="mt-4 mb-2"
                     block
                     color="info"
+                    :loading="retomandoSesion"
                     @click="acceder()"
                   >
                     <v-icon start>
@@ -157,6 +171,15 @@ function registroEmpresa() {
                     </v-icon>
                     Iniciar Sesión
                   </v-btn>
+                  <p class="login-olvide">
+                    <a
+                      class="text-primary"
+                      @click="securitysStore.ReEstablecerContrasenia()"
+                    ><v-icon
+                      size="small"
+                      class="mr-1"
+                    >mdi-lock-reset</v-icon> Olvidé Contraseña</a>
+                  </p>
                   <p class="center my-2">
                     O
                   </p>
@@ -228,6 +251,58 @@ function registroEmpresa() {
 </template>
 
 <style scoped>
+.login-olvide {
+  margin: 4px 0 0;
+  text-align: center;
+  cursor: pointer;
+}
+/* "Mantener sesión iniciada": casilla dentro de una tarjeta que se resalta al marcarla. */
+.login-recordarme {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 6px;
+  padding: 10px 14px;
+  border: 1.5px solid #d5dde8;
+  border-radius: 12px;
+  background: #fff;
+  color: #3b4a63;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.login-recordarme--on {
+  border-color: #4b9af0;
+  background: #e3f0fd;
+  color: #0b3d91;
+  font-weight: 800;
+}
+.login-recordarme__input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.login-recordarme__box {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 2px solid #9aa7b8;
+  border-radius: 6px;
+  background: #fff;
+  color: #fff;
+  transition: background 0.2s, border-color 0.2s;
+}
+.login-recordarme--on .login-recordarme__box {
+  border-color: #0b5fd6;
+  background: #0b5fd6;
+}
+.login-recordarme__input:focus-visible + .login-recordarme__box {
+  outline: 2px solid #0b5fd6;
+  outline-offset: 2px;
+}
 .containerLogin {
   /* min-height: 100vh; */
   background-image: url("/img/login/Composición Logística.png");

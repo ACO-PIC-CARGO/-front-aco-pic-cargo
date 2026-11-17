@@ -23,7 +23,9 @@ export default defineConfig({
         icons: [{ src: "/favicon.ico", sizes: "32x32", type: "image/x-icon" }],
       },
       workbox: {
-        skipWaiting: true,
+        // La versión nueva queda "instalada" en espera: el aviso de la app la activa con
+        // postMessage({ type: "SKIP_WAITING" }) cuando el usuario pulsa "Actualizar ahora".
+        skipWaiting: false,
         clientsClaim: true,
         cleanupOutdatedCaches: true,
         // Raises the Workbox precache file size limit from its 2 MiB default to 3 MiB.

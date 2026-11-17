@@ -5,6 +5,12 @@ import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import App from "@/App.vue";
 import http from "@/api/http";
+import { checkForUpdate } from "@/utils/swUpdate";
+
+vi.mock("@/utils/swUpdate", async () => {
+  const { reactive } = await import("vue");
+  return { swUpdate: reactive({ fase: "idle" }), checkForUpdate: vi.fn(), applyUpdate: vi.fn(() => false) };
+});
 
 vi.mock("vue-router", () => ({ useRoute: () => ({ name: "Home", params: {} }), useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: { params: {} } } } }));
@@ -42,9 +48,15 @@ test("a deploy of the same version does not ask to update by itself", () => {
   expect(isAskingToUpdate()).toBe(false);
 });
 
-test("asks to update when the service worker reports a new build of the same version", async () => {
-  window.dispatchEvent(new CustomEvent("sw-updated"));
+test("a new version announced by the server makes the service worker go fetch it", async () => {
+  wrapper!.unmount();
+  vi.mocked(checkForUpdate).mockClear();
+  vi.mocked(http).mockResolvedValue({ data: { data: [{ version: "9.99", power: 1 }] } } as never);
+
+  wrapper = shallowMount(App, { global: { plugins: [createPinia(), createVuetify()], stubs: { RouterView: true } } });
+  await vi.runAllTimersAsync();
   await flushPromises();
 
   expect(isAskingToUpdate()).toBe(true);
+  expect(checkForUpdate).toHaveBeenCalled();
 });
