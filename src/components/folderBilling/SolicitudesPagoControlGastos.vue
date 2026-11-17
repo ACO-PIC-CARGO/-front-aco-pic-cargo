@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -52,7 +52,8 @@ const { revisando, revisar: aprobar } = useRevisionSolicitudPago(() => cargar())
 const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
 
 function etiquetaProveedor(s: SolicitudPagoControl) {
-  return `${s.proveedor} (${s.id_proveedor})`;
+  // en el listado de solicitudes va solo el nombre (sin el id del proveedor)
+  return s.proveedor;
 }
 
 function cuentaOCodigo(s: SolicitudPagoControl) {
@@ -167,6 +168,8 @@ const {
   eliminando: eliminandoSolicitud,
   editar: editarSolicitud,
   eliminar: eliminarSolicitud,
+  eliminandoSoporte,
+  eliminarSoporte,
 } = useAccionesSolicitudPago(() => cargar());
 const puedeEditarSolicitud = computed(() => can("listControlGastos", "NUEVO") || can("solicitudesPagoBancos", "MODIFICAR"));
 const puedeEliminarSolicitud = computed(() => can("listControlGastos", "ELIMINAR") || can("solicitudesPagoBancos", "MODIFICAR"));
@@ -196,6 +199,14 @@ watch(
   () => cargar(),
   { immediate: true },
 );
+
+// Bancos > Solicitudes de Pago puede cambiarla en otra pestaña (aprobar, soporte, eliminar):
+// al volver a esta pestaña se recarga para no mostrar datos viejos
+function recargarAlVolver() {
+  if (document.visibilityState === "visible") cargar();
+}
+onMounted(() => document.addEventListener("visibilitychange", recargarAlVolver));
+onBeforeUnmount(() => document.removeEventListener("visibilitychange", recargarAlVolver));
 
 defineExpose({ cargar });
 </script>
@@ -393,17 +404,33 @@ defineExpose({ cargar });
                 v-if="s.pagadoflag"
                 class="solpago__soporte"
               >
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="primary"
-                  title="Ver soporte de pago"
-                  data-modo-ver="permitido"
-                  @click="abrir(s.soporte_path)"
-                >
-                  <v-icon>mdi-file-eye-outline</v-icon>
-                </v-btn>
+                <span class="d-inline-flex align-center">
+                  <v-btn
+                    icon
+                    variant="text"
+                    size="small"
+                    color="primary"
+                    title="Ver soporte de pago"
+                    data-modo-ver="permitido"
+                    @click="abrir(s.soporte_path)"
+                  >
+                    <v-icon>mdi-file-eye-outline</v-icon>
+                  </v-btn>
+                  <!-- ya se pagó: el soporte solo se elimina con la clave del Super administrador -->
+                  <v-btn
+                    v-if="puedeEliminarSolicitud && !s.id_pagoegreso && !anuladaSolicitud(s)"
+                    icon
+                    variant="text"
+                    size="small"
+                    color="error"
+                    title="Eliminar soporte de pago (requiere clave del Super administrador)"
+                    aria-label="Eliminar soporte de pago"
+                    :loading="eliminandoSoporte === s.id"
+                    @click="eliminarSoporte(s)"
+                  >
+                    <v-icon>mdi-file-remove-outline</v-icon>
+                  </v-btn>
+                </span>
                 <!-- con el soporte cargado ya se puede registrar el pago en Bancos -->
                 <button
                   v-if="s.id_pagoegreso"
@@ -499,7 +526,9 @@ defineExpose({ cargar });
       :procesando="procesando"
       :revisando="revisando"
       :eliminando="eliminandoSolicitud"
+      :eliminando-soporte="eliminandoSoporte"
       @aprobar="(sol, tipo) => aprobar(sol as SolicitudPagoControl, tipo)"
+      @eliminar-soporte="eliminarSoporte"
       @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoControl)"
       @transferir="(sol) => transferir(sol as SolicitudPagoControl)"
       @ver-salida="(sol) => verSalida(sol as SolicitudPagoControl)"
@@ -566,6 +595,29 @@ defineExpose({ cargar });
   border: 1px solid var(--sp-border);
   background: var(--sp-surface);
   box-shadow: 0 4px 16px rgba(30, 58, 138, 0.06);
+  /* barra de scroll horizontal siempre visible y sin tapar la última fila */
+  padding-bottom: 4px;
+}
+/* Firefox (en Chrome, scrollbar-color anularía los estilos ::-webkit-scrollbar) */
+@supports not selector(::-webkit-scrollbar) {
+  .solpago__tablewrap {
+    scrollbar-color: #1e5bd8 #e7efff;
+  }
+}
+.solpago__tablewrap::-webkit-scrollbar {
+  height: 12px;
+}
+.solpago__tablewrap::-webkit-scrollbar-track {
+  border-radius: 0 0 14px 14px;
+  background: #e7efff;
+}
+.solpago__tablewrap::-webkit-scrollbar-thumb {
+  border: 2px solid #e7efff;
+  border-radius: 999px;
+  background: #1e5bd8;
+}
+.solpago__tablewrap::-webkit-scrollbar-thumb:hover {
+  background: #0b3d91;
 }
 .solpago__table {
   width: 100%;

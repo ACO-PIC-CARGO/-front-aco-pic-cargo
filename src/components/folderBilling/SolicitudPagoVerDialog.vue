@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import { useDisplay } from "vuetify";
 import { sessionUser } from "@/utils/sesion";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import type { FacturaProveedorCargada, SolicitudPagoDetalle } from "@/types/billingEntries";
@@ -8,6 +9,8 @@ import type { FacturaProveedorCargada, SolicitudPagoDetalle } from "@/types/bill
 // Una pestaña por cada factura / proforma cargada del proveedor y, siempre al final, la solicitud de pago,
 // que se ve igual al PDF de pago (Backend-Aco/src/views/pdf-solicitud.ejs).
 const props = defineProps<{ idSolicitud: number | null }>();
+// celular: pantalla completa, pestañas del mismo ancho y pagos del expediente en tarjetas
+const { smAndDown } = useDisplay();
 const abierto = defineModel<boolean>({ default: false });
 
 const MESES = [
@@ -42,7 +45,7 @@ function tipoArchivo(f: FacturaProveedorCargada): "pdf" | "imagen" | "otro" {
 // "Ver Proforma – 1909" | "Solicitud de Pago" (la solicitud siempre al final)
 function tituloPestana(f: FacturaProveedorCargada) {
   const tipo = f.type_pago == 1 ? "Factura" : f.type_pago == 2 ? "Proforma" : "Archivo";
-  return `Ver ${tipo}${f.number ? ` – ${f.number}` : ""}`;
+  return `${smAndDown.value ? "" : "Ver "}${tipo}${f.number ? ` – ${f.number}` : ""}`;
 }
 const pestanas = computed(() => [
   ...facturas.value.map((f) => ({
@@ -50,7 +53,7 @@ const pestanas = computed(() => [
     titulo: tituloPestana(f),
     icono: tipoArchivo(f) === "imagen" ? "mdi-file-image-outline" : "mdi-file-document-outline",
   })),
-  { value: TAB_SOLICITUD as string | number, titulo: "Solicitud de Pago", icono: "mdi-wallet-outline" },
+  { value: TAB_SOLICITUD as string | number, titulo: smAndDown.value ? "Solicitud" : "Solicitud de Pago", icono: "mdi-wallet-outline" },
 ]);
 
 const facturaActual = computed(() => facturas.value.find((f) => f.id === tab.value) ?? null);
@@ -89,14 +92,34 @@ function formatoFecha(valor: string | null | undefined) {
   return `${Number(dia)} de ${MESES[Number(mes) - 1]} del ${anio}`;
 }
 
-// "PLUS AGENCIA DE ADUANAS(11792) - 0001", como en el PDF de pago
-function nombreProveedor(nombre: string, id: number, correlativo: string | null) {
-  return `${nombre}(${id})${correlativo ? ` - ${correlativo}` : ""}`;
+// solo el nombre, sin el id del proveedor; en Pagos del expediente se agrega el correlativo
+// para distinguir dos correlativos del mismo proveedor ("PIL PERÚ NAVIERA - 0002")
+function nombreProveedor(nombre: string, correlativo: string | null) {
+  return `${nombre}${correlativo ? ` - ${correlativo}` : ""}`;
 }
 
 function esActual(p: SolicitudPagoDetalle["pendientes"][number]) {
   const d = detalle.value;
   return !!d && p.id_proveedor === d.id_proveedor && (p.id_correlativo ?? null) === (d.id_correlativo ?? null);
+}
+
+// celular: los pagos del expediente van en tarjetas; se ven los primeros (y siempre el de la solicitud)
+// y el resto con "Ver más"
+const PENDIENTES_VISIBLES = 4;
+const verTodosPendientes = ref(false);
+const pendientesMovil = computed(() => {
+  const lista = detalle.value?.pendientes ?? [];
+  return verTodosPendientes.value ? lista : lista.filter((p, i) => i < PENDIENTES_VISIBLES || esActual(p));
+});
+const pendientesOcultos = computed(() => (detalle.value?.pendientes.length ?? 0) - pendientesMovil.value.length);
+// icono según el giro que se lee en el nombre del proveedor
+function iconoProveedor(nombre: string) {
+  const n = nombre.toUpperCase();
+  if (/ADUAN/.test(n)) return "mdi-office-building-outline";
+  if (/NAVIER|SHIPPING|LINE|MARITIM|LOGISTIC|WORLD/.test(n)) return "mdi-ferry";
+  if (/TRANSP|CARGA|TRUCK|COURIER/.test(n)) return "mdi-truck-outline";
+  if (/DEPOT|DEPOSIT|ALMAC|WAREHOUSE|TERMINAL/.test(n)) return "mdi-warehouse";
+  return "mdi-storefront-outline";
 }
 
 async function cargar() {
@@ -106,6 +129,7 @@ async function cargar() {
   detalle.value = null;
   facturas.value = [];
   tab.value = TAB_SOLICITUD;
+  verTodosPendientes.value = false;
   const response = await request<SolicitudPagoDetalle>({
     method: "get",
     url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_ver/" + props.idSolicitud,
@@ -135,9 +159,13 @@ watch(
   <v-dialog
     v-model="abierto"
     max-width="760"
+    :fullscreen="smAndDown"
     scrollable
   >
-    <v-card class="spver">
+    <v-card
+      class="spver"
+      :class="{ 'spver--movil': smAndDown }"
+    >
       <v-btn
         icon="mdi-close"
         variant="text"
@@ -169,6 +197,7 @@ watch(
         v-if="detalle && facturas.length"
         class="spver__tabs"
         role="tablist"
+        :style="smAndDown ? { gridTemplateColumns: `repeat(${pestanas.length}, minmax(0, 1fr))` } : undefined"
       >
         <button
           v-for="t in pestanas"
@@ -180,10 +209,10 @@ watch(
           :aria-selected="tab === t.value"
           @click="tab = t.value"
         >
-          <v-icon size="26">
+          <v-icon :size="smAndDown ? 20 : 26">
             {{ t.icono }}
           </v-icon>
-          <span>{{ t.titulo }}</span>
+          <span class="spver__tablabel">{{ t.titulo }}</span>
         </button>
       </div>
 
@@ -192,6 +221,17 @@ watch(
         v-if="detalle && facturaActual"
         class="spver__doc"
       >
+        <!-- en celular el PDF muchas veces no se ve dentro de la página: se abre aparte -->
+        <a
+          v-if="smAndDown"
+          :href="facturaActual.path"
+          target="_blank"
+          rel="noopener"
+          class="spver__open"
+        >
+          <v-icon size="18">mdi-open-in-new</v-icon>
+          Abrir {{ tipoArchivo(facturaActual) === "pdf" ? "PDF" : "archivo" }}
+        </a>
         <iframe
           v-if="tipoArchivo(facturaActual) === 'pdf'"
           :src="facturaActual.path"
@@ -257,7 +297,7 @@ watch(
                 Proveedor
               </div>
               <div class="hero__value">
-                {{ nombreProveedor(detalle.proveedor, detalle.id_proveedor, detalle.correlativo) }}
+                {{ detalle.proveedor }}
               </div>
             </div>
           </div>
@@ -537,7 +577,68 @@ watch(
             /></svg>
             Pagos Pendientes del Expediente
           </div>
-          <div class="tabla">
+          <!-- celular: tarjetas por proveedor con Pricing y Operaciones -->
+          <div
+            v-if="smAndDown"
+            class="pmov"
+          >
+            <p
+              v-if="!detalle.pendientes.length"
+              class="center text-medium-emphasis"
+            >
+              No hay pagos en el expediente.
+            </p>
+            <article
+              v-for="p in pendientesMovil"
+              :key="`${p.id_proveedor}-${p.id_correlativo}`"
+              class="pmov__card"
+              :class="{ 'pmov__card--actual': esActual(p) }"
+            >
+              <div class="pmov__head">
+                <span class="pmov__icon">
+                  <v-icon size="24">{{ iconoProveedor(p.proveedor) }}</v-icon>
+                </span>
+                <div class="pmov__name">
+                  <div class="pmov__prov">
+                    {{ p.proveedor }}
+                  </div>
+                  <div class="pmov__code">
+                    Código: {{ p.id_proveedor }}{{ p.correlativo ? ` - ${p.correlativo}` : "" }}
+                  </div>
+                </div>
+                <span
+                  class="status"
+                  :class="{ 'status--pagado': p.pagado }"
+                >{{ p.pagado ? "Pagado" : "Pendiente" }}</span>
+              </div>
+              <div class="pmov__montos">
+                <div>
+                  <span class="pmov__label"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ detalle.moneda || "USD" }})</span>
+                  <b>{{ formatoMonto(p.total_pr) }}</b>
+                </div>
+                <div>
+                  <span class="pmov__label"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ detalle.moneda || "USD" }})</span>
+                  <b>{{ formatoMonto(p.total_op ?? p.total) }}</b>
+                </div>
+              </div>
+            </article>
+            <v-btn
+              v-if="pendientesOcultos > 0 || verTodosPendientes"
+              block
+              variant="tonal"
+              color="primary"
+              rounded="lg"
+              class="pmov__mas"
+              :append-icon="verTodosPendientes ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              @click="verTodosPendientes = !verTodosPendientes"
+            >
+              {{ verTodosPendientes ? "Ver menos" : `Ver más (${pendientesOcultos})` }}
+            </v-btn>
+          </div>
+          <div
+            v-else
+            class="tabla"
+          >
             <table>
               <thead>
                 <tr>
@@ -567,7 +668,7 @@ watch(
                   :key="`${p.id_proveedor}-${p.id_correlativo}`"
                   :class="{ actual: esActual(p) }"
                 >
-                  <td>{{ nombreProveedor(p.proveedor, p.id_proveedor, p.correlativo) }}</td>
+                  <td>{{ nombreProveedor(p.proveedor, p.correlativo) }}</td>
                   <td class="num">
                     {{ formatoMonto(p.total_pr) }}
                   </td>
@@ -669,6 +770,77 @@ watch(
     padding: 8px 16px;
     font-size: 1rem;
   }
+}
+/* celular: pantalla completa; la X arriba con su propio espacio y pestañas del mismo ancho */
+.spver--movil {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 0 !important;
+}
+.spver--movil .spver__close {
+  top: 4px;
+  right: 4px;
+}
+.spver--movil .spver__tabs {
+  display: grid;
+  gap: 6px;
+  padding: 48px 10px 0;
+  overflow: visible;
+}
+.spver--movil .spver__tab {
+  justify-content: center;
+  min-width: 0;
+  min-height: 44px;
+  gap: 6px;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+}
+.spver__tablabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spver--movil .spver__doc {
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: auto;
+  min-height: 0;
+  padding: 10px;
+}
+.spver--movil .spver__docframe {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.spver--movil .spver__docimg {
+  max-height: 100%;
+  min-height: 0;
+  object-fit: contain;
+  align-self: center;
+}
+.spver__open {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-end;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #0b5fd6;
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.spver--movil .spver__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 52px 14px 20px;
+}
+.spver--movil .spver__tabs + .spver__body {
+  padding-top: 16px;
 }
 /* factura / proforma: el archivo ocupa el modal */
 .spver__doc {
@@ -1018,6 +1190,91 @@ tr.actual td {
 .status--pagado {
   background: #d8f0d2;
   color: #1d6b12;
+}
+
+/* pagos del expediente en celular */
+.pmov {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pmov__card {
+  padding: 12px;
+  border: 1px solid #dce5f2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(10, 31, 68, 0.05);
+}
+.pmov__card--actual {
+  border-color: #f3d58a;
+  background: #fff8e6;
+}
+.pmov__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.pmov__icon {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #e8f0fc;
+  color: #0b3d91;
+}
+.pmov__name {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.pmov__prov {
+  font-size: 0.98rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+.pmov__code {
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: #4a5670;
+}
+.pmov__montos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: #eef3fb;
+}
+.pmov__card--actual .pmov__montos {
+  background: #fcefd0;
+}
+.pmov__montos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 10px;
+}
+.pmov__montos > div + div {
+  border-left: 1px solid #c9d6ea;
+}
+.pmov__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: #4a5670;
+}
+.pmov__montos b {
+  font-size: 1.2rem;
+  font-weight: 900;
+}
+.pmov__mas {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 800;
 }
 
 .nota {

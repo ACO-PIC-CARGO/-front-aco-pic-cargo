@@ -62,7 +62,7 @@ const router = useRouter();
 const puedeModificar = computed(() => can("solicitudesPagoBancos", "MODIFICAR"));
 const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
 // móvil: tarjetas por estado (sin Excel, buscador ni Limpiar)
-const { smAndDown } = useDisplay();
+const { smAndDown, width: anchoPantalla } = useDisplay();
 const procesando = ref<number | null>(null);
 
 // ver solicitud (ojito)
@@ -82,9 +82,14 @@ const {
   eliminando: eliminandoSolicitud,
   editar: editarSolicitud,
   eliminar: eliminarSolicitud,
-} = useAccionesSolicitudPago(() => cargar());
+  eliminandoSoporte,
+  eliminarSoporte,
+} = useAccionesSolicitudPago(() => emit("actualizado"));
 const puedeEditarSolicitud = computed(() => can("listControlGastos", "NUEVO") || can("solicitudesPagoBancos", "MODIFICAR"));
 const puedeEliminarSolicitud = computed(() => can("listControlGastos", "ELIMINAR") || can("solicitudesPagoBancos", "MODIFICAR"));
+// soporte de pago: se elimina solo con la clave del Super administrador y sin salida en Bancos
+const puedeEliminarSoporte = (s: SolicitudPagoBandeja) =>
+  puedeEliminarSolicitud.value && !!s.pagadoflag && !s.id_pagoegreso && s.codigo_estado !== "ELIMINADA";
 const anuladaSolicitud = (s: SolicitudPagoAccion & { fecha_anulado?: string | null; usuario_anulado?: string | null }) => !!(s.fecha_anulado || s.usuario_anulado);
 function tituloAccion(s: SolicitudPagoAccion, accion: "Editar" | "Eliminar") {
   if (tieneSalidaBancosSolicitud(s)) return "Ya está pagada en Bancos: elimine primero el movimiento";
@@ -350,7 +355,8 @@ async function exportar() {
 }
 
 function proveedor(s: SolicitudPagoBandeja) {
-  return `${s.proveedor} (${s.id_proveedor})`;
+  // en el listado de solicitudes va solo el nombre (sin el id del proveedor)
+  return s.proveedor;
 }
 function cuentaOCodigo(s: SolicitudPagoBandeja) {
   return (s.codigo_tipopago === "02" ? s.codigopago : s.nrocuenta) || "";
@@ -487,12 +493,12 @@ onMounted(cargar);
         :procesando="procesando"
         :revisando="revisando"
         :eliminando="eliminandoSolicitud"
+        :eliminando-soporte="eliminandoSoporte"
         @aprobar="(sol, tipo) => revisar(sol as SolicitudPagoBandeja, tipo)"
+        @eliminar-soporte="eliminarSoporte"
         @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoBandeja)"
         @transferir="(sol) => transferir(sol as SolicitudPagoBandeja)"
         @ver-salida="(sol) => verSalida(sol as SolicitudPagoBandeja)"
-        ver-anexo
-        @ver-anexo="(sol) => verAnexo(sol as SolicitudPagoBandeja)"
         @editar="editarSolicitud"
         @eliminar="eliminarSolicitud"
         @ver="(sol) => verSolicitud(sol as SolicitudPagoBandeja)"
@@ -718,15 +724,28 @@ onMounted(cargar);
             v-if="item.soporte_path"
             class="spb__soporte"
           >
-            <v-btn
-              icon="mdi-file-eye-outline"
-              variant="text"
-              size="small"
-              color="primary"
-              title="Ver soporte de pago"
-              aria-label="Ver soporte de pago"
-              @click="abrir(item.soporte_path)"
-            />
+            <div class="spb__soporteicons">
+              <v-btn
+                icon="mdi-file-eye-outline"
+                variant="text"
+                size="small"
+                color="primary"
+                title="Ver soporte de pago"
+                aria-label="Ver soporte de pago"
+                @click="abrir(item.soporte_path)"
+              />
+              <v-btn
+                v-if="puedeEliminarSoporte(item)"
+                icon="mdi-file-remove-outline"
+                variant="text"
+                size="small"
+                color="error"
+                title="Eliminar soporte de pago (requiere clave del Super administrador)"
+                aria-label="Eliminar soporte de pago"
+                :loading="eliminandoSoporte === item.id"
+                @click="eliminarSoporte(item)"
+              />
+            </div>
             <!-- con el soporte cargado ya se puede registrar el pago en Bancos -->
             <button
               v-if="item.id_pagoegreso"
@@ -897,12 +916,19 @@ onMounted(cargar);
       v-model="panelFiltros"
       location="right"
       temporary
-      width="380"
+      :width="smAndDown ? anchoPantalla : 380"
       class="spb__drawer"
+      :class="{ 'spb__drawer--movil': smAndDown }"
     >
       <div class="spb__drawerhead">
         <div>
           <div class="spb__drawertitle">
+            <v-icon
+              size="22"
+              class="mr-1"
+            >
+              mdi-filter-variant
+            </v-icon>
             Filtrar solicitudes
           </div>
           <div class="spb__sub">
@@ -1060,10 +1086,53 @@ onMounted(cargar);
   border-radius: 14px;
   background: #fff;
   box-shadow: 0 4px 16px rgba(30, 58, 138, 0.06);
+  /* barra de scroll horizontal siempre visible y sin tapar la última fila */
+  padding-bottom: 4px;
+}
+/* Firefox (en Chrome, scrollbar-color anularía los estilos ::-webkit-scrollbar) */
+@supports not selector(::-webkit-scrollbar) {
+  .spb__tablewrap {
+    scrollbar-color: #1e5bd8 #e7efff;
+  }
+}
+.spb__tablewrap::-webkit-scrollbar {
+  height: 12px;
+}
+.spb__tablewrap::-webkit-scrollbar-track {
+  border-radius: 0 0 14px 14px;
+  background: #e7efff;
+}
+.spb__tablewrap::-webkit-scrollbar-thumb {
+  border: 2px solid #e7efff;
+  border-radius: 999px;
+  background: #1e5bd8;
+}
+.spb__tablewrap::-webkit-scrollbar-thumb:hover {
+  background: #0b3d91;
 }
 .spb__table {
   font-size: 0.85rem;
   background: transparent;
+}
+/* el scroll horizontal lo hace el contenedor interno de la tabla: barra visible */
+@supports not selector(::-webkit-scrollbar) {
+  .spb__table :deep(.v-table__wrapper) {
+    scrollbar-color: #1e5bd8 #e7efff;
+  }
+}
+.spb__table :deep(.v-table__wrapper::-webkit-scrollbar) {
+  height: 12px;
+}
+.spb__table :deep(.v-table__wrapper::-webkit-scrollbar-track) {
+  background: #e7efff;
+}
+.spb__table :deep(.v-table__wrapper::-webkit-scrollbar-thumb) {
+  border: 2px solid #e7efff;
+  border-radius: 999px;
+  background: #1e5bd8;
+}
+.spb__table :deep(.v-table__wrapper::-webkit-scrollbar-thumb:hover) {
+  background: #0b3d91;
 }
 .spb__table :deep(thead th) {
   background: #e7efff !important;
@@ -1108,6 +1177,11 @@ onMounted(cargar);
 /* soporte: ver soporte arriba, registrar en banco / salida abajo */
 .spb__soporte {
   flex-direction: column;
+}
+.spb__soporteicons {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
 }
 .spb__anexo {
   display: inline-flex;
@@ -1272,6 +1346,59 @@ onMounted(cargar);
   justify-content: flex-end;
   padding: 12px 16px;
   border-top: 1px solid var(--spb-border);
+}
+
+/* filtros en celular: pantalla completa, campos cómodos y botones a todo el ancho */
+.spb__drawer--movil {
+  border-radius: 0;
+}
+.spb__drawer--movil .spb__drawerhead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  align-items: center;
+  padding: 14px 16px;
+  background: #f4f8ff;
+}
+.spb__drawer--movil .spb__drawertitle {
+  display: flex;
+  align-items: center;
+  font-size: 1.15rem;
+}
+.spb__drawer--movil .spb__drawerbody {
+  gap: 14px;
+  padding: 16px 16px 24px;
+}
+.spb__drawer--movil .spb__field {
+  padding: 12px;
+  border: 1px solid var(--spb-border);
+  border-radius: 14px;
+  background: #fff;
+}
+.spb__drawer--movil .spb__field label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--spb-primary);
+}
+.spb__drawer--movil .spb__dates {
+  grid-template-columns: 1fr;
+}
+.spb__drawer--movil .spb__drawerfoot {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  background: #fff;
+  box-shadow: 0 -6px 16px rgba(30, 58, 138, 0.08);
+}
+.spb__drawer--movil .spb__drawerfoot .v-btn {
+  height: 46px;
+  border-radius: 12px;
+  font-weight: 800;
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 /* acciones: editar, eliminar y ver */

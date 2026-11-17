@@ -61,7 +61,7 @@ test("groups by state in order, with deleted ones at the very end", () => {
 test("a card expands on click; a deleted one has no edit or delete", async () => {
   const w = render([fila(4, "LISTO", "Listo para transferir"), fila(1, "ELIMINADA", "Eliminada", { fecha_anulado: "2026-11-13 11:00" })]);
   const [abierta, eliminada] = w.findAll(".mov__card");
-  await abierta!.find(".mov__cardhead").trigger("click");
+  await abierta!.find(".mov__vermas").trigger("click");
   expect(abierta!.text()).toContain("191-1");
   expect(abierta!.text()).toContain("Editar");
   expect(eliminada!.text()).not.toContain("Editar");
@@ -74,7 +74,7 @@ test("paid requests already registered in Bancos go below the ones still to regi
     fila(7, "PAGADO", "Pagado", { pagadoflag: true, id_pagoegreso: 7088, numerooperacion_pago: "OP-1", proveedor: "CON SALIDA" }),
     fila(8, "PAGADO", "Pagado", { pagadoflag: true, proveedor: "SIN SALIDA" }),
   ]);
-  expect(w.findAll(".mov__provname").map((n) => n.text())).toEqual(["SIN SALIDA (40)", "CON SALIDA (40)"]);
+  expect(w.findAll(".mov__resumenprov").map((n) => n.text())).toEqual(["SIN SALIDA", "CON SALIDA"]);
 });
 
 test("a closed card shows the bank exit number as a chip once it is registered", () => {

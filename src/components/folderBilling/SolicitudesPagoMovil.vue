@@ -31,6 +31,10 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   fechapago: string | null;
   soporte_path: string | null;
   cliente_pago?: ClientePagoEstado | null;
+  correlativo?: string | null;
+  /** totales del proveedor en el expediente: Pricing y Operaciones (tarjeta cerrada) */
+  total_pr?: number | string | null;
+  total_op?: number | string | null;
 }
 
 const props = defineProps<{
@@ -44,6 +48,7 @@ const props = defineProps<{
   procesando?: number | null;
   revisando?: number | null;
   eliminando?: number | null;
+  eliminandoSoporte?: number | null;
   /** botón "Ver anexo" (solo Bancos > Solicitudes de Pago; en Control de Gastos se quitó) */
   verAnexo?: boolean;
 }>();
@@ -55,6 +60,7 @@ const emit = defineEmits<{
   "ver-anexo": [s: SolicitudPagoMovilItem];
   editar: [s: SolicitudPagoMovilItem];
   eliminar: [s: SolicitudPagoMovilItem];
+  "eliminar-soporte": [s: SolicitudPagoMovilItem];
   ver: [s: SolicitudPagoMovilItem];
 }>();
 
@@ -82,7 +88,8 @@ const grupos = computed(() =>
 );
 
 const iconoEstado = (codigo: string) => ESTADOS.find((e) => e.codigo === codigo)?.icono ?? "mdi-circle-outline";
-const etiquetaProveedor = (s: SolicitudPagoMovilItem) => `${s.proveedor} (${s.id_proveedor})`;
+// en el listado de solicitudes va solo el nombre (sin el id del proveedor)
+const etiquetaProveedor = (s: SolicitudPagoMovilItem) => s.proveedor;
 const cuentaOCodigo = (s: SolicitudPagoMovilItem) => (s.codigo_tipopago === "02" ? s.codigopago || "" : s.nrocuenta || "");
 const eliminada = (s: SolicitudPagoMovilItem) => s.codigo_estado === "ELIMINADA" || !!s.fecha_anulado;
 const formatoMonto = (v: number | string) =>
@@ -92,6 +99,17 @@ function formatoFecha(valor: string | null | undefined) {
   const [anio, mes, dia] = valor.slice(0, 10).split("-");
   return `${dia}-${MESES[Number(mes) - 1]}-${anio}`;
 }
+// icono según el giro que se lee en el nombre del proveedor
+function iconoProveedor(nombre: string) {
+  const n = (nombre || "").toUpperCase();
+  if (/ADUAN/.test(n)) return "mdi-office-building-outline";
+  if (/NAVIER|SHIPPING|LINE|MARITIM|LOGISTIC|WORLD/.test(n)) return "mdi-ferry";
+  if (/TRANSP|CARGA|TRUCK|COURIER/.test(n)) return "mdi-truck-outline";
+  if (/DEPOT|DEPOSIT|ALMAC|WAREHOUSE|TERMINAL/.test(n)) return "mdi-warehouse";
+  return "mdi-storefront-outline";
+}
+const codigoProveedor = (s: SolicitudPagoMovilItem) => `${s.id_proveedor}${s.correlativo ? ` - ${s.correlativo}` : ""}`;
+const tieneTotales = (s: SolicitudPagoMovilItem) => s.total_pr != null || s.total_op != null;
 const fechaHora = (v: string | null | undefined) => (v ? `${formatoFecha(v)} ${v.slice(11, 16)}`.trim() : "");
 function tituloAccion(s: SolicitudPagoMovilItem, accion: "Editar" | "Eliminar") {
   if (tieneSalidaBancosSolicitud(s)) return "Ya está pagada en Bancos: elimine primero el movimiento";
@@ -145,23 +163,86 @@ function abrir(url: string | null | undefined) {
             class="mov__card"
             :class="`mov__card--${s.codigo_estado}`"
           >
+            <!-- cerrada: proveedor, código, estado, Pricing / Operaciones y "Ver más" -->
+            <div
+              v-if="!tarjetasAbiertas[s.id]"
+              class="mov__resumen"
+            >
+              <div class="mov__resumenhead">
+                <span class="mov__resumenicon">
+                  <v-icon size="24">{{ iconoProveedor(s.proveedor) }}</v-icon>
+                </span>
+                <div class="mov__resumenname">
+                  <div class="mov__resumenprov">
+                    {{ s.proveedor }}
+                  </div>
+                  <div class="mov__resumencode">
+                    Código: {{ codigoProveedor(s) }}
+                  </div>
+                </div>
+                <span
+                  class="mov__chip"
+                  :class="`mov__chip--${s.codigo_estado}`"
+                >
+                  <v-icon size="14">{{ iconoEstado(s.codigo_estado) }}</v-icon>
+                  {{ s.estado }}
+                </span>
+              </div>
+              <div
+                v-if="tieneTotales(s)"
+                class="mov__montos"
+              >
+                <div>
+                  <span class="mov__montolabel"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ s.moneda || "USD" }})</span>
+                  <b>{{ formatoMonto(s.total_pr ?? 0) }}</b>
+                </div>
+                <div>
+                  <span class="mov__montolabel"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ s.moneda || "USD" }})</span>
+                  <b>{{ formatoMonto(s.total_op ?? 0) }}</b>
+                </div>
+              </div>
+              <div
+                v-else
+                class="mov__montos mov__montos--uno"
+              >
+                <div>
+                  <span class="mov__montolabel"><v-icon size="16">mdi-cash</v-icon> Monto ({{ s.moneda || "USD" }})</span>
+                  <b>{{ formatoMonto(s.monto) }}</b>
+                </div>
+              </div>
+              <div class="mov__resumenfoot">
+                <span class="mov__meta">
+                  <span class="mov__pill">{{ s.expediente }}</span>
+                  <!-- ya registrada en Bancos > Salidas -->
+                  <span
+                    v-if="s.id_pagoegreso"
+                    class="mov__chip mov__chip--salida"
+                  >
+                    <v-icon size="14">mdi-check-decagram</v-icon>
+                    Salida N° {{ s.numerooperacion_pago }}
+                  </span>
+                </span>
+                <v-btn
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  rounded="pill"
+                  append-icon="mdi-chevron-down"
+                  data-modo-ver="permitido"
+                  class="mov__vermas"
+                  @click="tarjetasAbiertas[s.id] = true"
+                >
+                  Ver más
+                </v-btn>
+              </div>
+            </div>
             <button
+              v-else
               type="button"
               class="mov__cardhead"
               data-modo-ver="permitido"
               @click="tarjetasAbiertas[s.id] = !tarjetasAbiertas[s.id]"
             >
-              <span
-                class="mov__cardicon"
-                data-modo-ver="permitido"
-                title="Copiar proveedor"
-                @click.stop="copiar(etiquetaProveedor(s))"
-              >
-                <v-icon
-                  size="18"
-                  color="primary"
-                >mdi-content-copy</v-icon>
-              </span>
               <!-- nombre completo arriba; expediente y estado debajo (pasan a otra línea si no entran) -->
               <span class="mov__cardmain">
                 <span class="mov__provname">{{ etiquetaProveedor(s) }}</span>
@@ -183,6 +264,18 @@ function abrir(url: string | null | undefined) {
                     Salida N° {{ s.numerooperacion_pago }}
                   </span>
                 </span>
+              </span>
+              <!-- copiar: siempre a la derecha -->
+              <span
+                class="mov__cardicon"
+                data-modo-ver="permitido"
+                title="Copiar proveedor"
+                @click.stop="copiar(etiquetaProveedor(s))"
+              >
+                <v-icon
+                  size="18"
+                  color="primary"
+                >mdi-content-copy</v-icon>
               </span>
               <span class="mov__cardmonto">
                 {{ formatoMonto(s.monto) }} <small>{{ s.moneda }}</small>
@@ -315,6 +408,20 @@ function abrir(url: string | null | undefined) {
                       @click="abrir(s.soporte_path)"
                     >
                       Ver soporte
+                    </v-btn>
+                    <!-- ya se pagó: el soporte solo se elimina con la clave del Super administrador -->
+                    <v-btn
+                      v-if="puedeEliminar && !s.id_pagoegreso"
+                      size="small"
+                      variant="tonal"
+                      color="error"
+                      rounded="pill"
+                      prepend-icon="mdi-file-remove-outline"
+                      title="Eliminar soporte de pago (requiere clave del Super administrador)"
+                      :loading="eliminandoSoporte === s.id"
+                      @click="emit('eliminar-soporte', s)"
+                    >
+                      Eliminar soporte
                     </v-btn>
                     <v-btn
                       v-if="s.id_pagoegreso"
@@ -519,9 +626,9 @@ function abrir(url: string | null | undefined) {
 .mov__cardicon {
   display: grid;
   place-items: center;
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: var(--sp-soft);
 }
@@ -595,6 +702,98 @@ function abrir(url: string | null | undefined) {
 .mov__cardbody {
   padding: 0 12px 12px;
 }
+/* tarjeta cerrada */
+.mov__resumen {
+  padding: 12px;
+}
+.mov__resumenhead {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.mov__resumenicon {
+  display: grid;
+  flex: 0 0 44px;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--sp-soft);
+  color: var(--sp-primary);
+}
+.mov__resumenname {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mov__resumenprov {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 0.98rem;
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: uppercase;
+  color: var(--sp-primary);
+  word-break: break-word;
+}
+.mov__resumencode {
+  margin-top: 2px;
+  font-size: 0.82rem;
+  color: var(--sp-muted);
+}
+.mov__resumenhead .mov__chip {
+  flex: 0 1 auto;
+  max-width: 45%;
+  white-space: normal;
+  line-height: 1.15;
+}
+.mov__montos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  padding: 8px 4px;
+  border-radius: 12px;
+  background: #f1f5fc;
+}
+.mov__montos--uno {
+  grid-template-columns: 1fr;
+}
+.mov__montos > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 10px;
+}
+.mov__montos > div + div {
+  border-left: 1px solid var(--sp-border);
+}
+.mov__montolabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  color: var(--sp-muted);
+  white-space: nowrap;
+}
+.mov__montos b {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--sp-text);
+}
+.mov__resumenfoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 10px;
+}
+.mov__vermas {
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 800;
+}
 .mov__detail {
   padding: 10px 12px;
   border-radius: 12px;
@@ -616,9 +815,11 @@ function abrir(url: string | null | undefined) {
   font-weight: 600;
   word-break: break-word;
 }
+/* copiar: siempre a la derecha */
 .mov__cuenta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 2px;
 }
 .mov__paydate {

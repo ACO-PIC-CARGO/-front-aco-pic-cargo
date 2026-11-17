@@ -39,7 +39,9 @@ import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import { avisoDocumentoConSolicitud, avisoSolicitudEnviada, montoConMoneda } from "@/utils/solicitudPagoAvisos";
 import {
+  quitarSoporteAntesDeEliminar,
   confirmarEliminarSolicitud,
   mensajeClaveSolicitud,
   tieneAprobacionesSolicitud,
@@ -149,6 +151,14 @@ const monedaInvoice = computed(() => {
   const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
   return [acronimo, moneda?.name].filter(Boolean).join(" - ") || "—";
 });
+// "USD 220.00": totales del proveedor (Pricing / Operaciones) en el modal Cargar documento
+const montosInvoice = computed(() => {
+  const moneda = egreso.value?.detalle?.[0]?.acronym ?? "";
+  return {
+    pricing: montoConMoneda(egreso.value?.total_total_pr, moneda),
+    operaciones: montoConMoneda(egreso.value?.total_total_op, moneda),
+  };
+});
 const egresos = ref<EgresoForm>({
   id: null,
   id_orders: "",
@@ -170,26 +180,11 @@ const egresos = ref<EgresoForm>({
   totalopcuentabanco: 0,
 });
 const headersInvoice = [
-  {
-    title: "Nombre",
-    key: "originalname",
-  },
-  {
-    title: "Fecha",
-    key: "date_letra",
-  },
-  {
-    title: "Monto de la Factura",
-    key: "monto",
-  },
-  {
-    title: "Ver",
-    key: "path",
-  },
-  {
-    title: "Acción",
-    key: "action",
-  },
+  { title: "Nombre", key: "originalname", sortable: false },
+  { title: "Fecha", key: "date_letra", align: "center", sortable: false },
+  { title: "Monto de factura", key: "monto", align: "center", sortable: false },
+  { title: "Ver", key: "path", align: "center", sortable: false },
+  { title: "Acción", key: "action", align: "center", sortable: false },
 ] as const;
 const headersPdf = [
   {
@@ -748,18 +743,19 @@ async function _setInvoice() {
 }
 async function _delInvoice(id: number) {
   const proveedor = egreso.value as EgresoProveedor | undefined;
-  // Caso 2: con solicitud de pago no se elimina; primero se elimina la solicitud
+  // Caso 2: con solicitud de pago no se elimina directo: se ofrece eliminar primero la solicitud
+  // (confirmación con aprobaciones / soporte y, si hace falta, clave del Super administrador)
+  // y en seguida se continúa con la eliminación del documento.
   const solicitud = proveedor ? solicitudPagoDe(proveedor) : undefined;
-  if (solicitud) {
-    Swal.fire({
-      icon: "warning",
-      title: "No se puede eliminar",
-      html: `Tiene la solicitud de pago N° <b>${solicitud.id}</b>. Elimine primero la solicitud de pago.`,
-    });
-    return;
+  let solicitudEliminada = false;
+  if (solicitud && proveedor) {
+    if (!(await avisoDocumentoConSolicitud())) return;
+    if (!(await eliminarSolicitudPago(proveedor, true))) return;
+    solicitudEliminada = true;
   }
   // Caso 1: con PDF de pago, al confirmar se eliminan la factura y el PDF
-  const tienePdf = Number(proveedor?.solicitudes) > 0;
+  // (al eliminar la solicitud ya se eliminó también su PDF de pago)
+  const tienePdf = !solicitudEliminada && Number(proveedor?.solicitudes) > 0;
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
     title: "¿Eliminar el documento?",
@@ -1840,6 +1836,27 @@ function datosFormularioSolicitud() {
   };
 }
 
+// Facturas y proformas > botón del pie: abre el mismo paso que "Solicitar" (con los datos recién cargados)
+const egresoFacturas = computed(() => {
+  const e = egreso.value as EgresoProveedor | undefined;
+  if (!e?.id_proveedor) return null;
+  const clave = claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo);
+  return (masterEgresos.value || []).find((x) => claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo) === clave) ?? e;
+});
+const accionFacturasSolicitud = computed(() => {
+  const e = egresoFacturas.value;
+  if (!e || !can("listControlGastos", "NUEVO") || solicitudPagoDe(e)) return null;
+  return listoParaEnviar(e)
+    ? { texto: "ENVIAR A ADMINISTRACIÓN", icono: "mdi-send-outline" }
+    : { texto: "GENERAR PDF DE PAGO", icono: "mdi-file-pdf-box" };
+});
+function siguientePasoFacturas() {
+  const e = egresoFacturas.value;
+  if (!e) return;
+  dialogListInvoice.value = false;
+  abrirSolicitudPagoNueva(e);
+}
+
 // "Listo para Enviar" > eliminar: borra el PDF de pago guardado (vuelve "Solicitar")
 const eliminandoPdfGuardado = ref<string | null>(null);
 async function eliminarPdfGuardado(item: EgresoProveedor) {
@@ -2082,15 +2099,15 @@ async function registrarSolicitudPago(confirmar = true) {
     });
   guardandoSolicitudPago.value = false;
   if (warnIfRefused(response)) return;
+  // el monto se toma antes de cerrar el modal (conceptos de la solicitud)
+  const monto = montoConMoneda(totalModalSolicitudPago.value, monedaModalSolicitudPago.value);
   dialogSolicitudPagoNueva.value = false;
   pdfGeneradoEnModal.value = false;
-  // aviso final del flujo: PDF de pago generado y solicitud enviada
-  Swal.fire({
-    icon: "success",
-    title: editando ? "Solicitud reenviada a Administración" : "Solicitud enviada a Administración",
-    html: confirmar
-      ? `La solicitud de pago de <b>${item.nombre_proveedor}</b> quedó pendiente de aprobación.`
-      : `Se generó el PDF de pago y se envió la solicitud de pago de <b>${item.nombre_proveedor}</b>.<br>Quedó pendiente de aprobación.`,
+  // aviso final del flujo: proveedor y monto de la solicitud enviada
+  avisoSolicitudEnviada({
+    titulo: editando ? "Solicitud reenviada a Administración" : "Solicitud enviada a Administración",
+    proveedor: item.nombre_proveedor ?? "",
+    monto,
   });
   await cargarSolicitudesExistentes();
   emit("solicitudPagoRegistrada");
@@ -2108,15 +2125,23 @@ function formatoFechaSolicitud(valor: string | null) {
 }
 
 const eliminandoSolicitudPago = ref<number | null>(null);
-async function eliminarSolicitudPago(item: EgresoProveedor) {
-  const solicitud = solicitudPagoDe(item);
-  if (!solicitud || avisarSalidaBancos(item)) return;
-  if (!(await confirmarEliminarSolicitud(solicitud, item.nombre_proveedor))) return;
-  // con aprobaciones o soporte de pago se pide la clave de un administrador
-  let admin: AdminCredentials | undefined;
-  if (tieneAprobaciones(solicitud)) {
+// continuar=true: viene de eliminar la factura; avisa con una notificación y sigue con la factura
+async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): Promise<boolean> {
+  const existente = solicitudPagoDe(item);
+  if (!existente || avisarSalidaBancos(item)) return false;
+  // con soporte de pago no se elimina directo: primero se elimina el soporte (clave del Super administrador)
+  const previo = await quitarSoporteAntesDeEliminar(existente);
+  if (!previo) return false;
+  const solicitud = previo.solicitud;
+  if (!(await confirmarEliminarSolicitud(solicitud, partesProveedor(item.nombre_proveedor ?? "", item.id_proveedor).nombre))) {
+    if (previo.soporteEliminado) await cargarSolicitudesExistentes();
+    return false;
+  }
+  // con aprobaciones se pide la clave de un administrador (la del soporte, si ya se dio, sirve)
+  let admin = previo.admin;
+  if (!admin && tieneAprobaciones(solicitud)) {
     admin = await askAdminCredentials(mensajeClaveSolicitud(solicitud, "eliminarla"));
-    if (!admin) return;
+    if (!admin) return false;
   }
   eliminandoSolicitudPago.value = solicitud.id;
   const response = await request({
@@ -2125,11 +2150,13 @@ async function eliminarSolicitudPago(item: EgresoProveedor) {
     data: withAuthorization(admin),
   });
   eliminandoSolicitudPago.value = null;
-  if (warnIfRefused(response)) return;
-  Swal.fire({ icon: "success", text: response.mensaje });
+  if (warnIfRefused(response)) return false;
+  if (continuar) notifySuccess(response.mensaje);
+  else Swal.fire({ icon: "success", text: response.mensaje });
   // también se eliminó el PDF de pago: se recarga el listado (ojo desactivado y vuelve "Generar PDF")
   await Promise.all([cargarSolicitudesExistentes(), controlGastosStore.getListControlGastosMaster(route.params.id as string)]);
   emit("solicitudPagoRegistrada");
+  return true;
 }
 
 defineExpose({ cargarSolicitudesExistentes });
@@ -2267,57 +2294,60 @@ onMounted(async () => {
                 <td>{{ egresoProveedor.total_total_op }}</td>
                 <td>{{ egresoProveedor.monto_pagar_op }}</td>
                 <td v-if="editable">
-                  <v-btn
-                    v-if="can('listControlGastos', 'NUEVO')"
-                    color="info"
-                    class="my-1 mx-1"
-                    size="x-small"
-                    @click="nuevoEngreso(egresoProveedor)"
-                  >
-                    Nuevo Concepto
-                  </v-btn>
-                  <template v-if="can('listControlGastos', 'COPIAR')">
-                    <v-tooltip
-                      location="bottom"
-                      color="error"
-                      v-if="bloquearCopiarMontos(egresoProveedor.detalle)"
-                    >
-                      <template #activator="{ props }">
-                        <v-btn
-                          v-bind="props"
-                          color="info"
-                          size="x-small"
-                        >
-                          Copiar Montos Pr->Op
-                        </v-btn>
-                      </template>
-                      <span>
-                        No se Puede Copiar porqué ya existe Montos Facturados
-                      </span>
-                    </v-tooltip>
+                  <!-- uno debajo del otro -->
+                  <div class="egreso-botones">
                     <v-btn
-                      v-else
-                      color="success"
+                      v-if="can('listControlGastos', 'NUEVO')"
+                      color="info"
+                      class="my-1 mx-1"
                       size="x-small"
-                      @click="
-                        abriModalCopiar(
-                          egresoProveedor,
-                          bloquearCopiarMontos(egresoProveedor.detalle),
-                        )
-                      "
+                      @click="nuevoEngreso(egresoProveedor)"
                     >
-                      Copiar Montos Pr->Op
+                      Nuevo Concepto
                     </v-btn>
-                  </template>
-                  <v-btn
-                    color="indigo"
-                    size="x-small"
-                    class="my-1 mx-1"
-                    v-if="mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
-                    @click.stop="abrirModalCambiarExpediente(egresoProveedor)"
-                  >
-                    Cambiar expediente
-                  </v-btn>
+                    <template v-if="can('listControlGastos', 'COPIAR')">
+                      <v-tooltip
+                        location="bottom"
+                        color="error"
+                        v-if="bloquearCopiarMontos(egresoProveedor.detalle)"
+                      >
+                        <template #activator="{ props }">
+                          <v-btn
+                            v-bind="props"
+                            color="info"
+                            size="x-small"
+                          >
+                            Copiar Montos Pr->Op
+                          </v-btn>
+                        </template>
+                        <span>
+                          No se Puede Copiar porqué ya existe Montos Facturados
+                        </span>
+                      </v-tooltip>
+                      <v-btn
+                        v-else
+                        color="success"
+                        size="x-small"
+                        @click="
+                          abriModalCopiar(
+                            egresoProveedor,
+                            bloquearCopiarMontos(egresoProveedor.detalle),
+                          )
+                        "
+                      >
+                        Copiar Montos Pr->Op
+                      </v-btn>
+                    </template>
+                    <v-btn
+                      color="indigo"
+                      size="x-small"
+                      class="my-1 mx-1"
+                      v-if="mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
+                      @click.stop="abrirModalCambiarExpediente(egresoProveedor)"
+                    >
+                      Cambiar expediente
+                    </v-btn>
+                  </div>
                 </td>
                 <td v-if="editable">
                   <!-- Paso 1: cargar factura o proforma (solo mientras no tenga ninguna);
@@ -3121,95 +3151,127 @@ onMounted(async () => {
     </v-dialog>
     <!-- ---------------------------------------------------- -->
     <v-dialog
-      max-width="80%"
       v-model="dialogListInvoice"
+      max-width="860"
+      scrollable
     >
-      <v-card>
-        <v-card-title class="d-flex align-center flex-wrap">
-          Facturas y Performance de {{ nameproveedor }}
-          <v-spacer />
+      <v-card class="inv-card fac-card">
+        <div class="inv-header fac-header">
+          <div class="inv-header-icon">
+            <v-icon size="32">
+              mdi-file-pdf-box
+            </v-icon>
+          </div>
+          <div class="inv-header-text">
+            <h3 class="inv-title">
+              FACTURAS Y PROFORMAS
+            </h3>
+            <span class="fac-prov">
+              <v-icon size="18">mdi-storefront-outline</v-icon>
+              PROVEEDOR: {{ proveedorInvoice.nombre }} ({{ proveedorInvoice.id }}){{ proveedorInvoice.correlativo ? ` - ${proveedorInvoice.correlativo}` : "" }}
+            </span>
+          </div>
           <v-btn
-            v-if="can('listControlGastos', 'NUEVO')"
-            variant="outlined"
-            @click="cargarFactura"
-            color="primary"
+            icon
+            variant="text"
+            size="small"
+            class="inv-close"
+            aria-label="Cerrar"
+            @click="dialogListInvoice = false"
           >
-            Cargar Nueva
+            <v-icon>mdi-close</v-icon>
           </v-btn>
-        </v-card-title>
-        <v-card-text>
+        </div>
+
+        <v-card-text class="inv-body fac-body">
+          <div
+            v-if="can('listControlGastos', 'NUEVO')"
+            class="fac-toolbar"
+          >
+            <v-btn
+              variant="tonal"
+              color="primary"
+              size="small"
+              prepend-icon="mdi-file-upload-outline"
+              class="fac-nueva"
+              @click="cargarFactura"
+            >
+              Cargar nuevo documento
+            </v-btn>
+          </div>
           <v-data-table
             :headers="headersInvoice"
             :items="itemsListInvoice"
-            density="compact"
+            density="comfortable"
             item-value="id"
-            class="elevation-0"
+            class="fac-table"
+            mobile-breakpoint="sm"
             :loading="isDataTableLoading"
+            loading-text="Cargando documentos…"
+            no-data-text="Aún no hay facturas o proformas cargadas."
+            items-per-page-text="Ítems por página:"
           >
             <template #[`item.originalname`]="{ item }">
-              <v-icon
-                v-if="item.type == 'pdf'"
-                color="red"
-                class="mr-2"
-              >
-                mdi-file-pdf-box
-              </v-icon>
-              <v-icon
-                v-if="
-                  item.type == 'png' ||
-                    item.type == 'jpg' ||
-                    item.type == 'jpeg'
-                "
-                color="blue-grey-darken-1"
-                class="mr-2"
-              >
-                mdi-file-image
-              </v-icon>
-              {{
-                item.type_pago == 1
-                  ? "FACTURA"
-                  : String("") || item.type_pago == 2
-                    ? "PERFORMANCE"
-                    : "OTRO"
-              }}
-              -
-              {{ item.number }}
+              <span class="fac-nombre">
+                <v-icon
+                  :color="item.type == 'pdf' ? 'red' : 'blue-grey-darken-1'"
+                  size="20"
+                >
+                  {{ item.type == "pdf" ? "mdi-file-pdf-box" : "mdi-file-image" }}
+                </v-icon>
+                {{ item.type_pago == 1 ? "FACTURA" : item.type_pago == 2 ? "PROFORMA" : "OTRO" }}{{ item.number ? ` - ${item.number}` : "" }}
+              </span>
+            </template>
+            <template #[`item.monto`]="{ item }">
+              <span class="fac-monto">{{ Number(item.monto || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
             </template>
             <template #[`item.path`]="{ item }">
               <v-btn
                 variant="text"
-                icon
+                icon="mdi-eye-outline"
                 size="small"
+                color="primary"
+                title="Ver documento"
+                aria-label="Ver documento"
                 @click="openDoc(item.path)"
-              >
-                <v-icon
-                  class="btn_add mr-2"
-                  size="large"
-                  color="grey"
-                >
-                  mdi-eye
-                </v-icon>
-              </v-btn>
+              />
             </template>
             <template #[`item.action`]="{ item }">
               <v-btn
                 v-if="can('listControlGastos', 'ELIMINAR')"
                 variant="text"
-                icon
+                icon="mdi-trash-can-outline"
                 size="small"
+                color="red"
+                title="Eliminar documento"
+                aria-label="Eliminar documento"
                 @click="_delInvoice(item.id)"
-              >
-                <v-icon
-                  class="btn_add mr-2"
-                  size="large"
-                  color="red"
-                >
-                  mdi-delete
-                </v-icon>
-              </v-btn>
+              />
             </template>
           </v-data-table>
         </v-card-text>
+
+        <v-card-actions class="inv-actions fac-actions">
+          <v-btn
+            variant="outlined"
+            class="inv-btn-cancel"
+            @click="dialogListInvoice = false"
+          >
+            CANCELAR
+          </v-btn>
+          <!-- siguiente paso: el mismo que el botón "Solicitar" (Enviar a Administración / Generar PDF de pago) -->
+          <v-btn
+            v-if="accionFacturasSolicitud"
+            variant="flat"
+            color="#0b5fd6"
+            class="inv-btn-save"
+            :prepend-icon="accionFacturasSolicitud.icono"
+            :disabled="!itemsListInvoice.length"
+            @click="siguientePasoFacturas"
+          >
+            {{ accionFacturasSolicitud.texto }}
+          </v-btn>
+        </v-card-actions>
       </v-card>
     </v-dialog>
     <!-- --------------------------- -->
@@ -3260,6 +3322,19 @@ onMounted(async () => {
               </v-icon>
               <span class="inv-prov-label">NOMBRE:</span>
               <span class="inv-prov-value">{{ proveedorInvoice.nombre }}</span>
+            </div>
+            <!-- referencia para el monto del documento: totales del proveedor en Pricing y Operaciones -->
+            <div class="inv-prov-montos">
+              <span class="inv-prov-monto">
+                <v-icon class="inv-prov-icon">mdi-database-outline</v-icon>
+                <span class="inv-prov-label">TOTAL PRICING:</span>
+                <b>{{ montosInvoice.pricing }}</b>
+              </span>
+              <span class="inv-prov-monto">
+                <v-icon class="inv-prov-icon">mdi-database-outline</v-icon>
+                <span class="inv-prov-label">TOTAL OPERACIONES:</span>
+                <b>{{ montosInvoice.operaciones }}</b>
+              </span>
             </div>
           </div>
 
@@ -4316,12 +4391,27 @@ onMounted(async () => {
 /* editar / eliminar apilados y separados del texto: dejan el ancho al título y la fecha */
 .solreq__acciones {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 0;
   flex-shrink: 0;
   padding-left: 6px;
   border-left: 1px solid var(--solreq-border);
+}
+.solreq__acciones .v-btn {
+  height: 24px !important;
+}
+
+/* Nuevo Concepto / Copiar Montos / Cambiar expediente: uno debajo del otro */
+.egreso-botones {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 4px 0;
+}
+.egreso-botones .v-btn {
+  margin: 0 !important;
 }
 
 /* =====================================================
@@ -4915,6 +5005,110 @@ onMounted(async () => {
   overflow-wrap: anywhere;
 }
 
+/* Pricing y Operaciones en una misma línea: dos columnas iguales */
+.inv-prov-montos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  padding: 6px 0 4px;
+  border-top: 1px solid #a9c6ee;
+}
+.inv-prov-monto {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding-right: 10px;
+}
+.inv-prov-monto + .inv-prov-monto {
+  padding: 0 0 0 10px;
+  border-left: 2px solid #0a1f44;
+}
+.inv-prov-monto .inv-prov-label {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.inv-prov-monto b {
+  font-size: 14px;
+  font-weight: 900;
+  color: #0a1f44;
+  white-space: nowrap;
+}
+
+/* Facturas y proformas del proveedor */
+.fac-prov {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border-radius: 10px;
+  background: #dcebfd;
+  color: #0a1f44;
+  font-size: 13px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.fac-prov .v-icon {
+  color: #0b5fd6;
+}
+.fac-body {
+  padding-top: 12px !important;
+}
+.fac-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+.fac-nueva {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 700 !important;
+}
+.fac-table {
+  overflow: hidden;
+  border: 1px solid #c9dcf6;
+  border-radius: 14px;
+}
+.fac-table thead th {
+  background: #dcebfd !important;
+  color: #0a1f44 !important;
+  font-size: 13px;
+  font-weight: 900 !important;
+  text-transform: uppercase;
+}
+.fac-table thead th + th,
+.fac-table tbody td + td {
+  border-left: 1px solid #c9dcf6;
+}
+.fac-table tbody td {
+  font-size: 15px;
+  font-weight: 600;
+  color: #0a1f44;
+}
+.fac-table .v-data-table-footer {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.fac-nombre {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fac-monto {
+  font-weight: 800;
+}
+.fac-actions {
+  border-top: 1px solid #dbe5f5;
+  grid-template-columns: minmax(0, 220px) minmax(0, 300px) !important;
+  justify-content: end;
+}
+/* en celular la tabla pasa a filas apiladas (etiqueta: valor) */
+.fac-table.v-data-table--mobile tbody td {
+  border-left: 0 !important;
+}
+
 .inv-label {
   display: block;
   margin: 10px 0 4px;
@@ -5024,6 +5218,24 @@ onMounted(async () => {
   }
   .inv-prov-value {
     grid-column: 2;
+  }
+  .inv-prov-montos {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .inv-prov-monto + .inv-prov-monto {
+    padding: 6px 0 0;
+    border-left: 0;
+    border-top: 1px solid #a9c6ee;
+  }
+  .inv-prov-monto {
+    flex-wrap: wrap;
+  }
+  .fac-actions {
+    grid-template-columns: 1fr !important;
+  }
+  .fac-actions .inv-btn-save {
+    order: -1;
   }
 }
 
