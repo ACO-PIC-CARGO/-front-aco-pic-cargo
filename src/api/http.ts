@@ -2,6 +2,7 @@ import axios from "axios";
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import Swal from "sweetalert2";
 import router from "@/router";
+import { installSessionRefresh, retryWithFreshToken } from "@/api/sessionRefresh";
 
 interface SessionUserEntry {
   id_branch?: number | string;
@@ -60,7 +61,10 @@ http.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    // Access token vencido o sesión renovable: se renueva con la cookie y se repite la petición.
+    const retried = await retryWithFreshToken(http, error);
+    if (retried) return retried;
     if (error?.response?.status === 401) {
       sessionStorage.clear();
       localStorage.removeItem("auth-token");
@@ -72,5 +76,11 @@ http.interceptors.response.use(
     return Promise.reject(error);
   },
 );
+
+// Va después del interceptor que pone el token: axios ejecuta primero el último registrado,
+// así el token ya renovado llega a la cabecera.
+installSessionRefresh(http, { retryOn401: false });
+// Algunas pantallas usan axios directo con la cabecera auth-token puesta a mano.
+installSessionRefresh(axios);
 
 export default http;

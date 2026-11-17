@@ -8,6 +8,8 @@ import { useSubscriptionsStore } from "@/stores/subscriptions";
 import type { Incoterm } from "@/types/cotizacion";
 import type { ItemMenu, SucursalSesion, UsuarioSesion } from "@/types/sesion";
 import { clearSession } from "@/utils/sesion";
+import { logoutSession } from "@/api/sessionRefresh";
+import SesionesActivas from "@/components/comun/SesionesActivas.vue";
 import { chosenOptionTitle } from "@/utils/selectOptions";
 
 const route = useRoute();
@@ -27,6 +29,7 @@ const rutasResumen = [
   "VerCotizacionCalculadora",
 ];
 const dialogTutorial = ref(false);
+const dialogSesiones = ref(false);
 const mostrarFlag = ref(true);
 const branch: SucursalSesion = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0];
 const sucursal: string = JSON.parse(sessionStorage.getItem("dataBranch") as string)[0].trade_name;
@@ -101,6 +104,8 @@ function _nextView(name: string, id_role: number | string, namemodule: string) {
   router.push({ name: name, params: { id_role } });
 }
 function cerrarSesion() {
+  // Cierra la sesión persistente en el servidor (y borra la cookie de refresco) sin bloquear la salida.
+  logoutSession();
   clearSession();
   securitysStore.MostrarLogin = true;
   securitysStore.MostrarSucursal = false;
@@ -201,6 +206,14 @@ watch(actualizarCostosFlag, () => {
                   <!-- <v-divider class="my-3"></v-divider> -->
                   <!-- <v-btn depressed rounded text disabled> Edit Account </v-btn> -->
                   <v-divider class="my-3" />
+                  <v-btn
+                    @click="dialogSesiones = true"
+                    rounded
+                    variant="text"
+                    prepend-icon="mdi-devices"
+                  >
+                    Sesiones activas
+                  </v-btn>
                   <v-btn
                     @click="cerrarSesion"
                     rounded
@@ -511,6 +524,7 @@ watch(actualizarCostosFlag, () => {
         </v-card-text>
       </v-card>
     </v-dialog>
+    <SesionesActivas v-model="dialogSesiones" />
   </div>
 </template>
 

@@ -7,8 +7,10 @@ import router from "@/router";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { MyPermissions } from "@/types/roles";
-import { request } from "@/utils/request";
-import type { ItemMenu, SucursalSesion, UsuarioLogin } from "@/types/sesion";
+import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+import type { ItemMenu, SucursalSesion, UsuarioLogin, UsuarioSesion } from "@/types/sesion";
+import { bindSessionBranch, resumeSession } from "@/api/sessionRefresh";
+import { chooseSessionBranch } from "@/utils/sesion";
 
 const readDataUser = (): UsuarioLogin[] => JSON.parse(sessionStorage.getItem("dataUser") as string);
 
@@ -18,7 +20,8 @@ export const RECOVERY_NEEDS_EMAIL =
 export const useSecuritysStore = defineStore("securitys", () => {
   const response = ref({ estadoflag: true });
   const errorClave = ref("");
-  const frmLogin = ref({ user: "", password: "", id_sucursal: "" as number | string });
+  // recordarme: el backend crea una sesión persistente (cookie de refresco de 30 días).
+  const frmLogin = ref({ user: "", password: "", id_sucursal: "" as number | string, recordarme: true });
   const MostrarLogin = ref(true);
   const MostrarSucursal = ref(false);
   const lstSucursal = ref<SucursalSesion[]>([]);
@@ -62,12 +65,22 @@ export const useSecuritysStore = defineStore("securitys", () => {
 
   async function singin(): Promise<{ estadoflag: boolean }> {
     errorClave.value = "";
-    await request<UsuarioLogin>({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "singin",
-      headers: { "Content-Type": "application/json" },
-      data: frmLogin.value,
-    }).then(async (res) => {
+    const loginRequest = (persistente: boolean) => {
+      const { recordarme, ...credenciales } = frmLogin.value;
+      return request<UsuarioLogin>({
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "singin",
+        headers: { "Content-Type": "application/json" },
+        // Necesario para que el navegador guarde la cookie HttpOnly de refresco.
+        withCredentials: persistente,
+        data: persistente ? { ...credenciales, recordarme } : credenciales,
+      });
+    };
+    let login = await loginRequest(true);
+    // Si el servidor no acepta credenciales para este origen (CORS), el navegador bloquea la respuesta:
+    // se reintenta como login clásico (token de 8 h, sin cookie) para no dejar al usuario fuera.
+    if (!login.estadoflag && login.mensaje === CONNECTION_ERROR_MESSAGE) login = await loginRequest(false);
+    await Promise.resolve(login).then(async (res) => {
       response.value.estadoflag = res.estadoflag;
 
       if (res.estadoflag) {
@@ -97,6 +110,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
           localStorage.setItem("iso_pais", dataBranch[0]!.iso_pais);
           sessionStorage.setItem("dataBranch", JSON.stringify(dataBranch));
           localStorage.setItem("dataBranch", JSON.stringify(dataBranch));
+          await bindSessionBranch(dataBranch[0]!.id);
           await _getMenuItem();
           await ObtenerDatosConfig();
           useAppStore().lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
@@ -134,6 +148,35 @@ export const useSecuritysStore = defineStore("securitys", () => {
       .catch(function (error) {
         console.error(error);
       });
+  }
+
+  // Sesión recordada: entra directo a la sucursal ligada a la sesión, sin pedir la clave.
+  async function retomarSesion(): Promise<boolean> {
+    const users = JSON.parse(sessionStorage.getItem("dataUser") as string) as UsuarioSesion[] | null;
+    if (!users?.[0]?.id_user) return false;
+    const sesion = await resumeSession();
+    if (!sesion) return false;
+
+    const storedBranch = JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[] | null;
+    const idBranch = sesion.idBranch ?? users[0].id_branch;
+    if (!idBranch) return false;
+
+    if (idBranch !== users[0].id_branch || storedBranch?.[0]?.id !== idBranch || !sessionStorage.getItem("menu")) {
+      await CargarBranch();
+      const branch = lstSucursal.value.find((v) => v.id == idBranch);
+      if (!branch) return false;
+      chooseSessionBranch(branch);
+      await _getMenuItem();
+      await ObtenerDatosConfig();
+    } else if (!sesion.idBranch) {
+      // Sesión creada antes de existir la sucursal en la sesión: se liga a la guardada.
+      await bindSessionBranch(idBranch);
+    }
+
+    const [branch] = JSON.parse(sessionStorage.getItem("dataBranch") as string) as SucursalSesion[];
+    if (branch?.esnuevoflag) return false;
+    useAppStore().lstMenu = JSON.parse(sessionStorage.getItem("menu") as string);
+    return true;
   }
 
   async function ReEstablecerContrasenia() {
@@ -263,6 +306,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
     ObtenerDatosConfig,
     singin,
     CargarBranch,
+    retomarSesion,
     ReEstablecerContrasenia,
     _getMenuItem,
     validarUsuarioAdmin,
