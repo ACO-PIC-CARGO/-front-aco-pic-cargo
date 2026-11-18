@@ -21,7 +21,12 @@ onMounted(async () => {
   // vigente, se entra directo al Main en la sucursal ligada a la sesión, sin pedir la clave.
   retomandoSesion.value = true;
   try {
-    if (await securitysStore.retomarSesion()) await router.replace({ name: "Main" });
+    if (await securitysStore.retomarSesion()) {
+      // entró por un enlace (o recargó una pantalla): vuelve ahí; si no, al inicio
+      const destino = router.currentRoute.value.query.redirect;
+      const ruta = typeof destino === "string" && destino.startsWith("/") && !destino.startsWith("//") ? destino : null;
+      await router.replace(ruta ?? { name: "Main" });
+    }
   } finally {
     retomandoSesion.value = false;
   }

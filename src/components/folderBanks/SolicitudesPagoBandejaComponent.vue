@@ -11,6 +11,8 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
 import SolicitudesPagoMovil from "@/components/folderBilling/SolicitudesPagoMovil.vue";
+import RechazarSolicitudDialog from "@/components/folderBilling/RechazarSolicitudDialog.vue";
+import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
 import ClientePagoChip from "@/components/folderBilling/ClientePagoChip.vue";
 import SolicitudPagoEditarDialog from "@/components/folderBilling/SolicitudPagoEditarDialog.vue";
 import {
@@ -33,13 +35,10 @@ import type {
 
 // Una pestaña de Bancos > Solicitudes de Pago: listado paginado en el servidor.
 // Tiene las mismas acciones que Pagos Pendientes de Control de Gastos.
-// activa = true por defecto: Vue convierte un boolean ausente en false y la pestaña nunca cargaría
-const props = withDefaults(defineProps<{
+const props = defineProps<{
   tab: TabBandejaSolicitudPago;
   opciones: OpcionFiltroSolicitudPago[];
-  // pestaña visible: las demás no consultan hasta que se abren
-  activa?: boolean;
-}>(), { activa: true });
+}>();
 const emit = defineEmits<{ total: [valor: number]; actualizado: [] }>();
 
 const URL_MAIN = import.meta.env.VITE_URL_MAIN;
@@ -134,30 +133,10 @@ async function copiar(texto: string | null) {
   }
 }
 
-// PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
-async function transferir(s: SolicitudPagoBandeja) {
-  // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
-  const pestana = window.open("", "_blank");
-  procesando.value = s.id;
-  const response = await request<{ token: string }>({
-    method: "put",
-    url: URL_MAIN + "solicitud_pago_transferir/" + s.id,
-  });
-  procesando.value = null;
-  const token = response.estadoflag ? response.data[0]?.token : null;
-  if (!token) {
-    pestana?.close();
-    Swal.fire({
-      icon: response.tipomensaje === "TMSGERR" ? "error" : "warning",
-      text: response.mensaje || CONNECTION_ERROR_MESSAGE,
-    });
-    emit("actualizado");
-    return;
-  }
-  // Bancos > Nueva salida en una pestaña nueva (como Solicitudes de Cobro)
-  const destino = router.resolve({ name: "registroPagoSolicitud", params: { token } }).href;
-  if (pestana) pestana.location.href = destino;
-  else window.open(destino, "_blank");
+// PAGADO: abre Bancos > Nueva salida en otra pestaña al instante; esa pestaña genera el token
+// (sin pestaña en blanco ni botón cargando si el servidor demora)
+function transferir(s: SolicitudPagoBandeja) {
+  window.open(router.resolve({ name: "registroPagoDesdeSolicitud", params: { id: s.id } }).href, "_blank");
 }
 function verSalida(s: SolicitudPagoBandeja) {
   if (s.id_pagoegreso) window.open(`/home/FolderBanks/verPagosPorProveedor/${s.id_pagoegreso}`, "_blank");
@@ -165,6 +144,10 @@ function verSalida(s: SolicitudPagoBandeja) {
 
 // Aprobar / rechazar: Administración perfil 04, Gerencia perfil 01. Al cambiar, se recargan todas las pestañas
 const { revisando, revisar } = useRevisionSolicitudPago(() => emit("actualizado"));
+// Rechazar: botón propio, solo el paso pendiente y solo quien puede aprobarlo
+const { dialogRechazo, rechazoSel, puedeRechazar, tituloRechazar, abrirRechazo } = useRechazoSolicitud();
+const motivoDe = (s: SolicitudPagoBandeja) =>
+  verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo });
 const dialogSoporte = ref(false);
 const solicitudSoporte = ref<SolicitudPagoBandeja | null>(null);
 function abrirSoporte(s: SolicitudPagoBandeja) {
@@ -394,26 +377,11 @@ function abrir(url: string | null) {
 }
 
 
-// Solo consulta la pestaña visible. Si otra pestaña cambió (aprobar, rechazar, registrar...),
-// esta queda "pendiente" y se consulta recién cuando el usuario la abre.
-let pendiente = true;
-function cargarSiVisible() {
-  if (props.activa === false) {
-    pendiente = true;
-    return;
-  }
-  pendiente = false;
-  cargar();
-}
-watch(
-  () => props.activa,
-  (visible) => {
-    if (visible && pendiente) cargarSiVisible();
-  },
-);
-
-defineExpose({ cargar: cargarSiVisible });
-onMounted(cargarSiVisible);
+// Al entrar a la vista se cargan las tres pestañas (Pendientes, Rechazadas e Histórico) a la vez;
+// cambiar de pestaña no vuelve a consultar. Después de una acción (aprobar, rechazar, registrar...)
+// la vista recarga las tres.
+defineExpose({ cargar });
+onMounted(cargar);
 </script>
 
 <template>
@@ -531,6 +499,8 @@ onMounted(cargarSiVisible);
         :eliminando="eliminandoSolicitud"
         :eliminando-soporte="eliminandoSoporte"
         @aprobar="(sol, tipo) => revisar(sol as SolicitudPagoBandeja, tipo)"
+        @rechazar="(sol) => abrirRechazo(sol.id, sol.codigo_estado)"
+        @ver-rechazo="(sol) => motivoDe(sol as SolicitudPagoBandeja)"
         @eliminar-soporte="eliminarSoporte"
         @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoBandeja)"
         @transferir="(sol) => transferir(sol as SolicitudPagoBandeja)"
@@ -851,7 +821,7 @@ onMounted(cargarSiVisible);
             />
             <v-btn
               v-if="puedeEliminarSolicitud && !anuladaSolicitud(item)"
-              icon="mdi-delete-outline"
+              icon="mdi-trash-can-outline"
               variant="text"
               size="small"
               :color="tieneSalidaBancosSolicitud(item) ? 'grey' : 'error'"
@@ -869,6 +839,32 @@ onMounted(cargarSiVisible);
               aria-label="Ver solicitud de pago"
               @click="verSolicitud(item)"
             />
+            <v-btn
+              v-if="item.codigo_estado === 'RECHAZADA'"
+              size="small"
+              variant="outlined"
+              rounded="lg"
+              color="error"
+              prepend-icon="mdi-comment-alert-outline"
+              class="spb__rechazar"
+              data-modo-ver="permitido"
+              @click="motivoDe(item)"
+            >
+              Ver motivo
+            </v-btn>
+            <v-btn
+              v-else-if="puedeModificar && !anuladaSolicitud(item)"
+              size="small"
+              variant="outlined"
+              rounded="lg"
+              color="error"
+              class="spb__rechazar"
+              :disabled="!puedeRechazar(item.codigo_estado, true)"
+              :title="tituloRechazar(item.codigo_estado)"
+              @click="abrirRechazo(item.id, item.codigo_estado)"
+            >
+              Rechazar
+            </v-btn>
           </div>
         </template>
         <template #[`item.motivo_rechazo`]="{ item }">
@@ -881,7 +877,7 @@ onMounted(cargarSiVisible);
       v-model="dialogEditarSolicitud"
       :solicitud="solicitudEditar"
       :admin="adminEditar"
-      @guardado="cargar()"
+      @guardado="emit('actualizado')"
     />
     <SoportePagoDialog
       v-model="dialogSoporte"
@@ -889,6 +885,13 @@ onMounted(cargarSiVisible);
       @guardado="emit('actualizado')"
     />
 
+    <RechazarSolicitudDialog
+      v-model="dialogRechazo"
+      :solicitud="rechazoSel"
+      tipo="PAGO"
+      ruta="solicitud_pago_rechazar"
+      @rechazado="emit('actualizado')"
+    />
     <SolicitudPagoVerDialog
       v-model="dialogVer"
       :id-solicitud="idSolicitudVer"
@@ -1453,5 +1456,11 @@ onMounted(cargarSiVisible);
   justify-content: center;
   gap: 2px;
   white-space: nowrap;
+}
+.spb__rechazar {
+  min-width: 0;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
 }
 </style>

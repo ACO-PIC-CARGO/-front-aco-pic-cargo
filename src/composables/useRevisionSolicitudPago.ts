@@ -44,7 +44,14 @@ const REVISION_PAGO: OpcionesRevision = {
   etiquetaEntidad: "PROVEEDOR",
 };
 
-// Aprobar o rechazar (con motivo) una solicitud; alTerminar recarga el listado
+// Paso pendiente de revisión según el estado (PENADM = Administración, PENGER = Gerencia)
+export function areaPendiente(codigoEstado: string | null | undefined): AreaRevision | null {
+  if (codigoEstado === "PENADM") return "ADM";
+  if (codigoEstado === "PENGER") return "GER";
+  return null;
+}
+
+// Aprobar una solicitud; rechazar va en su propio botón (RechazarSolicitudDialog). alTerminar recarga el listado
 export function useRevisionSolicitudPago(alTerminar: () => unknown, opciones: OpcionesRevision = REVISION_PAGO) {
   const URL_MAIN = import.meta.env.VITE_URL_MAIN;
   const revisando = ref<number | string | null>(null);
@@ -81,10 +88,8 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown, opciones: Op
         fila("mdi-cash-multiple", "MONTO:", `${monto} ${escapar(s.moneda ?? "")}`.trim()) +
         "</div>",
       showCancelButton: true,
-      showDenyButton: true,
       buttonsStyling: false,
       confirmButtonText: '<i class="mdi mdi-check" aria-hidden="true"></i> APROBAR',
-      denyButtonText: '<i class="mdi mdi-close" aria-hidden="true"></i> RECHAZAR',
       cancelButtonText: '<i class="mdi mdi-close" aria-hidden="true"></i> CANCELAR',
       customClass: {
         popup: "aprob-modal",
@@ -93,28 +98,10 @@ export function useRevisionSolicitudPago(alTerminar: () => unknown, opciones: Op
         htmlContainer: "aprob-modal__content",
         actions: "aprob-modal__actions",
         confirmButton: "aprob-modal__btn aprob-modal__btn--ok",
-        denyButton: "aprob-modal__btn aprob-modal__btn--deny",
         cancelButton: "aprob-modal__btn aprob-modal__btn--cancel",
       },
     });
-    if (decision.isConfirmed) {
-      await enviar(s, opciones.rutaAprobar, { tipo });
-      return;
-    }
-    if (!decision.isDenied) return;
-    const rechazo = await Swal.fire({
-      icon: "warning",
-      title: "Rechazar solicitud",
-      input: "textarea",
-      inputLabel: "Motivo del rechazo",
-      inputPlaceholder: "Indica qué debe corregir el solicitante",
-      showCancelButton: true,
-      confirmButtonText: "Rechazar",
-      cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
-    });
-    if (!rechazo.isConfirmed) return;
-    await enviar(s, opciones.rutaRechazar, { tipo, motivo: rechazo.value || "" });
+    if (decision.isConfirmed) await enviar(s, opciones.rutaAprobar, { tipo });
   }
 
   return { revisando, revisar };

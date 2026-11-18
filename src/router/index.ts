@@ -416,6 +416,19 @@ const routes = [
         component: () => import("../views/FolderBanks/RegistroCobroSolicitudView.vue"),
       },
       {
+        // "REGISTRAR EN BANCO" abre esta pestaña al instante; aquí se genera el token y pasa al formulario
+        path: "FolderBanks/registroCobroDesdeSolicitud/:codigo",
+        name: "registroCobroDesdeSolicitud",
+        meta: { menuRoute: "registroPayForCliente", solicitud: "cobro" },
+        component: () => import("../views/FolderBanks/PrepararRegistroSolicitudView.vue"),
+      },
+      {
+        path: "FolderBanks/registroPagoDesdeSolicitud/:id",
+        name: "registroPagoDesdeSolicitud",
+        meta: { menuRoute: "registroPayForProveedor", solicitud: "pago" },
+        component: () => import("../views/FolderBanks/PrepararRegistroSolicitudView.vue"),
+      },
+      {
         // Nueva salida precargada desde una Solicitud de Pago (Control de Gastos > Transferir)
         path: "FolderBanks/registroPagoSolicitud/:token",
         name: "registroPagoSolicitud",

@@ -2,7 +2,7 @@ import { ref } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import type { AdminCredentials } from "@/types/seguridad";
-import type { SolicitudCobro, SolicitudCobroBandeja } from "@/types/solicitudCobro";
+import type { SolicitudCobro, SolicitudCobroBandeja, SoporteCobro } from "@/types/solicitudCobro";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 import { useRevisionSolicitudPago, type AreaRevision } from "@/composables/useRevisionSolicitudPago";
@@ -14,11 +14,24 @@ const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 export const montoCobro = (monto: number | string, moneda: string | null) =>
   `${Number(monto || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${moneda ?? ""}`.trim();
 
+// Cobros sin aprobaciones: al enviarla queda "Pendiente por confirmar" y la rechaza Administración (04 / 01)
+export const areaRechazoCobro = (codigoEstado: string | null | undefined): AreaRevision | null =>
+  codigoEstado === "LISTO" ? "ADM" : null;
+
 // Con aprobaciones (Administración o Gerencia), editar o eliminar pide la clave de un administrador
 export const tieneAprobacionesCobro = (s: SolicitudCobroFila) =>
   !!(s.usuario_aprobadoadministracion || s.usuario_aprobadogerencia);
 
 // Con ingreso registrado en Bancos no se edita ni elimina hasta eliminar ese movimiento
+// Pago parcial: se cobra lo cargado (suma de los soportes), no toda la deuda del correlativo
+export const montoCobrado = (s: { monto: number | string; monto_soportes?: number | string | null }) =>
+  s.monto_soportes == null ? Number(s.monto || 0) : Number(s.monto_soportes);
+export const esPagoParcial = (s: { monto: number | string; monto_soportes?: number | string | null }) =>
+  s.monto_soportes != null && Number(s.monto_soportes) > 0 && Number(s.monto_soportes) < Number(s.monto || 0) - 0.004;
+
+// Rechazada: se corrige sin clave (pierde las aprobaciones y se revisa de nuevo); el backend valida los montos
+export const editarPideClaveCobro = (s: SolicitudCobroFila) => tieneAprobacionesCobro(s) && s.codigo_estado !== "RECHAZADA";
+
 export function avisarIngresoBancosCobro(s: SolicitudCobroFila) {
   if (!s.id_pagoingreso) return false;
   Swal.fire({
@@ -29,6 +42,10 @@ export function avisarIngresoBancosCobro(s: SolicitudCobroFila) {
   });
   return true;
 }
+
+// Bancos: un ingreso por pago cargado; queda pendiente mientras falte registrar alguno
+export const faltaRegistrarCobro = (s: SolicitudCobroFila) =>
+  (s.soportes_registrados ?? (s.id_pagoingreso ? 1 : 0)) < (s.soportes_total ?? 1);
 
 function avisarError(response: { tipomensaje?: string; mensaje?: string }) {
   Swal.fire({
@@ -60,7 +77,7 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
       icon: "question",
       title: "Enviar a Administración",
       html: `Se enviará la solicitud de cobro de <b>${s.cliente}</b>
-        por <b>${montoCobro(s.monto, s.moneda)}</b> para que Administración y Gerencia lo aprueben.`,
+        por <b>${montoCobro(montoCobrado(s), s.moneda)}</b>${esPagoParcial(s) ? ` (pago parcial de ${montoCobro(s.monto, s.moneda)})` : ""}. Quedará <b>pendiente por confirmar</b> hasta que Administración suba el soporte de confirmación.`,
       showCancelButton: true,
       confirmButtonText: "Enviar",
       cancelButtonText: "Cancelar",
@@ -71,7 +88,7 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
 
   /** Devuelve la clave del administrador si hace falta; undefined = cancelar; null = no se necesita */
   async function claveSiAprobada(s: SolicitudCobroFila, accion: "editarla" | "eliminarla"): Promise<AdminCredentials | null | undefined> {
-    if (!tieneAprobacionesCobro(s)) return null;
+    if (!(accion === "editarla" ? editarPideClaveCobro(s) : tieneAprobacionesCobro(s))) return null;
     return askAdminCredentials(
       `La solicitud de cobro ya tiene aprobación de Administración o Gerencia. Para ${accion}, escribe el usuario y la clave de un administrador.`,
     );
@@ -82,7 +99,7 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
     const ok = await Swal.fire({
       icon: "warning",
       title: "Eliminar solicitud de cobro",
-      html: `¿Eliminar la solicitud de cobro de <b>${s.cliente}</b> por <b>${montoCobro(s.monto, s.moneda)}</b>?
+      html: `¿Eliminar la solicitud de cobro de <b>${s.cliente}</b> por <b>${montoCobro(montoCobrado(s), s.moneda)}</b>?
         ${tieneAprobacionesCobro(s) ? "<br><br>Ya tiene aprobaciones: se pedirá la clave de un administrador." : ""}`,
       showCancelButton: true,
       confirmButtonText: "Eliminar",
@@ -108,26 +125,65 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
     );
 
   // Bancos > Nuevo Ingreso precargado con la solicitud confirmada
-  async function registrarEnBancos(s: SolicitudCobroFila) {
-    if (avisarIngresoBancosCobro(s)) return;
-    // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
-    const pestana = window.open("", "_blank");
-    procesando.value = s.codigo;
-    const response = await request<{ token: string }>({
-      method: "put",
-      url: URL_MAIN + "solicitud_cobro_transferir/" + s.codigo,
-    });
-    procesando.value = null;
-    const token = response.estadoflag ? response.data[0]?.token : null;
-    if (!token) {
-      pestana?.close();
-      avisarError(response);
-      return;
-    }
-    const destino = router.resolve({ name: "registroCobroSolicitud", params: { token } }).href;
-    if (pestana) pestana.location.href = destino;
-    else window.open(destino, "_blank");
+  // Abre Bancos > Nuevo Ingreso en otra pestaña al instante: esa pestaña genera el token
+  // (sin pestaña en blanco ni botón cargando si el servidor demora)
+  function registrarEnBancos(s: SolicitudCobroFila) {
+    if (!faltaRegistrarCobro(s) && avisarIngresoBancosCobro(s)) return;
+    window.open(router.resolve({ name: "registroCobroDesdeSolicitud", params: { codigo: s.codigo } }).href, "_blank");
   }
 
-  return { procesando, revisando: revision.revisando, enviar, eliminar, revisar, registrarEnBancos, claveSiAprobada };
+  // Soporte de confirmación (Administración): solo se quita con la clave del Super administrador
+  // y mientras el ingreso no esté registrado en Bancos
+  async function eliminarConfirmacion(s: SolicitudCobroFila) {
+    if (avisarIngresoBancosCobro(s)) return;
+    const ok = await Swal.fire({
+      icon: "warning",
+      title: "Eliminar soporte de confirmación",
+      html: `${s.cliente}<br><b>${montoCobro(montoCobrado(s), s.moneda)}</b><br><br>La solicitud volverá a <b>Pendiente por confirmar</b>.`,
+      showCancelButton: true,
+      confirmButtonText: "Eliminar soporte",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!ok.isConfirmed) return;
+    const admin = await askAdminCredentials(
+      "Ya se confirmó el ingreso: para eliminar el soporte de confirmación, escribe el usuario y la clave del Super administrador.",
+    );
+    if (!admin) return;
+    await ejecutar(s.codigo, "put", "solicitud_cobro_confirmacion_eliminar", withAuthorization(admin));
+  }
+
+  // Eliminar un pago cargado (parcial). Si era el único se elimina la solicitud.
+  async function eliminarSoporte(s: SolicitudCobroFila, soporte: SoporteCobro) {
+    if (avisarIngresoBancosCobro(s)) return false;
+    const ultimo = (s.soportes_total ?? 1) <= 1;
+    const ok = await Swal.fire({
+      icon: "warning",
+      title: "Eliminar pago del cliente",
+      html: `¿Eliminar el pago de <b>${montoCobro(soporte.monto, s.moneda)}</b> (operación ${soporte.numerooperacion ?? "—"})?
+        ${ultimo ? "<br><br>Es el único pago cargado: también se elimina la solicitud de cobro." : ""}
+        ${s.codigo_estado !== "BORRADOR" && !ultimo ? "<br><br>La solicitud volverá a quedar pendiente de envío." : ""}
+        ${tieneAprobacionesCobro(s) ? "<br><br>Ya tiene aprobaciones: se pedirá la clave de un administrador." : ""}`,
+      showCancelButton: true,
+      confirmButtonText: "Eliminar",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+    if (!ok.isConfirmed) return false;
+    const admin = await claveSiAprobada(s, "eliminarla");
+    if (admin === undefined) return false;
+    return ejecutar(soporte.codigo, "put", "solicitud_cobro_soporte_eliminar", withAuthorization(admin));
+  }
+
+  return {
+    procesando,
+    eliminarSoporte,
+    revisando: revision.revisando,
+    enviar,
+    eliminar,
+    revisar,
+    registrarEnBancos,
+    claveSiAprobada,
+    eliminarConfirmacion,
+  };
 }

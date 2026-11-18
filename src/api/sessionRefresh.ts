@@ -47,18 +47,32 @@ const storeToken = (token: string) => {
 
 // Sucursal a la que está ligada la sesión, según la última renovación.
 let sessionBranchId: number | null = null;
+// La última renovación falló por la red (celular saliendo de segundo plano, sin señal), no porque
+// la sesión terminó: en ese caso no se cierra la sesión del dispositivo.
+let refreshNetworkError = false;
+export const lastRefreshFailedByNetwork = () => refreshNetworkError;
+
+const NETWORK_RETRIES = 2;
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const requestNewToken = async (): Promise<string | null> => {
-  try {
-    const { data } = await bare.post<{ estadoflag?: boolean; token?: string; id_branch?: number | null }>(
-      `${import.meta.env.VITE_URL_MAIN}auth/refresh`,
-    );
-    if (!data?.estadoflag || !data.token) return null;
-    storeToken(data.token);
-    sessionBranchId = data.id_branch ?? null;
-    return data.token;
-  } catch {
-    return null;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const { data } = await bare.post<{ estadoflag?: boolean; token?: string; id_branch?: number | null }>(
+        `${import.meta.env.VITE_URL_MAIN}auth/refresh`,
+      );
+      refreshNetworkError = false;
+      if (!data?.estadoflag || !data.token) return null;
+      storeToken(data.token);
+      sessionBranchId = data.id_branch ?? null;
+      return data.token;
+    } catch (error) {
+      // con respuesta del servidor (401: sesión cerrada o vencida) no se reintenta
+      const sinRespuesta = !(error as { response?: unknown })?.response;
+      refreshNetworkError = sinRespuesta;
+      if (!sinRespuesta || attempt >= NETWORK_RETRIES) return null;
+      await wait(1500 * (attempt + 1));
+    }
   }
 };
 
@@ -86,8 +100,9 @@ export const refreshAccessToken = (): Promise<string | null> => {
 
 // Retoma una sesión "recordada" al abrir la app. Siempre consulta al servidor (la sesión pudo
 // cerrarse o ser reemplazada por otra en la misma sucursal) y devuelve la sucursal de la sesión.
+// La cookie de refresco es HttpOnly (no se puede leer): se intenta aunque el token guardado se haya
+// borrado o vencido (pestañas cerradas en el celular, un 401 anterior); sin cookie el servidor responde 401.
 export const resumeSession = async (): Promise<{ idBranch: number | null } | null> => {
-  if (!isPersistentToken(storedToken())) return null;
   const token = await refreshAccessToken();
   return token ? { idBranch: sessionBranchId } : null;
 };
@@ -127,6 +142,8 @@ const renewBeforeRequest = async (config: InternalAxiosRequestConfig) => {
 // Ante un 401: intenta renovar una vez y repite la petición. Devuelve null si no se pudo.
 export const retryWithFreshToken = async (instance: AxiosInstance, error: AxiosError) => {
   const config = error.config as RetriableConfig | undefined;
+  // solo cuenta el fallo de red de la renovación que se intente para este 401
+  refreshNetworkError = false;
   if (error.response?.status !== 401 || !config || config._sessionRetried || isAuthRoute(config.url)) return null;
   if (!config.headers?.[TOKEN_KEY]) return null;
   const fresh = await refreshAccessToken();
