@@ -1524,7 +1524,7 @@ watch(idRole, async () => {
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
-        SOLICITAR TARIFA
+        SOLICITAR TARIFAS
       </v-btn>
 
       <v-btn
@@ -1535,7 +1535,7 @@ watch(idRole, async () => {
         @click="abrirCorreo()"
       >
         <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
-        SOLICITAR TARIFA
+        SOLICITAR TARIFAS
       </v-btn>
 
       <v-btn
