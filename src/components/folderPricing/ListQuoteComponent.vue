@@ -8,7 +8,15 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
-import { showsCallActions, showsReturnToSalesAction } from "@/components/folderPricing/quoteListActions";
+import {
+  lastCommentText,
+  showsCallActions,
+  showsInternalThread,
+  showsReturnToSalesAction,
+  withLastMessage,
+} from "@/components/folderPricing/quoteListActions";
+import InternalCommunicationThread from "@/components/folderPricing/InternalCommunication/InternalCommunicationThread.vue";
+import type { MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import QuotePriorityChip from "@/components/folderPricing/QuotePriorityChip.vue";
@@ -216,11 +224,20 @@ const NO_DATA_TEXTS = {
   pricing_requested: "Todavía no se ha solicitado ninguna cotización a pricing.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
+const LAST_COMMENT_HEADER = { key: "last_message_body", title: "ÚLTIMO COMENTARIO", align: "start" } as const;
+const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
 const headersCotizaciones = computed(() => {
-  if (!showsSentToClient.value) return [...cabCotizaciones];
-  const afterCode = cabCotizaciones.findIndex((header) => header.key === "codigo") + 1;
-  return [...cabCotizaciones.slice(0, afterCode), SENT_TO_CLIENT_HEADER, ...cabCotizaciones.slice(afterCode)];
+  const headers: { key: string; title: string; align?: "start" | "center" | "end" }[] = [...cabCotizaciones];
+  if (showsSentToClient.value) {
+    const afterCode = headers.findIndex((header) => header.key === "codigo") + 1;
+    headers.splice(afterCode, 0, SENT_TO_CLIENT_HEADER);
+  }
+  if (showsLastComment.value) headers.push(LAST_COMMENT_HEADER);
+  return headers;
 });
+function onThreadMessageSent(item: CotizacionListado, message: { direction: MessageDirection; body: string }) {
+  Object.assign(item, withLastMessage(item, message));
+}
 // filtro: {
 //   idmarketing: null,
 //   idstatus: null,
@@ -1112,6 +1129,27 @@ onMounted(async () => {
                 </template>
                 <span>Actualizar Registro Llamada</span>
               </v-tooltip>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-if="showsLastComment && item.id"
+                    v-bind="props"
+                    variant="text"
+                    icon
+                    size="x-small"
+                    aria-label="Comunicación interna"
+                    @click="toggleRow(item)"
+                  >
+                    <v-icon
+                      color="#1A237E"
+                      size="small"
+                    >
+                      mdi-message-text-outline
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Comunicación interna</span>
+              </v-tooltip>
               <PricingRequestButton
                 v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
@@ -1288,11 +1326,25 @@ onMounted(async () => {
               "{{ val.notes }}"
             </span> -->
           </td>
+          <td
+            v-if="showsLastComment"
+            @click="toggleExpand(internalItem)"
+          >
+            {{ lastCommentText(item.last_message_direction, item.last_message_body) }}
+          </td>
         </tr>
       </template>
 
       <template #expanded-row="{ columns, item }">
-        <tr v-if="item">
+        <tr v-if="item && showsLastComment && item.id">
+          <td :colspan="columns.length">
+            <InternalCommunicationThread
+              :quote-id="item.id"
+              @sent="(message) => onThreadMessageSent(item, message)"
+            />
+          </td>
+        </tr>
+        <tr v-else-if="item">
           <td :colspan="columns.length">
             <v-table>
               <thead class="headerDetails">

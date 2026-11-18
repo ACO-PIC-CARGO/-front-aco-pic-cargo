@@ -55,5 +55,5 @@ export const pricingRequestDetails = (notice: QuoteNotice): NoticeDetail[] =>
     detail("Vendedor", notice.created_by_name, "mdi-account-outline"),
     detail("Cotización N.°", notice.quote_code, "mdi-file-document-outline"),
     detail("Tipo de Embarque", modalityLabel(notice), transportIcon(notice.transport_name), true),
-    detail("Notas", notice.pricing_notes, "mdi-message-text-outline"),
+    detail("Historial de comunicación interna", notice.pricing_notes, "mdi-message-text-outline"),
   ]);

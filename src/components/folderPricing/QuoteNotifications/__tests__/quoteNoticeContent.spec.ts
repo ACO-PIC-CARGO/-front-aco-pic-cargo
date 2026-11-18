@@ -53,14 +53,14 @@ describe("the pricing request notice", () => {
       ["Vendedor", "RAMIREZ CARLOS"],
       ["Cotización N.°", "15560-P"],
       ["Tipo de Embarque", "LCL Individual"],
-      ["Notas", "PRUEBA FINAL."],
+      ["Historial de comunicación interna", "PRUEBA FINAL."],
     ]);
   });
 
   test("leaves out the notes when the request has none", () => {
     const request = notice({ kind: "pricing_request", pricing_notes: null });
 
-    expect(pricingRequestDetails(request).map((row) => row.label)).not.toContain("Notas");
+    expect(pricingRequestDetails(request).map((row) => row.label)).not.toContain("Historial de comunicación interna");
   });
 });
 
