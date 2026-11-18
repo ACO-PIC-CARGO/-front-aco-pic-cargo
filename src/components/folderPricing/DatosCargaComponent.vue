@@ -1541,10 +1541,6 @@ function finalizarSeleccionDistrito() {
                   </tr>
                 </tbody>
               </v-table>
-              <SpecialRateNoticeBox
-                v-if="isVisible(specialRateNotice)"
-                :notice="specialRateNotice"
-              />
             </v-col>
           </v-row>
 
@@ -1582,6 +1578,10 @@ function finalizarSeleccionDistrito() {
               </v-data-table>
             </v-col>
           </v-row>
+          <SpecialRateNoticeBox
+            v-if="isVisible(specialRateNotice)"
+            :notice="specialRateNotice"
+          />
         </v-form>
       </v-card-text>
       <v-card-actions

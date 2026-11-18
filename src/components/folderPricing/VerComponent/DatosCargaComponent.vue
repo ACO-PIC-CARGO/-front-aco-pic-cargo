@@ -411,10 +411,6 @@ function mostrarComboPercepcionAduana() {
                 </tr>
               </tbody>
             </v-table>
-            <SpecialRateNoticeBox
-              v-if="isVisible(specialRateNotice)"
-              :notice="specialRateNotice"
-            />
           </v-col>
         </v-row>
         <v-row v-else>
@@ -448,6 +444,10 @@ function mostrarComboPercepcionAduana() {
             </v-data-table>
           </v-col>
         </v-row>
+        <SpecialRateNoticeBox
+          v-if="isVisible(specialRateNotice)"
+          :notice="specialRateNotice"
+        />
       </v-card-text>
     </v-card>
     <!-- AGREGAR CONTAINER -->
