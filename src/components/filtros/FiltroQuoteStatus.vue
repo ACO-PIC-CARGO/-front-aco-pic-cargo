@@ -3,6 +3,7 @@ import { computed, ref, useTemplateRef, watch } from "vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
 import type { EstadoCotizacion } from "@/types/cotizacion";
+import NotifySalesForCorrectionField from "@/components/folderPricing/QuoteReturn/NotifySalesForCorrectionField.vue";
 
 const QuoteStatusStore = useQuoteStatusStore();
 const masterusuariosStore = useMasterusuariosStore();
@@ -440,54 +441,10 @@ async function Aceptar() {
               cols="12"
               class="py-1"
             >
-              <div class="d-flex align-center rounded-lg bg-blue-lighten-5 pa-3 ga-3">
-                <v-icon
-                  color="primary"
-                  size="28"
-                >
-                  mdi-send-outline
-                </v-icon>
-                <div class="flex-grow-1">
-                  <div class="font-weight-bold">
-                    ¿Notificar a Ventas para Corrección?
-                  </div>
-                  <div class="text-body-medium">
-                    Pricing solicitará al vendedor corregir o completar la información de la cotización
-                  </div>
-                </div>
-                <v-btn-toggle
-                  v-model="notifySales"
-                  mandatory
-                  divided
-                  rounded="pill"
-                  color="primary"
-                  variant="outlined"
-                  density="comfortable"
-                  aria-describedby="notify-sales-note"
-                  :class="{ 'pe-none': QuoteStatusStore.tipo == 'ver' }"
-                >
-                  <v-btn
-                    :value="true"
-                    prepend-icon="mdi-check"
-                  >
-                    Sí
-                  </v-btn>
-                  <v-btn :value="false">
-                    No
-                  </v-btn>
-                </v-btn-toggle>
-              </div>
-              <div
-                id="notify-sales-note"
-                class="d-flex align-center rounded-lg bg-blue-lighten-5 pa-3 ga-3 mt-2 text-body-medium"
-              >
-                <v-icon color="primary">
-                  mdi-information
-                </v-icon>
-                <span>
-                  Al seleccionar 'Sí', la cotización se mostrará en el tab <strong>OBSERVADAS POR PRICING</strong> y se registrará la fecha de retorno a Ventas
-                </span>
-              </div>
+              <NotifySalesForCorrectionField
+                v-model="notifySales"
+                :readonly="QuoteStatusStore.tipo == 'ver'"
+              />
             </v-col>
 
             <!--<div class="col-6 py-1">
