@@ -12,7 +12,8 @@ import ServicesComponent from "../../components/folderPricing/ServicesComponent.
 import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
-import PricingNotesField from "@/components/folderPricing/PricingRequest/PricingNotesField.vue";
+import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
+import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
 );
@@ -58,6 +59,7 @@ const step = ref(1);
 const editableStep3 = ref(false);
 const DatosCargaComponentFlag = ref(false);
 const ServicesComponentFlag = ref(false);
+const servicesComponent = ref<InstanceType<typeof ServicesComponent>>();
 const editableStep2 = ref(false);
 const editableStep4 = ref(false);
 const indexCostos = ref(0);
@@ -1191,13 +1193,24 @@ function formatearCostoTotal(valor: Costo) {
             >
               <ServicesComponent
                 v-if="ServicesComponentFlag"
+                ref="servicesComponent"
+                :mostrar-btn="false"
                 @activar-llenado-costos="activarLlenadoCostos()"
                 @recargar-costos="recargarCostos()"
               />
-              <PricingNotesField
-                v-if="ServicesComponentFlag"
-                class="mt-4"
-              />
+              <template v-if="ServicesComponentFlag">
+                <NewNoteField class="mt-4" />
+                <div class="d-flex justify-end">
+                  <v-btn
+                    color="primary"
+                    size="large"
+                    prepend-icon="mdi-arrow-right-bold"
+                    @click="servicesComponent?.continuarLlenadoCostos()"
+                  >
+                    Continuar
+                  </v-btn>
+                </div>
+              </template>
             </v-col>
           </v-row>
 
@@ -1233,6 +1246,7 @@ function formatearCostoTotal(valor: Costo) {
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+    <InternalCommunicationBar :quote-id="Number(pricingStore.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->

@@ -184,6 +184,8 @@ function continuarLlenadoCostos() {
   }
 }
 
+defineExpose({ continuarLlenadoCostos });
+
 async function showConfirmationDialog(service: Servicio) {
   const { datosPrincipales } = pricingStore;
   const esActivacionTransporteGrupal =

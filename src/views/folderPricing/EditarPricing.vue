@@ -23,7 +23,8 @@ import { askAdminCredentials } from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
-import PricingNotesField from "@/components/folderPricing/PricingRequest/PricingNotesField.vue";
+import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
+import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
 
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
@@ -635,10 +636,7 @@ function irANotas() {
                 @recargar-costos="recargarCostos()"
                 :mostrar-btn="false"
               />
-              <PricingNotesField
-                :quote-id="route.params.id as string"
-                class="mt-4"
-              />
+              <NewNoteField class="mt-4" />
             </v-col>
           </v-row>
 
@@ -690,6 +688,7 @@ function irANotas() {
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+    <InternalCommunicationBar :quote-id="Number(route.params.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
     <v-snackbar
       v-model="snackbarSinFlete"

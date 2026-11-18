@@ -922,6 +922,43 @@ describe("pricing store", () => {
       expect([pricing.id, pricing.nro_quote, pricing.mensaje, pricing.tiporeporte]).toEqual([501, "15000-P", "Registrado", ""]);
     });
 
+    test("registrarQuote sends the new note trimmed, nothing for a blank one, and clears it after saving", async () => {
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 504, nro_quote: "15003-P", msg: "ok" } });
+      const pricing = cotizacion();
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: "  Cliente apurado " };
+
+      await pricing.registrarQuote({});
+      expect((sentConfig("setQuote")!.data as Record<string, unknown>).pricing_notes).toBe("Cliente apurado");
+      expect(pricing.datosPrincipales.pricing_notes).toBeNull();
+
+      httpMock.mockClear();
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: "   " };
+      await pricing.registrarQuote({});
+      expect((sentConfig("setQuote")!.data as Record<string, unknown>).pricing_notes).toBeNull();
+    });
+
+    test("registrarQuote keeps the new note when the save fails", async () => {
+      httpMock.mockResolvedValue({ data: { estadoflag: false, mensaje: "falló" } });
+      const pricing = cotizacion();
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: "Cliente apurado" };
+
+      await pricing.registrarQuote({});
+
+      expect(pricing.datosPrincipales.pricing_notes).toBe("Cliente apurado");
+    });
+
+    test("updateQuote sends only the new note, trimmed, and clears it after saving", async () => {
+      httpMock.mockResolvedValue({ data: accepted([]) });
+      const pricing = cotizacion();
+      pricing.id = 77;
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: " Tarifa confirmada " };
+
+      await pricing.updateQuote();
+
+      expect((sentConfig("putQuote")!.data as Record<string, unknown>).pricing_notes).toBe("Tarifa confirmada");
+      expect(pricing.datosPrincipales.pricing_notes).toBeNull();
+    });
+
     test("registrarQuote sends the containers and no weights for an FCL quote", async () => {
       httpMock.mockResolvedValue({ data: { insertId: 502, nro_quote: "15001-P", msg: "ok" } });
       const pricing = cotizacion();
@@ -1459,6 +1496,7 @@ describe("pricing store", () => {
               },
             ],
             "peso": 1200,
+            "pricing_notes": null,
             "serviciocotizacion": [
               {
                 "codegroupservices": 1,
@@ -1573,6 +1611,17 @@ describe("pricing store", () => {
       expect(sentConfig("get_texto_whatsapp")!.params).toEqual({ id_shipment: 3, id_quote: 77, id_containers: "5,6", id_branch: 1 });
       expect(pricing.listadoFilesDrive).toEqual([{ name: "a.pdf" }]);
       expect(pricing.textWhatsapp).toEqual([{ texto_pdf: "pdf" }]);
+    });
+
+    test("getQuote leaves the new note empty even when the quote has legacy notes", async () => {
+      const quote = { id: 79, pricing_notes: "nota vieja", statusmain: 1, containers: [], cliente: [{}], servicios: [], opcioncostos: [] };
+      respond({ getQuoteId: accepted([quote]), get_texto_whatsapp: rejected() });
+      const pricing = usePricingStore();
+
+      await pricing.getQuote({ id: 79 });
+      await flushPromises();
+
+      expect(pricing.datosPrincipales.pricing_notes ?? "").toBe("");
     });
 
     test("getQuote hides the update button for an approved quote and skips the files without a folder", async () => {

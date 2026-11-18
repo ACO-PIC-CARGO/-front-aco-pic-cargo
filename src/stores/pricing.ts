@@ -86,6 +86,7 @@ import { requestQuoteReport } from "@/utils/quoteReportSocket";
 import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { COPY_FAILED_MESSAGE, QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
+import { newNoteToSend } from "@/components/folderPricing/InternalCommunication/newNote";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1466,7 +1467,7 @@ export const usePricingStore = defineStore("pricing", () => {
       ventascasillerodetalles: [],
       opcionCostos: opciones,
       tienefleteflag: datosPrincipales.value.tienefleteflag,
-      pricing_notes: datosPrincipales.value.pricing_notes ?? null,
+      pricing_notes: newNoteToSend(datosPrincipales.value.pricing_notes),
       id_branch: sessionBranchId(),
     };
     const response = (await request({
@@ -1479,6 +1480,7 @@ export const usePricingStore = defineStore("pricing", () => {
       nro_quote.value = response.nro_quote!;
       mensaje.value = response.msg!;
       tiporeporte.value = "";
+      datosPrincipales.value.pricing_notes = null;
     }
     return response;
   }
@@ -1668,6 +1670,7 @@ export const usePricingStore = defineStore("pricing", () => {
       descripcioncarga: res.descripcionmercancia,
       id_status: res.statusquote,
       amount: res.monto,
+      pricing_notes: null,
     };
     nro_exp.value = res.nro_exp;
     listServices.value = res.servicios;
@@ -1735,6 +1738,7 @@ export const usePricingStore = defineStore("pricing", () => {
         descripcioncarga: res.descripcionmercancia,
         // id_status: res.statusquote,
         amount: res.monto,
+        pricing_notes: null,
       };
       // state.nro_exp = res.nro_exp;
       listServices.value = res.servicios;
@@ -3360,6 +3364,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }),
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
+      pricing_notes: newNoteToSend(datosPrincipales.value.pricing_notes),
       ...(approvedEditAdmin.value && { autorizacion: approvedEditAdmin.value }),
     };
     const response = await request({
@@ -3367,6 +3372,7 @@ export const usePricingStore = defineStore("pricing", () => {
       url: import.meta.env.VITE_URL_MAIN + "putQuote",
       data: data,
     });
+    if (response.estadoflag) datosPrincipales.value.pricing_notes = null;
     Swal.fire({
       icon: response.estadoflag ? "info" : "error",
       text: response.mensaje,
