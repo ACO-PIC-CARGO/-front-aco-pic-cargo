@@ -614,6 +614,7 @@ describe("pricing store", () => {
             "amount": 5000,
             "containers": [],
             "contenedores": [],
+            "dangerous_goods": null,
             "descripcionMercancia": "REPUESTOS",
             "descripcioncarga": "REPUESTOS",
             "esgrupalflag": false,

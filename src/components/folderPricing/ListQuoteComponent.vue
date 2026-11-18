@@ -220,7 +220,7 @@ async function onQuoteReturned() {
 const NO_DATA_TEXTS = {
   "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
   pending_send: "No hay cotizaciones pendientes de envío.",
-  sent_to_client: "Todavía no se ha solicitado ninguna cotización a pricing.",
+  sent_to_client: "No hay cotizaciones enviadas al cliente en los últimos 10 días. Las anteriores están en Todas las cotizaciones.",
   returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);

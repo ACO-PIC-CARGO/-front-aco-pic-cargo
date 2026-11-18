@@ -9,12 +9,12 @@ export const showsReturnToSalesAction = (view: PricingView): boolean => view !==
 
 export const showsInternalThread = (view: PricingView): boolean => view !== "";
 
-const LEADING_DATE_COLUMNS = {
+const LEADING_DATE_COLUMNS: Partial<Record<PricingView, { key: "sent_to_client_at" | "returned_to_sales_at"; title: string; align: "center" }>> = {
   sent_to_client: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" },
   returned: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" },
-} as const;
+};
 
-export const leadingDateColumn = (view: PricingView) => (view === "" || view === "pending_send" ? null : LEADING_DATE_COLUMNS[view]);
+export const leadingDateColumn = (view: PricingView) => LEADING_DATE_COLUMNS[view] ?? null;
 
 const LAST_COMMENT_MAX_LENGTH = 80;
 
