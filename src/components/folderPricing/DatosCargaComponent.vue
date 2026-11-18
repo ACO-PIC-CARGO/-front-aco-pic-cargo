@@ -9,6 +9,7 @@ import { useTownStore } from "@/stores/town";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
+import DangerousGoodsField from "@/components/folderPricing/DangerousGoodsField.vue";
 import { positiveInteger } from "@/components/folderPricing/quoteRules";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
@@ -1267,7 +1268,10 @@ function finalizarSeleccionDistrito() {
     fluid
     class="pa-0"
   >
-    <v-card elevation="0">
+    <v-card
+      elevation="0"
+      :class="{ 'dangerous-goods-section': pricingStore.datosPrincipales.dangerous_goods === true }"
+    >
       <v-card-title> Datos de la Carga </v-card-title>
       <v-card-text>
         <v-form ref="frmPuerto">
@@ -1386,6 +1390,13 @@ function finalizarSeleccionDistrito() {
                   pricingStore.datosPrincipales.id_percepcionaduana
                 "
                 @update:model-value="changeImportType()"
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <DangerousGoodsField
+                v-model="pricingStore.datosPrincipales.dangerous_goods"
               />
             </v-col>
           </v-row>

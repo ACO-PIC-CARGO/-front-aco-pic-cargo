@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import { usePricingStore } from "@/stores/pricing";
 import { getQuotePriorityDetail, listActiveQuotePriorities } from "@/views/Configuracion/Pricing/quotePriorityApi";
 import QuotePriorityChip from "./QuotePriorityChip.vue";
-import { currentPriorityOf, priorityOptions, type PriorityOption } from "./quotePriorityField";
+import { currentPriorityOf, dangerousGoodsOf, priorityOptions, type PriorityOption } from "./quotePriorityField";
 
 withDefaults(defineProps<{ readonly?: boolean }>(), { readonly: false });
 
@@ -20,7 +20,9 @@ watch(
   () => pricingStore.id,
   async (quoteId) => {
     if (!quoteId) return;
-    current.value = currentPriorityOf(await getQuotePriorityDetail(quoteId));
+    const detail = await getQuotePriorityDetail(quoteId);
+    current.value = currentPriorityOf(detail);
+    pricingStore.datosPrincipales.dangerous_goods = dangerousGoodsOf(detail);
     if (current.value) pricingStore.datosPrincipales.id_quote_priority = current.value.id;
   },
   { immediate: true },

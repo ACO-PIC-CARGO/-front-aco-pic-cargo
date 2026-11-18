@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { currentPriorityOf, priorityOptions } from "../quotePriorityField";
+import { currentPriorityOf, dangerousGoodsOf, priorityOptions } from "../quotePriorityField";
 
 const detail = (fields = {}) => ({
   estadoflag: true,
@@ -27,4 +27,11 @@ test("does not repeat a current priority that is already active, nor add one whe
   const active = [{ id: 1, name: "Normal", color_all: "#00ff00" }];
   expect(priorityOptions(active, { id: 1, name: "Normal", color_all: "#00ff00" })).toEqual(active);
   expect(priorityOptions(active, null)).toEqual(active);
+});
+
+test("reads the stored dangerous goods answer, keeping unanswered as null", () => {
+  expect(dangerousGoodsOf(detail({ dangerous_goods: true }))).toBe(true);
+  expect(dangerousGoodsOf(detail({ dangerous_goods: false }))).toBe(false);
+  expect(dangerousGoodsOf(detail())).toBeNull();
+  expect(dangerousGoodsOf({ estadoflag: false, mensaje: "", tipomensaje: "", data: [] })).toBeNull();
 });

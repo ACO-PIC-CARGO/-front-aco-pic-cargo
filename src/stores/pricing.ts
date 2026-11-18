@@ -1468,6 +1468,7 @@ export const usePricingStore = defineStore("pricing", () => {
       opcionCostos: opciones,
       tienefleteflag: datosPrincipales.value.tienefleteflag,
       pricing_notes: newNoteToSend(datosPrincipales.value.pricing_notes),
+      dangerous_goods: datosPrincipales.value.dangerous_goods ?? null,
       id_branch: sessionBranchId(),
     };
     const response = (await request({
@@ -3365,6 +3366,7 @@ export const usePricingStore = defineStore("pricing", () => {
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
       pricing_notes: newNoteToSend(datosPrincipales.value.pricing_notes),
+      dangerous_goods: datosPrincipales.value.dangerous_goods ?? null,
       ...(approvedEditAdmin.value && { autorizacion: approvedEditAdmin.value }),
     };
     const response = await request({

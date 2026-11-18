@@ -3,6 +3,7 @@ import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
+import DangerousGoodsField from "@/components/folderPricing/DangerousGoodsField.vue";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
@@ -229,7 +230,10 @@ function mostrarComboPercepcionAduana() {
 
 <template>
   <v-container fluid>
-    <v-card elevation="0">
+    <v-card
+      elevation="0"
+      :class="{ 'dangerous-goods-section': pricingStore.datosPrincipales.dangerous_goods === true }"
+    >
       <v-card-title primary-title>
         <center>Datos de la Carga</center>
       </v-card-title>
@@ -353,6 +357,14 @@ function mostrarComboPercepcionAduana() {
                 v-model="
                   pricingStore.datosPrincipales.id_percepcionaduana
                 "
+              />
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col cols="12">
+              <DangerousGoodsField
+                readonly
+                v-model="pricingStore.datosPrincipales.dangerous_goods"
               />
             </v-col>
           </v-row>
