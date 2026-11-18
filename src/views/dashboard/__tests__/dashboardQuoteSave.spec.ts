@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 import DashboardMain from "@/views/dashboard/DashboardMain.vue";
 import { usePricingStore } from "@/stores/pricing";
 import type { Numerico } from "@/types/cotizacion";
+import { requestPricingAfterSave } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 
 const route = vi.hoisted(() => ({ name: "newQuote", params: {}, fullPath: "/pricing/newQuote" }));
 const push = vi.hoisted(() => vi.fn());
@@ -17,6 +18,10 @@ vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn().mockResolvedValue({ data: {} }), { post: vi.fn(), get: vi.fn() }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), close: vi.fn(), showLoading: vi.fn() } }));
 vi.mock("socket.io-client", () => ({ io: () => ({ on: vi.fn(), emit: vi.fn(), disconnect: vi.fn() }) }));
+vi.mock("@/components/folderPricing/PricingRequest/requestAfterSave", async (importOriginal) => ({
+  ...(await importOriginal<object>()),
+  requestPricingAfterSave: vi.fn().mockResolvedValue(null),
+}));
 
 interface TopBar {
   guardarCotizacion(): Promise<void>;
@@ -83,6 +88,21 @@ test("a saved new quote offers to open it and creates its folder", async () => {
 
   expect(push).toHaveBeenCalledWith({ name: "verQuote", params: { id: 77 } });
   expect(folder).toHaveBeenCalled();
+});
+
+test("a pricing request refused after saving a new quote is a warning of its own, not part of the saved notice", async () => {
+  const { pricing, topBar } = await topBarOn("newQuote");
+  vi.spyOn(pricing, "registrarQuote").mockImplementation(async () => {
+    pricing.mensaje = "Cotización ingresada con el número 15000-P";
+    return { estadoflag: true, mensaje: "", tipomensaje: "", data: [] };
+  });
+  vi.mocked(requestPricingAfterSave).mockResolvedValueOnce({ estadoflag: false, mensaje: "Esta cotización no tiene pricing asignado." });
+
+  await topBar.guardarCotizacion();
+  await flushPromises();
+
+  expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "info", text: "Cotización ingresada con el número 15000-P" }));
+  expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "warning", text: "Esta cotización no tiene pricing asignado." }));
 });
 
 test("an edit the server refuses stays on the edit screen", async () => {

@@ -278,7 +278,7 @@ async function guardarCotizacion() {
     Swal.fire({
       icon: "info",
       title: "Aviso",
-      text: [pricingStore.mensaje, outcome?.mensaje].filter(Boolean).join(" "),
+      text: pricingStore.mensaje,
       confirmButtonText: "Ir a ver",
     }).then((result) => {
       if (result.isConfirmed) {
@@ -287,6 +287,7 @@ async function guardarCotizacion() {
           params: { id: pricingStore.id },
         });
       }
+      if (outcome) showPricingRequestOutcome(outcome);
     });
     const id_branch = JSON.parse(
       sessionStorage.getItem("dataUser") as string,
