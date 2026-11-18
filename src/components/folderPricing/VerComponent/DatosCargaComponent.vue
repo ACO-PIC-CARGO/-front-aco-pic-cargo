@@ -5,6 +5,9 @@ import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import DangerousGoodsField from "@/components/folderPricing/DangerousGoodsField.vue";
 import { usePricingStore } from "@/stores/pricing";
+import SpecialRateNoticeBox from "@/components/folderPricing/SpecialRateNoticeBox.vue";
+import { isVisible } from "@/components/folderPricing/specialRateNotice";
+import { useSpecialRateNotice } from "@/components/folderPricing/useSpecialRateNotice";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type { Puerto } from "@/types/cotizacion";
@@ -24,6 +27,7 @@ const headers = [
   { title: "Cantidad", key: "cantidad" },
 ];
 const dialogConteiner = ref(false);
+const { notice: specialRateNotice } = useSpecialRateNotice();
 const numerobultos = ref("");
 const volumen = ref("");
 const peso = ref("");
@@ -407,6 +411,10 @@ function mostrarComboPercepcionAduana() {
                 </tr>
               </tbody>
             </v-table>
+            <SpecialRateNoticeBox
+              v-if="isVisible(specialRateNotice)"
+              :notice="specialRateNotice"
+            />
           </v-col>
         </v-row>
         <v-row v-else>

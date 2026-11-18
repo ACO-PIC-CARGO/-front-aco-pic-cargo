@@ -959,6 +959,12 @@ const routes = [
           import("../views/Configuracion/Pricing/QuotePrioritiesView.vue"),
       },
       {
+        path: "configuracion/quote_special_rate_notice",
+        name: "quoteSpecialRateNotice",
+        component: () =>
+          import("../views/Configuracion/Pricing/SpecialRateNoticeView.vue"),
+      },
+      {
         path: "reporte/ReporteGanancia",
         name: "ReporteGanancia",
         component: () =>
