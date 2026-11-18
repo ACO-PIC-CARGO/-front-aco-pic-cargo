@@ -3366,7 +3366,6 @@ export const usePricingStore = defineStore("pricing", () => {
       descripcionMercancia: datosPrincipales.value.descripcioncarga ? datosPrincipales.value.descripcioncarga : "",
       opcionCostos: opciones,
       pricing_notes: newNoteToSend(datosPrincipales.value.pricing_notes),
-      dangerous_goods: datosPrincipales.value.dangerous_goods ?? null,
       ...(approvedEditAdmin.value && { autorizacion: approvedEditAdmin.value }),
     };
     const response = await request({

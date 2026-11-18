@@ -33,5 +33,9 @@ test("reads the stored dangerous goods answer, keeping unanswered as null", () =
   expect(dangerousGoodsOf(detail({ dangerous_goods: true }))).toBe(true);
   expect(dangerousGoodsOf(detail({ dangerous_goods: false }))).toBe(false);
   expect(dangerousGoodsOf(detail())).toBeNull();
-  expect(dangerousGoodsOf({ estadoflag: false, mensaje: "", tipomensaje: "", data: [] })).toBeNull();
+});
+
+test("a failed or empty load is undefined so the answer is not sent and the stored one is kept", () => {
+  expect(dangerousGoodsOf({ estadoflag: false, mensaje: "", tipomensaje: "", data: [] })).toBeUndefined();
+  expect(dangerousGoodsOf({ estadoflag: true, mensaje: "", tipomensaje: "", data: [] })).toBeUndefined();
 });

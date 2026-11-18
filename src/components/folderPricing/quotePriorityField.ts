@@ -24,6 +24,7 @@ export function priorityOptions(active: PriorityOption[], current: PriorityOptio
   return [...active, current];
 }
 
-export function dangerousGoodsOf(response: ApiResponse<QuotePriorityDetail[]>): boolean | null {
-  return (response.estadoflag ? response.data[0]?.dangerous_goods : null) ?? null;
+export function dangerousGoodsOf(response: ApiResponse<QuotePriorityDetail[]>): boolean | null | undefined {
+  const row = response.estadoflag ? response.data[0] : undefined;
+  return row && (row.dangerous_goods ?? null);
 }
