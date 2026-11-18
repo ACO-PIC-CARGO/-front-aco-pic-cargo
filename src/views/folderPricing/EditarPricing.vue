@@ -24,6 +24,7 @@ import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
 import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
+import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
 import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
 
 const QuoteClientHistoryPanel = defineAsyncComponent(
@@ -688,6 +689,7 @@ function irANotas() {
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
+    <BottomBarsSpacer />
     <InternalCommunicationBar :quote-id="Number(route.params.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
     <v-snackbar
