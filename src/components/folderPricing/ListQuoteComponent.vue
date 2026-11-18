@@ -207,7 +207,7 @@ const SENT_TO_CLIENT_HEADER = { key: "sent_to_client_at", title: "ENVÍO AL CLIE
 const returningQuoteId = ref<number | null>(null);
 async function onQuoteReturned() {
   returningQuoteId.value = null;
-  await pricingStore.getListQuote();
+  await pricingStore.reloadQuoteList();
 }
 const showsSentToClient = computed(() => pricingStore.pricingView === "pricing_requested");
 const NO_DATA_TEXTS = {

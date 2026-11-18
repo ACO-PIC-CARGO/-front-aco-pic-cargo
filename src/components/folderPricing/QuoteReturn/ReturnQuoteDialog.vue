@@ -4,13 +4,14 @@ import Swal from "sweetalert2";
 import { listQuoteReturnStatuses, returnQuoteToSales } from "./quoteReturnApi";
 import type { QuoteReturnStatus } from "./quoteReturnApi";
 import { needsStatusChoice } from "./needsStatusChoice";
+import { returnFailureMessage } from "./returnFailureMessage";
 
 const props = defineProps<{ quoteId: number | null }>();
 const emit = defineEmits<{ returned: []; close: [] }>();
 
 const LOAD_FAILED = "No pudimos cargar los estados de devolución. Revisa tu conexión e inténtalo de nuevo.";
 const SEND_FAILED = "No pudimos devolver la cotización. Revisa tu conexión e inténtalo de nuevo.";
-const NO_STATUS = "Marca primero un estado con la opción «Notificar a Ventas para Corrección» y vuelve a intentarlo.";
+const NO_STATUS = "Primero marca un estado con «Notificar a Ventas para Corrección» en Ficheros › Estados de cotizaciones.";
 
 const loading = ref(false);
 const sending = ref(false);
@@ -25,7 +26,10 @@ const canSend = computed(
   () => !loading.value && statuses.value.length > 0 && reason.value.trim() !== "" && (!showsStatusSelect.value || statusId.value !== null),
 );
 
+let loadToken = 0;
+
 async function load() {
+  const token = ++loadToken;
   statuses.value = [];
   statusId.value = null;
   reason.value = "";
@@ -33,17 +37,18 @@ async function load() {
   loading.value = true;
   try {
     const response = await listQuoteReturnStatuses();
+    if (token !== loadToken) return;
     if (response.estadoflag && response.data.length) statuses.value = response.data;
     else error.value = NO_STATUS;
   } catch {
-    error.value = LOAD_FAILED;
+    if (token === loadToken) error.value = LOAD_FAILED;
   } finally {
-    loading.value = false;
+    if (token === loadToken) loading.value = false;
   }
 }
 
 async function send() {
-  if (props.quoteId === null) return;
+  if (props.quoteId === null || sending.value) return;
   sending.value = true;
   error.value = null;
   try {
@@ -57,8 +62,8 @@ async function send() {
     }
     void Swal.fire({ icon: "success", text: response.mensaje });
     emit("returned");
-  } catch {
-    error.value = SEND_FAILED;
+  } catch (failure) {
+    error.value = returnFailureMessage(failure);
   } finally {
     sending.value = false;
   }
