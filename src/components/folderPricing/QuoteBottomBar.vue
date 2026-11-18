@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { BOTTOM_BAR_HEIGHT } from "./bottomBar";
 
 const props = withDefaults(
   defineProps<{ icon: string; title: string; label: string; contentId: string; active?: boolean }>(),
   { active: true },
 );
 
-const BAR_HEIGHT = 56;
 const open = ref(false);
 const isActive = computed(() => props.active);
 watch(isActive, (value) => {
@@ -24,7 +24,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
 <template>
   <v-layout-item
     position="bottom"
-    :size="BAR_HEIGHT"
+    :size="BOTTOM_BAR_HEIGHT"
     :model-value="active"
     class="bottom-bar"
     :class="{ 'bottom-bar--open': open }"
@@ -33,7 +33,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
       v-show="active"
       class="bottom-bar__sheet bg-surface"
       :class="{ 'bottom-bar__sheet--open': open }"
-      :style="{ '--bottom-bar-height': `${BAR_HEIGHT}px` }"
+      :style="{ '--bottom-bar-height': `${BOTTOM_BAR_HEIGHT}px` }"
       :aria-label="label"
     >
       <header class="bottom-bar__bar">
@@ -52,10 +52,15 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
           <span class="bottom-bar__title">{{ title }}</span>
           <v-icon :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'" />
         </button>
-        <slot
-          name="header"
-          :open="open"
-        />
+        <div
+          v-if="$slots.header"
+          class="bottom-bar__extra"
+        >
+          <slot
+            name="header"
+            :open="open"
+          />
+        </div>
       </header>
       <div
         :id="contentId"
@@ -112,7 +117,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
   height: var(--bottom-bar-height);
 }
 
-.bottom-bar__bar > :not(.bottom-bar__toggle) {
+.bottom-bar__extra {
   grid-column: 3;
   justify-self: end;
 }

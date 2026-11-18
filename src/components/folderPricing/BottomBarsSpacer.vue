@@ -1,12 +1,12 @@
+<script setup lang="ts">
+import { BOTTOM_BAR_HEIGHT } from "./bottomBar";
+
+const height = `${2 * BOTTOM_BAR_HEIGHT + 32}px`;
+</script>
+
 <template>
   <div
-    class="bottom-bars-spacer"
+    :style="{ height }"
     aria-hidden="true"
   />
 </template>
-
-<style scoped>
-.bottom-bars-spacer {
-  height: calc(2 * 56px + 32px);
-}
-</style>

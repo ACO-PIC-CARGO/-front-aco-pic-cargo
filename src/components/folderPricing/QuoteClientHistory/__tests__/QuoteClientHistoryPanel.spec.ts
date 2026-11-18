@@ -1,7 +1,7 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import type { PropType } from "vue";
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
@@ -53,4 +53,13 @@ test("without a client the panel is not shown, so the keyboard cannot reach it",
   const wrapper = mountPanel({ clientId: null, visible: true });
 
   expect(isHidden(wrapper)).toBe(true);
+});
+
+test("the filter button sits in the shell's right-aligned header slot", async () => {
+  httpMock.mockResolvedValue({ data: { estadoflag: true, mensaje: "", tipomensaje: "", data: [{ total_count: 3, transports: [], modalities: [], origins: [], destinations: [], statuses: [] }] } });
+  const wrapper = mountPanel({ clientId: 41, visible: true });
+  await wrapper.find("button[aria-controls='client-history-content']").trigger("click");
+  await flushPromises();
+
+  expect(wrapper.find(".bottom-bar__extra .client-history__filter-button").exists()).toBe(true);
 });
