@@ -8,6 +8,8 @@ import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/use
 import SoportePagoDialog from "./SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "./SolicitudPagoVerDialog.vue";
 import SolicitudesPagoMovil from "./SolicitudesPagoMovil.vue";
+import RechazarSolicitudDialog from "./RechazarSolicitudDialog.vue";
+import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
 import ClientePagoChip from "./ClientePagoChip.vue";
 import SolicitudPagoEditarDialog from "@/components/folderBilling/SolicitudPagoEditarDialog.vue";
 import {
@@ -16,7 +18,7 @@ import {
   useAccionesSolicitudPago,
 } from "@/composables/useAccionesSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
-import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/utils/request";
+import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess } from "@/utils/request";
 import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ApiResponse } from "@/types/api";
 import type { SolicitudPagoControl } from "@/types/billingEntries";
@@ -29,7 +31,6 @@ const { can } = usePermissions();
 const { smAndDown } = useDisplay();
 const router = useRouter();
 
-const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
@@ -52,6 +53,10 @@ const solicitudSoporte = ref<SolicitudPagoControl | null>(null);
 
 
 const puedeAprobar = computed(() => can("listControlGastos", "MODIFICAR"));
+// Rechazar: botón propio, solo el paso pendiente y solo quien puede aprobarlo
+const { dialogRechazo, rechazoSel, puedeRechazar, tituloRechazar, abrirRechazo } = useRechazoSolicitud();
+const motivoDe = (s: SolicitudPagoControl) =>
+  verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo });
 // Administración: perfil 04 | Gerencia: perfil 01
 const { revisando, revisar: aprobar } = useRevisionSolicitudPago(() => cargar());
 const puedeTransferir = computed(() => can("registroPayForProveedor", "NUEVO"));
@@ -130,27 +135,10 @@ async function copiar(texto: string | null) {
 }
 
 
-// PAGADO: genera el token y abre Bancos > Nueva salida con los datos precargados
-async function transferir(s: SolicitudPagoControl) {
-  // la pestaña se abre con el clic (antes del await) para que el navegador no la bloquee
-  const pestana = window.open("", "_blank");
-  procesando.value = s.id;
-  const response = await request<{ token: string }>({
-    method: "put",
-    url: URL_MAIN + "solicitud_pago_transferir/" + s.id,
-  });
-  procesando.value = null;
-  const token = response.estadoflag ? response.data[0]?.token : null;
-  if (!token) {
-    pestana?.close();
-    avisar(response);
-    await cargar();
-    return;
-  }
-  // Bancos > Nueva salida en una pestaña nueva (como Solicitudes de Cobro)
-  const destino = router.resolve({ name: "registroPagoSolicitud", params: { token } }).href;
-  if (pestana) pestana.location.href = destino;
-  else window.open(destino, "_blank");
+// PAGADO: abre Bancos > Nueva salida en otra pestaña al instante; esa pestaña genera el token
+// (sin pestaña en blanco ni botón cargando si el servidor demora)
+function transferir(s: SolicitudPagoControl) {
+  window.open(router.resolve({ name: "registroPagoDesdeSolicitud", params: { id: s.id } }).href, "_blank");
 }
 
 function verSalida(s: SolicitudPagoControl) {
@@ -529,6 +517,32 @@ defineExpose({ cargar });
                   data-modo-ver="permitido"
                   @click="verSolicitud(s)"
                 />
+                <v-btn
+                  v-if="s.codigo_estado === 'RECHAZADA'"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  color="error"
+                  prepend-icon="mdi-comment-alert-outline"
+                  class="solpago__rechazar"
+                  data-modo-ver="permitido"
+                  @click="motivoDe(s)"
+                >
+                  Ver motivo
+                </v-btn>
+                <v-btn
+                  v-else-if="puedeAprobar && !anuladaSolicitud(s)"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  color="error"
+                  class="solpago__rechazar"
+                  :disabled="!puedeRechazar(s.codigo_estado, true)"
+                  :title="tituloRechazar(s.codigo_estado)"
+                  @click="abrirRechazo(s.id, s.codigo_estado)"
+                >
+                  Rechazar
+                </v-btn>
               </div>
             </td>
           </tr>
@@ -550,6 +564,8 @@ defineExpose({ cargar });
       :eliminando="eliminandoSolicitud"
       :eliminando-soporte="eliminandoSoporte"
       @aprobar="(sol, tipo) => aprobar(sol as SolicitudPagoControl, tipo)"
+      @rechazar="(sol) => abrirRechazo(sol.id, sol.codigo_estado)"
+      @ver-rechazo="(sol) => motivoDe(sol as SolicitudPagoControl)"
       @eliminar-soporte="eliminarSoporte"
       @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoControl)"
       @transferir="(sol) => transferir(sol as SolicitudPagoControl)"
@@ -571,6 +587,13 @@ defineExpose({ cargar });
       :solicitud="solicitudEditar"
       :admin="adminEditar"
       @guardado="cargar()"
+    />
+    <RechazarSolicitudDialog
+      v-model="dialogRechazo"
+      :solicitud="rechazoSel"
+      tipo="PAGO"
+      ruta="solicitud_pago_rechazar"
+      @rechazado="cargar()"
     />
     <SolicitudPagoVerDialog
       v-model="dialogVer"
@@ -808,6 +831,12 @@ defineExpose({ cargar });
 }
 
 /* acciones: editar, eliminar y ver */
+.solpago__rechazar {
+  min-width: 0;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .solpago__acciones {
   display: inline-flex;
   align-items: center;

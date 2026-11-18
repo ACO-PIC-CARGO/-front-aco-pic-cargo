@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Swal from "sweetalert2";
 import router from "@/router";
 import http from "@/api/http";
+import { refreshClient } from "@/api/sessionRefresh";
 
 vi.mock("@/router", () => ({
   default: { replace: vi.fn(), currentRoute: { value: { name: "x" } } },
@@ -27,6 +28,8 @@ describe("http client", () => {
     localStorage.clear();
     vi.mocked(router.replace).mockClear();
     http.defaults.adapter = respondWith(200);
+    // la renovación responde que la sesión terminó
+    refreshClient.defaults.adapter = respondWith(401);
   });
 
   afterEach(() => {
@@ -82,6 +85,21 @@ describe("http client", () => {
 
     expect(sessionStorage.getItem("auth-token")).toBeNull();
     expect(router.replace).toHaveBeenCalledWith({ name: "Login" });
+  });
+
+  it("keeps the session when the renewal failed for lack of network", async () => {
+    vi.useFakeTimers();
+    sessionStorage.setItem("auth-token", "stale");
+    http.defaults.adapter = respondWith(401);
+    refreshClient.defaults.adapter = (config) => Promise.reject(new AxiosError("Network Error", "ERR_NETWORK", config));
+
+    const pending = expect(http.get("/secure")).rejects.toBeInstanceOf(AxiosError);
+    await vi.runAllTimersAsync();
+    await pending;
+    vi.useRealTimers();
+
+    expect(sessionStorage.getItem("auth-token")).toBe("stale");
+    expect(router.replace).not.toHaveBeenCalled();
   });
 
   it("removes only the token from localStorage on 401", async () => {

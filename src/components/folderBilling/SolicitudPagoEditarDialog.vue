@@ -35,8 +35,11 @@ const form = ref({ id_tipopago: null as number | null, id_cuenta: null as number
 
 const codigoTipo = computed(() => tipos.value.find((t) => t.id === form.value.id_tipopago)?.codigo);
 const esCodigo = computed(() => codigoTipo.value === "02");
+// solo las cuentas del proveedor en la moneda de la solicitud (la del correlativo)
 const itemsCuentas = computed(() =>
-  cuentas.value.map((c) => ({
+  cuentas.value
+    .filter((c) => !props.solicitud?.moneda || !c.symbol || c.symbol === props.solicitud.moneda)
+    .map((c) => ({
     title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
     value: c.id,
   })),

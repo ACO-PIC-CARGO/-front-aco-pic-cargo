@@ -1974,8 +1974,16 @@ const monedaModalSolicitudPago = computed(
 const totalSolicitudPago = computed(() =>
   conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
 );
+// moneda de los conceptos (Op) del correlativo del proveedor: solo cuentas del proveedor en esa moneda
+const monedaSolicitudPago = computed(() => {
+  const detalle = solicitudPagoProveedor.value?.detalle ?? [];
+  const egreso = detalle.find((d) => d.id_coins && Number(d.total_op || 0) !== 0) ?? detalle.find((d) => d.id_coins);
+  return egreso?.id_coins ? Number(egreso.id_coins) : null;
+});
 const cuentasSolicitudPago = computed(() =>
-  (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]).map((c) => ({
+  (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[])
+    .filter((c) => !monedaSolicitudPago.value || !c.id_coins || Number(c.id_coins) === monedaSolicitudPago.value)
+    .map((c) => ({
     title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
     value: c.id,
   })),
