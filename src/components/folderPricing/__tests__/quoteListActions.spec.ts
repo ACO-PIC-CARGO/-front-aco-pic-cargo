@@ -6,7 +6,7 @@ describe("showsCallActions", () => {
     expect(showsCallActions("")).toBe(true);
   });
 
-  it.each(["pending_send", "sent_to_client", "returned"] as const)(
+  it.each(["pending_send", "pricing_requested"] as const)(
     "hides the call buttons in %s",
     (view) => {
       expect(showsCallActions(view)).toBe(false);

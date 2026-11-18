@@ -1,3 +1,3 @@
-export type PricingView = "" | "pending_send" | "sent_to_client" | "returned";
+export type PricingView = "" | "pending_send" | "pricing_requested";
 
 export const showsCallActions = (view: PricingView): boolean => view === "";
