@@ -809,6 +809,7 @@ export interface RespuestaRegistroCotizacion {
   insertId: number;
   nro_quote: string;
   msg: string;
+  notes_saved: boolean;
 }
 
 export interface CotizacionCopiada {

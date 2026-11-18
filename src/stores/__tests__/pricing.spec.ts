@@ -948,6 +948,30 @@ describe("pricing store", () => {
       expect(pricing.datosPrincipales.pricing_notes).toBe("Cliente apurado");
     });
 
+    test("registrarQuote keeps the new note when the quote saved but the note did not", async () => {
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 506, nro_quote: "15005-P", msg: "ok", notes_saved: false } });
+      const pricing = cotizacion();
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: "Cliente apurado" };
+
+      await pricing.registrarQuote({});
+
+      expect(pricing.datosPrincipales.pricing_notes).toBe("Cliente apurado");
+    });
+
+    test.each([
+      ["the save fails", { estadoflag: false, mensaje: "falló", tipomensaje: "TMSGADV", data: [] }],
+      ["the quote saved but the note did not", { ...accepted([]), notes_saved: false }],
+    ])("updateQuote keeps the new note when %s", async (_case, answer) => {
+      httpMock.mockResolvedValue({ data: answer });
+      const pricing = cotizacion();
+      pricing.id = 77;
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, pricing_notes: "Tarifa confirmada" };
+
+      await pricing.updateQuote();
+
+      expect(pricing.datosPrincipales.pricing_notes).toBe("Tarifa confirmada");
+    });
+
     test("updateQuote sends only the new note, trimmed, and clears it after saving", async () => {
       httpMock.mockResolvedValue({ data: accepted([]) });
       const pricing = cotizacion();
@@ -973,6 +997,16 @@ describe("pricing store", () => {
       expect(data.contenedores).toEqual([{ id: 7, id_contenedor: 5, cantidad: 2, status: true }]);
     });
 
+    test("registrarQuotePorCambioIncoterms keeps the priority and the dangerous-goods answer on the new quote", async () => {
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 505, nro_quote: "15004-P", msg: "ok" } });
+      const pricing = cotizacion();
+      pricing.datosPrincipales = { ...pricing.datosPrincipales, id_quote_priority: 7, dangerous_goods: true };
+
+      await pricing.registrarQuotePorCambioIncoterms({ listServices: SERVICIOS.slice(0, 2), opcionCostos: [opcion({ nro_propuesta: 2, selected: false })] });
+
+      expect(sentConfig("setQuote")!.data).toMatchObject({ id_quote_priority: 7, dangerous_goods: true });
+    });
+
     test("registrarQuotePorCambioIncoterms posts the services and options it receives with the quote header", async () => {
       httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 503, nro_quote: "15002-P", msg: "ok" } });
       const pricing = cotizacion();
@@ -985,6 +1019,7 @@ describe("pricing store", () => {
         {
           "data": {
             "contenedores": [],
+            "dangerous_goods": null,
             "descripcionMercancia": "REPUESTOS",
             "direccionproveedor": undefined,
             "esgrupalflag": false,
@@ -997,6 +1032,7 @@ describe("pricing store", () => {
             "id_marketing": 150,
             "id_percepcionaduana": 53,
             "id_proveedor": undefined,
+            "id_quote_priority": undefined,
             "iddestino": 346,
             "iddistrito": undefined,
             "idincoterms": 9,
