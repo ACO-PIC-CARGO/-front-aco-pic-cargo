@@ -156,3 +156,35 @@ test("a successful request without a note reports none", async () => {
   await flushPromises();
   expect(wrapper.emitted("requested")).toEqual([[null]]);
 });
+
+test("a blocked row cannot open the request dialog", async () => {
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, blocked: true }, global: { plugins: [vuetify] }, attachTo: document.body });
+  const button = wrapper.find("button[aria-label='Ya fue solicitado']");
+  expect(button.attributes("disabled")).toBeDefined();
+  expect(wrapper.find("button[aria-label='Solicitar a pricing']").exists()).toBe(false);
+  expect(getPricingRequestInfo).not.toHaveBeenCalled();
+});
+
+test("the text button turns into a disabled notice when the quote was already requested", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ can_request: false, blocked_reason: "Ya fue solicitada el 18/11/2026 10:00. Edita la cotización para volver a solicitarla." }));
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text" }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  expect(wrapper.text()).toContain("YA FUE SOLICITADO");
+  expect(wrapper.find("button").attributes("disabled")).toBeDefined();
+});
+
+test("the text button stays as is when the refusal is another reason", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ can_request: false, blocked_reason: "Ya hay una solicitud pendiente." }));
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text" }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  expect(wrapper.text()).toContain("SOLICITAR A PRICING");
+});
+
+test("a successful request blocks the button until the quote is edited", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { wrapper, send } = await openDialog();
+  send().click();
+  await flushPromises();
+  expect(wrapper.find("button[aria-label='Ya fue solicitado']").exists()).toBe(true);
+});

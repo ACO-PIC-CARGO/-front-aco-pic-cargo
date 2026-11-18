@@ -305,6 +305,7 @@ export interface DetalleLlamada {
 
 export interface CotizacionListado {
   id?: number;
+  pricing_request_blocked?: boolean;
   sent_to_client_at?: string | null;
   returned_to_sales_at?: string | null;
   last_message_body?: string | null;

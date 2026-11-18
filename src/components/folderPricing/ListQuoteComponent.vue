@@ -243,6 +243,10 @@ const headersCotizaciones = computed(() => {
 function onThreadMessageSent(item: CotizacionListado, message: { direction: MessageDirection; body: string }) {
   Object.assign(item, withLastMessage(item, message));
 }
+function onPricingRequested(item: CotizacionListado, note: string | null) {
+  item.pricing_request_blocked = true;
+  if (note) onThreadMessageSent(item, { direction: "sales_to_pricing", body: note });
+}
 // filtro: {
 //   idmarketing: null,
 //   idstatus: null,
@@ -1158,7 +1162,8 @@ onMounted(async () => {
               <PricingRequestButton
                 v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
-                @requested="(note) => note && onThreadMessageSent(item, { direction: 'sales_to_pricing', body: note })"
+                :blocked="item.pricing_request_blocked"
+                @requested="onPricingRequested(item, $event)"
               />
               <v-tooltip location="top">
                 <template #activator="{ props }">

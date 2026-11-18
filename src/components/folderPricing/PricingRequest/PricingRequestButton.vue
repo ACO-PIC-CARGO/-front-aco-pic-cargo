@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import Swal from "sweetalert2";
 import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi";
 import type { PricingRequestInfo } from "./pricingRequestApi";
 import InternalCommunicationThread from "../InternalCommunication/InternalCommunicationThread.vue";
 import { newNoteToSend } from "../InternalCommunication/newNote";
+import { alreadyRequestedTooltip, isAlreadyRequested } from "./pricingRequestState";
 
-const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text" }>(), {
+const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean }>(), {
   activator: "icon",
 });
 
@@ -22,6 +23,22 @@ const info = ref<PricingRequestInfo | null>(null);
 const loadError = ref<string | null>(null);
 const sendError = ref<string | null>(null);
 const note = ref("");
+const alreadyRequested = ref(false);
+const alreadyRequestedReason = ref<string | null>(null);
+
+onMounted(async () => {
+  if (props.activator !== "text") return;
+  try {
+    const response = await getPricingRequestInfo(props.quoteId);
+    const current = response.estadoflag ? response.data[0] : null;
+    if (current && isAlreadyRequested(current)) {
+      alreadyRequested.value = true;
+      alreadyRequestedReason.value = current.blocked_reason;
+    }
+  } catch {
+    // Info reloads on click.
+  }
+});
 
 async function open() {
   dialog.value = true;
@@ -52,6 +69,8 @@ async function send() {
       return;
     }
     dialog.value = false;
+    alreadyRequested.value = true;
+    alreadyRequestedReason.value = null;
     emit("requested", sentNote);
     void Swal.fire({ icon: "success", text: response.mensaje });
   } catch {
@@ -63,8 +82,44 @@ async function send() {
 </script>
 
 <template>
+  <v-tooltip
+    v-if="alreadyRequested || blocked"
+    location="top"
+  >
+    <template #activator="{ props: tooltip }">
+      <span v-bind="tooltip">
+        <v-btn
+          v-if="activator === 'text'"
+          variant="elevated"
+          class="mx-1"
+          disabled
+        >
+          <v-icon
+            class="mx-1"
+            size="small"
+          >
+            mdi-account-check
+          </v-icon>
+          YA FUE SOLICITADO
+        </v-btn>
+        <v-btn
+          v-else
+          variant="text"
+          icon
+          size="x-small"
+          disabled
+          aria-label="Ya fue solicitado"
+        >
+          <v-icon size="small">
+            mdi-account-check
+          </v-icon>
+        </v-btn>
+      </span>
+    </template>
+    <span>{{ alreadyRequestedTooltip(alreadyRequestedReason) }}</span>
+  </v-tooltip>
   <v-btn
-    v-if="activator === 'text'"
+    v-else-if="activator === 'text'"
     variant="elevated"
     class="mx-1"
     color="light-blue-darken-3"
