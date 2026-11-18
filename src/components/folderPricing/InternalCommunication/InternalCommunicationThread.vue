@@ -5,8 +5,8 @@ import type { SentMessage } from "./internalCommunicationApi";
 import { messageLabel } from "./messageLabel";
 import { useInternalThread } from "./useInternalThread";
 
-const props = defineProps<{ quoteId: number }>();
-const emit = defineEmits<{ sent: [message: SentMessage] }>();
+const props = defineProps<{ quoteId: number; readonly?: boolean }>();
+const emit = defineEmits<{ sent: [message: SentMessage & { body: string }] }>();
 
 const { messages, draft, sending, errorText, count, canSend, send } = useInternalThread(
   toRef(props, "quoteId"),
@@ -64,7 +64,10 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
     >
       {{ errorText }}
     </v-alert>
-    <div class="d-flex ga-3 align-end mt-2">
+    <div
+      v-if="!readonly"
+      class="d-flex ga-3 align-end mt-2"
+    >
       <v-textarea
         v-model="draft"
         label="Nueva nota / respuesta"

@@ -74,3 +74,14 @@ test("any other refusal shows the backend message", async () => {
   await flushPromises();
   expect(thread.errorText.value).toBe("No tienes permiso para ver estos mensajes.");
 });
+
+test("a sent message reports its trimmed body so a list row can show it", async () => {
+  vi.mocked(getInternalMessages).mockResolvedValue(ok([]) as never);
+  vi.mocked(sendInternalMessage).mockResolvedValue(ok([{ id: 9, direction: "sales_to_pricing", created_at: "x" }]) as never);
+  const onSent = vi.fn();
+  const thread = useInternalThread(ref(1), onSent);
+  await flushPromises();
+  thread.draft.value = "  Urge  ";
+  await thread.send();
+  expect(onSent).toHaveBeenCalledWith({ id: 9, direction: "sales_to_pricing", created_at: "x", body: "Urge" });
+});

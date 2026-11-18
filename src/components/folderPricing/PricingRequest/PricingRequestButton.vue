@@ -3,6 +3,8 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi";
 import type { PricingRequestInfo } from "./pricingRequestApi";
+import InternalCommunicationThread from "../InternalCommunication/InternalCommunicationThread.vue";
+import { newNoteToSend } from "../InternalCommunication/newNote";
 
 const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text" }>(), {
   activator: "icon",
@@ -17,12 +19,14 @@ const sending = ref(false);
 const info = ref<PricingRequestInfo | null>(null);
 const loadError = ref<string | null>(null);
 const sendError = ref<string | null>(null);
+const note = ref("");
 
 async function open() {
   dialog.value = true;
   info.value = null;
   loadError.value = null;
   sendError.value = null;
+  note.value = "";
   loading.value = true;
   try {
     const response = await getPricingRequestInfo(props.quoteId);
@@ -39,7 +43,7 @@ async function send() {
   sending.value = true;
   sendError.value = null;
   try {
-    const response = await createPricingRequest(props.quoteId);
+    const response = await createPricingRequest(props.quoteId, newNoteToSend(note.value));
     if (!response.estadoflag) {
       sendError.value = response.mensaje || SEND_FAILED;
       return;
@@ -96,7 +100,7 @@ async function send() {
 
   <v-dialog
     v-model="dialog"
-    max-width="480"
+    max-width="640"
   >
     <v-card>
       <v-card-title>Solicitar a pricing</v-card-title>
@@ -106,12 +110,19 @@ async function send() {
         </p>
         <template v-else-if="info">
           <p>¿Solicitar a {{ info.pricing_name ?? "pricing" }} que revise la cotización {{ info.quote_code }}?</p>
-          <p class="text-label-large mt-3">
-            Notas a pricing
-          </p>
-          <p class="pricing-request-notes">
-            {{ info.pricing_notes || "Esta cotización no tiene notas a pricing." }}
-          </p>
+          <InternalCommunicationThread
+            class="mt-3"
+            :quote-id="quoteId"
+            readonly
+          />
+          <v-textarea
+            v-model="note"
+            class="mt-3"
+            label="Nueva nota"
+            placeholder="Escribe lo que Pricing debe saber sobre esta cotización. Se envía junto con la solicitud."
+            rows="3"
+            auto-grow
+          />
         </template>
         <v-alert
           v-if="loadError || info?.blocked_reason"
@@ -154,8 +165,3 @@ async function send() {
   </v-dialog>
 </template>
 
-<style scoped>
-.pricing-request-notes {
-  white-space: pre-line;
-}
-</style>

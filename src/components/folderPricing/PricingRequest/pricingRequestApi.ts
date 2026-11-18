@@ -17,7 +17,11 @@ export async function getPricingRequestInfo(quoteId: number | string) {
   return data;
 }
 
-export async function createPricingRequest(quoteId: number | string) {
-  const { data } = await http<ApiResponse<never[]>>({ method: "post", url: url(`quote_pricing_request/${quoteId}`) });
+export async function createPricingRequest(quoteId: number | string, note: string | null = null) {
+  const { data } = await http<ApiResponse<never[]>>({
+    method: "post",
+    url: url(`quote_pricing_request/${quoteId}`),
+    data: note ? { note } : undefined,
+  });
   return data;
 }

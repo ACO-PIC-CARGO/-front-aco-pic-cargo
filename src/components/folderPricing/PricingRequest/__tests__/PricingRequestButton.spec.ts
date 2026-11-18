@@ -8,6 +8,10 @@ import PricingRequestButton from "../PricingRequestButton.vue";
 import { createPricingRequest, getPricingRequestInfo } from "../pricingRequestApi";
 
 vi.mock("../pricingRequestApi", () => ({ getPricingRequestInfo: vi.fn(), createPricingRequest: vi.fn() }));
+vi.mock("../../InternalCommunication/internalCommunicationApi", () => ({
+  getInternalMessages: vi.fn().mockResolvedValue({ estadoflag: true, mensaje: "", tipomensaje: "TMSGINF", data: [] }),
+  sendInternalMessage: vi.fn(),
+}));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 globalThis.ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} };
 Object.defineProperty(window, "visualViewport", {
@@ -48,20 +52,43 @@ test("a blocked request explains why and cannot be sent", async () => {
 test("confirming sends the request and shows the server message", async () => {
   vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
   vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "Le avisamos a ANA PRICING que revise la cotización 15479-P.", tipomensaje: "TMSGSUC", data: [] });
-  const { send, text } = await openDialog();
-  expect(text()).toContain("Revisar flete");
+  const { send } = await openDialog();
 
   send().click();
   await flushPromises();
 
-  expect(createPricingRequest).toHaveBeenCalledWith(15);
+  expect(createPricingRequest).toHaveBeenCalledWith(15, null);
   expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "success", text: "Le avisamos a ANA PRICING que revise la cotización 15479-P." }));
 });
 
-test("a quote without notes says so", async () => {
-  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ pricing_notes: null }));
-  const { text } = await openDialog();
-  expect(text()).toContain("Esta cotización no tiene notas a pricing.");
+test("a typed note travels trimmed with the request", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { send } = await openDialog();
+  const field = document.querySelector("textarea") as HTMLTextAreaElement;
+  field.value = "  Urge el flete  ";
+  field.dispatchEvent(new Event("input"));
+  await flushPromises();
+
+  send().click();
+  await flushPromises();
+
+  expect(createPricingRequest).toHaveBeenCalledWith(15, "Urge el flete");
+});
+
+test("a blank note is not sent", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { send } = await openDialog();
+  const field = document.querySelector("textarea") as HTMLTextAreaElement;
+  field.value = "   ";
+  field.dispatchEvent(new Event("input"));
+  await flushPromises();
+
+  send().click();
+  await flushPromises();
+
+  expect(createPricingRequest).toHaveBeenCalledWith(15, null);
 });
 
 test("a connection failure shows friendly copy instead of the error", async () => {

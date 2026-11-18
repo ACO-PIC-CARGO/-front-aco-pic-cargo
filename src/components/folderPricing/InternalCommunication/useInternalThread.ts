@@ -5,7 +5,7 @@ const EMPTY_TYPE = "TMSGINF";
 const LOAD_FAILED = "No pudimos cargar los mensajes. Revisa tu conexión e intenta de nuevo.";
 const SEND_FAILED = "No pudimos enviar el mensaje. Revisa tu conexión e intenta de nuevo.";
 
-export function useInternalThread(quoteId: Ref<number>, onSent: (message: SentMessage) => void) {
+export function useInternalThread(quoteId: Ref<number>, onSent: (message: SentMessage & { body: string }) => void) {
   const messages = ref<InternalMessage[]>([]);
   const draft = ref("");
   const sending = ref(false);
@@ -44,8 +44,9 @@ export function useInternalThread(quoteId: Ref<number>, onSent: (message: SentMe
         errorText.value = response.mensaje;
         return;
       }
+      const body = draft.value.trim();
       draft.value = "";
-      if (response.data[0]) onSent(response.data[0]);
+      if (response.data[0]) onSent({ ...response.data[0], body });
       await load();
     } catch {
       if (requested === quoteId.value) errorText.value = SEND_FAILED;
