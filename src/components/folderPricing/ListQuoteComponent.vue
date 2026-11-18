@@ -8,11 +8,12 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
-import { showsCallActions } from "@/components/folderPricing/quoteListActions";
+import { showsCallActions, showsReturnToSalesAction } from "@/components/folderPricing/quoteListActions";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import QuotePriorityChip from "@/components/folderPricing/QuotePriorityChip.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
+import ReturnQuoteDialog from "@/components/folderPricing/QuoteReturn/ReturnQuoteDialog.vue";
 import { isApprovedQuote } from "@/utils/quoteApproval";
 import { chosenOptionTitle } from "@/utils/selectOptions";
 import type { ApiResponse } from "@/types/api";
@@ -203,6 +204,11 @@ const cabCotizaciones = [
 ] as const;
 
 const SENT_TO_CLIENT_HEADER = { key: "sent_to_client_at", title: "ENVÍO AL CLIENTE", align: "center" } as const;
+const returningQuoteId = ref<number | null>(null);
+async function onQuoteReturned() {
+  returningQuoteId.value = null;
+  await pricingStore.getListQuote();
+}
 const showsSentToClient = computed(() => pricingStore.pricingView === "pricing_requested");
 const NO_DATA_TEXTS = {
   "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
@@ -1110,6 +1116,27 @@ onMounted(async () => {
                 v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
               />
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-if="showsReturnToSalesAction(pricingStore.pricingView) && item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
+                    v-bind="props"
+                    variant="text"
+                    icon
+                    size="x-small"
+                    aria-label="No se puede procesar"
+                    @click="returningQuoteId = item.id"
+                  >
+                    <v-icon
+                      color="#1A237E"
+                      size="small"
+                    >
+                      mdi-file-undo-outline
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>No se puede procesar</span>
+              </v-tooltip>
               <!--  -->
             </v-btn-toggle>
             <v-btn-toggle>
@@ -1601,6 +1628,11 @@ onMounted(async () => {
       :dialog-url="dialogUrl"
       :master-editar="masterEditar"
       @cerrar="cerrarDialog"
+    />
+    <ReturnQuoteDialog
+      :quote-id="returningQuoteId"
+      @returned="onQuoteReturned"
+      @close="returningQuoteId = null"
     />
   </v-container>
 </template>
