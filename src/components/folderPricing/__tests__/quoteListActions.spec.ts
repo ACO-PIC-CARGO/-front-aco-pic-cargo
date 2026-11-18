@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -110,5 +110,15 @@ linea dos ${"x".repeat(200)}`)!;
 
   it("keeps a comment of exactly the limit untouched", () => {
     expect(lastCommentParts("sales_to_pricing", "y".repeat(80))!.body).toBe("y".repeat(80));
+  });
+});
+
+describe("showsCancelRequestAction", () => {
+  it("hides the cancel action in Todas las cotizaciones", () => {
+    expect(showsCancelRequestAction("")).toBe(false);
+  });
+
+  it.each(["pending_send", "sent_to_client", "returned"] as const)("shows the cancel action in %s", (view) => {
+    expect(showsCancelRequestAction(view)).toBe(true);
   });
 });

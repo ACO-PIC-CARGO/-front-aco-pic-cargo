@@ -13,6 +13,7 @@ import {
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
+  showsCancelRequestAction,
   withLastMessage,
 } from "@/components/folderPricing/quoteListActions";
 import InternalCommunicationThread from "@/components/folderPricing/InternalCommunication/InternalCommunicationThread.vue";
@@ -23,6 +24,7 @@ import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesi
 import QuotePriorityChip from "@/components/folderPricing/QuotePriorityChip.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import ReturnQuoteDialog from "@/components/folderPricing/QuoteReturn/ReturnQuoteDialog.vue";
+import CancelRequestDialog from "@/components/folderPricing/QuoteCancel/CancelRequestDialog.vue";
 import { isApprovedQuote } from "@/utils/quoteApproval";
 import { chosenOptionTitle } from "@/utils/selectOptions";
 import type { ApiResponse } from "@/types/api";
@@ -215,6 +217,11 @@ const cabCotizaciones = [
 const returningQuoteId = ref<number | null>(null);
 async function onQuoteReturned() {
   returningQuoteId.value = null;
+  await pricingStore.reloadQuoteList();
+}
+const cancellingQuoteId = ref<number | null>(null);
+async function onRequestCancelled() {
+  cancellingQuoteId.value = null;
   await pricingStore.reloadQuoteList();
 }
 const NO_DATA_TEXTS = {
@@ -1174,6 +1181,27 @@ onMounted(async () => {
                 </template>
                 <span>No se puede procesar</span>
               </v-tooltip>
+              <v-tooltip location="top">
+                <template #activator="{ props }">
+                  <v-btn
+                    v-if="showsCancelRequestAction(pricingStore.pricingView) && item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
+                    v-bind="props"
+                    variant="text"
+                    icon
+                    size="x-small"
+                    aria-label="Anular solicitud"
+                    @click="cancellingQuoteId = item.id"
+                  >
+                    <v-icon
+                      color="#1A237E"
+                      size="small"
+                    >
+                      mdi-cancel
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <span>Anular solicitud</span>
+              </v-tooltip>
               <!--  -->
             </v-btn-toggle>
             <v-btn-toggle>
@@ -1688,6 +1716,11 @@ onMounted(async () => {
       :quote-id="returningQuoteId"
       @returned="onQuoteReturned"
       @close="returningQuoteId = null"
+    />
+    <CancelRequestDialog
+      :quote-id="cancellingQuoteId"
+      @cancelled="onRequestCancelled"
+      @close="cancellingQuoteId = null"
     />
   </v-container>
 </template>

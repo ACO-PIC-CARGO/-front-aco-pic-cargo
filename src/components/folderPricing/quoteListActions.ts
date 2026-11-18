@@ -7,6 +7,8 @@ export const showsCallActions = (view: PricingView): boolean => view === "";
 
 export const showsReturnToSalesAction = (view: PricingView): boolean => view !== "" && view !== "returned";
 
+export const showsCancelRequestAction = (view: PricingView): boolean => view !== "";
+
 export const showsInternalThread = (view: PricingView): boolean => view !== "";
 
 const LEADING_DATE_COLUMNS: Partial<Record<PricingView, { key: "sent_to_client_at" | "returned_to_sales_at"; title: string; align: "center" }>> = {
