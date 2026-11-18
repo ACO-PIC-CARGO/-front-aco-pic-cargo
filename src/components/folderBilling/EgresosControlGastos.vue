@@ -2193,11 +2193,23 @@ onMounted(async () => {
     appStore._getMasterList(),
   ]);
 
-  headers.value[2]!.title =
-    enterprisesStore.impuesto.nombre_impuesto!;
-  mostrarImpuesto.value =
-    enterprisesStore.impuesto.mostrarimpuesto;
+  // si Control de Gastos aún no la pidió (o es de otra sucursal), se pide aquí
+  const branch = String(route.params.id_branch ?? "");
+  if (!enterprisesStore.impuestoCargado || (branch && enterprisesStore.impuestoBranch !== branch)) {
+    await enterprisesStore.obtenerImpuestoXEmpresa(branch || null);
+  }
 });
+// El impuesto (IGV en Perú) se aplica cuando llega su configuración, no en un momento fijo: antes se leía
+// una sola vez al montar y, si la respuesta llegaba después, salía "NO HA CONFIGURADO EL IMPUESTO".
+watch(
+  () => [enterprisesStore.impuestoCargado, enterprisesStore.impuesto] as const,
+  ([cargado, impuesto]) => {
+    if (!cargado) return;
+    if (impuesto.nombre_impuesto) headers.value[2]!.title = impuesto.nombre_impuesto;
+    mostrarImpuesto.value = !!impuesto.mostrarimpuesto;
+  },
+  { immediate: true },
+);
 </script>
 
 <template>

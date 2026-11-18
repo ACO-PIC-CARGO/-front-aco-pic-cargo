@@ -41,6 +41,15 @@ const idCuenta = ref<number | null>(null);
 const idBancoOrigen = ref<number | null>(null);
 const fechaDeposito = ref("");
 const numeroOperacion = ref("");
+// N° de operación: "Aplica" (obligatorio) o "No aplica" (no se pide; se escribe en Bancos al registrar el ingreso)
+const aplicaNroOperacion = ref(true);
+const OPCIONES_NRO_OPERACION = [
+  { titulo: "Aplica", valor: true },
+  { titulo: "No aplica", valor: false },
+];
+watch(aplicaNroOperacion, (aplica) => {
+  if (!aplica) numeroOperacion.value = "";
+});
 const comentario = ref("");
 const voucher = ref<{ id: number; nombre: string; ruta: string } | null>(null);
 const subiendo = ref(false);
@@ -64,12 +73,21 @@ const errorMonto = computed(() => {
 });
 
 // moneda: la de la solicitud o la de la cuenta elegida
-const cuentas = computed(() => {
+// cuentas de la moneda del correlativo
+const cuentasMoneda = computed(() => {
   const moneda = props.solicitud?.moneda;
   if (moneda) return bancosStore.cuentas.filter((c) => c.symbol === moneda);
   // moneda de los ingresos del correlativo (coins): solo las cuentas en esa moneda
   const idCoins = props.destino?.id_coins;
   return idCoins ? bancosStore.cuentas.filter((c) => Number(c.id_coins) === Number(idCoins)) : bancosStore.cuentas;
+});
+// al cargar el soporte solo se ofrece la cuenta principal de la empresa (esprincipalflag); al editar un
+// pago se mantiene también la suya. Sin cuenta principal configurada, todas las de esa moneda.
+const cuentas = computed(() => {
+  const principales = cuentasMoneda.value.filter((c) => c.esprincipalflag);
+  if (!principales.length) return cuentasMoneda.value;
+  const actual = props.soporte ? cuentasMoneda.value.find((c) => c.id === props.soporte!.id_cuentabancaria) : undefined;
+  return actual && !actual.esprincipalflag ? [...principales, actual] : principales;
 });
 const moneda = computed(
   () =>
@@ -79,7 +97,7 @@ const moneda = computed(
     ?? "USD",
 );
 const completo = computed(
-  () => !errorMonto.value && !!idCuenta.value && !!idBancoOrigen.value && !!voucher.value && !!fechaDeposito.value && !!numeroOperacion.value.trim(),
+  () => !errorMonto.value && !!idCuenta.value && !!idBancoOrigen.value && !!voucher.value && !!fechaDeposito.value && (!aplicaNroOperacion.value || !!numeroOperacion.value.trim()),
 );
 // ya enviada: al guardar con la suma exacta se vuelve a enviar sola
 const yaEnviada = computed(() => !!props.solicitud?.enviadoflag);
@@ -94,10 +112,12 @@ watch(
     const previo = props.solicitud?.soportes?.[0];
     // pago nuevo: el monto lo escribe el usuario (no se llena solo); al editar, el del pago
     monto.value = sop ? Number(sop.monto).toFixed(2) : "";
-    // un pago nuevo repite la cuenta y el banco del primero (se pueden cambiar)
-    idCuenta.value = sop?.id_cuentabancaria ?? previo?.id_cuentabancaria ?? null;
+    // editar: la cuenta del pago; pago nuevo: la cuenta principal de la empresa (se elige al cargar las cuentas)
+    idCuenta.value = sop?.id_cuentabancaria ?? null;
     idBancoOrigen.value = sop?.id_banco_origen ?? previo?.id_banco_origen ?? null;
     fechaDeposito.value = sop?.fechadeposito ?? hoy();
+    // al editar: sin número guardado es "No aplica"
+    aplicaNroOperacion.value = sop ? !!sop.numerooperacion : true;
     numeroOperacion.value = sop?.numerooperacion ?? "";
     comentario.value = sop?.comentario ?? "";
     voucher.value = sop?.id_path_voucher
@@ -169,7 +189,8 @@ async function guardar(enviar: boolean) {
       id_banco_origen: idBancoOrigen.value,
       id_path: voucher.value!.id,
       fechadeposito: fechaDeposito.value,
-      numerooperacion: numeroOperacion.value.trim(),
+      numerooperacion: aplicaNroOperacion.value ? numeroOperacion.value.trim() : null,
+      aplica_nrooperacion: aplicaNroOperacion.value,
       comentario: comentario.value,
       enviar,
       ...withAuthorization(props.admin),
@@ -364,19 +385,37 @@ async function guardar(enviar: boolean) {
             <label
               class="pagocli__label"
               for="pagocli-nroop"
-            >N° DE OPERACIÓN <span class="pagocli__req">*</span></label>
-            <v-text-field
-              id="pagocli-nroop"
-              v-model="numeroOperacion"
-              placeholder="N° DEL VOUCHER"
-              prepend-inner-icon="mdi-pound"
-              variant="outlined"
-              density="compact"
-              class="pagocli__input"
-              maxlength="100"
-              hide-details="auto"
-              :error-messages="numeroOperacion.trim() ? '' : DATO_REQUERIDO"
-            />
+            >N° DE OPERACIÓN <span
+              v-if="aplicaNroOperacion"
+              class="pagocli__req"
+            >*</span></label>
+            <!-- combo Aplica / No aplica + el número (Aplica: obligatorio y pasa bloqueado a Bancos) -->
+            <div class="pagocli__nroop">
+              <v-select
+                v-model="aplicaNroOperacion"
+                :items="OPCIONES_NRO_OPERACION"
+                item-title="titulo"
+                item-value="valor"
+                variant="outlined"
+                density="compact"
+                class="pagocli__input pagocli__aplica"
+                aria-label="¿Aplica N° de operación?"
+                hide-details
+              />
+              <v-text-field
+                id="pagocli-nroop"
+                v-model="numeroOperacion"
+                :placeholder="aplicaNroOperacion ? 'N° DEL VOUCHER' : 'SE LLENA EN BANCOS'"
+                prepend-inner-icon="mdi-pound"
+                variant="outlined"
+                density="compact"
+                class="pagocli__input"
+                maxlength="100"
+                :disabled="!aplicaNroOperacion"
+                hide-details="auto"
+                :error-messages="!aplicaNroOperacion || numeroOperacion.trim() ? '' : DATO_REQUERIDO"
+              />
+            </div>
           </div>
         </div>
 
@@ -398,7 +437,7 @@ async function guardar(enviar: boolean) {
         <div
           v-if="!voucher"
           class="pagocli__drop"
-          :class="{ 'pagocli__drop--over': arrastrando }"
+          :class="{ 'pagocli__drop--over': arrastrando, 'pagocli__drop--error': !subiendo }"
           role="button"
           tabindex="0"
           aria-label="Cargar el voucher del cliente"
@@ -433,6 +472,13 @@ async function guardar(enviar: boolean) {
             hidden
             @change="alElegir"
           >
+        </div>
+        <!-- el voucher es obligatorio: al abrir el formulario o al quitarlo se marca como dato requerido -->
+        <div
+          v-if="!voucher && !subiendo"
+          class="pagocli__error"
+        >
+          {{ DATO_REQUERIDO }}
         </div>
         <div
           v-if="voucher"
@@ -646,6 +692,12 @@ async function guardar(enviar: boolean) {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
 }
+.pagocli__nroop {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
 .pagocli__label {
   display: block;
   margin: 10px 0 4px;
@@ -686,6 +738,14 @@ async function guardar(enviar: boolean) {
 .pagocli__drop--over {
   outline: none;
   background: #e2eefd;
+}
+.pagocli__drop--error {
+  border-color: #e53935;
+}
+.pagocli__error {
+  margin: 4px 0 0 16px;
+  color: #e53935;
+  font-size: 12px;
 }
 .pagocli__file {
   display: flex;
