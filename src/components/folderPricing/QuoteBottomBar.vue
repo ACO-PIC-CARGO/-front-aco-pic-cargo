@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { BOTTOM_BAR_HEIGHT } from "./bottomBar";
+import { BOTTOM_BAR_HEIGHT, BOTTOM_SHEET_HEIGHT, openBottomBars } from "./bottomBar";
 
 const props = withDefaults(
   defineProps<{ icon: string; title: string; label: string; contentId: string; active?: boolean }>(),
@@ -12,13 +12,17 @@ const isActive = computed(() => props.active);
 watch(isActive, (value) => {
   if (!value) open.value = false;
 });
+watch(open, (value) => (value ? openBottomBars.add(props.contentId) : openBottomBars.delete(props.contentId)));
 
 function closeOnEscape(event: KeyboardEvent) {
   if (event.key === "Escape") open.value = false;
 }
 
 onMounted(() => window.addEventListener("keydown", closeOnEscape));
-onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", closeOnEscape);
+  openBottomBars.delete(props.contentId);
+});
 </script>
 
 <template>
@@ -33,7 +37,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
       v-show="active"
       class="bottom-bar__sheet bg-surface"
       :class="{ 'bottom-bar__sheet--open': open }"
-      :style="{ '--bottom-bar-height': `${BOTTOM_BAR_HEIGHT}px` }"
+      :style="{ '--bottom-bar-height': `${BOTTOM_BAR_HEIGHT}px`, '--bottom-sheet-height': BOTTOM_SHEET_HEIGHT }"
       :aria-label="label"
     >
       <header class="bottom-bar__bar">
@@ -86,7 +90,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", closeOnEscape));
 .bottom-bar__sheet {
   position: absolute;
   inset: auto 0 0 0;
-  height: 50vh;
+  height: var(--bottom-sheet-height);
   display: flex;
   flex-direction: column;
   border-top: thin solid rgba(var(--v-border-color), var(--v-border-opacity));
