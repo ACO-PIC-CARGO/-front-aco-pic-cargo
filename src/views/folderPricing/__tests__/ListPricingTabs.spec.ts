@@ -29,7 +29,7 @@ test("each tab mounts the only listing panel, with its pricing view", async () =
   expect(panels(wrapper)).toEqual(["view:pending_send"]);
 
   await wrapper.findAll("button").find((tab) => tab.text().includes("Enviadas al Cliente"))!.trigger("click");
-  expect(panels(wrapper)).toEqual(["view:pricing_requested"]);
+  expect(panels(wrapper)).toEqual(["view:sent_to_client"]);
 
   await wrapper.findAll("button").find((tab) => tab.text().includes("Observadas por Pricing"))!.trigger("click");
   expect(panels(wrapper)).toEqual(["view:returned"]);

@@ -19,7 +19,7 @@ const ConfigCotizacion = defineAsyncComponent(() =>
 
 // ListCall: () => import("../folderPricing/comun/listCall.vue"),
 
-const props = withDefaults(defineProps<{ pricingView?: "" | "pending_send" | "pricing_requested" | "returned" }>(), {
+const props = withDefaults(defineProps<{ pricingView?: "" | "pending_send" | "sent_to_client" | "returned" }>(), {
   pricingView: "",
 });
 

@@ -188,13 +188,13 @@ describe("pricing store", () => {
 
     test("both quote list reports carry the active tab", async () => {
       const pricing = usePricingStore();
-      pricing.switchListView("pricing_requested");
+      pricing.switchListView("sent_to_client");
 
       await pricing.imprimiReporteListado({ filtroSeleccionado: {}, filtroCabecera: {} });
       await pricing.exportarExcelListadoQuote();
 
-      expect(vi.mocked(requestQuoteReport).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "pricing_requested" });
-      expect(vi.mocked(downloadExcel).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "pricing_requested" });
+      expect(vi.mocked(requestQuoteReport).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "sent_to_client" });
+      expect(vi.mocked(downloadExcel).mock.calls[0]![0].data.filtro).toMatchObject({ pricing_view: "sent_to_client" });
     });
 
     test("a slower old status summary never replaces the one of the current tab", async () => {

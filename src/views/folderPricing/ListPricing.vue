@@ -4,12 +4,12 @@ import FolderTabs from "@/components/comun/FolderTabs.vue";
 import QuoteListPanel from "@/components/folderPricing/QuoteListPanel.vue";
 import { usePricingStore } from "@/stores/pricing";
 
-type ListTab = "all" | "pending_send" | "pricing_requested" | "returned";
+type ListTab = "all" | "pending_send" | "sent_to_client" | "returned";
 
 const TABS: { value: ListTab; title: string; subtitle: string; icon: string }[] = [
   { value: "all", title: "Todas las cotizaciones", subtitle: "Todos los registros del sistema", icon: "mdi-file-document-multiple-outline" },
   { value: "pending_send", title: "Solicitadas por Ventas", subtitle: "Pricing pendiente por cotizar", icon: "mdi-account-arrow-right-outline" },
-  { value: "pricing_requested", title: "Enviadas al Cliente", subtitle: "Cotizaciones ya remitidas al cliente", icon: "mdi-send-check-outline" },
+  { value: "sent_to_client", title: "Enviadas al Cliente", subtitle: "Cotizaciones ya remitidas al cliente", icon: "mdi-send-check-outline" },
   { value: "returned", title: "Observadas por Pricing", subtitle: "Solicitudes retornadas a Ventas para corregir o completar información", icon: "mdi-alert-circle-outline" },
 ];
 

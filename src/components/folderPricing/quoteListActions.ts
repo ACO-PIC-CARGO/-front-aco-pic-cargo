@@ -1,7 +1,7 @@
 import { isLightColor, LIGHT_COLOR_BORDER_COLOR, LIGHT_COLOR_TEXT } from "@/components/folderPricing/priorityColor";
 import { messageLabel, type MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 
-export type PricingView = "" | "pending_send" | "pricing_requested" | "returned";
+export type PricingView = "" | "pending_send" | "sent_to_client" | "returned";
 
 export const showsCallActions = (view: PricingView): boolean => view === "";
 
@@ -9,8 +9,12 @@ export const showsReturnToSalesAction = (view: PricingView): boolean => view !==
 
 export const showsInternalThread = (view: PricingView): boolean => view !== "";
 
-export const leadingDateColumn = (view: PricingView) =>
-  view === "returned" ? ({ key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" } as const) : null;
+const LEADING_DATE_COLUMNS = {
+  sent_to_client: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" },
+  returned: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" },
+} as const;
+
+export const leadingDateColumn = (view: PricingView) => (view === "" || view === "pending_send" ? null : LEADING_DATE_COLUMNS[view]);
 
 const LAST_COMMENT_MAX_LENGTH = 80;
 

@@ -115,7 +115,7 @@ export const usePricingStore = defineStore("pricing", () => {
   const totalregistro = ref<number>(0);
   const limit = ref<number>(10);
   const pagina = ref<number>(1);
-  const pricingView = ref<"" | "pending_send" | "pricing_requested" | "returned">("");
+  const pricingView = ref<"" | "pending_send" | "sent_to_client" | "returned">("");
   const dataCliente = ref<ClienteCotizacion>({});
   const step = ref<number>(1);
   const id_master = ref<number | string | null>("");
@@ -699,7 +699,7 @@ export const usePricingStore = defineStore("pricing", () => {
       }
     });
   }
-  type ListView = "" | "pending_send" | "pricing_requested" | "returned";
+  type ListView = "" | "pending_send" | "sent_to_client" | "returned";
   const listViewFilters = new Map<ListView, { filtro: FiltroCotizaciones; search: string }>();
   function switchListView(view: ListView): void {
     listViewFilters.set(pricingView.value, { filtro: { ...filtro.value }, search: search.value });

@@ -6,7 +6,7 @@ describe("showsCallActions", () => {
     expect(showsCallActions("")).toBe(true);
   });
 
-  it.each(["pending_send", "pricing_requested", "returned"] as const)(
+  it.each(["pending_send", "sent_to_client", "returned"] as const)(
     "hides the call buttons in %s",
     (view) => {
       expect(showsCallActions(view)).toBe(false);
@@ -19,7 +19,7 @@ describe("showsReturnToSalesAction", () => {
     expect(showsReturnToSalesAction("")).toBe(false);
   });
 
-  it.each(["pending_send", "pricing_requested"] as const)("shows the return action in %s", (view) => {
+  it.each(["pending_send", "sent_to_client"] as const)("shows the return action in %s", (view) => {
     expect(showsReturnToSalesAction(view)).toBe(true);
   });
 
@@ -33,16 +33,19 @@ describe("showsInternalThread", () => {
     expect(showsInternalThread("")).toBe(false);
   });
 
-  it.each(["pending_send", "pricing_requested", "returned"] as const)("shows the thread in %s", (view) => {
+  it.each(["pending_send", "sent_to_client", "returned"] as const)("shows the thread in %s", (view) => {
     expect(showsInternalThread(view)).toBe(true);
   });
 });
 
 describe("leadingDateColumn", () => {
-  it("has no extra date column in Todas, Solicitadas por Ventas and Enviadas", () => {
+  it("has no extra date column in Todas and Solicitadas por Ventas", () => {
     expect(leadingDateColumn("")).toBeNull();
     expect(leadingDateColumn("pending_send")).toBeNull();
-    expect(leadingDateColumn("pricing_requested")).toBeNull();
+  });
+
+  it("leads Enviadas al Cliente with the send date", () => {
+    expect(leadingDateColumn("sent_to_client")).toEqual({ key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" });
   });
 
   it("leads Observadas por Pricing with the return date", () => {

@@ -212,17 +212,15 @@ const cabCotizaciones = [
   },
 ] as const;
 
-const SENT_TO_CLIENT_HEADER = { key: "sent_to_client_at", title: "ENVÍO AL CLIENTE", align: "center" } as const;
 const returningQuoteId = ref<number | null>(null);
 async function onQuoteReturned() {
   returningQuoteId.value = null;
   await pricingStore.reloadQuoteList();
 }
-const showsSentToClient = computed(() => pricingStore.pricingView === "pricing_requested");
 const NO_DATA_TEXTS = {
   "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
   pending_send: "No hay cotizaciones pendientes de envío.",
-  pricing_requested: "Todavía no se ha solicitado ninguna cotización a pricing.",
+  sent_to_client: "Todavía no se ha solicitado ninguna cotización a pricing.",
   returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
@@ -232,10 +230,6 @@ const showsLastComment = computed(() => showsInternalThread(pricingStore.pricing
 const headersCotizaciones = computed(() => {
   const headers: { key: string; title: string; align?: "start" | "center" | "end" }[] = [...cabCotizaciones];
   if (leadingDate.value) headers.splice(1, 0, leadingDate.value);
-  if (showsSentToClient.value) {
-    const afterCode = headers.findIndex((header) => header.key === "codigo") + 1;
-    headers.splice(afterCode, 0, SENT_TO_CLIENT_HEADER);
-  }
   if (showsLastComment.value) headers.push(LAST_COMMENT_HEADER);
   return headers;
 });
@@ -1285,13 +1279,6 @@ onMounted(async () => {
           </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.codigo }}
-          </td>
-          <td
-            v-if="showsSentToClient"
-            class="text-center"
-            @click="toggleExpand(internalItem)"
-          >
-            {{ item.sent_to_client_at ?? "Pendiente" }}
           </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.pricing }}
