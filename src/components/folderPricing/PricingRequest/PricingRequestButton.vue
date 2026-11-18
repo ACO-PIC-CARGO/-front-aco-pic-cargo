@@ -4,7 +4,9 @@ import Swal from "sweetalert2";
 import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi";
 import type { PricingRequestInfo } from "./pricingRequestApi";
 
-const props = defineProps<{ quoteId: number }>();
+const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text" }>(), {
+  activator: "icon",
+});
 
 const LOAD_FAILED = "No pudimos cargar los datos de la solicitud. Revisa tu conexión e inténtalo de nuevo.";
 const SEND_FAILED = "No pudimos enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.";
@@ -53,7 +55,25 @@ async function send() {
 </script>
 
 <template>
-  <v-tooltip location="top">
+  <v-btn
+    v-if="activator === 'text'"
+    variant="elevated"
+    class="mx-1"
+    color="light-blue-darken-3"
+    @click="open"
+  >
+    <v-icon
+      class="mx-1"
+      size="small"
+    >
+      mdi-account-arrow-right
+    </v-icon>
+    SOLICITAR A PRICING
+  </v-btn>
+  <v-tooltip
+    v-else
+    location="top"
+  >
     <template #activator="{ props: tooltip }">
       <v-btn
         v-bind="tooltip"

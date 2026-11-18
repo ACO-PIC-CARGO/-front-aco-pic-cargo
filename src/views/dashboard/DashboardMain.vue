@@ -17,6 +17,7 @@ import { io } from "socket.io-client";
 import axios from "@/api/http";
 import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotifications/QuoteNotificationPopup.vue";
 import GeneratedQuoteDialog from "@/components/folderPricing/QuoteNotifications/GeneratedQuoteDialog.vue";
+import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
@@ -1537,6 +1538,12 @@ watch(idRole, async () => {
         <v-icon class="mx-1" size="small"> mdi-email-fast </v-icon>
         SOLICITAR TARIFAS
       </v-btn>
+
+      <PricingRequestButton
+        v-if="(getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote') && can('lstQuote', 'MODIFICAR')"
+        :quote-id="Number(route.params.id)"
+        activator="text"
+      />
 
       <v-btn
         variant="elevated"
