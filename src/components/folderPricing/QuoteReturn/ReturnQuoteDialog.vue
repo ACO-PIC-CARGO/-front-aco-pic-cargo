@@ -5,6 +5,7 @@ import { listQuoteReturnStatuses, returnQuoteToSales } from "./quoteReturnApi";
 import type { QuoteReturnStatus } from "./quoteReturnApi";
 import { needsStatusChoice } from "./needsStatusChoice";
 import { returnFailureMessage } from "./returnFailureMessage";
+import ReasonDialog from "../ReasonDialog.vue";
 
 const props = defineProps<{ quoteId: number | null }>();
 const emit = defineEmits<{ returned: []; close: [] }>();
@@ -75,65 +76,31 @@ watch(open, (isOpen) => {
 </script>
 
 <template>
-  <v-dialog
-    :model-value="open"
-    max-width="480"
-    persistent
+  <ReasonDialog
+    v-model="reason"
+    :open="open"
+    title="No se puede procesar"
+    placeholder="Cuéntale a Ventas qué debe corregir"
+    confirm-text="Devolver a Ventas"
+    :can-confirm="canSend"
+    :sending="sending"
+    :error="error"
+    :show-reason="!loading && statuses.length > 0"
+    @confirm="send"
+    @close="emit('close')"
   >
-    <v-card>
-      <v-card-title>No se puede procesar</v-card-title>
-      <v-card-text>
-        <p v-if="loading">
-          Cargando los estados de devolución…
-        </p>
-        <template v-else-if="statuses.length">
-          <v-select
-            v-if="showsStatusSelect"
-            v-model="statusId"
-            :items="statuses"
-            item-title="name"
-            item-value="id"
-            label="Estado"
-            variant="outlined"
-            density="comfortable"
-          />
-          <v-textarea
-            v-model="reason"
-            label="Motivo"
-            placeholder="Cuéntale a Ventas qué debe corregir"
-            variant="outlined"
-            rows="4"
-            auto-grow
-          />
-        </template>
-        <v-alert
-          v-if="error"
-          type="error"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          {{ error }}
-        </v-alert>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="emit('close')"
-        >
-          Cancelar
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          :disabled="!canSend"
-          :loading="sending"
-          @click="send"
-        >
-          Devolver a Ventas
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+    <p v-if="loading">
+      Cargando los estados de devolución…
+    </p>
+    <v-select
+      v-else-if="statuses.length && showsStatusSelect"
+      v-model="statusId"
+      :items="statuses"
+      item-title="name"
+      item-value="id"
+      label="Estado"
+      variant="outlined"
+      density="comfortable"
+    />
+  </ReasonDialog>
 </template>
