@@ -1,5 +1,5 @@
 <script setup lang="ts" generic="T extends string | number">
-defineProps<{ items: { value: T; title: string; subtitle?: string }[] }>();
+defineProps<{ items: { value: T; title: string; subtitle?: string; icon?: string }[] }>();
 
 const selected = defineModel<T>({ required: true });
 </script>
@@ -20,7 +20,14 @@ const selected = defineModel<T>({ required: true });
         :ripple="false"
         class="folder-tabs__tab"
       >
-        <span class="folder-tabs__title">{{ item.title }}</span>
+        <span class="folder-tabs__title">
+          <v-icon
+            v-if="item.icon"
+            :icon="item.icon"
+            size="20"
+          />
+          {{ item.title }}
+        </span>
         <span
           v-if="item.subtitle"
           class="folder-tabs__subtitle"
@@ -98,6 +105,9 @@ const selected = defineModel<T>({ required: true });
 }
 
 .folder-tabs__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--folder-tabs-gap);
   font-size: 13.5px;
   font-weight: 700;
   color: var(--folder-tabs-ink);
