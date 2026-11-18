@@ -1,11 +1,9 @@
 import { expect, test } from "vitest";
-import { noticeTheme } from "../noticeTheme";
+import { BLUE_NOTICE_THEME, noticeTheme } from "../noticeTheme";
 
 test("without priority color the notice keeps the blue theme", () => {
-  const theme = noticeTheme(null);
-  expect(theme.headerBackground).toContain("#0b4fb0");
-  expect(theme.headerText).toBe("#ffffff");
-  expect(theme.accent).toBe("#1a6fe0");
+  expect(noticeTheme(null)).toEqual(BLUE_NOTICE_THEME);
+  expect(noticeTheme("#dc2626")).not.toEqual(BLUE_NOTICE_THEME);
 });
 
 test("a dark color paints the header and the accents with white header text", () => {
@@ -15,10 +13,21 @@ test("a dark color paints the header and the accents with white header text", ()
   expect(theme.accent).toBe("#dc2626");
 });
 
-test("white stays readable on the white notice", () => {
+test("a dark color tints tiles and lines from that color", () => {
+  const theme = noticeTheme("#dc2626");
+  expect(theme.tile).toContain("#dc2626");
+  expect(theme.line).toContain("#dc2626");
+  expect(theme.tile).not.toBe(BLUE_NOTICE_THEME.tile);
+  expect(theme.line).not.toBe(BLUE_NOTICE_THEME.line);
+});
+
+test("white stays readable on the white notice with neutral gray tiles", () => {
   const theme = noticeTheme("#ffffff");
   expect(theme.headerBackground).toBe("#ffffff");
   expect(theme.headerText).not.toBe("#ffffff");
   expect(theme.headerBorder).not.toBe("none");
   expect(theme.accent).not.toBe("#ffffff");
+  expect(theme.tile).not.toContain("#ffffff");
+  expect(theme.tile).not.toBe(BLUE_NOTICE_THEME.tile);
+  expect(theme.line).not.toBe(BLUE_NOTICE_THEME.line);
 });

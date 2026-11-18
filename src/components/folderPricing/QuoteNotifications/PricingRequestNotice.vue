@@ -15,6 +15,8 @@ const themeVars = computed(() => ({
   "--request-header-border": theme.value.headerBorder,
   "--request-blue": theme.value.accent,
   "--request-chip": theme.value.accent,
+  "--request-tile": theme.value.tile,
+  "--request-line": theme.value.line,
 }));
 </script>
 

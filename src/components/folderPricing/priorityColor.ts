@@ -14,9 +14,14 @@ const channel = (hex: string, start: number): number => {
 const luminance = (hex: string): number =>
   0.2126 * channel(hex, 1) + 0.7152 * channel(hex, 3) + 0.0722 * channel(hex, 5);
 
+export const LIGHT_COLOR_TEXT = "#1f2937";
+export const LIGHT_COLOR_BORDER_COLOR = "#9ca3af";
+
+export const isLightColor = (hex: string): boolean => luminance(hex) > LIGHT_LUMINANCE;
+
 export function priorityChipStyle(color: string | null): PriorityChipStyle | null {
   if (!color) return null;
-  return luminance(color) > LIGHT_LUMINANCE
-    ? { background: color, color: "#1f2937", border: "1px solid #9ca3af" }
+  return isLightColor(color)
+    ? { background: color, color: LIGHT_COLOR_TEXT, border: `1px solid ${LIGHT_COLOR_BORDER_COLOR}` }
     : { background: color, color: "#ffffff", border: "none" };
 }

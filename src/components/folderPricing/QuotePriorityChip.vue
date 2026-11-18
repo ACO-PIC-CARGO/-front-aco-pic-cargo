@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { priorityChipStyle } from "./priorityColor";
+import { LIGHT_COLOR_BORDER_COLOR, LIGHT_COLOR_TEXT, priorityChipStyle } from "./priorityColor";
 
 const props = defineProps<{ name: string | null; color: string | null }>();
 
 const style = computed(() => priorityChipStyle(props.color));
+const plainStyle = { border: `1px solid ${LIGHT_COLOR_BORDER_COLOR}`, color: LIGHT_COLOR_TEXT };
 </script>
 
 <template>
   <span
     v-if="name"
     class="quote-priority-chip"
-    :class="{ 'quote-priority-chip--plain': !style }"
-    :style="style ?? undefined"
+    :style="style ?? plainStyle"
   >
     {{ name }}
   </span>
@@ -26,10 +26,5 @@ const style = computed(() => priorityChipStyle(props.color));
   font-size: 0.75rem;
   font-weight: 500;
   line-height: 1.4;
-}
-
-.quote-priority-chip--plain {
-  border: 1px solid #9ca3af;
-  color: #1f2937;
 }
 </style>
