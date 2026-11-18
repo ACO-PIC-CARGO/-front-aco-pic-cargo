@@ -1,5 +1,6 @@
 import http from "@/api/http";
 import type { ApiResponse } from "@/types/api";
+import type { MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 
 export type QuoteNoticeKind = "pricing_request" | "sent_to_client" | "returned";
 
@@ -26,6 +27,7 @@ export interface QuoteNotice {
   priority_name?: string | null;
   priority_color?: string | null;
   return_reason?: string | null;
+  last_message_direction?: MessageDirection | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;

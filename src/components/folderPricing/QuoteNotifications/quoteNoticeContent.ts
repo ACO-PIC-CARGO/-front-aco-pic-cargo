@@ -1,4 +1,5 @@
 import { modalityLabel, transportIcon } from "@/components/folderPricing/QuoteClientHistory/quoteHistoryLabels";
+import { messageLabel } from "@/components/folderPricing/InternalCommunication/messageLabel";
 import type { QuoteNotice } from "./quoteNotificationApi";
 
 export interface NoticeDetail {
@@ -50,10 +51,13 @@ export function noticeMeasures(notice: QuoteNotice): NoticeDetail[] {
 export const sentToClientMessage = (notice: QuoteNotice): string =>
   `${notice.created_by_name ?? "Un usuario"} ya le envió la cotización.`;
 
+const latestMessage = ({ pricing_notes: body, last_message_direction: direction }: QuoteNotice) =>
+  body && direction ? `${messageLabel(direction)}: ${body}` : body;
+
 export const pricingRequestDetails = (notice: QuoteNotice): NoticeDetail[] =>
   present([
     detail("Vendedor", notice.created_by_name, "mdi-account-outline"),
     detail("Cotización N.°", notice.quote_code, "mdi-file-document-outline"),
     detail("Tipo de Embarque", modalityLabel(notice), transportIcon(notice.transport_name), true),
-    detail("Historial de comunicación interna", notice.pricing_notes, "mdi-message-text-outline"),
+    detail("Historial de comunicación interna", latestMessage(notice), "mdi-message-text-outline"),
   ]);

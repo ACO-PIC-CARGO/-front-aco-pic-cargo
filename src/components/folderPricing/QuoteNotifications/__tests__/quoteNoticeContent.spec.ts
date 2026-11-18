@@ -46,15 +46,26 @@ describe("the quote sent to the client notice", () => {
 });
 
 describe("the pricing request notice", () => {
-  test("shows who asks, the quote, its shipment type and the notes to pricing", () => {
-    const request = notice({ kind: "pricing_request", created_by_name: "RAMIREZ CARLOS", group_flag: false, individual_flag: true, pricing_notes: "PRUEBA FINAL." });
+  test("shows who asks, the quote, its shipment type and who wrote the latest internal message", () => {
+    const request = notice({
+      kind: "pricing_request", created_by_name: "RAMIREZ CARLOS", group_flag: false, individual_flag: true,
+      pricing_notes: "PRUEBA FINAL.", last_message_direction: "sales_to_pricing",
+    });
 
     expect(values(pricingRequestDetails(request))).toEqual([
       ["Vendedor", "RAMIREZ CARLOS"],
       ["Cotización N.°", "15560-P"],
       ["Tipo de Embarque", "LCL Individual"],
-      ["Historial de comunicación interna", "PRUEBA FINAL."],
+      ["Historial de comunicación interna", "De Ventas para Pricing: PRUEBA FINAL."],
     ]);
+  });
+
+  test("a latest message written by pricing is not shown as if Ventas wrote it", () => {
+    const request = notice({ kind: "pricing_request", pricing_notes: "Falta el peso", last_message_direction: "pricing_to_sales" });
+
+    expect(pricingRequestDetails(request).find((row) => row.label === "Historial de comunicación interna")?.value).toBe(
+      "De Pricing para Ventas: Falta el peso",
+    );
   });
 
   test("leaves out the notes when the request has none", () => {
