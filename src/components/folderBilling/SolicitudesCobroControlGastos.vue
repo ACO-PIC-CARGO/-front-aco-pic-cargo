@@ -127,8 +127,9 @@ defineExpose({ cargar });
       </v-btn>
     </div>
 
+    <!-- celular: sin solicitudes, solo el mensaje (en la web la tabla muestra sus cabeceras, como Pagos) -->
     <p
-      v-if="!cargando && !solicitudes.length"
+      v-if="smAndDown && !cargando && !solicitudes.length"
       class="solcob__vacio"
     >
       No hay solicitudes de cobro en este expediente. Se crean con <b>Cargar Pago Cliente</b> en Ingresos.
@@ -166,6 +167,14 @@ defineExpose({ cargar });
           </tr>
         </thead>
         <tbody>
+          <tr v-if="!solicitudes.length">
+            <td
+              colspan="12"
+              class="solcob__empty"
+            >
+              {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de cobro registradas." }}
+            </td>
+          </tr>
           <tr
             v-for="s in solicitudes"
             :key="s.codigo"
@@ -397,7 +406,14 @@ defineExpose({ cargar });
   justify-content: flex-end;
   margin-bottom: 4px;
 }
+.solcob__empty {
+  padding: 28px 12px !important;
+  color: #5b6b86;
+  text-align: center;
+}
+/* aviso vacío: recuadro blanco (el mismo en Pagos, celular) */
 .solcob__vacio {
+  margin: 0;
   padding: 14px;
   border: 1px dashed #c9d3e1;
   border-radius: 12px;

@@ -557,7 +557,11 @@ defineExpose({ cargar });
       @editar="editarSolicitud"
       @eliminar="eliminarSolicitud"
       @ver="(sol) => verSolicitud(sol as SolicitudPagoControl)"
-    />
+    >
+      <template #vacio>
+        No hay solicitudes de pago en este expediente. Se crean con <b>Solicitar</b> en Costos.
+      </template>
+    </SolicitudesPagoMovil>
 
     <div class="solpago__note">
       <v-icon color="primary">
