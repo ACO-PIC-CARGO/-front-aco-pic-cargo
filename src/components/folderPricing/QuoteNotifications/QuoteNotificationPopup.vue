@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { useQuoteNotificationInbox } from "./useQuoteNotificationInbox";
 import PricingRequestNotice from "./PricingRequestNotice.vue";
+import ReturnedNotice from "./ReturnedNotice.vue";
 import SentToClientNotice from "./SentToClientNotice.vue";
 import type { QuoteNotice } from "./quoteNotificationApi";
 
@@ -33,6 +34,12 @@ function viewQuote() {
     <template v-if="current">
       <PricingRequestNotice
         v-if="current.kind === 'pricing_request'"
+        :notice="current"
+        @view="viewQuote"
+        @close="dismiss()"
+      />
+      <ReturnedNotice
+        v-else-if="current.kind === 'returned'"
         :notice="current"
         @view="viewQuote"
         @close="dismiss()"

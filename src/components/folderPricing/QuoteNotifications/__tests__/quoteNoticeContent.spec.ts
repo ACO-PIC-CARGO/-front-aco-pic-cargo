@@ -63,3 +63,13 @@ describe("the pricing request notice", () => {
     expect(pricingRequestDetails(request).map((row) => row.label)).not.toContain("Notas");
   });
 });
+
+describe("the returned quote notice", () => {
+  test("shows only the quote number, the client and the shipment type", () => {
+    expect(values(noticeDetails(notice({ kind: "returned", return_reason: "Falta el peso real" })))).toEqual([
+      ["Cotización N.°", "15560-P"],
+      ["Cliente", "María Flores"],
+      ["Tipo de embarque", "LCL Grupal"],
+    ]);
+  });
+});

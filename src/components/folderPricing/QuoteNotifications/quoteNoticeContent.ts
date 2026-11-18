@@ -19,6 +19,13 @@ const detail = (label: string, value: string | null | undefined, icon: string, h
   value ? { label, value, icon, highlight } : null;
 
 export function noticeDetails(notice: QuoteNotice): NoticeDetail[] {
+  if (notice.kind === "returned") {
+    return present([
+      detail("Cotización N.°", notice.quote_code, "mdi-file-document-outline"),
+      detail("Cliente", notice.client_name, "mdi-account-outline"),
+      detail("Tipo de embarque", modalityLabel(notice), transportIcon(notice.transport_name), true),
+    ]);
+  }
   const goodsValue = positive(notice.goods_value);
   const transport = transportIcon(notice.transport_name);
   return present([

@@ -1,7 +1,7 @@
 import http from "@/api/http";
 import type { ApiResponse } from "@/types/api";
 
-export type QuoteNoticeKind = "pricing_request" | "sent_to_client";
+export type QuoteNoticeKind = "pricing_request" | "sent_to_client" | "returned";
 
 export interface QuoteNotice {
   notification_id: number | string;
@@ -25,6 +25,7 @@ export interface QuoteNotice {
   volume: number | null;
   priority_name?: string | null;
   priority_color?: string | null;
+  return_reason?: string | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;
