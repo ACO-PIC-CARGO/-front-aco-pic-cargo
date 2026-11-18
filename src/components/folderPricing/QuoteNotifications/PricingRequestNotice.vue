@@ -1,16 +1,28 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { pricingRequestDetails } from "./quoteNoticeContent";
+import { noticeTheme } from "./noticeTheme";
 import type { QuoteNotice } from "./quoteNotificationApi";
 
 const props = defineProps<{ notice: QuoteNotice }>();
 const emit = defineEmits<{ view: []; close: [] }>();
 
 const details = computed(() => pricingRequestDetails(props.notice));
+const theme = computed(() => noticeTheme(props.notice.priority_color ?? null));
+const themeVars = computed(() => ({
+  "--request-header": theme.value.headerBackground,
+  "--request-header-text": theme.value.headerText,
+  "--request-header-border": theme.value.headerBorder,
+  "--request-blue": theme.value.accent,
+  "--request-chip": theme.value.accent,
+}));
 </script>
 
 <template>
-  <div class="request-notice">
+  <div
+    class="request-notice"
+    :style="themeVars"
+  >
     <header class="request-notice__header">
       <span
         class="request-notice__document"
@@ -34,9 +46,12 @@ const details = computed(() => pricingRequestDetails(props.notice));
         </span>
         <span class="request-notice__title-main">Cotización</span>
       </h2>
-      <p class="request-notice__urgency">
+      <p
+        v-if="notice.priority_name"
+        class="request-notice__urgency"
+      >
         <span>Solicita:</span>
-        <strong>Urgente</strong>
+        <strong>{{ notice.priority_name }}</strong>
       </p>
     </header>
 
@@ -97,14 +112,13 @@ const details = computed(() => pricingRequestDetails(props.notice));
 .request-notice {
   --request-blue: #1a6fe0;
   --request-chip: #0b3a9a;
+  --request-header: linear-gradient(180deg, #0b4fb0 0%, #083a8c 100%);
+  --request-header-text: #fff;
+  --request-header-border: none;
   --request-ink: #0d1836;
   --request-muted: #3b4a6b;
   --request-tile: #dcebfb;
   --request-line: #d3dff0;
-  --request-header-top: #0b4fb0;
-  --request-header-bottom: #083a8c;
-  --request-urgent-top: #ee2a24;
-  --request-urgent-bottom: #c00d0d;
   --request-plus: #1fb31c;
   --request-cancel: #3b4558;
   --request-cta-top: #17a318;
@@ -124,8 +138,9 @@ const details = computed(() => pricingRequestDetails(props.notice));
   align-items: center;
   gap: 16px;
   padding: 16px 16px 16px 44px;
-  background: linear-gradient(180deg, var(--request-header-top) 0%, var(--request-header-bottom) 100%);
-  color: #fff;
+  border-bottom: var(--request-header-border);
+  background: var(--request-header);
+  color: var(--request-header-text);
 }
 
 .request-notice__document {
@@ -147,7 +162,8 @@ const details = computed(() => pricingRequestDetails(props.notice));
   flex: none;
   width: 2px;
   height: 58px;
-  background: rgb(255 255 255 / 85%);
+  background: currentcolor;
+  opacity: 0.85;
 }
 
 .request-notice__title {
@@ -178,7 +194,7 @@ const details = computed(() => pricingRequestDetails(props.notice));
   height: 24px;
   margin-top: -4px;
   fill: none;
-  stroke: #fff;
+  stroke: currentcolor;
   stroke-linecap: round;
   stroke-width: 2.8;
 }
@@ -189,10 +205,8 @@ const details = computed(() => pricingRequestDetails(props.notice));
   flex-direction: column;
   margin: 0;
   padding: 6px 22px;
-  border: 2px solid #fff;
+  border: 2px solid currentcolor;
   border-radius: 12px;
-  background: linear-gradient(180deg, var(--request-urgent-top) 0%, var(--request-urgent-bottom) 100%);
-  box-shadow: 0 3px 8px rgb(0 0 0 / 25%);
   font-size: 17px;
   font-weight: 800;
   line-height: 1.1;

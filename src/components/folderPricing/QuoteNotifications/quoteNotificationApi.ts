@@ -23,6 +23,8 @@ export interface QuoteNotice {
   goods_value: number | null;
   weight: number | null;
   volume: number | null;
+  priority_name?: string | null;
+  priority_color?: string | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;

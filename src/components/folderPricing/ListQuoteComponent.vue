@@ -11,6 +11,7 @@ import { usePricingStore } from "@/stores/pricing";
 import { showsCallActions } from "@/components/folderPricing/quoteListActions";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
+import QuotePriorityChip from "@/components/folderPricing/QuotePriorityChip.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import { isApprovedQuote } from "@/utils/quoteApproval";
 import { chosenOptionTitle } from "@/utils/selectOptions";
@@ -80,6 +81,12 @@ const cabCotizaciones = [
     align: "center",
     groupable: true,
     estado: true,
+  },
+  {
+    key: "priority_name",
+    title: "PRIORIDAD",
+    align: "center",
+    sortable: false,
   },
   {
     key: "created",
@@ -1184,6 +1191,15 @@ onMounted(async () => {
           </td>
           <!-- <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td> -->
           <!-- <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td> -->
+          <td
+            class="text-center"
+            @click="toggleExpand(internalItem)"
+          >
+            <QuotePriorityChip
+              :name="item.priority_name ?? null"
+              :color="item.priority_color ?? null"
+            />
+          </td>
           <td @click="toggleExpand(internalItem)">
             {{ item.created }}
           </td>
