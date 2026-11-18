@@ -1,3 +1,4 @@
+import { isLightColor, LIGHT_COLOR_BORDER_COLOR, LIGHT_COLOR_TEXT } from "@/components/folderPricing/priorityColor";
 import { messageLabel, type MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 
 export type PricingView = "" | "pending_send" | "pricing_requested";
@@ -20,16 +21,13 @@ export const lastCommentParts = (
   return { label: messageLabel(direction), body: shown };
 };
 
-export const lastCommentText = (
-  direction: MessageDirection | null | undefined,
-  body: string | null | undefined,
-): string => {
-  const parts = lastCommentParts(direction, body);
-  return parts ? `${parts.label}: ${parts.body}` : "";
+export const lastCommentPillStyle = (priorityColor: string | null | undefined) => {
+  if (!priorityColor) return null;
+  const background = `color-mix(in srgb, ${priorityColor} 14%, white)`;
+  return isLightColor(priorityColor)
+    ? { color: LIGHT_COLOR_TEXT, background, border: `1px solid ${LIGHT_COLOR_BORDER_COLOR}` }
+    : { color: priorityColor, background };
 };
-
-export const lastCommentPillStyle = (priorityColor: string | null | undefined) =>
-  priorityColor ? { color: priorityColor, background: `color-mix(in srgb, ${priorityColor} 14%, white)` } : null;
 
 export const withLastMessage = (
   row: { message_count?: number },

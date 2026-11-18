@@ -9,14 +9,13 @@ import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import {
-  lastCommentParts,
-  lastCommentPillStyle,
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
   withLastMessage,
 } from "@/components/folderPricing/quoteListActions";
 import InternalCommunicationThread from "@/components/folderPricing/InternalCommunication/InternalCommunicationThread.vue";
+import LastCommentPill from "@/components/folderPricing/LastCommentPill.vue";
 import type { MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
@@ -1332,14 +1331,11 @@ onMounted(async () => {
             v-if="showsLastComment"
             @click="toggleExpand(internalItem)"
           >
-            <span
-              v-if="lastCommentParts(item.last_message_direction, item.last_message_body)"
-              class="last-comment-pill"
-              :style="lastCommentPillStyle(item.priority_color) ?? undefined"
-            >
-              <strong>{{ lastCommentParts(item.last_message_direction, item.last_message_body)!.label }}:</strong>
-              {{ lastCommentParts(item.last_message_direction, item.last_message_body)!.body }}
-            </span>
+            <LastCommentPill
+              :direction="item.last_message_direction"
+              :body="item.last_message_body"
+              :priority-color="item.priority_color"
+            />
           </td>
         </tr>
       </template>
@@ -1699,12 +1695,6 @@ onMounted(async () => {
 </template>
 
 <style scoped>
-.last-comment-pill {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 0.8125rem;
-}
 .headerDetails {
   color: #000 !important;
   background: #80deea !important;

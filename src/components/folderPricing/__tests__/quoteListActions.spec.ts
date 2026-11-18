@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, lastCommentPillStyle, lastCommentText, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, lastCommentPillStyle, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -34,29 +34,6 @@ describe("showsInternalThread", () => {
   });
 });
 
-describe("lastCommentText", () => {
-  it("prefixes the comment with who it came from", () => {
-    expect(lastCommentText("sales_to_pricing", "Revisar flete")).toBe("De Ventas para Pricing: Revisar flete");
-    expect(lastCommentText("pricing_to_sales", "Listo")).toBe("De Pricing para Ventas: Listo");
-  });
-
-  it("is empty when the quote has no messages", () => {
-    expect(lastCommentText(null, null)).toBe("");
-    expect(lastCommentText(undefined, undefined)).toBe("");
-  });
-
-  it("truncates a long comment with an ellipsis and collapses line breaks", () => {
-    const text = lastCommentText("sales_to_pricing", `linea uno\nlinea dos ${"x".repeat(200)}`);
-    expect(text.startsWith("De Ventas para Pricing: linea uno linea dos ")).toBe(true);
-    expect(text.endsWith("…")).toBe(true);
-    expect(text.length).toBeLessThanOrEqual("De Ventas para Pricing: ".length + 80 + 1);
-  });
-
-  it("keeps a comment of exactly the limit untouched", () => {
-    expect(lastCommentText("sales_to_pricing", "y".repeat(80))).toBe(`De Ventas para Pricing: ${"y".repeat(80)}`);
-  });
-});
-
 describe("withLastMessage", () => {
   it("replaces the last comment and adds one to the count", () => {
     expect(withLastMessage({ message_count: 2 }, { direction: "pricing_to_sales", body: "Listo" })).toEqual({
@@ -79,6 +56,14 @@ describe("lastCommentPillStyle", () => {
     });
   });
 
+  it.each(["#FFFFFF", "#FFEB3B"])("uses dark text and a border on the light priority %s", (color) => {
+    expect(lastCommentPillStyle(color)).toEqual({
+      color: "#1f2937",
+      background: `color-mix(in srgb, ${color} 14%, white)`,
+      border: "1px solid #9ca3af",
+    });
+  });
+
   it("falls back to no custom style when the quote has no priority color", () => {
     expect(lastCommentPillStyle(null)).toBeNull();
     expect(lastCommentPillStyle(undefined)).toBeNull();
@@ -92,5 +77,19 @@ describe("lastCommentParts", () => {
 
   it("is null without messages", () => {
     expect(lastCommentParts(null, null)).toBeNull();
+  });
+});
+
+describe("lastCommentParts truncation", () => {
+  it("truncates a long comment with an ellipsis and collapses line breaks", () => {
+    const parts = lastCommentParts("sales_to_pricing", `linea uno
+linea dos ${"x".repeat(200)}`)!;
+    expect(parts.body.startsWith("linea uno linea dos ")).toBe(true);
+    expect(parts.body.endsWith("…")).toBe(true);
+    expect(parts.body.length).toBeLessThanOrEqual(81);
+  });
+
+  it("keeps a comment of exactly the limit untouched", () => {
+    expect(lastCommentParts("sales_to_pricing", "y".repeat(80))!.body).toBe("y".repeat(80));
   });
 });
