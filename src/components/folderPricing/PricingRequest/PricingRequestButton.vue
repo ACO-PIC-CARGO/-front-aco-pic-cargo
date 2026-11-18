@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import Swal from "sweetalert2";
 import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi";
 import type { PricingRequestInfo } from "./pricingRequestApi";
@@ -7,8 +7,9 @@ import InternalCommunicationThread from "../InternalCommunication/InternalCommun
 import { newNoteToSend } from "../InternalCommunication/newNote";
 import { alreadyRequestedTooltip, isAlreadyRequested } from "./pricingRequestState";
 
-const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean }>(), {
+const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean; refreshToken?: number }>(), {
   activator: "icon",
+  refreshToken: 0,
 });
 
 const emit = defineEmits<{ requested: [note: string | null] }>();
@@ -26,19 +27,25 @@ const note = ref("");
 const alreadyRequested = ref(false);
 const alreadyRequestedReason = ref<string | null>(null);
 
-onMounted(async () => {
+async function loadAlreadyRequested() {
+  alreadyRequested.value = false;
+  alreadyRequestedReason.value = null;
   if (props.activator !== "text") return;
+  const quoteId = props.quoteId;
   try {
-    const response = await getPricingRequestInfo(props.quoteId);
+    const response = await getPricingRequestInfo(quoteId);
     const current = response.estadoflag ? response.data[0] : null;
-    if (current && isAlreadyRequested(current)) {
+    if (quoteId === props.quoteId && current && isAlreadyRequested(current)) {
       alreadyRequested.value = true;
       alreadyRequestedReason.value = current.blocked_reason;
     }
   } catch {
-    // Info reloads on click.
+    return;
   }
-});
+}
+
+onMounted(loadAlreadyRequested);
+watch(() => [props.quoteId, props.refreshToken], loadAlreadyRequested);
 
 async function open() {
   dialog.value = true;

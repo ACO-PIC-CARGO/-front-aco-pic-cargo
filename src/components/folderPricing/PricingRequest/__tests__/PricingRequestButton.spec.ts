@@ -195,3 +195,34 @@ test("a not-found row leaves the text button as is", async () => {
   await flushPromises();
   expect(wrapper.text()).toContain("SOLICITAR A PRICING");
 });
+
+const ALREADY = { can_request: false, already_requested: true, blocked_reason: "Ya fue solicitada el 18/11/2026 10:00. Edita la cotización para volver a solicitarla." };
+
+test("moving to another quote resets the notice and loads that quote", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValueOnce(info(ALREADY)).mockResolvedValueOnce(info());
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text" }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  expect(wrapper.text()).toContain("YA FUE SOLICITADO");
+  await wrapper.setProps({ quoteId: 16 });
+  await flushPromises();
+  expect(getPricingRequestInfo).toHaveBeenLastCalledWith(16);
+  expect(wrapper.text()).toContain("SOLICITAR A PRICING");
+});
+
+test("a refresh after an edit lifts the notice", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValueOnce(info(ALREADY)).mockResolvedValueOnce(info());
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text", refreshToken: 0 }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  await wrapper.setProps({ refreshToken: 1 });
+  await flushPromises();
+  expect(wrapper.text()).toContain("SOLICITAR A PRICING");
+});
+
+test("a refresh after a request shows the notice", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValueOnce(info()).mockResolvedValueOnce(info(ALREADY));
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text", refreshToken: 0 }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  await wrapper.setProps({ refreshToken: 1 });
+  await flushPromises();
+  expect(wrapper.text()).toContain("YA FUE SOLICITADO");
+});

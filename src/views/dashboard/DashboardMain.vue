@@ -253,6 +253,7 @@ function showPricingRequestOutcome(outcome: RequestOutcome) {
     text: outcome.mensaje,
   });
 }
+const pricingRequestRefreshToken = ref(0);
 async function guardarCotizacion() {
   const validacion = validarRegistro() && !blockedQuoteSave(pricingStore);
   if (!!validacion) {
@@ -273,6 +274,7 @@ async function guardarCotizacion() {
       return;
     }
     const outcome = await requestPricingAfterSave(choice, { saved: true, quoteId: pricingStore.id });
+    pricingRequestRefreshToken.value++;
     Swal.fire({
       icon: "info",
       title: "Aviso",
@@ -328,6 +330,7 @@ async function editarCotizacion() {
     appStore.spiner = false;
     if (!(await pricingStore.updateQuote())) return;
     const outcome = await requestPricingAfterSave(choice, { saved: true, quoteId: pricingStore.id });
+    pricingRequestRefreshToken.value++;
 
     const destino = {
       name: "verQuote",
@@ -1562,6 +1565,7 @@ watch(idRole, async () => {
         v-if="(getNameUrl() == 'editQuote' || getNameUrl() == 'verQuote') && can('lstQuote', 'MODIFICAR')"
         :quote-id="Number(route.params.id)"
         activator="text"
+        :refresh-token="pricingRequestRefreshToken"
       />
 
       <v-btn
