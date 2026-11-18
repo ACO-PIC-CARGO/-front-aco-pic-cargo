@@ -151,6 +151,10 @@ onMounted(() => {
       :items="priorities"
       :loading="loading"
       no-data-text="Todavía no hay prioridades. Crea la primera con Nueva prioridad."
+      loading-text="Cargando prioridades…"
+      items-per-page-text="Prioridades por página:"
+      page-text="{0}-{1} de {2}"
+      :items-per-page-options="[10, 25, 50, 100]"
     >
       <template #[`item.name`]="{ item }">
         {{ item.name }}
