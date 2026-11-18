@@ -4,7 +4,7 @@ export type PriorityChipStyle = {
   border: string;
 };
 
-const LIGHT_LUMINANCE = 0.6;
+const LIGHT_LUMINANCE = 0.4;
 
 const channel = (hex: string, start: number): number => {
   const value = parseInt(hex.slice(start, start + 2), 16) / 255;

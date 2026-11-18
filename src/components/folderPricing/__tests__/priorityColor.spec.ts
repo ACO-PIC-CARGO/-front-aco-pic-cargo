@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { priorityChipStyle } from "../priorityColor";
 
 describe("priorityChipStyle", () => {
-  it.each(["#FFFFFF", "#FFEB3B"])("uses dark text and a border on light %s", (color) => {
+  it.each(["#FFFFFF", "#FFEB3B", "#FFC107", "#FF9800"])("uses dark text and a border on light %s", (color) => {
     expect(priorityChipStyle(color)).toEqual({ background: color, color: "#1f2937", border: "1px solid #9ca3af" });
   });
 

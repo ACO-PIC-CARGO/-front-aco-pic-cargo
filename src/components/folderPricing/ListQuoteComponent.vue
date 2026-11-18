@@ -13,6 +13,7 @@ import {
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
+  reloadsAfterPricingRequest,
   showsCancelRequestAction,
   withLastMessage,
 } from "@/components/folderPricing/quoteListActions";
@@ -243,7 +244,11 @@ const headersCotizaciones = computed(() => {
 function onThreadMessageSent(item: CotizacionListado, message: { direction: MessageDirection; body: string }) {
   Object.assign(item, withLastMessage(item, message));
 }
-function onPricingRequested(item: CotizacionListado, note: string | null) {
+async function onPricingRequested(item: CotizacionListado, note: string | null) {
+  if (reloadsAfterPricingRequest(pricingStore.pricingView)) {
+    await pricingStore.reloadQuoteList();
+    return;
+  }
   item.pricing_request_blocked = true;
   if (note) onThreadMessageSent(item, { direction: "sales_to_pricing", body: note });
 }

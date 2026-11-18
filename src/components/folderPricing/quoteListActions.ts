@@ -7,7 +7,9 @@ export const showsCallActions = (view: PricingView): boolean => view === "";
 
 export const showsReturnToSalesAction = (view: PricingView): boolean => view !== "" && view !== "returned";
 
-export const showsCancelRequestAction = (view: PricingView): boolean => view !== "";
+export const showsCancelRequestAction = (view: PricingView): boolean => view !== "" && view !== "returned";
+
+export const reloadsAfterPricingRequest = (view: PricingView): boolean => view !== "";
 
 export const showsInternalThread = (view: PricingView): boolean => view !== "";
 

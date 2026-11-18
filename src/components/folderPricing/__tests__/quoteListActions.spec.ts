@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, reloadsAfterPricingRequest, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -75,7 +75,7 @@ describe("lastCommentPillStyle", () => {
     });
   });
 
-  it.each(["#FFFFFF", "#FFEB3B"])("uses dark text and a border on the light priority %s", (color) => {
+  it.each(["#FFFFFF", "#FFEB3B", "#FF9800"])("uses dark text and a border on the light priority %s", (color) => {
     expect(lastCommentPillStyle(color)).toEqual({
       color: "#1f2937",
       background: `color-mix(in srgb, ${color} 14%, white)`,
@@ -118,7 +118,21 @@ describe("showsCancelRequestAction", () => {
     expect(showsCancelRequestAction("")).toBe(false);
   });
 
-  it.each(["pending_send", "sent_to_client", "returned"] as const)("shows the cancel action in %s", (view) => {
+  it.each(["pending_send", "sent_to_client"] as const)("shows the cancel action in %s", (view) => {
     expect(showsCancelRequestAction(view)).toBe(true);
+  });
+
+  it("hides the cancel action in Observadas por Pricing, where the return already cancelled the request", () => {
+    expect(showsCancelRequestAction("returned")).toBe(false);
+  });
+});
+
+describe("reloadsAfterPricingRequest", () => {
+  it("only marks the row in Todas las cotizaciones", () => {
+    expect(reloadsAfterPricingRequest("")).toBe(false);
+  });
+
+  it.each(["pending_send", "sent_to_client", "returned"] as const)("reloads %s so a re-requested quote changes tab", (view) => {
+    expect(reloadsAfterPricingRequest(view)).toBe(true);
   });
 });
