@@ -1,9 +1,16 @@
 import { beforeEach, expect, test, vi } from "vitest";
 import { defineComponent } from "vue";
-import { mount } from "@vue/test-utils";
+import { flushPromises, mount } from "@vue/test-utils";
+import { listPendingCotizacionAvisos, markCotizacionAvisoVisto } from "../quoteNotificationApi";
+import type { CotizacionAvisoPendiente } from "../quoteNotificationApi";
 import {
   GENERATED_QUOTE_ROLES,
+  ATTENDED_EVENT,
+  RECONNECT_EVENT,
   availableModalities,
+  formatQuoteContainer,
+  formatQuoteDate,
+  quoteDateParts,
   formatQuoteValue,
   formatQuoteVolume,
   formatQuoteWeight,
@@ -11,6 +18,19 @@ import {
   useGeneratedQuoteNotices,
 } from "../useGeneratedQuoteNotices";
 import type { GeneratedQuotePayload } from "../useGeneratedQuoteNotices";
+
+// avisos guardados en BD (los que llegaron sin sesión o con la pestaña cerrada)
+vi.mock("../quoteNotificationApi", () => ({
+  listPendingCotizacionAvisos: vi.fn(),
+  markCotizacionAvisoVisto: vi.fn(),
+}));
+const pendientes = vi.mocked(listPendingCotizacionAvisos);
+const marcarVisto = vi.mocked(markCotizacionAvisoVisto);
+const guardado = (codigo: string, extra: Partial<CotizacionAvisoPendiente> = {}): CotizacionAvisoPendiente => ({
+  codigo, fuente: "bot", id_branch: 1, id_cotizacion: 7, nro_cotizacion: `${codigo}-P`, cliente: "Cliente", telefono: null,
+  puerto_origen: null, tipo: "LCL", contenedor: null, cantidad_contenedor: null, volumen: null, peso: null,
+  valor_mercancia: null, tieneindividualflag: true, tienegrupalflag: false, fecha_registro: "2026-11-17 11:21:00", ...extra,
+});
 
 type Listener = (payload: GeneratedQuotePayload) => void;
 
@@ -26,7 +46,11 @@ function loginWith(positions: string[]) {
   sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 1, position_code: positions }]));
 }
 
-beforeEach(() => loginWith(["08"]));
+beforeEach(() => {
+  loginWith(["08"]);
+  pendientes.mockReset().mockResolvedValue([]);
+  marcarVisto.mockReset().mockResolvedValue();
+});
 
 test.each(GENERATED_QUOTE_ROLES)("el cargo %s recibe los avisos del bot y de la calculadora", (code) => {
   loginWith([code]);
@@ -147,4 +171,77 @@ test("cancelar descarta todos los avisos pendientes", () => {
   handlers["cotizacion-calculadora"]!({ id_branch: 1, nro_cotizacion: "B" });
   inbox.dismissAll();
   expect(inbox.notices.value).toEqual([]);
+});
+
+test("al abrir carga los avisos que el usuario no vio, solo de su sucursal", async () => {
+  pendientes.mockResolvedValue([guardado("CA-000001"), guardado("CA-000002", { id_branch: 2 })]);
+  const { inbox } = setup();
+  await flushPromises();
+  expect(inbox.notices.value.map((n) => n.codigo)).toEqual(["CA-000001"]);
+  expect(inbox.current.value).toMatchObject({ source: "bot", fecha_registro: "2026-11-17 11:21:00" });
+});
+
+test("un cargo que no ve avisos ni siquiera los pide", async () => {
+  loginWith(["01"]);
+  setup();
+  await flushPromises();
+  expect(pendientes).not.toHaveBeenCalled();
+});
+
+test("al reconectarse vuelve a pedirlos sin duplicar los que ya llegaron por socket", async () => {
+  const { handlers, inbox } = setup();
+  await flushPromises();
+  handlers["cotizacion-bot"]!({ id_branch: 1, nro_cotizacion: "CA-000003-P", codigo: "CA-000003" });
+  pendientes.mockResolvedValue([guardado("CA-000003"), guardado("CA-000004")]);
+
+  (handlers[RECONNECT_EVENT] as unknown as () => void)();
+  await flushPromises();
+  expect(inbox.notices.value.map((n) => n.codigo)).toEqual(["CA-000003", "CA-000004"]);
+});
+
+test("VER deja el aviso visto: sigue en la lista, deshabilitado, y se guarda por su código", async () => {
+  pendientes.mockResolvedValue([guardado("CA-000005"), guardado("CA-000006")]);
+  const { inbox } = setup();
+  await flushPromises();
+  const [primero] = inbox.notices.value;
+
+  inbox.markSeen(primero!);
+  inbox.markSeen(primero!);
+
+  expect(inbox.notices.value).toHaveLength(2);
+  expect(inbox.isSeen(primero!)).toBe(true);
+  expect(inbox.pendingCount.value).toBe(1);
+  expect(marcarVisto).toHaveBeenCalledTimes(1);
+  expect(marcarVisto).toHaveBeenCalledWith("CA-000005");
+});
+
+test("FCL muestra contenedor y cantidad (1 si no viene)", () => {
+  expect(formatQuoteContainer({ contenedor: "40s", cantidad_contenedor: 2 })).toBe("40S x 2");
+  expect(formatQuoteContainer({ contenedor: "20S", cantidad_contenedor: null })).toBe("20S x 1");
+  expect(formatQuoteContainer({ contenedor: null, cantidad_contenedor: 3 })).toBeNull();
+});
+
+test("la fecha y hora del aviso usan el formato de FormatFecha", () => {
+  expect(formatQuoteDate("2026-11-17 11:21:00")).toBe("17/NOV/2026 11:21 a. m.");
+  expect(formatQuoteDate("2026-11-17 00:05:00")).toBe("17/NOV/2026 12:05 a. m.");
+  expect(formatQuoteDate("2026-11-17 12:07:00")).toBe("17/NOV/2026 12:07 p. m.");
+  expect(formatQuoteDate(null)).toBeNull();
+});
+
+test("en la lista la fecha y la hora van en dos líneas", () => {
+  expect(quoteDateParts("2026-11-11 09:25:00")).toEqual({ fecha: "11/NOV/2026", hora: "09:25" });
+  expect(quoteDateParts("2026-11-11")).toEqual({ fecha: "11/NOV/2026", hora: null });
+  expect(quoteDateParts(null)).toBeNull();
+});
+
+test("si otro usuario actualiza la cotización o la envía a pricing, el aviso sale de la lista", async () => {
+  pendientes.mockResolvedValue([guardado("CA-000007"), guardado("CA-000008")]);
+  const { handlers, inbox } = setup();
+  await flushPromises();
+
+  handlers[ATTENDED_EVENT]!({ id_branch: 1, nro_cotizacion: "", codigo: "CA-000007" });
+  expect(inbox.notices.value.map((n) => n.codigo)).toEqual(["CA-000008"]);
+
+  handlers[ATTENDED_EVENT]!({ id_branch: 1, nro_cotizacion: "", codigo: "CA-000008" });
+  expect(inbox.current.value).toBeNull();
 });

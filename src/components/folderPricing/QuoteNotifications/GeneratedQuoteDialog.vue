@@ -1,12 +1,16 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
+import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import {
   availableModalities,
+  formatQuoteContainer,
+  formatQuoteDate,
   formatQuoteValue,
+  quoteDateParts,
   formatQuoteVolume,
   formatQuoteWeight,
   generatedQuoteLocation,
@@ -25,24 +29,24 @@ const route = useRoute();
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-const { notices, current, dismiss, dismissAll } = useGeneratedQuoteNotices(props.socket);
+// celular: la lista ocupa toda la pantalla (la web mantiene su diálogo)
+const { smAndDown } = useDisplay();
+const { notices, current, pendingCount, dismiss, dismissAll, markSeen, isSeen } = useGeneratedQuoteNotices(props.socket);
 // A second notice arriving while one is open turns the dialog into the grouped list.
 const isList = computed(() => notices.value.length > 1);
-// Rows already opened (or removed) in the grouped list are hidden but stay queued, so the
-// dialog keeps its list layout and only closes with "Cancelar".
-const hidden = ref(new Set<GeneratedQuoteNotice>());
-const visibleNotices = computed(() => notices.value.filter((notice) => !hidden.value.has(notice)));
-watch(
-  () => notices.value.length,
-  (length) => {
-    if (!length) hidden.value = new Set();
-  },
-);
 
-function hideOrDismiss(notice: GeneratedQuoteNotice) {
-  if (isList.value) hidden.value = new Set(hidden.value).add(notice);
-  else dismiss(notice);
+// "VER" deja el aviso visto (en BD, por usuario): en la lista la fila queda deshabilitada y no se quita;
+// la lista solo se cierra con "Cancelar". Con un solo aviso, el diálogo se cierra.
+function markSeenOrDismiss(notice: GeneratedQuoteNotice) {
+  markSeen(notice);
+  if (!isList.value) dismiss(notice);
 }
+
+// "tipo" es el tipo de embarque: FCL, LCL o Aéreo (bot: shipment; calculadora: tipo).
+// FCL no lleva peso ni volumen; el contenedor (40S x 1) se muestra cuando viene (hoy lo manda el bot).
+const tipoEmbarque = (notice: GeneratedQuoteNotice) =>
+  String(notice.tipo ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+const esFcl = (notice: GeneratedQuoteNotice) => tipoEmbarque(notice) === "FCL";
 
 const SOURCE_LABELS = { bot: "Bot de cotizaciones", calculadora: "Calculadora de Fletes" };
 
@@ -51,6 +55,7 @@ const rows = computed(() => {
   if (!notice) return [];
   return [
     { icon: "mdi-file-document-outline", label: "Cotización N.º", value: notice.nro_cotizacion },
+    { icon: "mdi-clock-outline", label: "Fecha y hora", value: formatQuoteDate(notice.fecha_registro) },
     { icon: "mdi-account-outline", label: "Cliente", value: notice.cliente },
     { icon: "mdi-phone-outline", label: "Teléfono", value: notice.telefono },
     { icon: "mdi-ferry", label: "Tipo de embarque", value: notice.tipo, chip: true },
@@ -61,6 +66,10 @@ const rows = computed(() => {
 const measures = computed(() => {
   const notice = current.value;
   if (!notice) return [];
+  if (esFcl(notice)) {
+    const contenedor = formatQuoteContainer(notice);
+    return contenedor ? [{ icon: "mdi-train-car-container", label: "Contenedor", value: contenedor }] : [];
+  }
   return [
     { icon: "mdi-weight-kilogram", label: "Peso", value: formatQuoteWeight(notice.peso) },
     { icon: "mdi-cube-outline", label: "Volumen", value: formatQuoteVolume(notice.volumen) },
@@ -81,7 +90,7 @@ function viewQuote(notice: GeneratedQuoteNotice, modality: QuoteModality) {
   const location = generatedQuoteLocation(notice, modality);
   if (!location) return;
   window.open(router.resolve(location).href, "_blank", "noopener");
-  hideOrDismiss(notice);
+  markSeenOrDismiss(notice);
 }
 
 async function reloadList() {
@@ -105,10 +114,12 @@ async function reloadList() {
     persistent
     :max-width="isList ? 860 : 420"
     :scrollable="isList"
+    :fullscreen="isList && smAndDown"
   >
     <v-card
       v-if="isList"
       class="generated-quote"
+      :class="{ 'generated-quote--movil': smAndDown }"
     >
       <div class="generated-quote__header">
         <v-icon size="40">
@@ -117,22 +128,30 @@ async function reloadList() {
         <span class="generated-quote__divider" />
         <span class="generated-quote__title">Cotizaciones<br>nuevas</span>
         <v-spacer />
-        <span class="generated-quote__count">{{ visibleNotices.length }}</span>
+        <span
+          class="generated-quote__count"
+          title="Sin revisar"
+        >{{ pendingCount }}</span>
       </div>
       <v-card-text class="generated-quote__list pa-3">
         <div
-          v-for="(notice, index) in visibleNotices"
-          :key="`${notice.source}-${notice.nro_cotizacion}-${index}`"
+          v-for="(notice, index) in notices"
+          :key="notice.codigo ?? `${notice.source}-${notice.nro_cotizacion}-${index}`"
           class="generated-quote__item"
+          :class="{ 'generated-quote__item--visto': isSeen(notice) }"
+          :aria-disabled="isSeen(notice)"
         >
           <span class="generated-quote__index">{{ index + 1 }}</span>
-          <div class="generated-quote__cell">
+          <div class="generated-quote__cell generated-quote__cell--main">
             <div class="generated-quote__code">
               {{ notice.nro_cotizacion }}
               <v-chip
                 v-if="notice.tipo"
                 class="generated-quote__type"
-                :class="{ 'generated-quote__type--fcl': String(notice.tipo).toUpperCase() === 'FCL' }"
+                :class="{
+                  'generated-quote__type--fcl': tipoEmbarque(notice) === 'FCL',
+                  'generated-quote__type--aereo': tipoEmbarque(notice) === 'AEREO',
+                }"
                 variant="flat"
                 size="x-small"
               >
@@ -157,13 +176,34 @@ async function reloadList() {
               </v-icon>
               {{ notice.telefono }}
             </div>
+            <!-- fecha y hora centrada a la derecha del número, en dos líneas (17/NOV/2026 · 09:25) -->
+            <span
+              v-if="quoteDateParts(notice.fecha_registro)"
+              class="generated-quote__time"
+            >
+              <v-icon size="14">mdi-clock-outline</v-icon>
+              <span class="generated-quote__timetext">
+                <span>{{ quoteDateParts(notice.fecha_registro)!.fecha }}</span>
+                <span v-if="quoteDateParts(notice.fecha_registro)!.hora">{{ quoteDateParts(notice.fecha_registro)!.hora }}</span>
+              </span>
+            </span>
           </div>
-          <div class="generated-quote__cell">
+          <div class="generated-quote__cell generated-quote__cell--montos">
             <div class="generated-quote__value">
               {{ formatQuoteValue(notice.valor_mercancia) ?? "—" }}
             </div>
+            <!-- FCL: contenedor y cantidad -->
             <div
-              v-if="formatQuoteWeight(notice.peso)"
+              v-if="esFcl(notice) && formatQuoteContainer(notice)"
+              class="generated-quote__meta"
+            >
+              <v-icon size="14">
+                mdi-train-car-container
+              </v-icon>
+              {{ formatQuoteContainer(notice) }}
+            </div>
+            <div
+              v-if="!esFcl(notice) && formatQuoteWeight(notice.peso)"
               class="generated-quote__meta"
             >
               <v-icon size="14">
@@ -172,7 +212,7 @@ async function reloadList() {
               {{ formatQuoteWeight(notice.peso) }}
             </div>
             <div
-              v-if="formatQuoteVolume(notice.volumen)"
+              v-if="!esFcl(notice) && formatQuoteVolume(notice.volumen)"
               class="generated-quote__meta"
             >
               <v-icon size="14">
@@ -181,7 +221,7 @@ async function reloadList() {
               {{ formatQuoteVolume(notice.volumen) }}
             </div>
           </div>
-          <div class="generated-quote__cell">
+          <div class="generated-quote__cell generated-quote__cell--fuente">
             <div class="generated-quote__label">
               Fuente
             </div>
@@ -202,6 +242,7 @@ async function reloadList() {
               variant="flat"
               size="small"
               prepend-icon="mdi-eye-outline"
+              :disabled="isSeen(notice)"
               @click="viewQuote(notice, modality)"
             >
               {{ modalitiesOf(notice).length > 1 ? MODALITY_LABELS[modality].text : "Ver" }}
@@ -210,15 +251,16 @@ async function reloadList() {
               v-if="!modalitiesOf(notice).length"
               variant="text"
               size="small"
-              @click="hideOrDismiss(notice)"
+              :disabled="isSeen(notice)"
+              @click="markSeenOrDismiss(notice)"
             >
               Quitar
             </v-btn>
           </div>
         </div>
         <div
-          v-if="!visibleNotices.length"
-          class="text-center text-medium-emphasis py-6"
+          v-if="!pendingCount"
+          class="text-center text-medium-emphasis py-3"
         >
           Ya revisaste todas las cotizaciones nuevas.
         </div>
@@ -415,6 +457,52 @@ async function reloadList() {
   border-radius: 12px;
   background: #fff;
 }
+/* ya revisada ("VER"): queda en la lista, atenuada y sin acciones */
+.generated-quote__item--visto {
+  background: #f8fafc;
+  border-style: dashed;
+}
+.generated-quote__item--visto > *:not(.generated-quote__actions) {
+  opacity: 0.55;
+}
+/* número, cliente y teléfono a la izquierda; la fecha centrada (vertical y horizontal) a la derecha */
+.generated-quote__cell--main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 10px;
+  align-items: center;
+}
+.generated-quote__cell--main > * {
+  grid-column: 1;
+}
+.generated-quote__cell--main > .generated-quote__time {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+  justify-self: center;
+}
+.generated-quote__time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #eef3fb;
+  color: #3b4b5e;
+}
+.generated-quote__time .v-icon {
+  color: #1769d2;
+}
+.generated-quote__timetext {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+}
 .generated-quote__item:last-child {
   margin-bottom: 0;
 }
@@ -452,6 +540,10 @@ async function reloadList() {
   background: #d3f2d6 !important;
   color: #1b6b2a !important;
 }
+.generated-quote__type--aereo {
+  background: #ece2fc !important;
+  color: #5b21b6 !important;
+}
 .generated-quote__meta {
   display: flex;
   align-items: center;
@@ -473,14 +565,110 @@ async function reloadList() {
   color: #fff !important;
   font-weight: 700;
 }
+/* ===================== celular (la web no cambia) ===================== */
+.generated-quote--movil {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border: 0;
+  border-radius: 0 !important;
+}
+.generated-quote--movil .generated-quote__header {
+  padding: 12px 14px;
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+.generated-quote--movil .generated-quote__header .v-icon {
+  font-size: 30px !important;
+}
+.generated-quote--movil .generated-quote__divider {
+  height: 30px;
+}
+.generated-quote--movil .generated-quote__title {
+  font-size: 1.05rem;
+}
+.generated-quote--movil .generated-quote__list {
+  flex: 1 1 auto;
+  max-height: none;
+  padding: 10px !important;
+}
+.generated-quote--movil .v-card-actions {
+  padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.06);
+}
+.generated-quote--movil .generated-quote__cancel {
+  min-height: 46px;
+}
 @media (max-width: 700px) {
+  /* tarjeta: número y datos arriba, montos en un recuadro, fuente y VER a todo el ancho */
   .generated-quote__item {
-    grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-areas:
+      "idx main"
+      "montos montos"
+      "fuente fuente"
+      "acciones acciones";
+    align-items: start;
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+  }
+  .generated-quote__index {
+    grid-area: idx;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  .generated-quote__cell + .generated-quote__cell {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .generated-quote__cell--main {
+    grid-area: main;
+    row-gap: 3px;
+  }
+  .generated-quote__cell--main .generated-quote__code {
+    font-size: 1.05rem;
+  }
+  .generated-quote__cell--main .generated-quote__meta {
+    font-size: 0.85rem;
+  }
+  /* monto destacado y debajo contenedor (FCL) o peso / volumen, en una sola fila */
+  .generated-quote__cell--montos {
+    grid-area: montos;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 14px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #f1f6fd;
+  }
+  .generated-quote__cell--montos .generated-quote__value {
+    flex: 1 0 100%;
+    font-size: 1.15rem;
+    color: #0a3d91;
+  }
+  .generated-quote__cell--montos .generated-quote__meta {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .generated-quote__cell--fuente {
+    grid-area: fuente;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .generated-quote__actions {
-    grid-column: 1 / -1;
+    grid-area: acciones;
     flex-direction: row;
-    justify-content: flex-end;
+    gap: 8px;
+  }
+  .generated-quote__actions .v-btn {
+    flex: 1 1 0;
+    min-height: 42px;
+    font-size: 0.9rem;
   }
 }
 .generated-quote__row {

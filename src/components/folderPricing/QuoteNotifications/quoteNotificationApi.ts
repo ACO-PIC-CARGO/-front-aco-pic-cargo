@@ -35,3 +35,35 @@ export async function listPendingQuoteNotifications(): Promise<QuoteNotice[]> {
 export async function markQuoteNotificationSeen(notificationId: number | string): Promise<void> {
   await http({ method: "put", url: url(`quote_notifications/${notificationId}/seen`) });
 }
+
+/** Aviso guardado de una cotización nueva del bot / calculadora (function_cotizacion_aviso_pendientes) */
+export interface CotizacionAvisoPendiente {
+  codigo: string;
+  fuente: "bot" | "calculadora";
+  id_branch: number;
+  id_cotizacion: number;
+  nro_cotizacion: string;
+  cliente: string | null;
+  telefono: string | null;
+  puerto_origen: string | null;
+  tipo: string | null;
+  contenedor: string | null;
+  cantidad_contenedor: number | null;
+  volumen: string | null;
+  peso: string | null;
+  valor_mercancia: string | null;
+  tieneindividualflag: boolean | null;
+  tienegrupalflag: boolean | null;
+  fecha_registro: string | null;
+}
+
+// Cotizaciones nuevas que este usuario aún no vio (al abrir ACO o al reconectarse)
+export async function listPendingCotizacionAvisos(): Promise<CotizacionAvisoPendiente[]> {
+  const { data } = await http<ApiResponse<CotizacionAvisoPendiente[]>>({ method: "get", url: url("cotizacion_avisos/pendientes") });
+  return data.estadoflag ? data.data : [];
+}
+
+// "VER": queda visto para este usuario (se valida por el código del aviso)
+export async function markCotizacionAvisoVisto(codigo: string): Promise<void> {
+  await http({ method: "put", url: url(`cotizacion_avisos/${encodeURIComponent(codigo)}/visto`) });
+}

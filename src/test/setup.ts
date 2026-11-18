@@ -32,3 +32,11 @@ globalThis.ResizeObserver ??= class {
   unobserve() {}
   disconnect() {}
 } as unknown as typeof ResizeObserver;
+
+// ni visualViewport (v-dialog / v-menu lo usan para ubicarse)
+if (typeof window !== "undefined" && !("visualViewport" in window && window.visualViewport)) {
+  Object.defineProperty(window, "visualViewport", {
+    value: { width: 1024, height: 768, offsetLeft: 0, offsetTop: 0, scale: 1, addEventListener: () => {}, removeEventListener: () => {} },
+    configurable: true,
+  });
+}
