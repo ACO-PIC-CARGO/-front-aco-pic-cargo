@@ -953,6 +953,12 @@ const routes = [
           import("../views/Configuracion/Pricing/ProviderQuoteEmailTemplate.vue"),
       },
       {
+        path: "configuracion/quote_priorities",
+        name: "quotePriorities",
+        component: () =>
+          import("../views/Configuracion/Pricing/QuotePrioritiesView.vue"),
+      },
+      {
         path: "reporte/ReporteGanancia",
         name: "ReporteGanancia",
         component: () =>
