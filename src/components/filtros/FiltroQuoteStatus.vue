@@ -440,35 +440,53 @@ async function Aceptar() {
               cols="12"
               class="py-1"
             >
-              <v-alert
-                color="info"
-                variant="tonal"
-                density="compact"
-                icon="mdi-send-outline"
-                title="¿Notificar a Ventas para Corrección?"
-                text="Pricing solicitará al vendedor corregir o completar la información de la cotización"
-              >
-                <v-radio-group
-                  v-model="notifySales"
-                  :readonly="QuoteStatusStore.tipo == 'ver'"
-                  inline
-                  hide-details
-                  density="compact"
+              <div class="d-flex align-center rounded-lg bg-blue-lighten-5 pa-3 ga-3">
+                <v-icon
+                  color="primary"
+                  size="28"
                 >
-                  <v-radio
-                    label="Sí"
-                    color="primary"
+                  mdi-send-outline
+                </v-icon>
+                <div class="flex-grow-1">
+                  <div class="font-weight-bold">
+                    ¿Notificar a Ventas para Corrección?
+                  </div>
+                  <div class="text-body-medium">
+                    Pricing solicitará al vendedor corregir o completar la información de la cotización
+                  </div>
+                </div>
+                <v-btn-toggle
+                  v-model="notifySales"
+                  mandatory
+                  divided
+                  rounded="pill"
+                  color="primary"
+                  variant="outlined"
+                  density="comfortable"
+                  aria-describedby="notify-sales-note"
+                  :class="{ 'pe-none': QuoteStatusStore.tipo == 'ver' }"
+                >
+                  <v-btn
                     :value="true"
-                  />
-                  <v-radio
-                    label="No"
-                    color="primary"
-                    :value="false"
-                  />
-                </v-radio-group>
-              </v-alert>
-              <div class="text-caption mt-2">
-                Al seleccionar 'Sí', la cotización se mostrará en el tab OBSERVADAS POR PRICING y se registrará la fecha de retorno a Ventas
+                    prepend-icon="mdi-check"
+                  >
+                    Sí
+                  </v-btn>
+                  <v-btn :value="false">
+                    No
+                  </v-btn>
+                </v-btn-toggle>
+              </div>
+              <div
+                id="notify-sales-note"
+                class="d-flex align-center rounded-lg bg-blue-lighten-5 pa-3 ga-3 mt-2 text-body-medium"
+              >
+                <v-icon color="primary">
+                  mdi-information
+                </v-icon>
+                <span>
+                  Al seleccionar 'Sí', la cotización se mostrará en el tab <strong>OBSERVADAS POR PRICING</strong> y se registrará la fecha de retorno a Ventas
+                </span>
               </div>
             </v-col>
 
