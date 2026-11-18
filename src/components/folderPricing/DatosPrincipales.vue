@@ -18,6 +18,7 @@ import type { ClienteListado } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { FOLDER_NOT_CREATED } from "@/components/folderPricing/quoteRules";
 import { chosenOptionTitle } from "@/utils/selectOptions";
+import QuotePriorityField from "@/components/folderPricing/QuotePriorityField.vue";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -435,6 +436,7 @@ function recargarNuevo(id_incoterms?: number | string) {
                 cols="12"
                 class="my-0 py-0"
               >
+                <QuotePriorityField />
                 <v-autocomplete
                   label="Tipo de Marketing"
                   variant="outlined"

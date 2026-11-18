@@ -1,4 +1,5 @@
 import { request } from "@/utils/request";
+import type { QuotePriorityDetail } from "@/components/folderPricing/quotePriorityField";
 
 export interface QuotePriority {
   id: number | null;
@@ -27,3 +28,8 @@ export const saveQuotePriority = (priority: QuotePriority) => {
 };
 
 export const deleteQuotePriority = (id: number) => request({ method: "delete", url: `${PRIORITIES_URL}/${id}` });
+
+export const listActiveQuotePriorities = () => request<QuotePriority>({ method: "get", url: PRIORITIES_URL });
+
+export const getQuotePriorityDetail = (quoteId: number | string) =>
+  request<QuotePriorityDetail>({ method: "get", url: `quote_details/${quoteId}` });

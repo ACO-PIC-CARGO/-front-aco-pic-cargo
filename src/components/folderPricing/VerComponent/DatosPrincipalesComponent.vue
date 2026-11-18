@@ -4,6 +4,7 @@ import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
+import QuotePriorityField from "@/components/folderPricing/QuotePriorityField.vue";
 
 withDefaults(
   defineProps<{
@@ -109,6 +110,7 @@ function mostrarProveedorFlag() {
           class="px-2"
           ref="form"
         >
+          <QuotePriorityField readonly />
           <v-autocomplete
             label="Tipo de Marketing"
             variant="outlined"

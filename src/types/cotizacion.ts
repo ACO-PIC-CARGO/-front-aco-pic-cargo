@@ -25,6 +25,7 @@ export interface ContenedorCantidad {
 export interface DatosPrincipales {
   amount?: Numerico;
   pricing_notes?: string | null;
+  id_quote_priority?: number | null;
   metroscc?: Numerico;
   kg?: Numerico;
   volumen?: Numerico;
