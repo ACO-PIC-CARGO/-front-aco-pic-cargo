@@ -18,6 +18,8 @@ import axios from "@/api/http";
 import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotifications/QuoteNotificationPopup.vue";
 import GeneratedQuoteDialog from "@/components/folderPricing/QuoteNotifications/GeneratedQuoteDialog.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
+import { askSaveChoice, requestPricingAfterSave } from "@/components/folderPricing/PricingRequest/requestAfterSave";
+import type { RequestOutcome, SaveChoice } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
@@ -241,9 +243,21 @@ function abrirSwalConfigFlete() {
     });
   }
 }
+async function chooseSaveAction(): Promise<SaveChoice | null> {
+  return can("lstQuote", "MODIFICAR") ? askSaveChoice() : "save_only";
+}
+function showPricingRequestOutcome(outcome: RequestOutcome) {
+  void Swal.fire({
+    icon: outcome.estadoflag ? "success" : "warning",
+    title: outcome.estadoflag ? "Solicitud enviada" : "No se envió la solicitud a pricing",
+    text: outcome.mensaje,
+  });
+}
 async function guardarCotizacion() {
   const validacion = validarRegistro() && !blockedQuoteSave(pricingStore);
   if (!!validacion) {
+    const choice = await chooseSaveAction();
+    if (!choice) return;
     appStore.spiner = true;
     const respuesta = await pricingStore
       .registrarQuote({ fullflag: true })
@@ -258,10 +272,11 @@ async function guardarCotizacion() {
       });
       return;
     }
+    const outcome = await requestPricingAfterSave(choice, { saved: true, quoteId: pricingStore.id });
     Swal.fire({
       icon: "info",
       title: "Aviso",
-      text: pricingStore.mensaje,
+      text: [pricingStore.mensaje, outcome?.mensaje].filter(Boolean).join(" "),
       confirmButtonText: "Ir a ver",
     }).then((result) => {
       if (result.isConfirmed) {
@@ -308,8 +323,11 @@ async function editarCotizacion() {
 
   // // -----------------------------------------------------
   if (val) {
+    const choice = await chooseSaveAction();
+    if (!choice) return;
     appStore.spiner = false;
     if (!(await pricingStore.updateQuote())) return;
+    const outcome = await requestPricingAfterSave(choice, { saved: true, quoteId: pricingStore.id });
 
     const destino = {
       name: "verQuote",
@@ -322,6 +340,7 @@ async function editarCotizacion() {
       await router.push(destino);
     }
     appStore.spiner = false;
+    if (outcome) showPricingRequestOutcome(outcome);
   } else {
     Swal.fire({
       title: "ADVERTENCIA",
