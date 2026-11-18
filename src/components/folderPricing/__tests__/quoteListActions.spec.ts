@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, lastCommentPillStyle, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
     expect(showsCallActions("")).toBe(true);
   });
 
-  it.each(["pending_send", "pricing_requested"] as const)(
+  it.each(["pending_send", "pricing_requested", "returned"] as const)(
     "hides the call buttons in %s",
     (view) => {
       expect(showsCallActions(view)).toBe(false);
@@ -22,6 +22,10 @@ describe("showsReturnToSalesAction", () => {
   it.each(["pending_send", "pricing_requested"] as const)("shows the return action in %s", (view) => {
     expect(showsReturnToSalesAction(view)).toBe(true);
   });
+
+  it("hides the return action in Observadas por Pricing, where the quote already came back", () => {
+    expect(showsReturnToSalesAction("returned")).toBe(false);
+  });
 });
 
 describe("showsInternalThread", () => {
@@ -29,8 +33,20 @@ describe("showsInternalThread", () => {
     expect(showsInternalThread("")).toBe(false);
   });
 
-  it.each(["pending_send", "pricing_requested"] as const)("shows the thread in %s", (view) => {
+  it.each(["pending_send", "pricing_requested", "returned"] as const)("shows the thread in %s", (view) => {
     expect(showsInternalThread(view)).toBe(true);
+  });
+});
+
+describe("leadingDateColumn", () => {
+  it("has no extra date column in Todas, Solicitadas por Ventas and Enviadas", () => {
+    expect(leadingDateColumn("")).toBeNull();
+    expect(leadingDateColumn("pending_send")).toBeNull();
+    expect(leadingDateColumn("pricing_requested")).toBeNull();
+  });
+
+  it("leads Observadas por Pricing with the return date", () => {
+    expect(leadingDateColumn("returned")).toEqual({ key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" });
   });
 });
 

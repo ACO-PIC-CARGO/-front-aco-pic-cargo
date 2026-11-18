@@ -30,6 +30,9 @@ test("each tab mounts the only listing panel, with its pricing view", async () =
 
   await wrapper.findAll("button").find((tab) => tab.text().includes("Enviadas al Cliente"))!.trigger("click");
   expect(panels(wrapper)).toEqual(["view:pricing_requested"]);
+
+  await wrapper.findAll("button").find((tab) => tab.text().includes("Observadas por Pricing"))!.trigger("click");
+  expect(panels(wrapper)).toEqual(["view:returned"]);
 });
 
 test("coming back to the list reopens the tab the user was working in", () => {

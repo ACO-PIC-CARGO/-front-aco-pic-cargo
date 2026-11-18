@@ -9,6 +9,7 @@ import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import {
+  leadingDateColumn,
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
@@ -222,12 +223,15 @@ const NO_DATA_TEXTS = {
   "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
   pending_send: "No hay cotizaciones pendientes de envío.",
   pricing_requested: "Todavía no se ha solicitado ninguna cotización a pricing.",
+  returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
+const leadingDate = computed(() => leadingDateColumn(pricingStore.pricingView));
 const LAST_COMMENT_HEADER = { key: "last_message_body", title: "ÚLTIMO COMENTARIO", align: "start" } as const;
 const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
 const headersCotizaciones = computed(() => {
   const headers: { key: string; title: string; align?: "start" | "center" | "end" }[] = [...cabCotizaciones];
+  if (leadingDate.value) headers.splice(1, 0, leadingDate.value);
   if (showsSentToClient.value) {
     const afterCode = headers.findIndex((header) => header.key === "codigo") + 1;
     headers.splice(afterCode, 0, SENT_TO_CLIENT_HEADER);
@@ -1257,6 +1261,13 @@ onMounted(async () => {
           </td>
           <!-- <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td> -->
           <!-- <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td> -->
+          <td
+            v-if="leadingDate"
+            class="text-center"
+            @click="toggleExpand(internalItem)"
+          >
+            {{ item[leadingDate.key] }}
+          </td>
           <td
             class="text-center"
             @click="toggleExpand(internalItem)"
