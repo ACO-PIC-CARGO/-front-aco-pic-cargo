@@ -18,6 +18,12 @@ const frmFilter = useTemplateRef("frmFilter");
 const frmDML = useTemplateRef("frmDML");
 
 const drawer = computed(() => QuoteStatusStore.drawer);
+const notifySales = computed({
+  get: () => !!QuoteStatusStore.StatusModel.notify_sales_for_correction,
+  set: (value: boolean) => {
+    QuoteStatusStore.StatusModel.notify_sales_for_correction = value;
+  },
+});
 
 watch(drawer, () => {
   StatusQuote.value = { ...QuoteStatusStore.StatusModel };
@@ -430,6 +436,42 @@ async function Aceptar() {
                 </template>
               </v-autocomplete>
             </v-col>
+            <v-col
+              cols="12"
+              class="py-1"
+            >
+              <v-alert
+                color="info"
+                variant="tonal"
+                density="compact"
+                icon="mdi-send-outline"
+                title="¿Notificar a Ventas para Corrección?"
+                text="Pricing solicitará al vendedor corregir o completar la información de la cotización"
+              >
+                <v-radio-group
+                  v-model="notifySales"
+                  :readonly="QuoteStatusStore.tipo == 'ver'"
+                  inline
+                  hide-details
+                  density="compact"
+                >
+                  <v-radio
+                    label="Sí"
+                    color="primary"
+                    :value="true"
+                  />
+                  <v-radio
+                    label="No"
+                    color="primary"
+                    :value="false"
+                  />
+                </v-radio-group>
+              </v-alert>
+              <div class="text-caption mt-2">
+                Al seleccionar 'Sí', la cotización se mostrará en el tab OBSERVADAS POR PRICING y se registrará la fecha de retorno a Ventas
+              </div>
+            </v-col>
+
             <!--<div class="col-6 py-1">
               <v-text-field
                 :readonly="$store.state.QuoteStatus.tipo == 'ver'"
