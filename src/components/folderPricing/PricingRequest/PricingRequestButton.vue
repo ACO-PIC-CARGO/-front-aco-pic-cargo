@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "
   activator: "icon",
 });
 
+const emit = defineEmits<{ requested: [note: string | null] }>();
+
 const LOAD_FAILED = "No pudimos cargar los datos de la solicitud. Revisa tu conexión e inténtalo de nuevo.";
 const SEND_FAILED = "No pudimos enviar la solicitud. Revisa tu conexión e inténtalo de nuevo.";
 
@@ -43,12 +45,14 @@ async function send() {
   sending.value = true;
   sendError.value = null;
   try {
-    const response = await createPricingRequest(props.quoteId, newNoteToSend(note.value));
+    const sentNote = newNoteToSend(note.value);
+    const response = await createPricingRequest(props.quoteId, sentNote);
     if (!response.estadoflag) {
       sendError.value = response.mensaje || SEND_FAILED;
       return;
     }
     dialog.value = false;
+    emit("requested", sentNote);
     void Swal.fire({ icon: "success", text: response.mensaje });
   } catch {
     sendError.value = SEND_FAILED;
@@ -116,6 +120,7 @@ async function send() {
             readonly
           />
           <v-textarea
+            v-if="info.can_request"
             v-model="note"
             class="mt-3"
             label="Nueva nota"

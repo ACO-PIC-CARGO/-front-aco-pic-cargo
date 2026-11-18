@@ -9,7 +9,8 @@ import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import {
-  lastCommentText,
+  lastCommentParts,
+  lastCommentPillStyle,
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
@@ -1153,6 +1154,7 @@ onMounted(async () => {
               <PricingRequestButton
                 v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
+                @requested="(note) => note && onThreadMessageSent(item, { direction: 'sales_to_pricing', body: note })"
               />
               <v-tooltip location="top">
                 <template #activator="{ props }">
@@ -1330,7 +1332,14 @@ onMounted(async () => {
             v-if="showsLastComment"
             @click="toggleExpand(internalItem)"
           >
-            {{ lastCommentText(item.last_message_direction, item.last_message_body) }}
+            <span
+              v-if="lastCommentParts(item.last_message_direction, item.last_message_body)"
+              class="last-comment-pill"
+              :style="lastCommentPillStyle(item.priority_color) ?? undefined"
+            >
+              <strong>{{ lastCommentParts(item.last_message_direction, item.last_message_body)!.label }}:</strong>
+              {{ lastCommentParts(item.last_message_direction, item.last_message_body)!.body }}
+            </span>
           </td>
         </tr>
       </template>
@@ -1690,6 +1699,12 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.last-comment-pill {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+}
 .headerDetails {
   color: #000 !important;
   background: #80deea !important;

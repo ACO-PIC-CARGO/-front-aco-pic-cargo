@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentText, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, lastCommentPillStyle, lastCommentText, showsCallActions, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -68,5 +68,29 @@ describe("withLastMessage", () => {
 
   it("starts the count at one for a quote without messages", () => {
     expect(withLastMessage({}, { direction: "sales_to_pricing", body: "Hola" }).message_count).toBe(1);
+  });
+});
+
+describe("lastCommentPillStyle", () => {
+  it("tints the pill with the row priority color", () => {
+    expect(lastCommentPillStyle("#d32f2f")).toEqual({
+      color: "#d32f2f",
+      background: "color-mix(in srgb, #d32f2f 14%, white)",
+    });
+  });
+
+  it("falls back to no custom style when the quote has no priority color", () => {
+    expect(lastCommentPillStyle(null)).toBeNull();
+    expect(lastCommentPillStyle(undefined)).toBeNull();
+  });
+});
+
+describe("lastCommentParts", () => {
+  it("splits the label from the truncated body", () => {
+    expect(lastCommentParts("sales_to_pricing", "Hola")).toEqual({ label: "De Ventas para Pricing", body: "Hola" });
+  });
+
+  it("is null without messages", () => {
+    expect(lastCommentParts(null, null)).toBeNull();
   });
 });

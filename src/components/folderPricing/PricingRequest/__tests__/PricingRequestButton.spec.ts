@@ -99,3 +99,60 @@ test("a connection failure shows friendly copy instead of the error", async () =
   expect(text()).not.toContain("Network Error");
   expect(send().disabled).toBe(true);
 });
+
+const typeNote = async (value: string) => {
+  const field = document.querySelector("textarea") as HTMLTextAreaElement;
+  field.value = value;
+  field.dispatchEvent(new Event("input"));
+  await flushPromises();
+};
+
+test("the dialog offers exactly one note field", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  await openDialog();
+  expect(document.querySelectorAll("textarea:not(.v-textarea__sizer)")).toHaveLength(1);
+});
+
+test("a blocked request offers no note field", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ can_request: false, blocked_reason: "Ya hay una solicitud pendiente." }));
+  await openDialog();
+  expect(document.querySelectorAll("textarea:not(.v-textarea__sizer)")).toHaveLength(0);
+});
+
+test("a refused request keeps the typed note", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: false, mensaje: "No se pudo.", tipomensaje: "TMSGERR", data: [] });
+  const { send } = await openDialog();
+  await typeNote("Urge");
+  send().click();
+  await flushPromises();
+  expect((document.querySelector("textarea") as HTMLTextAreaElement).value).toBe("Urge");
+});
+
+test("reopening the dialog starts with an empty note", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  const { wrapper } = await openDialog();
+  await typeNote("Urge");
+  await wrapper.find("button[aria-label='Solicitar a pricing']").trigger("click");
+  await flushPromises();
+  expect((document.querySelector("textarea") as HTMLTextAreaElement).value).toBe("");
+});
+
+test("a successful request with a note reports it so the list can show it", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { wrapper, send } = await openDialog();
+  await typeNote("  Urge  ");
+  send().click();
+  await flushPromises();
+  expect(wrapper.emitted("requested")).toEqual([["Urge"]]);
+});
+
+test("a successful request without a note reports none", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { wrapper, send } = await openDialog();
+  send().click();
+  await flushPromises();
+  expect(wrapper.emitted("requested")).toEqual([[null]]);
+});
