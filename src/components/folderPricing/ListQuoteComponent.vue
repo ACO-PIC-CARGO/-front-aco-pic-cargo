@@ -8,6 +8,7 @@ import Swal from "sweetalert2";
 import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
+import { showsCallActions } from "@/components/folderPricing/quoteListActions";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
@@ -1084,7 +1085,7 @@ onMounted(async () => {
                     size="x-small"
                     @click="registrarLlamada(item)"
                     aria-label="Registrar llamada"
-                    v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
+                    v-if="showsCallActions(pricingStore.pricingView) && item.statusmain != 0 && can('lstQuote', 'MODIFICAR')"
                   >
                     <v-icon
                       color="#1A237E"
@@ -1141,7 +1142,7 @@ onMounted(async () => {
                    
                     v-bind="props"
                     @click="toggleRow(item)"
-                    v-if="mostrarBoton(item)"
+                    v-if="showsCallActions(pricingStore.pricingView) && mostrarBoton(item)"
                   >
                     <v-icon
                       color="#263238"
