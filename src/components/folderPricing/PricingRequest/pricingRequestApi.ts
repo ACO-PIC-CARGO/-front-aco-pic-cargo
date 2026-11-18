@@ -8,6 +8,7 @@ export interface PricingRequestInfo {
   pending_since: string | null;
   can_request: boolean;
   blocked_reason: string | null;
+  already_requested: boolean | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;

@@ -1,20 +1,15 @@
 import { expect, test } from "vitest";
 import { ALREADY_REQUESTED_TOOLTIP, alreadyRequestedTooltip, isAlreadyRequested } from "../pricingRequestState";
 
-const info = (fields = {}) => ({ can_request: false, blocked_reason: "Ya fue solicitada el 18/11/2026 10:00. Edita la cotización para volver a solicitarla.", ...fields });
+const info = (already_requested: boolean | null) => ({ already_requested });
 
-test("a refusal because it was already requested is recognised", () => {
-  expect(isAlreadyRequested(info())).toBe(true);
+test("only an explicit already_requested true is recognised", () => {
+  expect(isAlreadyRequested(info(true))).toBe(true);
 });
 
-test("other refusals are not treated as already requested", () => {
-  expect(isAlreadyRequested(info({ blocked_reason: "Ya hay una solicitud pendiente." }))).toBe(false);
-  expect(isAlreadyRequested(info({ blocked_reason: "La cotización no tiene pricing asignado." }))).toBe(false);
-  expect(isAlreadyRequested(info({ blocked_reason: null }))).toBe(false);
-});
-
-test("an allowed request or a missing info is not already requested", () => {
-  expect(isAlreadyRequested(info({ can_request: true }))).toBe(false);
+test("false, null or a missing info is not already requested", () => {
+  expect(isAlreadyRequested(info(false))).toBe(false);
+  expect(isAlreadyRequested(info(null))).toBe(false);
   expect(isAlreadyRequested(null)).toBe(false);
 });
 

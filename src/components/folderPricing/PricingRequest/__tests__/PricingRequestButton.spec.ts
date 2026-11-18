@@ -22,7 +22,7 @@ Object.defineProperty(window, "visualViewport", {
 const vuetify = createVuetify({ components, directives });
 const info = (fields = {}) => ({
   estadoflag: true, mensaje: "", tipomensaje: "", data: [{
-    quote_code: "15479-P", pricing_name: "ANA PRICING", pricing_notes: "Revisar flete", pending_since: null, can_request: true, blocked_reason: null, ...fields,
+    quote_code: "15479-P", pricing_name: "ANA PRICING", pricing_notes: "Revisar flete", pending_since: null, can_request: true, blocked_reason: null, already_requested: false, ...fields,
   }],
 });
 
@@ -166,7 +166,7 @@ test("a blocked row cannot open the request dialog", async () => {
 });
 
 test("the text button turns into a disabled notice when the quote was already requested", async () => {
-  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ can_request: false, blocked_reason: "Ya fue solicitada el 18/11/2026 10:00. Edita la cotización para volver a solicitarla." }));
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ can_request: false, already_requested: true, blocked_reason: "Ya fue solicitada el 18/11/2026 10:00. Edita la cotización para volver a solicitarla." }));
   const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text" }, global: { plugins: [vuetify] }, attachTo: document.body });
   await flushPromises();
   expect(wrapper.text()).toContain("YA FUE SOLICITADO");
@@ -187,4 +187,11 @@ test("a successful request blocks the button until the quote is edited", async (
   send().click();
   await flushPromises();
   expect(wrapper.find("button[aria-label='Ya fue solicitado']").exists()).toBe(true);
+});
+
+test("a not-found row leaves the text button as is", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ already_requested: null }));
+  const wrapper = mount(PricingRequestButton, { props: { quoteId: 15, activator: "text" }, global: { plugins: [vuetify] }, attachTo: document.body });
+  await flushPromises();
+  expect(wrapper.text()).toContain("SOLICITAR A PRICING");
 });
