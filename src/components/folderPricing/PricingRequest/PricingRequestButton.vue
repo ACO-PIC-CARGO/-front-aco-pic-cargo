@@ -5,6 +5,7 @@ import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi
 import type { PricingRequestInfo } from "./pricingRequestApi";
 import InternalCommunicationThread from "../InternalCommunication/InternalCommunicationThread.vue";
 import { newNoteToSend } from "../InternalCommunication/newNote";
+import { internalThreadChanged } from "../InternalCommunication/internalThreadRefresh";
 import { alreadyRequestedTooltip, isAlreadyRequested } from "./pricingRequestState";
 
 const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean; refreshToken?: number }>(), {
@@ -79,6 +80,7 @@ async function send() {
     alreadyRequested.value = true;
     alreadyRequestedReason.value = null;
     emit("requested", sentNote);
+    if (sentNote) internalThreadChanged();
     void Swal.fire({ icon: "success", text: response.mensaje });
   } catch {
     sendError.value = SEND_FAILED;

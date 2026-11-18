@@ -3,6 +3,7 @@ import { nextTick, ref } from "vue";
 import { flushPromises } from "@vue/test-utils";
 import { useInternalThread } from "../useInternalThread";
 import { getInternalMessages, sendInternalMessage } from "../internalCommunicationApi";
+import { internalThreadChanged } from "../internalThreadRefresh";
 
 vi.mock("../internalCommunicationApi", () => ({ getInternalMessages: vi.fn(), sendInternalMessage: vi.fn() }));
 
@@ -84,4 +85,17 @@ test("a sent message reports its trimmed body so a list row can show it", async 
   thread.draft.value = "  Urge  ";
   await thread.send();
   expect(onSent).toHaveBeenCalledWith({ id: 9, direction: "sales_to_pricing", created_at: "x", body: "Urge" });
+});
+
+test("a message added elsewhere, such as a note sent with a pricing request, reloads the thread", async () => {
+  vi.mocked(getInternalMessages).mockResolvedValue(ok([]) as never);
+  const thread = useInternalThread(ref(1), vi.fn());
+  await flushPromises();
+  vi.mocked(getInternalMessages).mockResolvedValue(ok([message(3, "Urge el flete")]) as never);
+
+  internalThreadChanged();
+  await flushPromises();
+
+  expect(thread.messages.value.map((m) => m.body)).toEqual(["Urge el flete"]);
+  expect(thread.count.value).toBe(1);
 });

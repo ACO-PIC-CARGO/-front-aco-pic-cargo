@@ -1,5 +1,6 @@
 import { computed, ref, watch, type Ref } from "vue";
 import { getInternalMessages, sendInternalMessage, type InternalMessage, type SentMessage } from "./internalCommunicationApi";
+import { internalThreadVersion } from "./internalThreadRefresh";
 
 const EMPTY_TYPE = "TMSGINF";
 const LOAD_FAILED = "No pudimos cargar los mensajes. Revisa tu conexión e intenta de nuevo.";
@@ -62,6 +63,7 @@ export function useInternalThread(quoteId: Ref<number>, onSent: (message: SentMe
     sending.value = false;
     load();
   }, { immediate: true });
+  watch(internalThreadVersion, load);
 
   return { messages, draft, sending, errorText, count, canSend, send };
 }

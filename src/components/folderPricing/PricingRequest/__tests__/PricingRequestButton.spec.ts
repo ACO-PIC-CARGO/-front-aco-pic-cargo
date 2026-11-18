@@ -6,6 +6,7 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import PricingRequestButton from "../PricingRequestButton.vue";
 import { createPricingRequest, getPricingRequestInfo } from "../pricingRequestApi";
+import { internalThreadVersion } from "../../InternalCommunication/internalThreadRefresh";
 
 vi.mock("../pricingRequestApi", () => ({ getPricingRequestInfo: vi.fn(), createPricingRequest: vi.fn() }));
 vi.mock("../../InternalCommunication/internalCommunicationApi", () => ({
@@ -74,6 +75,22 @@ test("a typed note travels trimmed with the request", async () => {
   await flushPromises();
 
   expect(createPricingRequest).toHaveBeenCalledWith(15, "Urge el flete");
+});
+
+test("a request sent with a note refreshes the internal history shown elsewhere", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  vi.mocked(createPricingRequest).mockResolvedValue({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGSUC", data: [] });
+  const { send } = await openDialog();
+  const field = document.querySelector("textarea") as HTMLTextAreaElement;
+  field.value = "Urge el flete";
+  field.dispatchEvent(new Event("input"));
+  await flushPromises();
+  const before = internalThreadVersion.value;
+
+  send().click();
+  await flushPromises();
+
+  expect(internalThreadVersion.value).toBe(before + 1);
 });
 
 test("a blank note is not sent", async () => {
