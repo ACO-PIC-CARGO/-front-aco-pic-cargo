@@ -169,7 +169,16 @@ function abrir(url: string | null | undefined) {
       v-if="!items.length"
       class="mov__empty"
     >
-      {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago." }}
+      <template v-if="cargando">
+        Cargando solicitudes...
+      </template>
+      <!-- Control de Gastos explica dónde se crean; la bandeja de Bancos deja el texto corto -->
+      <slot
+        v-else
+        name="vacio"
+      >
+        No hay solicitudes de pago.
+      </slot>
     </div>
     <div
       v-for="g in grupos"
@@ -674,10 +683,14 @@ function abrir(url: string | null | undefined) {
   color: var(--sp-text);
   font-size: 0.92rem;
 }
+/* aviso vacío: recuadro blanco, igual que Solicitudes de Cobro */
 .mov__empty {
-  padding: 28px 12px;
+  padding: 14px;
+  border: 1px dashed #c9d3e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #5b6b86;
   text-align: center;
-  color: var(--sp-muted);
 }
 .mov__grouphead {
   display: flex;

@@ -7,7 +7,7 @@ import axios from "@/api/http";
 import { useEntitiesStore } from "@/stores/entities";
 import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
-import { applyUpdate, checkForUpdate } from "@/utils/swUpdate";
+import { applyUpdate, checkForUpdate, hardReload } from "@/utils/swUpdate";
 import AvisoActualizacion from "@/components/comun/AvisoActualizacion.vue";
 
 const ControlServices = defineAsyncComponent(
@@ -89,19 +89,11 @@ onBeforeMount(async () => {
 });
 
 async function actualizar() {
-  // Con una versión ya descargada por el Service Worker basta activarla (skipWaiting) y recargar.
+  // Con una versión ya descargada por el Service Worker: se activa (skipWaiting) y recarga forzada.
   if (applyUpdate()) return;
+  // Sin versión en espera: recarga forzada (borra cachés y entra con ?v=<hora>), como Ctrl+F5.
   localStorage.setItem("actualizando", "1");
-
-  if (window.caches) {
-    const cacheNames = await caches.keys();
-    await Promise.all(cacheNames.map((name) => caches.delete(name)));
-  }
-
-  setTimeout(() => {
-    const url = window.location.origin + window.location.pathname;
-    window.location.href = `${url}?v=${new Date().getTime()}`;
-  }, 5000); // espera 5 segundos
+  setTimeout(() => hardReload(), 5000); // espera 5 segundos
 }
 async function guardarClienteModal() {
   appStore.spiner = true;

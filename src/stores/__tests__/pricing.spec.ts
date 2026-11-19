@@ -935,6 +935,16 @@ describe("pricing store", () => {
       expect(data.contenedores).toEqual([{ id: 7, id_contenedor: 5, cantidad: 2, status: true }]);
     });
 
+    test("registrarQuotePorCambioIncoterms carries the shipment subtype into the new quote", async () => {
+      httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 503, nro_quote: "15002-P", msg: "ok" } });
+      const pricing = cotizacion();
+      pricing.datosPrincipales.id_shipment_subtype = 1;
+
+      await pricing.registrarQuotePorCambioIncoterms({ listServices: SERVICIOS.slice(0, 2), opcionCostos: [opcion({ nro_propuesta: 2, selected: false })] });
+
+      expect(sentConfig("setQuote")!.data).toMatchObject({ id_shipment_subtype: 1 });
+    });
+
     test("registrarQuotePorCambioIncoterms posts the services and options it receives with the quote header", async () => {
       httpMock.mockResolvedValue({ data: { estadoflag: true, insertId: 503, nro_quote: "15002-P", msg: "ok" } });
       const pricing = cotizacion();
@@ -959,6 +969,7 @@ describe("pricing store", () => {
             "id_marketing": 150,
             "id_percepcionaduana": 53,
             "id_proveedor": undefined,
+            "id_shipment_subtype": null,
             "iddestino": 346,
             "iddistrito": undefined,
             "idincoterms": 9,

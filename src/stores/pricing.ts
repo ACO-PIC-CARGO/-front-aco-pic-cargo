@@ -1541,6 +1541,7 @@ export const usePricingStore = defineStore("pricing", () => {
       idtipocarga: (datosPrincipales.value.idtipocarga as TipoCarga).id
         ? (datosPrincipales.value.idtipocarga as TipoCarga).id
         : datosPrincipales.value.idtipocarga,
+      id_shipment_subtype: datosPrincipales.value.id_shipment_subtype ?? null,
       idincoterms: datosPrincipales.value.idincoterms,
       proveedor: datosPrincipales.value.proveedor,
       telefonoproveedor: datosPrincipales.value.telefonoproveedor,
