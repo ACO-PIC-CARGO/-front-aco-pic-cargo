@@ -1089,6 +1089,7 @@ onMounted(async () => {
                         density="compact"
                         variant="outlined"
                         v-model="item.montoparcial"
+                        type="number"
                         :disabled="
                           !selected.includes(item) || !item.parcialflag
                         "

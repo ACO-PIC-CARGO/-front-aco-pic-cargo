@@ -744,6 +744,7 @@ onMounted(async () => {
             <v-text-field
               label="Monto "
               v-model="dato.monto"
+              type="number"
               :rules="[(v) => !!v || 'Datos Requerido']"
             />
 

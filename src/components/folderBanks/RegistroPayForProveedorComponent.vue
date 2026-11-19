@@ -1093,6 +1093,7 @@ onMounted(async () => {
                         density="compact"
                         variant="outlined"
                         v-model="item.montoparcial"
+                        type="number"
                         :disabled="
                           desdeSolicitud || !selected.includes(item) || !item.parcialflag
                         "
