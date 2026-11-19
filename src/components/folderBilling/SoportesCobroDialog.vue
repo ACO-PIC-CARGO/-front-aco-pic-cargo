@@ -19,9 +19,12 @@ export interface SolicitudDeSoportes {
   fecha_confirmacion?: string | null;
 }
 
+// un pago con la solicitud a la que pertenece (el correlativo puede tener varias solicitudes)
+export type SoporteDeSolicitud = SoporteCobro & { solicitud?: SolicitudDeSoportes & { editable?: boolean } };
+
 const props = defineProps<{
   modelValue: boolean;
-  soportes: SoporteCobro[];
+  soportes: SoporteDeSolicitud[];
   moneda: string | null;
   // monto a cobrar de la solicitud (para el saldo pendiente)
   total: number | string;
@@ -37,8 +40,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   "update:modelValue": [valor: boolean];
-  editar: [soporte: SoporteCobro];
-  eliminar: [soporte: SoporteCobro];
+  editar: [soporte: SoporteDeSolicitud];
+  eliminar: [soporte: SoporteDeSolicitud];
 }>();
 const { smAndDown } = useDisplay();
 
@@ -59,9 +62,17 @@ const ICONO_ESTADO: Record<string, string> = {
   ELIMINADA: "mdi-trash-can-outline",
 };
 // el pago con su ingreso en Bancos ya está registrado; si no, el estado de la solicitud
-function estadoDe(sop: SoporteCobro) {
+function solDe(sop: SoporteDeSolicitud) {
+  return sop.solicitud ?? props.solicitud ?? null;
+}
+// editar / eliminar: no si ya está en Bancos ni si su solicitud ya está confirmada
+function modificable(sop: SoporteDeSolicitud) {
+  return !sop.id_pagoingreso && sop.solicitud?.editable !== false;
+}
+function estadoDe(sop: SoporteDeSolicitud) {
   if (sop.id_pagoingreso) return { codigo: "COBRADO", texto: "Registrado en Bancos" };
-  return { codigo: props.solicitud?.codigo_estado ?? "BORRADOR", texto: props.solicitud?.estado ?? "Sin enviar" };
+  const sol = solDe(sop);
+  return { codigo: sol?.codigo_estado ?? "BORRADOR", texto: sol?.estado ?? "Sin enviar" };
 }
 function soloFecha(valor: string | null | undefined) {
   return valor ? shortDate(valor.slice(0, 10)) : "";
@@ -189,14 +200,14 @@ function abrir(url: string | null | undefined) {
                 </td>
                 <td>
                   <span
-                    v-if="solicitud?.fecha_ingreso"
+                    v-if="solDe(sop)?.fecha_ingreso"
                     class="sopcob__chipfecha"
-                  >{{ soloFecha(solicitud.fecha_ingreso) }}</span>
+                  >{{ soloFecha(solDe(sop)!.fecha_ingreso) }}</span>
                   <span v-else>—</span>
                 </td>
                 <td>
                   <v-btn
-                    v-if="solicitud?.soporte_confirmacion_path"
+                    v-if="solDe(sop)?.soporte_confirmacion_path"
                     icon="mdi-eye-outline"
                     variant="outlined"
                     size="small"
@@ -206,24 +217,24 @@ function abrir(url: string | null | undefined) {
                     title="Ver soporte de confirmación"
                     aria-label="Ver soporte de confirmación"
                     data-modo-ver="permitido"
-                    @click="abrir(solicitud.soporte_confirmacion_path)"
+                    @click="abrir(solDe(sop)!.soporte_confirmacion_path)"
                   />
                   <span v-else>—</span>
                 </td>
                 <td>
-                  <b>{{ solicitud?.usuario_confirma || "—" }}</b>
+                  <b>{{ solDe(sop)?.usuario_confirma || "—" }}</b>
                 </td>
                 <td>
                   <span
-                    v-if="solicitud?.fecha_confirmacion"
+                    v-if="solDe(sop)?.fecha_confirmacion"
                     class="sopcob__chipfecha"
-                  >{{ soloFecha(solicitud.fecha_confirmacion) }}<br>{{ horaDe(solicitud.fecha_confirmacion) }}</span>
+                  >{{ soloFecha(solDe(sop)!.fecha_confirmacion) }}<br>{{ horaDe(solDe(sop)!.fecha_confirmacion) }}</span>
                   <span v-else>—</span>
                 </td>
                 <td v-if="conAcciones">
                   <div class="sopcob__acciones">
                     <v-btn
-                      v-if="editable && !sop.id_pagoingreso"
+                      v-if="editable && modificable(sop)"
                       icon="mdi-pencil-outline"
                       variant="outlined"
                       size="small"
@@ -234,7 +245,7 @@ function abrir(url: string | null | undefined) {
                       @click="emit('editar', sop)"
                     />
                     <v-btn
-                      v-if="eliminable && !sop.id_pagoingreso"
+                      v-if="eliminable && modificable(sop)"
                       icon="mdi-trash-can-outline"
                       variant="outlined"
                       size="small"
@@ -305,7 +316,7 @@ function abrir(url: string | null | undefined) {
                 @click="descargarArchivo(sop.voucher_path, sop.voucher_nombre)"
               />
               <v-btn
-                v-if="editable && !sop.id_pagoingreso"
+                v-if="editable && modificable(sop)"
                 icon="mdi-pencil-outline"
                 variant="text"
                 size="small"
@@ -314,7 +325,7 @@ function abrir(url: string | null | undefined) {
                 @click="emit('editar', sop)"
               />
               <v-btn
-                v-if="eliminable && !sop.id_pagoingreso"
+                v-if="eliminable && modificable(sop)"
                 icon="mdi-trash-can-outline"
                 variant="text"
                 size="small"

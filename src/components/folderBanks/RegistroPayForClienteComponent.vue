@@ -729,7 +729,8 @@ async function cargarSolicitud() {
   }
   fecha_operacion.value = sol.fechadeposito;
   id_banco_origen.value = sol.id_banco_origen;
-  nro_operacion.value = sol.numerooperacion;
+  // "No aplica" en la solicitud: llega vacío y se escribe aquí (obligatorio en Bancos)
+  nro_operacion.value = sol.numerooperacion ?? "";
   id_path.value = sol.id_path_voucher;
   comentarios.value = ["Solicitud de cobro", sol.comentario].filter(Boolean).join(" - ");
   calcularTotal();

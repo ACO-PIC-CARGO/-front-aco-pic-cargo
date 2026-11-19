@@ -133,7 +133,8 @@ export interface SolicitudCobroTransferencia {
   id_banco_origen: number | null;
   banco_origen: string | null;
   fechadeposito: string;
-  numerooperacion: string;
+  // null = "No aplica": se escribe en Bancos
+  numerooperacion: string | null;
   id_path_voucher: number;
   voucher_path: string | null;
   voucher_nombre: string | null;
