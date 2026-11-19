@@ -125,7 +125,7 @@ watch(open, (isOpen) => {
             id="tracking-step-show-date-to-client"
             v-model="draft.show_date_to_client"
             label="Mostrar fecha al cliente"
-            hint="Si está apagado, el cliente no ve la fecha de este paso en su seguimiento."
+            hint="Si está apagado, el cliente ve los comentarios de este paso sin su fecha."
             persistent-hint
             color="success"
             inset

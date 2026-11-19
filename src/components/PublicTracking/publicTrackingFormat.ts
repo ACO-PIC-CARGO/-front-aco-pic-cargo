@@ -1,6 +1,6 @@
 import { shortDate } from "@/utils/dates";
 import { inTimeZone } from "@/utils/timeZone";
-import type { PublicNextStep, PublicTrackingPhase } from "@/types/publicTracking";
+import type { PublicTrackingPhase } from "@/types/publicTracking";
 
 export interface TrackingUpdate {
   key: string;
@@ -23,21 +23,17 @@ export interface TrackingStepUpdates {
 export const trackingUpdates = (phases: PublicTrackingPhase[]): TrackingUpdate[] =>
   phases
     .flatMap((phase) => phase.steps)
-    .flatMap((step) => {
-      const ofStep = { stepId: step.id, stepName: step.name, icon: step.icon };
-      return [
-        ...(step.confirmed_at
-          ? [{ ...ofStep, key: `step-${step.id}`, text: "Completado", at: step.confirmed_at, showDate: step.show_date }]
-          : []),
-        ...step.comments.map((comment) => ({
-          ...ofStep,
-          key: `comment-${comment.id}`,
-          text: comment.comment,
-          at: comment.created_at,
-          showDate: true,
-        })),
-      ];
-    })
+    .flatMap((step) =>
+      step.comments.map((comment) => ({
+        key: `comment-${comment.id}`,
+        stepId: step.id,
+        stepName: step.name,
+        icon: step.icon,
+        text: comment.comment,
+        at: comment.created_at,
+        showDate: step.show_date,
+      })),
+    )
     .sort((a, b) => Date.parse(b.at) - Date.parse(a.at) || b.key.localeCompare(a.key));
 
 export const updatesByStep = (updates: TrackingUpdate[]): TrackingStepUpdates[] =>
@@ -48,7 +44,5 @@ export const updatesByStep = (updates: TrackingUpdate[]): TrackingStepUpdates[] 
     return groups;
   }, []);
 
-export const nextStepDateLabel = (step: PublicNextStep, timeZone: string): string | null => {
-  if (!step.show_date) return null;
-  return step.date ? shortDate(inTimeZone(step.date, timeZone)) : "Fecha por definir";
-};
+export const nextStepDateLabel = (date: string | null, timeZone: string): string =>
+  date ? shortDate(inTimeZone(date, timeZone)) : "Fecha por definir";
