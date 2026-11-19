@@ -3,6 +3,7 @@ import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 import resetMainTitle from "./resetMainTitle";
+import resumeSessionGuard from "./resumeSessionGuard";
 import signedInGuard from "./signedInGuard";
 import trafficHouseGuard from "./trafficHouseGuard";
 
@@ -954,6 +955,11 @@ const routes = [
           import("../views/PricingProfit/RegistroProfitPricing.vue"),
       },
       {
+        path: "configuracion/sub_tipo_embarque",
+        name: "lstShipmentSubtype",
+        component: () => import("../views/Configuracion/Pricing/ShipmentSubtype.vue"),
+      },
+      {
         path: "configuracion/texto_whatsapp_cotizacion",
         name: "TextoWhatsappCotizacion",
         component: () =>
@@ -1028,6 +1034,7 @@ const router = createRouter({
 
 router.beforeEach(signedInGuard);
 router.beforeEach(permissionGuard);
+router.beforeEach(resumeSessionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
 router.beforeEach(trafficHouseGuard);

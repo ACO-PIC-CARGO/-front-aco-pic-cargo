@@ -4,6 +4,7 @@ import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useEntitiesStore } from "@/stores/entities";
 import { usePricingStore } from "@/stores/pricing";
+import { useShipmentSubtypeStore } from "@/stores/shipmentSubtype";
 
 withDefaults(
   defineProps<{
@@ -23,6 +24,18 @@ withDefaults(
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
 const entitiesStore = useEntitiesStore();
+const shipmentSubtypeStore = useShipmentSubtypeStore();
+
+// The quote's own subtype stays listed even if it was deleted from the catalog afterwards.
+const subTiposEmbarque = computed(() =>
+  withChosenOption(
+    shipmentSubtypeStore.ofShipment(pricingStore.datosPrincipales.idtipocarga as number | string | null),
+    pricingStore.datosPrincipales.id_shipment_subtype,
+    pricingStore.datosPrincipales.shipment_subtype,
+  ),
+);
+// Shown when the quote has a subtype, or when its shipment type has subtypes even if none was chosen yet.
+const mostrarSubTipoFlag = computed(() => subTiposEmbarque.value.length > 0);
 
 const buscarClienteDialog = ref(false);
 const form = useTemplateRef("form");
@@ -55,6 +68,7 @@ watch(registroClienteFlag, async () => {
 //  itemsEntities
 onMounted(() => {
   appStore._getProveedor();
+  shipmentSubtypeStore.load();
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -199,6 +213,21 @@ function mostrarProveedorFlag() {
             item-title="embarque"
             item-value="id"
             v-model="pricingStore.datosPrincipales.idtipocarga"
+            readonly
+          />
+          <v-autocomplete
+            v-if="mostrarSubTipoFlag"
+            id="quote-view-shipment-subtype"
+            label="Sub Tipo de Embarque"
+            variant="outlined"
+            density="compact"
+            class="my-1"
+            :items="subTiposEmbarque"
+            item-title="name"
+            item-value="id"
+            v-model="pricingStore.datosPrincipales.id_shipment_subtype"
+            placeholder="Sin sub tipo"
+            persistent-placeholder
             readonly
           />
           <v-autocomplete

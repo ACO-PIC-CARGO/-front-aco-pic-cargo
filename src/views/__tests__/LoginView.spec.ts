@@ -11,7 +11,8 @@ import { useSecuritysStore } from "@/stores/securitys";
 import type { SucursalSesion } from "@/types/sesion";
 
 const push = vi.fn();
-vi.mock("vue-router", () => ({ useRouter: () => ({ push }) }));
+const currentRoute = { value: { query: {} as Record<string, string> } };
+vi.mock("vue-router", () => ({ useRouter: () => ({ push, currentRoute }) }));
 vi.mock("@/router", () => ({ default: { push: vi.fn(), currentRoute: { value: {} } } }));
 vi.mock("@/utils/sesion", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/utils/sesion")>()),
@@ -29,6 +30,7 @@ let wrapper: VueWrapper | undefined;
 beforeEach(() => {
   vi.useFakeTimers();
   push.mockClear();
+  currentRoute.value = { query: {} };
   sessionStorage.setItem("menu", "[]");
 });
 
@@ -67,4 +69,11 @@ test("still opens Main when the company config cannot be loaded", async () => {
   await continueToBranch(() => Promise.reject(new Error("Network Error")));
 
   expect(push).toHaveBeenCalledWith({ name: "Main" });
+});
+
+test("opens the screen it came from (a link or an installed shortcut) after choosing the branch", async () => {
+  currentRoute.value = { query: { redirect: "/home/FolderBanks/ingresosPendientesConfirmar" } };
+  await continueToBranch(() => Promise.resolve(null));
+
+  expect(push).toHaveBeenCalledWith("/home/FolderBanks/ingresosPendientesConfirmar");
 });
