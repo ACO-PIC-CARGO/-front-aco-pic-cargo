@@ -4,6 +4,7 @@ import { ref } from "vue";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import router from "@/router";
+import { afterLoginTarget } from "@/router/resumeSessionGuard";
 import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { MyPermissions } from "@/types/roles";
@@ -118,7 +119,7 @@ export const useSecuritysStore = defineStore("securitys", () => {
           if (dataBranch[0]!.esnuevoflag) {
             router.push({ name: "ConfiguracionInicial" });
           } else {
-            router.push({ name: "Main" });
+            router.push(afterLoginTarget(router.currentRoute.value));
           }
         } else {
           MostrarLogin.value = false;

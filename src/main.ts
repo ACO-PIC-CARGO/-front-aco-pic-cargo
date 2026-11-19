@@ -117,4 +117,6 @@ window.addEventListener("storage", (event) => {
 
 app.use(createPinia()).use(router).use(vuetify).use(VueSweetalert2);
 app.mount("#app");
+// La primera pantalla se muestra cuando el router terminó (incluida la sesión retomada).
+router.isReady().finally(() => document.getElementById("app-splash")?.remove());
 resumeQuoteReports();

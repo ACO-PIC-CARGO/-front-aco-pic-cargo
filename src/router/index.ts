@@ -3,6 +3,7 @@ import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 import resetMainTitle from "./resetMainTitle";
+import resumeSessionGuard from "./resumeSessionGuard";
 import signedInGuard from "./signedInGuard";
 import trafficHouseGuard from "./trafficHouseGuard";
 
@@ -1028,6 +1029,7 @@ const router = createRouter({
 
 router.beforeEach(signedInGuard);
 router.beforeEach(permissionGuard);
+router.beforeEach(resumeSessionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
 router.beforeEach(trafficHouseGuard);
