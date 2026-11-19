@@ -15,6 +15,8 @@ import { usePermissions } from "@/composables/usePermissions";
 import {
   areaRechazoCobro,
   avisarIngresoBancosCobro,
+  filasPorSoporte,
+  type FilaSoporteCobro,
   editarPideClaveCobro,
   esPagoParcial,
   montoCobrado,
@@ -38,6 +40,16 @@ const { can } = usePermissions();
 const { smAndDown } = useDisplay();
 const store = useSolicitudesMasterStore();
 const solicitudes = computed<SolicitudCobro[]>(() => (props.idMaster ? store.cobros[props.idMaster] ?? [] : []));
+// una fila por soporte (pago cargado)
+const filas = computed(() => filasPorSoporte(solicitudes.value));
+// la solicitud completa (con todos sus pagos) de una fila
+const solicitudDe = (fila: { codigo: string }) => solicitudes.value.find((s) => s.codigo === fila.codigo)!;
+// eliminar desde una fila: si la solicitud tiene más pagos se quita solo ese; si es el único, la solicitud
+function eliminarFila(fila: FilaSoporteCobro<SolicitudCobro>) {
+  const s = solicitudDe(fila);
+  if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
+  else eliminar(s);
+}
 const cargando = ref(false);
 
 // forzar = después de una acción o con "Actualizar"; al entrar solo si Ingresos no lo cargó recién
@@ -184,8 +196,8 @@ defineExpose({ cargar });
         </thead>
         <tbody>
           <tr
-            v-for="s in solicitudes"
-            :key="s.codigo"
+            v-for="s in filas"
+            :key="s._key"
           >
             <td>
               <div
@@ -410,7 +422,7 @@ defineExpose({ cargar });
                   :color="s.id_pagoingreso ? 'grey' : 'primary'"
                   :title="`Editar solicitud${editarPideClaveCobro(s) ? ' (requiere clave de administrador)' : ''}`"
                   aria-label="Editar solicitud de cobro"
-                  @click="editar(s)"
+                  @click="editar(solicitudDe(s), s._soporte)"
                 />
                 <v-btn
                   v-if="can('listControlGastos', 'ELIMINAR')"
@@ -423,7 +435,7 @@ defineExpose({ cargar });
                   :title="`Eliminar solicitud${tieneAprobacionesCobro(s) ? ' (requiere clave de administrador)' : ''}`"
                   aria-label="Eliminar solicitud de cobro"
                   :loading="procesando === s.codigo"
-                  @click="eliminar(s)"
+                  @click="eliminarFila(s)"
                 />
                 <v-btn
                   icon="mdi-eye-outline"
@@ -474,8 +486,8 @@ defineExpose({ cargar });
       class="solcob__cards"
     >
       <template
-        v-for="(s, i) in solicitudes"
-        :key="s.codigo"
+        v-for="(s, i) in filas"
+        :key="s._key"
       >
         <!-- separador marcado entre solicitudes -->
         <v-divider
@@ -501,8 +513,8 @@ defineExpose({ cargar });
           @confirmar="abrirConfirmar(s)"
           @eliminar-confirmacion="eliminarConfirmacion(s)"
           @ver-ingreso="verIngreso(s)"
-          @editar="editar(s)"
-          @eliminar="eliminar(s)"
+          @editar="editar(solicitudDe(s), s._soporte)"
+          @eliminar="eliminarFila(s)"
           @ver="verSolicitud(s)"
         />
       </template>

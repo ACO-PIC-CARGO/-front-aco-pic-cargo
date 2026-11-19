@@ -29,6 +29,55 @@ export const montoCobrado = (s: { monto: number | string; monto_soportes?: numbe
 export const esPagoParcial = (s: { monto: number | string; monto_soportes?: number | string | null }) =>
   s.monto_soportes != null && Number(s.monto_soportes) > 0 && Number(s.monto_soportes) < Number(s.monto || 0) - 0.004;
 
+// Listados: una fila por soporte (pago cargado). Cada fila conserva la solicitud (estado, confirmación,
+// acciones) y toma del soporte el monto, la cuenta, el voucher y su ingreso en Bancos.
+export type FilaSoporteCobro<T> = T & { _soporte: SoporteCobro | null; _key: string; codigo_soporte?: string };
+export function filasPorSoporte<T extends SolicitudCobroFila>(lista: T[]): FilaSoporteCobro<T>[] {
+  return lista.flatMap((s) => {
+    const soportes = s.soportes?.length ? s.soportes : [null];
+    return soportes.map((sop) => {
+      if (!sop) return { ...s, _soporte: null, _key: s.codigo };
+      const registrado = !!sop.id_pagoingreso;
+      const confirmado = !!sop.confirmadoflag;
+      // estado del pago: en Bancos > confirmado > el de la solicitud (enviada = pendiente por confirmar)
+      const codigo = registrado ? "COBRADO" : confirmado ? "CONFIRMADO" : s.codigo_estado === "CONFIRMADO" ? "LISTO" : s.codigo_estado;
+      const estado = registrado ? "Registrado en Bancos" : confirmado ? "Confirmado" : codigo === "LISTO" ? "Pendiente por confirmar" : s.estado;
+      return {
+        ...s,
+        _soporte: sop,
+        _key: `${s.codigo}-${sop.codigo}`,
+        codigo_soporte: sop.codigo,
+        confirmadoflag: confirmado,
+        fecha_ingreso: sop.fecha_ingreso ?? null,
+        soporte_confirmacion_path: sop.soporte_confirmacion_path ?? null,
+        soporte_confirmacion_nombre: sop.soporte_confirmacion_nombre ?? null,
+        usuario_confirma: sop.usuario_confirma ?? null,
+        fecha_confirmacion: sop.fecha_confirmacion ?? null,
+        monto: sop.monto,
+        monto_soportes: sop.monto,
+        id_cuentabancaria: sop.id_cuentabancaria,
+        cuenta: sop.cuenta,
+        banco: sop.banco,
+        nrocuenta: sop.nrocuenta,
+        id_banco_origen: sop.id_banco_origen,
+        banco_origen: sop.banco_origen,
+        fechadeposito: sop.fechadeposito,
+        numerooperacion: sop.numerooperacion,
+        voucher_path: sop.voucher_path,
+        voucher_nombre: sop.voucher_nombre,
+        comentario: sop.comentario,
+        id_pagoingreso: sop.id_pagoingreso,
+        numerooperacion_ingreso: sop.numerooperacion_ingreso,
+        soportes: [sop],
+        soportes_total: 1,
+        soportes_registrados: registrado ? 1 : 0,
+        codigo_estado: codigo,
+        estado,
+      } as unknown as FilaSoporteCobro<T>;
+    });
+  });
+}
+
 // Rechazada: se corrige sin clave (pierde las aprobaciones y se revisa de nuevo); el backend valida los montos
 export const editarPideClaveCobro = (s: SolicitudCobroFila) => tieneAprobacionesCobro(s) && s.codigo_estado !== "RECHAZADA";
 
@@ -129,7 +178,9 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
   // (sin pestaña en blanco ni botón cargando si el servidor demora)
   function registrarEnBancos(s: SolicitudCobroFila) {
     if (!faltaRegistrarCobro(s) && avisarIngresoBancosCobro(s)) return;
-    window.open(router.resolve({ name: "registroCobroDesdeSolicitud", params: { codigo: s.codigo } }).href, "_blank");
+    // fila de un pago: se registra solo ese soporte (SCS-); si no, el siguiente confirmado de la solicitud
+    const codigo = (s as { codigo_soporte?: string }).codigo_soporte ?? s.codigo;
+    window.open(router.resolve({ name: "registroCobroDesdeSolicitud", params: { codigo } }).href, "_blank");
   }
 
   // Soporte de confirmación (Administración): solo se quita con la clave del Super administrador
@@ -150,7 +201,10 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
       "Ya se confirmó el ingreso: para eliminar el soporte de confirmación, escribe el usuario y la clave del Super administrador.",
     );
     if (!admin) return;
-    await ejecutar(s.codigo, "put", "solicitud_cobro_confirmacion_eliminar", withAuthorization(admin));
+    await ejecutar(s.codigo, "put", "solicitud_cobro_confirmacion_eliminar", {
+      ...withAuthorization(admin),
+      codigo_soporte: (s as { codigo_soporte?: string }).codigo_soporte ?? null,
+    });
   }
 
   // Eliminar un pago cargado (parcial). Si era el único se elimina la solicitud.

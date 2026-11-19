@@ -38,7 +38,14 @@ import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
 import SoportesCobroDialog from "./SoportesCobroDialog.vue";
 import type { SoporteDeSolicitud } from "./SoportesCobroDialog.vue";
 import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
-import { avisarIngresoBancosCobro, faltaRegistrarCobro, montoCobrado, montoCobro, useSolicitudCobro } from "@/composables/useSolicitudCobro";
+import {
+  avisarIngresoBancosCobro,
+  faltaRegistrarCobro,
+  filasPorSoporte,
+  montoCobrado,
+  montoCobro,
+  useSolicitudCobro,
+} from "@/composables/useSolicitudCobro";
 import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
 import { shortDate } from "@/utils/dates";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
@@ -1474,14 +1481,14 @@ function soportesCobro(house: HouseIngreso): SoporteDeSolicitud[] {
         soporte_confirmacion_nombre: s.soporte_confirmacion_nombre,
         usuario_confirma: s.usuario_confirma,
         fecha_confirmacion: s.fecha_confirmacion,
-        editable: !s.confirmadoflag,
+        editable: true,
       },
     })),
   );
 }
-// las del correlativo que aún no están registradas en Bancos (las ya cobradas no se muestran en el resumen)
+// pagos del correlativo que aún no tienen su ingreso en Bancos (los ya cobrados no se muestran en el resumen)
 function solicitudesPendientesCobro(house: HouseIngreso) {
-  return solicitudesCobroDe(house).filter((s) => s.codigo_estado !== "COBRADO");
+  return filasPorSoporte(solicitudesCobroDe(house)).filter((f) => f.codigo_estado !== "COBRADO");
 }
 // la confirmada que falta registrar en Bancos (puede no ser la que se está armando)
 function confirmadaPorRegistrar(house: HouseIngreso) {
@@ -1893,7 +1900,7 @@ watch(
                   >
                     <div
                       v-for="sol in solicitudesPendientesCobro(houseIngreso)"
-                      :key="sol.codigo"
+                      :key="sol._key"
                       class="cobreq-resumen__fila"
                       :class="`cobreq--${sol.codigo_estado.toLowerCase()}`"
                     >

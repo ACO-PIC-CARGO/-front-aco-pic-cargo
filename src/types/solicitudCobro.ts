@@ -100,6 +100,13 @@ export interface SoporteCobro {
   fecha_registro: string | null;
   id_pagoingreso: number | null;
   numerooperacion_ingreso: string | null;
+  // confirmación de este pago (cada soporte se confirma y se registra en Bancos por separado)
+  confirmadoflag?: boolean;
+  fecha_ingreso?: string | null;
+  soporte_confirmacion_path?: string | null;
+  soporte_confirmacion_nombre?: string | null;
+  usuario_confirma?: string | null;
+  fecha_confirmacion?: string | null;
 }
 
 /** Fila de function_solicitudcobro_bandeja (Ingresos pendientes por confirmar) */

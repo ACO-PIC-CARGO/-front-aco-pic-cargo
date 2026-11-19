@@ -17,6 +17,8 @@ export interface SolicitudConfirmar {
   monto: number | string;
   // pago parcial: suma de los soportes cargados
   monto_soportes?: number | string | null;
+  // confirmación por pago: el soporte de la fila
+  codigo_soporte?: string | null;
   moneda: string | null;
   cuenta?: string | null;
 }
@@ -69,7 +71,7 @@ async function guardar() {
   const response = await request({
     method: "put",
     url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_confirmar/" + s.codigo,
-    data: { id_path: idArchivo.value, fechaingreso: fechaIngreso.value },
+    data: { id_path: idArchivo.value, fechaingreso: fechaIngreso.value, codigo_soporte: s.codigo_soporte ?? null },
   });
   guardando.value = false;
   if (!response.estadoflag) {
