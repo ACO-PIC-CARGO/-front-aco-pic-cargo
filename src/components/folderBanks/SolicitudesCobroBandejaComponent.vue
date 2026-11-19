@@ -18,6 +18,8 @@ import {
   areaRechazoCobro,
   esPagoParcial,
   faltaRegistrarCobro,
+  filasPorSoporte,
+  type FilaSoporteCobro,
   montoCobrado,
   montoCobro,
   tieneAprobacionesCobro,
@@ -59,7 +61,14 @@ const puedeModificar = computed(() => can(MENU, "MODIFICAR") || can("listControl
 const puedeRegistrar = computed(() => can("registroPayForCliente", "NUEVO"));
 const puedeEliminar = computed(() => can(MENU, "MODIFICAR") || can("listControlGastos", "ELIMINAR"));
 
-const { procesando, eliminar, registrarEnBancos, eliminarConfirmacion } = useSolicitudCobro(() => emit("actualizado"));
+const { procesando, eliminar, eliminarSoporte, registrarEnBancos, eliminarConfirmacion } = useSolicitudCobro(() => emit("actualizado"));
+// una fila por soporte (pago cargado)
+const filasSoporte = computed(() => filasPorSoporte(filas.value));
+function eliminarFila(fila: FilaSoporteCobro<SolicitudCobroBandeja>) {
+  const s = filas.value.find((x) => x.codigo === fila.codigo)!;
+  if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
+  else eliminar(s);
+}
 // sin aprobaciones: rechaza Administración (04 / 01) mientras está pendiente por confirmar
 const { dialogRechazo, rechazoSel, puedeRechazar, tituloRechazar, abrirRechazo } = useRechazoSolicitud(areaRechazoCobro);
 const motivoDe = (s: SolicitudCobroBandeja) =>
@@ -272,7 +281,7 @@ const GRUPOS = [
 ];
 const gruposCerrados = ref<Record<string, boolean>>({});
 const grupos = computed(() =>
-  GRUPOS.map((g) => ({ ...g, items: filas.value.filter((f) => f.codigo_estado === g.codigo) })).filter((g) => g.items.length),
+  GRUPOS.map((g) => ({ ...g, items: filasSoporte.value.filter((f) => f.codigo_estado === g.codigo) })).filter((g) => g.items.length),
 );
 const vigente = (s: SolicitudCobroBandeja) => !["ELIMINADA", "COBRADO"].includes(s.codigo_estado);
 
@@ -357,11 +366,11 @@ onMounted(cargar);
       v-model:page="pagina"
       v-model:items-per-page="porPagina"
       :headers="headers"
-      :items="filas"
+      :items="filasSoporte"
       :items-length="total"
       :loading="cargando"
       :items-per-page-options="[10, 25, 50, 100]"
-      item-value="codigo"
+      item-value="_key"
       density="compact"
       class="scb__tabla"
       no-data-text="No hay solicitudes de cobro"
@@ -589,7 +598,7 @@ onMounted(cargar);
             :title="`Eliminar solicitud${tieneAprobacionesCobro(item) ? ' (requiere clave de administrador)' : ''}`"
             aria-label="Eliminar solicitud de cobro"
             :loading="procesando === item.codigo"
-            @click="eliminar(item)"
+            @click="eliminarFila(item)"
           />
           <v-btn
             icon="mdi-eye-outline"
@@ -672,7 +681,7 @@ onMounted(cargar);
           >
             <template
               v-for="(item, i) in g.items"
-              :key="item.codigo"
+              :key="item._key"
             >
               <!-- separador marcado entre solicitudes -->
               <v-divider
@@ -695,7 +704,7 @@ onMounted(cargar);
                 @confirmar="abrirConfirmar(item)"
                 @eliminar-confirmacion="eliminarConfirmacion(item)"
                 @ver-ingreso="verIngreso(item)"
-                @eliminar="eliminar(item)"
+                @eliminar="eliminarFila(item)"
                 @ver="verSolicitud(item)"
               />
             </template>

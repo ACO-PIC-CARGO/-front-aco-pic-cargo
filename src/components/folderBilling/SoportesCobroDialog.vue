@@ -62,16 +62,28 @@ const ICONO_ESTADO: Record<string, string> = {
   ELIMINADA: "mdi-trash-can-outline",
 };
 // el pago con su ingreso en Bancos ya está registrado; si no, el estado de la solicitud
+// confirmación: la del propio pago; si no la trae, la de su solicitud
 function solDe(sop: SoporteDeSolicitud) {
-  return sop.solicitud ?? props.solicitud ?? null;
+  const base = sop.solicitud ?? props.solicitud ?? null;
+  if (sop.confirmadoflag === undefined) return base;
+  return {
+    ...base,
+    fecha_ingreso: sop.fecha_ingreso ?? null,
+    soporte_confirmacion_path: sop.soporte_confirmacion_path ?? null,
+    soporte_confirmacion_nombre: sop.soporte_confirmacion_nombre ?? null,
+    usuario_confirma: sop.usuario_confirma ?? null,
+    fecha_confirmacion: sop.fecha_confirmacion ?? null,
+  };
 }
 // editar / eliminar: no si ya está en Bancos ni si su solicitud ya está confirmada
 function modificable(sop: SoporteDeSolicitud) {
-  return !sop.id_pagoingreso && sop.solicitud?.editable !== false;
+  return !sop.id_pagoingreso && !sop.confirmadoflag && sop.solicitud?.editable !== false;
 }
 function estadoDe(sop: SoporteDeSolicitud) {
   if (sop.id_pagoingreso) return { codigo: "COBRADO", texto: "Registrado en Bancos" };
+  if (sop.confirmadoflag) return { codigo: "CONFIRMADO", texto: "Confirmado" };
   const sol = solDe(sop);
+  if (sol?.codigo_estado === "CONFIRMADO") return { codigo: "LISTO", texto: "Pendiente por confirmar" };
   return { codigo: sol?.codigo_estado ?? "BORRADOR", texto: sol?.estado ?? "Sin enviar" };
 }
 function soloFecha(valor: string | null | undefined) {

@@ -11,6 +11,11 @@ const soporte = {
   banco_origen: "BCP", fechadeposito: "2026-11-18", numerooperacion: "OP-1", id_path_voucher: 9, voucher_path: "https://x/v.jpg",
   voucher_nombre: "3 ositos.jpg", comentario: null, usuario_registro: "qa", fecha_registro: "2026-11-18 10:00", id_pagoingreso: null,
   numerooperacion_ingreso: null,
+  // confirmación de este pago
+  confirmadoflag: true,
+  fecha_ingreso: "2026-11-16",
+  usuario_confirma: "Dayana Jordan",
+  fecha_confirmacion: "2026-11-18 10:12",
 };
 
 test("lists every payment with the amount still pending", async () => {
