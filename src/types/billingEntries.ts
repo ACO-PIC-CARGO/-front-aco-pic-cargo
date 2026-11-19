@@ -89,6 +89,8 @@ export interface CuentaBancariaProveedor {
   // moneda de la cuenta: la solicitud de pago solo ofrece las de la moneda del correlativo
   id_coins?: number | null;
   symbol?: string | null;
+  // nombre completo del banco (namebanks es la sigla)
+  namebanksfull?: string | null;
 }
 
 export interface FacturaProveedorCargada {

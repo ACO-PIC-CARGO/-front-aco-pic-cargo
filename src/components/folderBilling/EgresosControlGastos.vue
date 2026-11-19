@@ -702,7 +702,8 @@ async function _setData() {
   dialog.value = false;
   emit("recalcularProfit");
 }
-async function _setInvoice() {
+// generarPdf: "Guardar y Generar PDF" -> guarda y abre en seguida Enviar a Administración / Generar PDF
+async function _setInvoice(generarPdf = false) {
   Swal.fire({
     icon: "info",
     title: "Guardando...",
@@ -737,12 +738,19 @@ async function _setInvoice() {
   if (warnIfRefused(response)) return;
   itemsInvoice = response.data;
   await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  dialogInvoice.value = false;
+  if (generarPdf) {
+    Swal.close();
+    notifySuccess(response.mensaje || "Documento cargado");
+    await _getInvoice(egreso.value);
+    siguientePasoFacturas();
+    return;
+  }
   Swal.fire({
     icon: "success",
     title: "Documento cargado",
     text: response.mensaje,
   });
-  dialogInvoice.value = false;
   await _getInvoice(egreso.value);
 }
 async function _delInvoice(id: number) {
@@ -1986,6 +1994,8 @@ const cuentasSolicitudPago = computed(() =>
     .map((c) => ({
     title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
     value: c.id,
+    // búsqueda por sigla (BG), nombre del banco (Banco General), moneda, número o beneficiario
+    buscar: [c.namebanks, c.namebanksfull, c.namecoins, c.accountnumber, c.beneficiario].filter(Boolean).join(" "),
   })),
 );
 // Enviar a Administración (nuevo): pasos con el actual resaltado
@@ -3561,6 +3571,7 @@ watch(
               <v-text-field
                 id="inv-monto"
                 v-model="monto_factura"
+                type="number"
                 placeholder="INGRESE EL MONTO"
                 prepend-inner-icon="mdi-cash"
                 inputmode="decimal"
@@ -3579,7 +3590,10 @@ watch(
           </div>
         </v-card-text>
 
-        <v-card-actions class="inv-actions">
+        <v-card-actions
+          class="inv-actions"
+          :class="{ 'inv-actions--tres': accionFacturasSolicitud }"
+        >
           <v-btn
             variant="outlined"
             class="inv-btn-cancel"
@@ -3596,6 +3610,18 @@ watch(
             @click="_setInvoice()"
           >
             GUARDAR DOCUMENTO
+          </v-btn>
+          <!-- guarda y abre el siguiente paso (Enviar a Administración / Generar PDF de pago) -->
+          <v-btn
+            v-if="accionFacturasSolicitud"
+            variant="flat"
+            color="#178a1e"
+            class="inv-btn-save"
+            prepend-icon="mdi-file-pdf-box"
+            :disabled="!radio || !date || !filesStore.payPath || !monto_factura"
+            @click="_setInvoice(true)"
+          >
+            GUARDAR Y GENERAR PDF
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -3758,10 +3784,11 @@ watch(
                 Nueva cuenta
               </v-btn> -->
             </div>
-            <v-select
+            <v-autocomplete
               v-model="solicitudPagoForm.id_cuenta"
               :items="cuentasSolicitudPago"
-              placeholder="Selecciona la cuenta"
+              :filter-keys="['title', 'raw.buscar']"
+              placeholder="Selecciona o busca la cuenta (sigla o nombre del banco)"
               variant="outlined"
               density="comfortable"
               :no-data-text="'El proveedor no tiene cuentas registradas'"
@@ -5331,6 +5358,13 @@ watch(
   gap: 12px;
 }
 
+/* Cargar documento con "Guardar y Generar PDF": tres botones */
+.inv-actions--tres {
+  grid-template-columns: 0.8fr 1fr 1.2fr;
+}
+.inv-actions--tres .v-btn {
+  font-size: 13px !important;
+}
 .inv-btn-cancel,
 .inv-btn-save {
   height: 44px !important;

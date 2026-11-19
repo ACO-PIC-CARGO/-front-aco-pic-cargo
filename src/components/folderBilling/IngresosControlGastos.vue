@@ -1945,6 +1945,10 @@ watch(
                                 : fechaCobro(solicitudCobroEnviada(houseIngreso)!.fechasolicitud)
                             }}
                           </span>
+                          <!-- una sola solicitud: su monto debajo -->
+                          <span class="cobreq__monto">
+                            Monto: {{ montoCobro(montoCobrado(solicitudCobroEnviada(houseIngreso)!), solicitudCobroEnviada(houseIngreso)!.moneda) }}
+                          </span>
                         </span>
                       </button>
                       <!-- ver / editar / eliminar apilados, como en Costos -->
@@ -3874,6 +3878,11 @@ watch(
   margin-top: -2px;
 }
 /* varias solicitudes del correlativo: Estado | Monto */
+.cobreq__monto {
+  color: #0a1f44;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
 .cobreq-resumen {
   display: flex;
   flex-direction: column;

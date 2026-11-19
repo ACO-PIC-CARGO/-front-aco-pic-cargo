@@ -99,10 +99,9 @@ const moneda = computed(
 const completo = computed(
   () => !errorMonto.value && !!idCuenta.value && !!idBancoOrigen.value && !!voucher.value && !!fechaDeposito.value && (!aplicaNroOperacion.value || !!numeroOperacion.value.trim()),
 );
-// ya enviada: al guardar con la suma exacta se vuelve a enviar sola
-const yaEnviada = computed(() => !!props.solicitud?.enviadoflag);
 // pago parcial permitido: se envía con lo cargado; en Bancos queda como abono parcial
-const puedeEnviar = computed(() => completo.value && !yaEnviada.value);
+// siempre disponible (también con otros pagos o ya enviada): guarda el pago y deja la solicitud enviada
+const puedeEnviar = computed(() => completo.value);
 
 watch(
   () => props.modelValue,
@@ -530,7 +529,6 @@ async function guardar(enviar: boolean) {
           GUARDAR
         </v-btn>
         <v-btn
-          v-if="!yaEnviada"
           class="pagocli__btn pagocli__btn--enviar"
           color="#0b5fd6"
           variant="flat"
