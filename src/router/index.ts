@@ -955,6 +955,11 @@ const routes = [
           import("../views/PricingProfit/RegistroProfitPricing.vue"),
       },
       {
+        path: "configuracion/sub_tipo_embarque",
+        name: "lstShipmentSubtype",
+        component: () => import("../views/Configuracion/Pricing/ShipmentSubtype.vue"),
+      },
+      {
         path: "configuracion/texto_whatsapp_cotizacion",
         name: "TextoWhatsappCotizacion",
         component: () =>

@@ -13,11 +13,13 @@ import type {
   DatosPrincipales,
   OpcionCosto,
   Servicio,
+  TipoCarga,
 } from "@/types/cotizacion";
 import type { ClienteListado } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
 import { FOLDER_NOT_CREATED } from "@/components/folderPricing/quoteRules";
-import { chosenOptionTitle } from "@/utils/selectOptions";
+import { chosenOptionTitle, withChosenOption } from "@/utils/selectOptions";
+import { useShipmentSubtypeStore } from "@/stores/shipmentSubtype";
 
 withDefaults(
   defineProps<{ mostrarBtn?: boolean; editableFlag?: boolean; recargarFlag?: boolean }>(),
@@ -54,6 +56,28 @@ const headersFiles = [
   { title: "", key: "action" },
 ];
 const frmDatosPrincipales = useTemplateRef("frmDatosPrincipales");
+const shipmentSubtypeStore = useShipmentSubtypeStore();
+
+// "Tipo de Embarque" holds the whole row once the user picks it, and only the id when the quote is loaded.
+const shipmentId = computed(() => {
+  const shipment = pricingStore.datosPrincipales.idtipocarga;
+  return shipment && typeof shipment === "object" ? (shipment as TipoCarga).id : shipment;
+});
+const shipmentSubtypes = computed(() =>
+  withChosenOption(
+    shipmentSubtypeStore.ofShipment(shipmentId.value),
+    pricingStore.datosPrincipales.id_shipment_subtype,
+    pricingStore.datosPrincipales.shipment_subtype,
+  ),
+);
+
+function cambiarTipoEmbarque() {
+  const chosen = pricingStore.datosPrincipales.id_shipment_subtype;
+  if (chosen && !shipmentSubtypeStore.ofShipment(shipmentId.value).some((subtype) => subtype.id === chosen)) {
+    pricingStore.datosPrincipales.id_shipment_subtype = null;
+  }
+  recargarServiciosCostos();
+}
 
 const listMarketingActivos = computed(() => {
   const list = pricingStore.listMarketing || [];
@@ -99,6 +123,7 @@ watch(
 onMounted(async () => {
   frmDatosPrincipales.value!.resetValidation();
   appStore._getProveedor();
+  shipmentSubtypeStore.load();
   servicesActuales.value = pricingStore.listServices;
   if (route.name === "editQuote") {
     idincoterms.value = pricingStore.datosPrincipales.idincoterms;
@@ -567,9 +592,27 @@ function recargarNuevo(id_incoterms?: number | string) {
                   item-title="embarque"
                   item-value="id"
                   v-model="pricingStore.datosPrincipales.idtipocarga"
-                  @update:model-value="recargarServiciosCostos()"
+                  @update:model-value="cambiarTipoEmbarque()"
                   return-object
                   :disabled="!editableFlag"
+                />
+              </v-col>
+              <v-col
+                v-if="shipmentSubtypes.length"
+                cols="12"
+                class="my-0 py-0"
+              >
+                <v-autocomplete
+                  id="quote-shipment-subtype"
+                  label="Sub Tipo de Embarque"
+                  variant="outlined"
+                  density="compact"
+                  :rules="[(v) => !!v || 'Dato requerido']"
+                  class="my-0"
+                  :items="shipmentSubtypes"
+                  item-title="name"
+                  item-value="id"
+                  v-model="pricingStore.datosPrincipales.id_shipment_subtype"
                 />
               </v-col>
               <v-col

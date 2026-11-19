@@ -75,6 +75,8 @@ export interface DatosPrincipales {
   datosinstructivomanual?: DatosManualesInstructivo & { listaDocumentos?: DocumentoInstructivo[]; table_allpath_list?: unknown[] };
   esindividualflag?: boolean;
   esgrupalflag?: boolean;
+  id_shipment_subtype?: number | null;
+  shipment_subtype?: string | null;
   url_folderonedrive?: string | null;
   url_folderonedriveexp?: string | null;
   opcioncostos?: unknown;
