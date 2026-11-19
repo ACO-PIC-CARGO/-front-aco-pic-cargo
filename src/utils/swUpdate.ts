@@ -119,7 +119,25 @@ const watchWorker = (worker: ServiceWorker, scope: string) => {
 
 export const checkForUpdate = () => registration?.update().catch(() => undefined);
 
-// Aplica la versión en espera: skipWaiting en el SW nuevo y recarga cuando toma el control.
+// Equivale a Ctrl+F5: borra las cachés del navegador y entra con ?v=<hora> para que el
+// index.html y los archivos se pidan de nuevo al servidor (algunos equipos se quedaban en la versión antigua).
+let hardReloading = false;
+export const hardReload = async (now = Date.now(), go = (href: string) => window.location.replace(href)) => {
+  if (hardReloading) return;
+  hardReloading = true;
+  localStorage.setItem("actualizando", "1");
+  if ("caches" in window) {
+    await caches
+      .keys()
+      .then((names) => Promise.all(names.map((name) => caches.delete(name))))
+      .catch(() => undefined);
+  }
+  const url = new URL(window.location.href);
+  url.searchParams.set("v", String(now));
+  go(url.href);
+};
+
+// Aplica la versión en espera: skipWaiting en el SW nuevo y, cuando toma el control, recarga forzada.
 export const applyUpdate = (): boolean => {
   const waiting = registration?.waiting;
   if (!waiting) return false;
@@ -127,7 +145,7 @@ export const applyUpdate = (): boolean => {
   swUpdate.fase = "aplicando";
   waiting.postMessage({ type: "SKIP_WAITING" });
   // Si controllerchange no llega (navegador raro), se recarga igual.
-  setTimeout(() => window.location.reload(), 4000);
+  setTimeout(() => hardReload(), 4000);
   return true;
 };
 
@@ -135,7 +153,7 @@ export const registerServiceWorker = async (url: string) => {
   if (!("serviceWorker" in navigator)) return;
 
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (applying) window.location.reload();
+    if (applying) hardReload();
   });
 
   try {
