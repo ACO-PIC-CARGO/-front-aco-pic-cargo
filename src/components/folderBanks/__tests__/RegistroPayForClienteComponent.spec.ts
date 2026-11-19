@@ -68,3 +68,48 @@ test("choosing a bank account shows it in the field", async () => {
 
   expect(accountField.text()).toContain(account.label);
 });
+
+test("from a partial client payment (token) the correlativo is preloaded as Abono Parcial for that amount", async () => {
+  const sol = {
+    codigo: "SC-000001", id_master: 1, expediente: "2026MBL01744", id_house: 50, id_cliente: 3, cliente: "Cliente Uno",
+    id_correlativo: 1, correlativo: "0001", monto: "1000.00", moneda: "USD", id_coins: 1, id_cuentabancaria: 9,
+    fechadeposito: "2026-11-18", numerooperacion: "OP-1", id_path_voucher: 5, voucher_path: null, voucher_nombre: null,
+    comentario: null, id_banco_origen: 2, banco_origen: "BCP",
+  };
+  httpMock.mockImplementation(async (config) => {
+    if (config.url.includes("CargarClientes")) return { data: accepted([{ id: 3, namelong: "Cliente Uno" }]) };
+    if (config.url.includes("getListBanksDetailsCargar")) return { data: accepted([{ ...account, symbol: "USD" }]) };
+    if (config.url.includes("solicitud_cobro_por_token")) return { data: accepted([sol]) };
+    if (config.url.includes("deuda_de_cliente_por_sucursal")) {
+      return { data: accepted([{ registro_id: 50, id_correlativo: 1, tipo: "O", symbol: "USD", coin_id: 1, total_mon_local: "1465.68", referencia: "2026MBL01744-0001" }]) };
+    }
+    return { data: accepted([]) };
+  });
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  wrapper = mount(
+    defineComponent({
+      components: { RegistroPayForClienteComponent },
+      template: '<v-app><RegistroPayForClienteComponent token="7d3c2b4e-1111-4222-8333-944455556666" /></v-app>',
+    }),
+    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
+  );
+  await flushPromises();
+  await flushPromises();
+
+  const fila = wrapper.findAll("tbody tr")[0]!;
+  // detalle: abono parcial por el monto del pago del cliente, no por toda la deuda
+  expect(fila.findComponent({ name: "VSelect" }).props("modelValue")).toBe(true);
+  expect(fila.text()).toContain("Abono Parcial");
+  expect(fila.findAllComponents({ name: "VTextField" }).map((c) => c.props("modelValue"))).toContain("1000.00");
+
+  // la fila va fija: ni el check ni el monto se cambian
+  expect(fila.findComponent({ name: "VCheckboxBtn" }).props("disabled")).toBe(true);
+  expect(wrapper.find("thead").findComponent({ name: "VCheckboxBtn" }).props("disabled")).toBe(true);
+  expect(fila.findAllComponents({ name: "VTextField" }).find((c) => c.props("modelValue") === "1000.00")!.props("readonly")).toBe(true);
+
+  // lo llenado en la solicitud no se cambia: monto depositado y cliente quedan bloqueados
+  const montoDepositado = wrapper.findAllComponents({ name: "VTextField" }).find((c) => c.props("label") === "Monto Depositado en Banco")!;
+  expect(montoDepositado.props("readonly")).toBe(true);
+  expect(wrapper.findAllComponents(VAutocomplete).find((c) => c.props("label") === "Cliente")!.props("readonly")).toBe(true);
+});

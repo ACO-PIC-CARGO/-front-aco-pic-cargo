@@ -5,6 +5,7 @@ export type CodigoEstadoSolicitudCobro =
   | "PENADM"
   | "PENGER"
   | "LISTO"
+  | "CONFIRMADO"
   | "COBRADO"
   | "RECHAZADA"
   | "ELIMINADA";
@@ -62,6 +63,50 @@ export interface SolicitudCobro {
   fecha_rechazo: string | null;
   motivo_rechazo: string | null;
   conceptos?: ConceptoSolicitudCobro[];
+  // nuestra cuenta: banco y número por separado
+  banco?: string | null;
+  nrocuenta?: string | null;
+  // confirmación = ingreso registrado en Bancos
+  fecha_ingreso?: string | null;
+  soporte_confirmacion_path?: string | null;
+  soporte_confirmacion_nombre?: string | null;
+  usuario_confirma?: string | null;
+  fecha_confirmacion?: string | null;
+  confirmadoflag?: boolean;
+  // pagos cargados (parciales); la suma debe ser exacta para enviar a Administración
+  soportes?: SoporteCobro[];
+  soportes_total?: number;
+  soportes_registrados?: number;
+  monto_soportes?: number | string;
+}
+
+/** Un "Cargar Pago Cliente" (pago parcial o total) de la solicitud; en Bancos es un ingreso */
+export interface SoporteCobro {
+  codigo: string;
+  monto: number | string;
+  id_cuentabancaria: number;
+  cuenta: string | null;
+  banco: string | null;
+  nrocuenta: string | null;
+  id_banco_origen: number | null;
+  banco_origen: string | null;
+  fechadeposito: string | null;
+  numerooperacion: string | null;
+  id_path_voucher: number | null;
+  voucher_path: string | null;
+  voucher_nombre: string | null;
+  comentario: string | null;
+  usuario_registro: string | null;
+  fecha_registro: string | null;
+  id_pagoingreso: number | null;
+  numerooperacion_ingreso: string | null;
+  // confirmación de este pago (cada soporte se confirma y se registra en Bancos por separado)
+  confirmadoflag?: boolean;
+  fecha_ingreso?: string | null;
+  soporte_confirmacion_path?: string | null;
+  soporte_confirmacion_nombre?: string | null;
+  usuario_confirma?: string | null;
+  fecha_confirmacion?: string | null;
 }
 
 /** Fila de function_solicitudcobro_bandeja (Ingresos pendientes por confirmar) */
@@ -95,7 +140,8 @@ export interface SolicitudCobroTransferencia {
   id_banco_origen: number | null;
   banco_origen: string | null;
   fechadeposito: string;
-  numerooperacion: string;
+  // null = "No aplica": se escribe en Bancos
+  numerooperacion: string | null;
   id_path_voucher: number;
   voucher_path: string | null;
   voucher_nombre: string | null;
@@ -120,4 +166,6 @@ export interface DestinoPagoCliente {
   cliente: string;
   correlativo?: string | number | null;
   deuda: number | string;
+  // moneda de los ingresos del correlativo: solo se ofrecen cuentas en esa moneda
+  id_coins?: number | null;
 }

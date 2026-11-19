@@ -5,14 +5,29 @@ import Swal from "sweetalert2";
 import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
 import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
 import SolicitudCobroCardMovil from "./SolicitudCobroCardMovil.vue";
+import ConfirmarCobroDialog from "./ConfirmarCobroDialog.vue";
+import RechazarSolicitudDialog from "./RechazarSolicitudDialog.vue";
+import SoportesCobroDialog from "./SoportesCobroDialog.vue";
+import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
+import { faltaRegistrarCobro } from "@/composables/useSolicitudCobro";
+import type { SolicitudConfirmar } from "./ConfirmarCobroDialog.vue";
 import { usePermissions } from "@/composables/usePermissions";
-import { tienePerfilRevision } from "@/composables/useRevisionSolicitudPago";
-import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
-import { avisarIngresoBancosCobro, montoCobro, tieneAprobacionesCobro, useSolicitudCobro } from "@/composables/useSolicitudCobro";
+import {
+  areaRechazoCobro,
+  avisarIngresoBancosCobro,
+  filasPorSoporte,
+  type FilaSoporteCobro,
+  editarPideClaveCobro,
+  esPagoParcial,
+  montoCobrado,
+  montoCobro,
+  tieneAprobacionesCobro,
+  useSolicitudCobro,
+} from "@/composables/useSolicitudCobro";
 import { useRouter } from "vue-router";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 import type { AdminCredentials } from "@/types/seguridad";
-import type { DestinoPagoCliente, SolicitudCobro } from "@/types/solicitudCobro";
+import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
 import { CONNECTION_ERROR_MESSAGE, hasFailed } from "@/utils/request";
 import { shortDate } from "@/utils/dates";
 import { descargarArchivo } from "@/utils/descargarArchivo";
@@ -25,6 +40,16 @@ const { can } = usePermissions();
 const { smAndDown } = useDisplay();
 const store = useSolicitudesMasterStore();
 const solicitudes = computed<SolicitudCobro[]>(() => (props.idMaster ? store.cobros[props.idMaster] ?? [] : []));
+// una fila por soporte (pago cargado)
+const filas = computed(() => filasPorSoporte(solicitudes.value));
+// la solicitud completa (con todos sus pagos) de una fila
+const solicitudDe = (fila: { codigo: string }) => solicitudes.value.find((s) => s.codigo === fila.codigo)!;
+// eliminar desde una fila: si la solicitud tiene más pagos se quita solo ese; si es el único, la solicitud
+function eliminarFila(fila: FilaSoporteCobro<SolicitudCobro>) {
+  const s = solicitudDe(fila);
+  if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
+  else eliminar(s);
+}
 const cargando = ref(false);
 
 // forzar = después de una acción o con "Actualizar"; al entrar solo si Ingresos no lo cargó recién
@@ -38,9 +63,9 @@ async function cargar(forzar = true) {
 // no se recarga sola al volver a la pestaña del navegador (botón "Actualizar")
 watch(() => props.idMaster, () => cargar(false), { immediate: true });
 
-const { procesando, revisando, revisar, enviar, eliminar, registrarEnBancos, claveSiAprobada } = useSolicitudCobro(() => cargar());
-const puedeRevisarArea = (s: SolicitudCobro, tipo: AreaRevision) =>
-  can("listControlGastos", "MODIFICAR") && s.codigo_estado === (tipo === "ADM" ? "PENADM" : "PENGER") && tienePerfilRevision(tipo);
+// sin aprobaciones de Administración / Gerencia: enviada queda pendiente por confirmar
+const { procesando, enviar, eliminar, eliminarSoporte, registrarEnBancos, claveSiAprobada, eliminarConfirmacion } =
+  useSolicitudCobro(() => cargar());
 
 
 // modo ver (ojito), igual que en Solicitudes de Pago
@@ -50,14 +75,32 @@ function verSolicitud(s: { codigo: string }) {
   codigoVer.value = s.codigo;
   dialogVer.value = true;
 }
-const AREAS: AreaRevision[] = ["ADM", "GER"];
-const COLOR_ESTADO: Record<string, string> = {
-  BORRADOR: "grey-darken-1",
-  PENADM: "orange-darken-2",
-  PENGER: "amber-darken-3",
-  LISTO: "blue",
-  COBRADO: "green-darken-2",
-  RECHAZADA: "red",
+// Rechazar: Administración (04 / 01) mientras está pendiente por confirmar
+const { dialogRechazo, rechazoSel, puedeRechazar, tituloRechazar, abrirRechazo } = useRechazoSolicitud(areaRechazoCobro);
+// varios pagos parciales del cliente
+const dialogSoportes = ref(false);
+const solicitudSoportes = ref<SolicitudCobro | null>(null);
+function verSoportes(s: SolicitudCobro) {
+  solicitudSoportes.value = s;
+  dialogSoportes.value = true;
+}
+// estado con ícono (diseño del listado)
+// Soporte de confirmación (Administración): subir con la fecha de ingreso en banco
+const dialogConfirmar = ref(false);
+const solicitudConfirmar = ref<SolicitudConfirmar | null>(null);
+function abrirConfirmar(s: SolicitudConfirmar) {
+  solicitudConfirmar.value = s;
+  dialogConfirmar.value = true;
+}
+const ICONO_ESTADO_LISTA: Record<string, string> = {
+  BORRADOR: "mdi-pencil-circle-outline",
+  PENADM: "mdi-clock-outline",
+  PENGER: "mdi-clock-outline",
+  LISTO: "mdi-clock-outline",
+  CONFIRMADO: "mdi-check-circle",
+  COBRADO: "mdi-bank-check",
+  RECHAZADA: "mdi-close-circle",
+  ELIMINADA: "mdi-trash-can-outline",
 };
 
 // editar: el mismo diálogo de "Cargar Pago Cliente"
@@ -65,8 +108,15 @@ const dialogEditar = ref(false);
 const destinoEditar = ref<DestinoPagoCliente | null>(null);
 const solicitudEditar = ref<SolicitudCobro | null>(null);
 const adminEditar = ref<AdminCredentials | null>(null);
-async function editar(s: SolicitudCobro) {
+const soporteEditar = ref<SoporteCobro | null>(null);
+// varios pagos parciales: se elige cuál editar en la lista de soportes
+async function editar(s: SolicitudCobro, soporte: SoporteCobro | null = null) {
   if (avisarIngresoBancosCobro(s)) return;
+  if (!soporte && (s.soportes?.length ?? 0) > 1) {
+    verSoportes(s);
+    return;
+  }
+  soporteEditar.value = soporte ?? s.soportes?.[0] ?? null;
   const admin = await claveSiAprobada(s, "editarla");
   if (admin === undefined) return;
   adminEditar.value = admin;
@@ -81,10 +131,6 @@ async function editar(s: SolicitudCobro) {
   dialogEditar.value = true;
 }
 
-function fecha(valor: string | null | undefined) {
-  if (!valor) return "—";
-  return `${shortDate(valor.slice(0, 10))} ${valor.slice(11, 16)}`.trim();
-}
 function abrir(url: string | null | undefined) {
   if (url) window.open(url, "_blank");
 }
@@ -98,15 +144,6 @@ function horaDe(valor: string | null | undefined) {
 const router = useRouter();
 function verIngreso(s: SolicitudCobro) {
   if (s.id_pagoingreso) window.open(router.resolve({ name: "verPagosPorCliente", params: { id: s.id_pagoingreso } }).href, "_blank");
-}
-function aprobacion(s: SolicitudCobro, tipo: AreaRevision) {
-  const adm = tipo === "ADM";
-  return {
-    usuario: adm ? s.usuario_aprobadoadministracion : s.usuario_aprobadogerencia,
-    fecha: adm ? s.fecha_aprobadoadministracion : s.fecha_aprobadogerencia,
-    rechazado: s.codigo_estado === "RECHAZADA" && s.area_rechazo === tipo,
-    pendiente: s.codigo_estado === (adm ? "PENADM" : "PENGER"),
-  };
 }
 
 defineExpose({ cargar });
@@ -144,25 +181,17 @@ defineExpose({ cargar });
         <thead>
           <tr>
             <th>Fecha de solicitud</th>
+            <th>Expediente</th>
             <th>Cliente</th>
             <th>Monto</th>
-            <th>Cuenta de depósito</th>
-            <th>Banco del cliente</th>
-            <th>Depósito / N° Op.</th>
+            <th>Banco</th>
+            <th>N° de cuenta / Código</th>
             <th>Estado</th>
-            <th>
-              Administración
-              <div class="solcob__thsub">
-                Aprobado por
-              </div>
-            </th>
-            <th>
-              Gerencia
-              <div class="solcob__thsub">
-                Aprobado por
-              </div>
-            </th>
-            <th>Soporte</th>
+            <th>Soporte de pago (Cliente)</th>
+            <th>Fecha de ingreso en banco</th>
+            <th>Soporte de confirmación (Administración)</th>
+            <th>Persona que confirma</th>
+            <th>Fecha de confirmación</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -176,104 +205,160 @@ defineExpose({ cargar });
             </td>
           </tr>
           <tr
-            v-for="s in solicitudes"
-            :key="s.codigo"
+            v-for="s in filas"
+            :key="s._key"
           >
-            <td>{{ s.fechasolicitud ? fecha(s.fechasolicitud) : "Sin enviar" }}</td>
-            <td class="solcob__cliente">
-              {{ s.cliente }}
-              <div class="text-body-small">
-                Corr. {{ s.correlativo }}
-              </div>
-            </td>
-            <td class="solcob__monto">
-              {{ montoCobro(s.monto, s.moneda) }}
-            </td>
-            <td>{{ s.cuenta }}</td>
-            <td>{{ s.banco_origen || "—" }}</td>
             <td>
-              {{ fecha(s.fechadeposito) }}
-              <div class="text-body-small">
-                {{ s.numerooperacion }}
+              <div
+                v-if="s.fechasolicitud"
+                class="cobl__fecha"
+              >
+                <span>{{ soloFecha(s.fechasolicitud) }}</span>
+                <span>{{ horaDe(s.fechasolicitud) }}</span>
               </div>
+              <span v-else>Sin enviar</span>
             </td>
             <td>
               <span
-                class="solcob__estado"
-                :class="`bg-${COLOR_ESTADO[s.codigo_estado] ?? 'grey'}`"
-              >{{ s.estado }}</span>
+                class="cobl__exp"
+              >
+                {{ s.expediente }}
+              </span>
+              <div
+                v-if="s.correlativo"
+                class="cobl__corr"
+              >
+                Corr. {{ s.correlativo }}
+              </div>
+            </td>
+            <td>
+              <span class="cobl__cliente">{{ s.cliente }}</span>
+            </td>
+            <td>
+              <span class="cobl__monto">{{ montoCobro(montoCobrado(s), s.moneda) }}</span>
+              <span
+                v-if="esPagoParcial(s)"
+                class="cobl__parcial"
+              >Parcial de {{ montoCobro(s.monto, s.moneda) }}</span>
+            </td>
+            <td>
+              <b>{{ s.banco || "—" }}</b>
+            </td>
+            <td>
+              <span class="cobl__nowrap">{{ s.nrocuenta || "—" }}</span>
+            </td>
+            <td>
+              <span
+                class="cobl__estado"
+                :class="`cobl__estado--${s.codigo_estado}`"
+              >
+                <v-icon size="16">{{ ICONO_ESTADO_LISTA[s.codigo_estado] ?? "mdi-circle-outline" }}</v-icon>
+                {{ s.estado }}
+              </span>
               <div
                 v-if="s.codigo_estado === 'RECHAZADA'"
-                class="solcob__motivo"
+                class="cobl__motivo"
               >
                 {{ s.motivo_rechazo || "Sin motivo" }}
               </div>
             </td>
-            <td
-              v-for="tipo in AREAS"
-              :key="tipo"
-            >
-              <div class="solcob__aprob">
-                <template v-if="aprobacion(s, tipo).usuario">
-                  <div class="solcob__aprobuser">
-                    {{ aprobacion(s, tipo).usuario }}
-                  </div>
-                  <span class="solcob__aprobfecha">{{ soloFecha(aprobacion(s, tipo).fecha) }}<template v-if="horaDe(aprobacion(s, tipo).fecha)"><br>{{ horaDe(aprobacion(s, tipo).fecha) }}</template></span>
-                </template>
-                <template v-else-if="aprobacion(s, tipo).rechazado">
-                  <span class="solcob__rechazotag">Rechazado</span>
-                  <div class="solcob__aprobuser">
-                    {{ s.usuario_rechazo || "—" }}
-                  </div>
-                  <span class="solcob__aprobfecha solcob__aprobfecha--rechazo">{{ soloFecha(s.fecha_rechazo) }}<template v-if="horaDe(s.fecha_rechazo)"><br>{{ horaDe(s.fecha_rechazo) }}</template></span>
-                </template>
+            <td>
+              <!-- un soporte: el ojo; dos o más: "Ver todos los soportes de ingreso" -->
+              <v-btn
+                v-if="(s.soportes_total ?? 1) > 1"
+                variant="text"
+                size="small"
+                color="primary"
+                prepend-icon="mdi-folder-open-outline"
+                class="cobl__vertodos"
+                data-modo-ver="permitido"
+                @click="verSoportes(s)"
+              >
+                Ver todos los soportes de ingreso
+              </v-btn>
+              <div
+                v-else
+                class="cobl__iconos"
+              >
                 <v-btn
-                  v-else-if="puedeRevisarArea(s, tipo)"
+                  icon="mdi-eye-outline"
+                  variant="outlined"
                   size="small"
-                  variant="tonal"
-                  :color="tipo === 'ADM' ? 'deep-purple' : 'amber-darken-3'"
-                  class="solcob__revisar"
-                  :loading="revisando === s.codigo"
-                  @click="revisar(s, tipo)"
-                >
-                  Aprobar
-                </v-btn>
-                <span
-                  v-else
-                  class="solcob__muted"
-                >—</span>
+                  rounded="lg"
+                  color="primary"
+                  class="cobl__ojo"
+                  :disabled="!s.voucher_path"
+                  title="Ver soporte de pago del cliente"
+                  aria-label="Ver soporte de pago del cliente"
+                  data-modo-ver="permitido"
+                  @click="abrir(s.voucher_path)"
+                />
+                <v-btn
+                  icon="mdi-download"
+                  variant="text"
+                  size="small"
+                  color="primary"
+                  :disabled="!s.voucher_path"
+                  title="Descargar soporte de pago del cliente"
+                  aria-label="Descargar soporte de pago del cliente"
+                  data-modo-ver="permitido"
+                  @click="descargarArchivo(s.voucher_path, s.voucher_nombre)"
+                />
               </div>
             </td>
             <td>
-              <div class="solcob__soporte">
-                <div class="solcob__soporteicons">
+              <span
+                v-if="s.fecha_ingreso"
+                class="cobl__chipfecha"
+              >{{ soloFecha(s.fecha_ingreso) }}</span>
+              <span v-else>—</span>
+            </td>
+            <td>
+              <div
+                v-if="s.soporte_confirmacion_path"
+                class="cobl__soportecol"
+              >
+                <div class="cobl__iconos">
                   <v-btn
-                    icon="mdi-file-eye-outline"
-                    variant="text"
+                    icon="mdi-eye-outline"
+                    variant="outlined"
                     size="small"
+                    rounded="lg"
                     color="primary"
-                    :disabled="!s.voucher_path"
-                    title="Ver voucher del cliente"
-                    aria-label="Ver voucher del cliente"
+                    class="cobl__ojo"
+                    title="Ver soporte de confirmación"
+                    aria-label="Ver soporte de confirmación"
                     data-modo-ver="permitido"
-                    @click="abrir(s.voucher_path)"
+                    @click="abrir(s.soporte_confirmacion_path)"
                   />
                   <v-btn
                     icon="mdi-download"
                     variant="text"
                     size="small"
                     color="primary"
-                    :disabled="!s.voucher_path"
-                    title="Descargar voucher del cliente"
-                    aria-label="Descargar voucher del cliente"
+                    title="Descargar soporte de confirmación"
+                    aria-label="Descargar soporte de confirmación"
                     data-modo-ver="permitido"
-                    @click="descargarArchivo(s.voucher_path, s.voucher_nombre)"
+                    @click="descargarArchivo(s.soporte_confirmacion_path, s.soporte_confirmacion_nombre)"
+                  />
+                  <!-- ya confirmado: el soporte solo se elimina con la clave del Super administrador -->
+                  <v-btn
+                    v-if="can('listControlGastos', 'ELIMINAR') && !s.id_pagoingreso"
+                    icon="mdi-trash-can-outline"
+                    variant="text"
+                    size="small"
+                    color="error"
+                    title="Eliminar soporte de confirmación (requiere clave del Super administrador)"
+                    aria-label="Eliminar soporte de confirmación"
+                    :loading="procesando === s.codigo"
+                    @click="eliminarConfirmacion(s)"
                   />
                 </div>
+                <!-- con el soporte cargado ya se puede registrar el ingreso en Bancos -->
                 <button
                   v-if="s.id_pagoingreso"
                   type="button"
-                  class="solcob__salida"
+                  class="cobl__ingreso"
                   title="Ver el ingreso registrado en Bancos"
                   data-modo-ver="permitido"
                   @click="verIngreso(s)"
@@ -286,8 +371,9 @@ defineExpose({ cargar });
                   </v-icon>
                   Ingreso N° {{ s.numerooperacion_ingreso }}
                 </button>
+                <!-- un ingreso por pago cargado: sigue el botón mientras falte alguno -->
                 <v-btn
-                  v-else-if="s.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
+                  v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && can('registroPayForCliente', 'NUEVO')"
                   size="small"
                   color="success"
                   variant="flat"
@@ -295,9 +381,32 @@ defineExpose({ cargar });
                   :loading="procesando === s.codigo"
                   @click="registrarEnBancos(s)"
                 >
-                  REGISTRAR EN BANCO
+                  REGISTRAR EN BANCO<template v-if="(s.soportes_total ?? 1) > 1">
+                    ({{ (s.soportes_registrados ?? 0) + 1 }}/{{ s.soportes_total }})
+                  </template>
                 </v-btn>
               </div>
+              <v-btn
+                v-else
+                icon="mdi-file-upload-outline"
+                variant="text"
+                size="small"
+                color="primary"
+                :disabled="s.codigo_estado !== 'LISTO' || !can('listControlGastos', 'MODIFICAR')"
+                :title="s.codigo_estado === 'LISTO' ? 'Subir soporte de confirmación' : 'Se sube cuando la solicitud está enviada (pendiente por confirmar)'"
+                aria-label="Subir soporte de confirmación"
+                @click="abrirConfirmar(s)"
+              />
+            </td>
+            <td>
+              <b class="cobl__persona">{{ s.usuario_confirma || "—" }}</b>
+            </td>
+            <td>
+              <span
+                v-if="s.fecha_confirmacion"
+                class="cobl__chipfecha"
+              >{{ soloFecha(s.fecha_confirmacion) }}<br>{{ horaDe(s.fecha_confirmacion) }}</span>
+              <span v-else>—</span>
             </td>
             <td>
               <div class="solcob__acciones">
@@ -315,23 +424,27 @@ defineExpose({ cargar });
                 <v-btn
                   v-if="can('listControlGastos', 'NUEVO')"
                   icon="mdi-pencil-outline"
-                  size="x-small"
-                  variant="text"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  class="cobl__accion"
                   :color="s.id_pagoingreso ? 'grey' : 'primary'"
-                  :title="`Editar solicitud${tieneAprobacionesCobro(s) ? ' (requiere clave de administrador)' : ''}`"
+                  :title="`Editar solicitud${editarPideClaveCobro(s) ? ' (requiere clave de administrador)' : ''}`"
                   aria-label="Editar solicitud de cobro"
-                  @click="editar(s)"
+                  @click="editar(solicitudDe(s), s._soporte)"
                 />
                 <v-btn
                   v-if="can('listControlGastos', 'ELIMINAR')"
                   icon="mdi-trash-can-outline"
-                  size="x-small"
-                  variant="text"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  class="cobl__accion"
                   :color="s.id_pagoingreso ? 'grey' : 'error'"
                   :title="`Eliminar solicitud${tieneAprobacionesCobro(s) ? ' (requiere clave de administrador)' : ''}`"
                   aria-label="Eliminar solicitud de cobro"
                   :loading="procesando === s.codigo"
-                  @click="eliminar(s)"
+                  @click="eliminarFila(s)"
                 />
                 <v-btn
                   icon="mdi-eye-outline"
@@ -343,6 +456,32 @@ defineExpose({ cargar });
                   data-modo-ver="permitido"
                   @click="verSolicitud(s)"
                 />
+                <v-btn
+                  v-if="s.codigo_estado === 'RECHAZADA'"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  color="error"
+                  prepend-icon="mdi-comment-alert-outline"
+                  class="cobl__rechazar"
+                  data-modo-ver="permitido"
+                  @click="verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo })"
+                >
+                  Ver motivo
+                </v-btn>
+                <v-btn
+                  v-else-if="can('listControlGastos', 'MODIFICAR')"
+                  size="small"
+                  variant="outlined"
+                  rounded="lg"
+                  color="error"
+                  class="cobl__rechazar"
+                  :disabled="!puedeRechazar(s.codigo_estado, true)"
+                  :title="tituloRechazar(s.codigo_estado)"
+                  @click="abrirRechazo(s.codigo, s.codigo_estado)"
+                >
+                  Rechazar
+                </v-btn>
               </div>
             </td>
           </tr>
@@ -356,8 +495,8 @@ defineExpose({ cargar });
       class="solcob__cards"
     >
       <template
-        v-for="(s, i) in solicitudes"
-        :key="s.codigo"
+        v-for="(s, i) in filas"
+        :key="s._key"
       >
         <!-- separador marcado entre solicitudes -->
         <v-divider
@@ -368,19 +507,23 @@ defineExpose({ cargar });
         />
         <SolicitudCobroCardMovil
           :s="s"
-          :aprobar="AREAS.filter((t) => puedeRevisarArea(s, t))"
+          :puede-rechazar="puedeRechazar(s.codigo_estado, can('listControlGastos', 'MODIFICAR'))"
           :puede-enviar="can('listControlGastos', 'NUEVO')"
           :puede-registrar="can('registroPayForCliente', 'NUEVO')"
+          :puede-confirmar="can('listControlGastos', 'MODIFICAR')"
           :puede-editar="can('listControlGastos', 'NUEVO')"
           :puede-eliminar="can('listControlGastos', 'ELIMINAR')"
           :procesando="procesando === s.codigo"
-          :revisando="revisando === s.codigo"
           @enviar="enviar(s)"
-          @aprobar="(tipo) => revisar(s, tipo)"
+          @rechazar="abrirRechazo(s.codigo, s.codigo_estado)"
+          @ver-rechazo="verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo })"
+          @ver-soportes="verSoportes(s)"
           @registrar="registrarEnBancos(s)"
+          @confirmar="abrirConfirmar(s)"
+          @eliminar-confirmacion="eliminarConfirmacion(s)"
           @ver-ingreso="verIngreso(s)"
-          @editar="editar(s)"
-          @eliminar="eliminar(s)"
+          @editar="editar(solicitudDe(s), s._soporte)"
+          @eliminar="eliminarFila(s)"
           @ver="verSolicitud(s)"
         />
       </template>
@@ -390,7 +533,34 @@ defineExpose({ cargar });
       v-model="dialogEditar"
       :destino="destinoEditar"
       :solicitud="solicitudEditar"
+      :soporte="soporteEditar"
       :admin="adminEditar"
+      @guardado="cargar()"
+    />
+    <RechazarSolicitudDialog
+      v-model="dialogRechazo"
+      :solicitud="rechazoSel"
+      tipo="INGRESO"
+      ruta="solicitud_cobro_rechazar"
+      @rechazado="cargar()"
+    />
+    <SoportesCobroDialog
+      v-model="dialogSoportes"
+      :soportes="solicitudSoportes?.soportes ?? []"
+      :moneda="solicitudSoportes?.moneda ?? null"
+      :total="solicitudSoportes?.monto ?? 0"
+      :cliente="solicitudSoportes?.cliente"
+      :expediente="solicitudSoportes?.expediente"
+      :correlativo="solicitudSoportes?.correlativo"
+      :solicitud="solicitudSoportes"
+      :editable="can('listControlGastos', 'NUEVO') && !solicitudSoportes?.confirmadoflag"
+      :eliminable="can('listControlGastos', 'ELIMINAR') && !solicitudSoportes?.confirmadoflag"
+      @editar="(sop) => { dialogSoportes = false; editar(solicitudSoportes!, sop); }"
+      @eliminar="async (sop) => { if (await eliminarSoporte(solicitudSoportes!, sop)) dialogSoportes = false; }"
+    />
+    <ConfirmarCobroDialog
+      v-model="dialogConfirmar"
+      :solicitud="solicitudConfirmar"
       @guardado="cargar()"
     />
     <SolicitudCobroVerDialog
@@ -401,6 +571,138 @@ defineExpose({ cargar });
 </template>
 
 <style scoped>
+/* ===== listado de solicitudes de cobro (diseño acordado) ===== */
+.cobl__parcial {
+  display: block;
+  margin-top: 2px;
+  color: #b45309;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.cobl__vertodos {
+  height: auto !important;
+  min-height: 28px;
+  padding: 2px 6px !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-transform: none;
+}
+.cobl__vertodos :deep(.v-btn__content) {
+  white-space: normal;
+  text-align: center;
+}
+.cobl__rechazar {
+  min-width: 0;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cobl__soportecol {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.cobl__ingreso {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(46, 160, 67, 0.12);
+  color: #1f7a35;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cobl__fecha {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.cobl__exp {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: #e3ebfa;
+  color: #1e3a8a;
+  font-weight: 700;
+  white-space: nowrap;
+}
+button.cobl__exp:hover {
+  text-decoration: underline;
+}
+.cobl__corr {
+  margin-top: 4px;
+  color: #5b6b86;
+  font-size: 0.78rem;
+}
+.cobl__cliente,
+.cobl__persona {
+  font-weight: 700;
+  color: #1f2a44;
+}
+.cobl__monto {
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cobl__nowrap {
+  white-space: nowrap;
+}
+.cobl__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+}
+.cobl__estado--BORRADOR { background: #eceff3; color: #475467; }
+.cobl__estado--PENADM,
+.cobl__estado--PENGER { background: #fdebd3; color: #b45309; }
+.cobl__estado--LISTO { background: #fdebd3; color: #b45309; }
+.cobl__estado--CONFIRMADO { background: #d9f7e1; color: #166534; }
+.cobl__estado--CONFIRMADO .v-icon { color: #16a34a; }
+.cobl__estado--COBRADO { background: #dbeafe; color: #1e40af; }
+.cobl__estado--RECHAZADA { background: #fde2e2; color: #b42318; }
+.cobl__estado--ELIMINADA { background: #eceff3; color: #475467; }
+.cobl__motivo {
+  max-width: 200px;
+  margin: 4px auto 0;
+  color: #b42318;
+  font-size: 0.75rem;
+}
+.cobl__iconos {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.cobl__ojo {
+  border-color: #93b4f0 !important;
+}
+.cobl__chipfecha {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #e3ebfa;
+  color: #1e3a8a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+.cobl__accion {
+  border-color: currentColor !important;
+}
 .solcob__bar {
   display: flex;
   justify-content: flex-end;

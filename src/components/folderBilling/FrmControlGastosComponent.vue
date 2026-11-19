@@ -728,7 +728,7 @@ onMounted(async () => {
           v-if="!smAndDown"
           class="mb-2"
         >
-          Solicitudes de Cobro Administración
+          LISTADOS DE INGRESOS POR CONFIRMAR
         </h3>
         <div
           v-else
@@ -738,7 +738,7 @@ onMounted(async () => {
             <v-icon color="success">
               mdi-cash-check
             </v-icon>
-            Solicitudes de Cobro Administración
+            LISTADOS DE INGRESOS POR CONFIRMAR
           </h3>
         </div>
         <SolicitudesCobro :id-master="idMasterSolicitudes" />

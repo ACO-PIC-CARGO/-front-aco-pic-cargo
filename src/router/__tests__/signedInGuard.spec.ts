@@ -26,6 +26,12 @@ describe("signedInGuard", () => {
     expect(signedInGuard(screen(true))).toEqual({ name: "Login" });
   });
 
+  test("remembers the address so the resumed session goes back to it", () => {
+    const destino = { ...screen(true), fullPath: "/registroCobroDesdeSolicitud/SC-000001" } as RouteLocationNormalized;
+
+    expect(signedInGuard(destino)).toEqual({ name: "Login", query: { redirect: "/registroCobroDesdeSolicitud/SC-000001" } });
+  });
+
   test("lets anyone open a screen that needs no session", () => {
     expect(signedInGuard(screen(false))).toBeUndefined();
   });

@@ -7,19 +7,21 @@ import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
 import { useAppStore } from "@/stores/app";
 import type { AdminCredentials } from "@/types/seguridad";
-import type { DestinoPagoCliente, SolicitudCobro } from "@/types/solicitudCobro";
+import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
 import { withAuthorization } from "@/utils/adminCredentials";
 import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
 
-// Control de Gastos > Ingresos > "Cargar Pago Cliente": voucher del cliente (imagen o PDF) y la
-// cuenta nuestra (bank_details) donde depositó. Crea la solicitud de cobro (lista para enviar)
-// o la edita. El monto siempre es el total pendiente del correlativo (lo calcula el backend).
+// Control de Gastos > Ingresos > "Cargar Pago Cliente": un pago (total o parcial) con su voucher y la
+// cuenta nuestra (bank_details) donde depositó. Un correlativo puede tener varios pagos; la suma no
+// puede pasar el monto a cobrar y solo se envía a Administración cuando la suma es exacta.
 const DATO_REQUERIDO = "Dato Requerido";
 const props = defineProps<{
   modelValue: boolean;
   destino: DestinoPagoCliente | null;
-  // edición: la solicitud actual y, si ya tenía aprobaciones, la clave del administrador
+  // la solicitud del correlativo (si ya tiene pagos) y el pago que se edita (null = pago nuevo)
   solicitud?: SolicitudCobro | null;
+  soporte?: SoporteCobro | null;
+  // si la solicitud ya tenía aprobaciones, la clave del administrador
   admin?: AdminCredentials | null;
 }>();
 const emit = defineEmits<{ "update:modelValue": [valor: boolean]; guardado: [] }>();
@@ -33,36 +35,93 @@ const abierto = computed({
   get: () => props.modelValue,
   set: (valor: boolean) => emit("update:modelValue", valor),
 });
+const monto = ref<string | number>("");
 const idCuenta = ref<number | null>(null);
 // banco del cliente desde donde envió el pago (mismo catálogo que "Banco Origen" en Bancos)
 const idBancoOrigen = ref<number | null>(null);
 const fechaDeposito = ref("");
 const numeroOperacion = ref("");
+// N° de operación: "Aplica" (obligatorio) o "No aplica" (no se pide; se escribe en Bancos al registrar el ingreso)
+const aplicaNroOperacion = ref(true);
+const OPCIONES_NRO_OPERACION = [
+  { titulo: "Aplica", valor: true },
+  { titulo: "No aplica", valor: false },
+];
+watch(aplicaNroOperacion, (aplica) => {
+  if (!aplica) numeroOperacion.value = "";
+});
 const comentario = ref("");
 const voucher = ref<{ id: number; nombre: string; ruta: string } | null>(null);
 const subiendo = ref(false);
 const arrastrando = ref(false);
-const guardando = ref(false);
+const guardando = ref<"guardar" | "enviar" | null>(null);
 const inputArchivo = ref<HTMLInputElement | null>(null);
-// al editar se muestran primero las cuentas en la moneda de la solicitud
-const cuentas = computed(() => {
-  const moneda = props.solicitud?.moneda;
-  return moneda ? bancosStore.cuentas.filter((c) => c.symbol === moneda) : bancosStore.cuentas;
+
+const redondear = (n: number) => Math.round(n * 100) / 100;
+// monto a cobrar del correlativo y lo que ya cubren los otros pagos
+const total = computed(() => redondear(Number(props.solicitud?.monto ?? props.destino?.deuda ?? 0)));
+const otros = computed(() =>
+  redondear((props.solicitud?.soportes ?? []).filter((x) => x.codigo !== props.soporte?.codigo).reduce((acc, x) => acc + Number(x.monto || 0), 0)),
+);
+const maximo = computed(() => Math.max(redondear(total.value - otros.value), 0));
+const montoNum = computed(() => redondear(Number(monto.value || 0)));
+const saldo = computed(() => Math.max(redondear(maximo.value - montoNum.value), 0));
+const errorMonto = computed(() => {
+  if (!(montoNum.value > 0)) return DATO_REQUERIDO;
+  if (montoNum.value > maximo.value) return `No puede ser mayor a ${formatoMonto(maximo.value)}`;
+  return "";
 });
-const completo = computed(() => !!idCuenta.value && !!idBancoOrigen.value && !!voucher.value && !!fechaDeposito.value && !!numeroOperacion.value.trim());
+
+// moneda: la de la solicitud o la de la cuenta elegida
+// cuentas de la moneda del correlativo
+const cuentasMoneda = computed(() => {
+  const moneda = props.solicitud?.moneda;
+  if (moneda) return bancosStore.cuentas.filter((c) => c.symbol === moneda);
+  // moneda de los ingresos del correlativo (coins): solo las cuentas en esa moneda
+  const idCoins = props.destino?.id_coins;
+  return idCoins ? bancosStore.cuentas.filter((c) => Number(c.id_coins) === Number(idCoins)) : bancosStore.cuentas;
+});
+// al cargar el soporte solo se ofrece la cuenta principal de la empresa (esprincipalflag); al editar un
+// pago se mantiene también la suya. Sin cuenta principal configurada, todas las de esa moneda.
+const cuentas = computed(() => {
+  const principales = cuentasMoneda.value.filter((c) => c.esprincipalflag);
+  if (!principales.length) return cuentasMoneda.value;
+  const actual = props.soporte ? cuentasMoneda.value.find((c) => c.id === props.soporte!.id_cuentabancaria) : undefined;
+  return actual && !actual.esprincipalflag ? [...principales, actual] : principales;
+});
+const moneda = computed(
+  () =>
+    props.solicitud?.moneda
+    ?? bancosStore.cuentas.find((c) => c.id === idCuenta.value)?.symbol
+    ?? cuentas.value[0]?.symbol
+    ?? "USD",
+);
+const completo = computed(
+  () => !errorMonto.value && !!idCuenta.value && !!idBancoOrigen.value && !!voucher.value && !!fechaDeposito.value && (!aplicaNroOperacion.value || !!numeroOperacion.value.trim()),
+);
+// ya enviada: al guardar con la suma exacta se vuelve a enviar sola
+const yaEnviada = computed(() => !!props.solicitud?.enviadoflag);
+// pago parcial permitido: se envía con lo cargado; en Bancos queda como abono parcial
+const puedeEnviar = computed(() => completo.value && !yaEnviada.value);
 
 watch(
   () => props.modelValue,
   async (valor) => {
     if (!valor) return;
-    const s = props.solicitud;
-    idCuenta.value = s?.id_cuentabancaria ?? null;
-    idBancoOrigen.value = s?.id_banco_origen ?? null;
-    fechaDeposito.value = s?.fechadeposito ?? hoy();
-    numeroOperacion.value = s?.numerooperacion ?? "";
-    comentario.value = s?.comentario ?? "";
-    voucher.value = s?.id_path_voucher
-      ? { id: s.id_path_voucher, nombre: s.voucher_nombre || "Voucher", ruta: s.voucher_path || "" }
+    const sop = props.soporte;
+    const previo = props.solicitud?.soportes?.[0];
+    // pago nuevo: el monto lo escribe el usuario (no se llena solo); al editar, el del pago
+    monto.value = sop ? Number(sop.monto).toFixed(2) : "";
+    // editar: la cuenta del pago; pago nuevo: la cuenta principal de la empresa (se elige al cargar las cuentas)
+    idCuenta.value = sop?.id_cuentabancaria ?? null;
+    idBancoOrigen.value = sop?.id_banco_origen ?? previo?.id_banco_origen ?? null;
+    fechaDeposito.value = sop?.fechadeposito ?? hoy();
+    // al editar: sin número guardado es "No aplica"
+    aplicaNroOperacion.value = sop ? !!sop.numerooperacion : true;
+    numeroOperacion.value = sop?.numerooperacion ?? "";
+    comentario.value = sop?.comentario ?? "";
+    voucher.value = sop?.id_path_voucher
+      ? { id: sop.id_path_voucher, nombre: sop.voucher_nombre || "Voucher", ruta: sop.voucher_path || "" }
       : null;
     await Promise.all([
       bancosStore.cuentas.length ? null : bancosStore.getListBanksDetailsCargar(),
@@ -114,30 +173,30 @@ async function subirArchivo(archivo: File) {
   }
 }
 
-async function guardar() {
+async function guardar(enviar: boolean) {
   const d = props.destino;
-  if (!d || !completo.value) return;
-  const datos = {
-    id_cuentabancaria: idCuenta.value,
-    id_banco_origen: idBancoOrigen.value,
-    id_path: voucher.value!.id,
-    fechadeposito: fechaDeposito.value,
-    numerooperacion: numeroOperacion.value.trim(),
-    comentario: comentario.value,
-  };
-  guardando.value = true;
-  const response = props.solicitud
-    ? await request({
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_editar/" + props.solicitud.codigo,
-      data: { ...datos, ...withAuthorization(props.admin) },
-    })
-    : await request({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_insertar",
-      data: { ...datos, id_house: d.id_house, id_correlativo: d.id_correlativo },
-    });
-  guardando.value = false;
+  if (!d || !completo.value || guardando.value) return;
+  guardando.value = enviar ? "enviar" : "guardar";
+  const response = await request({
+    method: "post",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_soporte_guardar",
+    data: {
+      id_house: d.id_house,
+      id_correlativo: d.id_correlativo,
+      codigo_soporte: props.soporte?.codigo ?? null,
+      monto: montoNum.value,
+      id_cuentabancaria: idCuenta.value,
+      id_banco_origen: idBancoOrigen.value,
+      id_path: voucher.value!.id,
+      fechadeposito: fechaDeposito.value,
+      numerooperacion: aplicaNroOperacion.value ? numeroOperacion.value.trim() : null,
+      aplica_nrooperacion: aplicaNroOperacion.value,
+      comentario: comentario.value,
+      enviar,
+      ...withAuthorization(props.admin),
+    },
+  });
+  guardando.value = null;
   if (!response.estadoflag) {
     Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje || CONNECTION_ERROR_MESSAGE });
     return;
@@ -151,7 +210,7 @@ async function guardar() {
 <template>
   <v-dialog
     v-model="abierto"
-    max-width="640"
+    max-width="660"
     :fullscreen="smAndDown"
     persistent
     scrollable
@@ -163,13 +222,13 @@ async function guardar() {
     >
       <div class="pagocli__head">
         <div class="pagocli__icon">
-          <v-icon size="32">
+          <v-icon size="30">
             mdi-cloud-upload-outline
           </v-icon>
         </div>
         <div class="pagocli__titles">
-          <h3>CARGAR PAGO CLIENTE</h3>
-          <span>ADJUNTA EL VOUCHER DEL DEPÓSITO DEL CLIENTE (IMAGEN O PDF).</span>
+          <h3>{{ soporte ? "EDITAR PAGO DEL CLIENTE" : "CARGAR PAGO DEL CLIENTE" }}</h3>
+          <span>Adjunta el voucher del depósito del cliente (imagen o PDF).</span>
         </div>
         <v-btn
           icon
@@ -178,7 +237,7 @@ async function guardar() {
           class="pagocli__close"
           tabindex="-1"
           aria-label="Cerrar"
-          :disabled="guardando"
+          :disabled="!!guardando"
           @click="abierto = false"
         >
           <v-icon>mdi-close</v-icon>
@@ -196,20 +255,67 @@ async function guardar() {
           </div>
           <div class="pagocli__cli-row">
             <v-icon class="pagocli__cli-icon">
-              mdi-cash
+              mdi-database-outline
             </v-icon>
-            <span class="pagocli__cli-label">MONTO A COBRAR:</span>
-            <span class="pagocli__cli-value">
-              {{ formatoMonto(solicitud ? solicitud.monto : destino.deuda) }} {{ solicitud?.moneda ?? "" }}
-            </span>
+            <span class="pagocli__cli-label">MONTO TOTAL A COBRAR:</span>
+            <span class="pagocli__cli-value">{{ moneda }} {{ formatoMonto(total) }}</span>
+          </div>
+          <div
+            v-if="otros > 0"
+            class="pagocli__cli-row"
+          >
+            <v-icon class="pagocli__cli-icon">
+              mdi-cash-check
+            </v-icon>
+            <span class="pagocli__cli-label">OTROS PAGOS CARGADOS:</span>
+            <span class="pagocli__cli-value">{{ moneda }} {{ formatoMonto(otros) }}</span>
           </div>
         </div>
         <p class="pagocli__nota">
           <v-icon size="16">
             mdi-information-outline
           </v-icon>
-          El cobro se solicita por el monto total pendiente del correlativo (no se permiten pagos parciales).
+          Puedes registrar un pago total o un pago parcial del monto pendiente.
         </p>
+
+        <div class="pagocli__montos">
+          <div>
+            <label
+              class="pagocli__label"
+              for="pagocli-monto"
+            >MONTO QUE ESTÁ PAGANDO EL CLIENTE <span class="pagocli__req">*</span></label>
+            <v-text-field
+              id="pagocli-monto"
+              v-model="monto"
+              type="number"
+              min="0"
+              step="0.01"
+              :prefix="moneda"
+              variant="outlined"
+              density="comfortable"
+              class="pagocli__input pagocli__monto"
+              hide-details="auto"
+              :error-messages="errorMonto"
+            />
+          </div>
+          <!-- misma etiqueta (invisible) que el monto: el recuadro queda a la altura del campo -->
+          <div>
+            <span
+              class="pagocli__label pagocli__label--espacio"
+              aria-hidden="true"
+            >&nbsp;</span>
+            <div
+              class="pagocli__saldo"
+              :class="{ 'pagocli__saldo--ok': saldo === 0 && !errorMonto }"
+            >
+              <span>{{ saldo === 0 && !errorMonto ? "MONTO COMPLETO" : "SALDO PENDIENTE" }}</span>
+              <b>
+                <v-icon size="22">{{ saldo === 0 && !errorMonto ? "mdi-check-circle" : "mdi-database-outline" }}</v-icon>
+                {{ moneda }} {{ formatoMonto(saldo) }}
+              </b>
+            </div>
+          </div>
+        </div>
 
         <label
           class="pagocli__label"
@@ -279,19 +385,37 @@ async function guardar() {
             <label
               class="pagocli__label"
               for="pagocli-nroop"
-            >N° DE OPERACIÓN <span class="pagocli__req">*</span></label>
-            <v-text-field
-              id="pagocli-nroop"
-              v-model="numeroOperacion"
-              placeholder="N° DEL VOUCHER"
-              prepend-inner-icon="mdi-pound"
-              variant="outlined"
-              density="compact"
-              class="pagocli__input"
-              maxlength="100"
-              hide-details="auto"
-              :error-messages="numeroOperacion.trim() ? '' : DATO_REQUERIDO"
-            />
+            >N° DE OPERACIÓN <span
+              v-if="aplicaNroOperacion"
+              class="pagocli__req"
+            >*</span></label>
+            <!-- combo Aplica / No aplica + el número (Aplica: obligatorio y pasa bloqueado a Bancos) -->
+            <div class="pagocli__nroop">
+              <v-select
+                v-model="aplicaNroOperacion"
+                :items="OPCIONES_NRO_OPERACION"
+                item-title="titulo"
+                item-value="valor"
+                variant="outlined"
+                density="compact"
+                class="pagocli__input pagocli__aplica"
+                aria-label="¿Aplica N° de operación?"
+                hide-details
+              />
+              <v-text-field
+                id="pagocli-nroop"
+                v-model="numeroOperacion"
+                :placeholder="aplicaNroOperacion ? 'N° DEL VOUCHER' : 'SE LLENA EN BANCOS'"
+                prepend-inner-icon="mdi-pound"
+                variant="outlined"
+                density="compact"
+                class="pagocli__input"
+                maxlength="100"
+                :disabled="!aplicaNroOperacion"
+                hide-details="auto"
+                :error-messages="!aplicaNroOperacion || numeroOperacion.trim() ? '' : DATO_REQUERIDO"
+              />
+            </div>
           </div>
         </div>
 
@@ -349,6 +473,7 @@ async function guardar() {
             @change="alElegir"
           >
         </div>
+        <!-- el voucher es obligatorio: al abrir el formulario o al quitarlo se marca como dato requerido -->
         <div
           v-if="!voucher && !subiendo"
           class="pagocli__error"
@@ -374,7 +499,7 @@ async function guardar() {
             @click="abrir(voucher.ruta)"
           />
           <v-btn
-            icon="mdi-close-circle"
+            icon="mdi-trash-can-outline"
             variant="text"
             size="small"
             color="red"
@@ -389,21 +514,33 @@ async function guardar() {
         <v-btn
           class="pagocli__btn pagocli__btn--cancel"
           variant="outlined"
-          :disabled="guardando"
+          :disabled="!!guardando"
           @click="abierto = false"
         >
           CANCELAR
         </v-btn>
         <v-btn
-          class="pagocli__btn"
-          color="#178a1e"
-          variant="flat"
+          class="pagocli__btn pagocli__btn--guardar"
+          variant="outlined"
           prepend-icon="mdi-content-save-outline"
-          :loading="guardando"
-          :disabled="!completo || subiendo"
-          @click="guardar"
+          :loading="guardando === 'guardar'"
+          :disabled="!completo || subiendo || guardando === 'enviar'"
+          @click="guardar(false)"
         >
-          {{ solicitud ? "GUARDAR CAMBIOS" : "GUARDAR PAGO DEL CLIENTE" }}
+          GUARDAR
+        </v-btn>
+        <v-btn
+          v-if="!yaEnviada"
+          class="pagocli__btn pagocli__btn--enviar"
+          color="#0b5fd6"
+          variant="flat"
+          prepend-icon="mdi-send-outline"
+          :loading="guardando === 'enviar'"
+          :disabled="!puedeEnviar || subiendo || guardando === 'guardar'"
+          :title="saldo > 0 ? 'Se envía como pago parcial; el saldo queda pendiente para otra solicitud' : 'Guardar y enviar a Administración'"
+          @click="guardar(true)"
+        >
+          GUARDAR Y ENVIAR<br class="pagocli__br"> A ADMINISTRACIÓN
         </v-btn>
       </div>
     </v-card>
@@ -435,8 +572,8 @@ async function guardar() {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 50px;
+  height: 50px;
   border-radius: 14px;
   background: #dcebfd;
   color: #0b5fd6;
@@ -449,7 +586,7 @@ async function guardar() {
 }
 .pagocli__titles h3 {
   margin: 0;
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 900;
   line-height: 1.15;
 }
@@ -476,7 +613,7 @@ async function guardar() {
 }
 .pagocli__cli-row {
   display: grid;
-  grid-template-columns: 26px 150px 1fr;
+  grid-template-columns: 26px 190px 1fr;
   align-items: center;
   gap: 6px;
   padding: 4px 0;
@@ -505,10 +642,61 @@ async function guardar() {
   font-size: 12px;
   color: #3b4a63;
 }
+.pagocli__montos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+}
+.pagocli__label--espacio {
+  visibility: hidden;
+}
+.pagocli__monto :deep(input) {
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+.pagocli__saldo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* mismo alto que el campo del monto (density comfortable = 48px) */
+  height: 48px;
+  padding: 2px 12px;
+  border: 1px solid #fcd9a6;
+  border-radius: 12px;
+  background: #fff4e0;
+  color: #b45309;
+  text-align: center;
+}
+.pagocli__saldo span {
+  font-size: 11px;
+  line-height: 1.1;
+  font-weight: 800;
+}
+.pagocli__saldo b {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1.1rem;
+  line-height: 1.1;
+  font-weight: 900;
+}
+.pagocli__saldo--ok {
+  border-color: #b7ebc9;
+  background: #ecfdf3;
+  color: #15803d;
+}
 .pagocli__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
+}
+.pagocli__nroop {
+  display: grid;
+  grid-template-columns: 140px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
 }
 .pagocli__label {
   display: block;
@@ -529,7 +717,7 @@ async function guardar() {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  min-height: 112px;
+  min-height: 104px;
   margin-top: 12px;
   padding: 12px;
   border: 2px dashed #0b5fd6;
@@ -555,7 +743,7 @@ async function guardar() {
   border-color: #e53935;
 }
 .pagocli__error {
-  margin: 4px 0 0 4px;
+  margin: 4px 0 0 16px;
   color: #e53935;
   font-size: 12px;
 }
@@ -572,27 +760,43 @@ async function guardar() {
 .pagocli__actions {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 12px;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 10px;
   padding: 14px 22px 18px;
 }
 .pagocli__btn {
-  min-height: 44px;
+  min-height: 48px;
   border-radius: 10px !important;
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: 0;
+  line-height: 1.15;
+}
+.pagocli__btn :deep(.v-btn__content) {
+  white-space: normal;
+  text-align: center;
 }
 .pagocli__btn--cancel {
   border-color: #c9d3e1 !important;
   color: #0a1f44 !important;
 }
+.pagocli__btn--guardar {
+  border-color: #178a1e !important;
+  color: #178a1e !important;
+}
 
 /* celular y tablet: una columna y botones a lo ancho */
 @media (max-width: 600px) {
-  .pagocli__grid {
+  .pagocli__grid,
+  .pagocli__montos {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+  .pagocli__label--espacio {
+    display: none;
+  }
+  .pagocli__saldo {
+    margin-top: 10px;
   }
   .pagocli__cli-row {
     grid-template-columns: 26px 1fr;
@@ -601,7 +805,14 @@ async function guardar() {
     grid-column: 2;
   }
   .pagocli__actions {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
+  }
+  .pagocli__btn--enviar {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+  .pagocli__br {
+    display: none;
   }
 }
 </style>

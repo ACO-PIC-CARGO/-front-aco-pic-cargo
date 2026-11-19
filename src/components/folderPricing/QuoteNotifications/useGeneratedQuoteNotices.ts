@@ -198,13 +198,26 @@ export function useGeneratedQuoteNotices(socket: NoticeSocket) {
     }
   }
 
+  // Lo que se cierra ("Cerrar" / "Cancelar") queda visto en BD para que no vuelva a salir al recargar ACO
+  function marcarVistoEnBd(notice: GeneratedQuoteNotice) {
+    if (!notice.codigo || vistos.value.has(notice)) return;
+    markCotizacionAvisoVisto(notice.codigo).catch(() => {
+      // si falla, el aviso vuelve a aparecer la próxima vez que se abra ACO
+    });
+  }
+
   // Without an argument it drops the oldest notice; with one, that notice (from the grouped list).
   function dismiss(notice?: GeneratedQuoteNotice) {
-    queue.value = notice ? queue.value.filter((queued) => queued !== notice) : queue.value.slice(1);
+    const target = notice ?? queue.value[0];
+    if (!target) return;
+    marcarVistoEnBd(target);
+    queue.value = queue.value.filter((queued) => queued !== target);
   }
 
   // Drops every pending notice, or only the ones matching the predicate.
   function dismissAll(predicate?: (notice: GeneratedQuoteNotice) => boolean) {
+    const removed = predicate ? queue.value.filter(predicate) : queue.value;
+    removed.forEach(marcarVistoEnBd);
     queue.value = predicate ? queue.value.filter((notice) => !predicate(notice)) : [];
     if (!queue.value.length) vistos.value = new Set();
   }

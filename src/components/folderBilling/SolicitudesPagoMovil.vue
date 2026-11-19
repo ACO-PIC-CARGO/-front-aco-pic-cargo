@@ -55,6 +55,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   aprobar: [s: SolicitudPagoMovilItem, tipo: AreaRevision];
+  rechazar: [s: SolicitudPagoMovilItem];
+  "ver-rechazo": [s: SolicitudPagoMovilItem];
   "subir-soporte": [s: SolicitudPagoMovilItem];
   transferir: [s: SolicitudPagoMovilItem];
   "ver-salida": [s: SolicitudPagoMovilItem];
@@ -562,7 +564,31 @@ function abrir(url: string | null | undefined) {
                       >
                         Aprobar Gerencia
                       </v-btn>
+                      <!-- rechaza solo el paso pendiente y solo quien puede aprobarlo -->
+                      <v-btn
+                        v-if="(s.codigo_estado === 'PENADM' && tienePerfilRevision('ADM')) || (s.codigo_estado === 'PENGER' && tienePerfilRevision('GER'))"
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        rounded="pill"
+                        prepend-icon="mdi-close-circle-outline"
+                        @click="emit('rechazar', s)"
+                      >
+                        Rechazar
+                      </v-btn>
                     </template>
+                    <v-btn
+                      v-if="s.codigo_estado === 'RECHAZADA'"
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      rounded="pill"
+                      prepend-icon="mdi-comment-alert-outline"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-rechazo', s)"
+                    >
+                      Ver motivo
+                    </v-btn>
                     <v-btn
                       v-if="verAnexo"
                       size="small"

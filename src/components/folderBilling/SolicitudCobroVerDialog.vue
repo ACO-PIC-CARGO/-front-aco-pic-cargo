@@ -36,6 +36,10 @@ interface SolicitudCobroDetalle {
   numerooperacion_ingreso: string | null;
   motivo_rechazo: string | null;
   conceptos: ConceptoSolicitudCobro[];
+  // confirmación (soporte de confirmación de Administración)
+  usuario_confirma?: string | null;
+  fecha_confirmacion?: string | null;
+  fecha_ingreso?: string | null;
 }
 
 const props = defineProps<{ codigo: string | null }>();
@@ -98,9 +102,10 @@ function fechaLarga(valor: string | null | undefined) {
   const [anio, mes, dia] = valor.slice(0, 10).split("-");
   return `${Number(dia)} de ${MESES[Number(mes) - 1]} del ${anio}`;
 }
+// sin aprobaciones de Administración / Gerencia: quién la envió y quién la confirmó (soporte de confirmación)
 const autorizaciones = computed(() => [
-  { titulo: "Revisado por:", usuario: detalle.value?.usuario_aprobadoadministracion ?? "", fecha: detalle.value?.fecha_aprobadoadministracion ?? null },
-  { titulo: "Aprobado por:", usuario: detalle.value?.usuario_aprobadogerencia ?? "", fecha: detalle.value?.fecha_aprobadogerencia ?? null },
+  { titulo: "Solicitado por:", usuario: detalle.value?.usuario_solicitud ?? "", fecha: detalle.value?.fechasolicitud ?? null },
+  { titulo: "Confirmado por:", usuario: detalle.value?.usuario_confirma ?? "", fecha: detalle.value?.fecha_confirmacion ?? null },
 ]);
 </script>
 
@@ -228,7 +233,7 @@ const autorizaciones = computed(() => [
                 </section>
               </div>
 
-              <!-- autorizaciones: Revisado (Administración) / Aprobado (Gerencia), como en Solicitudes de Pago -->
+              <!-- autorizaciones: Solicitado / Confirmado (sin aprobaciones de Administración ni Gerencia) -->
               <div class="auth__head">
                 <div class="auth__pill">
                   <v-icon
