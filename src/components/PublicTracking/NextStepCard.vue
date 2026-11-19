@@ -4,7 +4,7 @@ import { nextStepDateLabel } from "./publicTrackingFormat";
 import type { PublicNextStep } from "@/types/publicTracking";
 
 const props = defineProps<{ step: PublicNextStep; timeZone: string }>();
-const dateLabel = computed(() => nextStepDateLabel(props.step.date, props.timeZone));
+const dateLabel = computed(() => nextStepDateLabel(props.step, props.timeZone));
 </script>
 
 <template>
@@ -43,17 +43,19 @@ const dateLabel = computed(() => nextStepDateLabel(props.step.date, props.timeZo
         <div class="text-title-large font-weight-bold">
           {{ step.name }}
         </div>
-        <div class="text-body-large text-medium-emphasis">
-          <template v-if="step.date">
-            Estimado para <strong class="text-high-emphasis">{{ dateLabel }}</strong>
-          </template>
-          <template v-else>
-            {{ dateLabel }}
-          </template>
-        </div>
-        <div class="text-body-small text-medium-emphasis">
-          Fecha estimada; puede cambiar.
-        </div>
+        <template v-if="dateLabel">
+          <div class="text-body-large text-medium-emphasis">
+            <template v-if="step.date">
+              Estimado para <strong class="text-high-emphasis">{{ dateLabel }}</strong>
+            </template>
+            <template v-else>
+              {{ dateLabel }}
+            </template>
+          </div>
+          <div class="text-body-small text-medium-emphasis">
+            Fecha estimada; puede cambiar.
+          </div>
+        </template>
       </div>
     </v-card>
   </v-card>

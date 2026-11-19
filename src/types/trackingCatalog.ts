@@ -12,6 +12,7 @@ export interface TrackingStep {
   date_default_id: number | null;
   allows_skip: boolean;
   allows_send_skip: boolean;
+  show_date_to_client: boolean;
 }
 
 export interface TrackingPhase {
@@ -48,6 +49,7 @@ export interface TrackingStepDraft {
   date_default_id: number | null;
   allows_skip: boolean;
   allows_send_skip: boolean;
+  show_date_to_client: boolean;
 }
 
 export interface TrackingValidation {

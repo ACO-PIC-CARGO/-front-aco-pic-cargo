@@ -68,7 +68,10 @@ const shownSteps = computed(() => updatesByStep(showAll.value ? props.updates : 
             :key="update.key"
             class="d-flex flex-wrap align-center gc-4 gr-1"
           >
-            <span class="text-body-medium text-medium-emphasis text-no-wrap">
+            <span
+              v-if="update.showDate"
+              class="text-body-medium text-medium-emphasis text-no-wrap"
+            >
               {{ stepDateTimeLabel(update.at, timeZone) }}
             </span>
             <span class="text-body-medium text-break">{{ update.text }}</span>

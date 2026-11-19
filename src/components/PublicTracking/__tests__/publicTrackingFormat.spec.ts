@@ -8,6 +8,7 @@ const step = (over: Partial<PublicTrackingStep> = {}): PublicTrackingStep => ({
   name: "Pago al proveedor",
   icon: "mdi-currency-usd",
   confirmed_at: null,
+  show_date: true,
   comments: [],
   ...over,
 });
@@ -37,9 +38,36 @@ test("confirmed steps and public comments become updates, newest first by time",
   ];
   const ready = { stepId: 2, stepName: "Mercancía lista para envío", icon: "mdi-package-variant" };
   expect(trackingUpdates(phases)).toEqual([
-    { ...ready, key: "comment-9", text: "Buque salió del puerto.", at: "2026-10-20T15:30:00+00:00" },
-    { ...ready, key: "step-2", text: "Completado", at: "2026-10-14T21:10:00.123456+00:00" },
-    { key: "step-1", stepId: 1, stepName: "Pago al proveedor", icon: "mdi-currency-usd", text: "Completado", at: "2026-10-14T14:35:00+00:00" },
+    { ...ready, key: "comment-9", text: "Buque salió del puerto.", at: "2026-10-20T15:30:00+00:00", showDate: true },
+    { ...ready, key: "step-2", text: "Completado", at: "2026-10-14T21:10:00.123456+00:00", showDate: true },
+    {
+      key: "step-1",
+      stepId: 1,
+      stepName: "Pago al proveedor",
+      icon: "mdi-currency-usd",
+      text: "Completado",
+      at: "2026-10-14T14:35:00+00:00",
+      showDate: true,
+    },
+  ]);
+});
+
+test("a step that hides its date shows «Completado» without a date, in its place, while its comments keep theirs", () => {
+  const phases = [
+    phase("in_progress", [
+      step({
+        id: 1,
+        confirmed_at: "2026-10-14T14:35:00+00:00",
+        show_date: false,
+        comments: [{ id: 4, comment: "Contenedor en revisión", created_at: "2026-10-15T09:10:00+00:00" }],
+      }),
+      step({ id: 2, confirmed_at: "2026-10-13T08:00:00+00:00" }),
+    ]),
+  ];
+  expect(trackingUpdates(phases).map(({ key, showDate }) => [key, showDate])).toEqual([
+    ["comment-4", true],
+    ["step-1", false],
+    ["step-2", true],
   ]);
 });
 
@@ -50,6 +78,7 @@ const update = (key: string, stepId: number, at: string): TrackingUpdate => ({
   icon: "mdi-check",
   text: key,
   at,
+  showDate: true,
 });
 
 test("several updates in a row of one step show under that step once", () => {
@@ -83,8 +112,14 @@ test("updates with the same time keep a stable order", () => {
   expect(trackingUpdates(phases).map((update) => update.key)).toEqual(["step-1", "comment-4"]);
 });
 
+const nextStep = (date: string | null, show_date = true) => ({ name: "Zarpe", icon: "mdi-ferry", date, show_date });
+
 test("the next move shows its date in the company's zone or that it is still to be set", () => {
-  expect(nextStepDateLabel("2026-11-04T03:00:00Z", "America/Lima")).toBe("03/NOV/2026");
-  expect(nextStepDateLabel("2026-11-04T03:00:00Z", "Europe/Madrid")).toBe("04/NOV/2026");
-  expect(nextStepDateLabel(null, "America/Lima")).toBe("Fecha por definir");
+  expect(nextStepDateLabel(nextStep("2026-11-04T03:00:00Z"), "America/Lima")).toBe("03/NOV/2026");
+  expect(nextStepDateLabel(nextStep("2026-11-04T03:00:00Z"), "Europe/Madrid")).toBe("04/NOV/2026");
+  expect(nextStepDateLabel(nextStep(null), "America/Lima")).toBe("Fecha por definir");
+});
+
+test("a next move whose date is hidden from the client shows no date line at all", () => {
+  expect(nextStepDateLabel(nextStep(null, false), "America/Lima")).toBeNull();
 });

@@ -37,6 +37,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
       date_default_id: null,
       allows_skip: false,
       allows_send_skip: false,
+      show_date_to_client: false,
     };
   }
   return {
@@ -50,6 +51,7 @@ function toDraft(step: TrackingStep | null, phaseId: number | null): TrackingSte
     date_default_id: step.date_default_id,
     allows_skip: step.allows_skip,
     allows_send_skip: step.allows_send_skip,
+    show_date_to_client: step.show_date_to_client,
   };
 }
 
@@ -118,6 +120,15 @@ watch(open, (isOpen) => {
             color="success"
             inset
             hide-details
+          />
+          <v-switch
+            id="tracking-step-show-date-to-client"
+            v-model="draft.show_date_to_client"
+            label="Mostrar fecha al cliente"
+            hint="Si está apagado, el cliente no ve la fecha de este paso en su seguimiento."
+            persistent-hint
+            color="success"
+            inset
           />
           <v-switch
             v-model="draft.active"

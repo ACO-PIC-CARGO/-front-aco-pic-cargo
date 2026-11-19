@@ -11,6 +11,7 @@ export interface PublicTrackingStep {
   name: string;
   icon: string;
   confirmed_at: string | null;
+  show_date: boolean;
   comments: PublicTrackingComment[];
 }
 
@@ -28,6 +29,7 @@ export interface PublicNextStep {
   name: string;
   icon: string;
   date: string | null;
+  show_date: boolean;
 }
 
 export interface PublicTracking {
