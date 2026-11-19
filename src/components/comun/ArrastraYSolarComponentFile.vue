@@ -5,9 +5,11 @@ import type { ArchivoInicial } from "@/types/archivos";
 import { useFilesStore } from "@/stores/files";
 
 // 1. Agregamos los props para recibir la data del padre
-const props = withDefaults(defineProps<{ id?: string; archivoInicial?: ArchivoInicial | null }>(), {
+// compact: botón "Adjuntar" / chip con el archivo (instructivo). Sin compact se ve como antes.
+const props = withDefaults(defineProps<{ id?: string; archivoInicial?: ArchivoInicial | null; compact?: boolean }>(), {
   id: undefined,
   archivoInicial: null,
+  compact: false,
 });
 const emit = defineEmits<{
   "archivo-cargado": [payload: { id: unknown; archivo: unknown }];
@@ -123,7 +125,67 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-card>
+  <div
+    v-if="compact"
+    class="adj-file"
+  >
+    <div
+      v-if="loading"
+      class="adj-file__box adj-file__box--loading"
+    >
+      <v-progress-circular
+        indeterminate
+        size="14"
+        width="2"
+      />
+      Subiendo…
+    </div>
+    <div
+      v-else-if="archivoSubidoExitosamente"
+      class="adj-file__box adj-file__box--ok"
+    >
+      <v-icon size="16">
+        mdi-file-document-outline
+      </v-icon>
+      <a
+        :href="rutaDescarga || undefined"
+        target="_blank"
+        class="adj-file__name"
+        :title="file ? file.name : ''"
+      >{{ file ? file.name : "Archivo listo" }}</a>
+      <button
+        type="button"
+        class="adj-file__remove"
+        title="Quitar archivo"
+        @click="eliminarFile"
+      >
+        <v-icon size="16">
+          mdi-close
+        </v-icon>
+      </button>
+    </div>
+    <button
+      v-else
+      type="button"
+      class="adj-file__box adj-file__box--btn"
+      @click="openFileInput"
+      @dragover.prevent
+      @drop="handleDrop"
+    >
+      <v-icon size="16">
+        mdi-tray-arrow-up
+      </v-icon>
+      Adjuntar
+    </button>
+    <v-file-input
+      ref="fileInput"
+      v-model="file"
+      hide-details
+      @update:model-value="uploadFile()"
+      style="display: none"
+    />
+  </div>
+  <v-card v-else>
     <v-card-text>
       <div v-if="archivoSubidoExitosamente">
         <span><b>Archivo Cargado:</b></span>
@@ -205,5 +267,61 @@ onMounted(() => {
   align-content: center;
   /* line-height: 150px; */
   cursor: pointer;
+}
+
+.adj-file {
+  min-width: 0;
+}
+.adj-file__box {
+  width: 100%;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.adj-file__box--btn {
+  justify-content: center;
+  font-weight: 700;
+  color: #1f73e8;
+  background: #ffffff;
+  border: 1px solid #c9dcfb;
+  cursor: pointer;
+}
+.adj-file__box--btn:hover {
+  background: #eaf2ff;
+}
+.adj-file__box--ok {
+  color: #166534;
+  background: #dcf5d0;
+}
+.adj-file__box--loading {
+  justify-content: center;
+  color: #1f73e8;
+  background: #eaf2ff;
+}
+.adj-file__name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #1f2a44;
+  text-decoration: none;
+}
+.adj-file__name:hover {
+  text-decoration: underline;
+}
+.adj-file__remove {
+  display: inline-flex;
+  color: #4b5563;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.adj-file__remove:hover {
+  color: #dc2626;
 }
 </style>

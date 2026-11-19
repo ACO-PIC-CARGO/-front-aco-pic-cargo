@@ -1474,15 +1474,22 @@ function getProveedor(element: OpcionCosto) {
         <v-card-title class="pa-0">
           <v-toolbar
             flat
-            theme="dark"
-            color="primary"
+            color="white"
+            class="ins-toolbar"
           >
-            <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
+            <v-icon
+              class="ml-4 mr-2"
+              color="#12306b"
+            >
+              mdi-file-document-outline
+            </v-icon>
+            <v-toolbar-title class="ins-toolbar__title ml-0">
+              Instructivo de Pricing a {{ instructivoDestino === "TRAFFIC" ? "Tráfico" : "Operaciones" }}
+            </v-toolbar-title>
             <v-spacer />
             <v-btn
-              variant="elevated"
-              class="mx-1"
-              color="#FFD600"
+              variant="flat"
+              class="mx-1 ins-toolbar__btn ins-toolbar__btn--abrir"
               @click="
                 abrirCarpeta(
                   pricingStore.datosPrincipales.url_folderonedrive,
@@ -1490,19 +1497,17 @@ function getProveedor(element: OpcionCosto) {
               "
             >
               <v-icon
-                class="mx-1"
+                class="mr-1"
                 size="small"
               >
-                mdi-folder
+                mdi-folder-open-outline
               </v-icon>
-              ABRIR
+              Abrir
             </v-btn>
             <v-btn
-              variant="elevated"
-              size="small"
-              class="mx-1"
+              variant="outlined"
+              class="mx-1 ins-toolbar__btn"
               v-if="verPrevisualizacion"
-              color="#01579B"
               @click="verDatosPreview = !verDatosPreview"
             >
               <v-icon
@@ -1522,11 +1527,9 @@ function getProveedor(element: OpcionCosto) {
               {{ verDatosPreview ? "Ocultar Datos" : "Editar Datos" }}
             </v-btn>
             <v-btn
-              variant="elevated"
-              size="small"
-              class="mx-1"
+              variant="outlined"
+              class="mx-1 ins-toolbar__btn"
               v-if="verDatosPreview"
-              color="#01579B"
               @click="verPrevisualizacion = !verPrevisualizacion"
             >
               <v-icon
@@ -1552,6 +1555,8 @@ function getProveedor(element: OpcionCosto) {
             <v-btn
               variant="text"
               icon
+              class="mr-2"
+              color="#1f2a44"
               @click="cerrarDialogoSequenceInstructivo"
             >
               <v-icon>mdi-close</v-icon>
@@ -1854,6 +1859,28 @@ function getProveedor(element: OpcionCosto) {
 } */
 .classDialog {
   min-height: 900px !important;
+}
+.ins-toolbar {
+  border-bottom: 1px solid #e3e8f0;
+}
+.ins-toolbar__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #12306b;
+}
+.ins-toolbar__btn {
+  height: 36px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #1f2a44 !important;
+  border-color: #dfe5ee !important;
+  border-radius: 8px !important;
+}
+.ins-toolbar__btn--abrir {
+  background: #ffe27a !important;
+  color: #1f2a44 !important;
 }
 </style>
 <style scoped>
