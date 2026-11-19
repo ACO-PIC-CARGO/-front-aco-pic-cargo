@@ -28,7 +28,12 @@ export default defineConfig({
         theme_color: "#252C32",
         background_color: "#ffffff",
         display: "standalone",
-        start_url: "/",
+        // Sin start_url fijo: el acceso directo abre la dirección desde la que se instaló
+        // (p. ej. /home/FolderBanks/ingresosPendientesConfirmar). Se anula el "/" por defecto del plugin.
+        start_url: undefined,
+        // id y scope fijos: la app es la misma aunque se instale desde otra pantalla y navega por todo el sitio.
+        id: "/",
+        scope: "/",
         icons: [{ src: "/favicon.ico", sizes: "32x32", type: "image/x-icon" }],
       },
       workbox: {
