@@ -175,6 +175,22 @@ async function guardar() {
           Confirmar ingreso
         </v-btn>
       </v-card-actions>
+      <!-- celular: en pantalla completa se pide una salida explícita a la pantalla anterior -->
+      <div
+        v-if="smAndDown"
+        class="confcob__volver"
+      >
+        <v-btn
+          block
+          variant="flat"
+          color="#0a1f44"
+          prepend-icon="mdi-arrow-left"
+          :disabled="guardando"
+          @click="abierto = false"
+        >
+          Volver a la pantalla anterior
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -262,6 +278,15 @@ async function guardar() {
 /* celular: pantalla completa, botones a lo ancho */
 .confcob--full {
   border-radius: 0 !important;
+}
+.confcob__volver {
+  padding: 0 18px 16px;
+}
+.confcob__volver .v-btn {
+  min-height: 44px;
+}
+.confcob--full .confcob__actions {
+  padding-bottom: 8px;
 }
 @media (max-width: 600px) {
   .confcob__resumen {
