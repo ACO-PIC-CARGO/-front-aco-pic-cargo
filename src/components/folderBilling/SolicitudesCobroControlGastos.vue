@@ -4,7 +4,6 @@ import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import Swal from "sweetalert2";
 import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
-import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
 import SolicitudCobroCardMovil from "./SolicitudCobroCardMovil.vue";
 import ConfirmarCobroDialog from "./ConfirmarCobroDialog.vue";
 import RechazarSolicitudDialog from "./RechazarSolicitudDialog.vue";
@@ -69,13 +68,6 @@ const { procesando, enviar, eliminar, eliminarSoporte, registrarEnBancos, claveS
   useSolicitudCobro(() => cargar());
 
 
-// modo ver (ojito), igual que en Solicitudes de Pago
-const dialogVer = ref(false);
-const codigoVer = ref<string | null>(null);
-function verSolicitud(s: { codigo: string }) {
-  codigoVer.value = s.codigo;
-  dialogVer.value = true;
-}
 // Rechazar: Administración (04 / 01) mientras está pendiente por confirmar
 const { dialogRechazo, rechazoSel, puedeRechazar, tituloRechazar, abrirRechazo } = useRechazoSolicitud(areaRechazoCobro);
 // varios pagos parciales del cliente
@@ -449,16 +441,6 @@ defineExpose({ cargar });
                   @click="eliminarFila(s)"
                 />
                 <v-btn
-                  icon="mdi-eye-outline"
-                  variant="tonal"
-                  size="small"
-                  color="primary"
-                  title="Ver solicitud de cobro"
-                  aria-label="Ver solicitud de cobro"
-                  data-modo-ver="permitido"
-                  @click="verSolicitud(s)"
-                />
-                <v-btn
                   v-if="s.codigo_estado === 'RECHAZADA'"
                   size="small"
                   variant="outlined"
@@ -563,10 +545,6 @@ defineExpose({ cargar });
       v-model="dialogConfirmar"
       :solicitud="solicitudConfirmar"
       @guardado="cargar()"
-    />
-    <SolicitudCobroVerDialog
-      v-model="dialogVer"
-      :codigo="codigoVer"
     />
   </section>
 </template>
