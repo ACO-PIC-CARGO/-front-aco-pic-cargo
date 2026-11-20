@@ -56,10 +56,14 @@ test("a new payment starts with an empty amount and a partial one can be sent", 
   // pago parcial: se puede enviar (el voucher aún falta, por eso sigue desactivado aquí)
   expect(boton("GUARDAR Y ENVIAR").title).toContain("pago parcial");
 
-  // no puede pasar el saldo
+  // cobro: puede pasar el saldo; no es error, se muestra el excedente en verde
   await w.findComponent({ name: "VTextField" }).setValue("700");
   await flushPromises();
-  expect(document.body.textContent).toContain("No puede ser mayor a 666.58");
+  expect(document.body.textContent).not.toContain("No puede ser mayor");
+  expect(document.body.textContent).toContain("EXCEDENTE");
+  expect(document.body.textContent).toContain("USD 33.42");
+  expect(document.querySelector(".pagocli__saldo--ok")).not.toBeNull();
+  expect(document.querySelector(".pagocli__monto--excede")).not.toBeNull();
   w.unmount();
 });
 

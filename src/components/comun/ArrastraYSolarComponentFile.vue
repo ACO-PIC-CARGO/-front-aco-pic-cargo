@@ -6,11 +6,27 @@ import { useFilesStore } from "@/stores/files";
 
 // 1. Agregamos los props para recibir la data del padre
 // compact: botón "Adjuntar" / chip con el archivo (instructivo). Sin compact se ve como antes.
-const props = withDefaults(defineProps<{ id?: string; archivoInicial?: ArchivoInicial | null; compact?: boolean }>(), {
-  id: undefined,
-  archivoInicial: null,
-  compact: false,
-});
+// zona: recuadro punteado con título (instructivo, pasos de pago). accept: p. ej. ".pdf".
+const props = withDefaults(
+  defineProps<{
+    id?: string;
+    archivoInicial?: ArchivoInicial | null;
+    compact?: boolean;
+    zona?: boolean;
+    titulo?: string;
+    subtitulo?: string;
+    accept?: string;
+  }>(),
+  {
+    id: undefined,
+    archivoInicial: null,
+    compact: false,
+    zona: false,
+    titulo: "Subir archivo",
+    subtitulo: "Arrastra y suelta el archivo o haz clic para seleccionar",
+    accept: undefined,
+  },
+);
 const emit = defineEmits<{
   "archivo-cargado": [payload: { id: unknown; archivo: unknown }];
   "archivo-eliminado": [];
@@ -39,12 +55,30 @@ function cargarDataExistente(data: ArchivoInicial) {
   } as File;
 }
 
+// Respeta "accept" también al arrastrar (el input solo filtra el diálogo de archivos).
+function archivoPermitido(archivo: File) {
+  if (!props.accept) return true;
+  const nombre = archivo.name.toLowerCase();
+  const permitido = props.accept
+    .split(",")
+    .map((tipo) => tipo.trim().toLowerCase())
+    .some((tipo) => (tipo.startsWith(".") ? nombre.endsWith(tipo) : archivo.type === tipo));
+  if (!permitido) {
+    Swal.fire({ icon: "warning", title: "Archivo no permitido", text: `Solo se aceptan archivos ${props.accept}` });
+  }
+  return permitido;
+}
+
 async function handleDrop(event: DragEvent) {
   loading.value = true;
   event.preventDefault();
   isDragging.value = false;
   const droppedFiles = event.dataTransfer!.files;
 
+  if (droppedFiles.length > 0 && !archivoPermitido(droppedFiles[0]!)) {
+    loading.value = false;
+    return;
+  }
   if (droppedFiles.length > 0) {
     file.value = droppedFiles[0]!;
 
@@ -65,6 +99,10 @@ async function uploadFile() {
   msgfile.value = "";
   errfile.value = "";
 
+  if (file.value && !archivoPermitido(file.value)) {
+    file.value = null;
+    return;
+  }
   if (file.value) {
     loading.value = true;
     try {
@@ -126,8 +164,9 @@ onMounted(() => {
 
 <template>
   <div
-    v-if="compact"
+    v-if="compact || zona"
     class="adj-file"
+    :class="{ 'adj-file--zona': zona }"
   >
     <div
       v-if="loading"
@@ -165,6 +204,27 @@ onMounted(() => {
       </button>
     </div>
     <button
+      v-else-if="zona"
+      type="button"
+      class="adj-file__zona"
+      :class="{ 'is-dragging': isDragging }"
+      @click="openFileInput"
+      @dragover.prevent="isDragging = true"
+      @dragleave="isDragging = false"
+      @drop="handleDrop"
+    >
+      <v-icon
+        size="34"
+        class="adj-file__zona-icon"
+      >
+        mdi-cloud-upload-outline
+      </v-icon>
+      <span class="adj-file__zona-text">
+        <b>{{ titulo }}</b>
+        <span v-if="subtitulo">{{ subtitulo }}</span>
+      </span>
+    </button>
+    <button
       v-else
       type="button"
       class="adj-file__box adj-file__box--btn"
@@ -181,6 +241,7 @@ onMounted(() => {
       ref="fileInput"
       v-model="file"
       hide-details
+      :accept="accept"
       @update:model-value="uploadFile()"
       style="display: none"
     />
@@ -323,5 +384,41 @@ onMounted(() => {
 }
 .adj-file__remove:hover {
   color: #dc2626;
+}
+.adj-file--zona .adj-file__box {
+  height: 44px;
+  font-size: 13px;
+}
+.adj-file__zona {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 18px;
+  text-align: left;
+  background: #f7faff;
+  border: 1.5px dashed #6aa3f2;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s, border-color 0.2s;
+}
+.adj-file__zona:hover,
+.adj-file__zona.is-dragging {
+  background: #eaf2ff;
+  border-color: #1f73e8;
+}
+.adj-file__zona-icon {
+  color: #1f73e8;
+}
+.adj-file__zona-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 12px;
+  color: #4b5563;
+}
+.adj-file__zona-text b {
+  font-size: 14px;
+  color: #1f2a44;
 }
 </style>

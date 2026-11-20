@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, nextTick, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import FormatFecha from "../comun/FormatFecha.vue";
@@ -74,8 +75,9 @@ function hoy() {
 function formatoMonto(valor: number | string) {
   return Number(valor || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 
 function seleccionarArchivo() {

@@ -9,9 +9,19 @@ import ArrastraYSolarComponent from "./ArrastraYSolarComponentFile.vue";
 import InstructivoStep from "./InstructivoStep.vue";
 import InstructivoPreviewRow from "./InstructivoPreviewRow.vue";
 import FormatFecha from "./FormatFecha.vue";
+import LogoPlataformaPago from "./LogoPlataformaPago.vue";
 import { shortDate } from "@/utils/dates";
+import {
+  CODIGO_METODO_PAGO,
+  CODIGOS_ALIBABA,
+  CODIGOS_MADE_IN_CHINA,
+  type MetodoPagoProveedor,
+  nombreMetodoPago,
+  useMetodosPagoProveedor,
+} from "@/composables/useMetodosPagoProveedor";
 import { usePuertoStore } from "@/stores/puerto";
 import { usePricingStore } from "@/stores/pricing";
+import { useShipmentSubtypeStore } from "@/stores/shipmentSubtype";
 import type { ArchivoInicial } from "@/types/archivos";
 import type { Modalidad } from "@/types/catalogos";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -50,8 +60,16 @@ const pricingStore = usePricingStore() as ReturnType<typeof usePricingStore> & {
   itemsProveedorList?: FichaInstructivo[];
 };
 const puertoStore = usePuertoStore();
+const shipmentSubtypeStore = useShipmentSubtypeStore();
+// "Servicio" = sub tipo de embarque de Datos principales (antes era un paso del instructivo).
+const servicioTexto = computed(() => {
+  const principales = pricingStore.datosPrincipales;
+  const subtipo = shipmentSubtypeStore
+    .ofShipment(principales.idtipocarga as number | string | null)
+    .find((item) => String(item.id) === String(principales.id_shipment_subtype ?? ""));
+  return subtipo?.name || principales.shipment_subtype || String(datosManuales.value.servicio ?? "");
+});
 
-const txtServicio = useTemplateRef("txtServicio");
 const txtEmail = useTemplateRef("txtEmail");
 
 const listaDocumentos = ref<DocumentoInstructivo[]>([
@@ -165,10 +183,10 @@ const datosManualesNoAplica = ref<Record<string, boolean>>({
 const datosManuales = ref<DatosManualesInstructivo>({
   servicio: "",
   email: "",
-  monto: 0,
+  monto: "",
   listDiaFecha: "",
   grupoWhatsapp: "",
-  pagarProveedor: true,
+  pagarProveedor: "",
   metodoPagarProveedor: "1",
   condicionesLink: "",
   dondePagar: "",
@@ -181,14 +199,14 @@ const datosManuales = ref<DatosManualesInstructivo>({
   observacion1: "",
   observacion2: "",
   id_path: [],
-  montoRecibido: 0,
+  montoRecibido: "",
   bancoBenbeficiario: "",
   direccionBancoBeneficiario: "",
   nombreBeneficiario: "",
   direccionBeneficiario: "",
   numeroCuentaBeneficiario: null,
   paisReceptor: null,
-  porcentajePago: 0,
+  porcentajePago: "",
   cotizacionDeVentasFlag: false,
   cotizacionFlag: false,
   facturaCommercialFlag: false,
@@ -210,27 +228,142 @@ const datosManuales = ref<DatosManualesInstructivo>({
   otros: null,
   agregarOtros: null,
   numeroContratoAlibaba: null,
+  // Pago al proveedor (7.1 / 7.2 / 7.3)
+  monedaRecibido: "USD",
+  fechaPagoCliente: "",
+  metodoPagoCodigo: "",
+  metodoPagoNombre: "",
+  metodoPagoOtro: "",
+  contratoAlibaba: null,
+  codigoSwift: "",
+  // Seguro / certificado de origen / permisos especiales
+  montoSeguro: "",
+  monedaSeguro: "USD",
+  certificadoOrigen: "",
+  partidaArancelaria: "",
+  permisosEspeciales: "",
+  comentarioPermisos: "",
+  monedaPago: "USD",
+  capturaDatosBancarios: null,
+  qrPagoProveedor: null,
+  montoCNY: null,
+  montoUSD: null,
 });
 const puertoOrigen = ref<Puerto | null>(null);
 
 const puertoDestino = ref<Puerto | null>(null);
 
-const mostrarPagarProveedorAlibaba = computed(() => {
-  if (datosManuales.value.pagarProveedor) {
-    if (datosManuales.value.metodoPagarProveedor == 1) {
-      return true;
-    }
-  }
-  return false;
+// ===== MÉTODO DE PAGO AL PROVEEDOR (maestro METPAGPROV; toda regla va por código) =====
+const { metodos: catalogoMetodosPago, cargando: cargandoMetodos, listar: listarMetodosPago } = useMetodosPagoProveedor();
+const codigoMetodoPago = computed(() => String(datosManuales.value.metodoPagoCodigo ?? ""));
+const metodoPagoSeleccionado = computed<Pick<MetodoPagoProveedor, "codigo" | "descripcion" | "detalle"> | null>(() => {
+  const codigo = codigoMetodoPago.value;
+  if (!codigo) return null;
+  return catalogoMetodosPago.value.find((m) => m.codigo === codigo)
+    ?? { codigo, descripcion: String(datosManuales.value.metodoPagoNombre || codigo), detalle: null };
 });
-const mostrarPagarProveedorInternacional = computed(() => {
-  if (datosManuales.value.pagarProveedor) {
-    if (datosManuales.value.metodoPagarProveedor == 2) {
-      return true;
-    }
-  }
-  return false;
+// Activos + el ya elegido aunque luego lo hayan inactivado.
+const opcionesMetodoPago = computed(() => {
+  const activos = catalogoMetodosPago.value.filter((m) => m.estado);
+  const elegido = metodoPagoSeleccionado.value;
+  return elegido && !activos.some((m) => m.codigo === elegido.codigo) ? [...activos, elegido] : activos;
 });
+function esMetodoOtros(codigo: string) {
+  return codigo === CODIGO_METODO_PAGO.OTROS;
+}
+function elegirMetodoPago(metodo: Pick<MetodoPagoProveedor, "codigo" | "descripcion" | "detalle">) {
+  datosManuales.value.metodoPagoCodigo = metodo.codigo;
+  datosManuales.value.metodoPagoNombre = nombreMetodoPago(metodo);
+}
+// Texto del método para la previsualización / PDF / correo.
+const metodoPagoTexto = computed(() => {
+  const metodo = metodoPagoSeleccionado.value;
+  if (!metodo) return "";
+  const otro = String(datosManuales.value.metodoPagoOtro ?? "").trim();
+  return esMetodoOtros(metodo.codigo) && otro ? `${metodo.descripcion}: ${otro}` : nombreMetodoPago(metodo);
+});
+const esPagoAlibaba = computed(() => !!datosManuales.value.pagarProveedor && CODIGOS_ALIBABA.includes(codigoMetodoPago.value));
+// Plataformas con link de pago + contrato: Alibaba (01 / 02) y Made in China (06 tarjeta / 05 transferencia).
+const plataforma = computed<"Alibaba" | "Made in China" | null>(() => {
+  if (!datosManuales.value.pagarProveedor) return null;
+  if (CODIGOS_ALIBABA.includes(codigoMetodoPago.value)) return "Alibaba";
+  if (CODIGOS_MADE_IN_CHINA.includes(codigoMetodoPago.value)) return "Made in China";
+  return null;
+});
+const esPlataforma = computed(() => plataforma.value !== null);
+const esPlataformaTransferencia = computed(() =>
+  esPlataforma.value
+  && [CODIGO_METODO_PAGO.ALIBABA_TRANSFERENCIA, CODIGO_METODO_PAGO.MADE_IN_CHINA_TRANSFERENCIA].includes(codigoMetodoPago.value as "02"),
+);
+const mostrarPagarProveedorAlibaba = esPagoAlibaba;
+const esTransferenciaInternacional = computed(
+  () => !!datosManuales.value.pagarProveedor && codigoMetodoPago.value === CODIGO_METODO_PAGO.TRANSFERENCIA_INTERNACIONAL,
+);
+const mostrarPagarProveedorInternacional = esTransferenciaInternacional;
+const esAlipay = computed(() => !!datosManuales.value.pagarProveedor && codigoMetodoPago.value === CODIGO_METODO_PAGO.ALIPAY);
+// 7.3: todo método elegido tiene formulario; arriba siempre va el monto (salvo Alipay, que pide CNY / USD).
+const tieneFormularioPago = computed(() => !!datosManuales.value.pagarProveedor && !!metodoPagoSeleccionado.value);
+const esOtrosPago = computed(() => !!datosManuales.value.pagarProveedor && codigoMetodoPago.value === CODIGO_METODO_PAGO.OTROS);
+const pideMontoPago = computed(() => tieneFormularioPago.value && !esAlipay.value);
+const subtituloFormularioPago = computed(() => {
+  if (esOtrosPago.value) return "(Especificar Método de Pago)";
+  return metodoPagoSeleccionado.value?.detalle ? `(${metodoPagoSeleccionado.value.detalle})` : "";
+});
+const pideDatosTransferencia = computed(() => esPlataformaTransferencia.value || esTransferenciaInternacional.value);
+const tituloFormularioPago = computed(() =>
+  `Pago al Proveedor – ${plataforma.value ?? metodoPagoSeleccionado.value?.descripcion ?? ""}`,
+);
+const placeholderBeneficiario = computed(() =>
+  plataforma.value === "Made in China"
+    ? "Ej. Made in China Group Co., Ltd."
+    : plataforma.value
+      ? "Ej. Alibaba Group Co., Ltd."
+      : "Ej. ABC Trading Co., Ltd.",
+);
+const monedaPago = computed<string>({
+  get: () => String(datosManuales.value.monedaPago || "USD"),
+  set: (valor) => {
+    datosManuales.value.monedaPago = valor;
+  },
+});
+// Un monto nunca se muestra como 0: vacío y con placeholder.
+function limpiarMontosEnCero() {
+  for (const campo of ["monto", "montoRecibido", "montoCNY", "montoUSD", "porcentajePago", "montoSeguro"]) {
+    const valor = datosManuales.value[campo];
+    if (valor === 0 || valor === "0") datosManuales.value[campo] = "";
+  }
+}
+// Instructivos guardados antes del catálogo: 1 = Alibaba, 2 = Transferencia internacional, 3 = Otros.
+function migrarMetodoPagoAntiguo() {
+  if (datosManuales.value.metodoPagoCodigo !== undefined) return;
+  const antiguo: Record<string, string> = {
+    1: CODIGO_METODO_PAGO.ALIBABA_TARJETA,
+    2: CODIGO_METODO_PAGO.TRANSFERENCIA_INTERNACIONAL,
+    3: CODIGO_METODO_PAGO.OTROS,
+  };
+  datosManuales.value.metodoPagoCodigo = antiguo[String(datosManuales.value.metodoPagarProveedor ?? "")] ?? "";
+  datosManuales.value.metodoPagoNombre = "";
+}
+
+const monedas = computed(() => {
+  const lista = (appStore.itemsCoinsList ?? []).map((m) => m.acronym).filter(Boolean);
+  return [...new Set(["USD", ...lista])];
+});
+const monedaRecibido = computed<string>({
+  get: () => String(datosManuales.value.monedaRecibido || "USD"),
+  set: (valor) => {
+    datosManuales.value.monedaRecibido = valor;
+  },
+});
+
+const camposTransferencia: { key: string; label: string; icon: string; placeholder: string }[] = [
+  { key: "nombreBeneficiario", label: "Beneficiario", icon: "mdi-account-outline", placeholder: "Ej. Alibaba Group Co., Ltd." },
+  { key: "direccionBeneficiario", label: "Dirección del beneficiario", icon: "mdi-map-marker-outline", placeholder: "Ej. No. 969, Wen Yi Road, Hangzhou, China" },
+  { key: "bancoBenbeficiario", label: "Banco beneficiario", icon: "mdi-bank-outline", placeholder: "Ej. Bank of China" },
+  { key: "direccionBancoBeneficiario", label: "Dirección del banco", icon: "mdi-map-marker-outline", placeholder: "Ej. No. 1 Fuxingmennei St., Beijing, China" },
+  { key: "codigoSwift", label: "Código SWIFT", icon: "mdi-web", placeholder: "Ej. BKCHCNBJ" },
+  { key: "numeroCuentaBeneficiario", label: "N.° de cuenta", icon: "mdi-credit-card-outline", placeholder: "Ej. 1234567890123456" },
+];
 
 // "Cliente ya nos pagó" (Alibaba): se guarda como texto "Si" / "No" en datosManuales.clientePago.
 const clienteYaPago = computed<boolean>({
@@ -248,25 +381,61 @@ const fechaPagoCliente = computed<string | null>({
 });
 
 // Pasos visibles en el mismo orden y con las mismas condiciones que el template.
+// 6 = Debemos pagar (incluye 7.1 Cliente ya nos pagó). Sub-pasos del pago: 7 método, 12 Alibaba (01/02),
+// 14-21 transferencia internacional (03), 22 monto a pagar.
+// 6.5 = proveedor que se está llenando (solo con 2+ shippers), 7 = método, 12 = formulario.
+const SUBPASOS_PAGO = [6.5, 7, 12];
+// El paso 7 (id 6) queda abierto mientras se llenan 7.1 / 7.2 / 7.3.
+const enPasoPago = computed(() => e6.value === 6 || SUBPASOS_PAGO.includes(e6.value));
+const ultimoSubpasoPago = computed(() =>
+  [...SUBPASOS_PAGO].reverse().find((paso) => pasosVisibles.value.includes(paso)) ?? 6,
+);
 const pasosVisibles = computed(() => {
-  const pasos = [0, 1, 2, 3, 4, 5, 6];
+  const pasos = [0, 2, 3, 4, 5, 6];
   if (datosManuales.value.pagarProveedor) {
-    pasos.push(7, 8);
-    if (mostrarPagarProveedorAlibaba.value) pasos.push(...(clienteYaPago.value ? [9, 10, 12, 13] : [9, 12, 13]));
-    if (mostrarPagarProveedorInternacional.value) pasos.push(14, 15, 16, 17, 18, 19, 20, 21);
+    if (variosProveedores.value) pasos.push(6.5);
+    pasos.push(7);
+    if (tieneFormularioPago.value) pasos.push(12);
   }
-  pasos.push(23, 24, 25);
+  // 23 seguro, 24 certificado de origen, 25 permisos especiales, 26 / 27 observaciones
+  pasos.push(23, 24, 25, 26, 27);
   return pasos;
 });
+// Número que se muestra: pasos principales 1, 2, 3…; sub-pasos del pago 7.2, 7.3… (7.1 va dentro del 7).
+const etiquetasPaso = computed(() => {
+  const etiquetas: Record<number, string> = {};
+  let principal = 0;
+  let sub = 1;
+  for (const paso of pasosVisibles.value) {
+    if (SUBPASOS_PAGO.includes(paso)) {
+      sub += 1;
+      etiquetas[paso] = `${principal}.${sub}`;
+    } else {
+      principal += 1;
+      etiquetas[paso] = String(principal);
+    }
+  }
+  return etiquetas;
+});
 function stepNumber(paso: number) {
-  return pasosVisibles.value.indexOf(paso) + 1;
+  return etiquetasPaso.value[paso] ?? "";
 }
 // Verde: todo paso ya alcanzado (incluido el más lejano), salvo el que se está llenando por primera vez.
 function isComplete(paso: number) {
   return paso < pasoMaximo.value || (paso === pasoMaximo.value && paso !== e6.value);
 }
 // Solo se puede volver a pasos ya alcanzados; para avanzar hay que usar "Continuar".
+// Clic en la cabecera: abre el paso; si ya es el actual, lo cierra / vuelve a abrir.
+const cerrado = ref(false);
+const cerradoPago = ref(false);
+function abierto(paso: number) {
+  return e6.value === paso && !cerrado.value;
+}
 function irAPaso(paso: number) {
+  if (paso === e6.value) {
+    cerrado.value = !cerrado.value;
+    return;
+  }
   if (paso <= pasoMaximo.value) e6.value = paso;
 }
 
@@ -274,8 +443,8 @@ function irAPaso(paso: number) {
 const pasoActivo = computed(() => {
   const paso = e6.value;
   if (paso <= 6) return ["shipper", "servicio", "email", "cargaLista", "whatsapp", "adjunta", "pagarProveedor"][paso];
-  if (paso <= 21) return "datosBancarios";
-  return ({ 22: "dondePagar", 23: "seguro", 24: "obs1", 25: "obs2" } as Record<number, string>)[paso];
+  if (paso <= 12) return "datosBancarios";
+  return ({ 23: "seguro", 24: "certificadoOrigen", 25: "permisos", 26: "obs1", 27: "obs2" } as Record<number, string>)[paso];
 });
 
 async function sincronizarScroll() {
@@ -298,6 +467,8 @@ async function sincronizarScroll() {
 }
 
 watch(e6, (paso) => {
+  cerrado.value = false;
+  cerradoPago.value = false;
   if (paso > pasoMaximo.value) pasoMaximo.value = paso;
   sincronizarScroll();
 });
@@ -318,36 +489,118 @@ const documentosAdjuntos = computed(() =>
     }),
 );
 
-const datosBancarios = computed<{ label: string; valor: unknown }[]>(() => {
-  const d = datosManuales.value;
-  if (mostrarPagarProveedorAlibaba.value) {
+function nombreArchivo(file: unknown) {
+  const nombreRaw = (file as { name?: string } | null)?.name;
+  if (!nombreRaw) return "";
+  return nombreRaw.includes("http") ? nombreRaw.substring(nombreRaw.lastIndexOf("/") + 1) : nombreRaw;
+}
+function estadoDocumento(doc: DocumentoInstructivo | undefined) {
+  if (!doc?.flag) return "";
+  return nombreArchivo(doc.file) || "Documento confirmado";
+}
+
+type DatoPago = { label: string; valor: unknown };
+function archivoTexto(archivo: unknown) {
+  return nombreArchivo(archivo) || (archivo ? "Archivo cargado" : "");
+}
+// Resumen del pago de un proveedor (datos planos del formulario + sus documentos).
+function resumenPago(
+  d: Record<string, unknown>,
+  docs: { factura?: DocumentoInstructivo; comprobante?: DocumentoInstructivo },
+): DatoPago[] {
+  const codigo = String(d.metodoPagoCodigo ?? "");
+  const nombre = CODIGOS_ALIBABA.includes(codigo) ? "Alibaba" : CODIGOS_MADE_IN_CHINA.includes(codigo) ? "Made in China" : null;
+  const conTransferencia = codigo === CODIGO_METODO_PAGO.ALIBABA_TRANSFERENCIA || codigo === CODIGO_METODO_PAGO.MADE_IN_CHINA_TRANSFERENCIA;
+  const metodo = [{ label: "Método de pago", valor: textoMetodoDe(d) }];
+  const monto = codigo === CODIGO_METODO_PAGO.ALIPAY
+    ? []
+    : [{ label: "Monto a pagar", valor: d.monto ? `${String(d.monedaPago || "USD")} ${d.monto}` : "" }];
+  const transferencia = camposTransferencia.map((campo) => ({ label: campo.label, valor: d[campo.key] }));
+  if (nombre) {
     return [
-      { label: "Monto a pagar", valor: d.monto },
-      { label: "Cliente ya nos pagó", valor: clienteYaPago.value ? "Sí" : "No" },
-      ...(clienteYaPago.value
-        ? [
-            { label: "Monto pagado por el cliente", valor: d.montoRecibido },
-            { label: "Fecha de pago del cliente", valor: d.fechaPagoCliente ? shortDate(d.fechaPagoCliente as string) : "" },
-          ]
+      ...metodo,
+      ...monto,
+      { label: "N° de factura comercial", valor: d.nroFactura },
+      { label: "Factura comercial / proforma", valor: estadoDocumento(docs.factura) },
+      { label: `Link de pago ${nombre}`, valor: d.linkDePagoAlibaba },
+      { label: `Contrato de ${nombre}`, valor: archivoTexto(d.contratoAlibaba) },
+      { label: `N° de contrato de ${nombre}`, valor: d.numeroContratoAlibaba },
+      ...(conTransferencia
+        ? [...transferencia, { label: "Comprobante de transferencia", valor: estadoDocumento(docs.comprobante) }]
         : []),
-      { label: "Link de pago Alibaba", valor: d.linkDePagoAlibaba },
-      { label: "N° de contrato de Alibaba", valor: d.numeroContratoAlibaba },
     ];
   }
-  if (mostrarPagarProveedorInternacional.value) {
+  if (codigo === CODIGO_METODO_PAGO.TRANSFERENCIA_INTERNACIONAL) {
     return [
-      { label: "Monto a pagar", valor: d.monto },
-      { label: "N° factura", valor: d.nroFactura },
-      { label: "Banco beneficiario", valor: d.bancoBenbeficiario },
-      { label: "Dirección del banco beneficiario", valor: d.direccionBancoBeneficiario },
-      { label: "Nombre del beneficiario", valor: d.nombreBeneficiario },
-      { label: "Dirección del beneficiario", valor: d.direccionBeneficiario },
-      { label: "Número de cuenta", valor: d.numeroCuentaBeneficiario },
-      { label: "Porcentaje de pago", valor: d.porcentajePago },
-      { label: "País receptor", valor: d.paisReceptor },
+      ...metodo,
+      ...monto,
+      { label: "N° de factura comercial", valor: d.nroFactura },
+      { label: "Factura comercial / proforma", valor: estadoDocumento(docs.factura) },
+      { label: "Comprobante de transferencia", valor: estadoDocumento(docs.comprobante) },
+      { label: "Captura de datos bancarios", valor: archivoTexto(d.capturaDatosBancarios) },
+      ...transferencia,
     ];
   }
-  return [];
+  if (codigo === CODIGO_METODO_PAGO.ALIPAY) {
+    return [
+      ...metodo,
+      { label: "N° de factura comercial", valor: d.nroFactura },
+      { label: "QR de pago", valor: archivoTexto(d.qrPagoProveedor) },
+      { label: "Monto a transferir (CNY)", valor: d.montoCNY },
+      { label: "Equivalente en dólares (USD)", valor: d.montoUSD },
+    ];
+  }
+  if (codigo === CODIGO_METODO_PAGO.OTROS) {
+    return [
+      ...metodo,
+      ...monto,
+      { label: "Comprobante / datos de transferencia", valor: estadoDocumento(docs.comprobante) },
+      { label: "N° de factura comercial", valor: d.nroFactura },
+    ];
+  }
+  return [...metodo, ...monto];
+}
+function textoMetodoDe(d: Record<string, unknown>) {
+  const codigo = String(d.metodoPagoCodigo ?? "");
+  if (!codigo) return "";
+  const metodo = catalogoMetodosPago.value.find((m) => m.codigo === codigo)
+    ?? { codigo, descripcion: String(d.metodoPagoNombre || codigo), detalle: null };
+  const otro = String(d.metodoPagoOtro ?? "").trim();
+  return esMetodoOtros(codigo) && otro ? `${metodo.descripcion}: ${otro}` : nombreMetodoPago(metodo);
+}
+
+const datosBancarios = computed<DatoPago[]>(() =>
+  datosManuales.value.pagarProveedor
+    ? resumenPago(datosManuales.value, { factura: docFacturaPago.value, comprobante: docComprobanteTransferencia.value })
+    : [],
+);
+// Con varios proveedores: un bloque de datos por proveedor.
+const gruposPagoProveedor = computed<{ id: number; nombre: string; completo: boolean; datos: DatoPago[] }[]>(() => {
+  if (!variosProveedores.value) return [];
+  return pagosProveedores.value.map((pago) => {
+    const activo = pago.id === proveedorPagoActivo.value;
+    const d = activo ? datosManuales.value : pago.datos;
+    return {
+      id: pago.id,
+      nombre: pago.nombre,
+      completo: pago.completo,
+      datos: resumenPago(d, {
+        factura: d.facturaPagoDoc as DocumentoInstructivo | undefined,
+        comprobante: d.comprobantePagoDoc as DocumentoInstructivo | undefined,
+      }),
+    };
+  });
+});
+
+// "Cliente ya nos pagó" (7.1) para la fila "Debemos pagar al proveedor".
+const pagoClienteTexto = computed(() => {
+  const d = datosManuales.value;
+  if (!d.pagarProveedor || !clienteYaPago.value) return "";
+  const monto = Number(d.montoRecibido)
+    ? monedaRecibido.value + " " + Number(d.montoRecibido).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    : "";
+  const fechaPago = d.fechaPagoCliente ? shortDate(d.fechaPagoCliente as string) : "";
+  return [monto, fechaPago].filter(Boolean).join(" · ");
 });
 
 function claseSiNo(valor: unknown) {
@@ -445,16 +698,223 @@ watch(() => pricingStore.datosPrincipales.datosinstructivomanual, (newData) => {
   }
 }, { immediate: true, deep: true });
 
-function pasarASeguro() {
-  e6.value = 23;
+function avisoFaltantes(faltantes: string[]) {
+  void Swal.fire({
+    icon: "warning",
+    title: "Completa los datos obligatorios",
+    html: faltantes.map((campo) => "• " + campo).join("<br>"),
+  });
 }
 function continuarPagarProveedor() {
+  if (pagarProveedorSiNo.value === null) {
+    avisoFaltantes(["¿Debemos pagar al proveedor?"]);
+    return;
+  }
   if (!datosManuales.value.pagarProveedor) {
     cambiarPagarProvedor();
-  } else {
+    return;
+  }
+  if (clienteYaPago.value) {
+    const faltantes = [
+      ...(Number(datosManuales.value.montoRecibido) > 0 ? [] : ["Monto que nos pagó"]),
+      ...(datosManuales.value.fechaPagoCliente ? [] : ["Fecha en que nos pagó"]),
+    ];
+    if (faltantes.length) {
+      avisoFaltantes(faltantes);
+      return;
+    }
+  }
+  continuar();
+}
+function continuarMetodoPago() {
+  const metodo = metodoPagoSeleccionado.value;
+  if (!metodo) {
+    avisoFaltantes(["Elige el método de pago al proveedor"]);
+    return;
+  }
+  datosManuales.value.metodoPagoNombre = nombreMetodoPago(metodo);
+  continuar();
+}
+const guardandoPago = ref(false);
+
+// ===== Sí / No con "Seleccionar" (sin valor por defecto) =====
+const opcionesSiNo = [
+  { title: "Sí", value: "Si" },
+  { title: "No", value: "No" },
+];
+function siNoDe(valor: unknown): "Si" | "No" | null {
+  const texto = String(valor ?? "").trim();
+  if (/^s[ií]/i.test(texto)) return "Si";
+  if (/^no$/i.test(texto)) return "No";
+  return null;
+}
+function campoSiNo(campo: string) {
+  return computed<"Si" | "No" | null>({
+    get: () => siNoDe(datosManuales.value[campo]),
+    set: (valor) => {
+      datosManuales.value[campo] = valor ?? "";
+    },
+  });
+}
+// "¿Debemos pagar al proveedor?": sin valor por defecto; el 6.1 solo aparece al elegir Sí.
+const pagarProveedorSiNo = computed<boolean | null>({
+  get: () => {
+    const valor = datosManuales.value.pagarProveedor;
+    if (valor === true || siNoDe(valor) === "Si") return true;
+    if (valor === false || siNoDe(valor) === "No") return false;
+    return null;
+  },
+  set: (valor) => {
+    datosManuales.value.pagarProveedor = valor ?? "";
+  },
+});
+const seguroSiNo = campoSiNo("seguro");
+const certificadoOrigenSiNo = campoSiNo("certificadoOrigen");
+const permisosEspecialesSiNo = campoSiNo("permisosEspeciales");
+const monedaSeguro = computed<string>({
+  get: () => String(datosManuales.value.monedaSeguro || "USD"),
+  set: (valor) => {
+    datosManuales.value.monedaSeguro = valor;
+  },
+});
+const textoVacio = (valor: unknown) => !String(valor ?? "").trim();
+async function guardarYContinuarCon(faltantes: string[]) {
+  if (faltantes.length) {
+    avisoFaltantes(faltantes);
+    return;
+  }
+  guardandoPago.value = true;
+  try {
+    await pricingStore.guardarDatosInstructivo(payloadGuardar());
     continuar();
+  } catch (error) {
+    console.error(error);
+    void Swal.fire({ icon: "error", title: "No se pudo guardar", text: "Inténtalo nuevamente." });
+  } finally {
+    guardandoPago.value = false;
   }
 }
+function guardarYContinuarSeguro() {
+  const monto = Number(datosManuales.value.montoSeguro);
+  const conSeguro = seguroSiNo.value === "Si";
+  if (conSeguro && Number.isFinite(monto) && monto > 0) datosManuales.value.montoSeguro = monto;
+  void guardarYContinuarCon([
+    ...(seguroSiNo.value ? [] : ["Seguro de Mercancía"]),
+    ...(conSeguro && !(Number.isFinite(monto) && monto > 0) ? ["Monto del seguro vendido al cliente (número mayor a 0)"] : []),
+  ]);
+}
+function guardarYContinuarCertificado() {
+  void guardarYContinuarCon([
+    ...(certificadoOrigenSiNo.value ? [] : ["¿Libera Ad Valorem con Certificado de Origen?"]),
+    ...(certificadoOrigenSiNo.value === "Si" && textoVacio(datosManuales.value.partidaArancelaria)
+      ? ["Partida arancelaria aplicable"]
+      : []),
+  ]);
+}
+function guardarYContinuarPermisos() {
+  void guardarYContinuarCon([
+    ...(permisosEspecialesSiNo.value ? [] : ["¿El cliente informó sobre permisos especiales?"]),
+    ...(textoVacio(datosManuales.value.comentarioPermisos) ? ["Comentario"] : []),
+  ]);
+}
+// Texto de las filas nuevas (previsualización / PDF / correo).
+const seguroTexto = computed(() => {
+  const d = datosManuales.value;
+  if (seguroSiNo.value !== "Si") return seguroSiNo.value === "No" ? "No" : String(d.seguro ?? "");
+  return d.montoSeguro ? `Sí · ${monedaSeguro.value} ${d.montoSeguro}` : "Sí";
+});
+const certificadoOrigenTexto = computed(() => {
+  if (certificadoOrigenSiNo.value === "Si") {
+    return datosManuales.value.partidaArancelaria ? `Sí · Partida ${datosManuales.value.partidaArancelaria}` : "Sí";
+  }
+  return certificadoOrigenSiNo.value === "No" ? "No" : "";
+});
+const permisosTexto = computed(() => {
+  const respuesta = permisosEspecialesSiNo.value === "Si" ? "Sí" : permisosEspecialesSiNo.value === "No" ? "No" : "";
+  const comentario = String(datosManuales.value.comentarioPermisos ?? "").trim();
+  return [respuesta, comentario].filter(Boolean).join(": ");
+});
+// "Otros" y métodos sin formulario propio solo piden el monto.
+const pideNroFactura = computed(
+  () => esPlataforma.value || esTransferenciaInternacional.value || esAlipay.value || esOtrosPago.value,
+);
+async function guardarYContinuarPago() {
+  const d = datosManuales.value;
+  const vacio = (valor: unknown) => !String(valor ?? "").trim();
+  const positivo = (valor: unknown) => Number.isFinite(Number(valor)) && Number(valor) > 0 && !vacio(valor);
+  // 7.3: solo los archivos son obligatorios; los montos son opcionales, pero si se llenan deben ser números > 0.
+  const montoInvalido = (valor: unknown, etiqueta: string) => (vacio(valor) || positivo(valor) ? [] : [etiqueta]);
+  const faltantes = [
+    ...(pideMontoPago.value ? montoInvalido(d.monto, "Monto a pagar (número mayor a 0)") : []),
+    ...(esOtrosPago.value && !docComprobanteTransferencia.value?.flag ? ["Comprobante / Datos de Transferencia"] : []),
+    ...((esPlataforma.value || esTransferenciaInternacional.value) && !docFacturaPago.value?.flag
+      ? ["Factura Comercial / Proforma"]
+      : []),
+    ...(esPlataforma.value && !d.contratoAlibaba ? [`Contrato de ${plataforma.value} (PDF)`] : []),
+    ...(esTransferenciaInternacional.value
+      ? [
+          ...(docComprobanteTransferencia.value?.flag ? [] : ["Comprobante de Transferencia"]),
+          ...(d.capturaDatosBancarios ? [] : ["Captura de los Datos Bancarios del Proveedor"]),
+        ]
+      : []),
+    ...(esPlataformaTransferencia.value && !docComprobanteTransferencia.value?.flag
+      ? ["Comprobante / Datos de Transferencia (PDF)"]
+      : []),
+    ...(esAlipay.value
+      ? [
+          ...(d.qrPagoProveedor ? [] : ["QR de pago"]),
+          ...montoInvalido(d.montoCNY, "Monto a transferir (CNY) mayor a 0"),
+          ...montoInvalido(d.montoUSD, "Equivalente en dólares (USD) mayor a 0"),
+        ]
+      : []),
+  ];
+  // Alipay: el monto a pagar es el equivalente en USD.
+  if (esAlipay.value && !faltantes.length && positivo(d.montoUSD)) {
+    d.monto = Number(d.montoUSD);
+    d.monedaPago = "USD";
+  }
+  if (pideMontoPago.value && !faltantes.length && positivo(d.monto)) d.monto = Number(d.monto);
+  if (faltantes.length) {
+    avisoFaltantes(faltantes);
+    return;
+  }
+  guardandoPago.value = true;
+  try {
+    let siguiente: PagoProveedor | undefined;
+    if (variosProveedores.value) {
+      guardarPagoActivo();
+      const activo = pagosProveedores.value.find((pago) => pago.id === proveedorPagoActivo.value);
+      if (activo) activo.completo = true;
+      siguiente = pagosProveedores.value.find((pago) => !pago.completo);
+    }
+    await pricingStore.guardarDatosInstructivo(payloadGuardar());
+    if (siguiente) {
+      seleccionarProveedorPago(siguiente.id);
+      e6.value = 6.5;
+      void Swal.fire({
+        icon: "success",
+        title: "Proveedor guardado",
+        text: `Sigue con: ${siguiente.nombre}`,
+        timer: 1800,
+        showConfirmButton: false,
+      });
+    } else {
+      continuar();
+    }
+  } catch (error) {
+    console.error(error);
+    void Swal.fire({ icon: "error", title: "No se pudo guardar", text: "Inténtalo nuevamente." });
+  } finally {
+    guardandoPago.value = false;
+  }
+}
+// Al cambiar "Debemos pagar" o el método, los pasos siguientes se vuelven a recorrer (y validar).
+watch(
+  () => [datosManuales.value.pagarProveedor, datosManuales.value.metodoPagoCodigo],
+  () => {
+    if (!cambiandoProveedor && pasoMaximo.value > e6.value) pasoMaximo.value = e6.value;
+  },
+);
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cargarArchivo(datoEmit: { id?: unknown; archivo?: unknown } | null | undefined, name: string) {
   if (datoEmit) {
@@ -496,16 +956,22 @@ function quitarOtro(doc: DocumentoInstructivo) {
   if (index !== -1) listaDocumentos.value.splice(index, 1);
 }
 
-// "Soporte de pago" se muestra en "Link de pago Alibaba", no en "Se adjunta" (sigue en listaDocumentos).
-const KEY_SOPORTE_PAGO = "soportePagoAlibaba";
-const docSoportePago = computed(() => listaDocumentos.value.find((doc) => doc.key === KEY_SOPORTE_PAGO));
-const documentosSeAdjunta = computed(() => listaDocumentos.value.filter((doc) => doc.key !== KEY_SOPORTE_PAGO));
-function cargarSoportePago(datoEmit: { archivo?: unknown }) {
-  if (docSoportePago.value) cargarArchivoDinamico(datoEmit, docSoportePago.value);
-}
-function eliminarSoportePago() {
-  if (docSoportePago.value) eliminarArchivoDinamico(docSoportePago.value);
-}
+// Factura comercial / proforma y comprobante de transferencia (7.3) usan el mismo documento que "Se adjunta":
+// si ya se adjuntó / marcó allí, aparece aquí sin volver a subirlo.
+const docFacturaPago = computed(() => {
+  if (variosProveedores.value) return datosManuales.value.facturaPagoDoc as DocumentoInstructivo | undefined;
+  const factura = listaDocumentos.value.find((doc) => doc.key === "facturaCommercial");
+  const proforma = listaDocumentos.value.find((doc) => doc.key === "proforma");
+  return factura && (factura.flag || !proforma?.flag) ? factura : (proforma ?? factura);
+});
+const docFacturaAdjunta = computed(() =>
+  !variosProveedores.value && docFacturaPago.value?.flag ? docFacturaPago.value : undefined,
+);
+const docComprobanteTransferencia = computed(() =>
+  variosProveedores.value
+    ? (datosManuales.value.comprobantePagoDoc as DocumentoInstructivo | undefined)
+    : listaDocumentos.value.find((doc) => doc.key === "soporteTransferenciaInternacional"),
+);
 
 // ===== SHIPPERS (table_shipper_x_quote) =====
 interface ShipperOpcion {
@@ -551,6 +1017,129 @@ const shippersPreview = computed<ShipperDetalle[]>(() =>
   }),
 );
 
+// ===== PAGO POR PROVEEDOR (2+ shippers): 7.2 elige el proveedor; 7.3 / 7.4 se llenan uno por uno =====
+interface PagoProveedor {
+  id: number;
+  nombre: string;
+  completo: boolean;
+  datos: Record<string, unknown>;
+}
+// Campos del pago que son de cada proveedor (el 7.1 "cliente ya nos pagó" es uno solo).
+const CAMPOS_PAGO_PROVEEDOR = [
+  "metodoPagoCodigo", "metodoPagoNombre", "metodoPagoOtro", "monto", "monedaPago", "nroFactura",
+  "linkDePagoAlibaba", "contratoAlibaba", "numeroContratoAlibaba", "nombreBeneficiario", "direccionBeneficiario",
+  "bancoBenbeficiario", "direccionBancoBeneficiario", "codigoSwift", "numeroCuentaBeneficiario",
+  "capturaDatosBancarios", "qrPagoProveedor", "montoCNY", "montoUSD", "facturaPagoDoc", "comprobantePagoDoc",
+];
+const VALOR_INICIAL_PAGO: Record<string, unknown> = { monedaPago: "USD" };
+const ARCHIVOS_PAGO = ["contratoAlibaba", "capturaDatosBancarios", "qrPagoProveedor"];
+function documentoPago(key: string, label: string): DocumentoInstructivo {
+  return { key, label, flag: false, file: null, editable: false };
+}
+const variosProveedores = computed(() => !!datosManuales.value.pagarProveedor && shipperIdsSeleccionados.value.length > 1);
+const pagosProveedores = computed<PagoProveedor[]>(() => (datosManuales.value.pagosProveedores as PagoProveedor[] | undefined) ?? []);
+const proveedorPagoActivo = computed(() => (datosManuales.value.proveedorPagoActivo as number | null | undefined) ?? null);
+const nombreProveedorActivo = computed(
+  () => pagosProveedores.value.find((pago) => pago.id === proveedorPagoActivo.value)?.nombre ?? "",
+);
+const proveedoresCompletos = computed(() => pagosProveedores.value.filter((pago) => pago.completo).length);
+let cambiandoProveedor = false;
+
+function copiaPago(): Record<string, unknown> {
+  return JSON.parse(JSON.stringify(Object.fromEntries(CAMPOS_PAGO_PROVEEDOR.map((campo) => [campo, datosManuales.value[campo] ?? null]))));
+}
+function cargarPago(datos: Record<string, unknown>) {
+  for (const campo of CAMPOS_PAGO_PROVEEDOR) {
+    const valor = datos[campo];
+    datosManuales.value[campo] = valor === undefined || valor === null
+      ? (VALOR_INICIAL_PAGO[campo] ?? (ARCHIVOS_PAGO.includes(campo) ? null : ""))
+      : JSON.parse(JSON.stringify(valor));
+  }
+  if (!datosManuales.value.facturaPagoDoc) datosManuales.value.facturaPagoDoc = documentoPago("facturaPago", "FACTURA COMERCIAL / PROFORMA");
+  if (!datosManuales.value.comprobantePagoDoc) {
+    datosManuales.value.comprobantePagoDoc = documentoPago("comprobantePago", "COMPROBANTE DE TRANSFERENCIA");
+  }
+}
+// Guarda en la lista lo que está en el formulario (proveedor activo).
+function guardarPagoActivo() {
+  const activo = pagosProveedores.value.find((pago) => pago.id === proveedorPagoActivo.value);
+  if (activo) activo.datos = copiaPago();
+}
+function seleccionarProveedorPago(id: number) {
+  if (id === proveedorPagoActivo.value) return;
+  guardarPagoActivo();
+  const pago = pagosProveedores.value.find((item) => item.id === id);
+  if (!pago) return;
+  cambiandoProveedor = true;
+  datosManuales.value.proveedorPagoActivo = id;
+  cargarPago(pago.datos);
+  // Un proveedor pendiente se llena antes de seguir con los pasos siguientes.
+  if (!pago.completo && !proveedoresCompletos.value && pasoMaximo.value > 6.5) pasoMaximo.value = 6.5;
+  void nextTick(() => {
+    cambiandoProveedor = false;
+  });
+}
+// Mantiene la lista alineada con los shippers del paso 1.
+function sincronizarPagosProveedores() {
+  if (!variosProveedores.value) return;
+  const anteriores = pagosProveedores.value;
+  const nuevos: PagoProveedor[] = shippersPreview.value.map((shipper) => {
+    const existente = anteriores.find((pago) => pago.id === shipper.id);
+    return existente
+      ? { ...existente, nombre: shipper.namelong || existente.nombre }
+      : { id: shipper.id, nombre: shipper.namelong || `Proveedor ${shipper.id}`, completo: false, datos: {} };
+  });
+  // Al pasar de 1 a varios proveedores, lo ya llenado queda para el primero.
+  if (!anteriores.length && nuevos[0]) nuevos[0].datos = copiaPago();
+  const huboNuevos = nuevos.some((pago) => !anteriores.some((a) => a.id === pago.id));
+  datosManuales.value.pagosProveedores = nuevos;
+  const activo = nuevos.find((pago) => pago.id === proveedorPagoActivo.value) ?? nuevos[0];
+  if (activo && activo.id !== proveedorPagoActivo.value) {
+    cambiandoProveedor = true;
+    datosManuales.value.proveedorPagoActivo = activo.id;
+    cargarPago(activo.datos);
+    void nextTick(() => {
+      cambiandoProveedor = false;
+    });
+  } else {
+    cargarPago(copiaPago());
+  }
+  if (huboNuevos && anteriores.length && !proveedoresCompletos.value && pasoMaximo.value > 6.5) pasoMaximo.value = 6.5;
+}
+watch(() => [variosProveedores.value, shipperIdsSeleccionados.value.join(","), shippersPreview.value.map((s) => s.namelong).join("|")], sincronizarPagosProveedores);
+// Salta al paso siguiente al pago (basta con un proveedor completo).
+async function continuarTrasProveedores() {
+  if (!proveedoresCompletos.value) {
+    avisoFaltantes(["Completa el pago de al menos un proveedor"]);
+    return;
+  }
+  const siguiente = pasosVisibles.value.find((paso) => paso > Math.max(...SUBPASOS_PAGO));
+  if (siguiente === undefined) return;
+  try {
+    await pricingStore.guardarDatosInstructivo(payloadGuardar());
+  } catch (error) {
+    console.error(error);
+  }
+  e6.value = siguiente;
+}
+function continuarProveedorPago() {
+  if (!proveedorPagoActivo.value) {
+    avisoFaltantes(["Elige el proveedor que vas a llenar"]);
+    return;
+  }
+  continuar();
+}
+
+// Paso 1: al menos un shipper es obligatorio (también al guardar / enviar).
+function validarShipperObligatorio() {
+  if (shipperIdsSeleccionados.value.length) return true;
+  avisoFaltantes(["Selecciona al menos un shipper"]);
+  e6.value = 0;
+  return false;
+}
+function continuarShipper() {
+  if (validarShipperObligatorio()) continuar();
+}
 // Carga los shippers guardados; si no hay, propone el shipper de "Datos de la carga".
 async function cargarShippers() {
   const idQuote = props.quoteId ?? route.params.id;
@@ -573,6 +1162,19 @@ async function cargarShippers() {
   } else {
     agregarShipper(pricingStore.datosPrincipales.id_proveedor ? Number(pricingStore.datosPrincipales.id_proveedor) : null);
   }
+}
+function payloadGuardar() {
+  if (variosProveedores.value) guardarPagoActivo();
+  return {
+    id: props.quoteId ?? route.params.id,
+    shippers: shipperIdsSeleccionados.value,
+    datosInstructivoManual: {
+      ...datosManuales.value,
+      metodoPagoNombre: metodoPagoSeleccionado.value ? nombreMetodoPago(metodoPagoSeleccionado.value) : "",
+      listaDocumentos: documentosParaGuardar(),
+      table_allpath_list: documentosParaGuardar(),
+    },
+  };
 }
 // Un "Otros" sin nombre se guarda / imprime como "OTROS".
 function documentosParaGuardar() {
@@ -599,16 +1201,9 @@ function cambiarPagarProvedor() {
   datosManuales.value.nroFactura = "No Aplica";
   e6.value = 23;
 }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function continuarEmail() {
-  if (!datosManuales.value.servicio) {
-    txtServicio.value!.focus();
-    return;
-  }
-  e6.value = 2;
-}
 
 function setDatosInstructivo() {
+  if (!validarShipperObligatorio()) return;
   if (listaDocumentos.value.some((v) => !v.flag && v.key == "cotizacion")) {
     Swal.fire({
       icon: "warning",
@@ -618,15 +1213,7 @@ function setDatosInstructivo() {
     return;
   }
 
-  pricingStore.guardarDatosInstructivo({
-    id: props.quoteId ?? route.params.id,
-    shippers: shipperIdsSeleccionados.value,
-    datosInstructivoManual: {
-      ...datosManuales.value,
-      listaDocumentos: documentosParaGuardar(),
-      table_allpath_list: documentosParaGuardar(),
-    },
-  });
+  pricingStore.guardarDatosInstructivo(payloadGuardar());
   emit("continuar");
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -638,9 +1225,19 @@ function continuarListaDiaFecha() {
   e6.value = 3;
 }
 // Avanza / retrocede al paso visible contiguo (evita caer en pasos ocultos).
+// Después del último paso: todos se cierran y quedan en verde (como la versión anterior).
+const PASO_FINAL = 99;
+// Cotización aprobada: todos los pasos quedan habilitados y se puede saltar entre ellos.
+watch(
+  [() => props.aprobadoflag, pasoMaximo],
+  () => {
+    if (props.aprobadoflag && pasoMaximo.value < PASO_FINAL) pasoMaximo.value = PASO_FINAL;
+  },
+  { immediate: true },
+);
 function continuar() {
   const siguiente = pasosVisibles.value.find((p) => p > e6.value);
-  if (siguiente !== undefined) e6.value = siguiente;
+  e6.value = siguiente ?? PASO_FINAL;
 }
 function regresar() {
   const anterior = [...pasosVisibles.value].reverse().find((p) => p < e6.value);
@@ -680,16 +1277,9 @@ async function _uploadFile(file: File) {
   }
 }
 function guardarYGenenarCorreo() {
+  if (!validarShipperObligatorio()) return;
   Promise.all([
-    pricingStore.guardarDatosInstructivo({
-      id: props.quoteId ?? route.params.id,
-      shippers: shipperIdsSeleccionados.value,
-      datosInstructivoManual: {
-        ...datosManuales.value,
-        listaDocumentos: documentosParaGuardar(),
-        table_allpath_list: documentosParaGuardar(),
-      },
-    }),
+    pricingStore.guardarDatosInstructivo(payloadGuardar()),
     generarHTML(),
     generarHTMLPDF(true),
   ]);
@@ -705,7 +1295,7 @@ async function generarHTMLPDF(guardarFlag?: boolean) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[\s-]+/g, "_");
 
-  const subjectStr = `INSTRUCTIVO_VENTAS_${nro_quote_clean}_EXPEDIENTE_${pricing.nro_exp}`;
+  const subjectStr = `INSTRUCTIVO_VENTAS_${nro_quote_clean}_${textoExpediente() === "Sin exp operativo" ? "SIN_EXP_OPERATIVO" : `EXPEDIENTE_${pricing.nro_exp}`}`;
   const subject = encodeURIComponent(subjectStr);
   const dataBranch =
     JSON.parse(sessionStorage.getItem("dataBranch") as string)?.[0] || {};
@@ -769,6 +1359,19 @@ async function generarHTMLPDF(guardarFlag?: boolean) {
     mostrarPagarProveedorAlibaba: esAlibaba,
     mostrarPagarProveedorInternacional: esInternacional,
     listaDocumentos: documentosParaGuardar(),
+    seguroTexto: seguroTexto.value,
+    certificadoOrigenTexto: certificadoOrigenTexto.value,
+    permisosTexto: permisosTexto.value,
+    // Pago al proveedor: mismo contenido que la previsualización
+    metodoPagoTexto: metodoPagoTexto.value,
+    pagoClienteTexto: pagoClienteTexto.value,
+    clienteYaPago: clienteYaPago.value,
+    datosPagoProveedor: datosBancarios.value.map((dato) => ({ label: dato.label, valor: dato.valor ?? "" })),
+    gruposPagoProveedor: gruposPagoProveedor.value.filter((grupo) => grupo.completo).map((grupo) => ({
+      nombre: grupo.nombre,
+      datos: grupo.datos.map((dato) => ({ label: dato.label, valor: dato.valor ?? "" })),
+    })),
+    servicio: servicioTexto.value,
   });
 }
 async function generarHTML() {
@@ -804,55 +1407,16 @@ async function generarHTML() {
           .join("<br />")
       : "No hay archivos seleccionados";
 
-  let datosPagoAlibaba = "";
-  if (mostrarPagarProveedorAlibaba.value) {
-    datosPagoAlibaba = `
-      <b>MONTO A PAGAR:</b> ${datosManuales.value.monto || ""}<br>
-      <b>CLIENTE YA NOS PAGÓ:</b> ${datosManuales.value.clientePago || ""}<br>
-      <b>MONTO RECIBIDO DEL CLIENTE:</b> ${
-    datosManuales.value.montoRecibido || ""
-  }<br>
-      <b>FECHA DE PAGO DEL CLIENTE:</b> ${
-    datosManuales.value.fechaPagoCliente || ""
-  }<br>
-      <b>LINK DE PAGO ALIBABA:</b> ${
-    datosManuales.value.linkDePagoAlibaba || ""
-  }<br>
-      <b>NÚMERO DE CONTRATO DE ALIBABA:</b> ${
-    datosManuales.value.numeroContratoAlibaba || ""
-  }
-    `;
-  }
-  let datosPagoInternacional = "";
-  if (mostrarPagarProveedorInternacional.value) {
-    datosPagoInternacional = `
-      <b>MONTO A PAGAR:</b> ${datosManuales.value.monto || ""}<br>
-      <b>Nro Factura:</b> ${datosManuales.value.nroFactura || ""}<br>
-      <b>Banco Beneficiario:</b> ${
-    datosManuales.value.bancoBenbeficiario || ""
-  }<br>
-      <b>Dirección del banco beneficiario:</b> ${
-    datosManuales.value.direccionBancoBeneficiario || ""
-  }<br>
-      <b>Nombre del Beneficiario:</b> ${
-    datosManuales.value.nombreBeneficiario || ""
-  }<br>
-      <b>Dirección del Beneficiario:</b> ${
-    datosManuales.value.direccionBeneficiario || ""
-  }<br>
-      <b>Número de Cuenta:</b> ${
-    datosManuales.value.numeroCuentaBeneficiario || ""
-  }<br>
-      <b>Porcentaje de Pago:</b> ${datosManuales.value.porcentajePago || ""}<br>
-      <b>País Receptor:</b> ${datosManuales.value.paisReceptor || ""}
-    `;
-  }
-
-  const valorDatosBancarios = mostrarPagarProveedorAlibaba.value
-    ? datosPagoAlibaba
-    : mostrarPagarProveedorInternacional.value
-    ? datosPagoInternacional
-    : "No especificado";
+  // Mismos datos que la previsualización (método, formulario 7.3 / transferencia y monto).
+  const lineasPago = (datos: DatoPago[]) => datos.map((dato) => "<b>" + dato.label + ":</b> " + (dato.valor ?? "")).join("<br>");
+  const valorDatosBancarios = variosProveedores.value
+    ? gruposPagoProveedor.value.filter((grupo) => grupo.completo).map((grupo) => "<b>PROVEEDOR: " + grupo.nombre + "</b><br>" + lineasPago(grupo.datos)).join("<br><br>")
+    : datosBancarios.value.length
+      ? lineasPago(datosBancarios.value)
+      : "No especificado";
+  const valorPagarProveedor = datosManuales.value.pagarProveedor
+    ? "Si<br><b>Cliente ya nos pagó:</b> " + (clienteYaPago.value ? "Sí" : "No") + (pagoClienteTexto.value ? " (" + pagoClienteTexto.value + ")" : "")
+    : "No";
 
   const htmlTable = `
     <p style="font-family: Arial, sans-serif;">Hola Compañero,</p>
@@ -866,7 +1430,7 @@ async function generarHTML() {
    )}
         ${_tr("N° QUOTE", pricing.nro_quote)}
         ${_tr("TIPO DE EMBARQUE", Shipment.value.code)}
-        ${_tr("SERVICIO", datosManuales.value.servicio)}
+        ${_tr("SERVICIO", servicioTexto.value)}
         ${_tr(
       "COLOADER/AGENTE",
       `
@@ -889,15 +1453,8 @@ async function generarHTML() {
         `,
     )}
         ${_tr(
-      "DETALLES DEL PROVEEDOR",
-      `
-          <b>NOMBRE:</b> ${proveedor.value.namelong || ""}<br>
-          <b>CONTACTO:</b> ${proveedor.value.contacto || ""}<br>
-          <b>EMAIL:</b> <a href="mailto:${
-        proveedor.value.emailaddress || ""
-      }">${proveedor.value.emailaddress || ""}</a><br>
-          <b>TELÉFONO:</b> ${proveedor.value.contacto_phone || ""}
-        `,
+      shippersCorreo().length > 1 ? "DETALLES DE LOS PROVEEDORES" : "DETALLES DEL PROVEEDOR",
+      detalleProveedoresCorreo(true),
     )}
         ${_tr(
       "CLIENTE / RAZON SOCIAL",
@@ -919,7 +1476,7 @@ async function generarHTML() {
         `,
     )}
         ${_tr(
-      "<b>CARGA LISTA DIA FECHA</b>",
+      "<b>PARA CUÁNDO SE ESTIMA LA MERCANCÍA LISTA PARA RECOJO</b>",
       datosManuales.value.listDiaFecha,
     )}
         ${_tr(
@@ -933,17 +1490,8 @@ async function generarHTML() {
     )}
         ${_tr(
       "<b>DEBEMOS PAGAR AL PROVEEDOR</b><br><span style='color:red;font-size:10px;'>Solo aplica si el cliente nos cancela a nosotros y debemos pagar al proveedor</span>",
-      datosManuales.value.pagarProveedor ? "Si" : "No",
+      valorPagarProveedor,
     )}
-        
-        ${
-      mostrarPagarProveedorAlibaba.value
-        ? _tr(
-            "<b>DONDE SE DEBE PAGAR</b>",
-            datosManuales.value.dondePagar,
-          )
-        : ""
-    }
         
         ${
       datosManuales.value.pagarProveedor
@@ -954,7 +1502,9 @@ async function generarHTML() {
         : ""
     }
         
-        ${_tr("<b>SEGURO DE MERCANCIA</b>", datosManuales.value.seguro)}
+        ${_tr("<b>SEGURO DE MERCANCIA</b>", seguroTexto.value)}
+        ${_tr("<b>LIBERA AD VALOREM CON CERTIFICADO DE ORIGEN</b>", certificadoOrigenTexto.value)}
+        ${_tr("<b>PERMISOS ESPECIALES</b>", permisosTexto.value)}
         ${_tr(
       "OBSERVACIONES ADICIONALES 1",
       datosManuales.value.observacion1,
@@ -1009,7 +1559,7 @@ async function generarHTML() {
         const clean = (str?: string | null) =>
           str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-        const subject = `EXPEDIENTE-${pricing.nro_exp} | QUOTE${
+        const subject = `${textoExpediente()} | QUOTE${
           pricing.nro_quote
         } ${clean(pricing.dataCliente.nombrecompleto)} ${clean(
           incoterms.value.name,
@@ -1019,7 +1569,8 @@ async function generarHTML() {
           "Hola colega, adjunto los detalles del expediente (Pega la tabla aquí):\n\n";
 
         setTimeout(() => {
-          window.location.href = `mailto:?subject=${encodeURIComponent(
+          // Para: correos de los shippers elegidos en el paso 1
+          window.location.href = `mailto:${correosShippers()}?subject=${encodeURIComponent(
             subject,
           )}&body=${encodeURIComponent(body)}`;
           abrirModalSegundoCorreo();
@@ -1083,12 +1634,7 @@ async function GenerartSegundoCorreo() {
         }
           `;
 
-  const proveedorDetalles = `
-            NOMBRE: ${proveedor.value.namelong || ""}<br>
-            CONTACTO: ${proveedor.value.contacto || ""}<br>
-            EMAIL: ${proveedor.value.emailaddress || ""}<br>
-            TELÉFONO: ${proveedor.value.contacto_phone || ""}
-          `;
+  const proveedorDetalles = detalleProveedoresCorreo(false);
 
   const clienteDetalles = `
               ${pricing.dataCliente.nombrecompleto || ""}<br />
@@ -1111,14 +1657,14 @@ async function GenerartSegundoCorreo() {
               "DATOS DE LA CARGA<br/><small style='font-weight:normal;'>Si es EXWORK enviar dirección de recolecta</small>",
               cargaDetalles,
             )}
-                ${_tr("DETALLES DEL PROVEEDOR", proveedorDetalles)}
+                ${_tr(shippersCorreo().length > 1 ? "DETALLES DE LOS PROVEEDORES" : "DETALLES DEL PROVEEDOR", proveedorDetalles)}
                 ${_tr("CLIENTE / RAZON SOCIAL", clienteDetalles)}
                 ${_tr(
               "NOTIFY",
               "PIC LOGISTICA SAC<br/>RUC: 20609852861<br/>AV. AGUSTIN DE LA ROSA TORO 770, SAN LUIS<br/>Contacto: Carlos Ramirez<br/>CORREO: ASESOR2@PIC-CARGO.COM",
             )}
                 ${_tr(
-              "CARGA LISTA DIA FECHA",
+              "PARA CUÁNDO SE ESTIMA LA MERCANCÍA LISTA PARA RECOJO",
               datosManuales.value.listDiaFecha || "Pendiente",
             )}
               </tbody>
@@ -1159,7 +1705,7 @@ async function GenerartSegundoCorreo() {
     const clean = (str?: string | null) =>
       str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "") : "";
 
-    const subject = `EXPEDIENTE-${pricing.nro_exp} | QUOTE${
+    const subject = `${textoExpediente()} | QUOTE${
       pricing.nro_quote
     } ${clean(pricing.dataCliente.nombrecompleto)} ${clean(
       incoterms.value.name,
@@ -1190,8 +1736,8 @@ function checkNoAplica(step: number) {
     11: "condicionesLink",
     12: "nroFactura",
     13: "seguro",
-    24: "observacion1",
-    25: "observacion2",
+    26: "observacion1",
+    27: "observacion2",
   };
 
   const propiedad = campos[step];
@@ -1201,6 +1747,46 @@ function checkNoAplica(step: number) {
       ? "No Aplica"
       : "";
   }
+}
+// "EXPEDIENTE-123" o, si aún no hay expediente, "Sin exp operativo".
+function textoExpediente() {
+  const exp = pricing.nro_exp;
+  return exp && String(exp) !== "null" ? `EXPEDIENTE-${exp}` : "Sin exp operativo";
+}
+// Shippers del paso 1; si no hay, el proveedor de la cotización.
+function shippersCorreo(): { nombre: string; contacto: string; email: string; telefono: string }[] {
+  const lista = shippersPreview.value
+    .filter((shipper) => shipper.namelong)
+    .map((shipper) => ({
+      nombre: shipper.namelong ?? "",
+      contacto: shipper.contacto ?? "",
+      email: shipper.emailaddress ?? "",
+      telefono: shipper.telefono ?? "",
+    }));
+  if (lista.length) return lista;
+  return [{
+    nombre: proveedor.value.namelong || "",
+    contacto: proveedor.value.contacto || "",
+    email: proveedor.value.emailaddress || "",
+    telefono: proveedor.value.contacto_phone || "",
+  }];
+}
+// Correos de los shippers (sin repetir) para el "Para:" del correo a Operaciones.
+function correosShippers() {
+  const correos = shippersCorreo()
+    .map((p) => p.email.trim())
+    .filter((correo) => /^[^\s@]+@[^\s@]+$/.test(correo));
+  const unicos = new Map(correos.map((correo) => [correo.toLowerCase(), correo]));
+  return [...unicos.values()].map(encodeURIComponent).join(",");
+}
+// Un proveedor debajo del otro, separados por una línea.
+function detalleProveedoresCorreo(conEnlace: boolean) {
+  return shippersCorreo()
+    .map((p) => {
+      const email = conEnlace && p.email ? `<a href="mailto:${p.email}">${p.email}</a>` : p.email;
+      return `<b>NOMBRE:</b> ${p.nombre}<br><b>CONTACTO:</b> ${p.contacto}<br><b>EMAIL:</b> ${email}<br><b>TELÉFONO:</b> ${p.telefono}`;
+    })
+    .join('<hr style="border:0;border-top:1px dashed #999;margin:6px 0;">');
 }
 function _tr(label: string, value?: unknown) {
   return `
@@ -1313,6 +1899,9 @@ function recibirId(file: { inserid?: unknown; archivo?: unknown }) {
 onMounted(async () => {
   // Siempre arranca en el primer paso (Shipper) y se avanza paso por paso (también si ya está aprobado).
   void cargarShippers();
+  void listarMetodosPago();
+  if (!shipmentSubtypeStore.subtypes.length) void shipmentSubtypeStore.load();
+  if (!appStore.itemsCoinsList?.length) void appStore._getCoinsList();
   Promise.all([
     cargarDatosModality(),
     cargarDatosShipment(),
@@ -1333,6 +1922,8 @@ onMounted(async () => {
   if (pricingStore.datosPrincipales.datosinstructivomanual) {
     datosManuales.value =
       pricingStore.datosPrincipales.datosinstructivomanual;
+    migrarMetodoPagoAntiguo();
+    limpiarMontosEnCero();
     datosFile.value =
       pricingStore.datosPrincipales.datosinstructivomanual.table_allpath_list as unknown[];
     const opcionCostos = pricingStore.opcionCostos.filter(
@@ -1426,7 +2017,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             <InstructivoStep
               :number="stepNumber(0)"
               title="Shipper"
-              :active="e6 === 0"
+              :active="abierto(0)"
               :complete="isComplete(0)"
               :data-step="0"
               :locked="0 > pasoMaximo"
@@ -1480,7 +2071,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   <v-spacer />
                   <v-btn
                     color="primary"
-                    @click="continuar"
+                    @click="continuarShipper"
                   >
                     Continuar
                   </v-btn>
@@ -1488,48 +2079,11 @@ watch(() => datosManuales.value.agregarOtros, () => {
               </v-row>
             </InstructivoStep>
 
-            <!-- SERVICIO -->
-            <InstructivoStep
-              :number="stepNumber(1)"
-              title="Servicio"
-              :active="e6 === 1"
-              :complete="isComplete(1)"
-              :data-step="1"
-              :locked="1 > pasoMaximo"
-              @select="irAPaso(1)"
-            >
-              <v-row>
-                <v-col cols="12">
-                  <v-text-field
-                    placeholder="Individual/ Grupal"
-                    v-model="datosManuales.servicio"
-                    ref="txtServicio"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <v-spacer />
-                  <v-btn
-                    color="primary"
-                    class="mx-1"
-                    @click="continuar"
-                  >
-                    Continuar
-                  </v-btn>
-                  <v-btn
-                    variant="text"
-                    class="mx-1"
-                    @click="regresar()"
-                  >
-                    Volver
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </InstructivoStep>
     
             <InstructivoStep
               :number="stepNumber(2)"
               title="Asunto de Email de seguimiento"
-              :active="e6 === 2"
+              :active="abierto(2)"
               :complete="isComplete(2)"
               :data-step="2"
               :locked="2 > pasoMaximo"
@@ -1573,8 +2127,8 @@ watch(() => datosManuales.value.agregarOtros, () => {
             <!--  -->
             <InstructivoStep
               :number="stepNumber(3)"
-              title="Carga lista (día / fecha)"
-              :active="e6 === 3"
+              title="Para cuándo se estima la mercancía lista para recojo"
+              :active="abierto(3)"
               :complete="isComplete(3)"
               :data-step="3"
               :locked="3 > pasoMaximo"
@@ -1617,7 +2171,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             <InstructivoStep
               :number="stepNumber(4)"
               title="Nombre del grupo de WhatsApp"
-              :active="e6 === 4"
+              :active="abierto(4)"
               :complete="isComplete(4)"
               :data-step="4"
               :locked="4 > pasoMaximo"
@@ -1657,7 +2211,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             <InstructivoStep
               :number="stepNumber(5)"
               title="Se adjunta"
-              :active="e6 === 5"
+              :active="abierto(5)"
               :complete="isComplete(5)"
               :data-step="5"
               :locked="5 > pasoMaximo"
@@ -1672,7 +2226,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   </p>
                   <div class="adj-list">
                     <div
-                      v-for="doc in documentosSeAdjunta"
+                      v-for="doc in listaDocumentos"
                       :key="doc.key"
                       class="adj-item"
                     >
@@ -1749,724 +2303,959 @@ watch(() => datosManuales.value.agregarOtros, () => {
               </v-row>
             </InstructivoStep>
     
-            <!--  -->
+            <!-- DEBEMOS PAGAR AL PROVEEDOR (+ 7.1 ¿El cliente ya nos pagó?) -->
             <InstructivoStep
               :number="stepNumber(6)"
               title="Debemos pagar al proveedor"
-              :active="e6 === 6"
-              :complete="isComplete(6)"
+              :active="enPasoPago && !cerradoPago"
+              :complete="isComplete(ultimoSubpasoPago)"
               :data-step="6"
               :locked="6 > pasoMaximo"
-              @select="irAPaso(6)"
+              @select="enPasoPago ? (cerradoPago = !cerradoPago) : irAPaso(6)"
             >
-              <v-row>
-                <v-col cols="12">
-                  <p class="text-red">
-                    solo aplica si el cliente nos cancela a nosotros y
-                    nosotros debemos pagar al proveedor
-                  </p>
-                  <v-select
-                    item-title="text"
-                    density="compact"
-                    :items="cboSiNo"
-                    v-model="datosManuales.pagarProveedor"
-                    variant="outlined"
-                    label="Si/ No"
-                    hide-details
-                    style="width: 120px; margin-top: 10px"
-                  />
-                </v-col>
-    
-                <v-col cols="12">
-                  <v-spacer />
-                  <v-btn
-                    color="primary"
-                    class="mx-1"
-                    @click="continuarPagarProveedor"
-                  >
-                    Continuar
-                  </v-btn>
-                  <v-btn
-                    variant="text"
-                    class="mx-1"
-                    @click="regresar()"
-                  >
-                    Volver
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </InstructivoStep>
-    
-            <!--  -->
-            <InstructivoStep
-              v-if="datosManuales.pagarProveedor"
-              :number="stepNumber(7)"
-              title="Escoge una opción de pago"
-              :active="e6 === 7"
-              :complete="isComplete(7)"
-              :data-step="7"
-              :locked="7 > pasoMaximo"
-              @select="irAPaso(7)"
-            >
-              <v-row>
-                <v-col cols="12">
-                  <v-radio-group
-                    v-model="datosManuales.metodoPagarProveedor"
-                    density="compact"
-                  >
-                    <v-radio
-                      label="Pago por Alibaba"
-                      value="1"
-                    />
-                    <v-radio
-                      label="Transferencia Internacional"
-                      value="2"
-                    />
-                    <v-radio
-                      label="Otros"
-                      value="3"
-                    />
-                  </v-radio-group>
-                </v-col>
-                <v-col cols="12">
-                  <v-spacer />
-                  <v-btn
-                    color="primary"
-                    @click="continuar"
-                  >
-                    Continuar
-                  </v-btn>
-                </v-col>
-              </v-row>
-            </InstructivoStep>
-            <!-- MONTO A PAGAR -->
-            <template v-if="datosManuales.pagarProveedor">
-              <!-- Monto -->
-              <InstructivoStep
-                :number="stepNumber(8)"
-                title="Monto a pagar"
-                :active="e6 === 8"
-                :complete="isComplete(8)"
-                :data-step="8"
-                :locked="8 > pasoMaximo"
-                @select="irAPaso(8)"
+              <div class="pg-question">
+                <v-icon
+                  size="26"
+                  class="pg-question__icon"
+                >
+                  mdi-storefront-outline
+                </v-icon>
+                <div class="pg-question__text">
+                  <span class="pg-question__line">¿Debemos pagar al <span class="pg-tag">PROVEEDOR</span>?</span>
+                  <small>Solo aplica si el cliente nos cancela a nosotros y nosotros debemos pagar al proveedor.</small>
+                </div>
+                <v-select
+                  v-model="pagarProveedorSiNo"
+                  :items="cboSiNo"
+                  item-title="text"
+                  placeholder="Seleccionar"
+                  variant="outlined"
+                  hide-details
+                  density="compact"
+                  class="pg-sino"
+                  :class="{ 'pg-sino--vacio': pagarProveedorSiNo === null }"
+                />
+              </div>
+
+              <div
+                v-if="datosManuales.pagarProveedor"
+                class="pg-sub"
+                :class="{ 'is-collapsed': !abierto(6) }"
+                data-step="6"
               >
-                <v-row>
-                  <v-col cols="12">
-                    <p class="text-red">
-                      Solo aplica si el cliente nos cancela a nosotros...
-                    </p>
-                    <v-text-field
-                      v-model="datosManuales.monto"
-                      type="number"
-                      placeholder="0.00"
-                      step="0.01"
-                    />
-                  </v-col>
-                  <v-col cols="12">
-                    <v-spacer />
-                    <v-btn
-                      color="primary"
-                      class="mx-1"
-                      @click="continuar"
-                    >
-                      Continuar
-                    </v-btn>
-                    <v-btn
-                      variant="text"
-                      class="mx-1"
-                      @click="regresar()"
-                    >
-                      Volver
-                    </v-btn>
-                  </v-col>
-                </v-row>
-              </InstructivoStep>
-              <!-- ALIBABA -->
-              <template v-if="mostrarPagarProveedorAlibaba">
-                <!--  -->
-                <InstructivoStep
-                  v-if="datosManuales.pagarProveedor"
-                  :number="stepNumber(9)"
-                  title="Cliente ya nos pagó"
-                  :active="e6 === 9"
-                  :complete="isComplete(9)"
-                  :data-step="9"
-                  :locked="9 > pasoMaximo"
-                  @select="irAPaso(9)"
+                <div class="pg-sub__head">
+                  <span class="pg-sub__num">{{ stepNumber(6) }}.1</span>
+                  <div class="pg-question__text">
+                    <span class="pg-question__line">¿El <span class="pg-tag pg-tag--solid">CLIENTE</span> ya nos pagó?</span>
+                  </div>
+                  <v-select
+                    v-model="clienteYaPago"
+                    :items="cboSiNo"
+                    item-title="text"
+                    variant="outlined"
+                    hide-details
+                    density="compact"
+                    class="pg-sino"
+                  />
+                  <button
+                    type="button"
+                    class="pg-sub__toggle"
+                    :title="abierto(6) ? 'Cerrar' : 'Abrir'"
+                    @click="irAPaso(6)"
+                  >
+                    <v-icon size="20">
+                      {{ abierto(6) ? "mdi-chevron-up" : "mdi-chevron-down" }}
+                    </v-icon>
+                  </button>
+                </div>
+                <div
+                  v-if="clienteYaPago && abierto(6)"
+                  class="pg-sub__body"
                 >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-select
-                        item-title="text"
-                        :items="cboSiNo"
-                        v-model="clienteYaPago"
-                        variant="outlined"
-                        label="Si/ No"
-                        style="width: 120px; margin-top: 10px"
-                        hide-details
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-    
-                <!-- PAGO DEL CLIENTE: solo si "Cliente ya nos pagó" = Sí -->
-                <InstructivoStep
-                  v-if="clienteYaPago"
-                  :number="stepNumber(10)"
-                  title="Pago del cliente"
-                  :active="e6 === 10"
-                  :complete="isComplete(10)"
-                  :data-step="10"
-                  :locked="10 > pasoMaximo"
-                  @select="irAPaso(10)"
-                >
-                  <v-row>
-                    <v-col
-                      cols="12"
-                      sm="6"
-                    >
-                      <v-text-field
-                        type="number"
-                        label="Monto pagado"
-                        step="0.01"
-                        v-model="datosManuales.montoRecibido"
-                      />
-                    </v-col>
-                    <v-col
-                      cols="12"
-                      sm="6"
-                    >
+                  <div class="pg-field">
+                    <span class="pg-field__icon"><v-icon size="28">mdi-database-outline</v-icon></span>
+                    <div class="pg-field__main">
+                      <div class="pg-field__label">
+                        Monto que nos pagó
+                      </div>
+                      <div class="pg-money">
+                        <v-select
+                          v-model="monedaRecibido"
+                          :items="monedas"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          class="pg-money__coin"
+                        />
+                        <v-text-field
+                          v-model="datosManuales.montoRecibido"
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="Ej. 2,000.00"
+                          class="pg-money__amount"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="pg-field">
+                    <span class="pg-field__icon"><v-icon size="28">mdi-calendar-month-outline</v-icon></span>
+                    <div class="pg-field__main">
+                      <div class="pg-field__label">
+                        Fecha en que nos pagó
+                      </div>
                       <FormatFecha
                         v-model="fechaPagoCliente"
-                        label="Fecha de pago del cliente"
+                        label=""
+                        prepend-inner-icon="mdi-calendar-month-outline"
                         density="compact"
                         :outlined="true"
                         hide-details="auto"
                       />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-    
-                <!-- LINK DE PAGO ALIBABA -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="abierto(6)"
+                class="pg-actions"
+              >
+                <v-btn
+                  variant="outlined"
+                  prepend-icon="mdi-arrow-left"
+                  @click="regresar()"
+                >
+                  Volver
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  append-icon="mdi-arrow-right"
+                  @click="continuarPagarProveedor"
+                >
+                  Continuar
+                </v-btn>
+              </div>
+
+              <!-- Sub-pasos: dentro del paso 7, se abre uno a la vez -->
+              <!-- PROVEEDOR A LLENAR (solo con 2 o más shippers) -->
+              <InstructivoStep
+                v-if="variosProveedores"
+                :number="stepNumber(6.5)"
+                title="Proveedores a pagar"
+                :subtitle="`${proveedoresCompletos} de ${pagosProveedores.length} completos`"
+                :active="abierto(6.5)"
+                :complete="isComplete(6.5)"
+                :data-step="6.5"
+                :locked="6.5 > pasoMaximo"
+                @select="irAPaso(6.5)"
+              >
+                <div class="pg-field__hint">
+                  Llena el método y los datos de pago de cada proveedor, uno por uno.
+                </div>
+                <div class="pg-proveedores">
+                  <button
+                    v-for="(pago, indice) in pagosProveedores"
+                    :key="pago.id"
+                    type="button"
+                    class="pg-proveedor"
+                    :class="{ 'is-selected': pago.id === proveedorPagoActivo }"
+                    @click="seleccionarProveedorPago(pago.id)"
+                  >
+                    <span class="pg-proveedor__num">{{ indice + 1 }}</span>
+                    <span class="pg-proveedor__name">{{ pago.nombre }}</span>
+                    <span
+                      class="pg-proveedor__state"
+                      :class="pago.completo ? 'is-ok' : ''"
+                    >
+                      <v-icon size="16">{{ pago.completo ? "mdi-check-circle" : "mdi-progress-clock" }}</v-icon>
+                      {{ pago.completo ? "Completo" : "Pendiente" }}
+                    </span>
+                  </button>
+                </div>
+                <div class="pg-actions">
+                  <v-btn
+                    variant="outlined"
+                    prepend-icon="mdi-arrow-left"
+                    @click="regresar()"
+                  >
+                    Volver
+                  </v-btn>
+                  <div class="pg-actions__right">
+                    <v-btn
+                      variant="outlined"
+                      color="primary"
+                      prepend-icon="mdi-pencil-outline"
+                      class="pg-btn-llenar"
+                      @click="continuarProveedorPago"
+                    >
+                      Llenar {{ nombreProveedorActivo || "proveedor" }}
+                    </v-btn>
+                    <!-- Con al menos un proveedor completo ya se puede seguir; los demás son opcionales -->
+                    <v-btn
+                      color="primary"
+                      append-icon="mdi-arrow-right"
+                      :disabled="!proveedoresCompletos"
+                      :title="proveedoresCompletos ? '' : 'Completa al menos un proveedor'"
+                      @click="continuarTrasProveedores"
+                    >
+                      Continuar
+                    </v-btn>
+                  </div>
+                </div>
+              </InstructivoStep>
+              <template v-if="datosManuales.pagarProveedor">
+                <!-- MÉTODO DE PAGO AL PROVEEDOR (catálogo METPAGPROV, Ficheros > Pricing) -->
                 <InstructivoStep
+                  :number="stepNumber(7)"
+                  title="Método de Pago al Proveedor"
+                  :subtitle="variosProveedores ? `Proveedor: ${nombreProveedorActivo}` : ''"
+                  :active="abierto(7)"
+                  :complete="isComplete(7)"
+                  :data-step="7"
+                  :locked="7 > pasoMaximo"
+                  @select="irAPaso(7)"
+                >
+                  <div
+                    v-if="cargandoMetodos"
+                    class="pg-hint"
+                  >
+                    Cargando métodos de pago…
+                  </div>
+                  <div
+                    v-else-if="!opcionesMetodoPago.length"
+                    class="pg-hint"
+                  >
+                    No hay métodos de pago activos. Regístralos en Ficheros &gt; Pricing &gt; Métodos de pago al proveedor.
+                  </div>
+                  <div
+                    v-else
+                    class="pg-methods"
+                    role="radiogroup"
+                  >
+                    <div
+                      v-for="metodo in opcionesMetodoPago"
+                      :key="metodo.codigo"
+                      class="pg-method"
+                      :class="{ 'is-selected': datosManuales.metodoPagoCodigo === metodo.codigo }"
+                      role="radio"
+                      tabindex="0"
+                      :aria-checked="datosManuales.metodoPagoCodigo === metodo.codigo"
+                      @click="elegirMetodoPago(metodo)"
+                      @keydown.enter.prevent="elegirMetodoPago(metodo)"
+                      @keydown.space.prevent="elegirMetodoPago(metodo)"
+                    >
+                      <span class="pg-method__radio" />
+                      <span class="pg-method__name">
+                        <b>{{ metodo.descripcion }}<template v-if="esMetodoOtros(metodo.codigo)">:</template></b>
+                        <span v-if="metodo.detalle"> ({{ metodo.detalle }})</span>
+                      </span>
+                      <v-text-field
+                        v-if="esMetodoOtros(metodo.codigo)"
+                        v-model="datosManuales.metodoPagoOtro"
+                        placeholder="Especifique el método de pago"
+                        class="pg-method__other"
+                        @focus="elegirMetodoPago(metodo)"
+                        @click.stop
+                      />
+                    </div>
+                  </div>
+                  <div class="pg-actions">
+                    <v-btn
+                      variant="outlined"
+                      prepend-icon="mdi-arrow-left"
+                      @click="regresar()"
+                    >
+                      Volver
+                    </v-btn>
+                    <v-btn
+                      color="primary"
+                      append-icon="mdi-arrow-right"
+                      @click="continuarMetodoPago"
+                    >
+                      Continuar
+                    </v-btn>
+                  </div>
+                </InstructivoStep>
+
+                <!-- 7.3 PAGO AL PROVEEDOR: formulario según el código del método
+                     01 Alibaba tarjeta · 02 Alibaba transferencia · 03 Transferencia internacional · 04 Alipay -->
+                <InstructivoStep
+                  v-if="tieneFormularioPago"
                   :number="stepNumber(12)"
-                  title="Link de pago Alibaba"
-                  :active="e6 === 12"
+                  :title="tituloFormularioPago"
+                  :subtitle="variosProveedores ? `${subtituloFormularioPago} · Proveedor: ${nombreProveedorActivo}` : subtituloFormularioPago"
+                  :active="abierto(12)"
                   :complete="isComplete(12)"
                   :data-step="12"
                   :locked="12 > pasoMaximo"
                   @select="irAPaso(12)"
                 >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        name="linkPagoAlibaba"
-                        label="Link de Pago Alibaba"
-                        id="linkPagoAlibaba"
-                        v-model="datosManuales.linkDePagoAlibaba"
-                      />
-                    </v-col>
-                    <!-- Soporte de pago: mismo control que en "Se adjunta", reubicado aquí -->
-                    <v-col
-                      v-if="docSoportePago"
-                      cols="12"
+                  <template #aside>
+                    <LogoPlataformaPago
+                      v-if="plataforma"
+                      :plataforma="plataforma"
+                    />
+                    <span
+                      v-else-if="esOtrosPago"
+                      class="pg-brand pg-brand--icon pg-brand--otros"
+                    ><v-icon size="24">mdi-wallet-outline</v-icon>Otros</span>
+                    <span
+                      v-else
+                      class="pg-brand pg-brand--icon"
+                    ><v-icon size="26">mdi-bank-transfer</v-icon></span>
+                  </template>
+
+                  <div class="pg-form">
+                    <!-- Monto a pagar: primero y obligatorio en todos (Alipay pide CNY / USD más abajo) -->
+                    <!-- Otros (07): método, monto, comprobante y factura, en ese orden -->
+                    <div
+                      v-if="esOtrosPago"
+                      class="pg-field"
                     >
-                      <div class="adj-item">
-                        <v-checkbox-btn
-                          v-model="docSoportePago.flag"
-                          color="success"
-                          density="compact"
-                          class="adj-item__check"
-                        />
-                        <div class="adj-item__label">
-                          {{ docSoportePago.label }}
+                      <span class="pg-field__icon"><v-icon>mdi-credit-card-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Método de Pago (Otros)
                         </div>
-                        <ArrastraYSolarComponent
-                          compact
-                          :id="docSoportePago.key"
-                          :archivo-inicial="docSoportePago.file as ArchivoInicial"
-                          @archivo-cargado="cargarSoportePago"
-                          @archivo-eliminado="eliminarSoportePago"
+                        <div class="pg-field__hint">
+                          Especifica el método de pago utilizado.
+                        </div>
+                        <v-text-field
+                          v-model="datosManuales.metodoPagoOtro"
+                          placeholder="Ej. Pago con tarjeta, depósito bancario, Alipay, otro"
                         />
                       </div>
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
+                    </div>
+
+                    <div
+                      v-if="pideMontoPago"
+                      class="pg-field"
+                    >
+                      <span class="pg-field__icon"><v-icon>mdi-cash-multiple</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Monto a pagar al proveedor
+                        </div>
+                        <div class="pg-field__hint">
+                          Ingresa el monto total a pagar al proveedor.
+                        </div>
+                        <div class="pg-money pg-money--right">
+                          <v-text-field
+                            v-model.number="datosManuales.monto"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ej. 1,700.00"
+                            class="pg-money__amount"
+                          />
+                          <v-select
+                            v-model="monedaPago"
+                            :items="monedas"
+                            variant="outlined"
+                            density="compact"
+                            hide-details
+                            class="pg-money__coin"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      v-if="esOtrosPago"
+                      class="pg-field"
+                    >
+                      <span class="pg-field__icon"><v-icon>mdi-image-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Comprobante / Datos de Transferencia (PDF) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                        </div>
+                        <div class="pg-field__hint">
+                          Adjunta la captura o constancia del pago (donde se vean los datos de la transferencia).
+                        </div>
+                        <ArrastraYSolarComponent
+                          v-if="docComprobanteTransferencia"
+                          zona
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          titulo="Subir comprobante (JPG / PNG / PDF)"
+                          :id="docComprobanteTransferencia.key"
+                          :archivo-inicial="docComprobanteTransferencia.file as ArchivoInicial"
+                          @archivo-cargado="(datoEmit) => cargarArchivoDinamico(datoEmit, docComprobanteTransferencia!)"
+                          @archivo-eliminado="eliminarArchivoDinamico(docComprobanteTransferencia!)"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- N.° de factura comercial -->
+                    <div
+                      v-if="pideNroFactura"
+                      class="pg-field"
+                    >
+                      <span class="pg-field__icon"><v-icon>mdi-pound-box-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          N.° de Factura Comercial
+                        </div>
+                        <div
+                          v-if="esPlataforma || esOtrosPago"
+                          class="pg-field__hint"
+                        >
+                          Ingresa el número de la Factura Comercial o Proforma.
+                        </div>
+                        <v-text-field
+                          v-model="datosManuales.nroFactura"
+                          placeholder="Ej. FC-00012345"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Factura comercial / proforma (Alibaba y transferencia internacional) -->
+                    <div
+                      v-if="esPlataforma || esTransferenciaInternacional"
+                      class="pg-field"
+                    >
+                      <span class="pg-field__icon"><v-icon>mdi-file-document-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Factura Comercial / Proforma <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                        </div>
+                        <div
+                          v-if="esPlataforma"
+                          class="pg-field__hint"
+                        >
+                          Adjunta la Factura Comercial o Proforma del proveedor.
+                        </div>
+                        <div
+                          v-if="docFacturaAdjunta && !docFacturaAdjunta.file"
+                          class="pg-from-adjunta"
+                        >
+                          <v-icon size="16">
+                            mdi-check-circle
+                          </v-icon>
+                          {{ docFacturaAdjunta.label }} marcada en «Se adjunta» (sin archivo). Puedes adjuntarlo aquí.
+                        </div>
+                        <ArrastraYSolarComponent
+                          v-if="docFacturaPago"
+                          zona
+                          accept=".pdf"
+                          titulo="Subir factura o proforma (PDF)"
+                          :subtitulo="esPlataforma ? undefined : ''"
+                          :id="docFacturaPago.key"
+                          :archivo-inicial="docFacturaPago.file as ArchivoInicial"
+                          @archivo-cargado="(datoEmit) => cargarArchivoDinamico(datoEmit, docFacturaPago!)"
+                          @archivo-eliminado="eliminarArchivoDinamico(docFacturaPago!)"
+                        />
+                      </div>
+                    </div>
+
+                    <!-- Alibaba (01 / 02) y Made in China (06 / 05) -->
+                    <template v-if="esPlataforma">
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-link-variant</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Link de pago
+                          </div>
+                          <div class="pg-field__hint">
+                            Pega el enlace de pago de {{ plataforma }}.
+                          </div>
+                          <v-text-field
+                            v-model="datosManuales.linkDePagoAlibaba"
+                            placeholder="https:// ..."
+                          />
+                        </div>
+                      </div>
+
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-file-sign</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Contrato de {{ plataforma }} (PDF) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                          </div>
+                          <div class="pg-field__hint">
+                            Adjunta el contrato generado en {{ plataforma }}.
+                          </div>
+                          <ArrastraYSolarComponent
+                            zona
+                            accept=".pdf"
+                            titulo="Subir contrato (PDF)"
+                            id="contratoAlibaba"
+                            :archivo-inicial="datosManuales.contratoAlibaba as ArchivoInicial"
+                            @archivo-cargado="(datoEmit) => (datosManuales.contratoAlibaba = datoEmit.archivo)"
+                            @archivo-eliminado="datosManuales.contratoAlibaba = null"
+                          />
+                        </div>
+                      </div>
+
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-pound-box-outline</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Número de contrato
+                          </div>
+                          <div class="pg-field__hint">
+                            Ingresa el número de contrato de {{ plataforma }}.
+                          </div>
+                          <v-text-field
+                            v-model="datosManuales.numeroContratoAlibaba"
+                            placeholder="Ej. 1234567890"
+                          />
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- Transferencia internacional (03): comprobante y captura de datos bancarios -->
+                    <template v-if="esTransferenciaInternacional">
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-swap-horizontal-variant</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Comprobante de Transferencia <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                          </div>
+                          <ArrastraYSolarComponent
+                            v-if="docComprobanteTransferencia"
+                            zona
+                            accept=".pdf"
+                            titulo="Subir comprobante (PDF)"
+                            subtitulo=""
+                            :id="docComprobanteTransferencia.key"
+                            :archivo-inicial="docComprobanteTransferencia.file as ArchivoInicial"
+                            @archivo-cargado="(datoEmit) => cargarArchivoDinamico(datoEmit, docComprobanteTransferencia!)"
+                            @archivo-eliminado="eliminarArchivoDinamico(docComprobanteTransferencia!)"
+                          />
+                        </div>
+                      </div>
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-image-outline</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Captura de los Datos Bancarios del Proveedor <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                          </div>
+                          <div class="pg-field__hint">
+                            Adjunta la captura enviada por el proveedor (para validar los datos).
+                          </div>
+                          <ArrastraYSolarComponent
+                            zona
+                            accept=".pdf,.jpg,.jpeg,.png"
+                            titulo="Adjuntar captura (PDF / JPG / PNG)"
+                            subtitulo=""
+                            id="capturaDatosBancarios"
+                            :archivo-inicial="datosManuales.capturaDatosBancarios as ArchivoInicial"
+                            @archivo-cargado="(datoEmit) => (datosManuales.capturaDatosBancarios = datoEmit.archivo)"
+                            @archivo-eliminado="datosManuales.capturaDatosBancarios = null"
+                          />
+                        </div>
+                      </div>
+                    </template>
+
+                    <!-- Datos de la transferencia (02 y 03) -->
+                    <div
+                      v-if="pideDatosTransferencia"
+                      class="pg-transfer"
+                    >
+                      <div class="pg-transfer__head">
+                        <v-icon size="30">
+                          mdi-bank-outline
+                        </v-icon>
+                        <div>
+                          <div class="pg-field__label">
+                            Datos de la Transferencia Internacional
+                          </div>
+                          <div
+                            v-if="esPlataformaTransferencia"
+                            class="pg-field__hint"
+                          >
+                            Completa los datos bancarios del proveedor en {{ plataforma }}.
+                          </div>
+                        </div>
+                      </div>
+                      <div class="pg-transfer__rows">
+                        <div
+                          v-for="campo in camposTransferencia"
+                          :key="campo.key"
+                          class="pg-transfer__row"
+                        >
+                          <v-icon
+                            size="20"
+                            class="pg-transfer__icon"
+                          >
+                            {{ campo.icon }}
+                          </v-icon>
+                          <span class="pg-transfer__label">{{ campo.label }}</span>
+                          <v-text-field
+                            v-model="datosManuales[campo.key] as string"
+                            :placeholder="campo.key === 'nombreBeneficiario' ? placeholderBeneficiario : campo.placeholder"
+                            class="pg-transfer__input"
+                          />
+                        </div>
+                      </div>
+                      <div
+                        v-if="esPlataformaTransferencia"
+                        class="pg-field"
                       >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
+                        <span class="pg-field__icon"><v-icon>mdi-file-document-outline</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Comprobante / Datos de Transferencia (PDF) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                          </div>
+                          <div class="pg-field__hint">
+                            Adjunta el comprobante de transferencia o los datos de la operación.
+                          </div>
+                          <ArrastraYSolarComponent
+                            v-if="docComprobanteTransferencia"
+                            zona
+                            accept=".pdf"
+                            titulo="Subir comprobante (PDF)"
+                            :id="docComprobanteTransferencia.key"
+                            :archivo-inicial="docComprobanteTransferencia.file as ArchivoInicial"
+                            @archivo-cargado="(datoEmit) => cargarArchivoDinamico(datoEmit, docComprobanteTransferencia!)"
+                            @archivo-eliminado="eliminarArchivoDinamico(docComprobanteTransferencia!)"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Alipay (04): QR y montos -->
+                    <template v-if="esAlipay">
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-qrcode</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            QR de pago (Alipay / WeChat Pay) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                          </div>
+                          <div class="pg-field__hint">
+                            Adjunta la imagen del QR de pago del proveedor.
+                          </div>
+                          <ArrastraYSolarComponent
+                            zona
+                            accept=".jpg,.jpeg,.png"
+                            titulo="Subir QR de pago"
+                            subtitulo="(JPG / PNG)"
+                            id="qrPagoProveedor"
+                            :archivo-inicial="datosManuales.qrPagoProveedor as ArchivoInicial"
+                            @archivo-cargado="(datoEmit) => (datosManuales.qrPagoProveedor = datoEmit.archivo)"
+                            @archivo-eliminado="datosManuales.qrPagoProveedor = null"
+                          />
+                        </div>
+                      </div>
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-currency-cny</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Monto a transferir (CNY)
+                          </div>
+                          <v-text-field
+                            v-model.number="datosManuales.montoCNY"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ej. 12,345.00"
+                            class="pg-amount"
+                          >
+                            <template #append-inner>
+                              <span class="pg-amount__cur">CNY</span>
+                            </template>
+                          </v-text-field>
+                        </div>
+                      </div>
+                      <div class="pg-field">
+                        <span class="pg-field__icon"><v-icon>mdi-currency-usd</v-icon></span>
+                        <div class="pg-field__main">
+                          <div class="pg-field__label">
+                            Equivalente en dólares (USD)
+                          </div>
+                          <v-text-field
+                            v-model.number="datosManuales.montoUSD"
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Ej. 1,700.00"
+                            class="pg-amount"
+                          >
+                            <template #append-inner>
+                              <span class="pg-amount__cur">USD</span>
+                            </template>
+                          </v-text-field>
+                        </div>
+                      </div>
+                    </template>
+                    <div
+                      v-if="esOtrosPago"
+                      class="pg-info"
+                    >
+                      <v-icon
+                        size="34"
+                        class="pg-info__icon"
                       >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-    
-                <!-- NRO DE CONTRATO DE ALIBABA -->
-                <InstructivoStep
-                  :number="stepNumber(13)"
-                  title="Número de contrato de Alibaba"
-                  :active="e6 === 13"
-                  :complete="isComplete(13)"
-                  :data-step="13"
-                  :locked="13 > pasoMaximo"
-                  @select="irAPaso(13)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        name="linkPagoAlibaba"
-                        label="Número de Contrato de Alibaba (De Acuerdo a la Factura comercial)"
-                        id="numeroContratoAlibaba"
-                        v-model="datosManuales.numeroContratoAlibaba"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="pasarASeguro"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
+                        mdi-information
+                      </v-icon>
+                      <div>
+                        <b>¿De dónde salen los datos?</b>
+                        <span>El número de factura y el monto se toman de la Factura Comercial (o Proforma) enviada por el proveedor.</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="pg-actions">
+                    <v-btn
+                      variant="outlined"
+                      prepend-icon="mdi-arrow-left"
+                      @click="regresar()"
+                    >
+                      Volver
+                    </v-btn>
+                    <v-btn
+                      color="primary"
+                      append-icon="mdi-arrow-right"
+                      :loading="guardandoPago"
+                      @click="guardarYContinuarPago"
+                    >
+                      Guardar y Continuar
+                    </v-btn>
+                  </div>
                 </InstructivoStep>
               </template>
-    
-              <template v-if="mostrarPagarProveedorInternacional">
-                <!-- Nro Factura -->
-                <InstructivoStep
-                  :number="stepNumber(14)"
-                  title="N° de factura"
-                  :active="e6 === 14"
-                  :complete="isComplete(14)"
-                  :data-step="14"
-                  :locked="14 > pasoMaximo"
-                  @select="irAPaso(14)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-checkbox
-                        v-model="datosManualesNoAplica.nroFactura"
-                        @update:model-value="checkNoAplica(13)"
-                        label="No Aplica"
-                      />
-                      <v-text-field
-                        v-model="datosManuales.nroFactura"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-    
-                <!-- Banco Beneficiario o Cuenta Beneficiario -->
-                <InstructivoStep
-                  :number="stepNumber(15)"
-                  title="Banco beneficiario"
-                  :active="e6 === 15"
-                  :complete="isComplete(15)"
-                  :data-step="15"
-                  :locked="15 > pasoMaximo"
-                  @select="irAPaso(15)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.bancoBenbeficiario"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-    
-                <!-- Dirección del banco beneficiario -->
-                <InstructivoStep
-                  :number="stepNumber(16)"
-                  title="Dirección del banco beneficiario"
-                  :active="e6 === 16"
-                  :complete="isComplete(16)"
-                  :data-step="16"
-                  :locked="16 > pasoMaximo"
-                  @select="irAPaso(16)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.direccionBancoBeneficiario"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-                <!-- Nombre del Beneficiario -->
-                <InstructivoStep
-                  :number="stepNumber(17)"
-                  title="Nombre del beneficiario"
-                  :active="e6 === 17"
-                  :complete="isComplete(17)"
-                  :data-step="17"
-                  :locked="17 > pasoMaximo"
-                  @select="irAPaso(17)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.nombreBeneficiario"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-                <!-- Dirección del Beneficiario -->
-                <InstructivoStep
-                  :number="stepNumber(18)"
-                  title="Dirección del beneficiario"
-                  :active="e6 === 18"
-                  :complete="isComplete(18)"
-                  :data-step="18"
-                  :locked="18 > pasoMaximo"
-                  @select="irAPaso(18)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.direccionBeneficiario"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-                <!-- Número de Cuenta -->
-                <InstructivoStep
-                  :number="stepNumber(19)"
-                  title="Número de cuenta"
-                  :active="e6 === 19"
-                  :complete="isComplete(19)"
-                  :data-step="19"
-                  :locked="19 > pasoMaximo"
-                  @select="irAPaso(19)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.numeroCuentaBeneficiario"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-                <!-- Porcentaje de Pago -->
-                <InstructivoStep
-                  :number="stepNumber(20)"
-                  title="Porcentaje de pago"
-                  :active="e6 === 20"
-                  :complete="isComplete(20)"
-                  :data-step="20"
-                  :locked="20 > pasoMaximo"
-                  @select="irAPaso(20)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.porcentajePago"
-                        class="txtNroFactura"
-                        type="number"
-                        step="0.01"
-                        suffix="%"
-                        style="max-width: 100px"
-                        max="100"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="continuar"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-                <!-- País Recepto -->
-                <InstructivoStep
-                  :number="stepNumber(21)"
-                  title="País receptor"
-                  :active="e6 === 21"
-                  :complete="isComplete(21)"
-                  :data-step="21"
-                  :locked="21 > pasoMaximo"
-                  @select="irAPaso(21)"
-                >
-                  <v-row>
-                    <v-col cols="12">
-                      <v-text-field
-                        v-model="datosManuales.paisReceptor"
-                        class="txtNroFactura"
-                      />
-                    </v-col>
-                    <v-col cols="12">
-                      <v-spacer />
-                      <v-btn
-                        color="primary"
-                        class="mx-1"
-                        @click="pasarASeguro"
-                      >
-                        Continuar
-                      </v-btn>
-                      <v-btn
-                        variant="text"
-                        class="mx-1"
-                        @click="regresar()"
-                      >
-                        Volver
-                      </v-btn>
-                    </v-col>
-                  </v-row>
-                </InstructivoStep>
-              </template>
-              <!-- ------------------------------------------ -->
-              <InstructivoStep
-                v-if="false"
-                :number="stepNumber(22)"
-                title="Dónde se debe pagar"
-                :active="e6 === 22"
-                :complete="isComplete(22)"
-                :data-step="22"
-                :locked="22 > pasoMaximo"
-                @select="irAPaso(22)"
-              >
-                <v-row>
-                  <v-col cols="12">
-                    <p class="text-red">
-                      solo aplica si el cliente nos cancela a nosotros...
-                    </p>
-                    <v-checkbox
-                      v-model="datosManualesNoAplica.dondePagar"
-                      @update:model-value="checkNoAplica(8)"
-                      label="No Aplica"
-                    />
-                    <v-text-field
-                      v-model="datosManuales.dondePagar"
-                      ref="txtClientePago"
-                    />
-                  </v-col>
-                </v-row>
-              </InstructivoStep>
-            </template>
+            </InstructivoStep>
+
+
             <!-- SEGURO DE MERCANCIA -->
             <InstructivoStep
               :number="stepNumber(23)"
               title="Seguro de mercancía"
-              :active="e6 === 23"
+              :active="abierto(23)"
               :complete="isComplete(23)"
               :data-step="23"
               :locked="23 > pasoMaximo"
               @select="irAPaso(23)"
             >
-              <v-row>
-                <v-col cols="12">
-                  <v-text-field
-                    v-model="datosManuales.seguro"
-                    placeholder="Si/No"
-                  />
-                </v-col>
-                <v-col cols="12">
-                  <v-spacer />
-                  <v-btn
-                    color="primary"
-                    class="mx-1"
-                    @click="continuar"
-                  >
-                    Continuar
-                  </v-btn>
-                  <v-btn
-                    variant="text"
-                    class="mx-1"
-                    @click="regresar()"
-                  >
-                    Volver
-                  </v-btn>
-                </v-col>
-              </v-row>
+              <template #aside>
+                <span class="pg-brand pg-brand--icon"><v-icon size="24">mdi-shield-check-outline</v-icon></span>
+              </template>
+              <div class="pg-form">
+                <div class="pg-field">
+                  <span class="pg-field__icon"><v-icon>mdi-format-list-bulleted</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      Seguro de Mercancía <span class="pg-req">*</span>
+                    </div>
+                    <v-select
+                      v-model="seguroSiNo"
+                      :items="opcionesSiNo"
+                      placeholder="Seleccionar"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                    />
+                  </div>
+                </div>
+                <div
+                  v-if="seguroSiNo === 'Si'"
+                  class="pg-field"
+                >
+                  <span class="pg-field__icon"><v-icon>mdi-database-outline</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      Monto del seguro vendido al cliente <span class="pg-req">*</span>
+                    </div>
+                    <div class="pg-money pg-money--right">
+                      <v-text-field
+                        v-model.number="datosManuales.montoSeguro"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        placeholder="Ej. 120.00"
+                        class="pg-money__amount"
+                      />
+                      <v-select
+                        v-model="monedaSeguro"
+                        :items="monedas"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        class="pg-money__coin"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="pg-actions">
+                <v-btn
+                  variant="outlined"
+                  prepend-icon="mdi-arrow-left"
+                  @click="regresar()"
+                >
+                  Volver
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  append-icon="mdi-arrow-right"
+                  :loading="guardandoPago"
+                  @click="guardarYContinuarSeguro"
+                >
+                  Guardar y Continuar
+                </v-btn>
+              </div>
             </InstructivoStep>
+
+            <!-- LIBERA AD VALOREM CON CERTIFICADO DE ORIGEN -->
             <InstructivoStep
               :number="stepNumber(24)"
-              title="Observaciones adicionales 1"
-              :active="e6 === 24"
+              title="Libera Ad Valorem con Certificado de Origen"
+              :active="abierto(24)"
               :complete="isComplete(24)"
               :data-step="24"
               :locked="24 > pasoMaximo"
               @select="irAPaso(24)"
+            >
+              <template #aside>
+                <span class="pg-brand pg-brand--icon"><v-icon size="24">mdi-file-certificate-outline</v-icon></span>
+              </template>
+              <div class="pg-form">
+                <div class="pg-field">
+                  <span class="pg-field__icon"><v-icon>mdi-file-certificate-outline</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      ¿Libera Ad Valorem con Certificado de Origen? <span class="pg-req">*</span>
+                    </div>
+                    <v-select
+                      v-model="certificadoOrigenSiNo"
+                      :items="opcionesSiNo"
+                      placeholder="Seleccionar"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                    />
+                  </div>
+                </div>
+                <div
+                  v-if="certificadoOrigenSiNo === 'Si'"
+                  class="pg-field"
+                >
+                  <span class="pg-field__icon"><v-icon>mdi-file-certificate-outline</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      Partida arancelaria aplicable <span class="pg-req">*</span>
+                    </div>
+                    <div class="pg-field__hint">
+                      Indica la partida arancelaria que está aplicando.
+                    </div>
+                    <v-text-field
+                      v-model="datosManuales.partidaArancelaria"
+                      placeholder="Ej. 6403.99.90.00"
+                    />
+                  </div>
+                </div>
+              </div>
+              <div class="pg-actions">
+                <v-btn
+                  variant="outlined"
+                  prepend-icon="mdi-arrow-left"
+                  @click="regresar()"
+                >
+                  Volver
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  append-icon="mdi-arrow-right"
+                  :loading="guardandoPago"
+                  @click="guardarYContinuarCertificado"
+                >
+                  Guardar y Continuar
+                </v-btn>
+              </div>
+            </InstructivoStep>
+
+            <!-- PERMISOS ESPECIALES -->
+            <InstructivoStep
+              :number="stepNumber(25)"
+              title="Permisos especiales"
+              :active="abierto(25)"
+              :complete="isComplete(25)"
+              :data-step="25"
+              :locked="25 > pasoMaximo"
+              @select="irAPaso(25)"
+            >
+              <template #aside>
+                <span class="pg-brand pg-brand--icon"><v-icon size="24">mdi-file-check-outline</v-icon></span>
+              </template>
+              <div class="pg-form">
+                <div class="pg-field">
+                  <span class="pg-field__icon"><v-icon>mdi-file-document-outline</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      ¿El cliente informó sobre permisos especiales? <span class="pg-req">*</span>
+                    </div>
+                    <v-select
+                      v-model="permisosEspecialesSiNo"
+                      :items="opcionesSiNo"
+                      placeholder="Seleccionar"
+                      variant="outlined"
+                      density="compact"
+                      hide-details
+                    />
+                  </div>
+                </div>
+                <div class="pg-field">
+                  <span class="pg-field__icon"><v-icon>mdi-message-processing-outline</v-icon></span>
+                  <div class="pg-field__main">
+                    <div class="pg-field__label">
+                      Comentario <span class="pg-req">*</span>
+                    </div>
+                    <v-textarea
+                      v-model="datosManuales.comentarioPermisos"
+                      placeholder="Coméntanos qué indicó el cliente."
+                      rows="3"
+                      auto-grow
+                      class="txt-wrap"
+                    />
+                  </div>
+                </div>
+                <div class="pg-info pg-info--azul">
+                  <v-icon
+                    size="30"
+                    class="pg-info__icon"
+                  >
+                    mdi-information-outline
+                  </v-icon>
+                  <div>
+                    <span><b>Nota:</b> Indica lo que te comentó el cliente.</span>
+                    <span class="pg-info__line"><b>Ejemplo:</b> Sí: Las bicimotos van hasta 20 km/h, no requiere permiso especial.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="pg-actions">
+                <v-btn
+                  variant="outlined"
+                  prepend-icon="mdi-arrow-left"
+                  @click="regresar()"
+                >
+                  Volver
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  append-icon="mdi-arrow-right"
+                  :loading="guardandoPago"
+                  @click="guardarYContinuarPermisos"
+                >
+                  Guardar y Continuar
+                </v-btn>
+              </div>
+            </InstructivoStep>
+            <InstructivoStep
+              :number="stepNumber(26)"
+              title="Observaciones adicionales 1"
+              :active="abierto(26)"
+              :complete="isComplete(26)"
+              :data-step="26"
+              :locked="26 > pasoMaximo"
+              @select="irAPaso(26)"
             >
               <v-row>
                 <v-col cols="12">
                   <v-checkbox
                     label="No Aplica"
                     v-model="datosManualesNoAplica.observacion1"
-                    @update:model-value="checkNoAplica(24)"
+                    @update:model-value="checkNoAplica(26)"
                   />
                   <v-textarea
                     v-model="datosManuales.observacion1"
@@ -2495,20 +3284,20 @@ watch(() => datosManuales.value.agregarOtros, () => {
             </InstructivoStep>
             <!--  -->
             <InstructivoStep
-              :number="stepNumber(25)"
+              :number="stepNumber(27)"
               title="Observaciones adicionales 2"
-              :active="e6 === 25"
-              :complete="isComplete(25)"
-              :data-step="25"
-              :locked="25 > pasoMaximo"
-              @select="irAPaso(25)"
+              :active="abierto(27)"
+              :complete="isComplete(27)"
+              :data-step="27"
+              :locked="27 > pasoMaximo"
+              @select="irAPaso(27)"
             >
               <v-row>
                 <v-col cols="12">
                   <v-checkbox
                     label="No Aplica"
                     v-model="datosManualesNoAplica.observacion2"
-                    @update:model-value="checkNoAplica(25)"
+                    @update:model-value="checkNoAplica(27)"
                   />
                   <v-textarea
                     v-model="datosManuales.observacion2"
@@ -2733,7 +3522,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                 </v-icon>
                 <div>
                   <small>Servicio</small>
-                  <b>{{ datosManuales.servicio || "—" }}</b>
+                  <b>{{ servicioTexto || "—" }}</b>
                 </div>
               </div>
             </div>
@@ -2829,7 +3618,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             </InstructivoPreviewRow>
             <InstructivoPreviewRow
               icon="mdi-calendar-month-outline"
-              label="Carga lista (día / fecha)"
+              label="Para cuándo se estima la mercancía lista para recojo"
               data-paso="cargaLista"
               :active="pasoActivo === 'cargaLista'"
             >
@@ -2881,27 +3670,43 @@ watch(() => datosManuales.value.agregarOtros, () => {
                 class="ins-chip"
                 :class="datosManuales.pagarProveedor ? 'ins-chip--si' : 'ins-chip--no'"
               >
-                {{ datosManuales.pagarProveedor ? "Sí" : "No" }}
+                {{ pagarProveedorSiNo === null ? "Sin seleccionar" : pagarProveedorSiNo ? "Sí" : "No" }}
               </span>
-            </InstructivoPreviewRow>
-            <InstructivoPreviewRow
-              v-if="mostrarPagarProveedorAlibaba"
-              icon="mdi-map-marker-outline"
-              label="Dónde se debe pagar"
-              data-paso="dondePagar"
-              :active="pasoActivo === 'dondePagar'"
-            >
-              {{ datosManuales.dondePagar || "" }}
+              <span
+                v-if="datosManuales.pagarProveedor"
+                class="ins-pago-cliente"
+              >
+                Cliente ya nos pagó:
+                <b>{{ clienteYaPago ? "Sí" : "No" }}</b>
+                <template v-if="pagoClienteTexto">· {{ pagoClienteTexto }}</template>
+              </span>
             </InstructivoPreviewRow>
             <InstructivoPreviewRow
               v-if="datosManuales.pagarProveedor"
               icon="mdi-bank-outline"
-              label="Datos bancarios para transferencia"
+              label="Datos del pago al proveedor"
               data-paso="datosBancarios"
               :active="pasoActivo === 'datosBancarios'"
             >
               <div
-                v-if="datosBancarios.length"
+                v-if="variosProveedores"
+                class="ins-shippers"
+              >
+                <div
+                  v-for="grupo in gruposPagoProveedor"
+                  :key="grupo.id"
+                  class="ins-grid"
+                >
+                  <span class="ins-grid__full">Proveedor: <b>{{ grupo.nombre }}</b>
+                    <template v-if="!grupo.completo"> (pendiente)</template></span>
+                  <span
+                    v-for="dato in grupo.datos"
+                    :key="dato.label"
+                  >{{ dato.label }}: <b>{{ dato.valor ?? "" }}</b></span>
+                </div>
+              </div>
+              <div
+                v-else-if="datosBancarios.length"
                 class="ins-grid"
               >
                 <span
@@ -2917,10 +3722,30 @@ watch(() => datosManuales.value.agregarOtros, () => {
               :active="pasoActivo === 'seguro'"
             >
               <span
-                v-if="datosManuales.seguro"
+                v-if="seguroTexto"
                 class="ins-chip"
-                :class="claseSiNo(datosManuales.seguro)"
-              >{{ datosManuales.seguro }}</span>
+                :class="claseSiNo(seguroTexto)"
+              >{{ seguroTexto }}</span>
+            </InstructivoPreviewRow>
+            <InstructivoPreviewRow
+              icon="mdi-file-certificate-outline"
+              label="Libera Ad Valorem con Certificado de Origen"
+              data-paso="certificadoOrigen"
+              :active="pasoActivo === 'certificadoOrigen'"
+            >
+              <span
+                v-if="certificadoOrigenTexto"
+                class="ins-chip"
+                :class="claseSiNo(certificadoOrigenTexto)"
+              >{{ certificadoOrigenTexto }}</span>
+            </InstructivoPreviewRow>
+            <InstructivoPreviewRow
+              icon="mdi-file-check-outline"
+              label="Permisos especiales"
+              data-paso="permisos"
+              :active="pasoActivo === 'permisos'"
+            >
+              {{ permisosTexto }}
             </InstructivoPreviewRow>
             <InstructivoPreviewRow
               icon="mdi-text-box-outline"
@@ -3042,7 +3867,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
             </InstructivoPreviewRow>
             <InstructivoPreviewRow
               icon="mdi-calendar-month-outline"
-              label="Carga lista (día / fecha)"
+              label="Para cuándo se estima la mercancía lista para recojo"
               data-paso="cargaLista"
               :active="pasoActivo === 'cargaLista'"
             >
@@ -3501,6 +4326,473 @@ watch(() => datosManuales.value.agregarOtros, () => {
   color: #1f73e8 !important;
   background: #dbe8fd !important;
   border-radius: 10px !important;
+}
+
+/* ===== Pago al proveedor (7, 7.1, 7.2, 7.3) ===== */
+.pg-question {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+.pg-question__icon {
+  color: #1f2a44;
+}
+.pg-question__text {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: #1f2a44;
+}
+/* La pregunta va de corrido (una sola línea); la nota, debajo. */
+.pg-question__line {
+  white-space: nowrap;
+}
+.pg-question__text small {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: #6b7280;
+}
+.pg-tag {
+  padding: 1px 8px;
+  font-weight: 800;
+  color: #1f73e8;
+  background: #dbe8fd;
+  border-radius: 6px;
+}
+.pg-tag--solid {
+  color: #ffffff;
+  background: #1f73e8;
+}
+/* Combo Sí/No pequeño y siempre a la derecha */
+.pg-sino {
+  flex: 0 0 84px;
+  max-width: 84px;
+  margin-left: auto;
+}
+.pg-sino.pg-sino--vacio {
+  flex-basis: 140px;
+  max-width: 140px;
+}
+.pg-sino :deep(.v-field__input) {
+  min-height: 34px;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-items: center;
+}
+.pg-sino :deep(.v-field) {
+  background: #ffffff;
+}
+.pg-sub {
+  margin: 4px 0 4px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #d6e3f7;
+  border-left: 3px solid #1f73e8;
+  border-radius: 12px;
+}
+.pg-sub__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #eaf2ff;
+}
+.pg-sub__num {
+  padding: 4px 10px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #1f2a44;
+  background: #c9dcfb;
+  border-radius: 8px;
+}
+.pg-sub.is-collapsed .pg-sub__head {
+  background: #f6f9fe;
+}
+.pg-sub__toggle {
+  display: inline-flex;
+  padding: 4px;
+  color: #1f73e8;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pg-sub__toggle:hover {
+  background: #dbe8fd;
+}
+.pg-sub__body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 12px;
+}
+/* Ícono más grande y centrado verticalmente con su etiqueta + campo */
+.pg-sub__body .pg-field {
+  align-items: center;
+  padding: 0;
+}
+.pg-sub__body .pg-field__icon {
+  flex-basis: 52px;
+  height: 52px;
+  border-radius: 12px;
+}
+.pg-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+}
+.pg-form > .pg-field + .pg-field,
+.pg-form > .pg-field + .pg-transfer {
+  border-top: 1px solid #eef2f7;
+}
+.pg-field__icon {
+  flex: 0 0 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f73e8;
+  background: #eaf2ff;
+  border-radius: 10px;
+}
+.pg-field__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pg-field__label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1f2a44;
+}
+.pg-sub__body .pg-field__label {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.pg-field__hint {
+  font-size: 12px;
+  color: #4b5563;
+}
+.pg-req {
+  margin-left: 2px;
+  color: #dc2626;
+}
+.pg-badge {
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #dc2626;
+  background: #fde2e2;
+  border-radius: 999px;
+}
+.pg-badge--opt {
+  color: #4b5563;
+  background: #eef2f7;
+}
+.pg-money {
+  display: flex;
+  align-items: stretch;
+}
+/* Moneda y monto con la misma altura (el combo no se desborda) */
+.pg-money :deep(.v-input__control),
+.pg-money :deep(.v-field) {
+  height: 40px;
+}
+.pg-money :deep(.v-field__input) {
+  min-height: 40px;
+  padding-top: 0;
+  padding-bottom: 0;
+  align-items: center;
+}
+.pg-money__coin {
+  flex: 0 0 104px;
+}
+.pg-money__coin :deep(.v-field) {
+  background: #eef1f5;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.pg-money__amount :deep(.v-field) {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.pg-from-adjunta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #166534;
+}
+.pg-methods {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pg-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 6px 12px;
+  font-size: 14px;
+  color: #1f2a44;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.pg-method:hover {
+  background: #f4f8fe;
+}
+.pg-method:focus-visible {
+  outline: 2px solid #9cc0f7;
+}
+.pg-method.is-selected {
+  background: #eaf2ff;
+  border-color: #9cc0f7;
+}
+.pg-method__radio {
+  flex: 0 0 20px;
+  height: 20px;
+  border: 2px solid #6b7280;
+  border-radius: 50%;
+}
+.pg-method.is-selected .pg-method__radio {
+  border: 6px solid #1f73e8;
+}
+.pg-method__name span {
+  color: #374151;
+}
+.pg-method__other {
+  flex: 1;
+  min-width: 160px;
+}
+.pg-brand {
+  padding: 3px 10px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #f05a00;
+  background: #ffffff;
+  border: 1px solid #f3d3bf;
+  border-radius: 10px;
+}
+.pg-transfer {
+  margin-top: 6px;
+  overflow: hidden;
+  border: 1px solid #d6e3f7;
+  border-radius: 12px;
+}
+.pg-transfer__head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #1f73e8;
+  background: #eaf2ff;
+}
+.pg-transfer__rows {
+  padding: 4px 12px;
+}
+.pg-transfer__row {
+  display: grid;
+  grid-template-columns: 24px minmax(140px, 1fr) minmax(0, 1.4fr);
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+.pg-transfer__icon {
+  color: #1f73e8;
+}
+.pg-transfer__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f2a44;
+}
+.pg-transfer > .pg-field {
+  padding: 10px 12px;
+}
+.pg-brand--icon {
+  display: inline-flex;
+  color: #1f73e8;
+  border-color: #c9dcfb;
+}
+/* Monto con la moneda en un bloque a la derecha (Alipay) */
+.pg-amount :deep(.v-field) {
+  padding-inline-end: 0;
+}
+.pg-amount__cur {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  font-weight: 800;
+  color: #1f73e8;
+  background: #dbe8fd;
+  border-left: 1px solid #c9dcfb;
+}
+.pg-brand--otros {
+  gap: 6px;
+  font-weight: 800;
+  color: #1f2a44;
+}
+.pg-brand--otros .v-icon {
+  color: #1f73e8;
+}
+/* Monto con la moneda a la derecha (7.3) */
+.pg-money--right .pg-money__coin :deep(.v-field) {
+  color: #1f73e8;
+  font-weight: 700;
+  background: #eaf2ff;
+  border-radius: 0 4px 4px 0;
+}
+.pg-money--right .pg-money__amount :deep(.v-field) {
+  border-radius: 4px 0 0 4px;
+}
+.pg-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #374151;
+  background: #fff8e6;
+  border: 1px solid #fde7a8;
+  border-radius: 12px;
+}
+.pg-info--azul {
+  background: #eaf2ff;
+  border-color: #c9dcfb;
+}
+.pg-info--azul .pg-info__icon {
+  color: #1f73e8;
+}
+.pg-info__line {
+  display: block;
+  margin-top: 4px;
+}
+.pg-info__icon {
+  color: #f59e0b;
+}
+.pg-info b {
+  display: block;
+  font-size: 14px;
+  color: #1f2a44;
+}
+.pg-proveedores {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.pg-proveedor {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  text-align: left;
+  background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.pg-proveedor:hover {
+  background: #f4f8fe;
+}
+.pg-proveedor.is-selected {
+  background: #eaf2ff;
+  border-color: #9cc0f7;
+}
+.pg-proveedor__num {
+  flex: 0 0 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1f73e8;
+  background: #dbe8fd;
+  border-radius: 50%;
+}
+.pg-proveedor__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2a44;
+}
+.pg-proveedor__state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.pg-proveedor__state.is-ok {
+  color: #15803d;
+}
+.ins-grid__full {
+  grid-column: 1 / -1;
+}
+.pg-hint {
+  padding: 8px 0;
+  font-size: 13px;
+  color: #6b7280;
+}
+.pg-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid #eef2f7;
+}
+/* "Llenar proveedor": bien visible junto a "Continuar" */
+.pg-btn-llenar {
+  font-weight: 700 !important;
+  color: #1f73e8 !important;
+  background: #ffffff !important;
+  border: 2px solid #1f73e8 !important;
+}
+.pg-btn-llenar:hover {
+  background: #eaf2ff !important;
+}
+.pg-actions__right {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.pg-actions .v-btn {
+  min-width: 120px;
+}
+.ins-pago-cliente {
+  margin-left: 10px;
+  font-size: 12px;
+  color: #374151;
+}
+@media (max-width: 600px) {
+  .pg-question,
+  .pg-sub__head {
+    flex-wrap: wrap;
+  }
+  .pg-transfer__row {
+    grid-template-columns: 24px 1fr;
+  }
+  .pg-transfer__input {
+    grid-column: 1 / -1;
+  }
 }
 
 .custom-title-class {

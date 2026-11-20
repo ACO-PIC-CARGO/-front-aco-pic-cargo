@@ -9,6 +9,7 @@ import type { ApiResponse } from "@/types/api";
 import type { VersionSistema } from "@/types/version";
 import { applyUpdate, checkForUpdate, hardReload } from "@/utils/swUpdate";
 import AvisoActualizacion from "@/components/comun/AvisoActualizacion.vue";
+import VisorArchivoDialog from "@/components/comun/VisorArchivoDialog.vue";
 
 const ControlServices = defineAsyncComponent(
   () => import("@/components/ServicesControl.vue"),
@@ -1175,6 +1176,8 @@ function mostrarBtnGuardar() {
       loop
       controls
     />
+    <!-- celular / tablet: los soportes se ven en un modal, no en otra pestaña -->
+    <VisorArchivoDialog />
   </v-app>
 </template>
 

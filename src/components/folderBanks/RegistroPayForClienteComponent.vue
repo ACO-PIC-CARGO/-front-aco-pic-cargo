@@ -691,6 +691,24 @@ watch(selected, () => {
   deep: true, // Esto detecta cambios en las propiedades internas de los items
 });
 
+// cobro con excedente (el cliente pagó más que la deuda): la diferencia va como gasto bancario,
+// así el detalle + gasto suma lo depositado. Se llena solo y no se edita.
+const CONCEPTO_EXCEDENTE = "EXCEDENTE DEL CLIENTE";
+const excedenteSolicitud = computed(() => {
+  if (!solicitud.value || !selected.value.length) return 0;
+  const detalle = selected.value.reduce((acc, item) => acc + aNumero(item.montoparcial), 0);
+  return Math.max(Math.round((aNumero(solicitud.value.monto) - detalle) * 100) / 100, 0);
+});
+watch(excedenteSolicitud, (excedente, anterior) => {
+  if (excedente > 0) {
+    montogastobancario.value = excedente.toFixed(2);
+    conceptogastobancario.value = CONCEPTO_EXCEDENTE;
+  } else if (anterior && anterior > 0) {
+    montogastobancario.value = 0;
+    if (conceptogastobancario.value === CONCEPTO_EXCEDENTE) conceptogastobancario.value = "";
+  }
+});
+
 // "Banco y cuenta de destino (EMPRESA)": la sucursal en sesión
 const nombreEmpresa = computed(() => {
   try {
@@ -1473,6 +1491,7 @@ onMounted(async () => {
                     label="Comisión Bancaria"
                     id="id"
                     v-model="conceptogastobancario"
+                    :readonly="excedenteSolicitud > 0"
                   />
                 </v-col>
                 <v-col cols="3">
@@ -1484,6 +1503,9 @@ onMounted(async () => {
                     type="number"
                     :prefix="symbol"
                     v-model="montogastobancario"
+                    :readonly="excedenteSolicitud > 0"
+                    :hint="excedenteSolicitud > 0 ? 'Excedente pagado por el cliente' : undefined"
+                    :persistent-hint="excedenteSolicitud > 0"
                   />
                 </v-col>
                 <v-col

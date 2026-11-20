@@ -1,18 +1,25 @@
 <script setup lang="ts">
-defineProps<{
-  number: number;
+import { computed } from "vue";
+
+// sub: sub-paso (p. ej. 7.2) con número en píldora y separador, como en el diseño.
+const props = defineProps<{
+  number: number | string;
   title: string;
+  subtitle?: string;
+  sub?: boolean;
   active?: boolean;
   complete?: boolean;
   locked?: boolean;
 }>();
 const emit = defineEmits<{ select: [] }>();
+// "7.2" → sub-paso aunque no se pase "sub".
+const esSub = computed(() => props.sub || String(props.number).includes("."));
 </script>
 
 <template>
   <div
     class="ins-step"
-    :class="{ 'is-active': active, 'is-complete': complete, 'is-locked': locked }"
+    :class="{ 'is-active': active, 'is-complete': complete, 'is-locked': locked, 'is-sub': esSub }"
   >
     <button
       type="button"
@@ -21,13 +28,25 @@ const emit = defineEmits<{ select: [] }>();
       @click="emit('select')"
     >
       <span class="ins-step__num">{{ number }}</span>
-      <span class="ins-step__title">{{ title }}</span>
+      <span
+        v-if="esSub"
+        class="ins-step__sep"
+      />
+      <span class="ins-step__title">
+        {{ title }}
+        <span
+          v-if="subtitle"
+          class="ins-step__subtitle"
+        >{{ subtitle }}</span>
+      </span>
+      <slot name="aside" />
+      <!-- "v" para abrir el paso (arriba cuando está abierto) -->
       <v-icon
-        v-if="active"
-        size="18"
+        v-if="!locked"
+        size="20"
         class="ins-step__chevron"
       >
-        mdi-chevron-down
+        {{ active ? "mdi-chevron-up" : "mdi-chevron-down" }}
       </v-icon>
     </button>
     <v-expand-transition>
@@ -111,6 +130,30 @@ const emit = defineEmits<{ select: [] }>();
 .ins-step.is-active .ins-step__title {
   font-weight: 700;
   color: #1f73e8;
+}
+.ins-step.is-sub .ins-step__num {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 42px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 8px;
+}
+.ins-step__sep {
+  align-self: stretch;
+  width: 2px;
+  margin: 2px 0;
+  background: #c9d3e3;
+  border-radius: 2px;
+}
+.ins-step.is-active .ins-step__sep {
+  background: #1f73e8;
+}
+.ins-step__subtitle {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: #5b6b85;
 }
 .ins-step__chevron {
   color: #1f73e8;

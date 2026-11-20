@@ -727,6 +727,12 @@ const routes = [
           import("../views/MasterUsuario/ListNotasCotizacion.vue"),
       },
       {
+        path: "metodos_pago_proveedor/listado",
+        name: "ListMetodosPagoProveedor",
+        component: () =>
+          import("../views/MasterUsuario/ListMetodosPagoProveedor.vue"),
+      },
+      {
         path: "categoria_servicio/listado",
         name: "ListBegend",
         component: () => import("../views/Begend/ListBegend.vue"),

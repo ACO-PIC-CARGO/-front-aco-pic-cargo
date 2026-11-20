@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -226,8 +227,9 @@ function fecha(valor: string | null | undefined) {
   if (!valor) return "—";
   return `${shortDate(valor.slice(0, 10))} ${valor.slice(11, 16)}`.trim();
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 // aprobaciones como en Pagos: fecha arriba (helper de FormatFecha) y hora abajo
 function soloFecha(valor: string | null | undefined) {
@@ -705,7 +707,6 @@ onMounted(cargar);
                 @eliminar-confirmacion="eliminarConfirmacion(item)"
                 @ver-ingreso="verIngreso(item)"
                 @eliminar="eliminarFila(item)"
-                @ver="verSolicitud(item)"
               />
             </template>
           </div>

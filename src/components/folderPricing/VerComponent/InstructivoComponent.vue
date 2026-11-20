@@ -368,14 +368,6 @@ async function guardarNota() {
   }
 }
 async function abrirSeleccionDeQuoteAAprobar() {
-  if (!pricingStore.datosPrincipales.id_proveedor) {
-    Swal.fire({
-      icon: "warning",
-      title: "Proveedor",
-      text: "Para Aprobar la cotización necesita un proveedor",
-    });
-    return;
-  }
   const opcionCostos = pricingStore.opcionCostos.filter(
     (v) => !!v.selected,
   );

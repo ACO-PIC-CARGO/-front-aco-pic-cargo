@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter } from "vue-router";
@@ -181,8 +182,9 @@ function montoNumero(valor: number | string) {
   return Number(valor || 0).toFixed(2);
 }
 
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 
 watch(

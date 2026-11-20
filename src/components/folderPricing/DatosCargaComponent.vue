@@ -46,7 +46,6 @@ const townStore = useTownStore();
 const { calcularFac } = useCotizacionCalculos();
 
 onMounted(() => {
-  void appStore._getProveedorRolShipper();
 });
 
 const dialogCambiarPercepcionAduana = ref(false);
@@ -1272,28 +1271,6 @@ function finalizarSeleccionDistrito() {
       <v-card-text>
         <v-form ref="frmPuerto">
           <v-row>
-            <v-col cols="12">
-              <v-alert
-                type="info"
-                variant="tonal"
-                density="compact"
-                class="mb-2"
-                icon="mdi-information-outline"
-              >
-                Solo se muestran proveedores configurados con el rol SHIPPER.
-              </v-alert>
-              <v-autocomplete
-                label="Proveedor"
-                variant="outlined"
-                density="compact"
-                class="my-1"
-                :items="appStore.itemsProveedorRolShipper"
-                item-title="namelong"
-                item-value="id"
-                placeholder="Selecciona un proveedor SHIPPER"
-                v-model="pricingStore.datosPrincipales.id_proveedor"
-              />
-            </v-col>
             <v-col
               cols="12"
               lg="6"
