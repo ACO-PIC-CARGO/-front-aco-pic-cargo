@@ -28,6 +28,18 @@ export const useBancosStore = defineStore("bancos", () => {
   const cuentasListado = ref<CuentaBancariaListado[]>([]);
   const bancosOpciones = ref<OpcionBanco[]>([]);
   const monedasOpciones = ref<Moneda[]>([]);
+  // Cargar pago del cliente: solo cuentas y bancos de la sucursal actual (se recargan en cada apertura)
+  const cuentasSucursal = ref<CuentaBancariaPic[]>([]);
+  const bancosSucursal = ref<OpcionBanco[]>([]);
+
+  async function loadCatalogosSucursal(): Promise<void> {
+    const [cuentasAnswer, bancosAnswer] = await Promise.all([
+      request<CuentaBancariaPic>({ method: "get", url: url("getListBanksDetailsCargarPorSucursal"), headers: JSON_HEADERS }),
+      request<OpcionBanco>({ method: "get", url: url("getBanksListPorSucursal"), headers: JSON_HEADERS }),
+    ]);
+    cuentasSucursal.value = cuentasAnswer.estadoflag ? cuentasAnswer.data : [];
+    bancosSucursal.value = bancosAnswer.estadoflag ? bancosAnswer.data : [];
+  }
 
   async function loadCuentasListado(filters: Partial<FiltroCuentasBancarias> = {}): Promise<ApiResponse<CuentaBancariaListado[]>> {
     const answer = await request<CuentaBancariaListado>({
@@ -117,6 +129,9 @@ export const useBancosStore = defineStore("bancos", () => {
     cuentasListado,
     bancosOpciones,
     monedasOpciones,
+    cuentasSucursal,
+    bancosSucursal,
+    loadCatalogosSucursal,
     getListBanksDetailsCargar,
     getValidaNroOp,
     loadCuentasListado,

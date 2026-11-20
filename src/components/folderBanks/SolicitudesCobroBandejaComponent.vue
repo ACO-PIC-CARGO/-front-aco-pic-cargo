@@ -68,6 +68,51 @@ const filasSoporte = computed(() => {
   const lista = filasPorSoporte(filas.value);
   return props.tab === "PEN" ? lista.filter((f) => !["CONFIRMADO", "COBRADO"].includes(f.codigo_estado)) : lista;
 });
+// menú "Acciones" de la fila (en celular, los mismos botones en la tarjeta)
+interface AccionFila {
+  titulo: string;
+  detalle: string;
+  icono: string;
+  color: "rojo" | "naranja" | "morado";
+  deshabilitado?: boolean;
+  ayuda?: string;
+  accion: () => void;
+}
+function accionesMenu(item: FilaSoporteCobro<SolicitudCobroBandeja>): AccionFila[] {
+  const lista: AccionFila[] = [];
+  if (item.soporte_confirmacion_path && puedeEliminar.value && !item.id_pagoingreso) {
+    lista.push({
+      titulo: "Eliminar confirmación de ingreso",
+      detalle: "Quita solo el soporte del ingreso en banco.",
+      icono: "mdi-trash-can-outline",
+      color: "rojo",
+      ayuda: "Requiere la clave del Super administrador",
+      accion: () => eliminarConfirmacion(item),
+    });
+  }
+  if (vigente(item) && puedeModificar.value && item.codigo_estado !== "RECHAZADA") {
+    lista.push({
+      titulo: "Rechazar / Devolver",
+      detalle: "Devuelve el registro por datos incorrectos.",
+      icono: "mdi-arrow-u-left-top",
+      color: "naranja",
+      deshabilitado: !puedeRechazar(item.codigo_estado, true),
+      ayuda: tituloRechazar(item.codigo_estado),
+      accion: () => abrirRechazo(item.codigo, item.codigo_estado),
+    });
+  }
+  if (vigente(item) && puedeEliminar.value) {
+    lista.push({
+      titulo: "Reiniciar registro",
+      detalle: "Elimina toda la solicitud y sus registros.",
+      icono: "mdi-sync",
+      color: "morado",
+      ayuda: tieneAprobacionesCobro(item) ? "Requiere clave de administrador" : undefined,
+      accion: () => eliminarFila(item),
+    });
+  }
+  return lista;
+}
 function eliminarFila(fila: FilaSoporteCobro<SolicitudCobroBandeja>) {
   const s = filas.value.find((x) => x.codigo === fila.codigo)!;
   if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
@@ -538,18 +583,6 @@ onMounted(cargar);
                 data-modo-ver="permitido"
                 @click="descargarArchivo(item.soporte_confirmacion_path, item.soporte_confirmacion_nombre)"
               />
-              <!-- ya confirmado: el soporte solo se elimina con la clave del Super administrador -->
-              <v-btn
-                v-if="puedeEliminar && !item.id_pagoingreso"
-                icon="mdi-trash-can-outline"
-                variant="text"
-                size="small"
-                color="error"
-                title="Eliminar soporte de confirmación (requiere clave del Super administrador)"
-                aria-label="Eliminar soporte de confirmación"
-                :loading="procesando === item.codigo"
-                @click="eliminarConfirmacion(item)"
-              />
             </div>
             <!-- con el soporte cargado ya se puede registrar el ingreso en Bancos -->
             <button
@@ -593,17 +626,6 @@ onMounted(cargar);
         </template>
         <template #[`item.acciones`]="{ item }">
           <div class="scb__acciones">
-            <v-btn
-              v-if="vigente(item) && puedeEliminar"
-              icon="mdi-trash-can-outline"
-              size="small"
-              variant="text"
-              color="error"
-              :title="`Eliminar solicitud${tieneAprobacionesCobro(item) ? ' (requiere clave de administrador)' : ''}`"
-              aria-label="Eliminar solicitud de cobro"
-              :loading="procesando === item.codigo"
-              @click="eliminarFila(item)"
-            />
             <!-- confirmado: registrar el ingreso en Bancos (uno por pago cargado, mientras falte alguno) -->
             <v-btn
               v-if="item.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(item) && puedeRegistrar"
@@ -631,19 +653,49 @@ onMounted(cargar);
             >
               Ver motivo
             </v-btn>
-            <v-btn
-              v-else-if="vigente(item) && puedeModificar"
-              size="small"
-              variant="outlined"
-              rounded="lg"
-              color="error"
-              class="cobl__rechazar"
-              :disabled="!puedeRechazar(item.codigo_estado, true)"
-              :title="tituloRechazar(item.codigo_estado)"
-              @click="abrirRechazo(item.codigo, item.codigo_estado)"
+            <v-menu
+              v-if="accionesMenu(item).length"
+              location="bottom end"
             >
-              Rechazar
-            </v-btn>
+              <template #activator="{ props: menu }">
+                <v-btn
+                  v-bind="menu"
+                  size="small"
+                  variant="flat"
+                  color="primary"
+                  class="scb__menubtn"
+                  prepend-icon="mdi-dots-horizontal"
+                  append-icon="mdi-menu-down"
+                  :loading="procesando === item.codigo"
+                >
+                  Acciones
+                </v-btn>
+              </template>
+              <div class="scb__menu">
+                <template
+                  v-for="(a, i) in accionesMenu(item)"
+                  :key="a.titulo"
+                >
+                  <v-divider v-if="i > 0" />
+                  <button
+                    type="button"
+                    class="scb__menuitem"
+                    :class="`scb__menuitem--${a.color}`"
+                    :disabled="a.deshabilitado"
+                    :title="a.ayuda"
+                    @click="a.accion()"
+                  >
+                    <v-icon size="26">
+                      {{ a.icono }}
+                    </v-icon>
+                    <span>
+                      <b>{{ a.titulo }}</b>
+                      <small>{{ a.detalle }}</small>
+                    </span>
+                  </button>
+                </template>
+              </div>
+            </v-menu>
           </div>
         </template>
       </v-data-table-server>
@@ -701,6 +753,7 @@ onMounted(cargar);
               />
               <SolicitudCobroCardMovil
                 :s="item"
+                bandeja
                 :puede-rechazar="puedeRechazar(item.codigo_estado, puedeModificar)"
                 :puede-registrar="puedeRegistrar"
                 :puede-confirmar="puedeModificar"
@@ -1144,7 +1197,62 @@ button.cobl__exp:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 6px;
+}
+.scb__menubtn {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  background: #1d4ed8 !important;
+}
+.scb__menu {
+  min-width: 290px;
+  padding: 6px;
+  border: 1px solid #e3e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+.scb__menuitem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+.scb__menuitem:hover:not(:disabled) {
+  background: #f5f7fb;
+}
+.scb__menuitem:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.scb__menuitem span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.scb__menuitem b {
+  font-size: 0.95rem;
+}
+.scb__menuitem small {
+  color: #5b6b86;
+  font-size: 0.8rem;
+}
+.scb__menuitem--rojo .v-icon,
+.scb__menuitem--rojo b {
+  color: #dc2626;
+}
+.scb__menuitem--naranja .v-icon,
+.scb__menuitem--naranja b {
+  color: #ea8a0c;
+}
+.scb__menuitem--morado .v-icon,
+.scb__menuitem--morado b {
+  color: #6d28d9;
 }
 .scb__fechas {
   display: grid;

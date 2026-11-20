@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AprobarDestinoDialog from "@/components/comun/AprobarDestinoDialog.vue";
 import { computed, defineAsyncComponent, nextTick, onMounted, ref, useTemplateRef } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -11,7 +12,6 @@ import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
 import { usePermissions } from "@/composables/usePermissions";
 import { useQuoteTrafficSend, type ApprovalAmounts } from "@/composables/useQuoteTrafficSend";
-import { SEND_TARGET_LABELS } from "@/utils/trafficSend";
 import QuoteInTrafficNotice from "@/components/folderTraffic/QuoteInTrafficNotice.vue";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
 import type { AprobacionCotizacion, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
@@ -33,7 +33,12 @@ const quoteTraffic = useQuoteTrafficSend({
   approved: () => Boolean(aduanaStore.aprobadoflag),
 });
 const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
-const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
+// opciones elegidas en la cotización que el cliente puede haber aprobado
+const opcionesAprobables = computed(() =>
+  aduanaStore.opcionCostos
+    .filter((v) => v.selected)
+    .map((opcion) => ({ value: opcion.nro_propuesta, titulo: `Opción ${opcion.nro_propuesta}`, detalle: getProveedor(opcion) })),
+);
 
 const frmAprobar = useTemplateRef("frmAprobar");
 const masterForm = useTemplateRef("masterForm");
@@ -162,13 +167,18 @@ async function approveAduana(details: AprobacionCotizacion) {
   const approved = await aduanaStore.aprobarCotizacionAduana({ ...details, IdempotencyKey: IdempotencyKey.value });
   if (!approved) IdempotencyKey.value = generateIdempotencyKey();
 }
+// Los masters del cliente se cargan en segundo plano al abrir "Aprobar" (el diálogo abre al instante);
+// solo se esperan cuando hay que elegir expediente.
+let mastersListos: Promise<unknown> = Promise.resolve();
 async function abrirSeleccionDeQuoteAAprobar() {
   const val = JSON.parse(sessionStorage.getItem("ConfigEmpresa") as string);
   dialogConfig.value = !val.existemaster;
   if (dialogConfig.value) {
     return false;
   }
-  await appStore.cargarMaster(aduanaStore.datosPrincipales as Parameters<typeof appStore.cargarMaster>[0]);
+  mastersListos = appStore
+    .cargarMaster(aduanaStore.datosPrincipales as Parameters<typeof appStore.cargarMaster>[0])
+    .catch((error) => console.error(error));
 
   seleccionQuoteAprobar.value = true;
 }
@@ -188,6 +198,7 @@ function approvalAmounts(): ApprovalAmounts {
   };
 }
 async function abrirModalAprobar() {
+  await mastersListos;
   await aduanaStore.generaInstructivoparaguardataAduana();
   if ((await frmAprobar.value!.validate()).valid) {
     const fechaValidezOpcion = aduanaStore.opcionCostos.filter(
@@ -700,69 +711,15 @@ function getProveedor(element: OpcionCosto) {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
+    <AprobarDestinoDialog
+      ref="frmAprobar"
       v-model="seleccionQuoteAprobar"
-      eager
-      scrollable
-      persistent
-      max-width="35%"
-      transition="dialog-transition"
-      class="classDialog"
-    >
-      <v-card class="pa-5">
-        <h2 class="text-blue">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO<template v-if="sendTarget"> A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}</template>
-        </h2>
-        <v-select
-          id="send-target"
-          v-model="sendTarget"
-          :items="sendTargetItems"
-          label="¿A dónde envías la cotización?"
-          class="mt-4"
-          density="compact"
-          hide-details
-        />
-        <p class="mt-4">Seleccione la opción aprobada por el cliente:</p>
-
-        <v-card-text>
-          <v-form ref="frmAprobar">
-            <v-radio-group
-              v-model="nro_propuesta"
-              :rules="[(v) => !!v || 'Seleccione una opción']"
-            >
-              <v-radio
-                :value="opcion.nro_propuesta"
-                v-for="(
-                  opcion, index
-                ) in aduanaStore.opcionCostos.filter((v) => v.selected)"
-                :key="index"
-                :label="`Opción ${opcion.nro_propuesta} - ${getProveedor(
-                  opcion
-                )}`"
-              />
-            </v-radio-group>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            class="mx-1"
-            :disabled="!sendTarget"
-            @click="abrirModalAprobar()"
-            color="success"
-          >
-            Continuar
-          </v-btn>
-          <v-btn
-            class="mx-1"
-            color="error"
-            @click="seleccionQuoteAprobar = !seleccionQuoteAprobar"
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      v-model:target="sendTarget"
+      v-model:opcion="nro_propuesta"
+      :targets="sendTargets"
+      :opciones="opcionesAprobables"
+      @continuar="abrirModalAprobar()"
+    />
 
     <v-col
       cols="12"

@@ -6,7 +6,6 @@ import Swal from "sweetalert2";
 import FormatFecha from "../comun/FormatFecha.vue";
 import { useFilesStore } from "@/stores/files";
 import { useBancosStore } from "@/stores/bancos";
-import { useAppStore } from "@/stores/app";
 import type { AdminCredentials } from "@/types/seguridad";
 import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
 import { withAuthorization } from "@/utils/adminCredentials";
@@ -30,7 +29,6 @@ const emit = defineEmits<{ "update:modelValue": [valor: boolean]; guardado: [] }
 const { smAndDown } = useDisplay();
 const filesStore = useFilesStore();
 const bancosStore = useBancosStore();
-const appStore = useAppStore();
 
 const abierto = computed({
   get: () => props.modelValue,
@@ -73,13 +71,23 @@ const errorMonto = computed(() => (montoNum.value > 0 ? "" : DATO_REQUERIDO));
 const montoCompleto = computed(() => saldo.value === 0 && !errorMonto.value);
 
 // moneda: la de la solicitud o la de la cuenta elegida
+// solo la sucursal actual; se muestran "SIGLA - Nombre del banco · N° de cuenta"
+const cuentasSucursal = computed(() =>
+  bancosStore.cuentasSucursal.map((c) => ({
+    ...c,
+    titulo: [[c.banco, c.banco_nombre].filter(Boolean).join(" - "), c.cuenta?.trim()].filter(Boolean).join(" · "),
+  })),
+);
+const bancosCliente = computed(() =>
+  bancosStore.bancosSucursal.map((b) => ({ ...b, titulo: [b.acronym, b.name].filter(Boolean).join(" - ") })),
+);
 // cuentas de la moneda del correlativo
 const cuentasMoneda = computed(() => {
   const moneda = props.solicitud?.moneda;
-  if (moneda) return bancosStore.cuentas.filter((c) => c.symbol === moneda);
+  if (moneda) return cuentasSucursal.value.filter((c) => c.symbol === moneda);
   // moneda de los ingresos del correlativo (coins): solo las cuentas en esa moneda
   const idCoins = props.destino?.id_coins;
-  return idCoins ? bancosStore.cuentas.filter((c) => Number(c.id_coins) === Number(idCoins)) : bancosStore.cuentas;
+  return idCoins ? cuentasSucursal.value.filter((c) => Number(c.id_coins) === Number(idCoins)) : cuentasSucursal.value;
 });
 // al cargar el soporte solo se ofrece la cuenta principal de la empresa (esprincipalflag); al editar un
 // pago se mantiene también la suya. Sin cuenta principal configurada, todas las de esa moneda.
@@ -92,7 +100,7 @@ const cuentas = computed(() => {
 const moneda = computed(
   () =>
     props.solicitud?.moneda
-    ?? bancosStore.cuentas.find((c) => c.id === idCuenta.value)?.symbol
+    ?? cuentasSucursal.value.find((c) => c.id === idCuenta.value)?.symbol
     ?? cuentas.value[0]?.symbol
     ?? "USD",
 );
@@ -122,10 +130,7 @@ watch(
     voucher.value = sop?.id_path_voucher
       ? { id: sop.id_path_voucher, nombre: sop.voucher_nombre || "Voucher", ruta: sop.voucher_path || "" }
       : null;
-    await Promise.all([
-      bancosStore.cuentas.length ? null : bancosStore.getListBanksDetailsCargar(),
-      appStore.itemsDataBanksList.length ? null : appStore._getBanksList(),
-    ]);
+    await bancosStore.loadCatalogosSucursal();
     if (!idCuenta.value && cuentas.value.length === 1) idCuenta.value = cuentas.value[0]!.id;
   },
 );
@@ -330,7 +335,7 @@ async function guardar(enviar: boolean) {
           id="pagocli-cuenta"
           v-model="idCuenta"
           :items="cuentas"
-          item-title="label"
+          item-title="titulo"
           item-value="id"
           placeholder="SELECCIONAR BANCO Y CUENTA"
           prepend-inner-icon="mdi-bank-outline"
@@ -351,8 +356,8 @@ async function guardar(enviar: boolean) {
         <v-autocomplete
           id="pagocli-banco-origen"
           v-model="idBancoOrigen"
-          :items="appStore.itemsDataBanksList"
-          item-title="acronym"
+          :items="bancosCliente"
+          item-title="titulo"
           item-value="id"
           placeholder="SELECCIONAR BANCO DEL CLIENTE"
           prepend-inner-icon="mdi-bank-transfer-out"
@@ -369,7 +374,7 @@ async function guardar(enviar: boolean) {
             <label
               class="pagocli__label"
               for="pagocli-fecha"
-            >FECHA DEL DEPÓSITO <span class="pagocli__req">*</span></label>
+            >FECHA DE TRANSFERENCIA <span class="pagocli__req">*</span></label>
             <FormatFecha
               id="pagocli-fecha"
               v-model="fechaDeposito"
@@ -383,6 +388,12 @@ async function guardar(enviar: boolean) {
               hide-details="auto"
               :error-messages="fechaDeposito ? '' : DATO_REQUERIDO"
             />
+            <p class="pagocli__fechanota">
+              <v-icon size="15">
+                mdi-information-outline
+              </v-icon>
+              <span>Fecha de transferencia del cliente, no de registro en el sistema.</span>
+            </p>
           </div>
           <div>
             <label
@@ -643,6 +654,18 @@ async function guardar(enviar: boolean) {
   margin: 6px 0 0;
   font-size: 12px;
   color: #3b4a63;
+}
+.pagocli__fechanota {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 6px 0 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #eaf2ff;
+  color: #1e3a8a;
+  font-size: 11.5px;
+  line-height: 1.3;
 }
 .pagocli__montos {
   display: grid;

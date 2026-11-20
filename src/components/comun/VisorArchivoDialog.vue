@@ -33,12 +33,17 @@ const comoImagen = computed(() => tipo.value === "imagen" || (tipo.value === "ot
         </v-icon>
         <span class="visor__titulo">{{ titulo }}</span>
         <v-btn
-          icon="mdi-close"
-          variant="text"
-          size="small"
+          class="visor__cerrar"
+          variant="tonal"
+          color="#0a1f44"
+          icon
           aria-label="Cerrar"
           @click="visorArchivo.abierto = false"
-        />
+        >
+          <v-icon size="30">
+            mdi-close
+          </v-icon>
+        </v-btn>
       </div>
 
       <div class="visor__body">
@@ -83,6 +88,11 @@ const comoImagen = computed(() => tipo.value === "imagen" || (tipo.value === "ot
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.visor__cerrar {
+  width: 48px !important;
+  height: 48px !important;
+  flex-shrink: 0;
 }
 .visor__body {
   display: flex;

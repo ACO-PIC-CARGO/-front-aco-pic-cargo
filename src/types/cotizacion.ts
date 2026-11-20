@@ -640,6 +640,9 @@ export interface DatosManualesInstructivo {
   email: string;
   monto: number | string;
   listDiaFecha: string;
+  /** paso 3: fecha (YYYY-MM-DD) y comentario opcional; listDiaFecha se arma con ambos */
+  fechaListaRecojo?: string;
+  comentarioListaRecojo?: string;
   grupoWhatsapp: string;
   pagarProveedor: boolean | string;
   metodoPagarProveedor: number | string;

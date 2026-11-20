@@ -420,9 +420,10 @@ const etiquetasPaso = computed(() => {
 function stepNumber(paso: number) {
   return etiquetasPaso.value[paso] ?? "";
 }
-// Verde: todo paso ya alcanzado (incluido el más lejano), salvo el que se está llenando por primera vez.
+// Verde: pasos ya llenados (se pasó de ellos con "Continuar"). El paso donde se quedó (pasoMaximo) aún no está
+// completo: queda sin verde pero habilitado para volver a él.
 function isComplete(paso: number) {
-  return paso < pasoMaximo.value || (paso === pasoMaximo.value && paso !== e6.value);
+  return paso < pasoMaximo.value;
 }
 // Solo se puede volver a pasos ya alcanzados; para avanzar hay que usar "Continuar".
 // Clic en la cabecera: abre el paso; si ya es el actual, lo cierra / vuelve a abrir.
@@ -472,6 +473,53 @@ watch(e6, (paso) => {
   if (paso > pasoMaximo.value) pasoMaximo.value = paso;
   sincronizarScroll();
 });
+
+// Cada cambio de paso guarda el borrador (datos + paso actual / más lejano): al recargar la página se continúa
+// desde el mismo paso. Mientras se restaura el paso guardado no se guarda ni se reinicia el avance.
+let restaurandoPaso = true;
+// skeleton mientras se cargan el borrador, los shippers y los puertos
+const cargandoInstructivo = ref(true);
+let autoguardado: ReturnType<typeof setTimeout> | undefined;
+// Guarda cada paso, sub-paso y dato. Solo envía si algo cambió desde el último guardado
+// (payloadGuardar copia el pago activo dentro de datosManuales y eso vuelve a disparar el watcher).
+let ultimoGuardado = "";
+function programarAutoguardado() {
+  if (restaurandoPaso || props.aprobadoflag) return;
+  clearTimeout(autoguardado);
+  autoguardado = setTimeout(() => {
+    const payload = payloadGuardar();
+    const firma = JSON.stringify(payload);
+    if (firma === ultimoGuardado) return;
+    ultimoGuardado = firma;
+    pricingStore.guardarDatosInstructivo(payload).catch((error) => {
+      ultimoGuardado = "";
+      console.error(error);
+    });
+  }, 400);
+}
+watch([e6, pasoMaximo], programarAutoguardado);
+async function restaurarPaso(shippersListos: Promise<unknown>) {
+  const guardado = pricingStore.datosPrincipales.datosinstructivomanual;
+  const actual = Number(guardado?.pasoActual ?? NaN);
+  const maximo = Number(guardado?.pasoMaximo ?? NaN);
+  try {
+    // Los pasos visibles dependen de los shippers (2+ shippers = paso 6.5).
+    await shippersListos;
+  } catch (error) {
+    console.error(error);
+  }
+  await nextTick();
+  if (Number.isFinite(maximo) && maximo > pasoMaximo.value) pasoMaximo.value = maximo;
+  if (Number.isFinite(actual) && actual > 0) {
+    const paso = actual === PASO_FINAL || pasosVisibles.value.includes(actual)
+      ? actual
+      : ([...pasosVisibles.value].reverse().find((p) => p <= actual) ?? 0);
+    if (paso > pasoMaximo.value) pasoMaximo.value = paso;
+    e6.value = paso;
+  }
+  await nextTick();
+  restaurandoPaso = false;
+}
 watch(tabPreview, sincronizarScroll);
 
 const documentosAdjuntos = computed(() =>
@@ -634,6 +682,14 @@ try {
 }
 const conDivisor = computed(() => props.verDatosPreview && props.verPrevisualizacion);
 
+// mismas columnas que el layout, sin la del divisor
+const estiloSkeleton = computed(() => {
+  if (!props.verDatosPreview) return { gridTemplateColumns: "1fr" };
+  if (!props.verPrevisualizacion) return { gridTemplateColumns: "1fr" };
+  return {
+    gridTemplateColumns: `min(${anchoPasos.value}px, max(${ANCHO_MIN_PASOS}px, calc((100% - 16px) / 2))) minmax(0, 1fr)`,
+  };
+});
 const estiloLayout = computed(() => {
   if (!props.verDatosPreview) return { gridTemplateColumns: "240px 1fr", columnGap: "16px" };
   if (!props.verPrevisualizacion) return { gridTemplateColumns: "1fr", columnGap: "16px" };
@@ -814,7 +870,6 @@ function guardarYContinuarCertificado() {
 function guardarYContinuarPermisos() {
   void guardarYContinuarCon([
     ...(permisosEspecialesSiNo.value ? [] : ["¿El cliente informó sobre permisos especiales?"]),
-    ...(textoVacio(datosManuales.value.comentarioPermisos) ? ["Comentario"] : []),
   ]);
 }
 // Texto de las filas nuevas (previsualización / PDF / correo).
@@ -842,10 +897,10 @@ async function guardarYContinuarPago() {
   const d = datosManuales.value;
   const vacio = (valor: unknown) => !String(valor ?? "").trim();
   const positivo = (valor: unknown) => Number.isFinite(Number(valor)) && Number(valor) > 0 && !vacio(valor);
-  // 7.3: solo los archivos son obligatorios; los montos son opcionales, pero si se llenan deben ser números > 0.
-  const montoInvalido = (valor: unknown, etiqueta: string) => (vacio(valor) || positivo(valor) ? [] : [etiqueta]);
+  // 7.3: se paga al proveedor (marcó "Sí"), así que el monto a pagar es obligatorio y mayor a 0.
+  const montoInvalido = (valor: unknown, etiqueta: string) => (positivo(valor) ? [] : [etiqueta]);
   const faltantes = [
-    ...(pideMontoPago.value ? montoInvalido(d.monto, "Monto a pagar (número mayor a 0)") : []),
+    ...(pideMontoPago.value ? montoInvalido(d.monto, "Monto a pagar al proveedor (número mayor a 0)") : []),
     ...(esOtrosPago.value && !docComprobanteTransferencia.value?.flag ? ["Comprobante / Datos de Transferencia"] : []),
     ...((esPlataforma.value || esTransferenciaInternacional.value) && !docFacturaPago.value?.flag
       ? ["Factura Comercial / Proforma"]
@@ -912,7 +967,7 @@ async function guardarYContinuarPago() {
 watch(
   () => [datosManuales.value.pagarProveedor, datosManuales.value.metodoPagoCodigo],
   () => {
-    if (!cambiandoProveedor && pasoMaximo.value > e6.value) pasoMaximo.value = e6.value;
+    if (!cambiandoProveedor && !restaurandoPaso && pasoMaximo.value > e6.value) pasoMaximo.value = e6.value;
   },
 );
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1170,6 +1225,8 @@ function payloadGuardar() {
     shippers: shipperIdsSeleccionados.value,
     datosInstructivoManual: {
       ...datosManuales.value,
+      pasoActual: e6.value,
+      pasoMaximo: pasoMaximo.value,
       metodoPagoNombre: metodoPagoSeleccionado.value ? nombreMetodoPago(metodoPagoSeleccionado.value) : "",
       listaDocumentos: documentosParaGuardar(),
       table_allpath_list: documentosParaGuardar(),
@@ -1215,6 +1272,45 @@ function setDatosInstructivo() {
 
   pricingStore.guardarDatosInstructivo(payloadGuardar());
   emit("continuar");
+}
+// Paso 3: fecha (FormatFecha, obligatoria) + comentario opcional. listDiaFecha sigue siendo el texto
+// que leen la vista previa, el correo y el backend: "20/NOV/2026 - comentario".
+const fechaListaRecojo = computed<string>({
+  get: () => (datosManuales.value.fechaListaRecojo as string | undefined) ?? "",
+  set: (valor) => {
+    datosManuales.value.fechaListaRecojo = valor || "";
+    armarListDiaFecha();
+  },
+});
+const comentarioListaRecojo = computed<string>({
+  get: () => (datosManuales.value.comentarioListaRecojo as string | undefined) ?? "",
+  set: (valor) => {
+    datosManuales.value.comentarioListaRecojo = valor || "";
+    armarListDiaFecha();
+  },
+});
+function armarListDiaFecha() {
+  const fecha = fechaListaRecojo.value ? shortDate(fechaListaRecojo.value) : "";
+  const comentario = comentarioListaRecojo.value.trim();
+  datosManuales.value.listDiaFecha = [fecha, comentario].filter(Boolean).join(" - ");
+}
+// borradores de antes (texto libre): el texto pasa al comentario para no perderlo
+watch(
+  () => datosManuales.value,
+  (d) => {
+    if (d && d.listDiaFecha && d.fechaListaRecojo === undefined && d.comentarioListaRecojo === undefined) {
+      d.fechaListaRecojo = "";
+      d.comentarioListaRecojo = d.listDiaFecha;
+    }
+  },
+  { immediate: true },
+);
+function continuarListaRecojo() {
+  if (!fechaListaRecojo.value && datosManuales.value.listDiaFecha !== "No Aplica") {
+    void Swal.fire({ icon: "warning", title: "Fecha requerida", text: "Elige para cuándo se estima la mercancía lista para recojo." });
+    return;
+  }
+  continuar();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function continuarListaDiaFecha() {
@@ -1862,8 +1958,8 @@ function cargarDatosCliente() {
     .replace(/[\s-]+/g, "_");
 }
 
-function encontrar(lista: object[], id: unknown, campo = "id"): FichaInstructivo {
-  return (lista.find((v) => (v as Record<string, unknown>)[campo] == id) || {}) as FichaInstructivo;
+function encontrar(lista: object[] | null | undefined, id: unknown, campo = "id"): FichaInstructivo {
+  return ((lista ?? []).find((v) => (v as Record<string, unknown>)[campo] == id) || {}) as FichaInstructivo;
 }
 
 function cargaNroQuote() {
@@ -1896,59 +1992,77 @@ function recibirId(file: { inserid?: unknown; archivo?: unknown }) {
   errfile = "";
 }
 
+// Cada dato que se elige o escribe también se guarda (no solo al cambiar de paso).
+watch(shipperIdsSeleccionados, programarAutoguardado);
+watch(datosManuales, programarAutoguardado, { deep: true });
+watch(listaDocumentos, programarAutoguardado, { deep: true });
+
 onMounted(async () => {
-  // Siempre arranca en el primer paso (Shipper) y se avanza paso por paso (también si ya está aprobado).
-  void cargarShippers();
+  // Arranca en el paso donde se quedó el borrador (o en Shipper si no hay); se avanza paso por paso.
+  const shippersListos = cargarShippers();
   void listarMetodosPago();
   if (!shipmentSubtypeStore.subtypes.length) void shipmentSubtypeStore.load();
   if (!appStore.itemsCoinsList?.length) void appStore._getCoinsList();
-  Promise.all([
-    cargarDatosModality(),
-    cargarDatosShipment(),
-    cargarDatosIncoterms(),
-    cargarDatosProveedor(),
-    cargaNroQuote(),
-    cargarDatosAsesor(),
-    cargarDatosIncoterms(),
-    cargarDatosCliente(),
-    cargarDatosAsesorPricing(),
-  ]);
+  // 1) El borrador va primero y el autoguardado se habilita SIEMPRE: si algo de abajo falla
+  //    (p. ej. un catálogo que aún no cargó tras F5), cada paso se sigue guardando.
+  try {
+    const borrador = pricingStore.datosPrincipales.datosinstructivomanual;
+    if (borrador) {
+      datosManuales.value = borrador;
+      migrarMetodoPagoAntiguo();
+      limpiarMontosEnCero();
+      datosFile.value = (borrador.table_allpath_list as unknown[] | undefined) ?? [];
+    }
+  } catch (error) {
+    console.error(error);
+  }
+  const restaurado = restaurarPaso(shippersListos);
 
-  const tipoCargaItem = pricingStore.listShipment.find(
+  // 2) Datos de la vista previa: uno que falle no corta a los demás.
+  [
+    cargarDatosModality,
+    cargarDatosShipment,
+    cargarDatosIncoterms,
+    cargarDatosProveedor,
+    cargaNroQuote,
+    cargarDatosAsesor,
+    cargarDatosCliente,
+    cargarDatosAsesorPricing,
+  ].forEach((cargar) => {
+    try {
+      cargar();
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
+  const tipoCargaItem = (pricingStore.listShipment ?? []).find(
     (v) => v.id == pricingStore.datosPrincipales.idtipocarga,
   );
-
   const idTipoCarga = tipoCargaItem ? tipoCargaItem.id_transport : null;
   if (pricingStore.datosPrincipales.datosinstructivomanual) {
-    datosManuales.value =
-      pricingStore.datosPrincipales.datosinstructivomanual;
-    migrarMetodoPagoAntiguo();
-    limpiarMontosEnCero();
-    datosFile.value =
-      pricingStore.datosPrincipales.datosinstructivomanual.table_allpath_list as unknown[];
-    const opcionCostos = pricingStore.opcionCostos.filter(
-      (v) => !!v.selected,
-    );
-    const costosFlete = opcionCostos[0]!.listCostos.filter(
+    const opcionCostos = (pricingStore.opcionCostos ?? []).filter((v) => !!v.selected);
+    const costosFlete = (opcionCostos[0]?.listCostos ?? []).filter(
       (v) => v.esfleteflag == 1 && v.status == 1 && v.esopcionflag == 1,
     );
-
-    const proveedoresUnicos = [
-      ...new Set(costosFlete.map((v) => v.id_proveedor)),
-    ];
-    const idBuscado =
-      proveedoresUnicos.length > 0 ? proveedoresUnicos[0] : null;
+    const idBuscado = costosFlete[0]?.id_proveedor ?? null;
     proveedorInstructivo.value =
-      appStore.provedores.find((v: ProveedorPricing) => v.id == idBuscado) || {};
+      (appStore.provedores ?? []).find((v: ProveedorPricing) => v.id == idBuscado) || {};
   }
-  puertoOrigen.value = (await puertoStore.verPuerto({
-    id_transport: idTipoCarga as number | undefined,
-    id: pricingStore.datosPrincipales.idorigen!,
-  })) as Puerto | null;
-  puertoDestino.value = (await puertoStore.verPuerto({
-    id_transport: idTipoCarga as number | undefined,
-    id: pricingStore.datosPrincipales.iddestino!,
-  })) as Puerto | null;
+  const puertos = (async () => {
+    puertoOrigen.value = (await puertoStore.verPuerto({
+      id_transport: idTipoCarga as number | undefined,
+      id: pricingStore.datosPrincipales.idorigen!,
+    })) as Puerto | null;
+    puertoDestino.value = (await puertoStore.verPuerto({
+      id_transport: idTipoCarga as number | undefined,
+      id: pricingStore.datosPrincipales.iddestino!,
+    })) as Puerto | null;
+  })();
+  // skeleton hasta tener el borrador, los shippers y los puertos (lo que falle no lo deja colgado)
+  const resultados = await Promise.allSettled([restaurado, puertos]);
+  resultados.forEach((r) => r.status === "rejected" && console.error(r.reason));
+  cargandoInstructivo.value = false;
 });
 
 watch(() => datosManuales.value.cotizacionFile, () => {
@@ -2004,7 +2118,47 @@ watch(() => datosManuales.value.agregarOtros, () => {
     class="ins-layout"
     :class="{ 'is-resizing': redimensionando }"
     :style="estiloLayout"
+    :aria-busy="cargandoInstructivo"
   >
+    <!-- skeleton: pasos a la izquierda, instructivo a la derecha -->
+    <div
+      v-if="cargandoInstructivo"
+      class="ins-skel"
+      :style="estiloSkeleton"
+      aria-label="Cargando instructivo"
+    >
+      <div
+        v-if="verDatosPreview"
+        class="ins-skel__card"
+      >
+        <v-skeleton-loader
+          v-for="n in 9"
+          :key="n"
+          type="list-item-avatar"
+          class="ins-skel__paso"
+        />
+        <v-skeleton-loader
+          type="button"
+          class="mt-auto"
+        />
+      </div>
+      <div
+        v-if="verPrevisualizacion"
+        class="ins-skel__card"
+      >
+        <v-skeleton-loader type="heading, subtitle" />
+        <v-skeleton-loader
+          type="image"
+          height="80"
+          class="my-3"
+        />
+        <v-skeleton-loader
+          v-for="n in 7"
+          :key="n"
+          type="list-item-two-line"
+        />
+      </div>
+    </div>
     <aside class="ins-aside">
       <div
         v-if="verDatosPreview"
@@ -2137,14 +2291,26 @@ watch(() => datosManuales.value.agregarOtros, () => {
               <v-row>
                 <v-col
                   cols="12"
-                  class="pt-0"
+                  class="pt-4"
                 >
+                  <FormatFecha
+                    v-model="fechaListaRecojo"
+                    label="Fecha estimada *"
+                    placeholder="SELECCIONAR FECHA"
+                    prepend-inner-icon="mdi-calendar-blank-outline"
+                    outlined
+                    density="compact"
+                    class="mb-3"
+                    hide-details="auto"
+                  />
                   <v-textarea
+                    v-model="comentarioListaRecojo"
+                    label="Comentario (opcional)"
                     rows="1"
                     auto-grow
-                    placeholder=""
-                    v-model="datosManuales.listDiaFecha"
-                    ref="txtcondiciones"
+                    variant="outlined"
+                    density="compact"
+                    hide-details
                     class="txtNroFactura"
                   />
                 </v-col>
@@ -2153,7 +2319,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   <v-btn
                     color="primary"
                     class="mx-1"
-                    @click="continuar"
+                    @click="continuarListaRecojo"
                   >
                     Continuar
                   </v-btn>
@@ -2635,7 +2801,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       <span class="pg-field__icon"><v-icon>mdi-cash-multiple</v-icon></span>
                       <div class="pg-field__main">
                         <div class="pg-field__label">
-                          Monto a pagar al proveedor
+                          Monto a pagar al proveedor <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
                         </div>
                         <div class="pg-field__hint">
                           Ingresa el monto total a pagar al proveedor.
@@ -2942,7 +3108,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                         <span class="pg-field__icon"><v-icon>mdi-currency-cny</v-icon></span>
                         <div class="pg-field__main">
                           <div class="pg-field__label">
-                            Monto a transferir (CNY)
+                            Monto a transferir (CNY) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
                           </div>
                           <v-text-field
                             v-model.number="datosManuales.montoCNY"
@@ -2962,7 +3128,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                         <span class="pg-field__icon"><v-icon>mdi-currency-usd</v-icon></span>
                         <div class="pg-field__main">
                           <div class="pg-field__label">
-                            Equivalente en dólares (USD)
+                            Equivalente en dólares (USD) <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
                           </div>
                           <v-text-field
                             v-model.number="datosManuales.montoUSD"
@@ -3199,7 +3365,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   <span class="pg-field__icon"><v-icon>mdi-message-processing-outline</v-icon></span>
                   <div class="pg-field__main">
                     <div class="pg-field__label">
-                      Comentario <span class="pg-req">*</span>
+                      Comentario <span class="pg-opt">(opcional)</span>
                     </div>
                     <v-textarea
                       v-model="datosManuales.comentarioPermisos"
@@ -3921,7 +4087,31 @@ watch(() => datosManuales.value.agregarOtros, () => {
 .ins-layout.is-resizing .ins-resizer__grip {
   background: #1f73e8;
 }
+.ins-skel {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  gap: 16px;
+  padding: 16px;
+  background: #f3f6fb;
+}
+.ins-skel__card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px;
+  border: 1px solid #e3e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+}
+.ins-skel__card :deep(.v-skeleton-loader) {
+  background: transparent;
+}
 .ins-layout {
+  position: relative;
   display: grid;
   row-gap: 16px;
   height: calc(100vh - 64px);
@@ -4484,6 +4674,12 @@ watch(() => datosManuales.value.agregarOtros, () => {
 .pg-req {
   margin-left: 2px;
   color: #dc2626;
+}
+.pg-opt {
+  margin-left: 4px;
+  color: #5b6b86;
+  font-size: 0.85em;
+  font-weight: 500;
 }
 .pg-badge {
   margin-left: 8px;

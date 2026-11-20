@@ -6,7 +6,6 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import CargarPagoClienteDialog from "@/components/folderBilling/CargarPagoClienteDialog.vue";
 import { useBancosStore } from "@/stores/bancos";
-import { useAppStore } from "@/stores/app";
 import { accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 import type { SolicitudCobro } from "@/types/solicitudCobro";
 
@@ -24,8 +23,10 @@ const soporte = (codigo: string, monto: number) => ({
 beforeEach(() => {
   vi.clearAllMocks();
   setActivePinia(createPinia());
-  useBancosStore().cuentas = [{ id: 1, label: "USD - BCP", cuenta: "1", cci: "", symbol: "USD" }];
-  useAppStore().itemsDataBanksList = [{ id: 2, acronym: "BCP" }] as never;
+  useBancosStore().cuentasSucursal = [{ id: 1, label: "USD - BCP", cuenta: "1", cci: "", symbol: "USD" }];
+  useBancosStore().bancosSucursal = [{ id: 2, name: "BANCO DE CREDITO", acronym: "BCP" }];
+  // los catálogos de la sucursal se fijan arriba; no se recargan desde la API
+  vi.spyOn(useBancosStore(), "loadCatalogosSucursal").mockResolvedValue();
   httpMock.mockResolvedValue({ data: accepted([]) });
 });
 
@@ -80,7 +81,7 @@ test("editing a payment sends its code, the amount and enviar=false with Guardar
 });
 
 test("only offers the company accounts in the currency of the correlativo", async () => {
-  useBancosStore().cuentas = [
+  useBancosStore().cuentasSucursal = [
     { id: 1, label: "USD - BCP", cuenta: "1", cci: "", symbol: "USD", id_coins: 1 },
     { id: 2, label: "PEN - BCP", cuenta: "2", cci: "", symbol: "S/", id_coins: 2 },
   ];
@@ -91,7 +92,7 @@ test("only offers the company accounts in the currency of the correlativo", asyn
 });
 
 test("a new payment only offers the company's main account", async () => {
-  useBancosStore().cuentas = [
+  useBancosStore().cuentasSucursal = [
     { id: 1, label: "USD - BCP", cuenta: "1", cci: "", symbol: "USD", id_coins: 1 },
     { id: 3, label: "USD - BBVA (principal)", cuenta: "3", cci: "", symbol: "USD", id_coins: 1, esprincipalflag: true },
   ];
@@ -111,5 +112,17 @@ test("N° de operación 'No aplica' is not required and is sent empty", async ()
   expect(httpMock).toHaveBeenCalledWith(expect.objectContaining({
     data: expect.objectContaining({ numerooperacion: null, aplica_nrooperacion: false }),
   }));
+  w.unmount();
+});
+
+test("names the account and the client's bank by acronym and full bank name", async () => {
+  useBancosStore().cuentasSucursal = [
+    { id: 1, label: "USD-BCP", banco: "BCP", banco_nombre: "Banco de Crédito del Perú", cuenta: "192-1", cci: "", symbol: "USD", id_coins: 1 },
+  ];
+  const w = await abrir({ destino: { ...destino, id_coins: 1 } });
+  const [cuenta, banco] = w.findAllComponents({ name: "VAutocomplete" });
+  expect((cuenta!.props("items") as { titulo: string }[])[0]!.titulo).toBe("BCP - Banco de Crédito del Perú · 192-1");
+  expect((banco!.props("items") as { titulo: string }[])[0]!.titulo).toBe("BCP - BANCO DE CREDITO");
+  expect(useBancosStore().loadCatalogosSucursal).toHaveBeenCalled();
   w.unmount();
 });
