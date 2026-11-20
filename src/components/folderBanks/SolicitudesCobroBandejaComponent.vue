@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -48,7 +48,7 @@ const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 const MENU = "ingresosPendientesConfirmar";
 const ESTADOS: { codigo: CodigoEstadoSolicitudCobro; titulo: string; tabs: TabBandejaSolicitudCobro[] }[] = [
   { codigo: "LISTO", titulo: "Pendiente por confirmar", tabs: ["PEN", "HIS"] },
-  { codigo: "CONFIRMADO", titulo: "Confirmado", tabs: ["PEN", "HIS"] },
+  { codigo: "CONFIRMADO", titulo: "Confirmado", tabs: ["HIS"] },
   { codigo: "COBRADO", titulo: "Registrado en Bancos", tabs: ["HIS"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
@@ -63,7 +63,11 @@ const puedeEliminar = computed(() => can(MENU, "MODIFICAR") || can("listControlG
 
 const { procesando, eliminar, eliminarSoporte, registrarEnBancos, eliminarConfirmacion } = useSolicitudCobro(() => emit("actualizado"));
 // una fila por soporte (pago cargado)
-const filasSoporte = computed(() => filasPorSoporte(filas.value));
+// Pendientes: solo los pagos por confirmar; el confirmado (o ya en Bancos) va a Histórico
+const filasSoporte = computed(() => {
+  const lista = filasPorSoporte(filas.value);
+  return props.tab === "PEN" ? lista.filter((f) => !["CONFIRMADO", "COBRADO"].includes(f.codigo_estado)) : lista;
+});
 function eliminarFila(fila: FilaSoporteCobro<SolicitudCobroBandeja>) {
   const s = filas.value.find((x) => x.codigo === fila.codigo)!;
   if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
@@ -478,7 +482,7 @@ onMounted(cargar);
             class="cobl__iconos"
           >
             <v-btn
-              icon="mdi-file-eye-outline"
+              icon="mdi-eye-outline"
               variant="text"
               size="small"
               color="primary"
@@ -515,7 +519,7 @@ onMounted(cargar);
           >
             <div class="cobl__iconos">
               <v-btn
-                icon="mdi-file-eye-outline"
+                icon="mdi-eye-outline"
                 variant="text"
                 size="small"
                 color="primary"
