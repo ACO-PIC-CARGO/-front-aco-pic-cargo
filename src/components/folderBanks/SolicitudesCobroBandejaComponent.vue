@@ -564,20 +564,6 @@ onMounted(cargar);
               </v-icon>
               Ingreso N° {{ item.numerooperacion_ingreso }}
             </button>
-            <!-- un ingreso por pago cargado: sigue el botón mientras falte alguno -->
-            <v-btn
-              v-if="item.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(item) && puedeRegistrar"
-              size="small"
-              color="success"
-              variant="flat"
-              prepend-icon="mdi-bank-transfer-in"
-              :loading="procesando === item.codigo"
-              @click="registrarEnBancos(item)"
-            >
-              REGISTRAR EN BANCO<template v-if="(item.soportes_total ?? 1) > 1">
-                ({{ (item.soportes_registrados ?? 0) + 1 }}/{{ item.soportes_total }})
-              </template>
-            </v-btn>
           </div>
           <v-btn
             v-else
@@ -614,6 +600,20 @@ onMounted(cargar);
               :loading="procesando === item.codigo"
               @click="eliminarFila(item)"
             />
+            <!-- confirmado: registrar el ingreso en Bancos (uno por pago cargado, mientras falte alguno) -->
+            <v-btn
+              v-if="item.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(item) && puedeRegistrar"
+              size="small"
+              color="success"
+              variant="flat"
+              prepend-icon="mdi-bank-transfer-in"
+              :loading="procesando === item.codigo"
+              @click="registrarEnBancos(item)"
+            >
+              REGISTRAR EN BANCO<template v-if="(item.soportes_total ?? 1) > 1">
+                ({{ (item.soportes_registrados ?? 0) + 1 }}/{{ item.soportes_total }})
+              </template>
+            </v-btn>
             <v-btn
               v-if="item.codigo_estado === 'RECHAZADA'"
               size="small"

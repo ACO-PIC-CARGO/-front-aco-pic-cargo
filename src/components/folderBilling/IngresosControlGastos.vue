@@ -1474,6 +1474,7 @@ function soportesCobro(house: HouseIngreso): SoporteDeSolicitud[] {
     (s.soportes ?? []).map((sop) => ({
       ...sop,
       solicitud: {
+        codigo: s.codigo,
         codigo_estado: s.codigo_estado,
         estado: s.estado,
         fecha_ingreso: s.fecha_ingreso,
@@ -1586,13 +1587,23 @@ function eliminarPagoCobro(house: HouseIngreso) {
   else cobro.eliminar(s);
 }
 
+// varios pagos: se abre el listado de soportes y ahí se elige cuál enviar ("Enviar solicitud")
 function enviarAdministracionCobro(house: HouseIngreso) {
   const s = solicitudCobroDe(house);
   if (!s) {
     Swal.fire({ icon: "info", text: "Primero carga el pago del cliente (voucher)." });
     return;
   }
+  if (soportesCobro(house).length > 1) {
+    verSoportesCobro(house);
+    return;
+  }
   cobro.enviar(s);
+}
+// "Enviar solicitud" de un pago en el listado: solo ese pago
+function enviarSoporteCobro(soporte: SoporteCobro) {
+  const s = houseSoportes.value ? solicitudDeSoporte(houseSoportes.value, soporte) : undefined;
+  if (s) cobro.enviar(s, soporte);
 }
 
 // modo ver (ojito), igual que en Solicitudes de Pago
@@ -2050,24 +2061,19 @@ watch(
                       class="cobro-pasos__extra"
                     >
                       <v-btn
-                        icon="mdi-eye"
-                        size="x-small"
-                        variant="text"
-                        color="blue"
-                        title="Ver solicitud de cobro"
-                        aria-label="Ver solicitud de cobro"
-                        @click="verSolicitud(solicitudCobroDe(houseIngreso)!)"
-                      />
-                      <v-btn
                         v-if="can('listControlGastos', 'ELIMINAR')"
-                        icon="mdi-trash-can-outline"
-                        size="x-small"
-                        variant="text"
+                        block
+                        size="small"
+                        variant="outlined"
                         color="error"
+                        prepend-icon="mdi-trash-can-outline"
+                        class="cobro-pasos__btn"
                         title="Eliminar pago cargado"
                         aria-label="Eliminar pago cargado"
                         @click="eliminarPagoCobro(houseIngreso)"
-                      />
+                      >
+                        Eliminar
+                      </v-btn>
                     </div>
                     <v-btn
                       size="small"
@@ -3818,8 +3824,11 @@ watch(
       :solicitud="solicitudSoportes"
       :editable="can('listControlGastos', 'NUEVO')"
       :eliminable="can('listControlGastos', 'ELIMINAR')"
+      :enviable="can('listControlGastos', 'NUEVO')"
+      :enviando="cobroProcesando"
       @editar="editarSoporteCobro"
       @eliminar="eliminarSoporteCobro"
+      @enviar="enviarSoporteCobro"
     />
   </v-container>
 </template>

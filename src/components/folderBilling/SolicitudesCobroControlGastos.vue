@@ -365,20 +365,6 @@ defineExpose({ cargar });
                   </v-icon>
                   Ingreso N° {{ s.numerooperacion_ingreso }}
                 </button>
-                <!-- un ingreso por pago cargado: sigue el botón mientras falte alguno -->
-                <v-btn
-                  v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && can('registroPayForCliente', 'NUEVO')"
-                  size="small"
-                  color="success"
-                  variant="flat"
-                  prepend-icon="mdi-bank-transfer-in"
-                  :loading="procesando === s.codigo"
-                  @click="registrarEnBancos(s)"
-                >
-                  REGISTRAR EN BANCO<template v-if="(s.soportes_total ?? 1) > 1">
-                    ({{ (s.soportes_registrados ?? 0) + 1 }}/{{ s.soportes_total }})
-                  </template>
-                </v-btn>
               </div>
               <v-btn
                 v-else
@@ -404,6 +390,21 @@ defineExpose({ cargar });
             </td>
             <td>
               <div class="solcob__acciones">
+                <!-- confirmado: registrar el ingreso en Bancos (uno por pago cargado, mientras falte alguno) -->
+                <v-btn
+                  v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && can('registroPayForCliente', 'NUEVO')"
+                  size="small"
+                  color="success"
+                  variant="flat"
+                  prepend-icon="mdi-bank-transfer-in"
+                  :loading="procesando === s.codigo"
+                  @click="registrarEnBancos(s)"
+                >
+                  REGISTRAR EN BANCO<template v-if="(s.soportes_total ?? 1) > 1">
+                    ({{ (s.soportes_registrados ?? 0) + 1 }}/{{ s.soportes_total }})
+                  </template>
+                </v-btn>
+                <!-- se envía solo el pago de esta fila -->
                 <v-btn
                   v-if="s.codigo_estado === 'BORRADOR' && can('listControlGastos', 'NUEVO')"
                   size="x-small"
@@ -411,7 +412,7 @@ defineExpose({ cargar });
                   color="primary"
                   prepend-icon="mdi-send"
                   :loading="procesando === s.codigo"
-                  @click="enviar(s)"
+                  @click="enviar(s, s._soporte)"
                 >
                   Enviar
                 </v-btn>
@@ -498,7 +499,7 @@ defineExpose({ cargar });
           :puede-editar="can('listControlGastos', 'NUEVO')"
           :puede-eliminar="can('listControlGastos', 'ELIMINAR')"
           :procesando="procesando === s.codigo"
-          @enviar="enviar(s)"
+          @enviar="enviar(s, s._soporte)"
           @rechazar="abrirRechazo(s.codigo, s.codigo_estado)"
           @ver-rechazo="verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo })"
           @ver-soportes="verSoportes(s)"

@@ -121,18 +121,21 @@ export function useSolicitudCobro(alTerminar: () => unknown) {
     return true;
   }
 
-  async function enviar(s: SolicitudCobroFila) {
+  // soporte: se envía solo ese pago (si comparte solicitud con otros, el backend lo separa en su propia solicitud)
+  async function enviar(s: SolicitudCobroFila, soporte?: SoporteCobro | null) {
+    const monto = soporte ? montoCobro(soporte.monto, s.moneda) : montoCobro(montoCobrado(s), s.moneda);
+    const parcial = !soporte && esPagoParcial(s) ? ` (pago parcial de ${montoCobro(s.monto, s.moneda)})` : "";
     const ok = await Swal.fire({
       icon: "question",
       title: "Enviar a Administración",
       html: `Se enviará la solicitud de cobro de <b>${s.cliente}</b>
-        por <b>${montoCobro(montoCobrado(s), s.moneda)}</b>${esPagoParcial(s) ? ` (pago parcial de ${montoCobro(s.monto, s.moneda)})` : ""}. Quedará <b>pendiente por confirmar</b> hasta que Administración suba el soporte de confirmación.`,
+        por <b>${monto}</b>${parcial}. Quedará <b>pendiente por confirmar</b> hasta que Administración suba el soporte de confirmación.`,
       showCancelButton: true,
       confirmButtonText: "Enviar",
       cancelButtonText: "Cancelar",
     });
     if (!ok.isConfirmed) return;
-    await ejecutar(s.codigo, "put", "solicitud_cobro_enviar");
+    await ejecutar(s.codigo, "put", "solicitud_cobro_enviar", soporte ? { codigo_soporte: soporte.codigo } : {});
   }
 
   /** Devuelve la clave del administrador si hace falta; undefined = cancelar; null = no se necesita */

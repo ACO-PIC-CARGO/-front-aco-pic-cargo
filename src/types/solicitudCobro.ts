@@ -140,6 +140,8 @@ export interface SolicitudCobroTransferencia {
   id_banco_origen: number | null;
   banco_origen: string | null;
   fechadeposito: string;
+  // fecha de ingreso en banco que indicó Administración al confirmar (YYYY-MM-DD)
+  fecha_ingreso?: string | null;
   // null = "No aplica": se escribe en Bancos
   numerooperacion: string | null;
   id_path_voucher: number;

@@ -745,7 +745,8 @@ async function cargarSolicitud() {
     aplicarMontoSolicitud(fila);
     selected.value = [fila];
   }
-  fecha_operacion.value = sol.fechadeposito;
+  // la fecha de ingreso en banco que confirmó Administración (no la del soporte del cliente)
+  fecha_operacion.value = sol.fecha_ingreso || sol.fechadeposito;
   id_banco_origen.value = sol.id_banco_origen;
   // "No aplica" en la solicitud: llega vacío y se escribe aquí (obligatorio en Bancos)
   nro_operacion.value = sol.numerooperacion ?? "";
@@ -1327,22 +1328,6 @@ onMounted(async () => {
                           variant="outlined"
                           density="compact"
                         />
-                        <label class="ing-label">CCI (destino)</label>
-                        <v-text-field
-                          readonly
-                          v-model="id_cuenta.cci"
-                          aria-label="CCI (destino)"
-                          variant="outlined"
-                          density="compact"
-                        />
-                        <label class="ing-label">Moneda (destino)</label>
-                        <v-text-field
-                          readonly
-                          v-model="id_cuenta.moneda"
-                          aria-label="Moneda (destino)"
-                          variant="outlined"
-                          density="compact"
-                        />
                       </div>
                     </section>
                   </v-col>
@@ -1356,7 +1341,8 @@ onMounted(async () => {
                       </h3>
                       <div class="bank-card__body bank-card__row">
                         <v-textarea
-                          label="Comentario del usuario"
+                          label="Comentario del Departamento Operativo"
+                          placeholder="Comentario del Departamento Operativo"
                           rows="1"
                           variant="outlined"
                           density="compact"
@@ -1365,8 +1351,8 @@ onMounted(async () => {
                           :readonly="!!solicitud"
                         />
                         <v-textarea
-                          label="Comentarios administrativos"
-                          placeholder="Comentarios administrativos (uso interno)"
+                          label="Comentario del Departamento Administrativo"
+                          placeholder="Comentario del Departamento Administrativo"
                           rows="1"
                           variant="outlined"
                           density="compact"

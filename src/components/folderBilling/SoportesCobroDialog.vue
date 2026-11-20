@@ -11,6 +11,7 @@ import { descargarArchivo } from "@/utils/descargarArchivo";
 // expediente, con el mismo diseño del listado de solicitudes de cobro (sin "Método de pago").
 // Estado y confirmación son de la solicitud; cada pago muestra si ya tiene su ingreso en Bancos.
 export interface SolicitudDeSoportes {
+  codigo?: string | null;
   codigo_estado?: string | null;
   estado?: string | null;
   fecha_ingreso?: string | null;
@@ -38,11 +39,16 @@ const props = defineProps<{
   // Control de Gastos: editar / eliminar cada pago
   editable?: boolean;
   eliminable?: boolean;
+  // Control de Gastos: "Enviar solicitud" en cada pago listo para enviar (se envía solo ese pago)
+  enviable?: boolean;
+  // código de la solicitud que se está enviando (botón cargando)
+  enviando?: string | null;
 }>();
 const emit = defineEmits<{
   "update:modelValue": [valor: boolean];
   editar: [soporte: SoporteDeSolicitud];
   eliminar: [soporte: SoporteDeSolicitud];
+  enviar: [soporte: SoporteDeSolicitud];
 }>();
 const { smAndDown } = useDisplay();
 
@@ -86,6 +92,10 @@ function estadoDe(sop: SoporteDeSolicitud) {
   const sol = solDe(sop);
   if (sol?.codigo_estado === "CONFIRMADO") return { codigo: "LISTO", texto: "Pendiente por confirmar" };
   return { codigo: sol?.codigo_estado ?? "BORRADOR", texto: sol?.estado ?? "Sin enviar" };
+}
+// listo para enviar (borrador) y aún sin ingreso en Bancos
+function enviablePago(sop: SoporteDeSolicitud) {
+  return !!props.enviable && estadoDe(sop).codigo === "BORRADOR" && !sop.id_pagoingreso;
 }
 function soloFecha(valor: string | null | undefined) {
   return valor ? shortDate(valor.slice(0, 10)) : "";
@@ -211,6 +221,20 @@ function abrir(url: string | null | undefined) {
                     <v-icon size="16">{{ ICONO_ESTADO[estadoDe(sop).codigo] ?? "mdi-circle-outline" }}</v-icon>
                     {{ estadoDe(sop).texto }}
                   </span>
+                  <!-- se envía solo este pago (queda como su propia solicitud) -->
+                  <v-btn
+                    v-if="enviablePago(sop)"
+                    block
+                    size="small"
+                    variant="flat"
+                    color="primary"
+                    prepend-icon="mdi-send"
+                    class="sopcob__enviar"
+                    :loading="!!enviando && enviando === sop.solicitud?.codigo"
+                    @click="emit('enviar', sop)"
+                  >
+                    Enviar solicitud
+                  </v-btn>
                 </td>
                 <td>
                   <span
@@ -294,6 +318,19 @@ function abrir(url: string | null | undefined) {
                   :class="`sopcob__estado--${estadoDe(sop).codigo}`"
                 >{{ estadoDe(sop).texto }}</span>
               </div>
+              <v-btn
+                v-if="enviablePago(sop)"
+                block
+                size="small"
+                variant="flat"
+                color="primary"
+                prepend-icon="mdi-send"
+                class="sopcob__enviar"
+                :loading="!!enviando && enviando === sop.solicitud?.codigo"
+                @click="emit('enviar', sop)"
+              >
+                Enviar solicitud
+              </v-btn>
               <div class="sopcob__det">
                 <span><v-icon size="14">mdi-calendar-outline</v-icon> {{ soloFecha(sop.fecha_registro) || "—" }} {{ horaDe(sop.fecha_registro) }}</span>
                 <span><v-icon size="14">mdi-bank-outline</v-icon> {{ sop.banco || "—" }} · {{ sop.nrocuenta || "—" }}</span>
@@ -501,6 +538,12 @@ function abrir(url: string | null | undefined) {
 .sopcob__estado--CONFIRMADO .v-icon { color: #16a34a; }
 .sopcob__estado--COBRADO { background: #dbeafe; color: #1e40af; }
 .sopcob__estado--RECHAZADA { background: #fde2e2; color: #b42318; }
+.sopcob__enviar {
+  margin-top: 6px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .sopcob__acciones {
   display: inline-flex;
   align-items: center;
