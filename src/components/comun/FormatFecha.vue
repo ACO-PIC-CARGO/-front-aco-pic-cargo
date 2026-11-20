@@ -97,7 +97,7 @@ defineExpose({ focus });
         v-bind="verflag ? {} : activador"
         :variant="outlined ? 'outlined' : undefined"
         :density="densidad"
-        :class="fieldClass"
+        :class="['format-fecha', fieldClass]"
         :error-messages="errorMessages"
         :error="!!errorMessages"
         :clearable="clearable"
@@ -119,3 +119,13 @@ defineExpose({ focus });
     </v-locale-provider>
   </v-menu>
 </template>
+
+<style>
+/* En cuerpos de diálogo en columna (flex-direction: column) a pantalla completa (celular), el v-input
+   (flex: 1 1 auto) crecía en alto y la fecha parecía un textarea: el campo queda con su alto natural. */
+.format-fecha.v-input {
+  flex: 0 1 auto;
+  width: 100%;
+  align-content: start;
+}
+</style>

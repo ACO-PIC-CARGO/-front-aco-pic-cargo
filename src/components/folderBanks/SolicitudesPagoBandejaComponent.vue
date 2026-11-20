@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -372,8 +373,9 @@ function formatoFechaHora(valor: string | null) {
   if (!valor) return "—";
   return `${formatoFecha(valor)} ${valor.slice(11, 16)}`.trim();
 }
-function abrir(url: string | null) {
-  if (url) window.open(url, "_blank");
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
+function abrir(url: string | null | undefined) {
+  abrirArchivo(url);
 }
 
 

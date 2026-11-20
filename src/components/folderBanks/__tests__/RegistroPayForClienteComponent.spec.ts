@@ -113,3 +113,43 @@ test("from a partial client payment (token) the correlativo is preloaded as Abon
   expect(montoDepositado.props("readonly")).toBe(true);
   expect(wrapper.findAllComponents(VAutocomplete).find((c) => c.props("label") === "Cliente")!.props("readonly")).toBe(true);
 });
+
+test("from a client payment above the debt (token) the excess goes as gasto bancario", async () => {
+  const sol = {
+    codigo: "SC-000002", id_master: 1, expediente: "2026MBL01744", id_house: 50, id_cliente: 3, cliente: "Cliente Uno",
+    id_correlativo: 1, correlativo: "0001", monto: "1500.00", moneda: "USD", id_coins: 1, id_cuentabancaria: 9,
+    fechadeposito: "2026-11-18", numerooperacion: "OP-2", id_path_voucher: 5, voucher_path: null, voucher_nombre: null,
+    comentario: null, id_banco_origen: 2, banco_origen: "BCP",
+  };
+  httpMock.mockImplementation(async (config) => {
+    if (config.url.includes("CargarClientes")) return { data: accepted([{ id: 3, namelong: "Cliente Uno" }]) };
+    if (config.url.includes("getListBanksDetailsCargar")) return { data: accepted([{ ...account, symbol: "USD" }]) };
+    if (config.url.includes("solicitud_cobro_por_token")) return { data: accepted([sol]) };
+    if (config.url.includes("deuda_de_cliente_por_sucursal")) {
+      return { data: accepted([{ registro_id: 50, id_correlativo: 1, tipo: "O", symbol: "USD", coin_id: 1, total_mon_local: "1465.68", referencia: "2026MBL01744-0001" }]) };
+    }
+    return { data: accepted([]) };
+  });
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  wrapper = mount(
+    defineComponent({
+      components: { RegistroPayForClienteComponent },
+      template: '<v-app><RegistroPayForClienteComponent token="7d3c2b4e-1111-4222-8333-944455556667" /></v-app>',
+    }),
+    { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
+  );
+  await flushPromises();
+  await flushPromises();
+
+  // la factura se abona completa y los 34.32 de más van como gasto bancario: detalle + gasto = depósito
+  const fila = wrapper.findAll("tbody tr")[0]!;
+  expect(fila.findComponent({ name: "VSelect" }).props("modelValue")).toBe(false);
+  const vm = wrapper.findComponent(RegistroPayForClienteComponent).vm as unknown as {
+    montogastobancario: string; conceptogastobancario: string; totalGeneralAbonadoMonLocal: string; monto_local: string;
+  };
+  expect(vm.montogastobancario).toBe("34.32");
+  expect(vm.conceptogastobancario).toBe("EXCEDENTE DEL CLIENTE");
+  expect(vm.totalGeneralAbonadoMonLocal).toBe("1500.00");
+  expect(vm.monto_local).toBe("1500.00");
+});

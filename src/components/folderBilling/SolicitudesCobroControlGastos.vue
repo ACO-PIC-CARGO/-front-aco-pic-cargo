@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import Swal from "sweetalert2";
@@ -131,8 +132,9 @@ async function editar(s: SolicitudCobro, soporte: SoporteCobro | null = null) {
   dialogEditar.value = true;
 }
 
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 // aprobaciones como en Pagos: fecha arriba (helper de FormatFecha) y hora abajo
 function soloFecha(valor: string | null | undefined) {
@@ -524,7 +526,6 @@ defineExpose({ cargar });
           @ver-ingreso="verIngreso(s)"
           @editar="editar(solicitudDe(s), s._soporte)"
           @eliminar="eliminarFila(s)"
-          @ver="verSolicitud(s)"
         />
       </template>
     </div>

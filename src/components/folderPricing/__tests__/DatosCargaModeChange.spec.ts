@@ -4,7 +4,6 @@ import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
 import axios from "@/api/http";
 import DatosCargaComponent from "@/components/folderPricing/DatosCargaComponent.vue";
-import { useAppStore } from "@/stores/app";
 import { usePricingStore } from "@/stores/pricing";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
@@ -81,20 +80,15 @@ test("clicking the mode a new quote already has keeps it without asking", async 
   expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true });
 });
 
-test("a new quote loads the SHIPPER provider list", async () => {
-  const providers = [{ id: 12, namelong: "Proveedor SHIPPER" }];
-  vi.mocked(axios).mockResolvedValueOnce({
-    data: { estadoflag: true, data: providers, token: "test-token" },
-  } as never);
-
+// Los shippers se eligen en el instructivo: Datos de la carga ya no pide proveedor.
+test("a new quote no longer asks for the SHIPPER provider", async () => {
   await openNewQuote();
 
   const providerRequest = vi.mocked(axios).mock.calls
     .map(([config]) => config as { url?: string })
     .find(({ url }) => url?.includes("cargar_proveedor_x_rol"));
 
-  expect(providerRequest?.url).toContain("cargar_proveedor_x_rol?id_branch=1&rol=SHIPPER");
-  expect(useAppStore().itemsProveedorRolShipper).toEqual(providers);
+  expect(providerRequest).toBeUndefined();
 });
 
 test.each([

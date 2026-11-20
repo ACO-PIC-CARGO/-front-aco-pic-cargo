@@ -142,7 +142,7 @@ onMounted(async () => {
                 md="6"
                 class="pa-0"
               >
-                <DatosCarga :mostrarproveedor="false" />
+                <DatosCarga />
               </v-col>
               <v-col cols="12">
                 <Services />

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import Swal from "sweetalert2";
@@ -66,11 +67,10 @@ const otros = computed(() =>
 const maximo = computed(() => Math.max(redondear(total.value - otros.value), 0));
 const montoNum = computed(() => redondear(Number(monto.value || 0)));
 const saldo = computed(() => Math.max(redondear(maximo.value - montoNum.value), 0));
-const errorMonto = computed(() => {
-  if (!(montoNum.value > 0)) return DATO_REQUERIDO;
-  if (montoNum.value > maximo.value) return `No puede ser mayor a ${formatoMonto(maximo.value)}`;
-  return "";
-});
+// cobro: el cliente puede depositar de más; no es error, se pinta en verde con el excedente
+const excedente = computed(() => Math.max(redondear(montoNum.value - maximo.value), 0));
+const errorMonto = computed(() => (montoNum.value > 0 ? "" : DATO_REQUERIDO));
+const montoCompleto = computed(() => saldo.value === 0 && !errorMonto.value);
 
 // moneda: la de la solicitud o la de la cuenta elegida
 // cuentas de la moneda del correlativo
@@ -137,8 +137,9 @@ function hoy() {
 function formatoMonto(valor: number | string) {
   return Number(valor || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 function seleccionarArchivo() {
   if (!subiendo.value) inputArchivo.value?.click();
@@ -293,8 +294,11 @@ async function guardar(enviar: boolean) {
               variant="outlined"
               density="comfortable"
               class="pagocli__input pagocli__monto"
+              :class="{ 'pagocli__monto--excede': excedente > 0 }"
               hide-details="auto"
               :error-messages="errorMonto"
+              :hint="excedente > 0 ? `Excede el monto a cobrar en ${moneda} ${formatoMonto(excedente)}` : undefined"
+              :persistent-hint="excedente > 0"
             />
           </div>
           <!-- misma etiqueta (invisible) que el monto: el recuadro queda a la altura del campo -->
@@ -305,12 +309,12 @@ async function guardar(enviar: boolean) {
             >&nbsp;</span>
             <div
               class="pagocli__saldo"
-              :class="{ 'pagocli__saldo--ok': saldo === 0 && !errorMonto }"
+              :class="{ 'pagocli__saldo--ok': montoCompleto }"
             >
-              <span>{{ saldo === 0 && !errorMonto ? "MONTO COMPLETO" : "SALDO PENDIENTE" }}</span>
+              <span>{{ excedente > 0 ? "EXCEDENTE" : montoCompleto ? "MONTO COMPLETO" : "SALDO PENDIENTE" }}</span>
               <b>
-                <v-icon size="22">{{ saldo === 0 && !errorMonto ? "mdi-check-circle" : "mdi-database-outline" }}</v-icon>
-                {{ moneda }} {{ formatoMonto(saldo) }}
+                <v-icon size="22">{{ montoCompleto ? "mdi-check-circle" : "mdi-database-outline" }}</v-icon>
+                {{ moneda }} {{ formatoMonto(excedente > 0 ? excedente : saldo) }}
               </b>
             </div>
           </div>
@@ -652,6 +656,14 @@ async function guardar(enviar: boolean) {
 .pagocli__monto :deep(input) {
   font-size: 1.15rem;
   font-weight: 800;
+}
+.pagocli__monto--excede :deep(.v-field__outline) {
+  --v-field-border-opacity: 1;
+  color: #16a34a;
+}
+.pagocli__monto--excede :deep(.v-messages__message) {
+  color: #15803d;
+  font-weight: 600;
 }
 .pagocli__saldo {
   display: flex;

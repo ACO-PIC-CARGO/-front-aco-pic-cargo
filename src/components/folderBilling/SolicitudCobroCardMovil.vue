@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 // Tarjeta móvil / tablet de una solicitud de cobro (mismo diseño que la de Solicitudes de Pago).
 // La usan Control de Gastos > Solicitudes de Cobro e Ingresos pendientes por confirmar.
 import { computed } from "vue";
@@ -37,7 +38,6 @@ const emit = defineEmits<{
   "ver-ingreso": [];
   editar: [];
   eliminar: [];
-  ver: [];
 }>();
 
 const ICONO_ESTADO: Record<string, string> = {
@@ -94,8 +94,9 @@ async function copiar(texto: string | null) {
     Swal.fire({ icon: "warning", text: "No se pudo copiar. Selecciona el texto y cópialo manualmente." });
   }
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 </script>
 
@@ -357,7 +358,7 @@ function abrir(url: string | null | undefined) {
       </v-btn>
     </div>
 
-    <!-- 1. editar  2. eliminar  3. ver -->
+    <!-- 1. editar  2. eliminar -->
     <div class="ccm__actions ccm__actions--fin">
       <v-btn
         v-if="puedeEditar"
@@ -381,17 +382,6 @@ function abrir(url: string | null | undefined) {
         @click="emit('eliminar')"
       >
         Eliminar
-      </v-btn>
-      <v-btn
-        size="small"
-        variant="flat"
-        color="primary"
-        rounded="pill"
-        prepend-icon="mdi-eye-outline"
-        data-modo-ver="permitido"
-        @click="emit('ver')"
-      >
-        Ver solicitud
       </v-btn>
     </div>
   </article>

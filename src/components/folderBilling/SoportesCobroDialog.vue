@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed } from "vue";
 import { useDisplay } from "vuetify";
 import { montoCobro } from "@/composables/useSolicitudCobro";
@@ -92,8 +93,9 @@ function soloFecha(valor: string | null | undefined) {
 function horaDe(valor: string | null | undefined) {
   return valor ? valor.slice(11, 16) : "";
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 </script>
 

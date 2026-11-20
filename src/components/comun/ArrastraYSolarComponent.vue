@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import type { ValidationRule } from "vuetify";
@@ -199,9 +200,8 @@ function eliminarFile() {
               v-if="urlVisor"
               color="info"
               icon
-              :href="urlVisor"
-              target="_blank"
               title="Ver archivo"
+              @click="abrirArchivo(urlVisor, nombreArchivo)"
             >
               <v-icon
                 color="info"
