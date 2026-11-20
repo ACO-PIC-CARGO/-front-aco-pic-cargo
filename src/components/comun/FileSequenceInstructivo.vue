@@ -1372,6 +1372,21 @@ async function _uploadFile(file: File) {
     console.error(error);
   }
 }
+const guardandoBorrador = ref(false);
+async function guardarBorrador() {
+  guardandoBorrador.value = true;
+  try {
+    const payload = payloadGuardar();
+    await pricingStore.guardarDatosInstructivo(payload);
+    ultimoGuardado = JSON.stringify(payload);
+    void Swal.fire({ icon: "success", title: "Borrador guardado", toast: true, position: "top-end", timer: 2000, showConfirmButton: false });
+  } catch (error) {
+    console.error(error);
+    void Swal.fire({ icon: "error", title: "No se pudo guardar el borrador" });
+  } finally {
+    guardandoBorrador.value = false;
+  }
+}
 function guardarYGenenarCorreo() {
   if (!validarShipperObligatorio()) return;
   Promise.all([
@@ -3495,38 +3510,43 @@ watch(() => datosManuales.value.agregarOtros, () => {
       </div>
 
       <div class="ins-aside__actions">
+        <div class="ins-actions__row">
+          <v-btn
+            variant="outlined"
+            class="ins-btn ins-btn--cancel"
+            @click="$emit('cerrarDialogo')"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            v-if="!aprobadoflag"
+            variant="flat"
+            class="ins-btn ins-btn--soft"
+            :loading="guardandoBorrador"
+            @click="guardarBorrador"
+          >
+            Guardar borrador
+          </v-btn>
+          <v-btn
+            v-else
+            variant="flat"
+            class="ins-btn ins-btn--soft"
+            @click="generarHTMLPDF()"
+          >
+            Imprimir
+          </v-btn>
+          <v-btn
+            variant="flat"
+            class="ins-btn ins-btn--primary"
+            @click="aprobadoflag ? guardarYGenenarCorreo() : setDatosInstructivo()"
+          >
+            Guardar y enviar a {{ destinoLabel }}
+          </v-btn>
+        </div>
         <v-btn
-          v-if="!aprobadoflag"
-          block
-          class="ins-btn ins-btn--primary"
-          prepend-icon="mdi-send-outline"
-          @click="setDatosInstructivo"
-        >
-          Guardar borrador y continuar a {{ destinoLabel }}
-        </v-btn>
-        <v-btn
-          v-if="aprobadoflag"
-          block
-          class="ins-btn ins-btn--primary"
-          prepend-icon="mdi-send-outline"
-          @click="guardarYGenenarCorreo"
-        >
-          Guardar y enviar a Operaciones
-        </v-btn>
-        <v-btn
-          v-if="aprobadoflag"
           block
           variant="outlined"
-          class="ins-btn ins-btn--ghost"
-          prepend-icon="mdi-printer-outline"
-          @click="generarHTMLPDF()"
-        >
-          Imprimir
-        </v-btn>
-        <v-btn
-          block
-          variant="outlined"
-          class="ins-btn ins-btn--ghost"
+          class="ins-btn ins-btn--close"
           prepend-icon="mdi-close"
           @click="$emit('cerrarDialogo')"
         >
@@ -4143,24 +4163,46 @@ watch(() => datosManuales.value.agregarOtros, () => {
   flex-direction: column;
   gap: 8px;
 }
+.ins-actions__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ins-actions__row .ins-btn {
+  flex: 1 1 0;
+  min-width: 110px;
+}
+.ins-actions__row .ins-btn--primary {
+  flex: 1.6 1 0;
+  min-width: 170px;
+}
 .ins-btn {
   height: 42px !important;
-  justify-content: flex-start;
-  border-radius: 10px !important;
+  border-radius: 8px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
+}
+.ins-btn--cancel {
+  color: #1f2a44 !important;
+  background: #ffffff !important;
+  border: 1px solid #c9d1dd !important;
+}
+.ins-btn--soft {
+  color: #1f2a44 !important;
+  background: #d6e4fb !important;
 }
 .ins-btn--primary {
   color: #ffffff !important;
   background: #1f73e8 !important;
   box-shadow: 0 4px 12px rgba(31, 115, 232, 0.28) !important;
 }
-.ins-btn--ghost {
+.ins-btn--close {
+  justify-content: flex-start;
   color: #1f2a44 !important;
   background: #ffffff !important;
-  border-color: #dfe5ee !important;
+  border-color: #e3e8f0 !important;
 }
 
 /* ===== PREVISUALIZACIÓN ===== */

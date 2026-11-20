@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { VSelect } from "vuetify/components";
 import AprobarDestinoDialog from "@/components/comun/AprobarDestinoDialog.vue";
 
 const vuetify = createVuetify({ components, directives });
@@ -37,12 +38,17 @@ describe("Aprobar: destino y opción", () => {
     w.unmount();
   });
 
-  test("choosing a destination card and an option updates both models", async () => {
+  test("both selects offer the destinations and options and update both models", async () => {
     const w = abrir();
     await w.vm.$nextTick();
-    const radios = [...document.querySelectorAll<HTMLButtonElement>("[role='radio']")];
-    radios.find((b) => b.textContent?.includes("Enviar a Tráfico"))!.click();
-    radios.find((b) => b.textContent?.includes("Opción 1"))!.click();
+    const [destino, opcion] = w.findAllComponents(VSelect);
+    expect(destino.props("items").map((i: { title: string }) => i.title)).toEqual([
+      "Enviar a Operaciones",
+      "Enviar a Tráfico",
+    ]);
+    expect(opcion.props("items")[0].title).toBe("Opción 1 – CARGOTRANS (187)");
+    destino.vm.$emit("update:modelValue", "TRAFFIC");
+    opcion.vm.$emit("update:modelValue", 1);
     expect(w.emitted("update:target")?.at(-1)).toEqual(["TRAFFIC"]);
     expect(w.emitted("update:opcion")?.at(-1)).toEqual([1]);
     w.unmount();

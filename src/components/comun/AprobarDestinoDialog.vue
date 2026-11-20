@@ -2,7 +2,6 @@
 // Aprobar una cotización (Pricing / Aduana): elegir a dónde va (Operaciones o Tráfico) y la opción
 // aprobada por el cliente. "Continuar" solo se habilita con ambas elegidas.
 import { computed } from "vue";
-import { useDisplay } from "vuetify";
 import type { SendTarget } from "@/utils/trafficSend";
 
 export interface OpcionAprobable {
@@ -20,28 +19,19 @@ const target = defineModel<SendTarget | null>("target", { required: true });
 const opcion = defineModel<number | string>("opcion", { required: true });
 const emit = defineEmits<{ continuar: [] }>();
 
-const { smAndDown } = useDisplay();
-
-const DESTINOS: Record<SendTarget, { titulo: string; detalle: string; icono: string }> = {
-  OPERATIONS: {
-    titulo: "Operaciones",
-    detalle: "Se genera el instructivo y el expediente operativo (master).",
-    icono: "mdi-ferry",
-  },
-  TRAFFIC: {
-    titulo: "Tráfico",
-    detalle: "Queda como expediente TR- en Tráfico; luego pasa a Operaciones desde Embarques.",
-    icono: "mdi-transit-connection-variant",
-  },
+const DESTINOS: Record<SendTarget, { titulo: string; icono: string }> = {
+  OPERATIONS: { titulo: "Enviar a Operaciones", icono: "mdi-layers-outline" },
+  TRAFFIC: { titulo: "Enviar a Tráfico", icono: "mdi-truck-outline" },
 };
 
+const itemsDestino = computed(() =>
+  props.targets.map((t) => ({ value: t, title: DESTINOS[t].titulo, icono: DESTINOS[t].icono })),
+);
+const itemsOpcion = computed(() =>
+  props.opciones.map((o) => ({ value: o.value, title: [o.titulo, o.detalle].filter(Boolean).join(" – ") })),
+);
+
 const listo = computed(() => !!target.value && !!opcion.value);
-const pendiente = computed(() => {
-  if (!target.value && !opcion.value) return "Elige el destino y la opción aprobada para continuar.";
-  if (!target.value) return "Elige a dónde envías la cotización.";
-  if (!opcion.value) return "Elige la opción aprobada por el cliente.";
-  return "";
-});
 
 // mismo contrato que un v-form: el flujo de aprobación valida antes de seguir
 async function validate() {
@@ -58,144 +48,104 @@ function continuar() {
   <v-dialog
     v-model="abierto"
     eager
-    scrollable
     persistent
-    :fullscreen="smAndDown"
-    max-width="640"
+    max-width="760"
   >
     <v-card class="apd">
       <header class="apd__head">
-        <span class="apd__icon">
-          <v-icon size="26">mdi-file-send-outline</v-icon>
-        </span>
+        <v-icon
+          size="40"
+          class="apd__icon"
+        >
+          mdi-file-document-edit-outline
+        </v-icon>
         <div class="apd__titles">
           <h2 class="apd__title">
-            Generar instructivo<template v-if="target">
-              a {{ DESTINOS[target].titulo }}
-            </template>
+            Generar Instructivo
           </h2>
           <p class="apd__subtitle">
-            Cotización aprobada por el cliente
+            Selecciona a dónde enviar la cotización y la opción aprobada por el cliente.
           </p>
         </div>
         <v-btn
           icon="mdi-close"
           variant="text"
-          size="small"
           aria-label="Cerrar"
           @click="abierto = false"
         />
       </header>
 
-      <v-card-text class="apd__body">
-        <section>
-          <h3 class="apd__label">
-            <span class="apd__num">1</span> ¿A dónde envías la cotización? <span class="apd__req">*</span>
-          </h3>
-          <div
-            class="apd__destinos"
-            role="radiogroup"
-            aria-label="Destino de la cotización"
+      <div class="apd__body">
+        <div class="apd__row">
+          <label class="apd__label">
+            <v-icon size="26">mdi-send-outline</v-icon>
+            ¿A dónde envías la cotización?
+          </label>
+          <v-select
+            id="aprobar-destino"
+            v-model="target"
+            :items="itemsDestino"
+            placeholder="Selecciona el destino"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="apd__select"
           >
-            <button
-              v-for="t in props.targets"
-              :key="t"
-              type="button"
-              role="radio"
-              :aria-checked="target === t"
-              class="apd__destino"
-              :class="{ 'apd__destino--on': target === t }"
-              @click="target = t"
-            >
+            <template #selection="{ item }">
               <v-icon
-                size="28"
-                class="apd__destinoicon"
-              >
-                {{ DESTINOS[t].icono }}
-              </v-icon>
-              <span class="apd__destinotxt">
-                <b>Enviar a {{ DESTINOS[t].titulo }}</b>
-                <small>{{ DESTINOS[t].detalle }}</small>
-              </span>
-              <v-icon
-                class="apd__check"
                 size="22"
+                class="mr-3"
               >
-                {{ target === t ? "mdi-check-circle" : "mdi-circle-outline" }}
+                {{ DESTINOS[item.value as SendTarget]?.icono }}
               </v-icon>
-            </button>
-          </div>
-        </section>
+              {{ item.title }}
+            </template>
+            <template #item="{ props: p, item }">
+              <v-list-item
+                v-bind="p"
+                :prepend-icon="DESTINOS[item.value as SendTarget]?.icono"
+              />
+            </template>
+          </v-select>
+        </div>
 
-        <section class="mt-5">
-          <h3 class="apd__label">
-            <span class="apd__num">2</span> Opción aprobada por el cliente <span class="apd__req">*</span>
-          </h3>
-          <p
-            v-if="!props.opciones.length"
-            class="apd__vacio"
-          >
-            No hay opciones seleccionadas en la cotización.
-          </p>
-          <div
-            v-else
-            class="apd__opciones"
-            role="radiogroup"
-            aria-label="Opción aprobada"
-          >
-            <button
-              v-for="o in props.opciones"
-              :key="o.value"
-              type="button"
-              role="radio"
-              :aria-checked="opcion === o.value"
-              class="apd__opcion"
-              :class="{ 'apd__opcion--on': opcion === o.value }"
-              @click="opcion = o.value"
-            >
-              <v-icon
-                size="22"
-                class="apd__check"
-              >
-                {{ opcion === o.value ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
-              </v-icon>
-              <span class="apd__opcionchip">{{ o.titulo }}</span>
-              <span class="apd__opciondet">{{ o.detalle }}</span>
-            </button>
-          </div>
-        </section>
-      </v-card-text>
+        <div class="apd__row">
+          <label class="apd__label">
+            <v-icon size="26">mdi-layers-outline</v-icon>
+            Opción aprobada por el cliente
+          </label>
+          <v-select
+            id="aprobar-opcion"
+            v-model="opcion"
+            :items="itemsOpcion"
+            :placeholder="itemsOpcion.length ? 'Selecciona la opción' : 'No hay opciones seleccionadas'"
+            :disabled="!itemsOpcion.length"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="apd__select"
+          />
+        </div>
+      </div>
 
       <footer class="apd__foot">
-        <p
-          v-if="pendiente"
-          class="apd__hint"
+        <v-btn
+          variant="flat"
+          class="apd__btn apd__btn--cancel"
+          @click="abierto = false"
         >
-          <v-icon size="16">
-            mdi-information-outline
-          </v-icon>
-          {{ pendiente }}
-        </p>
-        <div class="apd__btns">
-          <v-btn
-            variant="outlined"
-            class="apd__btn"
-            @click="abierto = false"
-          >
-            Cancelar
-          </v-btn>
-          <v-btn
-            id="aprobar-continuar"
-            variant="flat"
-            color="primary"
-            class="apd__btn"
-            append-icon="mdi-arrow-right"
-            :disabled="!listo"
-            @click="continuar"
-          >
-            Continuar
-          </v-btn>
-        </div>
+          Cancelar
+        </v-btn>
+        <v-btn
+          id="aprobar-continuar"
+          variant="flat"
+          class="apd__btn apd__btn--ok"
+          prepend-icon="mdi-send"
+          :disabled="!listo"
+          @click="continuar"
+        >
+          Continuar
+        </v-btn>
       </footer>
     </v-card>
   </v-dialog>
@@ -204,24 +154,17 @@ function continuar() {
 <style scoped>
 .apd {
   border-radius: 18px !important;
-  color: #1f2a44;
+  color: #0f1e3d;
 }
 .apd__head {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 18px 18px 14px 22px;
-  border-bottom: 1px solid #e3e8f0;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 26px 22px 10px 28px;
 }
 .apd__icon {
-  display: grid;
   flex: 0 0 auto;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background: #e7efff;
-  color: #1d4ed8;
+  color: #334155;
 }
 .apd__titles {
   flex: 1;
@@ -229,160 +172,81 @@ function continuar() {
 }
 .apd__title {
   margin: 0;
-  color: #12306b;
-  font-size: 1.25rem;
+  color: #0f1e3d;
+  font-size: 1.6rem;
   font-weight: 800;
   line-height: 1.2;
 }
 .apd__subtitle {
-  margin: 2px 0 0;
+  margin: 4px 0 0;
   color: #5b6b86;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 .apd__body {
-  padding: 20px 22px !important;
+  padding: 8px 28px 0;
+}
+.apd__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  align-items: center;
+  gap: 20px;
+  padding: 18px 0;
+  border-bottom: 1px solid #e5e9f0;
 }
 .apd__label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 10px;
-  font-size: 0.95rem;
+  gap: 14px;
+  font-size: 1rem;
   font-weight: 700;
 }
-.apd__num {
-  display: grid;
-  place-items: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #1d4ed8;
-  color: #ffffff;
-  font-size: 0.75rem;
+.apd__label .v-icon {
+  color: #334155;
 }
-.apd__req {
-  color: #dc2626;
-}
-.apd__destinos {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-}
-.apd__destino,
-.apd__opcion {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 14px;
-  border: 1.5px solid #dbe3ef;
-  border-radius: 12px;
-  background: #ffffff;
-  text-align: left;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-}
-.apd__destino:hover,
-.apd__opcion:hover {
-  border-color: #93b4f5;
-}
-.apd__destino:focus-visible,
-.apd__opcion:focus-visible {
-  outline: 2px solid #1d4ed8;
-  outline-offset: 2px;
-}
-.apd__destino--on,
-.apd__opcion--on {
-  border-color: #1d4ed8;
-  background: #f1f6ff;
-  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
-}
-.apd__destinoicon {
-  flex: 0 0 auto;
-  color: #1d4ed8;
-}
-.apd__destinotxt {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
-}
-.apd__destinotxt b {
-  font-size: 0.95rem;
-}
-.apd__destinotxt small {
-  color: #5b6b86;
-  font-size: 0.78rem;
-  line-height: 1.3;
-}
-.apd__check {
-  flex: 0 0 auto;
-  color: #94a3b8;
-}
-.apd__destino--on .apd__check,
-.apd__opcion--on .apd__check {
-  color: #1d4ed8;
-}
-.apd__opciones {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.apd__opcionchip {
-  flex: 0 0 auto;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #e8edf6;
-  color: #12306b;
-  font-size: 0.8rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-.apd__opcion--on .apd__opcionchip {
-  background: #1d4ed8;
-  color: #ffffff;
-}
-.apd__opciondet {
-  flex: 1;
-  min-width: 0;
-  font-weight: 600;
-  overflow-wrap: anywhere;
-}
-.apd__vacio {
-  margin: 0;
-  color: #b42318;
-  font-size: 0.85rem;
+.apd__select :deep(.v-field) {
+  border-radius: 10px;
 }
 .apd__foot {
-  padding: 14px 22px 18px;
-  border-top: 1px solid #e3e8f0;
-}
-.apd__hint {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 0 10px;
-  color: #5b6b86;
-  font-size: 0.82rem;
-}
-.apd__btns {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 14px;
+  padding: 22px 28px 24px;
 }
 .apd__btn {
-  min-width: 130px;
+  min-width: 150px;
+  height: 46px !important;
   border-radius: 10px !important;
+  font-size: 1rem !important;
   font-weight: 700 !important;
   letter-spacing: 0 !important;
   text-transform: none !important;
 }
+.apd__btn--cancel {
+  border: 1px solid #d5dbe5;
+  background: #f3f5f9 !important;
+  color: #0f1e3d !important;
+}
+.apd__btn--ok {
+  background: #0f1e3d !important;
+  color: #ffffff !important;
+}
 @media (max-width: 600px) {
-  .apd {
-    border-radius: 0 !important;
+  .apd__head {
+    padding: 18px 12px 6px 16px;
   }
-  .apd__btns {
+  .apd__title {
+    font-size: 1.3rem;
+  }
+  .apd__body {
+    padding: 0 16px;
+  }
+  .apd__row {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .apd__foot {
     flex-direction: column-reverse;
+    padding: 18px 16px;
   }
   .apd__btn {
     width: 100%;
