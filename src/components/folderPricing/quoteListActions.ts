@@ -13,12 +13,29 @@ export const reloadsAfterPricingRequest = (view: PricingView): boolean => view !
 
 export const showsInternalThread = (view: PricingView): boolean => view !== "";
 
-const LEADING_DATE_COLUMNS: Partial<Record<PricingView, { key: "sent_to_client_at" | "returned_to_sales_at"; title: string; align: "center" }>> = {
-  sent_to_client: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" },
-  returned: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" },
+export interface ListHeader {
+  key: string;
+  title: string;
+  align?: "start" | "center" | "end";
+  minWidth?: string;
+}
+
+const HIDDEN_IN_PRICING_TABS = new Set(["status", "marketing", "fechaemisionpdf"]);
+
+const DATE_COLUMNS: Partial<Record<PricingView, { after: string; column: ListHeader }>> = {
+  sent_to_client: { after: "acciones", column: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" } },
+  returned: { after: "created", column: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" } },
 };
 
-export const leadingDateColumn = (view: PricingView) => LEADING_DATE_COLUMNS[view] ?? null;
+const LAST_COMMENT_COLUMN: ListHeader = { key: "last_message_body", title: "ÚLTIMO COMENTARIO", align: "start", minWidth: "300px" };
+
+export function quoteListHeaders(view: PricingView, base: readonly ListHeader[]): ListHeader[] {
+  if (view === "") return [...base];
+  const headers = base.filter((header) => !HIDDEN_IN_PRICING_TABS.has(header.key));
+  const date = DATE_COLUMNS[view];
+  if (date) headers.splice(headers.findIndex((header) => header.key === date.after) + 1, 0, date.column);
+  return [...headers, LAST_COMMENT_COLUMN];
+}
 
 const LAST_COMMENT_MAX_LENGTH = 80;
 

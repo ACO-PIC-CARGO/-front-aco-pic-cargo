@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, leadingDateColumn, lastCommentPillStyle, showsCallActions, reloadsAfterPricingRequest, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, quoteListHeaders, lastCommentPillStyle, showsCallActions, reloadsAfterPricingRequest, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -38,18 +38,30 @@ describe("showsInternalThread", () => {
   });
 });
 
-describe("leadingDateColumn", () => {
-  it("has no extra date column in Todas and Solicitadas por Ventas", () => {
-    expect(leadingDateColumn("")).toBeNull();
-    expect(leadingDateColumn("pending_send")).toBeNull();
+describe("quoteListHeaders", () => {
+  const BASE = ["acciones", "priority_name", "created", "status", "codigo", "pricing", "ejecutivo_ventas", "nombres", "telefono", "sentido", "tipo_de_carga", "incoterms", "origen", "destino", "marketing", "fechaemisionpdf"]
+    .map((key) => ({ key, title: key.toUpperCase() }));
+  const keys = (view: Parameters<typeof quoteListHeaders>[0]) => quoteListHeaders(view, BASE).map((header) => header.key);
+  const REQUEST_TAB_COLUMNS = ["acciones", "priority_name", "created", "codigo", "pricing", "ejecutivo_ventas", "nombres", "telefono", "sentido", "tipo_de_carga", "incoterms", "origen", "destino", "last_message_body"];
+
+  it("leaves Todas las cotizaciones exactly as it was", () => {
+    expect(keys("")).toEqual(BASE.map((header) => header.key));
+  });
+
+  it("drops status, marketing and the PDF send date in Solicitadas por Ventas and ends with the last comment", () => {
+    expect(keys("pending_send")).toEqual(REQUEST_TAB_COLUMNS);
   });
 
   it("leads Enviadas al Cliente with the send date", () => {
-    expect(leadingDateColumn("sent_to_client")).toEqual({ key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" });
+    expect(keys("sent_to_client")).toEqual(["acciones", "sent_to_client_at", ...REQUEST_TAB_COLUMNS.slice(1)]);
   });
 
-  it("leads Observadas por Pricing with the return date", () => {
-    expect(leadingDateColumn("returned")).toEqual({ key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" });
+  it("puts the return date right after the creation date in Observadas por Pricing", () => {
+    expect(keys("returned")).toEqual(["acciones", "priority_name", "created", "returned_to_sales_at", ...REQUEST_TAB_COLUMNS.slice(3)]);
+  });
+
+  it("gives the last comment room to read", () => {
+    expect(quoteListHeaders("pending_send", BASE).at(-1)).toMatchObject({ title: "ÚLTIMO COMENTARIO", minWidth: expect.any(String) });
   });
 });
 

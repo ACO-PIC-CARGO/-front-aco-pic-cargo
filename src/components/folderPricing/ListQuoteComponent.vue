@@ -9,7 +9,7 @@ import axios from "@/api/http";
 import GuardarUrlPricing from "../comun/GuardarUrlPricing.vue";
 import { usePricingStore } from "@/stores/pricing";
 import {
-  leadingDateColumn,
+  quoteListHeaders,
   showsCallActions,
   showsInternalThread,
   showsReturnToSalesAction,
@@ -232,15 +232,9 @@ const NO_DATA_TEXTS = {
   returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
-const leadingDate = computed(() => leadingDateColumn(pricingStore.pricingView));
-const LAST_COMMENT_HEADER = { key: "last_message_body", title: "ÚLTIMO COMENTARIO", align: "start" } as const;
 const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
-const headersCotizaciones = computed(() => {
-  const headers: { key: string; title: string; align?: "start" | "center" | "end" }[] = [...cabCotizaciones];
-  if (leadingDate.value) headers.splice(1, 0, leadingDate.value);
-  if (showsLastComment.value) headers.push(LAST_COMMENT_HEADER);
-  return headers;
-});
+const headersCotizaciones = computed(() => quoteListHeaders(pricingStore.pricingView, cabCotizaciones));
+const visibleColumns = computed(() => new Set(headersCotizaciones.value.map((header) => header.key)));
 function onThreadMessageSent(item: CotizacionListado, message: { direction: MessageDirection; body: string }) {
   Object.assign(item, withLastMessage(item, message));
 }
@@ -1294,11 +1288,11 @@ onMounted(async () => {
           <!-- <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td> -->
           <!-- <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td> -->
           <td
-            v-if="leadingDate"
+            v-if="visibleColumns.has('sent_to_client_at')"
             class="text-center"
             @click="toggleExpand(internalItem)"
           >
-            {{ item[leadingDate.key] }}
+            {{ item.sent_to_client_at }}
           </td>
           <td
             class="text-center"
@@ -1312,7 +1306,17 @@ onMounted(async () => {
           <td @click="toggleExpand(internalItem)">
             {{ item.created }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            v-if="visibleColumns.has('returned_to_sales_at')"
+            class="text-center"
+            @click="toggleExpand(internalItem)"
+          >
+            {{ item.returned_to_sales_at }}
+          </td>
+          <td
+            v-if="visibleColumns.has('status')"
+            @click="toggleExpand(internalItem)"
+          >
             {{ item.status }}
           </td>
           <td @click="toggleExpand(internalItem)">
@@ -1345,10 +1349,16 @@ onMounted(async () => {
           <td @click="toggleExpand(internalItem)">
             {{ item.destino }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            v-if="visibleColumns.has('marketing')"
+            @click="toggleExpand(internalItem)"
+          >
             {{ displayMarketing(item) }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            v-if="visibleColumns.has('fechaemisionpdf')"
+            @click="toggleExpand(internalItem)"
+          >
             {{ item.fechaemisionpdf }}
 
             <!-- <span
