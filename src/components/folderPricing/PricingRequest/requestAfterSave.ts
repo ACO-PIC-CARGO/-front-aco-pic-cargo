@@ -38,6 +38,7 @@ export async function askSaveChoice(): Promise<SaveChoice | null> {
     text: "¿Quieres solicitar la cotización a pricing al guardarla?",
     confirmButtonText: "Guardar y solicitar a pricing",
     denyButtonText: "Solo guardar",
+    denyButtonColor: "#3363A2",
     showDenyButton: true,
     showCancelButton: true,
     cancelButtonText: "Cancelar",
