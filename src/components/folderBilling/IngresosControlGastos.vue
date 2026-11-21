@@ -1757,6 +1757,7 @@ watch(
                 >
                   {{ houseIngreso.quote }}
                   <v-btn
+                    data-modo-ver="permitido"
                     variant="text"
                     color="info"
                     icon
@@ -1965,6 +1966,7 @@ watch(
                       <!-- ver / editar / eliminar apilados, como en Costos -->
                       <div class="cobreq__acciones">
                         <v-btn
+                          data-modo-ver="permitido"
                           icon="mdi-eye"
                           size="x-small"
                           variant="text"
@@ -2151,6 +2153,7 @@ watch(
                 </td>
                 <td data-label="Ver Proformas">
                   <v-icon
+                    data-modo-ver="permitido"
                     :disabled="!houseIngreso.tienefactura"
                     color="info"
                     @click.stop="verProformas(houseIngreso)"
@@ -2401,6 +2404,7 @@ watch(
                   v-if="editable"
                 >
                   <v-icon
+                    data-modo-ver="permitido"
                     color="info"
                     @click="activarFactura(item)"
                     v-if="item.facturado == true && item.pagado == 0"
@@ -2769,6 +2773,7 @@ watch(
           >
             <template #[`item.accion`]="{ item }">
               <v-icon
+                data-modo-ver="permitido"
                 class="btn_add mr-2"
                 size="small"
                 color="default"
@@ -3387,6 +3392,7 @@ watch(
             </template>
             <template #[`item.path`]="{ item }">
               <v-btn
+                data-modo-ver="permitido"
                 variant="text"
                 icon
                 size="small"

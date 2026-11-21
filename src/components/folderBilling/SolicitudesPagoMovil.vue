@@ -37,6 +37,8 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   /** totales del proveedor en el expediente: Pricing y Operaciones (tarjeta cerrada) */
   total_pr?: number | string | null;
   total_op?: number | string | null;
+  /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
+  pago_instructivoflag?: boolean | null;
 }
 
 const props = defineProps<{
@@ -66,6 +68,7 @@ const emit = defineEmits<{
   eliminar: [s: SolicitudPagoMovilItem];
   "eliminar-soporte": [s: SolicitudPagoMovilItem];
   ver: [s: SolicitudPagoMovilItem];
+  "ver-pago-instructivo": [s: SolicitudPagoMovilItem];
 }>();
 
 const ESTADOS = [
@@ -631,6 +634,18 @@ function abrir(url: string | null | undefined) {
                       @click="emit('eliminar', s)"
                     >
                       Eliminar
+                    </v-btn>
+                    <v-btn
+                      v-if="s.pago_instructivoflag"
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      rounded="pill"
+                      prepend-icon="mdi-eye-outline"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-pago-instructivo', s)"
+                    >
+                      Pago proveedor
                     </v-btn>
                     <v-btn
                       size="small"

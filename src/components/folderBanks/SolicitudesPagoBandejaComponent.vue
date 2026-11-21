@@ -11,6 +11,8 @@ import { tienePerfilRevision, useRevisionSolicitudPago } from "@/composables/use
 import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
+import PagoProveedorInstructivoDialog from "@/components/folderBilling/PagoProveedorInstructivoDialog.vue";
+import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 import SolicitudesPagoMovil from "@/components/folderBilling/SolicitudesPagoMovil.vue";
 import RechazarSolicitudDialog from "@/components/folderBilling/RechazarSolicitudDialog.vue";
 import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
@@ -75,6 +77,15 @@ const idSolicitudVer = ref<number | null>(null);
 function verSolicitud(s: SolicitudPagoBandeja) {
   idSolicitudVer.value = s.id;
   dialogVer.value = true;
+}
+
+// Detalle del pago al proveedor del instructivo de Pricing (6.3) del expediente / proveedor / correlativo
+const { pagos: pagosInstructivo, cargando: cargandoPagoInstructivo, listar: listarPagosInstructivo } = usePagoProveedorInstructivo();
+const dialogPagoInstructivo = ref(false);
+function verPagoInstructivo(s: Pick<SolicitudPagoBandeja, "id_master" | "id_proveedor" | "id_correlativo">) {
+  pagosInstructivo.value = [];
+  dialogPagoInstructivo.value = true;
+  void listarPagosInstructivo({ id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo });
 }
 
 // Acciones de la solicitud: editar / eliminar (con aprobaciones piden clave de administrador;
@@ -510,6 +521,7 @@ onMounted(cargar);
         @editar="editarSolicitud"
         @eliminar="eliminarSolicitud"
         @ver="(sol) => verSolicitud(sol as SolicitudPagoBandeja)"
+        @ver-pago-instructivo="(sol) => verPagoInstructivo(sol as SolicitudPagoBandeja)"
       />
       <v-pagination
         v-if="paginasMovil > 1"
@@ -841,6 +853,21 @@ onMounted(cargar);
               aria-label="Ver solicitud de pago"
               @click="verSolicitud(item)"
             />
+            <!-- pago al proveedor del instructivo de Pricing (6.3): método, datos y archivos -->
+            <v-btn
+              v-if="item.pago_instructivoflag"
+              variant="tonal"
+              size="small"
+              color="primary"
+              prepend-icon="mdi-eye-outline"
+              class="spb__pago6"
+              title="Ver el pago al proveedor del instructivo (6.3)"
+              aria-label="Ver el pago al proveedor del instructivo"
+              data-modo-ver="permitido"
+              @click="verPagoInstructivo(item)"
+            >
+              Pago proveedor
+            </v-btn>
             <v-btn
               v-if="item.codigo_estado === 'RECHAZADA'"
               size="small"
@@ -875,6 +902,11 @@ onMounted(cargar);
       </v-data-table-server>
     </div>
 
+    <PagoProveedorInstructivoDialog
+      v-model="dialogPagoInstructivo"
+      :pagos="pagosInstructivo"
+      :cargando="cargandoPagoInstructivo"
+    />
     <SolicitudPagoEditarDialog
       v-model="dialogEditarSolicitud"
       :solicitud="solicitudEditar"
@@ -1458,6 +1490,11 @@ onMounted(cargar);
   justify-content: center;
   gap: 2px;
   white-space: nowrap;
+}
+.spb__pago6 {
+  margin-left: 2px;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .spb__rechazar {
   min-width: 0;

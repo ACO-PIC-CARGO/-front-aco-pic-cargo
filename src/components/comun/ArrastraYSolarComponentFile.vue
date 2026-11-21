@@ -3,6 +3,7 @@ import { onMounted, ref, useTemplateRef, watch } from "vue";
 import Swal from "sweetalert2";
 import type { ArchivoInicial } from "@/types/archivos";
 import { useFilesStore } from "@/stores/files";
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 
 // 1. Agregamos los props para recibir la data del padre
 // compact: botón "Adjuntar" / chip con el archivo (instructivo). Sin compact se ve como antes.
@@ -44,15 +45,21 @@ const rutaDescarga = ref("");
 const fileInput = useTemplateRef("fileInput");
 
 // 3. Este método se encarga de pintar visualmente el archivo existente
-function cargarDataExistente(data: ArchivoInicial) {
+// Acepta { archivo: { ruta, name } } y también el archivo tal como lo devuelve uploadAllPath ({ ruta, name }),
+// que es como se guarda en el instructivo.
+function cargarDataExistente(data: ArchivoInicial & { name?: string }) {
   archivoSubidoExitosamente.value = true;
-  rutaDescarga.value = data.archivo ? data.archivo.ruta! : "";
+  rutaDescarga.value = (data.archivo ? data.archivo.ruta : data.ruta) ?? "";
 
   // Creamos un objeto similar al que genera el input de file nativo
   // para que se dibuje el nombre en la etiqueta {{ file.name }}
   file.value = {
-    name: data.archivo ? data.archivo.name! : "Archivo cargado",
+    name: (data.archivo ? data.archivo.name : data.name) || "Archivo cargado",
   } as File;
+}
+// Ojo: pestaña nueva en web, modal en celular / tablet.
+function verArchivo() {
+  abrirArchivo(rutaDescarga.value, file.value?.name);
 }
 
 // Respeta "accept" también al arrastrar (el input solo filtra el diálogo de archivos).
@@ -191,7 +198,20 @@ onMounted(() => {
         target="_blank"
         class="adj-file__name"
         :title="file ? file.name : ''"
+        @click.prevent="rutaDescarga && verArchivo()"
       >{{ file ? file.name : "Archivo listo" }}</a>
+      <button
+        v-if="rutaDescarga"
+        type="button"
+        class="adj-file__view"
+        title="Ver archivo"
+        aria-label="Ver archivo"
+        @click="verArchivo"
+      >
+        <v-icon size="18">
+          mdi-eye-outline
+        </v-icon>
+      </button>
       <button
         type="button"
         class="adj-file__remove"
@@ -384,6 +404,16 @@ onMounted(() => {
 }
 .adj-file__remove:hover {
   color: #dc2626;
+}
+.adj-file__view {
+  display: inline-flex;
+  color: #1f73e8;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.adj-file__view:hover {
+  color: #0b4fb3;
 }
 .adj-file--zona .adj-file__box {
   height: 44px;

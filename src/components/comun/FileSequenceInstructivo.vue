@@ -779,7 +779,17 @@ function continuarPagarProveedor() {
       avisoFaltantes(faltantes);
       return;
     }
+  } else {
+    // doble validación: pagamos al proveedor pero el cliente no nos pagó
+    confirmarNoPago.value = true;
+    return;
   }
+  continuar();
+}
+const confirmarNoPago = ref(false);
+function confirmadoNoPago() {
+  confirmarNoPago.value = false;
+  datosManuales.value.clientePago = "No";
   continuar();
 }
 function continuarMetodoPago() {
@@ -2617,6 +2627,48 @@ watch(() => datosManuales.value.agregarOtros, () => {
                   Continuar
                 </v-btn>
               </div>
+
+              <!-- Doble validación: el cliente NO pagó -->
+              <v-dialog
+                v-model="confirmarNoPago"
+                max-width="520"
+              >
+                <v-card class="pg-nopago">
+                  <v-btn
+                    icon="mdi-close"
+                    variant="text"
+                    size="small"
+                    class="pg-nopago__close"
+                    aria-label="Cerrar"
+                    @click="confirmarNoPago = false"
+                  />
+                  <span class="pg-nopago__icon"><v-icon size="40">mdi-alert-outline</v-icon></span>
+                  <div class="pg-nopago__title">
+                    ¿Confirmar que el cliente
+                  </div>
+                  <div class="pg-nopago__badge">
+                    NO PAGÓ ?
+                  </div>
+                  <div class="pg-nopago__actions">
+                    <v-btn
+                      variant="outlined"
+                      prepend-icon="mdi-arrow-left"
+                      class="pg-nopago__btn"
+                      @click="confirmarNoPago = false"
+                    >
+                      Volver
+                    </v-btn>
+                    <v-btn
+                      color="error"
+                      variant="flat"
+                      class="pg-nopago__btn"
+                      @click="confirmadoNoPago"
+                    >
+                      Confirmado NO PAGO
+                    </v-btn>
+                  </div>
+                </v-card>
+              </v-dialog>
 
               <!-- Sub-pasos: dentro del paso 7, se abre uno a la vez -->
               <!-- PROVEEDOR A LLENAR (solo con 2 o más shippers) -->
@@ -4608,6 +4660,72 @@ watch(() => datosManuales.value.agregarOtros, () => {
 .pg-sino.pg-sino--vacio {
   flex-basis: 140px;
   max-width: 140px;
+}
+/* Doble validación: el cliente NO pagó */
+.pg-nopago {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 24px 20px;
+  text-align: center;
+  border-radius: 18px !important;
+}
+.pg-nopago__close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+.pg-nopago__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  color: #d32f2f;
+  background: #fde2e2;
+  border-radius: 14px;
+}
+.pg-nopago__title {
+  margin-top: 14px;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  color: #0a1f44;
+}
+.pg-nopago__badge {
+  margin-top: 6px;
+  padding: 2px 18px;
+  font-size: 28px;
+  font-weight: 900;
+  color: #d32f2f;
+  background: #fde2e2;
+  border-radius: 12px;
+}
+.pg-nopago__actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+.pg-nopago__btn {
+  flex: 1;
+  height: 44px !important;
+  margin: 0 !important;
+  font-weight: 700;
+}
+@media (max-width: 599.98px) {
+  .pg-nopago__title {
+    font-size: 19px;
+  }
+  .pg-nopago__badge {
+    font-size: 24px;
+  }
+  .pg-nopago__actions {
+    flex-direction: column-reverse;
+  }
 }
 .pg-sino :deep(.v-field__input) {
   min-height: 34px;

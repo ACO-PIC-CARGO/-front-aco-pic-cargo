@@ -41,6 +41,9 @@ import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/reques
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
+import PagoProveedorInstructivoDialog from "./PagoProveedorInstructivoDialog.vue";
+import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
+import type { PagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 import { avisoDocumentoConSolicitud, avisoSolicitudEnviada, montoConMoneda } from "@/utils/solicitudPagoAvisos";
 import {
   quitarSoporteAntesDeEliminar,
@@ -2041,10 +2044,41 @@ function avisarSalidaBancos(item: EgresoProveedor) {
   return true;
 }
 
+// "Cliente Pagó" (SI | PARCIAL | NO): mismo dato que la columna de Solicitudes de Pagos Administración.
+// Si no se pudo consultar no bloquea la solicitud.
+async function clientePagoDe(item: EgresoProveedor): Promise<string | null> {
+  try {
+    const respuesta = await request<{ cliente_pago: string | null }>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_cliente_pago",
+      params: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+    });
+    return respuesta.estadoflag ? respuesta.data?.[0]?.cliente_pago ?? null : null;
+  } catch {
+    return null;
+  }
+}
+const confirmarPagoProveedor = ref<{ estado: "NO" | "PARCIAL"; resolver: (ok: boolean) => void } | null>(null);
+function confirmarPagoSinCobro(estado: "NO" | "PARCIAL") {
+  return new Promise<boolean>((resolver) => {
+    confirmarPagoProveedor.value = { estado, resolver };
+  });
+}
+function cerrarConfirmarPago(ok: boolean) {
+  const actual = confirmarPagoProveedor.value;
+  confirmarPagoProveedor.value = null;
+  actual?.resolver(ok);
+}
+
 async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   if (editar && avisarSalidaBancos(item)) return;
   const existente = solicitudPagoDe(item) ?? null;
   const modo = !existente ? "nuevo" : (editar || existente.codigo_estado === "RECHAZADA") && !tieneSalidaBancos(existente) ? "editar" : "ver";
+  // antes de solicitar el pago: si el cliente no nos pagó (o pagó una parte), confirmar
+  if (modo === "nuevo") {
+    const estado = await clientePagoDe(item);
+    if ((estado === "NO" || estado === "PARCIAL") && !(await confirmarPagoSinCobro(estado))) return;
+  }
   adminEdicionSolicitud.value = null;
   if (modo === "editar" && existente && tieneAprobaciones(existente)) {
     const admin = await askAdminCredentials(mensajeClaveSolicitud(existente, "editarla"));
@@ -2185,11 +2219,33 @@ async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): 
   return true;
 }
 
+// Detalle del pago al proveedor del instructivo (6.3) en el correlativo "Pago Proveedor"
+const { listar: listarPagosInstructivo } = usePagoProveedorInstructivo();
+const pagosInstructivo = ref<PagoProveedorInstructivo[]>([]);
+const dialogPagoInstructivo = ref(false);
+const pagosInstructivoVer = ref<PagoProveedorInstructivo[]>([]);
+async function cargarPagosInstructivo() {
+  const listas = await Promise.all(mastersEgresos.value.map((id) => listarPagosInstructivo({ id_master: id }).then((lista) => [...lista])));
+  pagosInstructivo.value = listas.flat();
+}
+const pagosInstructivoDe = (e: EgresoProveedor) =>
+  pagosInstructivo.value.filter((p) =>
+    Number(p.id_master) === Number(e.id_master)
+    && Number(p.id_proveedor) === Number(e.id_proveedor)
+    && Number(p.id_correlativo ?? 0) === Number(e.id_correlativo ?? 0));
+function verPagoInstructivo(e: EgresoProveedor) {
+  pagosInstructivoVer.value = pagosInstructivoDe(e);
+  dialogPagoInstructivo.value = true;
+}
+
 defineExpose({ cargarSolicitudesExistentes });
 
 watch(
   () => (masterEgresos.value || []).map((e) => e.id_master).join(","),
-  () => cargarSolicitudesExistentes(true),
+  () => {
+    void cargarSolicitudesExistentes(true);
+    void cargarPagosInstructivo();
+  },
   { immediate: true },
 );
 
@@ -2464,6 +2520,7 @@ watch(
                       @click.stop
                     >
                       <v-btn
+                        data-modo-ver="permitido"
                         variant="text"
                         icon
                         size="small"
@@ -2484,6 +2541,21 @@ watch(
                   @click.stop
                 >
                   <div class="solreq-fila">
+                    <!-- pago al proveedor del instructivo de Pricing (6.3): método, datos y archivos -->
+                    <v-btn
+                      data-modo-ver="permitido"
+                      v-if="pagosInstructivoDe(egresoProveedor).length"
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      prepend-icon="mdi-eye-outline"
+                      class="solreq__pago6"
+                      title="Ver el pago al proveedor del instructivo (6.3)"
+                      aria-label="Ver el pago al proveedor del instructivo"
+                      @click="verPagoInstructivo(egresoProveedor)"
+                    >
+                      Pago proveedor
+                    </v-btn>
                     <!-- Solicitud de pago del correlativo: solicitar / ver / editar si la rechazaron / eliminar -->
                     <div
                       v-if="solicitudPagoDe(egresoProveedor)"
@@ -2521,6 +2593,7 @@ watch(
                       <div class="solreq__acciones">
                         <!-- ojo: el último PDF de pago generado -->
                         <v-btn
+                          data-modo-ver="permitido"
                           icon="mdi-eye"
                           size="x-small"
                           variant="text"
@@ -2582,6 +2655,7 @@ watch(
                       </button>
                       <div class="solreq__acciones">
                         <v-btn
+                          data-modo-ver="permitido"
                           icon="mdi-eye"
                           size="x-small"
                           variant="text"
@@ -2646,6 +2720,7 @@ watch(
                       :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
                     >
                       <v-btn
+                        data-modo-ver="permitido"
                         variant="text"
                         size="small"
                         icon
@@ -3374,6 +3449,7 @@ watch(
             </template>
             <template #[`item.path`]="{ item }">
               <v-btn
+                data-modo-ver="permitido"
                 variant="text"
                 icon="mdi-eye-outline"
                 size="small"
@@ -4032,6 +4108,7 @@ watch(
           </template>
           <template #[`item.accion`]="{ item }">
             <v-icon
+              data-modo-ver="permitido"
               class="mr-2"
               @click="viewPdf(item.path)"
             >
@@ -4430,6 +4507,51 @@ watch(
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <PagoProveedorInstructivoDialog
+      v-model="dialogPagoInstructivo"
+      :pagos="pagosInstructivoVer"
+    />
+
+    <!-- Antes de Solicitar pago: el cliente aún no nos pagó -->
+    <v-dialog
+      :model-value="!!confirmarPagoProveedor"
+      max-width="520"
+      @update:model-value="(abierto: boolean) => !abierto && cerrarConfirmarPago(false)"
+    >
+      <v-card class="cpp">
+        <div class="cpp__head">
+          <v-icon
+            size="44"
+            color="error"
+          >
+            mdi-alert-outline
+          </v-icon>
+          <span class="cpp__title">¿Pagar al proveedor?</span>
+        </div>
+        <div class="cpp__msg">
+          {{ confirmarPagoProveedor?.estado === "PARCIAL" ? "El cliente solo ha pagado una parte." : "El cliente aún no ha pagado." }}
+        </div>
+        <div class="cpp__actions">
+          <v-btn
+            variant="outlined"
+            prepend-icon="mdi-arrow-left"
+            class="cpp__btn"
+            @click="cerrarConfirmarPago(false)"
+          >
+            Volver
+          </v-btn>
+          <v-btn
+            color="error"
+            variant="flat"
+            class="cpp__btn"
+            @click="cerrarConfirmarPago(true)"
+          >
+            Sí, pagar proveedor
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -4452,11 +4574,71 @@ watch(
   vertical-align: text-bottom;
   cursor: help;
 }
+/* Antes de Solicitar pago: el cliente aún no nos pagó */
+.cpp {
+  padding: 22px 24px 20px;
+  border-radius: 18px !important;
+}
+.cpp__head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.cpp__title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0a1f44;
+}
+.cpp__msg {
+  margin-top: 14px;
+  padding: 10px 14px;
+  font-size: 19px;
+  font-weight: 700;
+  color: #c62828;
+  text-align: center;
+  background: #fde2e2;
+  border-radius: 12px;
+}
+.cpp__actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+.cpp__btn {
+  flex: 1;
+  height: 44px !important;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+@media (max-width: 599.98px) {
+  .cpp__title {
+    font-size: 20px;
+  }
+  .cpp__msg {
+    font-size: 16px;
+  }
+  .cpp__actions {
+    flex-direction: column-reverse;
+  }
+}
 /* Solicitar a Administración: solicitud o botón + ojo del PDF de pago */
 .solreq-fila {
   display: flex;
   align-items: center;
   gap: 4px;
+}
+.solreq__pago6 {
+  flex: 0 0 auto;
+  text-transform: none;
+}
+@media (max-width: 599.98px) {
+  .solreq-fila {
+    flex-wrap: wrap;
+  }
 }
 /* Enviar a Administración > Generar PDF: vista previa del PDF de pago */
 .solnueva__preview {

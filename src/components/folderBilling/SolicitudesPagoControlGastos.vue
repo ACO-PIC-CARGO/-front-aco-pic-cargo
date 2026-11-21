@@ -24,6 +24,8 @@ import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ApiResponse } from "@/types/api";
 import type { SolicitudPagoControl } from "@/types/billingEntries";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
+import PagoProveedorInstructivoDialog from "./PagoProveedorInstructivoDialog.vue";
+import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 
 const props = defineProps<{ idMaster?: number | null }>();
 // ya no emite "actualizado": Costos lee las mismas solicitudes del store compartido
@@ -40,6 +42,20 @@ const solicitudesStore = useSolicitudesMasterStore();
 const solicitudes = computed<SolicitudPagoControl[]>(() =>
   props.idMaster ? solicitudesStore.pagos[props.idMaster] ?? [] : []);
 const cargando = ref(false);
+
+// Pago al proveedor del instructivo (mismo botón que Bancos > Solicitudes de pago)
+const { pagos: pagosInstructivoMaster, cargando: cargandoPagoInstructivo, listar: listarPagosInstructivo } = usePagoProveedorInstructivo();
+const dialogPagoInstructivo = ref(false);
+const filtroPagoInstructivo = ref<{ id_proveedor: number; id_correlativo: number | null } | null>(null);
+const pagosInstructivoDe = (s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">) =>
+  pagosInstructivoMaster.value.filter((p) => p.id_proveedor === s.id_proveedor && (s.id_correlativo == null || p.id_correlativo === s.id_correlativo));
+const pagosInstructivoVer = computed(() => (filtroPagoInstructivo.value ? pagosInstructivoDe(filtroPagoInstructivo.value) : []));
+const solicitudesMovil = computed(() =>
+  solicitudes.value.map((s) => ({ ...s, pago_instructivoflag: pagosInstructivoDe(s).length > 0 })));
+function verPagoInstructivo(s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">) {
+  filtroPagoInstructivo.value = { id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo };
+  dialogPagoInstructivo.value = true;
+}
 const procesando = ref<number | null>(null);
 
 // modal ver solicitud (ojito)
@@ -189,7 +205,11 @@ function abrir(url: string | null | undefined) {
 
 watch(
   () => props.idMaster,
-  () => cargar(false),
+  (idMaster) => {
+    void cargar(false);
+    pagosInstructivoMaster.value = [];
+    if (idMaster) void listarPagosInstructivo({ id_master: idMaster });
+  },
   { immediate: true },
 );
 
@@ -520,6 +540,20 @@ defineExpose({ cargar });
                   @click="verSolicitud(s)"
                 />
                 <v-btn
+                  v-if="pagosInstructivoDe(s).length"
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  prepend-icon="mdi-eye-outline"
+                  class="solpago__pago6"
+                  title="Ver el pago al proveedor del instructivo"
+                  aria-label="Ver el pago al proveedor del instructivo"
+                  data-modo-ver="permitido"
+                  @click="verPagoInstructivo(s)"
+                >
+                  Pago proveedor
+                </v-btn>
+                <v-btn
                   v-if="s.codigo_estado === 'RECHAZADA'"
                   size="small"
                   variant="outlined"
@@ -555,7 +589,7 @@ defineExpose({ cargar });
     <!-- ======================= MÓVIL ======================= -->
     <SolicitudesPagoMovil
       v-else
-      :items="solicitudes"
+      :items="solicitudesMovil"
       :cargando="cargando"
       :puede-aprobar="puedeAprobar"
       :puede-transferir="puedeTransferir"
@@ -575,6 +609,7 @@ defineExpose({ cargar });
       @editar="editarSolicitud"
       @eliminar="eliminarSolicitud"
       @ver="(sol) => verSolicitud(sol as SolicitudPagoControl)"
+      @ver-pago-instructivo="(sol) => verPagoInstructivo(sol as SolicitudPagoControl)"
     >
       <template #vacio>
         No hay solicitudes de pago en este expediente. Se crean con <b>Solicitar</b> en Costos.
@@ -600,6 +635,11 @@ defineExpose({ cargar });
       tipo="PAGO"
       ruta="solicitud_pago_rechazar"
       @rechazado="cargar()"
+    />
+    <PagoProveedorInstructivoDialog
+      v-model="dialogPagoInstructivo"
+      :pagos="pagosInstructivoVer"
+      :cargando="cargandoPagoInstructivo"
     />
     <SolicitudPagoVerDialog
       v-model="dialogVer"
@@ -837,6 +877,10 @@ defineExpose({ cargar });
 }
 
 /* acciones: editar, eliminar y ver */
+.solpago__pago6 {
+  text-transform: none;
+  letter-spacing: 0;
+}
 .solpago__rechazar {
   min-width: 0;
   font-weight: 600;

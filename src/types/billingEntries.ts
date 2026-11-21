@@ -483,6 +483,8 @@ export interface SolicitudPagoBandeja {
   id_correlativo: number | null;
   pagadoflag: boolean | null;
   id_pagoegreso: number | string | null;
+  /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
+  pago_instructivoflag?: boolean | null;
   /** totales del proveedor en el expediente (tarjeta móvil) */
   total_pr?: number | string | null;
   total_op?: number | string | null;
