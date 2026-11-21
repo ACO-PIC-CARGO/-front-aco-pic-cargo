@@ -64,6 +64,9 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     clave: "",
   });
   const impuesto = ref<ImpuestoEmpresa>({});
+  // la configuración del impuesto ya llegó (de esa sucursal): distingue "aún cargando" de "sin impuesto"
+  const impuestoCargado = ref(false);
+  const impuestoBranch = ref<string | null>(null);
   const step = ref(1);
   const inicioFlag = ref(true);
   const datoEmpresaFlag = ref(false);
@@ -272,6 +275,8 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     })
       .then(function (response) {
         impuesto.value = response.data.data[0] ?? {};
+        impuestoBranch.value = String(branch);
+        impuestoCargado.value = true;
       })
       .catch(function (error) {
         console.error(error);
@@ -336,6 +341,8 @@ export const useEnterprisesStore = defineStore("enterprises", () => {
     validarCodigoVerificacion,
     validarCorreoRegistro,
     obtenerImpuestoXEmpresa,
+    impuestoCargado,
+    impuestoBranch,
     listarCuentaEmpresa,
     listarOpcionesCuenta,
     registrarCuentaEmpresa,

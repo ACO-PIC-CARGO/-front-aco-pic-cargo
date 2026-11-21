@@ -44,6 +44,7 @@ const step: TrackingStep = {
   date_default_id: null,
   allows_skip: false,
   allows_send_skip: false,
+  show_date_to_client: false,
 };
 let wrapper: VueWrapper | undefined;
 

@@ -10,7 +10,7 @@ export interface PublicTrackingStep {
   id: number;
   name: string;
   icon: string;
-  confirmed_at: string | null;
+  show_date: boolean;
   comments: PublicTrackingComment[];
 }
 

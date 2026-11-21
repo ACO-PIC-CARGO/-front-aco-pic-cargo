@@ -3,6 +3,7 @@ import permissionGuard from "./permissionGuard";
 import planAccessGuard from "./planAccessGuard";
 import resetSessionOnLogin from "./resetSessionOnLogin";
 import resetMainTitle from "./resetMainTitle";
+import resumeSessionGuard from "./resumeSessionGuard";
 import signedInGuard from "./signedInGuard";
 import trafficHouseGuard from "./trafficHouseGuard";
 
@@ -416,6 +417,19 @@ const routes = [
         component: () => import("../views/FolderBanks/RegistroCobroSolicitudView.vue"),
       },
       {
+        // "REGISTRAR EN BANCO" abre esta pestaña al instante; aquí se genera el token y pasa al formulario
+        path: "FolderBanks/registroCobroDesdeSolicitud/:codigo",
+        name: "registroCobroDesdeSolicitud",
+        meta: { menuRoute: "registroPayForCliente", solicitud: "cobro" },
+        component: () => import("../views/FolderBanks/PrepararRegistroSolicitudView.vue"),
+      },
+      {
+        path: "FolderBanks/registroPagoDesdeSolicitud/:id",
+        name: "registroPagoDesdeSolicitud",
+        meta: { menuRoute: "registroPayForProveedor", solicitud: "pago" },
+        component: () => import("../views/FolderBanks/PrepararRegistroSolicitudView.vue"),
+      },
+      {
         // Nueva salida precargada desde una Solicitud de Pago (Control de Gastos > Transferir)
         path: "FolderBanks/registroPagoSolicitud/:token",
         name: "registroPagoSolicitud",
@@ -713,6 +727,12 @@ const routes = [
           import("../views/MasterUsuario/ListNotasCotizacion.vue"),
       },
       {
+        path: "metodos_pago_proveedor/listado",
+        name: "ListMetodosPagoProveedor",
+        component: () =>
+          import("../views/MasterUsuario/ListMetodosPagoProveedor.vue"),
+      },
+      {
         path: "categoria_servicio/listado",
         name: "ListBegend",
         component: () => import("../views/Begend/ListBegend.vue"),
@@ -941,6 +961,11 @@ const routes = [
           import("../views/PricingProfit/RegistroProfitPricing.vue"),
       },
       {
+        path: "configuracion/sub_tipo_embarque",
+        name: "lstShipmentSubtype",
+        component: () => import("../views/Configuracion/Pricing/ShipmentSubtype.vue"),
+      },
+      {
         path: "configuracion/texto_whatsapp_cotizacion",
         name: "TextoWhatsappCotizacion",
         component: () =>
@@ -1027,8 +1052,10 @@ const router = createRouter({
 
 router.beforeEach(signedInGuard);
 router.beforeEach(permissionGuard);
+router.beforeEach(resumeSessionGuard);
 router.beforeEach(resetSessionOnLogin);
 router.beforeEach(planAccessGuard);
 router.beforeEach(trafficHouseGuard);
 router.afterEach(resetMainTitle);
 export default router;
+

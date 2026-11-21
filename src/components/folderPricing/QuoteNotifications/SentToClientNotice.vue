@@ -147,6 +147,8 @@ const measures = computed(() => noticeMeasures(props.notice));
   --notice-cta-top: #3fc61f;
   --notice-cta-bottom: #128a17;
 
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 2px solid var(--notice-blue);
   border-radius: 30px;
@@ -210,6 +212,9 @@ const measures = computed(() => noticeMeasures(props.notice));
 }
 
 .quote-notice__body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 8px 18px 20px;
 }
 
@@ -237,8 +242,10 @@ const measures = computed(() => noticeMeasures(props.notice));
 }
 
 .quote-notice__details {
+  min-height: 0;
   margin: 12px 0 0;
   padding: 0 10px;
+  overflow-y: auto;
 }
 
 .quote-notice__row {

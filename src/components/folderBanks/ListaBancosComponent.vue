@@ -284,9 +284,15 @@ onMounted(async () => {
 <template>
   <v-card class="bank-list-card px-5">
     <v-card elevation="0">
-      <v-container v-if="loading" style="height: 400px">
+      <v-container
+        v-if="loading"
+        style="height: 400px"
+      >
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-body-large text-center" cols="12">
+          <v-col
+            class="text-body-large text-center"
+            cols="12"
+          >
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -620,9 +626,15 @@ onMounted(async () => {
         </v-card-actions>
       </v-container>
 
-      <v-container v-if="loading_as" style="height: 400px">
+      <v-container
+        v-if="loading_as"
+        style="height: 400px"
+      >
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-body-large text-center" cols="12">
+          <v-col
+            class="text-body-large text-center"
+            cols="12"
+          >
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -724,9 +736,15 @@ onMounted(async () => {
         </v-card-actions>
       </v-container>
 
-      <v-container v-if="loading_as" style="height: 400px">
+      <v-container
+        v-if="loading_as"
+        style="height: 400px"
+      >
         <v-row class="fill-height align-content-center justify-center">
-          <v-col class="text-body-large text-center" cols="12">
+          <v-col
+            class="text-body-large text-center"
+            cols="12"
+          >
             Cargando información ....
           </v-col>
           <v-col cols="6">
@@ -757,7 +775,11 @@ onMounted(async () => {
       <v-container>
         <v-card-text>
           <v-row>
-            <v-text-field label="Código" v-model="records.code" clearable />
+            <v-text-field
+              label="Código"
+              v-model="records.code"
+              clearable
+            />
           </v-row>
           <v-row>
             <v-text-field
@@ -767,7 +789,11 @@ onMounted(async () => {
             />
           </v-row>
           <v-row>
-            <v-text-field label="Nombre" v-model="records.name" clearable />
+            <v-text-field
+              label="Nombre"
+              v-model="records.name"
+              clearable
+            />
           </v-row>
           <v-row>
             <v-text-field
@@ -777,10 +803,26 @@ onMounted(async () => {
             />
           </v-row>
           <v-row>
-            <v-radio-group v-model="records.status" inline density="compact">
-              <v-radio label="Activo" color="green" :value="1" />
-              <v-radio label="Inactivo" color="red" :value="0" />
-              <v-radio label="Todos" color="blue" value="null" />
+            <v-radio-group
+              v-model="records.status"
+              inline
+              density="compact"
+            >
+              <v-radio
+                label="Activo"
+                color="green"
+                :value="1"
+              />
+              <v-radio
+                label="Inactivo"
+                color="red"
+                :value="0"
+              />
+              <v-radio
+                label="Todos"
+                color="blue"
+                value="null"
+              />
             </v-radio-group>
           </v-row>
         </v-card-text>
@@ -788,10 +830,18 @@ onMounted(async () => {
 
       <v-container>
         <v-card-actions class="justify-end mt-3">
-          <v-btn class="mx-1" color="success" @click="filter()">
+          <v-btn
+            class="mx-1"
+            color="success"
+            @click="filter()"
+          >
             Aceptar
           </v-btn>
-          <v-btn class="mx-1" color="ligth" @click="resetRecord('filter')">
+          <v-btn
+            class="mx-1"
+            color="ligth"
+            @click="resetRecord('filter')"
+          >
             Limpiar
           </v-btn>
           <v-btn
@@ -804,7 +854,6 @@ onMounted(async () => {
         </v-card-actions>
       </v-container>
     </v-navigation-drawer>
-
   </v-card>
 </template>
 

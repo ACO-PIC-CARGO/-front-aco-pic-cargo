@@ -20,7 +20,8 @@ const TABS: { valor: TabBandejaSolicitudPago; titulo: string; icono: string; col
   { valor: "HIS", titulo: "Histórico", icono: "mdi-history", color: "grey-darken-1" },
 ];
 
-// aprobar / rechazar / subir soporte mueve la solicitud de pestaña: se recargan las tres
+// Al entrar se cargan las tres pestañas. Cualquier acción (aprobar, rechazar, editar, eliminar,
+// subir soporte, registrar...) recarga las tres. Volver a la ventana (alt+tab) no consulta nada.
 const bandejas = ref<InstanceType<typeof SolicitudesPagoBandeja>[]>([]);
 function recargarTodas() {
   bandejas.value.forEach((b) => b.cargar());
@@ -110,7 +111,6 @@ onMounted(async () => {
             ref="bandejas"
             :tab="t.valor"
             :opciones="opciones"
-            :activa="tab === t.valor"
             @total="totales[t.valor] = $event"
             @actualizado="recargarTodas"
           />

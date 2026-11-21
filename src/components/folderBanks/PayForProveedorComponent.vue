@@ -496,6 +496,7 @@ onMounted(async () => {
             style="font-size: 20pt"
             label="Monto en que va a salir del banco"
             v-model="montoMonExt"
+            type="number"
             readonly
             :prefix="symbol"
           />

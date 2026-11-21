@@ -7,6 +7,7 @@ import moment from "moment";
 import axios from "@/api/http";
 import FileSequenceInstructivo from "../../comun/FileSequenceInstructivo.vue";
 import MasterSelectDialog from "@/components/comun/MasterSelectDialog.vue";
+import AprobarDestinoDialog from "@/components/comun/AprobarDestinoDialog.vue";
 import QuoteInTrafficNotice from "@/components/folderTraffic/QuoteInTrafficNotice.vue";
 import { askExpedienteKind, askMasterAvailabilityDate } from "@/utils/expedienteChoice";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
@@ -14,7 +15,7 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { useQuoteTrafficSend, type ApprovalAmounts } from "@/composables/useQuoteTrafficSend";
-import { SEND_TARGET_LABELS, type SendTarget } from "@/utils/trafficSend";
+import type { SendTarget } from "@/utils/trafficSend";
 import { useSecuritysStore } from "@/stores/securitys";
 import type { AprobacionCotizacion, ArchivoDrive, ExpedienteMaster, HouseAsociadoMaster, OpcionCosto } from "@/types/cotizacion";
 import type { ProveedorPricing } from "@/types/entidades";
@@ -35,7 +36,12 @@ const quoteTraffic = useQuoteTrafficSend({
   approved: () => pricingStore.aprobadoflag,
 });
 const { target: sendTarget, targets: sendTargets, pendingFile: pendingTrafficFile } = quoteTraffic;
-const sendTargetItems = computed(() => sendTargets.value.map((value) => ({ value, title: SEND_TARGET_LABELS[value] })));
+// opciones elegidas en la cotización que el cliente puede haber aprobado
+const opcionesAprobables = computed(() =>
+  pricingStore.opcionCostos
+    .filter((v) => v.selected)
+    .map((opcion) => ({ value: opcion.nro_propuesta, titulo: `Opción ${opcion.nro_propuesta}`, detalle: getProveedor(opcion) })),
+);
 const sendingInstructivo = shallowRef(false);
 const instructivoDestino = computed<SendTarget>(() => {
   if (sendingInstructivo.value && sendTarget.value) return sendTarget.value;
@@ -367,15 +373,10 @@ async function guardarNota() {
     appStore.spiner = false;
   }
 }
+// Los masters del cliente se cargan en segundo plano al abrir "Aprobar" (el diálogo abre al instante);
+// solo se esperan cuando hay que elegir expediente.
+let mastersListos: Promise<unknown> = Promise.resolve();
 async function abrirSeleccionDeQuoteAAprobar() {
-  if (!pricingStore.datosPrincipales.id_proveedor) {
-    Swal.fire({
-      icon: "warning",
-      title: "Proveedor",
-      text: "Para Aprobar la cotización necesita un proveedor",
-    });
-    return;
-  }
   const opcionCostos = pricingStore.opcionCostos.filter(
     (v) => !!v.selected,
   );
@@ -412,9 +413,9 @@ async function abrirSeleccionDeQuoteAAprobar() {
     return false;
   }
 
-  await appStore.cargarMaster(
-    pricingStore.datosPrincipales as unknown as Parameters<typeof appStore.cargarMaster>[0],
-  );
+  mastersListos = appStore
+    .cargarMaster(pricingStore.datosPrincipales as unknown as Parameters<typeof appStore.cargarMaster>[0])
+    .catch((error) => console.error(error));
 
   seleccionQuoteAprobar.value = true;
 }
@@ -500,6 +501,7 @@ async function abrirModalAprobar() {
 async function chooseExpediente() {
   nuevoexpediente.value = true;
   id_exp.value = "";
+  await mastersListos;
   const kind = await askExpedienteKind(appStore.itemsMasterList.length > 0);
   if (kind === "existing") {
     nuevoexpediente.value = false;
@@ -721,71 +723,15 @@ function getProveedor(element: OpcionCosto) {
       :loading="loading"
       @select="onMasterSelected"
     />
-    <v-dialog
+    <AprobarDestinoDialog
+      ref="frmSeleccionQuote"
       v-model="seleccionQuoteAprobar"
-      eager
-      scrollable
-      persistent
-      max-width="35%"
-      transition="dialog-transition"
-      class="classDialog"
-    >
-      <v-card class="pa-5">
-        <h2 class="text-blue justify--text">
-          ESTÁS A PUNTO DE GENERAR UN INSTRUCTIVO<template v-if="sendTarget"> A {{ sendTarget === "TRAFFIC" ? "TRÁFICO" : "OPERACIONES" }}</template>
-        </h2>
-        <v-select
-          id="send-target"
-          v-model="sendTarget"
-          :items="sendTargetItems"
-          label="¿A dónde envías la cotización?"
-          class="mt-4"
-          density="compact"
-          hide-details
-        />
-        <p class="mt-4">Seleccione la opción aprobada por el cliente:</p>
-
-        <v-card-text>
-          <v-form ref="frmSeleccionQuote">
-            <v-radio-group
-              v-model="nro_propuesta"
-              :rules="[(v) => !!v || 'Seleccione una opción']"
-            >
-              <v-radio
-                :value="opcion.nro_propuesta"
-                v-for="(
-                  opcion, index
-                ) in pricingStore.opcionCostos.filter(
-                  (v) => v.selected,
-                )"
-                :key="index"
-                :label="`Opción ${opcion.nro_propuesta} - ${getProveedor(
-                  opcion,
-                )}`"
-              />
-            </v-radio-group>
-          </v-form>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            class="mx-1"
-            :disabled="!sendTarget"
-            @click="abrirModalListadoArchivos()"
-            color="success"
-          >
-            Continuar
-          </v-btn>
-          <v-btn
-            class="mx-1"
-            color="error"
-            @click="seleccionQuoteAprobar = !seleccionQuoteAprobar"
-          >
-            Cancelar
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      v-model:target="sendTarget"
+      v-model:opcion="nro_propuesta"
+      :targets="sendTargets"
+      :opciones="opcionesAprobables"
+      @continuar="abrirModalListadoArchivos()"
+    />
     <v-col
       cols="12"
       class="mb-0 pa-0"
@@ -1474,15 +1420,22 @@ function getProveedor(element: OpcionCosto) {
         <v-card-title class="pa-0">
           <v-toolbar
             flat
-            theme="dark"
-            color="primary"
+            color="white"
+            class="ins-toolbar"
           >
-            <v-toolbar-title>Datos Manuales Instructivo</v-toolbar-title>
+            <v-icon
+              class="ml-4 mr-2"
+              color="#12306b"
+            >
+              mdi-file-document-outline
+            </v-icon>
+            <v-toolbar-title class="ins-toolbar__title ml-0">
+              Instructivo de Pricing a {{ instructivoDestino === "TRAFFIC" ? "Tráfico" : "Operaciones" }}
+            </v-toolbar-title>
             <v-spacer />
             <v-btn
-              variant="elevated"
-              class="mx-1"
-              color="#FFD600"
+              variant="flat"
+              class="mx-1 ins-toolbar__btn ins-toolbar__btn--abrir"
               @click="
                 abrirCarpeta(
                   pricingStore.datosPrincipales.url_folderonedrive,
@@ -1490,19 +1443,17 @@ function getProveedor(element: OpcionCosto) {
               "
             >
               <v-icon
-                class="mx-1"
+                class="mr-1"
                 size="small"
               >
-                mdi-folder
+                mdi-folder-open-outline
               </v-icon>
-              ABRIR
+              Abrir
             </v-btn>
             <v-btn
-              variant="elevated"
-              size="small"
-              class="mx-1"
+              variant="outlined"
+              class="mx-1 ins-toolbar__btn"
               v-if="verPrevisualizacion"
-              color="#01579B"
               @click="verDatosPreview = !verDatosPreview"
             >
               <v-icon
@@ -1522,11 +1473,9 @@ function getProveedor(element: OpcionCosto) {
               {{ verDatosPreview ? "Ocultar Datos" : "Editar Datos" }}
             </v-btn>
             <v-btn
-              variant="elevated"
-              size="small"
-              class="mx-1"
+              variant="outlined"
+              class="mx-1 ins-toolbar__btn"
               v-if="verDatosPreview"
-              color="#01579B"
               @click="verPrevisualizacion = !verPrevisualizacion"
             >
               <v-icon
@@ -1552,6 +1501,8 @@ function getProveedor(element: OpcionCosto) {
             <v-btn
               variant="text"
               icon
+              class="mr-2"
+              color="#1f2a44"
               @click="cerrarDialogoSequenceInstructivo"
             >
               <v-icon>mdi-close</v-icon>
@@ -1854,6 +1805,28 @@ function getProveedor(element: OpcionCosto) {
 } */
 .classDialog {
   min-height: 900px !important;
+}
+.ins-toolbar {
+  border-bottom: 1px solid #e3e8f0;
+}
+.ins-toolbar__title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #12306b;
+}
+.ins-toolbar__btn {
+  height: 36px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  color: #1f2a44 !important;
+  border-color: #dfe5ee !important;
+  border-radius: 8px !important;
+}
+.ins-toolbar__btn--abrir {
+  background: #ffe27a !important;
+  color: #1f2a44 !important;
 }
 </style>
 <style scoped>

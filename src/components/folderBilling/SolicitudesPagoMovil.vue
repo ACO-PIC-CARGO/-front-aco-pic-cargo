@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 // Vista móvil de solicitudes de pago: grupos por estado (se pliegan) y tarjetas que se despliegan.
 // La usan Control de Gastos > Pagos Pendientes y Bancos > Solicitudes de Pago (cada pestaña).
 import { computed, ref } from "vue";
@@ -36,6 +37,8 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   /** totales del proveedor en el expediente: Pricing y Operaciones (tarjeta cerrada) */
   total_pr?: number | string | null;
   total_op?: number | string | null;
+  /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
+  pago_instructivoflag?: boolean | null;
 }
 
 const props = defineProps<{
@@ -55,6 +58,8 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{
   aprobar: [s: SolicitudPagoMovilItem, tipo: AreaRevision];
+  rechazar: [s: SolicitudPagoMovilItem];
+  "ver-rechazo": [s: SolicitudPagoMovilItem];
   "subir-soporte": [s: SolicitudPagoMovilItem];
   transferir: [s: SolicitudPagoMovilItem];
   "ver-salida": [s: SolicitudPagoMovilItem];
@@ -63,6 +68,7 @@ const emit = defineEmits<{
   eliminar: [s: SolicitudPagoMovilItem];
   "eliminar-soporte": [s: SolicitudPagoMovilItem];
   ver: [s: SolicitudPagoMovilItem];
+  "ver-pago-instructivo": [s: SolicitudPagoMovilItem];
 }>();
 
 const ESTADOS = [
@@ -156,8 +162,9 @@ async function copiar(texto: string | null) {
     Swal.fire({ icon: "warning", text: "No se pudo copiar. Selecciona el texto y cópialo manualmente." });
   }
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 </script>
 
@@ -167,7 +174,16 @@ function abrir(url: string | null | undefined) {
       v-if="!items.length"
       class="mov__empty"
     >
-      {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago." }}
+      <template v-if="cargando">
+        Cargando solicitudes...
+      </template>
+      <!-- Control de Gastos explica dónde se crean; la bandeja de Bancos deja el texto corto -->
+      <slot
+        v-else
+        name="vacio"
+      >
+        No hay solicitudes de pago.
+      </slot>
     </div>
     <div
       v-for="g in grupos"
@@ -553,7 +569,31 @@ function abrir(url: string | null | undefined) {
                       >
                         Aprobar Gerencia
                       </v-btn>
+                      <!-- rechaza solo el paso pendiente y solo quien puede aprobarlo -->
+                      <v-btn
+                        v-if="(s.codigo_estado === 'PENADM' && tienePerfilRevision('ADM')) || (s.codigo_estado === 'PENGER' && tienePerfilRevision('GER'))"
+                        size="small"
+                        color="error"
+                        variant="outlined"
+                        rounded="pill"
+                        prepend-icon="mdi-close-circle-outline"
+                        @click="emit('rechazar', s)"
+                      >
+                        Rechazar
+                      </v-btn>
                     </template>
+                    <v-btn
+                      v-if="s.codigo_estado === 'RECHAZADA'"
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      rounded="pill"
+                      prepend-icon="mdi-comment-alert-outline"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-rechazo', s)"
+                    >
+                      Ver motivo
+                    </v-btn>
                     <v-btn
                       v-if="verAnexo"
                       size="small"
@@ -594,6 +634,18 @@ function abrir(url: string | null | undefined) {
                       @click="emit('eliminar', s)"
                     >
                       Eliminar
+                    </v-btn>
+                    <v-btn
+                      v-if="s.pago_instructivoflag"
+                      size="small"
+                      variant="tonal"
+                      color="primary"
+                      rounded="pill"
+                      prepend-icon="mdi-eye-outline"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-pago-instructivo', s)"
+                    >
+                      Pago proveedor
                     </v-btn>
                     <v-btn
                       size="small"
@@ -648,10 +700,14 @@ function abrir(url: string | null | undefined) {
   color: var(--sp-text);
   font-size: 0.92rem;
 }
+/* aviso vacío: recuadro blanco, igual que Solicitudes de Cobro */
 .mov__empty {
-  padding: 28px 12px;
+  padding: 14px;
+  border: 1px dashed #c9d3e1;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #5b6b86;
   text-align: center;
-  color: var(--sp-muted);
 }
 .mov__grouphead {
   display: flex;

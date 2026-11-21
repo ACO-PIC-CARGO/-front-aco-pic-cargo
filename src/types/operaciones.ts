@@ -195,6 +195,8 @@ export interface CuentaBancariaPic {
   cci: string;
   symbol: string;
   banco?: string;
+  /** nombre completo del banco (BCP -> Banco de Crédito del Perú) */
+  banco_nombre?: string;
   moneda?: string;
   id_coins?: number;
   esprincipalflag?: boolean;
@@ -241,6 +243,7 @@ export interface CuentaBancariaForm {
 export interface OpcionBanco {
   id: number;
   name: string;
+  acronym?: string;
 }
 
 export interface PasoBitacoraTracking {

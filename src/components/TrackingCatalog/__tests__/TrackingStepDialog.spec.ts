@@ -45,6 +45,7 @@ const step: TrackingStep = {
   date_default_id: null,
   allows_skip: false,
   allows_send_skip: false,
+  show_date_to_client: false,
 };
 const phase: TrackingPhase = {
   id: 7,
@@ -168,4 +169,48 @@ test("a step that lets the next ones be sent to tracking first saves the switch"
 
   const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
   expect(saved.data).toMatchObject({ allows_send_skip: true });
+});
+
+test("turning on «Mostrar fecha al cliente» saves the switch with the step", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  useTrackingCatalogStore().phases = [phase];
+  wrapper = mount(TrackingStepDialog, {
+    props: { step, phaseId: 7, modelValue: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
+  await wrapper.setProps({ modelValue: true });
+  await flushPromises();
+
+  document.body.querySelector<HTMLInputElement>("#tracking-step-show-date-to-client")!.click();
+  await flushPromises();
+  buttonNamed("Guardar cambios").click();
+  await flushPromises();
+
+  const saved = httpMock.mock.calls.find(([config]) => config.method === "put")![0];
+  expect(saved.data).toMatchObject({ show_date_to_client: true });
+});
+
+test("a new step hides its date from the client unless the switch is turned on", async () => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
+  useTrackingCatalogStore().phases = [phase];
+  wrapper = mount(TrackingStepDialog, {
+    props: { step: null, phaseId: 7, modelValue: false },
+    global: { plugins: [createVuetify({ components, directives }), pinia] },
+    attachTo: document.body,
+  });
+  await wrapper.setProps({ modelValue: true });
+  await flushPromises();
+
+  const name = document.body.querySelector<HTMLInputElement>(".v-text-field input")!;
+  name.value = "Jest paso nuevo";
+  name.dispatchEvent(new Event("input"));
+  await flushPromises();
+  buttonNamed("Crear paso").click();
+  await flushPromises();
+
+  const saved = httpMock.mock.calls.find(([config]) => config.method === "post")![0];
+  expect(saved.data).toMatchObject({ show_date_to_client: false });
 });

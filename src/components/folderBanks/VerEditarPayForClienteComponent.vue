@@ -672,6 +672,7 @@ onMounted(async () => {
                         density="compact"
                         variant="outlined"
                         v-model="item.montoparcial"
+                        type="number"
                         :disabled="verflag"
                         :prefix="symbol"
                         @update:model-value="calcularTotal"

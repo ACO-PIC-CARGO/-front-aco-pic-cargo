@@ -7,7 +7,7 @@ const step = (over: Partial<PublicTrackingStep> = {}): PublicTrackingStep => ({
   id: 1,
   name: "Pago al proveedor",
   icon: "mdi-currency-usd",
-  confirmed_at: null,
+  show_date: true,
   comments: [],
   ...over,
 });
@@ -21,25 +21,55 @@ const phase = (status: PublicTrackingPhase["status"], steps: PublicTrackingStep[
   steps,
 });
 
-test("confirmed steps and public comments become updates, newest first by time", () => {
+test("public comments become updates, newest first by time; a sent step without comments adds none", () => {
   const phases = [
     phase("completed", [
-      step({ id: 1, confirmed_at: "2026-10-14T14:35:00+00:00" }),
+      step({ id: 1, comments: [{ id: 3, comment: "Pago recibido.", created_at: "2026-10-14T14:35:00+00:00" }] }),
       step({
         id: 2,
         name: "Mercancía lista para envío",
         icon: "mdi-package-variant",
-        confirmed_at: "2026-10-14T21:10:00.123456+00:00",
         comments: [{ id: 9, comment: "Buque salió del puerto.", created_at: "2026-10-20T15:30:00+00:00" }],
       }),
+      step({ id: 3, name: "Fecha de Cut Off" }),
     ]),
-    phase("pending", [step({ id: 3, name: "Fecha de Cut Off" })]),
   ];
-  const ready = { stepId: 2, stepName: "Mercancía lista para envío", icon: "mdi-package-variant" };
   expect(trackingUpdates(phases)).toEqual([
-    { ...ready, key: "comment-9", text: "Buque salió del puerto.", at: "2026-10-20T15:30:00+00:00" },
-    { ...ready, key: "step-2", text: "Completado", at: "2026-10-14T21:10:00.123456+00:00" },
-    { key: "step-1", stepId: 1, stepName: "Pago al proveedor", icon: "mdi-currency-usd", text: "Completado", at: "2026-10-14T14:35:00+00:00" },
+    {
+      key: "comment-9",
+      stepId: 2,
+      stepName: "Mercancía lista para envío",
+      icon: "mdi-package-variant",
+      text: "Buque salió del puerto.",
+      at: "2026-10-20T15:30:00+00:00",
+      showDate: true,
+    },
+    {
+      key: "comment-3",
+      stepId: 1,
+      stepName: "Pago al proveedor",
+      icon: "mdi-currency-usd",
+      text: "Pago recibido.",
+      at: "2026-10-14T14:35:00+00:00",
+      showDate: true,
+    },
+  ]);
+});
+
+test("a step that hides its date shows its comments without a date, in their place", () => {
+  const phases = [
+    phase("in_progress", [
+      step({
+        id: 1,
+        show_date: false,
+        comments: [{ id: 4, comment: "Contenedor en revisión", created_at: "2026-10-15T09:10:00+00:00" }],
+      }),
+      step({ id: 2, comments: [{ id: 5, comment: "Zarpó", created_at: "2026-10-13T08:00:00+00:00" }] }),
+    ]),
+  ];
+  expect(trackingUpdates(phases).map(({ key, showDate }) => [key, showDate])).toEqual([
+    ["comment-4", false],
+    ["comment-5", true],
   ]);
 });
 
@@ -50,18 +80,19 @@ const update = (key: string, stepId: number, at: string): TrackingUpdate => ({
   icon: "mdi-check",
   text: key,
   at,
+  showDate: true,
 });
 
 test("several updates in a row of one step show under that step once", () => {
   const updates = [
     update("comment-9", 2, "2026-10-20T15:30:00Z"),
     update("comment-8", 2, "2026-10-19T10:00:00Z"),
-    update("step-2", 2, "2026-10-14T21:10:00Z"),
-    update("step-1", 1, "2026-10-14T14:35:00Z"),
+    update("comment-7", 2, "2026-10-14T21:10:00Z"),
+    update("comment-1", 1, "2026-10-14T14:35:00Z"),
   ];
   expect(updatesByStep(updates).map((group) => [group.stepName, group.updates.map((item) => item.key)])).toEqual([
-    ["Paso 2", ["comment-9", "comment-8", "step-2"]],
-    ["Paso 1", ["step-1"]],
+    ["Paso 2", ["comment-9", "comment-8", "comment-7"]],
+    ["Paso 1", ["comment-1"]],
   ]);
 });
 
@@ -69,7 +100,7 @@ test("a step that gets news again after another step shows again, so the timelin
   const updates = [
     update("comment-7", 3, "2026-10-22T09:00:00Z"),
     update("comment-6", 2, "2026-10-21T09:00:00Z"),
-    update("step-3", 3, "2026-10-20T09:00:00Z"),
+    update("comment-5", 3, "2026-10-20T09:00:00Z"),
   ];
   const groups = updatesByStep(updates);
   expect(groups.map((group) => group.stepId)).toEqual([3, 2, 3]);
@@ -79,8 +110,14 @@ test("a step that gets news again after another step shows again, so the timelin
 
 test("updates with the same time keep a stable order", () => {
   const at = "2026-10-14T14:35:00+00:00";
-  const phases = [phase("in_progress", [step({ id: 1, confirmed_at: at, comments: [{ id: 4, comment: "Listo", created_at: at }] })])];
-  expect(trackingUpdates(phases).map((update) => update.key)).toEqual(["step-1", "comment-4"]);
+  const comments = [
+    { id: 4, comment: "Listo", created_at: at },
+    { id: 5, comment: "Cargado", created_at: at },
+  ];
+  expect(trackingUpdates([phase("in_progress", [step({ comments })])]).map((item) => item.key)).toEqual([
+    "comment-5",
+    "comment-4",
+  ]);
 });
 
 test("the next move shows its date in the company's zone or that it is still to be set", () => {

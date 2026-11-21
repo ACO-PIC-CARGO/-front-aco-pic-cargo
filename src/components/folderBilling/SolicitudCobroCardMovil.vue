@@ -1,10 +1,11 @@
 <script setup lang="ts">
+import { abrirArchivo } from "@/composables/useVisorArchivo";
 // Tarjeta móvil / tablet de una solicitud de cobro (mismo diseño que la de Solicitudes de Pago).
 // La usan Control de Gastos > Solicitudes de Cobro e Ingresos pendientes por confirmar.
 import { computed } from "vue";
 import Swal from "sweetalert2";
 import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
-import { montoCobro } from "@/composables/useSolicitudCobro";
+import { esPagoParcial, faltaRegistrarCobro, montoCobrado, montoCobro } from "@/composables/useSolicitudCobro";
 import type { SolicitudCobro, SolicitudCobroBandeja } from "@/types/solicitudCobro";
 import { shortDate } from "@/utils/dates";
 import { descargarArchivo } from "@/utils/descargarArchivo";
@@ -16,27 +17,38 @@ const props = defineProps<{
   aprobar?: AreaRevision[];
   puedeEnviar?: boolean;
   puedeRegistrar?: boolean;
+  /** subir el soporte de confirmación (Administración) */
+  puedeConfirmar?: boolean;
   puedeEditar?: boolean;
   puedeEliminar?: boolean;
   procesando?: boolean;
   revisando?: boolean;
+  /** el paso pendiente lo puede rechazar este usuario */
+  puedeRechazar?: boolean;
+  /** Ingresos pendientes por confirmar: botonera de Administración (subir soporte, devolver, eliminar) */
+  bandeja?: boolean;
 }>();
 const emit = defineEmits<{
   enviar: [];
   aprobar: [tipo: AreaRevision];
+  rechazar: [];
+  "ver-rechazo": [];
+  "ver-soportes": [];
   registrar: [];
+  confirmar: [];
+  "eliminar-confirmacion": [];
   "ver-ingreso": [];
   editar: [];
   eliminar: [];
-  ver: [];
 }>();
 
 const ICONO_ESTADO: Record<string, string> = {
   BORRADOR: "mdi-pencil-circle-outline",
   PENADM: "mdi-account-outline",
   PENGER: "mdi-clock-outline",
-  LISTO: "mdi-check-circle",
-  COBRADO: "mdi-cash-check",
+  LISTO: "mdi-clock-outline",
+  CONFIRMADO: "mdi-check-circle",
+  COBRADO: "mdi-bank-check",
   RECHAZADA: "mdi-close-circle-outline",
   ELIMINADA: "mdi-trash-can-outline",
 };
@@ -57,6 +69,10 @@ const seguimiento = computed(() => {
   }
   if (s.usuario_aprobadogerencia) {
     filas.push({ titulo: "Gerencia:", icono: "mdi-account-tie-outline", fecha: fecha(s.fecha_aprobadogerencia), usuario: s.usuario_aprobadogerencia });
+  }
+  if (s.fecha_confirmacion) {
+    filas.push({ titulo: "Confirmado:", icono: "mdi-check-decagram-outline", fecha: fecha(s.fecha_confirmacion), usuario: s.usuario_confirma ?? null,
+      nota: s.fecha_ingreso ? `Ingreso en banco: ${shortDate(s.fecha_ingreso)}` : null });
   }
   if (s.codigo_estado === "RECHAZADA") {
     filas.push({
@@ -80,8 +96,9 @@ async function copiar(texto: string | null) {
     Swal.fire({ icon: "warning", text: "No se pudo copiar. Selecciona el texto y cópialo manualmente." });
   }
 }
+// celular: el soporte se ve en un modal (imagen o visor PDF); en la web, otra pestaña
 function abrir(url: string | null | undefined) {
-  if (url) window.open(url, "_blank");
+  abrirArchivo(url);
 }
 </script>
 
@@ -115,7 +132,11 @@ function abrir(url: string | null | undefined) {
       >
         mdi-database
       </v-icon>
-      <span class="ccm__montoval">{{ montoCobro(s.monto, s.moneda) }}</span>
+      <span class="ccm__montoval">{{ montoCobro(montoCobrado(s), s.moneda) }}</span>
+      <span
+        v-if="esPagoParcial(s)"
+        class="ccm__parcial"
+      >Parcial de {{ montoCobro(s.monto, s.moneda) }}</span>
     </div>
 
     <div class="ccm__exp">
@@ -188,14 +209,177 @@ function abrir(url: string | null | undefined) {
       </div>
     </div>
 
+    <!-- Ingresos pendientes por confirmar: botonera de Administración -->
+    <template v-if="bandeja">
+      <div class="ccm__bgrid ccm__bgrid--2">
+        <v-btn
+          v-if="(s.soportes_total ?? 1) > 1"
+          class="ccm__bbtn ccm__bbtn--azul ccm__bbtn--full"
+          variant="outlined"
+          prepend-icon="mdi-folder-open-outline"
+          data-modo-ver="permitido"
+          @click="emit('ver-soportes')"
+        >
+          Ver pagos del cliente
+        </v-btn>
+        <template v-else>
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--azul"
+            variant="outlined"
+            prepend-icon="mdi-eye-outline"
+            :disabled="!s.voucher_path"
+            data-modo-ver="permitido"
+            @click="abrir(s.voucher_path)"
+          >
+            Ver pago del cliente
+          </v-btn>
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--azul"
+            variant="outlined"
+            prepend-icon="mdi-download"
+            :disabled="!s.voucher_path"
+            data-modo-ver="permitido"
+            @click="descargarArchivo(s.voucher_path, s.voucher_nombre)"
+          >
+            Descargar
+          </v-btn>
+        </template>
+        <v-btn
+          v-if="s.soporte_confirmacion_path"
+          class="ccm__bbtn ccm__bbtn--azul ccm__bbtn--full"
+          variant="outlined"
+          prepend-icon="mdi-eye-outline"
+          data-modo-ver="permitido"
+          @click="abrir(s.soporte_confirmacion_path)"
+        >
+          Ver confirmación de ingreso
+        </v-btn>
+        <v-btn
+          v-if="s.id_pagoingreso"
+          class="ccm__bbtn ccm__bbtn--full"
+          variant="tonal"
+          color="success"
+          prepend-icon="mdi-check-decagram"
+          data-modo-ver="permitido"
+          @click="emit('ver-ingreso')"
+        >
+          Ingreso N° {{ s.numerooperacion_ingreso }}
+        </v-btn>
+        <v-btn
+          v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && puedeRegistrar"
+          class="ccm__bbtn ccm__bbtn--full"
+          variant="flat"
+          color="success"
+          prepend-icon="mdi-bank-transfer-in"
+          :loading="procesando"
+          @click="emit('registrar')"
+        >
+          Registrar en banco
+        </v-btn>
+      </div>
+
+      <div class="ccm__bgrid ccm__bgrid--3">
+        <div
+          v-if="!s.soporte_confirmacion_path && s.codigo_estado === 'LISTO' && puedeConfirmar"
+          class="ccm__bcol"
+        >
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--verde"
+            variant="outlined"
+            prepend-icon="mdi-upload"
+            @click="emit('confirmar')"
+          >
+            Subir soporte
+          </v-btn>
+          <small>(Confirmación de ingreso)</small>
+        </div>
+        <div
+          v-else-if="s.soporte_confirmacion_path && puedeEliminar && !s.id_pagoingreso"
+          class="ccm__bcol"
+        >
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--rojo"
+            variant="outlined"
+            prepend-icon="mdi-file-remove-outline"
+            title="Requiere la clave del Super administrador"
+            :loading="procesando"
+            @click="emit('eliminar-confirmacion')"
+          >
+            Quitar soporte
+          </v-btn>
+          <small>(Confirmación de ingreso)</small>
+        </div>
+        <div
+          v-if="s.codigo_estado === 'RECHAZADA'"
+          class="ccm__bcol"
+        >
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--naranja"
+            variant="outlined"
+            prepend-icon="mdi-comment-alert-outline"
+            data-modo-ver="permitido"
+            @click="emit('ver-rechazo')"
+          >
+            Ver motivo
+          </v-btn>
+          <small>(Rechazo)</small>
+        </div>
+        <div
+          v-else-if="puedeRechazar"
+          class="ccm__bcol"
+        >
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--naranja"
+            variant="outlined"
+            prepend-icon="mdi-arrow-u-left-top"
+            @click="emit('rechazar')"
+          >
+            Rechazar / Devolver
+          </v-btn>
+          <small>(Datos incorrectos)</small>
+        </div>
+        <div
+          v-if="puedeEliminar"
+          class="ccm__bcol"
+        >
+          <v-btn
+            class="ccm__bbtn ccm__bbtn--rojo"
+            variant="outlined"
+            prepend-icon="mdi-trash-can-outline"
+            :loading="procesando"
+            @click="emit('eliminar')"
+          >
+            Eliminar
+          </v-btn>
+          <small>(Todo el registro)</small>
+        </div>
+      </div>
+    </template>
+
     <!-- soporte: voucher del cliente; con las aprobaciones, registrar en Bancos -->
-    <div class="ccm__actions">
+    <div
+      v-else
+      class="ccm__actions"
+    >
       <v-btn
+        v-if="(s.soportes_total ?? 1) > 1"
         size="small"
         variant="outlined"
         color="primary"
         rounded="pill"
-        prepend-icon="mdi-file-eye-outline"
+        prepend-icon="mdi-folder-open-outline"
+        data-modo-ver="permitido"
+        @click="emit('ver-soportes')"
+      >
+        Ver todos los soportes de ingreso
+      </v-btn>
+      <v-btn
+        v-else
+        size="small"
+        variant="outlined"
+        color="primary"
+        rounded="pill"
+        prepend-icon="mdi-eye-outline"
         :disabled="!s.voucher_path"
         data-modo-ver="permitido"
         @click="abrir(s.voucher_path)"
@@ -203,6 +387,7 @@ function abrir(url: string | null | undefined) {
         Ver voucher
       </v-btn>
       <v-btn
+        v-if="(s.soportes_total ?? 1) <= 1"
         size="small"
         variant="outlined"
         color="primary"
@@ -213,6 +398,44 @@ function abrir(url: string | null | undefined) {
         @click="descargarArchivo(s.voucher_path, s.voucher_nombre)"
       >
         Descargar
+      </v-btn>
+      <!-- soporte de confirmación (Administración) -->
+      <template v-if="s.soporte_confirmacion_path">
+        <v-btn
+          size="small"
+          variant="outlined"
+          color="primary"
+          rounded="pill"
+          prepend-icon="mdi-file-check-outline"
+          data-modo-ver="permitido"
+          @click="abrir(s.soporte_confirmacion_path)"
+        >
+          Ver confirmación
+        </v-btn>
+        <v-btn
+          v-if="puedeEliminar && !s.id_pagoingreso"
+          size="small"
+          variant="tonal"
+          color="error"
+          rounded="pill"
+          prepend-icon="mdi-trash-can-outline"
+          title="Eliminar soporte de confirmación (requiere clave del Super administrador)"
+          :loading="procesando"
+          @click="emit('eliminar-confirmacion')"
+        >
+          Eliminar soporte
+        </v-btn>
+      </template>
+      <v-btn
+        v-else-if="s.codigo_estado === 'LISTO' && puedeConfirmar"
+        size="small"
+        variant="outlined"
+        color="primary"
+        rounded="pill"
+        prepend-icon="mdi-upload"
+        @click="emit('confirmar')"
+      >
+        Subir soporte
       </v-btn>
       <v-btn
         v-if="s.id_pagoingreso"
@@ -227,7 +450,7 @@ function abrir(url: string | null | undefined) {
         Ingreso N° {{ s.numerooperacion_ingreso }}
       </v-btn>
       <v-btn
-        v-else-if="s.codigo_estado === 'LISTO' && puedeRegistrar"
+        v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && puedeRegistrar"
         size="small"
         variant="flat"
         color="success"
@@ -262,10 +485,36 @@ function abrir(url: string | null | undefined) {
       >
         Aprobar {{ tipo === "ADM" ? "Administración" : "Gerencia" }}
       </v-btn>
+      <v-btn
+        v-if="puedeRechazar && s.codigo_estado !== 'RECHAZADA'"
+        size="small"
+        variant="outlined"
+        color="error"
+        rounded="pill"
+        prepend-icon="mdi-close-circle-outline"
+        @click="emit('rechazar')"
+      >
+        Rechazar
+      </v-btn>
+      <v-btn
+        v-if="s.codigo_estado === 'RECHAZADA'"
+        size="small"
+        variant="outlined"
+        color="error"
+        rounded="pill"
+        prepend-icon="mdi-comment-alert-outline"
+        data-modo-ver="permitido"
+        @click="emit('ver-rechazo')"
+      >
+        Ver motivo
+      </v-btn>
     </div>
 
-    <!-- 1. editar  2. eliminar  3. ver -->
-    <div class="ccm__actions ccm__actions--fin">
+    <!-- 1. editar  2. eliminar -->
+    <div
+      v-if="!bandeja"
+      class="ccm__actions ccm__actions--fin"
+    >
       <v-btn
         v-if="puedeEditar"
         size="small"
@@ -288,17 +537,6 @@ function abrir(url: string | null | undefined) {
         @click="emit('eliminar')"
       >
         Eliminar
-      </v-btn>
-      <v-btn
-        size="small"
-        variant="flat"
-        color="primary"
-        rounded="pill"
-        prepend-icon="mdi-eye-outline"
-        data-modo-ver="permitido"
-        @click="emit('ver')"
-      >
-        Ver solicitud
       </v-btn>
     </div>
   </article>
@@ -379,7 +617,8 @@ function abrir(url: string | null | undefined) {
 .ccm__chip--BORRADOR { background: #eceff3; color: #475467; }
 .ccm__chip--PENADM { background: #ece2fc; color: #5b21b6; }
 .ccm__chip--PENGER { background: #fdf0c4; color: #7a5a00; }
-.ccm__chip--LISTO { background: #d9f7e1; color: #166534; }
+.ccm__chip--LISTO { background: #fdebd3; color: #b45309; }
+.ccm__chip--CONFIRMADO { background: #d9f7e1; color: #166534; }
 .ccm__chip--COBRADO { background: #dbeafe; color: #1e40af; }
 .ccm__chip--RECHAZADA { background: #fde2e2; color: #b42318; }
 .ccm__chip--ELIMINADA { background: #eceff3; color: #475467; }
@@ -457,5 +696,80 @@ function abrir(url: string | null | undefined) {
   justify-content: flex-end;
   padding-top: 10px;
   border-top: 1px solid #dbe5f5;
+}
+/* botonera de Ingresos pendientes por confirmar */
+.ccm__bgrid {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+.ccm__bgrid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+.ccm__bgrid--3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-top: 12px;
+  border-top: 1px solid #dbe5f5;
+}
+.ccm__bgrid:empty {
+  display: none;
+}
+.ccm__bbtn--full {
+  grid-column: 1 / -1;
+}
+.ccm__bcol {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+  text-align: center;
+}
+.ccm__bcol small {
+  color: #5b6b86;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+.ccm__bbtn {
+  height: auto !important;
+  min-height: 40px;
+  padding: 6px 8px !important;
+  border-radius: 10px !important;
+  font-size: 0.76rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0 !important;
+  white-space: normal;
+}
+.ccm__bbtn :deep(.v-btn__content) {
+  white-space: normal;
+  line-height: 1.15;
+}
+.ccm__bbtn--azul {
+  border: 1.5px solid #1d6fd8 !important;
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+}
+.ccm__bbtn--verde {
+  border: 1.5px solid #22a35a !important;
+  background: #ecfbf1 !important;
+  color: #15803d !important;
+}
+.ccm__bbtn--naranja {
+  border: 1.5px solid #ea8a0c !important;
+  background: #fff6ea !important;
+  color: #c2410c !important;
+}
+.ccm__bbtn--rojo {
+  border: 1.5px solid #dc2626 !important;
+  background: #fff1f1 !important;
+  color: #dc2626 !important;
+}
+.ccm__parcial {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fdebd3;
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 </style>

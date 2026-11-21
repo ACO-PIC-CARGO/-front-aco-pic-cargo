@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import {
   applyUpdate,
+  hardReload,
   LLEGADA_MS,
   parsePrecacheManifest,
   precacheKey,
@@ -142,5 +143,21 @@ describe("service worker update notice", () => {
   test("without a waiting worker the update falls back to the old reload", async () => {
     await setUp();
     expect(applyUpdate()).toBe(false);
+  });
+
+  test("the reload works like Ctrl+F5: clears every cache and enters with ?v=<time>", async () => {
+    const deleted: string[] = [];
+    const replace = vi.fn();
+    vi.stubGlobal("caches", {
+      keys: () => Promise.resolve(["workbox-precache-v2", "aco-assets"]),
+      delete: (name: string) => Promise.resolve(deleted.push(name) > 0),
+    });
+    window.history.replaceState(null, "", "/home/main?tab=2&v=10#x");
+
+    await hardReload(1981, replace);
+
+    expect(deleted).toEqual(["workbox-precache-v2", "aco-assets"]);
+    expect(replace).toHaveBeenCalledWith(`${window.location.origin}/home/main?tab=2&v=1981#x`);
+    expect(localStorage.getItem("actualizando")).toBe("1");
   });
 });

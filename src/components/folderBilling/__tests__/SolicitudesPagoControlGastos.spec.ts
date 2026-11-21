@@ -7,6 +7,7 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import Swal from "sweetalert2";
 import SolicitudesPago from "@/components/folderBilling/SolicitudesPagoControlGastos.vue";
+import RechazarSolicitudDialog from "@/components/folderBilling/RechazarSolicitudDialog.vue";
 import { URL_MAIN, accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
@@ -16,7 +17,7 @@ vi.mock("vue-router", async (importOriginal) => ({
   ...(await importOriginal<typeof import("vue-router")>()),
   useRouter: () => ({
     push,
-    resolve: (to: { params: { token: string } }) => ({ href: `/registroPagoSolicitud/${to.params.token}` }),
+    resolve: (to: { name: string; params: Record<string, unknown> }) => ({ href: `/${to.name}/${Object.values(to.params).join("/")}` }),
   }),
 }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn().mockResolvedValue({ isConfirmed: true }) } }));
@@ -129,33 +130,46 @@ test("approving sends the approval type and reloads the list", async () => {
   );
 });
 
-test("transferring a paid request opens the bank payment with its token in a new tab", async () => {
-  const pestana = { location: { href: "" }, close: vi.fn() };
-  const open = vi.spyOn(window, "open").mockReturnValue(pestana as unknown as Window);
+test("REGISTRAR EN BANCO opens the bank payment tab at once: that tab gets the token (no blank tab, no waiting)", async () => {
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
   const w = await render(["VER", "NUEVO", "MODIFICAR"]);
-  httpMock.mockImplementation(async (config: { url: string }) =>
-    ({ data: accepted(config.url.includes("transferir") ? [{ token: "tok-1" }] : ROWS) }));
+  httpMock.mockClear();
+
   await w.findAll("button").find((b) => b.text() === "REGISTRAR EN BANCO")!.trigger("click");
   await flushPromises();
-  expect(httpMock).toHaveBeenCalledWith(
-    expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_transferir/4" }),
-  );
-  expect(open).toHaveBeenCalledWith("", "_blank");
-  expect(pestana.location.href).toBe("/registroPagoSolicitud/tok-1");
+
+  expect(open).toHaveBeenCalledWith("/registroPagoDesdeSolicitud/4", "_blank");
+  expect(httpMock).not.toHaveBeenCalledWith(expect.objectContaining({ url: URL_MAIN + "solicitud_pago_transferir/4" }));
   expect(push).not.toHaveBeenCalled();
   open.mockRestore();
 });
 
-test("rejecting asks for the reason and sends it", async () => {
+test("Aprobar no longer offers to reject: Rechazar is its own button for the pending step", async () => {
   const w = await render(["VER", "MODIFICAR"]);
-  vi.mocked(Swal.fire)
-    .mockResolvedValueOnce({ isConfirmed: false, isDenied: true, isDismissed: false })
-    .mockResolvedValueOnce({ isConfirmed: true, isDenied: false, isDismissed: false, value: "Monto errado" });
   await w.findAll("tbody tr")[1]!.find(".solpago__revisar").trigger("click");
   await flushPromises();
-  expect(httpMock).toHaveBeenCalledWith(
-    expect.objectContaining({ method: "put", url: URL_MAIN + "solicitud_pago_rechazar/2", data: { tipo: "GER", motivo: "Monto errado" } }),
-  );
+  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ confirmButtonText: expect.stringContaining("APROBAR") });
+  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).not.toHaveProperty("showDenyButton", true);
+
+  // fila 2 (PENGER): el botón Rechazar abre el modal para el paso de Gerencia
+  await w.findAll("tbody tr")[1]!.find(".solpago__rechazar").trigger("click");
+  await flushPromises();
+  const dialog = w.findComponent(RechazarSolicitudDialog);
+  expect(dialog.props()).toMatchObject({ modelValue: true, solicitud: { id: 2, area: "GER" }, tipo: "PAGO", ruta: "solicitud_pago_rechazar" });
+
+  // pagada: no hay paso que rechazar
+  expect(w.findAll("tbody tr")[3]!.find(".solpago__rechazar").attributes("disabled")).toBeDefined();
+});
+
+test("a rejected request shows who rejected it and why", async () => {
+  const w = await render(["VER", "MODIFICAR"]);
+  const fila = w.findAll("tbody tr")[5]!;
+  const ver = fila.findAll("button").find((b) => b.text().includes("Ver motivo"))!;
+  await ver.trigger("click");
+  const html = String((vi.mocked(Swal.fire).mock.calls.at(-1)![0] as { html: string }).html);
+  expect(html).toContain("Cuenta errada");
+  expect(html).toContain("adm.rechazo");
+  expect(html).toContain("Administración");
 });
 
 test("each area is reviewed by its profile (Administración: 04 o 01, Gerencia: 01)", async () => {

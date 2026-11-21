@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -35,9 +35,18 @@ import { usePermissions } from "@/composables/usePermissions";
 import type { AdminCredentials } from "@/types/seguridad";
 import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
 import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
+import SoportesCobroDialog from "./SoportesCobroDialog.vue";
+import type { SoporteDeSolicitud } from "./SoportesCobroDialog.vue";
 import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
-import { avisarIngresoBancosCobro, useSolicitudCobro } from "@/composables/useSolicitudCobro";
-import type { DestinoPagoCliente, SolicitudCobro } from "@/types/solicitudCobro";
+import {
+  avisarIngresoBancosCobro,
+  faltaRegistrarCobro,
+  filasPorSoporte,
+  montoCobrado,
+  montoCobro,
+  useSolicitudCobro,
+} from "@/composables/useSolicitudCobro";
+import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
 import { shortDate } from "@/utils/dates";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 
@@ -1398,6 +1407,8 @@ const solicitudesCobro = computed<SolicitudCobro[]>(() => solicitudesMasterStore
 const dialogPagoCliente = ref(false);
 const destinoPagoCliente = ref<DestinoPagoCliente | null>(null);
 const solicitudPagoCliente = ref<SolicitudCobro | null>(null);
+// pago que se edita (null = pago nuevo); un correlativo puede tener varios pagos parciales
+const soportePagoCliente = ref<SoporteCobro | null>(null);
 const adminPagoCliente = ref<AdminCredentials | null>(null);
 
 async function cargarSolicitudesCobro() {
@@ -1406,10 +1417,25 @@ async function cargarSolicitudesCobro() {
 const cobro = useSolicitudCobro(cargarSolicitudesCobro);
 const cobroProcesando = cobro.procesando;
 
+// la solicitud abierta del correlativo. Una ya registrada en Bancos (pago parcial) se muestra solo si
+// no queda deuda; si queda, lo que falta se carga en una solicitud nueva.
 function solicitudCobroDe(house: HouseIngreso) {
-  return solicitudesCobro.value.find(
+  const delHouse = solicitudesCobro.value.filter(
     (s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""),
   );
+  // primero la que se sigue armando (sin confirmar); luego la confirmada pendiente de registrar en Bancos
+  const abierta = delHouse.find((s) => s.codigo_estado !== "COBRADO" && s.codigo_estado !== "CONFIRMADO")
+    ?? delHouse.find((s) => s.codigo_estado === "CONFIRMADO");
+  if (abierta) return abierta;
+  return Number(getDeudaActual(house)) > 0 ? undefined : delHouse[0];
+}
+// pagos cargados del correlativo que aún no tienen su ingreso en Bancos (en cualquier solicitud abierta)
+function comprometidoCobro(house: HouseIngreso) {
+  return solicitudesCobro.value
+    .filter((s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""))
+    .flatMap((s) => s.soportes ?? [])
+    .filter((sop) => !sop.id_pagoingreso)
+    .reduce((acc, sop) => acc + Number(sop.monto || 0), 0);
 }
 // enviada a Administración (no borrador): se muestra la tarjeta de estado
 function solicitudCobroEnviada(house: HouseIngreso) {
@@ -1420,7 +1446,8 @@ function solicitudCobroEnviada(house: HouseIngreso) {
 const ICONO_ESTADO_COBRO: Record<string, string> = {
   PENADM: "mdi-email-check-outline",
   PENGER: "mdi-clock-outline",
-  LISTO: "mdi-check-decagram-outline",
+  LISTO: "mdi-clock-outline",
+  CONFIRMADO: "mdi-check-decagram-outline",
   COBRADO: "mdi-bank-check",
   RECHAZADA: "mdi-email-remove-outline",
 };
@@ -1429,9 +1456,75 @@ function fechaCobro(fecha: string | null) {
   return fecha ? `${shortDate(fecha.slice(0, 10))} ${fecha.slice(11, 16)}`.trim() : "";
 }
 
-async function abrirCargarPagoCliente(house: HouseIngreso) {
-  const s = solicitudCobroDe(house) ?? null;
-  if (s && avisarIngresoBancosCobro(s)) return;
+// moneda de los ingresos (Op) del correlativo: la cuenta donde depositó el cliente debe ser de esa moneda
+function monedaCorrelativo(house: HouseIngreso): number | null {
+  const ingreso = (house.ingresos ?? []).find((i) => i.id_coins && Number(i.total_op || 0) !== 0) ?? house.ingresos?.find((i) => i.id_coins);
+  return ingreso?.id_coins ? Number(ingreso.id_coins) : null;
+}
+// pagos cargados del correlativo y lo que falta para completar el monto a cobrar
+// solicitudes del correlativo (puede haber varias: una confirmada y otra con el saldo)
+function solicitudesCobroDe(house: HouseIngreso) {
+  return solicitudesCobro.value.filter(
+    (s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""),
+  );
+}
+// todos los pagos cargados del correlativo, cada uno con su solicitud (estado y confirmación)
+function soportesCobro(house: HouseIngreso): SoporteDeSolicitud[] {
+  return solicitudesCobroDe(house).flatMap((s) =>
+    (s.soportes ?? []).map((sop) => ({
+      ...sop,
+      solicitud: {
+        codigo: s.codigo,
+        codigo_estado: s.codigo_estado,
+        estado: s.estado,
+        fecha_ingreso: s.fecha_ingreso,
+        soporte_confirmacion_path: s.soporte_confirmacion_path,
+        soporte_confirmacion_nombre: s.soporte_confirmacion_nombre,
+        usuario_confirma: s.usuario_confirma,
+        fecha_confirmacion: s.fecha_confirmacion,
+        editable: true,
+      },
+    })),
+  );
+}
+// pagos del correlativo que aún no tienen su ingreso en Bancos (los ya cobrados no se muestran en el resumen)
+function solicitudesPendientesCobro(house: HouseIngreso) {
+  return filasPorSoporte(solicitudesCobroDe(house)).filter((f) => f.codigo_estado !== "COBRADO");
+}
+// la confirmada que falta registrar en Bancos (puede no ser la que se está armando)
+function confirmadaPorRegistrar(house: HouseIngreso) {
+  return solicitudesCobroDe(house).find((s) => s.codigo_estado === "CONFIRMADO" && faltaRegistrarCobro(s));
+}
+// la solicitud dueña de un pago
+function solicitudDeSoporte(house: HouseIngreso, soporte: SoporteCobro) {
+  return solicitudesCobroDe(house).find((s) => (s.soportes ?? []).some((x) => x.codigo === soporte.codigo));
+}
+// saldo para cargar más pagos: la deuda actual menos lo ya cargado y aún no registrado en Bancos
+function saldoCobro(house: HouseIngreso) {
+  return Math.max(Math.round(((Number(getDeudaActual(house)) || 0) - comprometidoCobro(house)) * 100) / 100, 0);
+}
+
+// soporte: el pago a editar; nuevo = "Agregar otro soporte de ingreso"
+async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro | null = null, nuevo = false) {
+  // editar un pago: su propia solicitud
+  const abierta = (soporte ? solicitudDeSoporte(house, soporte) : null) ?? solicitudCobroDe(house) ?? null;
+  if (abierta && !nuevo && avisarIngresoBancosCobro(abierta)) return;
+  // pago nuevo con la solicitud ya confirmada (aún sin registrar en Bancos): va en una solicitud nueva
+  // por el saldo disponible; la confirmada no se toca
+  const s = nuevo && abierta?.codigo_estado === "CONFIRMADO" ? null : abierta;
+  // varios pagos: se elige cuál editar en la lista de soportes
+  if (s && !nuevo && !soporte) {
+    const lista = s.soportes ?? [];
+    if (lista.length > 1) {
+      verSoportesCobro(house);
+      return;
+    }
+    soporte = lista[0] ?? null;
+  }
+  if (nuevo && saldoCobro(house) <= 0) {
+    Swal.fire({ icon: "info", text: "El monto ya está completo: no hace falta otro soporte de ingreso." });
+    return;
+  }
   adminPagoCliente.value = null;
   if (s) {
     const admin = await cobro.claveSiAprobada(s, "editarla");
@@ -1449,19 +1542,68 @@ async function abrirCargarPagoCliente(house: HouseIngreso) {
     id_correlativo: house.id_correlativo ? Number(house.id_correlativo) : null,
     cliente: house.consigner ?? "",
     correlativo: house.correlativo ?? null,
-    deuda: getDeudaActual(house),
+    // solicitud nueva: lo que queda después de los pagos ya cargados y sin registrar
+    deuda: s ? getDeudaActual(house) : saldoCobro(house),
+    id_coins: monedaCorrelativo(house),
   };
   solicitudPagoCliente.value = s;
+  soportePagoCliente.value = soporte;
   dialogPagoCliente.value = true;
 }
 
+// "Ver todos los soportes de ingreso"
+const dialogSoportesCobro = ref(false);
+const houseSoportes = ref<HouseIngreso | null>(null);
+const solicitudSoportes = computed(() => (houseSoportes.value ? solicitudCobroDe(houseSoportes.value) ?? null : null));
+function verSoportesCobro(house: HouseIngreso) {
+  houseSoportes.value = house;
+  dialogSoportesCobro.value = true;
+}
+function editarSoporteCobro(soporte: SoporteCobro) {
+  if (!houseSoportes.value) return;
+  dialogSoportesCobro.value = false;
+  abrirCargarPagoCliente(houseSoportes.value, soporte);
+}
+async function eliminarSoporteCobro(soporte: SoporteCobro) {
+  const s = houseSoportes.value ? solicitudDeSoporte(houseSoportes.value, soporte) : undefined;
+  if (!s) return;
+  if (await cobro.eliminarSoporte(s, soporte) && houseSoportes.value && !soportesCobro(houseSoportes.value).length) {
+    dialogSoportesCobro.value = false;
+  }
+}
+// "Monto" del diálogo: deuda actual + lo ya registrado en Bancos (así el saldo = deuda - pagos sin registrar)
+const totalSoportesCobro = computed(() => {
+  if (!houseSoportes.value) return 0;
+  const registrado = soportesCobro(houseSoportes.value)
+    .filter((sop) => sop.id_pagoingreso)
+    .reduce((acc, sop) => acc + Number(sop.monto || 0), 0);
+  return Math.round(((Number(getDeudaActual(houseSoportes.value)) || 0) + registrado) * 100) / 100;
+});
+// el tacho: con un solo pago elimina la solicitud; con varios se elige en la lista
+function eliminarPagoCobro(house: HouseIngreso) {
+  const s = solicitudCobroDe(house);
+  if (!s) return;
+  if ((s.soportes?.length ?? 0) > 1) verSoportesCobro(house);
+  else cobro.eliminar(s);
+}
+
+// varios pagos: se abre el listado de soportes y ahí se elige cuál enviar ("Enviar solicitud")
 function enviarAdministracionCobro(house: HouseIngreso) {
   const s = solicitudCobroDe(house);
   if (!s) {
     Swal.fire({ icon: "info", text: "Primero carga el pago del cliente (voucher)." });
     return;
   }
+  if (soportesCobro(house).length > 1) {
+    verSoportesCobro(house);
+    return;
+  }
   cobro.enviar(s);
+}
+// "Enviar solicitud" de un pago en el listado: solo ese pago
+function enviarSoporteCobro(soporte: SoporteCobro) {
+  const s = houseSoportes.value ? solicitudDeSoporte(houseSoportes.value, soporte) : undefined;
+  if (s) cobro.enviar(s, soporte);
 }
 
 // modo ver (ojito), igual que en Solicitudes de Pago
@@ -1474,19 +1616,31 @@ function verSolicitud(s: { codigo: string }) {
 
 onMounted(async () => {
   if (idMasterCobro.value) solicitudesMasterStore.asegurarCobros(idMasterCobro.value);
-  setTimeout(() => {
-    headersFacturas.value[2]!.title =
-      enterprisesStore.impuesto.nombre_impuesto!;
-    headersFacturas.value[4]!.title =
-      enterprisesStore.impuesto.nombre_impuesto!;
-    mostrarImpuesto.value =
-      enterprisesStore.impuesto.mostrarimpuesto;
-    if (!mostrarImpuesto.value) {
+  const branch = String(route.params.id_branch ?? "");
+  if (!enterprisesStore.impuestoCargado || (branch && enterprisesStore.impuestoBranch !== branch)) {
+    await enterprisesStore.obtenerImpuestoXEmpresa(branch || null);
+  }
+});
+// El impuesto se aplica cuando llega su configuración (antes: a los 2 s fijos; si tardaba más, se perdía)
+let columnasImpuestoQuitadas = false;
+watch(
+  () => [enterprisesStore.impuestoCargado, enterprisesStore.impuesto] as const,
+  ([cargado, impuesto]) => {
+    if (!cargado) return;
+    mostrarImpuesto.value = !!impuesto.mostrarimpuesto;
+    if (mostrarImpuesto.value) {
+      if (impuesto.nombre_impuesto && !columnasImpuestoQuitadas) {
+        headersFacturas.value[2]!.title = impuesto.nombre_impuesto;
+        headersFacturas.value[4]!.title = impuesto.nombre_impuesto;
+      }
+    } else if (!columnasImpuestoQuitadas) {
       headersFacturas.value.splice(2, 1);
       headersFacturas.value.splice(4, 1);
+      columnasImpuestoQuitadas = true;
     }
-  }, 2000);
-});
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -1603,6 +1757,7 @@ onMounted(async () => {
                 >
                   {{ houseIngreso.quote }}
                   <v-btn
+                    data-modo-ver="permitido"
                     variant="text"
                     color="info"
                     icon
@@ -1750,12 +1905,32 @@ onMounted(async () => {
                   class="cg-full cobro-cell"
                   @click.stop
                 >
+                  <!-- 2 o más solicitudes del correlativo sin registrar en Bancos: todas, solo Estado | Monto -->
+                  <div
+                    v-if="solicitudesPendientesCobro(houseIngreso).length >= 2"
+                    class="cobreq-resumen"
+                  >
+                    <div
+                      v-for="sol in solicitudesPendientesCobro(houseIngreso)"
+                      :key="sol._key"
+                      class="cobreq-resumen__fila"
+                      :class="`cobreq--${sol.codigo_estado.toLowerCase()}`"
+                    >
+                      <span class="cobreq-resumen__estado">
+                        <v-icon size="14">{{ ICONO_ESTADO_COBRO[sol.codigo_estado] ?? "mdi-email-check-outline" }}</v-icon>
+                        {{ sol.estado }}
+                      </span>
+                      <span class="cobreq-resumen__monto">{{ montoCobro(montoCobrado(sol), sol.moneda) }}</span>
+                    </div>
+                  </div>
                   <!-- mismo diseño que "Solicitar a Administración" de Costos -->
                   <div
                     v-if="solicitudCobroEnviada(houseIngreso)"
                     class="cobreq-col"
                   >
+                    <!-- con la lista Estado | Monto (2 o más) la tarjeta ya no se muestra -->
                     <div
+                      v-if="solicitudesPendientesCobro(houseIngreso).length < 2"
                       class="cobreq"
                       :class="`cobreq--${solicitudCobroEnviada(houseIngreso)!.codigo_estado.toLowerCase()}`"
                     >
@@ -1782,11 +1957,16 @@ onMounted(async () => {
                                 : fechaCobro(solicitudCobroEnviada(houseIngreso)!.fechasolicitud)
                             }}
                           </span>
+                          <!-- una sola solicitud: su monto debajo -->
+                          <span class="cobreq__monto">
+                            Monto: {{ montoCobro(montoCobrado(solicitudCobroEnviada(houseIngreso)!), solicitudCobroEnviada(houseIngreso)!.moneda) }}
+                          </span>
                         </span>
                       </button>
                       <!-- ver / editar / eliminar apilados, como en Costos -->
                       <div class="cobreq__acciones">
                         <v-btn
+                          data-modo-ver="permitido"
                           icon="mdi-eye"
                           size="x-small"
                           variant="text"
@@ -1814,21 +1994,52 @@ onMounted(async () => {
                           title="Eliminar solicitud de cobro"
                           aria-label="Eliminar solicitud de cobro"
                           :loading="cobroProcesando === solicitudCobroEnviada(houseIngreso)!.codigo"
-                          @click="cobro.eliminar(solicitudCobroEnviada(houseIngreso)!)"
+                          @click="eliminarPagoCobro(houseIngreso)"
                         />
                       </div>
                     </div>
                     <v-btn
-                      v-if="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'LISTO' && can('registroPayForCliente', 'NUEVO')"
+                      v-if="solicitudesPendientesCobro(houseIngreso).length < 2 && confirmadaPorRegistrar(houseIngreso) && can('registroPayForCliente', 'NUEVO')"
                       size="small"
                       variant="flat"
                       color="success"
                       prepend-icon="mdi-bank-transfer-in"
                       class="cobreq__registrar"
-                      :loading="cobroProcesando === solicitudCobroEnviada(houseIngreso)!.codigo"
-                      @click="cobro.registrarEnBancos(solicitudCobroEnviada(houseIngreso)!)"
+                      :loading="cobroProcesando === confirmadaPorRegistrar(houseIngreso)!.codigo"
+                      @click="cobro.registrarEnBancos(confirmadaPorRegistrar(houseIngreso)!)"
                     >
                       REGISTRAR EN BANCO
+                    </v-btn>
+                    <!-- agregar otro pago: siempre, salvo cuando el monto ya está completo -->
+                    <template v-if="saldoCobro(houseIngreso) > 0">
+                      <v-btn
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        prepend-icon="mdi-plus"
+                        class="cobro-pasos__btn"
+                        :disabled="!can('listControlGastos', 'NUEVO')"
+                        @mousedown.stop
+                        @click.stop="abrirCargarPagoCliente(houseIngreso, null, true)"
+                      >
+                        Agregar otro soporte de ingreso
+                      </v-btn>
+                      <div class="cobro-pasos__falta">
+                        Saldo pendiente: {{ saldoCobro(houseIngreso).toFixed(2) }} {{ solicitudCobroEnviada(houseIngreso)!.moneda ?? "" }}
+                      </div>
+                    </template>
+                    <!-- v-btn (no <button> nativo): la fila está dentro del título del panel, que también es un botón -->
+                    <v-btn
+                      v-if="soportesCobro(houseIngreso).length > 1"
+                      variant="text"
+                      size="x-small"
+                      color="primary"
+                      prepend-icon="mdi-folder-open-outline"
+                      class="cobro-pasos__link"
+                      @mousedown.stop
+                      @click.stop="verSoportesCobro(houseIngreso)"
+                    >
+                      Ver todos los soportes de ingreso ({{ soportesCobro(houseIngreso).length }})
                     </v-btn>
                   </div>
                   <div
@@ -1842,7 +2053,7 @@ onMounted(async () => {
                       :prepend-icon="solicitudCobroDe(houseIngreso) ? 'mdi-check-circle-outline' : 'mdi-cloud-upload'"
                       class="cobro-pasos__btn"
                       :disabled="!houseIngreso.id_orders || !can('listControlGastos', 'NUEVO')"
-                      :title="solicitudCobroDe(houseIngreso) ? 'Pago cargado: clic para editar' : 'Cargar el voucher del cliente'"
+                      :title="solicitudCobroDe(houseIngreso) ? 'Pago cargado: clic para editar' : 'Cargar el voucher del cliente (pago total o parcial)'"
                       @click="abrirCargarPagoCliente(houseIngreso)"
                     >
                       {{ solicitudCobroDe(houseIngreso) ? "Pago Cliente Cargado" : "Cargar Pago Cliente" }}
@@ -1852,24 +2063,19 @@ onMounted(async () => {
                       class="cobro-pasos__extra"
                     >
                       <v-btn
-                        icon="mdi-eye"
-                        size="x-small"
-                        variant="text"
-                        color="blue"
-                        title="Ver solicitud de cobro"
-                        aria-label="Ver solicitud de cobro"
-                        @click="verSolicitud(solicitudCobroDe(houseIngreso)!)"
-                      />
-                      <v-btn
                         v-if="can('listControlGastos', 'ELIMINAR')"
-                        icon="mdi-trash-can-outline"
-                        size="x-small"
-                        variant="text"
+                        block
+                        size="small"
+                        variant="outlined"
                         color="error"
+                        prepend-icon="mdi-trash-can-outline"
+                        class="cobro-pasos__btn"
                         title="Eliminar pago cargado"
                         aria-label="Eliminar pago cargado"
-                        @click="cobro.eliminar(solicitudCobroDe(houseIngreso)!)"
-                      />
+                        @click="eliminarPagoCobro(houseIngreso)"
+                      >
+                        Eliminar
+                      </v-btn>
                     </div>
                     <v-btn
                       size="small"
@@ -1879,11 +2085,55 @@ onMounted(async () => {
                       class="cobro-pasos__btn"
                       :disabled="!solicitudCobroDe(houseIngreso) || !can('listControlGastos', 'NUEVO')"
                       :loading="!!solicitudCobroDe(houseIngreso) && cobroProcesando === solicitudCobroDe(houseIngreso)!.codigo"
-                      :title="solicitudCobroDe(houseIngreso) ? 'Enviar a Administración' : 'Primero carga el pago del cliente'"
+                      :title="!solicitudCobroDe(houseIngreso) ? 'Primero carga el pago del cliente'
+                        : saldoCobro(houseIngreso) > 0 ? `Se envía como pago parcial (saldo pendiente ${saldoCobro(houseIngreso).toFixed(2)})` : 'Enviar a Administración'"
                       @click="enviarAdministracionCobro(houseIngreso)"
                     >
                       Enviar a Administración
                     </v-btn>
+                    <!-- pagos parciales: otro soporte mientras falte; completo, solo el aviso -->
+                    <template v-if="solicitudCobroDe(houseIngreso)">
+                      <v-btn
+                        v-if="saldoCobro(houseIngreso) > 0"
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        prepend-icon="mdi-plus"
+                        class="cobro-pasos__btn"
+                        :disabled="!can('listControlGastos', 'NUEVO')"
+                        @click="abrirCargarPagoCliente(houseIngreso, null, true)"
+                      >
+                        Agregar otro soporte de ingreso
+                      </v-btn>
+                      <div
+                        v-else
+                        class="cobro-pasos__completo"
+                      >
+                        <v-icon size="16">
+                          mdi-check-circle
+                        </v-icon>
+                        Monto completo: ya puedes enviar a Administración.
+                      </div>
+                      <div
+                        v-if="saldoCobro(houseIngreso) > 0"
+                        class="cobro-pasos__falta"
+                      >
+                        Saldo pendiente: {{ saldoCobro(houseIngreso).toFixed(2) }} {{ solicitudCobroDe(houseIngreso)!.moneda ?? "" }}
+                      </div>
+                      <!-- v-btn (no <button> nativo): la fila está dentro del título del panel, que también es un botón -->
+                      <v-btn
+                        v-if="soportesCobro(houseIngreso).length > 1"
+                        variant="text"
+                        size="x-small"
+                        color="primary"
+                        prepend-icon="mdi-folder-open-outline"
+                        class="cobro-pasos__link"
+                        @mousedown.stop
+                        @click.stop="verSoportesCobro(houseIngreso)"
+                      >
+                        Ver todos los soportes de ingreso ({{ soportesCobro(houseIngreso).length }})
+                      </v-btn>
+                    </template>
                   </div>
                 </td>
                 <td
@@ -1903,6 +2153,7 @@ onMounted(async () => {
                 </td>
                 <td data-label="Ver Proformas">
                   <v-icon
+                    data-modo-ver="permitido"
                     :disabled="!houseIngreso.tienefactura"
                     color="info"
                     @click.stop="verProformas(houseIngreso)"
@@ -2153,6 +2404,7 @@ onMounted(async () => {
                   v-if="editable"
                 >
                   <v-icon
+                    data-modo-ver="permitido"
                     color="info"
                     @click="activarFactura(item)"
                     v-if="item.facturado == true && item.pagado == 0"
@@ -2521,6 +2773,7 @@ onMounted(async () => {
           >
             <template #[`item.accion`]="{ item }">
               <v-icon
+                data-modo-ver="permitido"
                 class="btn_add mr-2"
                 size="small"
                 color="default"
@@ -3139,6 +3392,7 @@ onMounted(async () => {
             </template>
             <template #[`item.path`]="{ item }">
               <v-btn
+                data-modo-ver="permitido"
                 variant="text"
                 icon
                 size="small"
@@ -3561,8 +3815,26 @@ onMounted(async () => {
       v-model="dialogPagoCliente"
       :destino="destinoPagoCliente"
       :solicitud="solicitudPagoCliente"
+      :soporte="soportePagoCliente"
       :admin="adminPagoCliente"
       @guardado="cargarSolicitudesCobro"
+    />
+    <SoportesCobroDialog
+      v-model="dialogSoportesCobro"
+      :soportes="houseSoportes ? soportesCobro(houseSoportes) : []"
+      :moneda="solicitudSoportes?.moneda ?? null"
+      :total="totalSoportesCobro"
+      :cliente="solicitudSoportes?.cliente"
+      :expediente="solicitudSoportes?.expediente"
+      :correlativo="solicitudSoportes?.correlativo"
+      :solicitud="solicitudSoportes"
+      :editable="can('listControlGastos', 'NUEVO')"
+      :eliminable="can('listControlGastos', 'ELIMINAR')"
+      :enviable="can('listControlGastos', 'NUEVO')"
+      :enviando="cobroProcesando"
+      @editar="editarSoporteCobro"
+      @eliminar="eliminarSoporteCobro"
+      @enviar="enviarSoporteCobro"
     />
   </v-container>
 </template>
@@ -3581,11 +3853,83 @@ onMounted(async () => {
   letter-spacing: 0;
   font-weight: 600;
 }
+.cobro-pasos__completo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: #ecfdf3;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+.cobro-pasos__falta {
+  color: #b45309;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+}
+.cobro-pasos__link {
+  height: auto !important;
+  min-height: 24px;
+  padding: 2px 4px !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-decoration: underline;
+  text-transform: none;
+  white-space: normal;
+}
+.cobro-pasos__link :deep(.v-btn__content) {
+  white-space: normal;
+  text-align: center;
+}
 .cobro-pasos__extra {
   display: flex;
   justify-content: center;
   gap: 2px;
   margin-top: -2px;
+}
+/* varias solicitudes del correlativo: Estado | Monto */
+.cobreq__monto {
+  color: #0a1f44;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+.cobreq-resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 300px;
+  margin-bottom: 6px;
+}
+.cobreq-resumen__fila {
+  --cobreq-fg: #1d4ed8;
+  --cobreq-bg: #eff4ff;
+  --cobreq-border: #d1defc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 4px 10px;
+  border: 1px solid var(--cobreq-border);
+  border-radius: 8px;
+  background: var(--cobreq-bg);
+  font-size: 0.75rem;
+}
+.cobreq-resumen__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--cobreq-fg);
+  font-weight: 700;
+}
+.cobreq-resumen__monto {
+  color: #0a1f44;
+  font-weight: 800;
+  white-space: nowrap;
 }
 /* Solicitud de cobro enviada: mismo diseño que "Solicitar a Administración" de Costos (.solreq) */
 .cobreq-col {
@@ -3607,12 +3951,13 @@ onMounted(async () => {
   border-radius: 10px;
   background: var(--cobreq-bg);
 }
-.cobreq--penger {
+.cobreq--penger,
+.cobreq--listo {
   --cobreq-fg: #b45309;
   --cobreq-bg: #fffbeb;
   --cobreq-border: #fde68a;
 }
-.cobreq--listo,
+.cobreq--confirmado,
 .cobreq--cobrado {
   --cobreq-fg: #15803d;
   --cobreq-bg: #ecfdf3;

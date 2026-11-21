@@ -35,10 +35,15 @@ const form = ref({ id_tipopago: null as number | null, id_cuenta: null as number
 
 const codigoTipo = computed(() => tipos.value.find((t) => t.id === form.value.id_tipopago)?.codigo);
 const esCodigo = computed(() => codigoTipo.value === "02");
+// solo las cuentas del proveedor en la moneda de la solicitud (la del correlativo)
 const itemsCuentas = computed(() =>
-  cuentas.value.map((c) => ({
+  cuentas.value
+    .filter((c) => !props.solicitud?.moneda || !c.symbol || c.symbol === props.solicitud.moneda)
+    .map((c) => ({
     title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
     value: c.id,
+    // búsqueda por sigla (BG), nombre del banco (Banco General), moneda, número o beneficiario
+    buscar: [c.namebanks, c.namebanksfull, c.namecoins, c.accountnumber, c.beneficiario].filter(Boolean).join(" "),
   })),
 );
 const valida = computed(() => !!form.value.id_tipopago && (esCodigo.value ? !!form.value.codigopago.trim() : !!form.value.id_cuenta));
@@ -188,11 +193,12 @@ async function guardar() {
             class="soledit__label"
             for="soledit-cuenta"
           >CUENTA BANCARIA DEL PROVEEDOR <span class="soledit__req">*</span></label>
-          <v-select
+          <v-autocomplete
             id="soledit-cuenta"
             v-model="form.id_cuenta"
             :items="itemsCuentas"
-            placeholder="Selecciona la cuenta"
+            :filter-keys="['title', 'raw.buscar']"
+            placeholder="Selecciona o busca la cuenta (sigla o nombre del banco)"
             prepend-inner-icon="mdi-bank-outline"
             variant="outlined"
             density="compact"

@@ -17,6 +17,7 @@ import type {
 } from "@/types/banks";
 import type { SolicitudCobroActiva, SolicitudCobroTransferencia } from "@/types/solicitudCobro";
 import { request } from "@/utils/request";
+import { sessionSucursal } from "@/utils/sesion";
 
 // token: Nuevo ingreso desde una Solicitud de Cobro confirmada (Ingresos pendientes por confirmar).
 // El cliente, la cuenta donde depositó, el correlativo, la fecha, el N° de operación y el voucher
@@ -254,6 +255,20 @@ function checkDeshabilitado(item: FacturaPorCobrar) {
   // Si editaflag es false, devuelve true para deshabilitar el checkbox
   return item.editaflag === false || !!solicitudActivaDe(item);
 }
+// "1,465.68" o 1465.68 -> 1465.68
+const aNumero = (valor: unknown) => Math.round(Number(String(valor ?? 0).replace(/,/g, "")) * 100) / 100 || 0;
+// Desde una solicitud de cobro se cobra el monto del pago del cliente: si es menor que la deuda del
+// correlativo, es un Abono Parcial por ese monto (no el total)
+function aplicarMontoSolicitud(item: FacturaPorCobrar): boolean {
+  const sol = solicitud.value;
+  if (!sol) return false;
+  const montoPago = aNumero(sol.monto);
+  const deuda = aNumero(item.total_mon_local);
+  const parcial = montoPago > 0 && montoPago < deuda;
+  item.parcialflag = parcial;
+  item.montoparcial = parcial ? montoPago.toFixed(2) : item.total_mon_local;
+  return true;
+}
 async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: boolean }) {
   // Si está intentando seleccionar
   if (value) {
@@ -294,8 +309,10 @@ async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: 
     }
 
     // Si confirma o las monedas son iguales
-    item.parcialflag = false;
-    item.montoparcial = item.total_mon_local;
+    if (!aplicarMontoSolicitud(item)) {
+      item.parcialflag = false;
+      item.montoparcial = item.total_mon_local;
+    }
   } else {
     // Si deselecciona normalmente
     item.montoparcial = 0;
@@ -312,8 +329,10 @@ function onSelectAll({ items, value }: { items: FacturaPorCobrar[]; value: boole
   }
   items.forEach((item) => {
     if (value) {
-      item.parcialflag = false;
-      item.montoparcial = item.total_mon_local;
+      if (!aplicarMontoSolicitud(item)) {
+        item.parcialflag = false;
+        item.montoparcial = item.total_mon_local;
+      }
     } else {
       item.montoparcial = 0;
       item.parcialflag = false;
@@ -323,6 +342,10 @@ function onSelectAll({ items, value }: { items: FacturaPorCobrar[]; value: boole
 }
 function verificarMontoCompleto(item: FacturaPorCobrar) {
   // Si el combo cambia a "Abono Completo" (value: false)
+  if (aplicarMontoSolicitud(item)) {
+    calcularTotal();
+    return;
+  }
   if (!item.parcialflag) {
     item.montoparcial = item.total_mon_local;
   }
@@ -655,9 +678,44 @@ watch(fecha_operacion, (newVal) => {
   }
 });
 watch(selected, () => {
+  // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente
+  if (solicitud.value) {
+    const montoPago = aNumero(solicitud.value.monto);
+    selected.value.forEach((item) => {
+      const parcial = montoPago > 0 && montoPago < aNumero(item.total_mon_local);
+      if (item.parcialflag !== parcial || (parcial && aNumero(item.montoparcial) !== montoPago)) aplicarMontoSolicitud(item);
+    });
+  }
   calcularTotal();
 }, {
   deep: true, // Esto detecta cambios en las propiedades internas de los items
+});
+
+// cobro con excedente (el cliente pagó más que la deuda): la diferencia va como gasto bancario,
+// así el detalle + gasto suma lo depositado. Se llena solo y no se edita.
+const CONCEPTO_EXCEDENTE = "EXCEDENTE DEL CLIENTE";
+const excedenteSolicitud = computed(() => {
+  if (!solicitud.value || !selected.value.length) return 0;
+  const detalle = selected.value.reduce((acc, item) => acc + aNumero(item.montoparcial), 0);
+  return Math.max(Math.round((aNumero(solicitud.value.monto) - detalle) * 100) / 100, 0);
+});
+watch(excedenteSolicitud, (excedente, anterior) => {
+  if (excedente > 0) {
+    montogastobancario.value = excedente.toFixed(2);
+    conceptogastobancario.value = CONCEPTO_EXCEDENTE;
+  } else if (anterior && anterior > 0) {
+    montogastobancario.value = 0;
+    if (conceptogastobancario.value === CONCEPTO_EXCEDENTE) conceptogastobancario.value = "";
+  }
+});
+
+// "Banco y cuenta de destino (EMPRESA)": la sucursal en sesión
+const nombreEmpresa = computed(() => {
+  try {
+    return (sessionSucursal().trade_name || "").toUpperCase() || "NUESTRA EMPRESA";
+  } catch {
+    return "NUESTRA EMPRESA";
+  }
 });
 
 // Precarga el ingreso con la solicitud de cobro (token)
@@ -681,16 +739,17 @@ async function cargarSolicitud() {
   await obtenerListado();
   const cuenta = bancosStore.cuentas.find((c) => c.id === sol.id_cuentabancaria);
   if (cuenta) id_cuenta.value = { ...cuenta } as CuentaIngreso;
-  // el correlativo de la solicitud, por el monto total
+  // el correlativo de la solicitud, por el monto de este pago del cliente (puede ser un abono parcial)
   const fila = itemsOrdenados.value[0];
   if (fila) {
-    fila.parcialflag = false;
-    fila.montoparcial = fila.total_mon_local;
+    aplicarMontoSolicitud(fila);
     selected.value = [fila];
   }
-  fecha_operacion.value = sol.fechadeposito;
+  // la fecha de ingreso en banco que confirmó Administración (no la del soporte del cliente)
+  fecha_operacion.value = sol.fecha_ingreso || sol.fechadeposito;
   id_banco_origen.value = sol.id_banco_origen;
-  nro_operacion.value = sol.numerooperacion;
+  // "No aplica" en la solicitud: llega vacío y se escribe aquí (obligatorio en Bancos)
+  nro_operacion.value = sol.numerooperacion ?? "";
   id_path.value = sol.id_path_voucher;
   comentarios.value = ["Solicitud de cobro", sol.comentario].filter(Boolean).join(" - ");
   calcularTotal();
@@ -710,7 +769,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-card>
+  <v-card class="ing-form">
     <v-container fluid>
       <v-alert
         v-if="desdeSolicitud && errorSolicitud"
@@ -761,11 +820,13 @@ onMounted(async () => {
           class="pb-0"
           v-if="Object.keys(id_cuenta).length > 0"
         >
+          <!-- desde una solicitud de cobro: lo llenado en la solicitud no se cambia -->
           <v-text-field
-            label="Monto Depositado En Banco:"
+            label="Monto Depositado en Banco"
             variant="outlined"
             density="compact"
             v-model="monto_local"
+            :readonly="!!solicitud"
             type="number"
             :prefix="symbol"
             :error-messages="errorMesage.monto_local"
@@ -790,7 +851,7 @@ onMounted(async () => {
             v-model="totalGeneralAbonadoMonLocal"
             type="number"
             :prefix="symbol"
-            :label="`Total Factura Seleccionada (${symbol})`"
+            :label="`Total Facturas Seleccionadas (${symbol})`"
           />
         </v-col>
 
@@ -807,7 +868,7 @@ onMounted(async () => {
             v-model="monto"
             type="number"
             prefix="USD"
-            label="Total Factura Seleccionada"
+            label="Total Facturas Seleccionadas"
           />
         </v-col>
         <!--  -->
@@ -837,8 +898,10 @@ onMounted(async () => {
           <v-tabs
             v-model="pasos"
             align-tabs="center"
-            color="#000000"
-            bg-color="#C8E6C9"
+            color="#1b5e20"
+            bg-color="#e8f5e9"
+            slider-color="#2e7d32"
+            class="ing-tabs"
           >
             <v-tab key="detallesPago">
               Facturas
@@ -941,9 +1004,11 @@ onMounted(async () => {
                         selectAll,
                       }"
                     >
+                      <!-- desde una solicitud la fila del correlativo va fija (no se marca ni desmarca) -->
                       <v-checkbox-btn
                         :model-value="allSelected"
                         :indeterminate="someSelected && !allSelected"
+                        :disabled="!!solicitud"
                         @update:model-value="
                           (value) => {
                             selectAll(value);
@@ -963,6 +1028,7 @@ onMounted(async () => {
                       <v-checkbox-btn
                         :model-value="isSelected(internalItem)"
                         :aria-label="`Seleccionar factura ${item.referencia}`"
+                        :disabled="!!solicitud"
                         @update:model-value="
                           (value) => {
                             toggleSelect(internalItem);
@@ -1042,9 +1108,11 @@ onMounted(async () => {
                         density="compact"
                         variant="outlined"
                         v-model="item.montoparcial"
+                        type="number"
                         :disabled="
                           !selected.includes(item) || !item.parcialflag
                         "
+                        :readonly="!!solicitud"
                         :prefix="item.symbol"
                         @update:model-value="calcularTotal"
                         :rules="[
@@ -1104,12 +1172,11 @@ onMounted(async () => {
                 </v-col>
                 <v-col
                   cols="12"
-                  class="pt-1"
-                  style="align-items: end; align-content: end; text-align: end"
+                  class="pt-1 ing-actions"
                 >
                   <v-btn
-                    class="mx-1"
-                    color="success"
+                    class="ing-btn ing-btn--ok"
+                    variant="flat"
                     @click="continuarGastoBancario()"
                     :disabled="
                       !(
@@ -1132,34 +1199,43 @@ onMounted(async () => {
                     md="6"
                     class="py-1"
                   >
-                    <section class="bank-card">
-                      <h3 class="bank-card__title">
-                        Datos Banco Emisor
-                      </h3>
+                    <section class="bank-card ing-card">
+                      <div class="ing-card__head">
+                        <span class="ing-card__icon"><v-icon size="30">mdi-send-outline</v-icon></span>
+                        <div>
+                          <h3>BANCO DE ORIGEN (CLIENTE)</h3>
+                          <p>Desde dónde el cliente envía el dinero (su banco).</p>
+                        </div>
+                      </div>
                       <div class="bank-card__body">
+                        <label class="ing-label">Banco del cliente (Origen) <span class="ing-req">*</span></label>
                         <v-autocomplete
                           :items="appStore.itemsDataBanksList"
                           v-model="id_banco_origen"
                           :readonly="!!solicitud && !!solicitud.id_banco_origen"
-                          label="Banco Origen"
+                          aria-label="Banco del cliente (Origen)"
                           item-title="acronym"
                           item-value="id"
                           variant="outlined"
                           density="compact"
                           :rules="[(v) => !!v || 'Dato Requerido']"
                         />
+                        <label class="ing-label">Fecha de operación (Transferencia) <span class="ing-req">*</span></label>
                         <FormatFecha
                           outlined
                           dense
-                          label="Fecha Operación"
+                          label=""
                           v-model="fecha_operacion"
+                          :verflag="!!solicitud && !!solicitud.fechadeposito"
                           :rules="[(v) => !!fecha_operacion || 'Dato Requerido']"
                         />
+                        <label class="ing-label">Número de operación / Código de transferencia <span class="ing-req">*</span></label>
                         <v-text-field
-                          label="Número de Operación"
+                          aria-label="Número de operación / Código de transferencia"
                           variant="outlined"
                           density="compact"
                           v-model="nro_operacion"
+                          :readonly="!!solicitud && !!solicitud.numerooperacion"
                           :rules="[(v) => !!v || 'Dato Requerido']"
                           @update:model-value="
                             nro_operacion !== ''
@@ -1210,16 +1286,21 @@ onMounted(async () => {
                     md="6"
                     class="py-1"
                   >
-                    <section class="bank-card">
-                      <h3 class="bank-card__title">
-                        Cuenta de Banco de Ingreso
-                      </h3>
+                    <section class="bank-card ing-card">
+                      <div class="ing-card__head">
+                        <span class="ing-card__icon"><v-icon size="30">mdi-bank-outline</v-icon></span>
+                        <div>
+                          <h3>BANCO Y CUENTA DE DESTINO ({{ nombreEmpresa }})</h3>
+                          <p>Donde nosotros recibimos el dinero (nuestra cuenta).</p>
+                        </div>
+                      </div>
                       <div class="bank-card__body">
+                        <label class="ing-label">Cuenta de destino (nuestra cuenta) <span class="ing-req">*</span></label>
                         <v-autocomplete
                           :items="bancosStore.cuentas"
                           item-title="label"
                           item-value="id"
-                          label="Cuenta y Banco Ingreso de Banco"
+                          aria-label="Cuenta de destino (nuestra cuenta)"
                           v-model="selectedAccount"
                           return-object
                           variant="outlined"
@@ -1231,31 +1312,19 @@ onMounted(async () => {
                               'Dato Requerido',
                           ]"
                         />
+                        <label class="ing-label">Banco (destino) <span class="ing-req">*</span></label>
                         <v-text-field
                           readonly
                           v-model="id_cuenta.banco"
-                          label="Banco:"
+                          aria-label="Banco (destino)"
                           variant="outlined"
                           density="compact"
                         />
+                        <label class="ing-label">N° de cuenta (destino) <span class="ing-req">*</span></label>
                         <v-text-field
                           readonly
                           v-model="id_cuenta.cuenta"
-                          label="N° Cuenta:"
-                          variant="outlined"
-                          density="compact"
-                        />
-                        <v-text-field
-                          readonly
-                          v-model="id_cuenta.cci"
-                          label="CCI:"
-                          variant="outlined"
-                          density="compact"
-                        />
-                        <v-text-field
-                          readonly
-                          v-model="id_cuenta.moneda"
-                          label="Moneda:"
+                          aria-label="N° de cuenta (destino)"
                           variant="outlined"
                           density="compact"
                         />
@@ -1266,21 +1335,24 @@ onMounted(async () => {
                     cols="12"
                     class="py-1"
                   >
-                    <section class="bank-card">
-                      <h3 class="bank-card__title">
+                    <section class="bank-card ing-card">
+                      <h3 class="ing-card__simple">
                         Comentarios
                       </h3>
                       <div class="bank-card__body bank-card__row">
                         <v-textarea
-                          label="Comentarios Usuario"
+                          label="Comentario del Departamento Operativo"
+                          placeholder="Comentario del Departamento Operativo"
                           rows="1"
                           variant="outlined"
                           density="compact"
                           auto-grow
                           v-model="comentarios"
+                          :readonly="!!solicitud"
                         />
                         <v-textarea
-                          label="Comentarios Administrativos"
+                          label="Comentario del Departamento Administrativo"
+                          placeholder="Comentario del Departamento Administrativo"
                           rows="1"
                           variant="outlined"
                           density="compact"
@@ -1311,19 +1383,21 @@ onMounted(async () => {
                   </v-col>
                   <v-col
                     cols="12"
-                    class="bank-actions"
+                    class="ing-actions"
                   >
                     <v-btn
-                      color="primary"
-                      @click="continuarDetalles()"
-                    >
-                      Continuar Comisión Bancaria
-                    </v-btn>
-                    <v-btn
-                      color="error"
+                      class="ing-btn ing-btn--cancel"
+                      variant="outlined"
                       @click="pasos = 0"
                     >
                       Cancelar
+                    </v-btn>
+                    <v-btn
+                      class="ing-btn ing-btn--ok"
+                      variant="flat"
+                      @click="continuarDetalles()"
+                    >
+                      Continuar Comisión Bancaria
                     </v-btn>
                   </v-col>
                 </v-row>
@@ -1403,6 +1477,7 @@ onMounted(async () => {
                     label="Comisión Bancaria"
                     id="id"
                     v-model="conceptogastobancario"
+                    :readonly="excedenteSolicitud > 0"
                   />
                 </v-col>
                 <v-col cols="3">
@@ -1414,6 +1489,9 @@ onMounted(async () => {
                     type="number"
                     :prefix="symbol"
                     v-model="montogastobancario"
+                    :readonly="excedenteSolicitud > 0"
+                    :hint="excedenteSolicitud > 0 ? 'Excedente pagado por el cliente' : undefined"
+                    :persistent-hint="excedenteSolicitud > 0"
                   />
                 </v-col>
                 <v-col
@@ -1430,10 +1508,13 @@ onMounted(async () => {
                     v-model="totalGeneralAbonadoMonLocal"
                   />
                 </v-col>
-                <v-col cols="12">
+                <v-col
+                  cols="12"
+                  class="ing-actions"
+                >
                   <v-btn
-                    class="mx-1"
-                    color="success"
+                    class="ing-btn ing-btn--ok"
+                    variant="flat"
                     :loading="loading"
                     v-if="can('registroPayForCliente', 'NUEVO')"
                     @click="finalizarOperacion()"
@@ -1527,4 +1608,115 @@ onMounted(async () => {
   </v-card>
 </template>
 
-<style></style>
+<style scoped>
+/* Bancos > Nuevo Ingreso: diseño acordado (tarjetas verdes, nombres y botones a la derecha en los 3 pasos) */
+.ing-form {
+  --ing-verde: #1b5e20;
+  --ing-verde-claro: #e8f5e9;
+  --ing-borde: #d7e9d8;
+}
+.ing-tabs {
+  border-radius: 10px;
+}
+.ing-tabs :deep(.v-tab) {
+  min-width: 160px;
+  font-size: 0.98rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ing-tabs :deep(.v-tab--selected) {
+  font-weight: 800;
+}
+.ing-form :deep(.ing-card) {
+  border-color: var(--ing-borde);
+  border-radius: 12px;
+}
+.ing-card__head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: var(--ing-verde-claro);
+}
+.ing-card__head h3 {
+  margin: 0;
+  color: var(--ing-verde);
+  font-size: 1.15rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.ing-card__head p {
+  margin: 2px 0 0;
+  color: #37474f;
+  font-size: 0.92rem;
+}
+.ing-card__icon {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid var(--ing-borde);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ing-verde);
+}
+.ing-card__simple {
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--ing-verde-claro);
+  color: var(--ing-verde);
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+.ing-label {
+  margin: 2px 0 -2px;
+  color: #1f2937;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+.ing-req {
+  color: #d32f2f;
+}
+.ing-form :deep(.clsArchivoCargado) {
+  border: 1px solid #b9dfbc;
+  border-radius: 10px;
+  background: var(--ing-verde-claro);
+}
+.ing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-bottom: 20px;
+}
+.ing-btn {
+  min-width: 130px;
+  min-height: 42px;
+  border-radius: 8px !important;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ing-btn--ok {
+  background: var(--ing-verde) !important;
+  color: #fff !important;
+}
+.ing-btn--cancel {
+  border: 2px solid #d32f2f !important;
+  color: #d32f2f !important;
+}
+@media (max-width: 600px) {
+  .ing-card__head h3 {
+    font-size: 1rem;
+  }
+  .ing-card__icon {
+    width: 44px;
+    height: 44px;
+  }
+  .ing-actions .ing-btn {
+    flex: 1 1 0;
+  }
+}
+</style>

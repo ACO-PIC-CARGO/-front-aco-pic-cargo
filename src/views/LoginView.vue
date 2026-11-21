@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import LegalLinks from "@/components/Legal/LegalLinks.vue";
 import { useSecuritysStore } from "@/stores/securitys";
 import { chooseSessionBranch } from "@/utils/sesion";
+import { afterLoginTarget } from "@/router/resumeSessionGuard";
 
 const router = useRouter();
 const appStore = useAppStore();
@@ -14,18 +15,7 @@ const currentSlide = ref(0);
 const verClave = ref(false);
 const loading = ref(false);
 const errorSucursal = ref("");
-const retomandoSesion = ref(false);
-
-onMounted(async () => {
-  // Sesión recordada (estilo "Recordarme"): si la cookie de refresco de este navegador sigue
-  // vigente, se entra directo al Main en la sucursal ligada a la sesión, sin pedir la clave.
-  retomandoSesion.value = true;
-  try {
-    if (await securitysStore.retomarSesion()) await router.replace({ name: "Main" });
-  } finally {
-    retomandoSesion.value = false;
-  }
-});
+// La sesión recordada se retoma antes de llegar aquí (router/resumeSessionGuard).
 
 async function acceder() {
   loading.value = true;
@@ -57,7 +47,7 @@ async function iraHome() {
   try {
     await securitysStore.ObtenerDatosConfig();
   } finally {
-    router.push({ name: "Main" });
+    router.push(afterLoginTarget(router.currentRoute.value));
     loading.value = false;
   }
 }
@@ -163,7 +153,7 @@ function registroEmpresa() {
                     class="mt-4 mb-2"
                     block
                     color="info"
-                    :loading="retomandoSesion"
+                    :loading="loading"
                     @click="acceder()"
                   >
                     <v-icon start>

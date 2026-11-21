@@ -77,6 +77,8 @@ export interface DatosPrincipales {
   datosinstructivomanual?: DatosManualesInstructivo & { listaDocumentos?: DocumentoInstructivo[]; table_allpath_list?: unknown[] };
   esindividualflag?: boolean;
   esgrupalflag?: boolean;
+  id_shipment_subtype?: number | null;
+  shipment_subtype?: string | null;
   url_folderonedrive?: string | null;
   url_folderonedriveexp?: string | null;
   opcioncostos?: unknown;
@@ -648,6 +650,9 @@ export interface DatosManualesInstructivo {
   email: string;
   monto: number | string;
   listDiaFecha: string;
+  /** paso 3: fecha (YYYY-MM-DD) y comentario opcional; listDiaFecha se arma con ambos */
+  fechaListaRecojo?: string;
+  comentarioListaRecojo?: string;
   grupoWhatsapp: string;
   pagarProveedor: boolean | string;
   metodoPagarProveedor: number | string;
