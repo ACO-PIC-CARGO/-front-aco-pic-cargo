@@ -20,6 +20,7 @@ const active = computed(() => props.visible && props.quoteId !== null);
     <InternalCommunicationThread
       v-if="quoteId !== null"
       ref="thread"
+      hide-header
       :quote-id="quoteId"
     />
   </QuoteBottomBar>

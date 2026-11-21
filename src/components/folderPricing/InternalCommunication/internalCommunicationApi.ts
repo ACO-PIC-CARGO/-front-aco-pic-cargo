@@ -7,6 +7,7 @@ export interface InternalMessage {
   direction: MessageDirection;
   body: string;
   author_name: string | null;
+  recipient_name: string | null;
   created_at: string;
 }
 
