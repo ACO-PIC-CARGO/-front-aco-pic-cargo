@@ -77,8 +77,4 @@ const pricingView = computed(() => (tab.value === "all" ? "" : tab.value));
 .quote-list-panel {
   padding-top: 0;
 }
-
-.quote-list-panel > :deep(.v-card) {
-  border-top-left-radius: 0;
-}
 </style>

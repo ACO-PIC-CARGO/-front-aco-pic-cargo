@@ -61,7 +61,7 @@ async function save(draft: ProviderQuoteEmailTemplate) {
     />
     <v-card
       :loading="loading"
-      class="mx-4 mb-4 rounded-ts-0"
+      class="mx-4 mb-4"
     >
       <v-tabs
         v-model="language"
