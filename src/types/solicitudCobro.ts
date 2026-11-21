@@ -10,7 +10,7 @@ export type CodigoEstadoSolicitudCobro =
   | "RECHAZADA"
   | "ELIMINADA";
 
-export type TabBandejaSolicitudCobro = "PEN" | "REC" | "HIS";
+export type TabBandejaSolicitudCobro = "PEN" | "PPG" | "REC" | "HIS";
 
 export interface ConceptoSolicitudCobro {
   codigo: string;

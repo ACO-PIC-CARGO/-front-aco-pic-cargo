@@ -48,7 +48,7 @@ const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 const MENU = "ingresosPendientesConfirmar";
 const ESTADOS: { codigo: CodigoEstadoSolicitudCobro; titulo: string; tabs: TabBandejaSolicitudCobro[] }[] = [
   { codigo: "LISTO", titulo: "Pendiente por confirmar", tabs: ["PEN", "HIS"] },
-  { codigo: "CONFIRMADO", titulo: "Confirmado", tabs: ["HIS"] },
+  { codigo: "CONFIRMADO", titulo: "Confirmado", tabs: ["PPG", "HIS"] },
   { codigo: "COBRADO", titulo: "Registrado en Bancos", tabs: ["HIS"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
@@ -63,10 +63,16 @@ const puedeEliminar = computed(() => can(MENU, "MODIFICAR") || can("listControlG
 
 const { procesando, eliminar, eliminarSoporte, registrarEnBancos, eliminarConfirmacion } = useSolicitudCobro(() => emit("actualizado"));
 // una fila por soporte (pago cargado)
-// Pendientes: solo los pagos por confirmar; el confirmado (o ya en Bancos) va a Histórico
+// Pendientes: solo los pagos por confirmar. Pendiente de Pago: los confirmados aún sin registrar en
+// Bancos. Histórico: todos ("Cliente pagó" Sí = solo los de Pendiente de Pago, No = el resto).
 const filasSoporte = computed(() => {
   const lista = filasPorSoporte(filas.value);
-  return props.tab === "PEN" ? lista.filter((f) => !["CONFIRMADO", "COBRADO"].includes(f.codigo_estado)) : lista;
+  const porPagar = (f: { codigo_estado: string }) => f.codigo_estado === "CONFIRMADO";
+  if (props.tab === "PEN") return lista.filter((f) => !["CONFIRMADO", "COBRADO"].includes(f.codigo_estado));
+  if (props.tab === "PPG") return lista.filter(porPagar);
+  const pago = pendientePagoDe(filtros.value);
+  if (pago) return lista.filter((f) => porPagar(f) === (pago === "SI"));
+  return lista;
 });
 // menú "Acciones" de la fila (en celular, los mismos botones en la tarjeta)
 interface AccionFila {
@@ -145,13 +151,24 @@ interface Filtros {
   id_cuentabancaria: number | null;
   desde: string;
   hasta: string;
+  // Histórico: "Cliente pagó" Sí / No (Sí = lo mismo que Pendiente de Pago)
+  pendiente_pago: ("SI" | "NO")[];
 }
-const filtrosVacios = (): Filtros => ({ estado: null, id_cliente: null, id_cuentabancaria: null, desde: "", hasta: "" });
+const filtrosVacios = (): Filtros => ({ estado: null, id_cliente: null, id_cuentabancaria: null, desde: "", hasta: "", pendiente_pago: [] });
 const filtros = ref<Filtros>(filtrosVacios());
 const panelFiltros = ref(false);
 const borrador = ref<Filtros>(filtrosVacios());
 
 const esRechazadas = computed(() => props.tab === "REC");
+const esHistorico = computed(() => props.tab === "HIS");
+// con Sí y No marcados (o ninguno) no filtra
+const OPCIONES_SI_NO = [
+  { title: "Sí", value: "SI" },
+  { title: "No", value: "NO" },
+] as const;
+function pendientePagoDe(f: Filtros) {
+  return esHistorico.value && f.pendiente_pago.length === 1 ? f.pendiente_pago[0] : undefined;
+}
 const opcionesEstado = computed(() =>
   ESTADOS.filter((e) => e.tabs.includes(props.tab)).map((e) => ({ title: e.titulo, value: e.codigo })),
 );
@@ -161,7 +178,7 @@ const opcionesCliente = computed(() => opcionesDe("CLIENTE"));
 const opcionesCuenta = computed(() => opcionesDe("CUENTA"));
 const hayFiltros = computed(() => {
   const f = filtros.value;
-  return !!(f.estado || f.id_cliente || f.id_cuentabancaria || f.desde || f.hasta || busqueda.value.trim());
+  return !!(f.estado || f.id_cliente || f.id_cuentabancaria || f.desde || f.hasta || pendientePagoDe(f) || busqueda.value.trim());
 });
 
 const columna = (title: string, key: string) => ({ title, key, sortable: false, align: "center" as const });
@@ -190,6 +207,7 @@ function parametros(paginar: boolean) {
     estado: esRechazadas.value ? undefined : f.estado || undefined,
     id_cliente: f.id_cliente || undefined,
     id_cuentabancaria: f.id_cuentabancaria || undefined,
+    pendiente_pago: pendientePagoDe(f),
     desde: f.desde || undefined,
     hasta: f.hasta || undefined,
     ...(paginar ? { page: pagina.value, limit: porPagina.value } : {}),
@@ -255,7 +273,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente de Pago", REC: "Rechazadas", HIS: "Historico" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -848,6 +866,23 @@ onMounted(cargar);
             density="compact"
             clearable
           />
+          <!-- Histórico: Sí = las mismas de "Pendiente de Pago" (confirmadas y aún sin registrar en Bancos) -->
+          <div
+            v-if="esHistorico"
+            class="scb__sino"
+          >
+            <span class="scb__sino-label">Cliente Pagó</span>
+            <v-checkbox
+              v-for="o in OPCIONES_SI_NO"
+              :key="o.value"
+              v-model="borrador.pendiente_pago"
+              :value="o.value"
+              :label="o.title"
+              color="primary"
+              density="compact"
+              hide-details
+            />
+          </div>
           <v-autocomplete
             v-model="borrador.id_cliente"
             :items="opcionesCliente"
@@ -903,6 +938,19 @@ onMounted(cargar);
 </template>
 
 <style scoped>
+.scb__sino {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.scb__sino .v-checkbox {
+  flex: 0 0 auto;
+}
+.scb__sino-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
 /* ===== listado de solicitudes de cobro (diseño acordado) ===== */
 .cobl__soportecol {
   display: inline-flex;

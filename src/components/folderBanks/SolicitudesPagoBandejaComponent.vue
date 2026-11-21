@@ -49,7 +49,7 @@ const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "O
 const ESTADOS: { codigo: EstadoBandejaSolicitudPago; titulo: string; tabs: TabBandejaSolicitudPago[] }[] = [
   { codigo: "PENADM", titulo: "Pendiente por Administración", tabs: ["PEN", "HIS"] },
   { codigo: "PENGER", titulo: "Pendiente por Gerencia", tabs: ["PEN", "HIS"] },
-  { codigo: "LISTO", titulo: "Listo para transferir", tabs: ["PEN", "HIS"] },
+  { codigo: "LISTO", titulo: "Listo para transferir", tabs: ["PPG", "HIS"] },
   { codigo: "PAGADO", titulo: "Pagado", tabs: ["HIS"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
@@ -195,6 +195,7 @@ const filtrosVacios = (): FiltrosBandejaSolicitudPago => ({
   tipopago: null,
   desde: "",
   hasta: "",
+  pendiente_pago: [],
 });
 const filtros = ref<FiltrosBandejaSolicitudPago>(filtrosVacios());
 // el panel edita un borrador; se aplica con "Aplicar filtros"
@@ -202,6 +203,14 @@ const borrador = ref<FiltrosBandejaSolicitudPago>(filtrosVacios());
 const panelFiltros = ref(false);
 
 const esRechazadas = computed(() => props.tab === "REC");
+const esHistorico = computed(() => props.tab === "HIS");
+// "Proveedor cancelado": con Sí y No marcados (o ninguno) no filtra
+const OPCIONES_SI_NO = [
+  { title: "Sí", value: "SI" },
+  { title: "No", value: "NO" },
+] as const;
+const pendientePagoDe = (f: FiltrosBandejaSolicitudPago) =>
+  esHistorico.value && f.pendiente_pago.length === 1 ? f.pendiente_pago[0] : undefined;
 const opcionesEstado = computed(() =>
   ESTADOS.filter((e) => e.tabs.includes(props.tab)).map((e) => ({ title: e.titulo, value: e.codigo })),
 );
@@ -226,6 +235,8 @@ const filtrosActivos = computed(() => {
   if (f.id_proveedor) chips.push({ clave: "id_proveedor", texto: `Proveedor: ${titulo(opcionesProveedor.value, f.id_proveedor)}` });
   if (f.banco) chips.push({ clave: "banco", texto: `Banco: ${f.banco}` });
   if (f.tipopago) chips.push({ clave: "tipopago", texto: `Método: ${titulo(opcionesMetodo.value, f.tipopago)}` });
+  const cancelado = pendientePagoDe(f);
+  if (cancelado) chips.push({ clave: "pendiente_pago", texto: `Proveedor cancelado: ${cancelado === "SI" ? "Sí" : "No"}` });
   return chips;
 });
 const hayFiltros = computed(() => filtrosActivos.value.length > 0 || !!busqueda.value.trim());
@@ -259,6 +270,7 @@ function parametros(paginar: boolean) {
     id_proveedor: f.id_proveedor || undefined,
     banco: f.banco || undefined,
     tipopago: f.tipopago || undefined,
+    pendiente_pago: pendientePagoDe(f),
     desde: f.desde || undefined,
     hasta: f.hasta || undefined,
     ...(paginar ? { page: pagina.value, limit: porPagina.value } : {}),
@@ -325,6 +337,7 @@ function limpiarBorrador() {
 }
 function quitarFiltro(clave: keyof FiltrosBandejaSolicitudPago | "fechas") {
   if (clave === "fechas") filtros.value = { ...filtros.value, desde: "", hasta: "" };
+  else if (clave === "pendiente_pago") filtros.value = { ...filtros.value, pendiente_pago: [] };
   else filtros.value = { ...filtros.value, [clave]: clave === "desde" || clave === "hasta" ? "" : null };
   irPrimeraPagina();
 }
@@ -342,7 +355,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente de Pago", REC: "Rechazadas", HIS: "Historico" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -1066,6 +1079,25 @@ onMounted(cargar);
             hide-details
           />
         </div>
+        <!-- Histórico: Sí = las mismas de "Pendiente de Pago" (aprobadas y aún sin pagar) -->
+        <div
+          v-if="esHistorico"
+          class="spb__field"
+        >
+          <label>Proveedor Cancelado</label>
+          <div class="spb__sino">
+            <v-checkbox
+              v-for="o in OPCIONES_SI_NO"
+              :key="o.value"
+              v-model="borrador.pendiente_pago"
+              :value="o.value"
+              :label="o.title"
+              color="primary"
+              density="compact"
+              hide-details
+            />
+          </div>
+        </div>
         <div class="spb__field">
           <label>Proveedor</label>
           <v-autocomplete
@@ -1128,6 +1160,13 @@ onMounted(cargar);
 </template>
 
 <style scoped>
+.spb__sino {
+  display: flex;
+  gap: 16px;
+}
+.spb__sino .v-checkbox {
+  flex: 0 0 auto;
+}
 .spb {
   --spb-primary: #1e3a8a;
   --spb-border: #dbe5f5;

@@ -442,7 +442,7 @@ export interface SolicitudPagoDetalle {
 }
 
 // Bancos > Solicitudes de Pago (bandeja paginada)
-export type TabBandejaSolicitudPago = "PEN" | "REC" | "HIS";
+export type TabBandejaSolicitudPago = "PEN" | "PPG" | "REC" | "HIS";
 export type EstadoBandejaSolicitudPago = EstadoSolicitudPago | "ELIMINADA";
 
 export interface SolicitudPagoBandeja {
@@ -503,4 +503,6 @@ export interface FiltrosBandejaSolicitudPago {
   tipopago: string | null;
   desde: string;
   hasta: string;
+  // Histórico: "Proveedor cancelado" Sí / No (Sí = lo mismo que Pendiente de Pago)
+  pendiente_pago: ("SI" | "NO")[];
 }
