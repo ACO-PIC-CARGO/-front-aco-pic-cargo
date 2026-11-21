@@ -1487,7 +1487,7 @@ watch(idRole, async () => {
       <v-spacer />
 
       <!-- nuevo -->
-      <label class="monto" v-if="getNameUrl() == 'newQuote'">
+      <label class="monto monto--profit" v-if="getNameUrl() == 'newQuote'">
         Profit / Ganancia
         {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
@@ -1510,7 +1510,7 @@ watch(idRole, async () => {
         GUARDAR
       </v-btn>
       <!-- editar -->
-      <label class="monto" v-if="getNameUrl() == 'editQuote'">
+      <label class="monto monto--profit" v-if="getNameUrl() == 'editQuote'">
         Profit / Ganancia
         {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
@@ -1526,7 +1526,7 @@ watch(idRole, async () => {
         GUARDAR
       </v-btn>
       <!-- ver -->
-      <label class="monto" v-if="['verQuote', 'VerCotizacionCalculadora'].includes(getNameUrl())">
+      <label class="monto monto--profit" v-if="['verQuote', 'VerCotizacionCalculadora'].includes(getNameUrl())">
         Profit / Ganancia
         {{ currencyFormat(pricingStore.totalVenta - pricingStore.totalCosto) }}
       </label>
@@ -2019,6 +2019,15 @@ watch(idRole, async () => {
 }
 .monto {
   font-size: 2rem;
+  white-space: nowrap;
+}
+.monto--profit {
+  margin-inline-start: 16px;
+}
+@media (max-width: 1919.98px) {
+  .monto--profit {
+    font-size: 1.125rem;
+  }
 }
 .dialogOverlay {
   position: fixed;
