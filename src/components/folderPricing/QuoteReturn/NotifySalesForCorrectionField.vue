@@ -21,17 +21,17 @@ const notify = defineModel<boolean>({ required: true });
         </div>
       </div>
       <v-btn-toggle
-        v-model="notify"
+        :model-value="notify"
         mandatory
         divided
         rounded="pill"
         color="primary"
-        variant="outlined"
+        variant="flat"
         density="comfortable"
-        selected-class="bg-primary"
         class="flex-shrink-0"
+        :class="{ 'pe-none': readonly }"
         aria-describedby="notify-sales-note"
-        :disabled="readonly"
+        @update:model-value="readonly || (notify = $event)"
       >
         <v-btn
           :value="true"

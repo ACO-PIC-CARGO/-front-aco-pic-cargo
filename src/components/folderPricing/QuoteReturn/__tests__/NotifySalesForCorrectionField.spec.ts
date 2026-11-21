@@ -11,8 +11,13 @@ function mountField(props: { modelValue: boolean; readonly?: boolean }) {
   const wrapper = mount(NotifySalesForCorrectionField, { props, global: { plugins: [vuetify] } });
   const option = (text: string) => wrapper.findAll("button").find((button) => button.text() === text)!;
   const highlighted = () => wrapper.findAll("button").filter((button) => button.classes("bg-primary")).map((button) => button.text());
-  return { wrapper, option, highlighted };
+  const tintedText = () => wrapper.findAll("button").filter((button) => button.classes("text-primary")).map((button) => button.text());
+  return { wrapper, option, highlighted, tintedText };
 }
+
+test.each([true, false])("the chosen answer %s is white on the fill, never blue on blue", (modelValue) => {
+  expect(mountField({ modelValue }).tintedText()).toEqual([]);
+});
 
 test.each([
   [true, "Sí"],
@@ -29,12 +34,12 @@ test("choosing an answer updates the status", async () => {
   expect(wrapper.emitted("update:modelValue")).toEqual([[false]]);
 });
 
-test("in read-only mode the answer is shown but cannot be changed", async () => {
+test("in read-only mode the answer stays highlighted but cannot be changed", async () => {
   const { wrapper, option, highlighted } = mountField({ modelValue: false, readonly: true });
 
   await option("Sí").trigger("click");
 
-  expect(option("Sí").attributes("disabled")).toBeDefined();
+  expect(option("No").classes("v-btn--disabled")).toBe(false);
   expect(highlighted()).toEqual(["No"]);
   expect(wrapper.emitted("update:modelValue")).toBeUndefined();
 });
