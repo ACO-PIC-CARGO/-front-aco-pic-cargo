@@ -1273,7 +1273,6 @@ function finalizarSeleccionDistrito() {
   >
     <v-card
       elevation="0"
-      :class="{ 'dangerous-goods-section': pricingStore.datosPrincipales.dangerous_goods === true }"
     >
       <v-card-title> Datos de la Carga </v-card-title>
       <v-card-text>

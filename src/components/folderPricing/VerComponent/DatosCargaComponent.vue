@@ -231,7 +231,6 @@ function mostrarComboPercepcionAduana() {
   <v-container fluid>
     <v-card
       elevation="0"
-      :class="{ 'dangerous-goods-section': pricingStore.datosPrincipales.dangerous_goods === true }"
     >
       <v-card-title primary-title>
         <center>Datos de la Carga</center>
