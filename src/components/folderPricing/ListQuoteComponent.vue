@@ -1015,6 +1015,7 @@ onMounted(async () => {
       show-expand
       hide-default-footer
       class="elevation-1"
+      :class="{ 'quote-table--threads': showsLastComment }"
       disable-sort
       :no-data-text="noDataText"
       @update:options="cambiarPagina"
@@ -1035,7 +1036,7 @@ onMounted(async () => {
                 : item.status_code == 5
                   ? 't-green'
                   : 't-black',
-            isExpanded(internalItem) ? 'filaActivda' : '',
+            isExpanded(internalItem) ? (showsLastComment ? 'row--thread-open' : 'filaActivda') : '',
           ]"
         >
           <!-- <td></td> -->
@@ -1386,13 +1387,20 @@ onMounted(async () => {
         </tr>
       </template>
 
-      <template #expanded-row="{ columns, item }">
+      <template #expanded-row="{ columns, item, internalItem, toggleExpand }">
         <tr v-if="item && showsLastComment && item.id">
-          <td :colspan="columns.length">
-            <InternalCommunicationThread
-              :quote-id="item.id"
-              @sent="(message) => onThreadMessageSent(item, message)"
-            />
+          <td
+            :colspan="columns.length"
+            class="thread-row__cell"
+          >
+            <div class="thread-row__content">
+              <InternalCommunicationThread
+                :quote-id="item.id"
+                collapsible
+                @sent="(message) => onThreadMessageSent(item, message)"
+                @collapse="toggleExpand(internalItem)"
+              />
+            </div>
           </td>
         </tr>
         <tr v-else-if="item">
@@ -1766,6 +1774,23 @@ onMounted(async () => {
 }
 .filaActivda {
   background: #0097a7;
+}
+.row--thread-open {
+  background: rgba(var(--v-theme-primary), 0.08);
+}
+.quote-table--threads :deep(.v-table__wrapper) {
+  container-type: inline-size;
+}
+.thread-row__cell {
+  padding: 0 !important;
+}
+/* Keeps the thread inside the visible part of a table that scrolls sideways. */
+.thread-row__content {
+  position: sticky;
+  left: 0;
+  box-sizing: border-box;
+  width: 100cqi;
+  padding: 8px 16px 16px;
 }
 /* #create .v-speed-dial {
   position: absolute;
