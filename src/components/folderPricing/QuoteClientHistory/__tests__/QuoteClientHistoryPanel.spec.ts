@@ -61,5 +61,5 @@ test("the filter button sits in the shell's right-aligned header slot", async ()
   await wrapper.find("button[aria-controls='client-history-content']").trigger("click");
   await flushPromises();
 
-  expect(wrapper.find(".bottom-bar__extra .client-history__filter-button").exists()).toBe(true);
+  expect(wrapper.find(".bottom-bar__end .client-history__filter-button").exists()).toBe(true);
 });
