@@ -53,16 +53,21 @@ onBeforeUnmount(() => {
             color="blue-darken-4"
             size="x-large"
           />
+          <span
+            class="bottom-bar__divider"
+            aria-hidden="true"
+          />
           <span class="bottom-bar__title">{{ title }}</span>
-          <v-icon :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'" />
         </button>
-        <div
-          v-if="$slots.header"
-          class="bottom-bar__extra"
-        >
+        <div class="bottom-bar__end">
           <slot
             name="header"
             :open="open"
+          />
+          <v-icon
+            :icon="open ? 'mdi-chevron-down' : 'mdi-chevron-up'"
+            color="blue-darken-4"
+            size="large"
           />
         </div>
       </header>
@@ -104,13 +109,18 @@ onBeforeUnmount(() => {
 }
 
 .bottom-bar__bar {
+  position: relative;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 12px;
-  min-height: var(--bottom-bar-height);
-  padding: 0 32px;
+  min-height: calc(var(--bottom-bar-height) - 8px);
+  margin: 4px 16px;
+  padding: 0 16px;
   flex-shrink: 0;
+  border: 1.5px solid rgb(var(--v-theme-secondary));
+  border-radius: 12px;
+  background: linear-gradient(rgba(var(--v-theme-primary), 0.08), rgba(var(--v-theme-primary), 0.18));
 }
 
 .bottom-bar__toggle {
@@ -118,12 +128,34 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: var(--bottom-bar-height);
+  height: calc(var(--bottom-bar-height) - 8px);
 }
 
-.bottom-bar__extra {
+/* The whole bar opens the sheet; the header slot sits above this hit area. */
+.bottom-bar__toggle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.bottom-bar__divider {
+  width: 2px;
+  height: 28px;
+  background: rgb(var(--v-theme-on-surface));
+}
+
+.bottom-bar__end {
   grid-column: 3;
   justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bottom-bar__end > :deep(:not(.v-icon)) {
+  position: relative;
+  z-index: 1;
 }
 
 .bottom-bar__title {
