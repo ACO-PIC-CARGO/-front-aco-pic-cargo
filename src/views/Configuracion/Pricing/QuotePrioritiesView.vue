@@ -5,6 +5,7 @@ import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import { notifySuccess } from "@/utils/request";
 import QuotePriorityChip from "@/components/folderPricing/QuotePriorityChip.vue";
+import { priorityChipStyle } from "@/components/folderPricing/priorityColor";
 import { deleteQuotePriority, listQuotePriorities, saveQuotePriority } from "./quotePriorityApi";
 import type { QuotePriority } from "./quotePriorityApi";
 
@@ -214,7 +215,7 @@ onMounted(() => {
             <template #activator="{ props: menuProps }">
               <v-btn
                 v-bind="menuProps"
-                :style="{ background: draft[key] }"
+                :style="priorityChipStyle(draft[key]) ?? undefined"
                 size="small"
                 :aria-label="`Color de ${label}`"
               >
