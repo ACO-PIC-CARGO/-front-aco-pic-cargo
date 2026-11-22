@@ -31,7 +31,7 @@ async function openDialog() {
   const wrapper = mount(PricingRequestButton, { props: { quoteId: 15 }, global: { plugins: [vuetify] }, attachTo: document.body });
   await wrapper.find("button[aria-label='Solicitar a pricing']").trigger("click");
   await flushPromises();
-  const send = () => [...document.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Solicitar") as HTMLButtonElement;
+  const send = () => [...document.querySelectorAll("button")].find((b) => b.textContent?.trim() === "SOLICITAR A PRICING") as HTMLButtonElement;
   return { wrapper, send, text: () => document.body.textContent ?? "" };
 }
 
@@ -40,6 +40,36 @@ beforeEach(() => {
   vi.mocked(getPricingRequestInfo).mockReset();
   vi.mocked(createPricingRequest).mockReset();
   vi.mocked(Swal.fire).mockReset();
+});
+
+const fieldValue = (label: string) => {
+  const id = [...document.querySelectorAll("label")].find((element) => element.textContent?.trim() === label)?.getAttribute("for");
+  return (document.getElementById(id ?? "") as HTMLInputElement | null)?.value;
+};
+
+test("the dialog shows pricing the quote with its client, transport and shipment", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ client_name: "PEDRO LUIS", transport_name: "Marítimo", shipment_label: "LCL Grupal" }));
+  await openDialog();
+
+  expect(["QUOTE", "CLIENTE", "TIPO", "SUB TIPO"].map(fieldValue)).toEqual(["15479-P", "PEDRO LUIS", "Marítimo", "LCL Grupal"]);
+});
+
+test("a quote without client, transport or shipment says so instead of a blank", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ client_name: null, transport_name: null, shipment_label: null }));
+  await openDialog();
+
+  expect(["CLIENTE", "TIPO", "SUB TIPO"].map(fieldValue)).toEqual(["Sin registrar", "Sin registrar", "Sin registrar"]);
+});
+
+test("the question names the assigned pricing, or PRICING when there is none", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValueOnce(info()).mockResolvedValueOnce(info({ pricing_name: null }));
+  const { wrapper, text } = await openDialog();
+  expect(text()).toContain("¿Deseas solicitar a ANA PRICING esta cotización?");
+
+  await wrapper.find("button[aria-label='Solicitar a pricing']").trigger("click");
+  await flushPromises();
+
+  expect(text()).toContain("¿Deseas solicitar a PRICING esta cotización?");
 });
 
 test("a blocked request explains why and cannot be sent", async () => {

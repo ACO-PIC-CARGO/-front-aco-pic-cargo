@@ -3,7 +3,7 @@ import { onMounted, ref, watch } from "vue";
 import Swal from "sweetalert2";
 import { createPricingRequest, getPricingRequestInfo } from "./pricingRequestApi";
 import type { PricingRequestInfo } from "./pricingRequestApi";
-import InternalCommunicationThread from "../InternalCommunication/InternalCommunicationThread.vue";
+import PricingRequestDialog from "./PricingRequestDialog.vue";
 import { newNoteToSend } from "../InternalCommunication/newNote";
 import { internalThreadChanged } from "../InternalCommunication/internalThreadRefresh";
 import { alreadyRequestedTooltip, isAlreadyRequested } from "./pricingRequestState";
@@ -166,71 +166,16 @@ async function send() {
     <span>Solicitar a pricing</span>
   </v-tooltip>
 
-  <v-dialog
-    v-model="dialog"
-    max-width="640"
-  >
-    <v-card>
-      <v-card-title>Solicitar a pricing</v-card-title>
-      <v-card-text>
-        <p v-if="loading">
-          Cargando los datos de la solicitud…
-        </p>
-        <template v-else-if="info">
-          <p>¿Solicitar a {{ info.pricing_name ?? "pricing" }} que revise la cotización {{ info.quote_code }}?</p>
-          <InternalCommunicationThread
-            class="mt-3"
-            :quote-id="quoteId"
-            readonly
-          />
-          <v-textarea
-            v-if="info.can_request"
-            v-model="note"
-            class="mt-3"
-            label="Nueva nota"
-            placeholder="Escribe lo que Pricing debe saber sobre esta cotización. Se envía junto con la solicitud."
-            rows="3"
-            auto-grow
-          />
-        </template>
-        <v-alert
-          v-if="loadError || info?.blocked_reason"
-          type="warning"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          {{ loadError ?? info?.blocked_reason }}
-        </v-alert>
-        <v-alert
-          v-if="sendError"
-          type="error"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          {{ sendError }}
-        </v-alert>
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="dialog = false"
-        >
-          Cancelar
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          :disabled="loading || !info?.can_request"
-          :loading="sending"
-          @click="send"
-        >
-          Solicitar
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <PricingRequestDialog
+    v-model:open="dialog"
+    v-model:note="note"
+    :quote-id="quoteId"
+    :info="info"
+    :loading="loading"
+    :sending="sending"
+    :notice="loadError ?? info?.blocked_reason ?? null"
+    :error="sendError"
+    @send="send"
+  />
 </template>
 

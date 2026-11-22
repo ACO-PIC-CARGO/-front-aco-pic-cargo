@@ -9,6 +9,9 @@ export interface PricingRequestInfo {
   can_request: boolean;
   blocked_reason: string | null;
   already_requested: boolean | null;
+  client_name: string | null;
+  transport_name: string | null;
+  shipment_label: string | null;
 }
 
 const url = (path: string) => `${import.meta.env.VITE_URL_MAIN}${path}`;
