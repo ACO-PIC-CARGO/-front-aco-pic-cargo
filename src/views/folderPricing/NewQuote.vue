@@ -14,7 +14,7 @@ import ComparativaComponent from "../../components/folderPricing/ComparativaComp
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
-import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
+import InternalCommunicationFab from "@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue";
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
 );
@@ -1248,7 +1248,7 @@ function formatearCostoTotal(valor: Costo) {
       </v-stepper-window>
     </v-stepper>
     <BottomBarsSpacer />
-    <InternalCommunicationBar :quote-id="Number(pricingStore.id) || null" />
+    <InternalCommunicationFab :quote-id="Number(pricingStore.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->

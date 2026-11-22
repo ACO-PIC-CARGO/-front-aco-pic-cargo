@@ -52,8 +52,8 @@ const UnificarCotizacion = defineAsyncComponent(
     import("@/components/folderPricing/VerComponent/UnificarCotizacion.vue"),
 );
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
-const InternalCommunicationBar = defineAsyncComponent(
-  () => import("@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue"),
+const InternalCommunicationFab = defineAsyncComponent(
+  () => import("@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue"),
 );
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
@@ -300,7 +300,7 @@ onMounted(async () => {
       </v-stepper>
     </v-card>
     <BottomBarsSpacer />
-    <InternalCommunicationBar
+    <InternalCommunicationFab
       :quote-id="Number(route.params.id) || null"
       :visible="Number(pricingStore.e1) <= 4"
     />
