@@ -12,6 +12,10 @@ import {
 
 /** Lo mínimo de una solicitud de pago para editarla o eliminarla desde cualquier listado */
 export interface SolicitudPagoAccion {
+  /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
+  multiexpedienteflag?: boolean;
+  /** expedientes amarrados a la solicitud (solo la del reporte) */
+  expedientes_solicitud?: string | null;
   id: number;
   id_proveedor: number;
   proveedor: string;

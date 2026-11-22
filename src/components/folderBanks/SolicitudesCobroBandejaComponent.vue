@@ -473,7 +473,16 @@ onMounted(cargar);
           <span v-else>Sin enviar</span>
         </template>
         <template #[`item.expediente`]="{ item }">
+          <!-- solicitud del Reporte con varios expedientes: no abre ninguno (no hay uno solo al que ir) -->
+          <span
+            v-if="item.multiexpedienteflag"
+            class="cobl__exp cobl__exp--multi"
+            title="Solicitud con varios expedientes (Reporte de Cuentas por Cobrar)"
+          >
+            {{ item.expediente }}
+          </span>
           <button
+            v-else
             type="button"
             class="cobl__exp"
             @click="verExpediente(item)"
@@ -991,6 +1000,11 @@ onMounted(cargar);
 }
 button.cobl__exp:hover {
   text-decoration: underline;
+}
+/* varios expedientes: no es enlace y puede bajar de línea (sin desbordar la columna) */
+.cobl__exp--multi {
+  cursor: default;
+  white-space: normal;
 }
 .cobl__corr {
   margin-top: 2px;

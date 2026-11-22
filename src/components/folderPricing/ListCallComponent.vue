@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
 import { ref, useTemplateRef } from "vue";
 import moment from "moment";
 import Swal from "sweetalert2";
@@ -7,6 +8,9 @@ import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionUserIdOrEmpty } from "@/utils/sesion";
 import type { FormNotaLlamada } from "@/types/cotizacion";
+
+// celular / tablet: tablas en tarjetas y modales a pantalla completa
+const { smAndDown } = useDisplay();
 
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
@@ -342,7 +346,8 @@ async function guardarNota() {
     <v-dialog
       v-model="dialogRegistroNotaLlamada"
       v-if="dialogRegistroNotaLlamada"
-      max-width="30%"
+      :max-width="smAndDown ? undefined : '30%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title>
@@ -415,12 +420,14 @@ async function guardarNota() {
         <v-divider class="applied-filters-divider" />
         <v-row>
           <v-col
-            cols="6"
+            cols="12"
+            md="6"
             class="py-1"
           >
             <v-row>
               <v-col
-                cols="4"
+                cols="12"
+                sm="4"
                 class="clsFechaPor"
               >
                 <v-text-field
@@ -434,7 +441,10 @@ async function guardarNota() {
                 />
               </v-col>
 
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -448,7 +458,10 @@ async function guardarNota() {
                   id="frmFechaDesde"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -464,7 +477,8 @@ async function guardarNota() {
             </v-row>
           </v-col>
           <v-col
-            cols="6"
+            cols="12"
+            md="6"
             class="py-1"
             v-if="
               pricingStore.filtroCalls.fechaemisiondesde ||
@@ -473,7 +487,8 @@ async function guardarNota() {
           >
             <v-row>
               <v-col
-                cols="4"
+                cols="12"
+                sm="4"
                 class="clsFechaPor"
               >
                 <v-text-field
@@ -486,7 +501,10 @@ async function guardarNota() {
                   prepend-icon="mdi-calendar-month"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -501,7 +519,10 @@ async function guardarNota() {
                   label="Desde"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -713,6 +734,7 @@ async function guardarNota() {
         density="compact"
         :headers="headers"
         :items="pricingStore.listCall"
+        :mobile="smAndDown"
         :items-per-page="5"
         class="elevation-1 contenido"
         :search="search"

@@ -209,7 +209,16 @@ async function cargarSolicitudesActivas() {
   });
   solicitudesActivas.value = response.estadoflag ? response.data : [];
 }
+// Solicitud del Reporte de Cuentas por Pagar: el expediente amarrado de esa fila (con su monto solicitado)
+function expedienteSolicitud(d: DetalleEgreso, sol: SolicitudPagoTransferencia) {
+  const fila = d as DetalleEgreso & { id_master?: number | string; id_correlativo?: number | string };
+  if (d.tipo_gasto !== "O" || !sol.multiexpedienteflag) return undefined;
+  return (sol.expedientes ?? []).find(
+    (e) => Number(e.id_master) === Number(fila.id_master) && Number(e.id_correlativo ?? 0) === Number(fila.id_correlativo ?? 0),
+  );
+}
 function esCorrelativoSolicitud(d: DetalleEgreso, sol: SolicitudPagoTransferencia) {
+  if (sol.multiexpedienteflag) return !!expedienteSolicitud(d, sol);
   const fila = d as DetalleEgreso & { id_master?: number | string; id_correlativo?: number | string };
   return (
     d.tipo_gasto === "O" &&
@@ -238,7 +247,9 @@ async function cargarSolicitud() {
   nroCuentaProveedor.value = sol.nrocuenta_proveedor || "";
   idCoinsProveedor.value = sol.id_coins_proveedor ?? sol.id_coins ?? null;
   if (!itemsOrdenados.value.length) {
-    errorSolicitud.value = `El correlativo ${sol.correlativo ?? ""} del expediente ${sol.expediente} ya no tiene saldo pendiente con este proveedor.`;
+    errorSolicitud.value = sol.multiexpedienteflag
+      ? `Los expedientes de la solicitud N° ${sol.id} ya no tienen saldo pendiente con este proveedor.`
+      : `El correlativo ${sol.correlativo ?? ""} del expediente ${sol.expediente} ya no tiene saldo pendiente con este proveedor.`;
     return;
   }
   symbol.value = sol.moneda || "USD";
@@ -250,9 +261,16 @@ async function cargarSolicitud() {
 function seleccionarCorrelativoSolicitud() {
   if (!solicitud.value) return;
   const items = itemsOrdenados.value;
+  const sol = solicitud.value;
   items.forEach((item) => {
-    item.parcialflag = false;
-    item.montoparcial = item.saldo_pendiente_local;
+    if (!sol) return;
+    // solicitud del Reporte: cada expediente por su monto solicitado (menor al saldo = abono parcial)
+    const exp = expedienteSolicitud(item, sol);
+    const montoSol = Math.round(Number(exp?.monto ?? 0) * 100) / 100;
+    const saldo = Math.round(Number(item.saldo_pendiente_local ?? 0) * 100) / 100;
+    const parcial = !!exp && montoSol > 0 && montoSol < saldo;
+    item.parcialflag = parcial;
+    item.montoparcial = parcial ? montoSol.toFixed(2) : item.saldo_pendiente_local;
   });
   selected.value = [...items];
   calcularTotal();

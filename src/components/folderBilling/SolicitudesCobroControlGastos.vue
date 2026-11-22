@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import Swal from "sweetalert2";
@@ -47,6 +49,7 @@ const solicitudDe = (fila: { codigo: string }) => solicitudes.value.find((s) => 
 // eliminar desde una fila: si la solicitud tiene más pagos se quita solo ese; si es el único, la solicitud
 function eliminarFila(fila: FilaSoporteCobro<SolicitudCobro>) {
   const s = solicitudDe(fila);
+  if (avisarOrigenSolicitud(s, "cg", "eliminar", "cobro")) return;
   if (fila._soporte && (s.soportes?.length ?? 0) > 1) eliminarSoporte(s, fila._soporte);
   else eliminar(s);
 }
@@ -104,6 +107,8 @@ const adminEditar = ref<AdminCredentials | null>(null);
 const soporteEditar = ref<SoporteCobro | null>(null);
 // varios pagos parciales: se elige cuál editar en la lista de soportes
 async function editar(s: SolicitudCobro, soporte: SoporteCobro | null = null) {
+  // la pedida desde el reporte solo se edita ahí (Administración)
+  if (avisarOrigenSolicitud(s, "cg", "editar", "cobro")) return;
   if (avisarIngresoBancosCobro(s)) return;
   if (!soporte && (s.soportes?.length ?? 0) > 1) {
     verSoportes(s);
@@ -249,6 +254,11 @@ defineExpose({ cargar });
                 <v-icon size="16">{{ ICONO_ESTADO_LISTA[s.codigo_estado] ?? "mdi-circle-outline" }}</v-icon>
                 {{ s.estado }}
               </span>
+              <SolicitudOrigenNota
+                v-if="s.multiexpedienteflag"
+                origen="adm"
+                tipo="cobro"
+              />
               <div
                 v-if="s.codigo_estado === 'RECHAZADA'"
                 class="cobl__motivo"

@@ -49,8 +49,8 @@ const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "O
 const ESTADOS: { codigo: EstadoBandejaSolicitudPago; titulo: string; tabs: TabBandejaSolicitudPago[] }[] = [
   { codigo: "PENADM", titulo: "Pendiente por Administración", tabs: ["PEN", "HIS"] },
   { codigo: "PENGER", titulo: "Pendiente por Gerencia", tabs: ["PEN", "HIS"] },
-  { codigo: "LISTO", titulo: "Listo para transferir", tabs: ["PPG", "HIS"] },
-  { codigo: "PAGADO", titulo: "Pagado", tabs: ["HIS"] },
+  { codigo: "LISTO", titulo: "Listo para transferir", tabs: ["PEN", "HIS"] },
+  { codigo: "PAGADO", titulo: "Pagado", tabs: ["PPG", "HIS"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
 ];
@@ -837,7 +837,7 @@ onMounted(cargar);
           <!-- 1. editar  2. eliminar  3. ver: editar/eliminar con las mismas reglas que Control de Gastos -->
           <div class="spb__acciones">
             <v-btn
-              v-if="puedeEditarSolicitud && !anuladaSolicitud(item)"
+              v-if="puedeEditarSolicitud && !anuladaSolicitud(item) && !item.multiexpedienteflag"
               icon="mdi-pencil-outline"
               variant="text"
               size="small"

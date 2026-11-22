@@ -212,8 +212,11 @@ const itemsOrdenados = computed(() => {
   let items = [...bankStore.deudaACliente] as unknown as (FacturaPorCobrar & { id_correlativo?: number | null })[];
   const sol = solicitud.value;
   if (sol) {
-    items = items.filter(
-      (i) => !i.admin_invoice_id && i.registro_id === sol.id_house && String(i.id_correlativo ?? "") === String(sol.id_correlativo ?? ""),
+    // solicitud del Reporte de Cuentas por Cobrar: todos los house / correlativos amarrados
+    items = items.filter((i) =>
+      sol.multiexpedienteflag
+        ? !!expedienteSolicitud(i)
+        : !i.admin_invoice_id && i.registro_id === sol.id_house && String(i.id_correlativo ?? "") === String(sol.id_correlativo ?? ""),
     );
   }
   return items.sort((a, b) => {
@@ -259,10 +262,24 @@ function checkDeshabilitado(item: FacturaPorCobrar) {
 const aNumero = (valor: unknown) => Math.round(Number(String(valor ?? 0).replace(/,/g, "")) * 100) / 100 || 0;
 // Desde una solicitud de cobro se cobra el monto del pago del cliente: si es menor que la deuda del
 // correlativo, es un Abono Parcial por ese monto (no el total)
+// solicitud del Reporte: el expediente amarrado de esa fila (con su monto solicitado)
+function expedienteSolicitud(item: FacturaPorCobrar & { id_correlativo?: number | null }) {
+  const sol = solicitud.value;
+  if (!sol?.multiexpedienteflag || item.admin_invoice_id) return undefined;
+  return (sol.expedientes ?? []).find(
+    (e) => Number(e.id_house) === Number(item.registro_id) && Number(e.id_correlativo ?? 0) === Number(item.id_correlativo ?? 0),
+  );
+}
+// monto a cobrar de la fila: el del pago del cliente o, en la solicitud del Reporte, el de su expediente
+function montoSolicitudDe(item: FacturaPorCobrar): number {
+  const sol = solicitud.value;
+  if (!sol) return 0;
+  return sol.multiexpedienteflag ? aNumero(expedienteSolicitud(item)?.monto) : aNumero(sol.monto);
+}
 function aplicarMontoSolicitud(item: FacturaPorCobrar): boolean {
   const sol = solicitud.value;
   if (!sol) return false;
-  const montoPago = aNumero(sol.monto);
+  const montoPago = montoSolicitudDe(item);
   const deuda = aNumero(item.total_mon_local);
   const parcial = montoPago > 0 && montoPago < deuda;
   item.parcialflag = parcial;
@@ -680,8 +697,8 @@ watch(fecha_operacion, (newVal) => {
 watch(selected, () => {
   // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente
   if (solicitud.value) {
-    const montoPago = aNumero(solicitud.value.monto);
     selected.value.forEach((item) => {
+      const montoPago = montoSolicitudDe(item);
       const parcial = montoPago > 0 && montoPago < aNumero(item.total_mon_local);
       if (item.parcialflag !== parcial || (parcial && aNumero(item.montoparcial) !== montoPago)) aplicarMontoSolicitud(item);
     });
@@ -740,11 +757,10 @@ async function cargarSolicitud() {
   const cuenta = bancosStore.cuentas.find((c) => c.id === sol.id_cuentabancaria);
   if (cuenta) id_cuenta.value = { ...cuenta } as CuentaIngreso;
   // el correlativo de la solicitud, por el monto de este pago del cliente (puede ser un abono parcial)
-  const fila = itemsOrdenados.value[0];
-  if (fila) {
-    aplicarMontoSolicitud(fila);
-    selected.value = [fila];
-  }
+  // solicitud del Reporte: todos los expedientes amarrados, cada uno por su monto
+  const filas = sol.multiexpedienteflag ? [...itemsOrdenados.value] : itemsOrdenados.value.slice(0, 1);
+  filas.forEach((f) => aplicarMontoSolicitud(f));
+  if (filas.length) selected.value = filas;
   // la fecha de ingreso en banco que confirmó Administración (no la del soporte del cliente)
   fecha_operacion.value = sol.fecha_ingreso || sol.fechadeposito;
   id_banco_origen.value = sol.id_banco_origen;

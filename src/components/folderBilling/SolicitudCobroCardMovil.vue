@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 // Tarjeta móvil / tablet de una solicitud de cobro (mismo diseño que la de Solicitudes de Pago).
 // La usan Control de Gastos > Solicitudes de Cobro e Ingresos pendientes por confirmar.
 import { computed } from "vue";
@@ -151,6 +152,11 @@ function abrir(url: string | null | undefined) {
         <v-icon size="20">{{ ICONO_ESTADO[s.codigo_estado] ?? "mdi-circle-outline" }}</v-icon>
         {{ s.estado }}
       </span>
+      <SolicitudOrigenNota
+        v-if="!bandeja && s.multiexpedienteflag"
+        origen="adm"
+        tipo="cobro"
+      />
     </div>
 
     <div class="ccm__detail">
@@ -516,7 +522,7 @@ function abrir(url: string | null | undefined) {
       class="ccm__actions ccm__actions--fin"
     >
       <v-btn
-        v-if="puedeEditar"
+        v-if="puedeEditar && (!bandeja || !s.multiexpedienteflag)"
         size="small"
         variant="tonal"
         :color="s.id_pagoingreso ? 'grey' : 'primary'"

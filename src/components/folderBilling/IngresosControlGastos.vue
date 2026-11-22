@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -38,6 +40,7 @@ import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
 import SoportesCobroDialog from "./SoportesCobroDialog.vue";
 import type { SoporteDeSolicitud } from "./SoportesCobroDialog.vue";
 import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
+import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
 import {
   avisarIngresoBancosCobro,
   faltaRegistrarCobro,
@@ -1508,6 +1511,8 @@ function saldoCobro(house: HouseIngreso) {
 async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro | null = null, nuevo = false) {
   // editar un pago: su propia solicitud
   const abierta = (soporte ? solicitudDeSoporte(house, soporte) : null) ?? solicitudCobroDe(house) ?? null;
+  // la pedida desde el reporte solo se edita ahí (Administración)
+  if (abierta && !nuevo && avisarOrigenSolicitud(abierta, "cg", "editar", "cobro")) return;
   if (abierta && !nuevo && avisarIngresoBancosCobro(abierta)) return;
   // pago nuevo con la solicitud ya confirmada (aún sin registrar en Bancos): va en una solicitud nueva
   // por el saldo disponible; la confirmada no se toca
@@ -1583,6 +1588,7 @@ const totalSoportesCobro = computed(() => {
 function eliminarPagoCobro(house: HouseIngreso) {
   const s = solicitudCobroDe(house);
   if (!s) return;
+  if (avisarOrigenSolicitud(s, "cg", "eliminar", "cobro")) return;
   if ((s.soportes?.length ?? 0) > 1) verSoportesCobro(house);
   else cobro.eliminar(s);
 }
@@ -1609,7 +1615,20 @@ function enviarSoporteCobro(soporte: SoporteCobro) {
 // modo ver (ojito), igual que en Solicitudes de Pago
 const dialogVer = ref(false);
 const codigoVer = ref<string | null>(null);
-function verSolicitud(s: { codigo: string }) {
+// la pedida desde el Reporte de Cuentas por Cobrar (Administración) se ve en el mismo modal del reporte
+// (paso 2, solo lectura, con todos sus expedientes)
+const dialogVerReporte = ref(false);
+const solicitudCobroReporteVer = ref<SolicitudCobro | null>(null);
+const entidadCobroReporteVer = computed(() =>
+  solicitudCobroReporteVer.value
+    ? { id: Number(solicitudCobroReporteVer.value.id_cliente), nombre: solicitudCobroReporteVer.value.cliente }
+    : null);
+function verSolicitud(s: { codigo: string; multiexpedienteflag?: boolean }) {
+  if (s.multiexpedienteflag) {
+    solicitudCobroReporteVer.value = s as SolicitudCobro;
+    dialogVerReporte.value = true;
+    return;
+  }
   codigoVer.value = s.codigo;
   dialogVer.value = true;
 }
@@ -1922,6 +1941,11 @@ watch(
                       </span>
                       <span class="cobreq-resumen__monto">{{ montoCobro(montoCobrado(sol), sol.moneda) }}</span>
                     </div>
+                    <SolicitudOrigenNota
+                      v-if="solicitudesPendientesCobro(houseIngreso).some((sol) => sol.multiexpedienteflag)"
+                      origen="adm"
+                      tipo="cobro"
+                    />
                   </div>
                   <!-- mismo diseño que "Solicitar a Administración" de Costos -->
                   <div
@@ -1961,6 +1985,12 @@ watch(
                           <span class="cobreq__monto">
                             Monto: {{ montoCobro(montoCobrado(solicitudCobroEnviada(houseIngreso)!), solicitudCobroEnviada(houseIngreso)!.moneda) }}
                           </span>
+                          <!-- pedida desde el Reporte de Cuentas por Cobrar (Administración) -->
+                          <SolicitudOrigenNota
+                            v-if="solicitudCobroEnviada(houseIngreso)!.multiexpedienteflag"
+                            origen="adm"
+                            tipo="cobro"
+                          />
                         </span>
                       </button>
                       <!-- ver / editar / eliminar apilados, como en Costos -->
@@ -3807,6 +3837,12 @@ watch(
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <SolicitudReporteDialog
+      v-model="dialogVerReporte"
+      tipo="cobro"
+      :entidad="entidadCobroReporteVer"
+      :solicitud="solicitudCobroReporteVer"
+    />
     <SolicitudCobroVerDialog
       v-model="dialogVer"
       :codigo="codigoVer"
