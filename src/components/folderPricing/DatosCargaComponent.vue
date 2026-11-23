@@ -12,7 +12,7 @@ import { usePricingStore } from "@/stores/pricing";
 import DangerousGoodsField from "@/components/folderPricing/DangerousGoodsField.vue";
 import { positiveInteger } from "@/components/folderPricing/quoteRules";
 import SpecialRateNoticeBox from "@/components/folderPricing/SpecialRateNoticeBox.vue";
-import { isVisible } from "@/components/folderPricing/specialRateNotice";
+import { cargoMeasuresOf, isVisible } from "@/components/folderPricing/specialRateNotice";
 import { useSpecialRateNotice } from "@/components/folderPricing/useSpecialRateNotice";
 import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
@@ -1555,7 +1555,7 @@ function finalizarSeleccionDistrito() {
             </v-col>
           </v-row>
           <SpecialRateNoticeBox
-            v-if="isVisible(specialRateNotice)"
+            v-if="isVisible(specialRateNotice, cargoMeasuresOf(pricingStore.datosPrincipales))"
             :notice="specialRateNotice"
           />
         </v-form>
