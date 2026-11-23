@@ -420,6 +420,17 @@ watch(cuentasPagoCliente, (cuentas) => {
 function hoyLima() {
   return moment().format("YYYY-MM-DD");
 }
+// el nombre de la cuenta / banco se guarda junto al id: Control de Gastos lo muestra tal cual
+watch(
+  () => [datosManuales.value.cuentaPagoCliente, datosManuales.value.bancoPagoCliente, cuentasPagoCliente.value, bancosPagoCliente.value],
+  () => {
+    const d = datosManuales.value;
+    const cuenta = cuentasPagoCliente.value.find((c) => c.id === d.cuentaPagoCliente);
+    const banco = bancosPagoCliente.value.find((b) => b.id === d.bancoPagoCliente);
+    if (cuenta || !d.cuentaPagoCliente) d.cuentaPagoClienteTexto = cuenta?.titulo ?? "";
+    if (banco || !d.bancoPagoCliente) d.bancoPagoClienteTexto = banco?.titulo ?? "";
+  },
+);
 // FormatFecha trabaja con string | null.
 const fechaPagoCliente = computed<string | null>({
   get: () => (datosManuales.value.fechaPagoCliente as string | undefined) || null,

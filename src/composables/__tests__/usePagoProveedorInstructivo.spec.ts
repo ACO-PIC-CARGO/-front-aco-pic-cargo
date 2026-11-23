@@ -68,6 +68,21 @@ describe("detalle del pago al proveedor del instructivo (6.3)", () => {
     expect(si?.campos[1]?.archivo).toEqual({ ruta: comprobante.ruta, name: "pago.pdf" });
   });
 
+  it("6.1 cliente pagó: muestra la cuenta y el banco con su nombre", () => {
+    const si = detalleClientePago({
+      clientePago: "Si",
+      montoRecibido: "10",
+      cuentaPagoClienteTexto: "BCP - Banco de Crédito · 192-2190795",
+      bancoPagoClienteTexto: "BANCO PICHINCHA - BANCO PICHINCHA",
+    });
+    expect(si?.campos.map((c) => c.valor)).toEqual([
+      "USD 10.00",
+      "BCP - Banco de Crédito · 192-2190795",
+      "BANCO PICHINCHA - BANCO PICHINCHA",
+      "",
+    ]);
+  });
+
   it("transferencia internacional sin comprobante ya no lo lista (pasó al 6.1)", () => {
     const detalle = detallePagoProveedor({ metodoPagoCodigo: "03", comprobantePago: { flag: false, file: null } });
     expect(detalle.campos.some((c) => c.label === "Comprobante de Transferencia")).toBe(false);

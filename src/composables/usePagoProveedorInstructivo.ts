@@ -97,6 +97,13 @@ export function detalleClientePago(datos: Record<string, unknown>): { pago: bool
           ...(archivoDe(d.comprobantePagoCliente)
             ? [documento("Comprobante de pago del cliente", "mdi-file-upload-outline", d.comprobantePagoCliente)]
             : []),
+          // cuenta de la empresa y banco del cliente (el nombre se guarda en el instructivo junto al id)
+          ...(texto(d.cuentaPagoClienteTexto)
+            ? [{ label: "Cuenta donde depositó", icon: "mdi-bank-outline", valor: texto(d.cuentaPagoClienteTexto) }]
+            : []),
+          ...(texto(d.bancoPagoClienteTexto)
+            ? [{ label: "Banco del cliente", icon: "mdi-bank-transfer-out", valor: texto(d.bancoPagoClienteTexto) }]
+            : []),
           { label: "Fecha en que nos pagó", icon: "mdi-calendar-month-outline", valor: fecha ? shortDate(fecha) : "" },
         ]
       : [],
