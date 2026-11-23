@@ -1,4 +1,5 @@
 import { beforeEach, expect, test, vi } from "vitest";
+import { defineComponent, h, ref } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
 import Swal from "sweetalert2";
 import { createVuetify } from "vuetify";
@@ -46,6 +47,28 @@ const fieldValue = (label: string) => {
   const id = [...document.querySelectorAll("label")].find((element) => element.textContent?.trim() === label)?.getAttribute("for");
   return (document.getElementById(id ?? "") as HTMLInputElement | null)?.value;
 };
+
+test("opened from the quote list's action group, the dialog buttons do not join that group", async () => {
+  vi.mocked(getPricingRequestInfo).mockResolvedValue(info());
+  const selected = ref<unknown>();
+  const ActionGroup = defineComponent({
+    setup: () => () =>
+      h(
+        components.VBtnToggle,
+        { modelValue: selected.value, "onUpdate:modelValue": (value: unknown) => (selected.value = value) },
+        () => h(PricingRequestButton, { quoteId: 15 }),
+      ),
+  });
+  mount(ActionGroup, { global: { plugins: [vuetify] }, attachTo: document.body });
+  document.querySelector<HTMLButtonElement>("button[aria-label='Solicitar a pricing']")!.click();
+  await flushPromises();
+  const selectedByTheIcon = selected.value;
+
+  [...document.querySelectorAll<HTMLButtonElement>("button")].find((b) => b.textContent?.trim() === "CANCELAR")!.click();
+  await flushPromises();
+
+  expect(selected.value).toEqual(selectedByTheIcon);
+});
 
 test("the dialog shows pricing the quote with its client, transport and shipment", async () => {
   vi.mocked(getPricingRequestInfo).mockResolvedValue(info({ client_name: "PEDRO LUIS", transport_name: "Marítimo", shipment_label: "LCL Grupal" }));

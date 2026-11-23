@@ -16,6 +16,8 @@ const note = defineModel<string>("note", { required: true });
 const emit = defineEmits<{ send: [] }>();
 
 const NOT_REGISTERED = "Sin registrar";
+// The quote list renders this dialog inside a row's v-btn-toggle; its buttons must not join that group.
+const OUTSIDE_BUTTON_GROUPS = { VBtn: { symbol: Symbol("pricing-request-dialog") } };
 
 const quoteFields = computed(() => [
   { id: "pricing-request-quote", label: "QUOTE", icon: "mdi-file-document-edit-outline", value: props.info?.quote_code ?? "" },
@@ -31,149 +33,151 @@ const quoteFields = computed(() => [
     max-width="680"
     scrollable
   >
-    <v-card
-      class="pricing-request"
-      rounded="lg"
-    >
-      <header class="pricing-request__header">
-        <span class="pricing-request__badge bg-blue-accent-4">
-          <v-icon
-            icon="mdi-account-group"
-            size="30"
-          />
-        </span>
-        <span
-          class="pricing-request__rule bg-blue-accent-4"
-          aria-hidden="true"
-        />
-        <h2 class="pricing-request__title text-indigo-darken-4">
-          <span>Solicitar a</span>
-          <span class="pricing-request__chip bg-blue-accent-3">PRICING</span>
-        </h2>
-        <v-btn
-          icon="mdi-close"
-          variant="text"
-          aria-label="Cerrar"
-          @click="open = false"
-        />
-      </header>
-
-      <v-card-text class="pricing-request__body">
-        <p v-if="loading">
-          Cargando los datos de la solicitud…
-        </p>
-        <template v-else-if="info">
-          <div class="pricing-request__question bg-blue-lighten-5">
+    <v-defaults-provider :defaults="OUTSIDE_BUTTON_GROUPS">
+      <v-card
+        class="pricing-request"
+        rounded="lg"
+      >
+        <header class="pricing-request__header">
+          <span class="pricing-request__badge bg-blue-accent-4">
             <v-icon
-              icon="mdi-send-outline"
-              color="blue-accent-4"
-              size="38"
+              icon="mdi-account-group"
+              size="30"
             />
-            <p>
-              ¿Deseas solicitar a <span class="text-blue-accent-4">{{ info.pricing_name ?? "PRICING" }}</span> esta cotización?
-            </p>
-          </div>
-
-          <div class="pricing-request__fields">
-            <template
-              v-for="(field, index) in quoteFields"
-              :key="field.id"
-            >
-              <label
-                :for="field.id"
-                class="pricing-request__label"
-              >
-                <v-icon
-                  :icon="field.icon"
-                  size="22"
-                />
-                {{ field.label }}
-              </label>
-              <v-text-field
-                :id="field.id"
-                :model-value="field.value"
-                :class="{ 'pricing-request__quote': index === 0 }"
-                class="pricing-request__value"
-                variant="outlined"
-                density="compact"
-                readonly
-                hide-details
-              />
-            </template>
-            <template v-if="info.can_request">
-              <label
-                for="pricing-request-note"
-                class="pricing-request__label pricing-request__label--top"
-              >
-                <v-icon
-                  icon="mdi-note-text-outline"
-                  size="22"
-                />
-                NOTAS
-              </label>
-              <v-textarea
-                id="pricing-request-note"
-                v-model="note"
-                placeholder="Escribe lo que Pricing debe saber sobre esta cotización. Se envía junto con la solicitud."
-                variant="outlined"
-                rows="3"
-                auto-grow
-                hide-details
-              />
-            </template>
-          </div>
-
-          <InternalCommunicationThread
-            class="mt-4"
-            :quote-id="quoteId"
-            readonly
+          </span>
+          <span
+            class="pricing-request__rule bg-blue-accent-4"
+            aria-hidden="true"
           />
-        </template>
-        <v-alert
-          v-if="notice"
-          type="warning"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          {{ notice }}
-        </v-alert>
-        <v-alert
-          v-if="error"
-          type="error"
-          variant="tonal"
-          density="compact"
-          class="mt-3"
-        >
-          {{ error }}
-        </v-alert>
-      </v-card-text>
+          <h2 class="pricing-request__title text-indigo-darken-4">
+            <span>Solicitar a</span>
+            <span class="pricing-request__chip bg-blue-accent-3">PRICING</span>
+          </h2>
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            aria-label="Cerrar"
+            @click="open = false"
+          />
+        </header>
 
-      <v-divider class="mx-5" />
-      <v-card-actions class="pricing-request__actions">
-        <v-btn
-          class="pricing-request__cancel"
-          variant="flat"
-          color="grey-lighten-3"
-          size="large"
-          @click="open = false"
-        >
-          CANCELAR
-        </v-btn>
-        <v-btn
-          class="pricing-request__send"
-          variant="flat"
-          color="blue-accent-4"
-          size="large"
-          prepend-icon="mdi-send-outline"
-          :disabled="loading || !info?.can_request"
-          :loading="sending"
-          @click="emit('send')"
-        >
-          SOLICITAR A PRICING
-        </v-btn>
-      </v-card-actions>
-    </v-card>
+        <v-card-text class="pricing-request__body">
+          <p v-if="loading">
+            Cargando los datos de la solicitud…
+          </p>
+          <template v-else-if="info">
+            <div class="pricing-request__question bg-blue-lighten-5">
+              <v-icon
+                icon="mdi-send-outline"
+                color="blue-accent-4"
+                size="38"
+              />
+              <p>
+                ¿Deseas solicitar a <span class="text-blue-accent-4">{{ info.pricing_name ?? "PRICING" }}</span> esta cotización?
+              </p>
+            </div>
+
+            <div class="pricing-request__fields">
+              <template
+                v-for="(field, index) in quoteFields"
+                :key="field.id"
+              >
+                <label
+                  :for="field.id"
+                  class="pricing-request__label"
+                >
+                  <v-icon
+                    :icon="field.icon"
+                    size="22"
+                  />
+                  {{ field.label }}
+                </label>
+                <v-text-field
+                  :id="field.id"
+                  :model-value="field.value"
+                  :class="{ 'pricing-request__quote': index === 0 }"
+                  class="pricing-request__value"
+                  variant="outlined"
+                  density="compact"
+                  readonly
+                  hide-details
+                />
+              </template>
+              <template v-if="info.can_request">
+                <label
+                  for="pricing-request-note"
+                  class="pricing-request__label pricing-request__label--top"
+                >
+                  <v-icon
+                    icon="mdi-note-text-outline"
+                    size="22"
+                  />
+                  NOTAS
+                </label>
+                <v-textarea
+                  id="pricing-request-note"
+                  v-model="note"
+                  placeholder="Escribe lo que Pricing debe saber sobre esta cotización. Se envía junto con la solicitud."
+                  variant="outlined"
+                  rows="3"
+                  auto-grow
+                  hide-details
+                />
+              </template>
+            </div>
+
+            <InternalCommunicationThread
+              class="mt-4"
+              :quote-id="quoteId"
+              readonly
+            />
+          </template>
+          <v-alert
+            v-if="notice"
+            type="warning"
+            variant="tonal"
+            density="compact"
+            class="mt-3"
+          >
+            {{ notice }}
+          </v-alert>
+          <v-alert
+            v-if="error"
+            type="error"
+            variant="tonal"
+            density="compact"
+            class="mt-3"
+          >
+            {{ error }}
+          </v-alert>
+        </v-card-text>
+
+        <v-divider class="mx-5" />
+        <v-card-actions class="pricing-request__actions">
+          <v-btn
+            class="pricing-request__cancel"
+            variant="flat"
+            color="grey-lighten-3"
+            size="large"
+            @click="open = false"
+          >
+            CANCELAR
+          </v-btn>
+          <v-btn
+            class="pricing-request__send"
+            variant="flat"
+            color="blue-accent-4"
+            size="large"
+            prepend-icon="mdi-send-outline"
+            :disabled="loading || !info?.can_request"
+            :loading="sending"
+            @click="emit('send')"
+          >
+            SOLICITAR A PRICING
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-defaults-provider>
   </v-dialog>
 </template>
 
