@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import colors from "vuetify/util/colors";
-import type { SpecialRateNotice } from "./specialRateNotice";
+import type { SpecialRateNoticeText } from "./specialRateNotice";
 
-defineProps<{ notice: SpecialRateNotice }>();
+defineProps<{ notice: SpecialRateNoticeText }>();
 </script>
 
 <template>
