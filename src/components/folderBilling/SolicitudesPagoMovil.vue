@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 // Vista móvil de solicitudes de pago: grupos por estado (se pliegan) y tarjetas que se despliegan.
 // La usan Control de Gastos > Pagos Pendientes y Bancos > Solicitudes de Pago (cada pestaña).
 import { computed, ref } from "vue";
@@ -55,6 +56,8 @@ const props = defineProps<{
   eliminandoSoporte?: number | null;
   /** botón "Ver anexo" (solo Bancos > Solicitudes de Pago; en Control de Gastos se quitó) */
   verAnexo?: boolean;
+  /** Control de Gastos: avisar las solicitudes pedidas desde el Reporte (Administración) */
+  notaOrigen?: boolean;
 }>();
 const emit = defineEmits<{
   aprobar: [s: SolicitudPagoMovilItem, tipo: AreaRevision];
@@ -358,6 +361,11 @@ function abrir(url: string | null | undefined) {
                       <v-icon size="20">{{ iconoEstado(s.codigo_estado) }}</v-icon>
                       {{ s.estado }}
                     </span>
+                    <SolicitudOrigenNota
+                      v-if="notaOrigen && s.multiexpedienteflag"
+                      origen="adm"
+                      tipo="pago"
+                    />
                     <span
                       v-if="s.id_pagoegreso"
                       class="mov__chip mov__chip--salida"
@@ -611,7 +619,7 @@ function abrir(url: string | null | undefined) {
                   <!-- 1. editar  2. eliminar  3. ver -->
                   <div class="mov__cardactions mov__cardactions--fin">
                     <v-btn
-                      v-if="puedeEditar && !eliminada(s)"
+                      v-if="puedeEditar && !eliminada(s) && (notaOrigen || !s.multiexpedienteflag)"
                       size="small"
                       variant="tonal"
                       :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'primary'"
@@ -995,6 +1003,9 @@ function abrir(url: string | null | undefined) {
   align-items: center;
   gap: 6px;
   margin: 12px 0 8px;
+}
+.mov__xestado .solorigen {
+  flex-basis: 100%;
 }
 .mov__chip--lg {
   padding: 6px 14px 6px 8px;

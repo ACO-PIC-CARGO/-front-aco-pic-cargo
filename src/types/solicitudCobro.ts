@@ -1,3 +1,4 @@
+import type { ExpedienteAmarrado } from "@/types/solicitudReporte";
 // Solicitud de Cobro (Control de Gastos > Ingresos). Se identifica por su código (SC-000001).
 
 export type CodigoEstadoSolicitudCobro =
@@ -10,7 +11,7 @@ export type CodigoEstadoSolicitudCobro =
   | "RECHAZADA"
   | "ELIMINADA";
 
-export type TabBandejaSolicitudCobro = "PEN" | "REC" | "HIS";
+export type TabBandejaSolicitudCobro = "PEN" | "PPG" | "REC" | "HIS";
 
 export interface ConceptoSolicitudCobro {
   codigo: string;
@@ -24,6 +25,10 @@ export interface ConceptoSolicitudCobro {
 
 /** Fila de function_solicitudcobro_listar (Control de Gastos) */
 export interface SolicitudCobro {
+  /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
+  multiexpedienteflag?: boolean;
+  /** expedientes amarrados a la solicitud (solo la del reporte) */
+  expedientes_solicitud?: string | null;
   codigo: string;
   id_master: number;
   expediente: string;
@@ -148,6 +153,9 @@ export interface SolicitudCobroTransferencia {
   voucher_path: string | null;
   voucher_nombre: string | null;
   comentario: string | null;
+  /** Solicitud del Reporte de Cuentas por Cobrar: varios expedientes amarrados con su monto */
+  multiexpedienteflag?: boolean;
+  expedientes?: ExpedienteAmarrado[] | null;
 }
 
 /** function_solicitudcobro_activas_cliente: esos correlativos solo se cobran con el token */

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
 import { defineAsyncComponent, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -8,6 +9,9 @@ import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import type { ResumenEstadoCotizacion } from "@/types/cotizacion";
+
+// celular / tablet: tablas en tarjetas y modales a pantalla completa
+const { smAndDown, width: displayWidth } = useDisplay();
 
 const ListQuote = defineAsyncComponent(() =>
   import("@/components/folderPricing/ListQuoteComponent.vue"));
@@ -148,7 +152,7 @@ onMounted(async () => {
     <v-navigation-drawer
       v-model="pricingStore.filtrarQuoteFlag"
       location="right"
-      width="40%"
+      :width="smAndDown ? displayWidth : '40%'"
       temporary
     >
       <v-card elevation="5">
@@ -158,7 +162,7 @@ onMounted(async () => {
     <v-navigation-drawer
       v-model="pricingStore.filtrarCallsFlag"
       location="right"
-      width="40%"
+      :width="smAndDown ? displayWidth : '40%'"
       temporary
     >
       <v-card elevation="5">
@@ -168,7 +172,8 @@ onMounted(async () => {
     <v-dialog
       v-model="dialog"
       persistent
-      max-width="30%"
+      :max-width="smAndDown ? undefined : '30%'"
+      :fullscreen="smAndDown"
       transition="dialog-transition"
     >
       <v-card>

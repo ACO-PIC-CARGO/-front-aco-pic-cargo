@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
+import { createVuetify } from "vuetify";
 import Swal from "sweetalert2";
 import ListCallComponent from "@/components/folderPricing/ListCallComponent.vue";
 import { useAppStore } from "@/stores/app";
@@ -25,7 +26,7 @@ afterEach(() => vi.restoreAllMocks());
 async function mountCalls() {
   const pinia = createPinia();
   setActivePinia(pinia);
-  const wrapper = shallowMount(ListCallComponent, { global: { plugins: [pinia] } });
+  const wrapper = shallowMount(ListCallComponent, { global: { plugins: [pinia, createVuetify()] } });
   await flushPromises();
   return { pricing: usePricingStore(), app: useAppStore(), screen: wrapper.vm as unknown as CallsScreen };
 }

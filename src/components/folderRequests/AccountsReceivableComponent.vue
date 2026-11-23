@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef } from "vue";
+import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
@@ -13,6 +14,10 @@ import { hasFailed, request } from "@/utils/request";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { adminReceivableTotals, downloadExternalFile, receivableQuery } from "@/utils/accountsReports";
+import SolicitudReporteDialog from "./SolicitudReporteDialog.vue";
+import { useSolicitudReporteAcciones } from "@/composables/useSolicitudReporteAcciones";
+import SolicitudAmarradaChip from "./SolicitudAmarradaChip.vue";
+import type { EntidadSolicitudReporte, ExpedienteSolicitudReporte } from "@/types/solicitudReporte";
 import type {
   ClienteCxc,
   ClienteCxcAdmin,
@@ -25,6 +30,8 @@ import type {
 } from "@/types/requests";
 
 const appStore = useAppStore();
+// celular / tablet: la tabla operativa en tarjetas (escritorio sin cambios)
+const { smAndDown } = useDisplay();
 const { can } = usePermissions();
 const pricingStore = usePricingStore();
 const enterprisesStore = useEnterprisesStore();
@@ -165,6 +172,31 @@ const comentario = ref<ComentarioCxc>({
 });
 const dataCXC = ref<ContextoComentarioCxc>({});
 const lstComentarios = ref<RegistroComentario[]>([]);
+// "Solicitar Cobro": una solicitud con varios expedientes del cliente
+const dialogSolicitud = ref(false);
+const entidadSolicitud = ref<EntidadSolicitudReporte | null>(null);
+const amarrados = ref<ExpedienteSolicitudReporte[]>([]);
+
+function abrirSolicitudCobro(item: ClienteCxc) {
+  entidadSolicitud.value = { id: item.id_consigner, nombre: item.nameconsigner };
+  dialogSolicitud.value = true;
+}
+// expedientes del reporte que ya están en una solicitud de cobro (se pintan en el detalle)
+// ver / editar / eliminar la solicitud del reporte (editar y eliminar con clave de administrador)
+const accionesSolicitud = useSolicitudReporteAcciones("cobro", () => cargarAmarrados());
+
+async function cargarAmarrados() {
+  const answer = await request<ExpedienteSolicitudReporte>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_reporte_expedientes",
+  });
+  amarrados.value = answer.estadoflag ? answer.data : [];
+}
+// el detalle del reporte es por house: se pintan todas sus solicitudes (una por correlativo)
+function amarradoCobro(detalle: ClienteCxc["details"][number]) {
+  if (detalle.operativa != 1 || !detalle.id_house) return [];
+  return amarrados.value.filter((a) => Number(a.id_house) === Number(detalle.id_house));
+}
 
 let proveedorAd: string | undefined;
 
@@ -333,6 +365,7 @@ async function filtrar() {
   filtroAd.value.proveedorAd = proveedorAd;
   await _getDebsToPay();
   await _getInvoiceAdminCxCAdmin();
+  await cargarAmarrados();
   offcanvas.value = false;
 }
 async function limpiar() {
@@ -488,6 +521,7 @@ onMounted(async () => {
   await pricingStore.getModulesEntities();
   await _getDebsToPay();
   await _getInvoiceAdminCxCAdmin();
+  await cargarAmarrados();
   await enterprisesStore.obtenerImpuestoXEmpresa();
   appStore.drawer = false;
   await appStore.cargarClientes();
@@ -499,7 +533,7 @@ onMounted(async () => {
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title class="d-flex align-center flex-wrap">
+      <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
         <h3>REPORTE DE CUENTAS POR COBRAR</h3>
         <v-spacer />
         <v-btn
@@ -540,8 +574,9 @@ onMounted(async () => {
       <v-card-text>
         <v-row>
           <v-col
-            cols="6"
-            class="px-10"
+            cols="12"
+            md="6"
+            class="px-2 px-md-10"
           >
             <h5>TOTAL OPERATIVO</h5>
             <v-data-table
@@ -552,8 +587,9 @@ onMounted(async () => {
             />
           </v-col>
           <v-col
-            cols="6"
-            class="px-10"
+            cols="12"
+            md="6"
+            class="px-2 px-md-10"
           >
             <h5>TOTAL ADMINISTRATIVO</h5>
             <v-data-table
@@ -567,6 +603,7 @@ onMounted(async () => {
         <v-data-table
           :headers="headersdbp"
           :items="itemsCpp"
+          :mobile="smAndDown"
           :search="search"
           no-data-text="No hay cuentas por cobrar operativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expanded"
@@ -575,72 +612,111 @@ onMounted(async () => {
           expand-on-click
         >
           <template #[`item.nameconsigner`]="{ item }">
-            <div class="d-flex">
-              <div>{{ item.nameconsigner }}</div>
-              <v-btn
-                size="small"
-                color="primary"
-                class="ml-auto"
-                @click.stop="mostrarComentariosOp(item)"
-              >
-                <v-icon
+            <div class="d-flex align-center flex-wrap ga-2 cuentas-celda">
+              <div class="cuentas-nombre">
+                {{ item.nameconsigner }}
+              </div>
+              <div class="ml-auto d-flex align-center flex-wrap ga-2 cuentas-acciones">
+                <!-- Solicitar Cobro: mismo botón que "Solicitar" de Control de Gastos > Costos -->
+                <v-btn
+                  v-if="can('accountsreceivable', 'NUEVO')"
                   size="small"
-                  class="mr-1"
+                  variant="flat"
+                  color="primary"
+                  prepend-icon="mdi-send-outline"
+                  class="solreq__btn"
+                  @click.stop="abrirSolicitudCobro(item)"
                 >
-                  mdi-comment
-                </v-icon> Comentarios
-              </v-btn>
+                  Solicitar Cobro
+                </v-btn>
+                <v-btn
+                  size="small"
+                  color="primary"
+                  @click.stop="mostrarComentariosOp(item)"
+                >
+                  <v-icon
+                    size="small"
+                    class="mr-1"
+                  >
+                    mdi-comment
+                  </v-icon> Comentarios
+                </v-btn>
+              </div>
             </div>
           </template>
 
           <template #expanded-row="{ item }">
             <tr>
               <td colspan="11">
-                <v-table style="width: 100%">
-                  <thead>
-                    <tr style="background: #fff1cf">
-                      <th>Expediente</th>
-                      <th>Cliente</th>
-                      <th>Fecha Disponibilidad</th>
-                      <th>Total a Cobrar</th>
-                      <th>Status</th>
-                      <th>Fecha de Vencimiento</th>
-                      <th>Días de atraso</th>
-                      <th>Estatus</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      style="background: #fff1cf"
-                      v-for="child of item.details"
-                      :key="child.id"
-                    >
-                      <td>
-                        {{ child.nro_master }}
-                        <v-icon
-                          v-if="child.operativa == 1"
-                          @click="editControl(child)"
-                        >
-                          mdi-eye
-                        </v-icon>
-                      </td>
-                      <td>
-                        {{ child.nameconsigner }}
-                      </td>
-                      <td>
-                        {{ child.fecha_disponibilidad }}
-                      </td>
-                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
+                <div class="cuentas-detalle">
+                  <v-table
+                    class="cuentas-tabla"
+                    style="width: 100%"
+                  >
+                    <thead>
+                      <tr style="background: #fff1cf">
+                        <th>Expediente</th>
+                        <th>Cliente</th>
+                        <th>Fecha Disponibilidad</th>
+                        <th>Total a Cobrar</th>
+                        <th>Status</th>
+                        <th>Fecha de Vencimiento</th>
+                        <th>Días de atraso</th>
+                        <th>Estatus</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        style="background: #fff1cf"
+                        v-for="child of item.details"
+                        :key="child.id"
+                      >
+                        <td data-label="Expediente">
+                          {{ child.nro_master }}
+                          <v-icon
+                            v-if="child.operativa == 1"
+                            @click="editControl(child)"
+                          >
+                            mdi-eye
+                          </v-icon>
+                          <!-- expediente amarrado a una solicitud de cobro -->
+                          <SolicitudAmarradaChip
+                            v-for="sol in amarradoCobro(child)"
+                            :key="sol.id_solicitud + '-' + (sol.id_correlativo ?? 0)"
+                            :solicitud="sol"
+                            tipo="cobro"
+                            :eliminando="accionesSolicitud.eliminando.value === sol.id_solicitud"
+                            @ver="accionesSolicitud.ver(sol, { id: Number(sol.id_cliente ?? item.id_consigner), nombre: item.nameconsigner })"
+                            @editar="accionesSolicitud.editar(sol, { id: Number(sol.id_cliente ?? item.id_consigner), nombre: item.nameconsigner })"
+                            @eliminar="accionesSolicitud.eliminar(sol)"
+                          />
+                        </td>
+                        <td data-label="Cliente">
+                          {{ child.nameconsigner }}
+                        </td>
+                        <td data-label="Fecha Disponibilidad">
+                          {{ child.fecha_disponibilidad }}
+                        </td>
+                        <td data-label="Total a Cobrar">
+                          {{ child.symbol }} {{ child.total_pagar }}
+                        </td>
 
-                      <td>
-                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                      </td>
-                      <td>{{ child.fechadevencimiento }}</td>
-                      <td>{{ child.diasatraso }}</td>
-                      <td>{{ child.estatus }}</td>
-                    </tr>
-                  </tbody>
-                </v-table>
+                        <td data-label="Status">
+                          {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                        </td>
+                        <td data-label="Fecha de Vencimiento">
+                          {{ child.fechadevencimiento }}
+                        </td>
+                        <td data-label="Días de atraso">
+                          {{ child.diasatraso }}
+                        </td>
+                        <td data-label="Estatus">
+                          {{ child.estatus }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </div>
               </td>
             </tr>
           </template>
@@ -653,6 +729,7 @@ onMounted(async () => {
         <v-data-table
           :headers="headersdbpa"
           :items="itemsCxcAdmin"
+          :mobile="smAndDown"
           :search="search"
           no-data-text="No hay cuentas por cobrar administrativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expandeda"
@@ -662,8 +739,10 @@ onMounted(async () => {
           @click:row="(event: Event, { item }: { item: ClienteCxcAdmin }) => clickRowa(item, event)"
         >
           <template #[`item.nameconsigner`]="{ item }">
-            <div class="d-flex">
-              <div>{{ item.nameconsigner }}</div>
+            <div class="d-flex align-center flex-wrap ga-2 cuentas-celda">
+              <div class="cuentas-nombre">
+                {{ item.nameconsigner }}
+              </div>
               <v-btn
                 size="small"
                 color="primary"
@@ -683,43 +762,56 @@ onMounted(async () => {
           <template #expanded-row="{ item }">
             <tr>
               <td colspan="11">
-                <v-table style="width: 100%">
-                  <thead>
-                    <tr style="background: #fff1cf">
-                      <!-- <th>Acción</th> -->
-                      <!-- <th>Factura</th> -->
-                      <th>Cliente</th>
-                      <th>Documento</th>
-                      <th>Monto Inicial</th>
+                <div class="cuentas-detalle">
+                  <v-table
+                    class="cuentas-tabla"
+                    style="width: 100%"
+                  >
+                    <thead>
+                      <tr style="background: #fff1cf">
+                        <!-- <th>Acción</th> -->
+                        <!-- <th>Factura</th> -->
+                        <th>Cliente</th>
+                        <th>Documento</th>
+                        <th>Monto Inicial</th>
 
-                      <th>Deuda Actual</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      style="background: #fff1cf"
-                      v-for="child of item.details"
-                      :key="child.id"
-                    >
-                      <!-- <td>
-                        <v-icon
-                          @click="
-                            programar({
-                              id: child.id,
-                              tipo: 0,
-                            })
-                          "
-                          >mdi-clock-outline</v-icon
-                        >
-                      </td> -->
-                      <td>{{ child.nameconsigner }}</td>
-                      <td>{{ child.concepto }}</td>
-                      <td>{{ child.symbol }} {{ child.monto }}</td>
+                        <th>Deuda Actual</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        style="background: #fff1cf"
+                        v-for="child of item.details"
+                        :key="child.id"
+                      >
+                        <!-- <td>
+                          <v-icon
+                            @click="
+                              programar({
+                                id: child.id,
+                                tipo: 0,
+                              })
+                            "
+                            >mdi-clock-outline</v-icon
+                          >
+                        </td> -->
+                        <td data-label="Cliente">
+                          {{ child.nameconsigner }}
+                        </td>
+                        <td data-label="Documento">
+                          {{ child.concepto }}
+                        </td>
+                        <td data-label="Monto Inicial">
+                          {{ child.symbol }} {{ child.monto }}
+                        </td>
 
-                      <td>{{ child.symbol }} {{ child.total_pagar }}</td>
-                    </tr>
-                  </tbody>
-                </v-table>
+                        <td data-label="Deuda Actual">
+                          {{ child.symbol }} {{ child.total_pagar }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </div>
               </td>
             </tr>
           </template>
@@ -771,10 +863,11 @@ onMounted(async () => {
     <v-dialog
       v-model="dialogComentarios"
       persistent
-      width="70%"
+      :width="smAndDown ? undefined : '70%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap">
+        <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
           Estados/Comentarios de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer />
           <template v-if="dataCXC.esoperativo && can('accountsreceivable', 'NUEVO')">
@@ -802,6 +895,7 @@ onMounted(async () => {
           <v-data-table
             :headers="headersLstComentarios"
             :items="lstComentarios"
+            :mobile="smAndDown"
             class="elevation-1"
             no-data-text="Este cliente aún no tiene comentarios. Agrega el primero con Nuevo Comentario."
             :loading="loadingDataTableComentarios"
@@ -823,10 +917,11 @@ onMounted(async () => {
     <v-dialog
       v-model="dialogNuevoComentario"
       persistent
-      width="50%"
+      :width="smAndDown ? undefined : '50%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap">
+        <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
           Registro de Estado/Comentario de la CxC - {{ dataCXC.nameconsigner }}
           <v-spacer />
           <v-btn
@@ -880,6 +975,23 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <SolicitudReporteDialog
+      v-model="dialogSolicitud"
+      tipo="cobro"
+      :entidad="entidadSolicitud"
+      @guardado="cargarAmarrados"
+    />
+    <!-- ver / editar una solicitud registrada desde el reporte -->
+    <SolicitudReporteDialog
+      v-model="accionesSolicitud.abierto.value"
+      tipo="cobro"
+      :entidad="accionesSolicitud.entidad.value"
+      :solicitud="accionesSolicitud.solicitud.value"
+      :modo="accionesSolicitud.modo.value"
+      :autorizacion="accionesSolicitud.autorizacion.value"
+      @guardado="cargarAmarrados"
+    />
 
     <v-navigation-drawer
       v-model="offcanvas"
@@ -1031,5 +1143,96 @@ onMounted(async () => {
   display: flex;
   flex-direction: column !important;
   align-items: flex-start !important;
+}
+</style>
+
+<style lang="scss" scoped>
+/* "Solicitar Cobro": mismo estilo que el botón "Solicitar" de Control de Gastos > Costos */
+.cuentas-acciones :deep(.solreq__btn) {
+  flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+/* celular / tablet: cada fila del detalle expandido es una tarjeta "etiqueta: valor" (en la web sigue la tabla) */
+@media (max-width: 959.98px) {
+  .cuentas-detalle {
+    width: 0;
+    min-width: 100%;
+  }
+  .cuentas-tabla :deep(thead) {
+    display: none;
+  }
+  .cuentas-tabla :deep(table),
+  .cuentas-tabla :deep(tbody) {
+    display: block;
+    width: 100%;
+  }
+  .cuentas-tabla :deep(tbody tr) {
+    display: block;
+    margin: 8px 0;
+    padding: 4px 12px;
+    border: 1px solid #f1d59b;
+    border-radius: 10px;
+    background: #fff7e3 !important;
+  }
+  .cuentas-tabla :deep(tbody td) {
+    display: block;
+    height: auto !important;
+    min-height: 34px;
+    padding: 7px 0 !important;
+    border-bottom: 1px dashed #efd9a8 !important;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .cuentas-tabla :deep(tbody td:last-child) {
+    border-bottom: 0 !important;
+  }
+  .cuentas-tabla :deep(tbody td[data-label])::before {
+    content: attr(data-label);
+    float: left;
+    max-width: 48%;
+    margin-right: 12px;
+    color: #6b5a33;
+    font-weight: 600;
+    text-align: left;
+  }
+  .cuentas-tabla :deep(tbody td)::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+}
+/* títulos largos (reporte y comentarios): bajan de línea en vez de cortarse */
+.cuentas-titulo {
+  row-gap: 4px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 599.98px) {
+  .cuentas-titulo h3 {
+    flex: 1 1 100%;
+    font-size: 1.05rem;
+  }
+  .cuentas-titulo :deep(.v-btn.ml-5) {
+    margin-left: 0 !important;
+  }
+}
+/* celular / tablet (tabla en tarjetas): el nombre y los botones bajan de línea sin salirse */
+.cuentas-celda {
+  min-width: 0;
+  max-width: 100%;
+}
+:deep(.v-data-table__tr--mobile .v-data-table__td-value):has(.cuentas-celda) {
+  min-width: 0;
+  max-width: 65%;
+}
+:deep(.v-data-table__tr--mobile) .cuentas-celda {
+  justify-content: flex-end;
+  text-align: right;
+}
+:deep(.v-data-table__tr--mobile) .cuentas-nombre {
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
 }
 </style>

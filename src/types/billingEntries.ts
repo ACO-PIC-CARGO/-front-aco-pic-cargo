@@ -1,3 +1,4 @@
+import type { ExpedienteAmarrado } from "@/types/solicitudReporte";
 import type { ArchivoInicial } from "@/types/archivos";
 
 export type Monto = number | string;
@@ -105,6 +106,10 @@ export interface FacturaProveedorCargada {
 }
 
 export interface SolicitudPagoListada {
+  /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
+  multiexpedienteflag?: boolean;
+  /** expedientes amarrados a la solicitud (solo la del reporte) */
+  expedientes_solicitud?: string | null;
   id: number;
   path: string;
   status: number;
@@ -313,6 +318,10 @@ export interface ConceptoSolicitudPago {
 export type ClientePagoEstado = "SI" | "PARCIAL" | "NO";
 
 export interface SolicitudPagoControl {
+  /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
+  multiexpedienteflag?: boolean;
+  /** expedientes amarrados a la solicitud (solo la del reporte) */
+  expedientes_solicitud?: string | null;
   id: number;
   id_master: number;
   expediente: string;
@@ -390,6 +399,9 @@ export interface SolicitudPagoTransferencia {
   id_banco_proveedor: number | null;
   nrocuenta_proveedor: string | null;
   id_coins_proveedor: number | null;
+  /** Solicitud del Reporte de Cuentas por Pagar: varios expedientes amarrados con su monto */
+  multiexpedienteflag?: boolean;
+  expedientes?: ExpedienteAmarrado[] | null;
 }
 
 /** Modo ver de una solicitud de pago (ojito) */
@@ -442,10 +454,14 @@ export interface SolicitudPagoDetalle {
 }
 
 // Bancos > Solicitudes de Pago (bandeja paginada)
-export type TabBandejaSolicitudPago = "PEN" | "REC" | "HIS";
+export type TabBandejaSolicitudPago = "PEN" | "PPG" | "REC" | "HIS";
 export type EstadoBandejaSolicitudPago = EstadoSolicitudPago | "ELIMINADA";
 
 export interface SolicitudPagoBandeja {
+  /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
+  multiexpedienteflag?: boolean;
+  /** expedientes amarrados a la solicitud (solo la del reporte) */
+  expedientes_solicitud?: string | null;
   total: number | string;
   id: number;
   fechasolicitud: string;
@@ -503,4 +519,6 @@ export interface FiltrosBandejaSolicitudPago {
   tipopago: string | null;
   desde: string;
   hasta: string;
+  // Histórico: "Proveedor cancelado" Sí / No (Sí = lo mismo que Pendiente de Pago)
+  pendiente_pago: ("SI" | "NO")[];
 }

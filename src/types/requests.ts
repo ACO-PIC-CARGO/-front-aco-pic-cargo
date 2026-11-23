@@ -60,6 +60,8 @@ export interface FacturaCxc {
 export interface DetalleCxc {
   id: number;
   id_control: number;
+  /** house del cliente (operativa); amarra la solicitud de cobro del reporte */
+  id_house?: number | null;
   id_branch: number;
   nro_master: string;
   nameconsigner: string;
@@ -138,6 +140,10 @@ export interface TotalAdministrativo {
 export interface DetalleCxp {
   id: number;
   id_branch: number;
+  /** expediente / correlativo / proveedor: amarran la solicitud de pago del reporte */
+  id_master?: number;
+  id_correlativo?: number | null;
+  id_proveedor?: number;
   nro_master: string;
   controlgastoegreso: number;
   programado: number;

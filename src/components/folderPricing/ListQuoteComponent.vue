@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useDisplay } from "vuetify";
 import { computed, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -36,6 +37,9 @@ import type {
   HouseDisponible,
   HouseListado,
 } from "@/types/cotizacion";
+
+// celular / tablet: tablas en tarjetas y modales a pantalla completa
+const { smAndDown } = useDisplay();
 
 withDefaults(
   defineProps<{ filtrosSeleccionados?: Record<string, unknown> }>(),
@@ -681,12 +685,14 @@ onMounted(async () => {
         <v-divider class="applied-filters-divider" />
         <v-row>
           <v-col
-            cols="6"
+            cols="12"
+            md="6"
             class="py-1"
           >
             <v-row>
               <v-col
-                cols="4"
+                cols="12"
+                sm="4"
                 class="clsFechaPor"
               >
                 <v-text-field
@@ -700,7 +706,10 @@ onMounted(async () => {
                 />
               </v-col>
 
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -714,7 +723,10 @@ onMounted(async () => {
                   id="frmFechaDesde"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="formatearFecha(pricingStore.filtro.fechafin)"
@@ -728,7 +740,8 @@ onMounted(async () => {
             </v-row>
           </v-col>
           <v-col
-            cols="6"
+            cols="12"
+            md="6"
             class="py-1"
             v-if="
               pricingStore.filtro.fechaemisiondesde ||
@@ -737,7 +750,8 @@ onMounted(async () => {
           >
             <v-row>
               <v-col
-                cols="4"
+                cols="12"
+                sm="4"
                 class="clsFechaPor"
               >
                 <v-text-field
@@ -750,7 +764,10 @@ onMounted(async () => {
                   prepend-icon="mdi-calendar-month"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -765,7 +782,10 @@ onMounted(async () => {
                   label="Desde"
                 />
               </v-col>
-              <v-col cols="4">
+              <v-col
+                cols="12"
+                sm="4"
+              >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
                   :model-value="
@@ -1014,7 +1034,7 @@ onMounted(async () => {
       return-object
       show-expand
       hide-default-footer
-      class="elevation-1"
+      class="elevation-1 quote-tabla"
       :class="{ 'quote-table--threads': showsLastComment }"
       disable-sort
       :no-data-text="noDataText"
@@ -1040,7 +1060,7 @@ onMounted(async () => {
           ]"
         >
           <!-- <td></td> -->
-          <td>
+          <td class="quote-tabla__acciones">
             <v-chip
               v-if="item.statusmain == 0"
               color="error"
@@ -1292,73 +1312,112 @@ onMounted(async () => {
             v-if="visibleColumns.has('sent_to_client_at')"
             class="text-center"
             @click="toggleExpand(internalItem)"
+            data-label="Envío al cliente"
           >
             {{ item.sent_to_client_at }}
           </td>
           <td
             class="text-center"
             @click="toggleExpand(internalItem)"
+            data-label="Prioridad"
           >
             <QuotePriorityChip
               :name="item.priority_name ?? null"
               :color="item.priority_color ?? null"
             />
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Fecha creación"
+          >
             {{ item.created }}
           </td>
           <td
             v-if="visibleColumns.has('returned_to_sales_at')"
             class="text-center"
             @click="toggleExpand(internalItem)"
+            data-label="Retorno a Ventas"
           >
             {{ item.returned_to_sales_at }}
           </td>
           <td
             v-if="visibleColumns.has('status')"
             @click="toggleExpand(internalItem)"
+            data-label="Estatus"
           >
             {{ item.status }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="N° cotización"
+          >
             {{ item.codigo }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Ejecutivo pricing"
+          >
             {{ item.pricing }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Ejecutivo ventas"
+          >
             {{ item.ejecutivo_ventas }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Cliente"
+          >
             {{ item.nombres }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Teléfono"
+          >
             {{ item.telefono }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Sentido"
+          >
             {{ item.sentido }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="T. C."
+          >
             {{ item.tipo_de_carga }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Incoterms"
+          >
             {{ item.incoterms }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Origen"
+          >
             {{ item.origen }}
           </td>
-          <td @click="toggleExpand(internalItem)">
+          <td
+            @click="toggleExpand(internalItem)"
+            data-label="Destino"
+          >
             {{ item.destino }}
           </td>
           <td
             v-if="visibleColumns.has('marketing')"
             @click="toggleExpand(internalItem)"
+            data-label="Marketing"
           >
             {{ displayMarketing(item) }}
           </td>
           <td
             v-if="visibleColumns.has('fechaemisionpdf')"
             @click="toggleExpand(internalItem)"
+            data-label="Fecha enviado a cliente"
           >
             {{ item.fechaemisionpdf }}
 
@@ -1377,6 +1436,7 @@ onMounted(async () => {
           <td
             v-if="showsLastComment"
             @click="toggleExpand(internalItem)"
+            data-label="Último comentario"
           >
             <LastCommentPill
               :direction="item.last_message_direction"
@@ -1484,7 +1544,8 @@ onMounted(async () => {
       scrollable
       persistent
       :overlay="false"
-      max-width="30%"
+      :max-width="smAndDown ? undefined : '30%'"
+      :fullscreen="smAndDown"
       transition="dialog-transition"
     >
       <v-card>
@@ -1570,7 +1631,8 @@ onMounted(async () => {
     <v-dialog
       v-model="dialogRegistroNotaLlamada"
       v-if="dialogRegistroNotaLlamada"
-      max-width="30%"
+      :max-width="smAndDown ? undefined : '30%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title>
@@ -1640,7 +1702,8 @@ onMounted(async () => {
       v-model="aprobarflag"
       scrollable
       persistent
-      max-width="35%"
+      :max-width="smAndDown ? undefined : '35%'"
+      :fullscreen="smAndDown"
       transition="dialog-transition"
     >
       <v-card>
@@ -1754,6 +1817,67 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* celular / tablet: cada cotización es una tarjeta "etiqueta: valor" (en la web sigue la tabla) */
+@media (max-width: 959.98px) {
+  .quote-tabla :deep(thead) {
+    display: none;
+  }
+  .quote-tabla :deep(table),
+  .quote-tabla :deep(tbody) {
+    display: block;
+    width: 100%;
+  }
+  .quote-tabla :deep(tbody > tr) {
+    display: block;
+    margin: 10px 8px;
+    padding: 4px 12px;
+    border: 1px solid #dbe5f5;
+    border-radius: 12px;
+  }
+  .quote-tabla :deep(tbody > tr > td) {
+    display: block;
+    height: auto !important;
+    min-height: 32px;
+    padding: 6px 0 !important;
+    border-bottom: 1px dashed #e3e8f2 !important;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .quote-tabla :deep(tbody > tr > td:last-child) {
+    border-bottom: 0 !important;
+  }
+  .quote-tabla :deep(tbody > tr > td[data-label])::before {
+    content: attr(data-label);
+    float: left;
+    max-width: 48%;
+    margin-right: 12px;
+    color: #475467;
+    font-weight: 600;
+    text-align: left;
+  }
+  .quote-tabla :deep(tbody > tr > td)::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+  /* acciones arriba de la tarjeta, centradas y sin desbordar */
+  .quote-tabla :deep(.quote-tabla__acciones) {
+    display: flex !important;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .quote-tabla :deep(.quote-tabla__acciones .v-btn-group) {
+    height: auto;
+  }
+  /* comentarios de llamadas (fila expandida): ocupa el ancho de la tarjeta */
+  .quote-tabla :deep(tbody > tr > td[colspan]) {
+    text-align: left;
+  }
+  .quote-tabla :deep(tbody > tr > td[colspan] .v-table) {
+    overflow-x: auto;
+  }
+}
 .headerDetails {
   color: #000 !important;
   background: #80deea !important;

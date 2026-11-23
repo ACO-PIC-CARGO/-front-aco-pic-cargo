@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
+import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
 import { useAppStore } from "@/stores/app";
 import { useRoute } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -1663,6 +1666,31 @@ const claveSolicitud = (id_master: unknown, id_proveedor: unknown, id_correlativ
 const solicitudPagoDe = (e: EgresoProveedor) =>
   solicitudesExistentes.value.get(claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo));
 
+// Ojo de la tarjeta: la pedida desde el Reporte de Cuentas por Pagar no tiene PDF de pago de Control de Gastos,
+// se ve en el mismo modal del reporte (paso 2, solo lectura); la de Control de Gastos abre su PDF de pago
+const dialogVerSolicitudPago = ref(false);
+const solicitudPagoReporteVer = ref<SolicitudPagoControl | null>(null);
+const entidadPagoReporteVer = computed(() =>
+  solicitudPagoReporteVer.value
+    ? { id: Number(solicitudPagoReporteVer.value.id_proveedor), nombre: solicitudPagoReporteVer.value.proveedor }
+    : null);
+function verSolicitudPagoReporte(sol: SolicitudPagoControl) {
+  solicitudPagoReporteVer.value = sol;
+  dialogVerSolicitudPago.value = true;
+}
+function puedeVerSolicitudPago(e: EgresoProveedor) {
+  const sol = solicitudPagoDe(e);
+  return sol?.multiexpedienteflag ? !!sol.id : e.solicitudes > 0;
+}
+function verSolicitudPagoCard(e: EgresoProveedor) {
+  const sol = solicitudPagoDe(e);
+  if (sol?.multiexpedienteflag && sol.id) {
+    verSolicitudPagoReporte(sol);
+    return;
+  }
+  void verPdfPago(e);
+}
+
 // ---------- Enviar a Administración > Generar PDF (vista previa del PDF de pago) ----------
 // Flujo: llenar datos -> Generar PDF (vista previa) -> Generar PDF (PDF de pago) -> Enviar solicitud
 const pasoSolicitudPago = ref<"datos" | "preview">("datos");
@@ -2073,6 +2101,15 @@ function cerrarConfirmarPago(ok: boolean) {
 async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   if (editar && avisarSalidaBancos(item)) return;
   const existente = solicitudPagoDe(item) ?? null;
+  // pedida desde el reporte (Administración): se ve en su propio modal; editarla solo en el reporte
+  if (existente?.multiexpedienteflag) {
+    if (editar) {
+      avisarOrigenSolicitud(existente, "cg", "editar", "pago");
+      return;
+    }
+    verSolicitudPagoReporte(existente);
+    return;
+  }
   const modo = !existente ? "nuevo" : (editar || existente.codigo_estado === "RECHAZADA") && !tieneSalidaBancos(existente) ? "editar" : "ver";
   // antes de solicitar el pago: si el cliente no nos pagó (o pagó una parte), confirmar
   if (modo === "nuevo") {
@@ -2188,6 +2225,8 @@ const eliminandoSolicitudPago = ref<number | null>(null);
 // continuar=true: viene de eliminar la factura; avisa con una notificación y sigue con la factura
 async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): Promise<boolean> {
   const existente = solicitudPagoDe(item);
+  // la pedida desde el reporte solo se elimina ahí (Administración)
+  if (avisarOrigenSolicitud(existente, "cg", "eliminar", "pago")) return false;
   if (!existente || avisarSalidaBancos(item)) return false;
   // con soporte de pago no se elimina directo: primero se elimina el soporte (clave del Super administrador)
   const previo = await quitarSoporteAntesDeEliminar(existente);
@@ -2586,6 +2625,12 @@ watch(
                               )
                             }}
                           </span>
+                          <!-- pedida desde el Reporte de Cuentas por Pagar (Administración) -->
+                          <SolicitudOrigenNota
+                            v-if="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag"
+                            origen="adm"
+                            tipo="pago"
+                          />
                         </span>
                       </button>
                       <!-- editar y eliminar en todo estado; con aprobaciones piden clave de administrador;
@@ -2599,11 +2644,11 @@ watch(
                           variant="text"
                           class="solreq__del"
                           color="blue"
-                          :disabled="!(egresoProveedor.solicitudes > 0)"
-                          :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
-                          aria-label="Ver PDF de pago"
+                          :disabled="!puedeVerSolicitudPago(egresoProveedor)"
+                          :title="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag ? 'Ver solicitud de pago' : egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
+                          :aria-label="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag ? 'Ver solicitud de pago' : 'Ver PDF de pago'"
                           :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
-                          @click="verPdfPago(egresoProveedor)"
+                          @click="verSolicitudPagoCard(egresoProveedor)"
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'NUEVO')"
@@ -4552,6 +4597,12 @@ watch(
         </div>
       </v-card>
     </v-dialog>
+    <SolicitudReporteDialog
+      v-model="dialogVerSolicitudPago"
+      tipo="pago"
+      :entidad="entidadPagoReporteVer"
+      :solicitud="solicitudPagoReporteVer"
+    />
   </div>
 </template>
 

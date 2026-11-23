@@ -12,22 +12,24 @@ const appStore = useAppStore();
 const { smAndDown } = useDisplay();
 const tab = ref<TabBandejaSolicitudPago>("PEN");
 const opciones = ref<OpcionFiltroSolicitudPago[]>([]);
-const totales = ref<Record<TabBandejaSolicitudPago, number | null>>({ PEN: null, REC: null, HIS: null });
+const totales = ref<Record<TabBandejaSolicitudPago, number | null>>({ PEN: null, PPG: null, REC: null, HIS: null });
 
 const TABS: { valor: TabBandejaSolicitudPago; titulo: string; icono: string; color: string }[] = [
   { valor: "PEN", titulo: "Pendientes", icono: "mdi-clock-outline", color: "primary" },
+  // pasaron las validaciones y aún no se pagan / registran en Bancos
+  { valor: "PPG", titulo: "Pendiente de Pago", icono: "mdi-cash-clock", color: "warning" },
   { valor: "REC", titulo: "Rechazadas", icono: "mdi-close-circle-outline", color: "error" },
   { valor: "HIS", titulo: "Histórico", icono: "mdi-history", color: "grey-darken-1" },
 ];
 
-// Al entrar se cargan las tres pestañas. Cualquier acción (aprobar, rechazar, editar, eliminar,
-// subir soporte, registrar...) recarga las tres. Volver a la ventana (alt+tab) no consulta nada.
+// Al entrar se cargan las cuatro pestañas. Cualquier acción (aprobar, rechazar, editar, eliminar,
+// subir soporte, registrar...) recarga las cuatro. Volver a la ventana (alt+tab) no consulta nada.
 const bandejas = ref<InstanceType<typeof SolicitudesPagoBandeja>[]>([]);
 function recargarTodas() {
   bandejas.value.forEach((b) => b.cargar());
 }
 
-// Ya no se recargan las tres pestañas al volver a la pestaña del navegador (eran 3 consultas cada vez):
+// Ya no se recargan las cuatro pestañas al volver a la pestaña del navegador (eran 3 consultas cada vez):
 // se usa el botón "Actualizar" de la bandeja.
 
 onMounted(async () => {
@@ -49,7 +51,7 @@ onMounted(async () => {
       :class="smAndDown ? 'pa-2' : 'pa-4'"
       rounded="lg"
     >
-      <!-- celular: las tres pestañas siempre visibles, a lo ancho y con su contador -->
+      <!-- celular: las cuatro pestañas siempre visibles, a lo ancho y con su contador -->
       <div
         v-if="smAndDown"
         class="spbv-tabs"
@@ -123,7 +125,7 @@ onMounted(async () => {
 <style scoped>
 .spbv-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   margin-bottom: 14px;
   padding: 4px;
@@ -162,20 +164,22 @@ onMounted(async () => {
   line-height: 18px;
   text-align: center;
 }
+/* cuatro pestañas: "Pendiente de Pago" pasa a dos líneas en vez de cortarse */
 .spbv-tab__label {
   max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.15;
+  text-align: center;
 }
 .spbv-tab--activa {
   background: #fff;
   box-shadow: 0 2px 8px rgba(30, 58, 138, 0.14);
 }
 .spbv-tab--PEN.spbv-tab--activa { color: #1e5bd8; }
+.spbv-tab--PPG.spbv-tab--activa { color: #b45309; }
 .spbv-tab--REC.spbv-tab--activa { color: #c62828; }
 .spbv-tab--HIS.spbv-tab--activa { color: #374151; }
 .spbv-tab--PEN.spbv-tab--activa .spbv-tab__count { background: #1e5bd8; }
+.spbv-tab--PPG.spbv-tab--activa .spbv-tab__count { background: #b45309; }
 .spbv-tab--REC.spbv-tab--activa .spbv-tab__count { background: #c62828; }
 .spbv-tab--HIS.spbv-tab--activa .spbv-tab__count { background: #374151; }
 </style>

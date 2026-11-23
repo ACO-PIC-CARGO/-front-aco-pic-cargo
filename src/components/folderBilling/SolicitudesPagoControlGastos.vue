@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { computed, ref, watch } from "vue";
 import { useDisplay } from "vuetify";
 import { useRouter } from "vue-router";
@@ -179,6 +181,13 @@ const {
   eliminandoSoporte,
   eliminarSoporte,
 } = useAccionesSolicitudPago(() => cargar());
+// la pedida desde el reporte (Administración) solo se edita o elimina ahí
+function editarSolicitudCg(s: Parameters<typeof editarSolicitud>[0]) {
+  if (!avisarOrigenSolicitud(s, "cg", "editar", "pago")) void editarSolicitud(s);
+}
+function eliminarSolicitudCg(s: Parameters<typeof eliminarSolicitud>[0]) {
+  if (!avisarOrigenSolicitud(s, "cg", "eliminar", "pago")) void eliminarSolicitud(s);
+}
 const puedeEditarSolicitud = computed(() => can("listControlGastos", "NUEVO") || can("solicitudesPagoBancos", "MODIFICAR"));
 const puedeEliminarSolicitud = computed(() => can("listControlGastos", "ELIMINAR") || can("solicitudesPagoBancos", "MODIFICAR"));
 const anuladaSolicitud = (s: SolicitudPagoAccion & { fecha_anulado?: string | null; usuario_anulado?: string | null }) => !!(s.fecha_anulado || s.usuario_anulado);
@@ -380,6 +389,11 @@ defineExpose({ cargar });
                   Pago registrado: {{ s.usuario_pagado }} · {{ s.fecha_registropago }}
                 </div>
               </v-tooltip>
+              <SolicitudOrigenNota
+                v-if="s.multiexpedienteflag"
+                origen="adm"
+                tipo="pago"
+              />
             </td>
             <td
               v-for="a in aprobaciones(s)"
@@ -516,7 +530,7 @@ defineExpose({ cargar });
                   :color="tieneSalidaBancosSolicitud(s) ? 'grey' : 'primary'"
                   :title="tituloAccion(s, 'Editar')"
                   aria-label="Editar solicitud de pago"
-                  @click="editarSolicitud(s)"
+                  @click="editarSolicitudCg(s)"
                 />
                 <v-btn
                   v-if="puedeEliminarSolicitud && !anuladaSolicitud(s)"
@@ -527,7 +541,7 @@ defineExpose({ cargar });
                   :title="tituloAccion(s, 'Eliminar')"
                   aria-label="Eliminar solicitud de pago"
                   :loading="eliminandoSolicitud === s.id"
-                  @click="eliminarSolicitud(s)"
+                  @click="eliminarSolicitudCg(s)"
                 />
                 <v-btn
                   icon="mdi-eye-outline"
@@ -599,6 +613,7 @@ defineExpose({ cargar });
       :revisando="revisando"
       :eliminando="eliminandoSolicitud"
       :eliminando-soporte="eliminandoSoporte"
+      nota-origen
       @aprobar="(sol, tipo) => aprobar(sol as SolicitudPagoControl, tipo)"
       @rechazar="(sol) => abrirRechazo(sol.id, sol.codigo_estado)"
       @ver-rechazo="(sol) => motivoDe(sol as SolicitudPagoControl)"
@@ -606,8 +621,8 @@ defineExpose({ cargar });
       @subir-soporte="(sol) => abrirSoporte(sol as SolicitudPagoControl)"
       @transferir="(sol) => transferir(sol as SolicitudPagoControl)"
       @ver-salida="(sol) => verSalida(sol as SolicitudPagoControl)"
-      @editar="editarSolicitud"
-      @eliminar="eliminarSolicitud"
+      @editar="editarSolicitudCg"
+      @eliminar="eliminarSolicitudCg"
       @ver="(sol) => verSolicitud(sol as SolicitudPagoControl)"
       @ver-pago-instructivo="(sol) => verPagoInstructivo(sol as SolicitudPagoControl)"
     >

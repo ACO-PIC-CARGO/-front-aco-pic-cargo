@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from "vue";
+import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import { usePermissions } from "@/composables/usePermissions";
 import Swal from "sweetalert2";
@@ -16,6 +17,10 @@ import { hasFailed, request } from "@/utils/request";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
 import { downloadExcel, downloadPdf } from "@/utils/pdfDownload";
 import { payableQuery, unscheduledLines } from "@/utils/accountsReports";
+import SolicitudReporteDialog from "./SolicitudReporteDialog.vue";
+import { useSolicitudReporteAcciones } from "@/composables/useSolicitudReporteAcciones";
+import SolicitudAmarradaChip from "./SolicitudAmarradaChip.vue";
+import type { EntidadSolicitudReporte, ExpedienteSolicitudReporte } from "@/types/solicitudReporte";
 import type {
   ComentarioCxp,
   ContextoComentarioCxp,
@@ -30,6 +35,8 @@ import type {
 } from "@/types/requests";
 
 const appStore = useAppStore();
+// celular / tablet: la tabla operativa en tarjetas (escritorio sin cambios)
+const { smAndDown } = useDisplay();
 const { can } = usePermissions();
 const programacionesStore = useProgramacionesStore();
 const pricingStore = usePricingStore();
@@ -186,6 +193,36 @@ const comentario = ref<ComentarioCxp>({
 });
 const dataCXP = ref<ContextoComentarioCxp>({});
 const lstComentarios = ref<RegistroComentario[]>([]);
+// "Solicitar Pago": una solicitud con varios expedientes del proveedor
+const dialogSolicitud = ref(false);
+const entidadSolicitud = ref<EntidadSolicitudReporte | null>(null);
+const amarrados = ref<ExpedienteSolicitudReporte[]>([]);
+
+function abrirSolicitudPago(item: CuentaPagarProveedor) {
+  if (!item.id) return;
+  entidadSolicitud.value = { id: item.id, nombre: item.nameproveedor };
+  dialogSolicitud.value = true;
+}
+// expedientes del reporte que ya están en una solicitud de pago (se pintan en el detalle)
+// ver / editar / eliminar la solicitud del reporte (editar y eliminar con clave de administrador)
+const accionesSolicitud = useSolicitudReporteAcciones("pago", () => cargarAmarrados());
+
+async function cargarAmarrados() {
+  const answer = await request<ExpedienteSolicitudReporte>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_reporte_expedientes",
+  });
+  amarrados.value = answer.estadoflag ? answer.data : [];
+}
+function amarradoPago(detalle: DetalleCxp) {
+  if (!detalle.controlgastoegreso || !detalle.id_master) return [];
+  return amarrados.value.filter(
+    (a) =>
+      Number(a.id_proveedor) === Number(detalle.id_proveedor)
+      && Number(a.id_master) === Number(detalle.id_master)
+      && Number(a.id_correlativo ?? 0) === Number(detalle.id_correlativo ?? 0),
+  );
+}
 
 const dateRange = computed(() => {
   return date.value.join(" ~ ");
@@ -528,6 +565,7 @@ async function filtrar() {
   appStore.spiner = true;
   await _getDebsToPay();
   await _getDebsToPayAdmin();
+  await cargarAmarrados();
   appStore.spiner = false;
   offcanvas.value = false;
 }
@@ -684,6 +722,7 @@ onMounted(async () => {
   await Promise.all([
     _getDebsToPay(),
     _getDebsToPayAdmin(),
+    cargarAmarrados(),
     pricingStore.getModulesEntities(),
     appStore.cargarProveedores(),
     gastosStore.cargarGasto(),
@@ -703,7 +742,7 @@ onMounted(async () => {
 <template>
   <v-container fluid>
     <v-card elevation="0">
-      <v-card-title class="d-flex align-center flex-wrap">
+      <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
         <h3>REPORTE DE CUENTAS POR PAGAR</h3>
         <v-spacer />
         <v-btn
@@ -744,8 +783,9 @@ onMounted(async () => {
       <v-card-text>
         <v-row>
           <v-col
-            cols="6"
-            class="px-10"
+            cols="12"
+            md="6"
+            class="px-2 px-md-10"
           >
             <h5>TOTAL OPERATIVO</h5>
             <v-data-table
@@ -756,8 +796,9 @@ onMounted(async () => {
             />
           </v-col>
           <v-col
-            cols="6"
-            class="px-10"
+            cols="12"
+            md="6"
+            class="px-2 px-md-10"
           >
             <h5>TOTAL ADMINISTRATIVO</h5>
             <v-data-table
@@ -772,6 +813,7 @@ onMounted(async () => {
         <v-data-table
           v-if="dataList"
           :headers="headersdbp"
+          :mobile="smAndDown"
           :items="itemsCpp"
           :search="search"
           no-data-text="No hay cuentas por pagar operativas con estos filtros. Cambia o limpia los filtros."
@@ -781,96 +823,127 @@ onMounted(async () => {
           expand-on-click
         >
           <template #[`item.nameproveedor`]="{ item }">
-            <div class="d-flex">
-              <div>{{ item.nameproveedor }}</div>
-              <v-btn
-                size="small"
-                color="primary"
-                class="ml-auto"
-                @click.stop="mostrarComentariosOp(item)"
-              >
-                <v-icon
+            <div class="d-flex align-center flex-wrap ga-2 cuentas-celda">
+              <div class="cuentas-nombre">
+                {{ item.nameproveedor }}
+              </div>
+              <div class="ml-auto d-flex align-center flex-wrap ga-2 cuentas-acciones">
+                <!-- Solicitar Pago: mismo botón que "Solicitar" de Control de Gastos > Costos -->
+                <v-btn
+                  v-if="can('debstopay', 'NUEVO') && item.id"
                   size="small"
-                  class="mr-1"
+                  variant="flat"
+                  color="primary"
+                  prepend-icon="mdi-send-outline"
+                  class="solreq__btn"
+                  @click.stop="abrirSolicitudPago(item)"
                 >
-                  mdi-comment
-                </v-icon> Comentarios
-              </v-btn>
+                  Solicitar Pago
+                </v-btn>
+                <v-btn
+                  size="small"
+                  color="primary"
+                  @click.stop="mostrarComentariosOp(item)"
+                >
+                  <v-icon
+                    size="small"
+                    class="mr-1"
+                  >
+                    mdi-comment
+                  </v-icon> Comentarios
+                </v-btn>
+              </div>
             </div>
           </template>
 
           <template #expanded-row="{ item }">
             <tr>
               <td colspan="11">
-                <v-table style="width: 100%">
-                  <thead>
-                    <tr style="background: #fff1cf">
-                      <th>Expediente</th>
-                      <th>Correlativo Factura</th>
-                      <th>Correlativo Programación</th>
-                      <th>Cliente</th>
-                      <th>Facturas</th>
-                      <th>Fecha Disponibilidad</th>
-                      <th>Total a Pagar</th>
-                      <th>Status</th>
-                      <!-- <th>Pagado Cliente</th> -->
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      style="background: #fff1cf"
-                      v-for="(child, index) of item.details"
-                      :key="index"
-                    >
-                      <td>
-                        {{ child.nro_master }}
-                        <v-icon
-                          v-if="child.controlgastoegreso == 1"
-                          @click="editControl(child)"
-                        >
-                          mdi-eye
-                        </v-icon>
+                <div class="cuentas-detalle">
+                  <v-table
+                    class="cuentas-tabla"
+                    style="width: 100%"
+                  >
+                    <thead>
+                      <tr style="background: #fff1cf">
+                        <th>Expediente</th>
+                        <th>Correlativo Factura</th>
+                        <th>Correlativo Programación</th>
+                        <th>Cliente</th>
+                        <th>Facturas</th>
+                        <th>Fecha Disponibilidad</th>
+                        <th>Total a Pagar</th>
+                        <th>Status</th>
+                        <!-- <th>Pagado Cliente</th> -->
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        style="background: #fff1cf"
+                        v-for="(child, index) of item.details"
+                        :key="index"
+                      >
+                        <td data-label="Expediente">
+                          {{ child.nro_master }}
+                          <v-icon
+                            v-if="child.controlgastoegreso == 1"
+                            @click="editControl(child)"
+                          >
+                            mdi-eye
+                          </v-icon>
 
-                        <v-icon
-                          v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
-                          @click="
-                            nuevaFecha({
-                              item: item,
-                              tipo: 1,
-                            })
-                          "
-                        >
-                          mdi-clock-outline
-                        </v-icon>
-                      </td>
-                      <td>
-                        {{ child.code_correlativo }}
-                      </td>
-                      <td>
-                        {{ child.programado_correlativo }}
-                      </td>
-                      <td>
-                        {{ child.nameconsigner }}
-                      </td>
-                      <td>
-                        {{ child.expedientes }}
-                      </td>
-                      <td>
-                        {{ child.fecha_disponibilidad }}
-                      </td>
-                      <td>
-                        {{ child.symbol }}
-                        {{ parseFloat(child.total_pagar).toFixed(2) }}
-                      </td>
-                      <td>
-                        {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
-                      </td>
-                      <!-- <td>
-                        {{ child.pagado == 1 ? "SI" : "NO" }}
-                      </td> -->
-                    </tr>
-                  </tbody>
-                </v-table>
+                          <v-icon
+                            v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
+                            @click="
+                              nuevaFecha({
+                                item: item,
+                                tipo: 1,
+                              })
+                            "
+                          >
+                            mdi-clock-outline
+                          </v-icon>
+                          <!-- expediente amarrado a una solicitud de pago -->
+                          <SolicitudAmarradaChip
+                            v-for="sol in amarradoPago(child)"
+                            :key="sol.id_solicitud!"
+                            :solicitud="sol"
+                            tipo="pago"
+                            :eliminando="accionesSolicitud.eliminando.value === sol.id_solicitud"
+                            @ver="accionesSolicitud.ver(sol, { id: Number(sol.id_proveedor ?? item.id), nombre: item.nameproveedor })"
+                            @editar="accionesSolicitud.editar(sol, { id: Number(sol.id_proveedor ?? item.id), nombre: item.nameproveedor })"
+                            @eliminar="accionesSolicitud.eliminar(sol)"
+                          />
+                        </td>
+                        <td data-label="Correlativo Factura">
+                          {{ child.code_correlativo }}
+                        </td>
+                        <td data-label="Correlativo Programación">
+                          {{ child.programado_correlativo }}
+                        </td>
+                        <td data-label="Cliente">
+                          {{ child.nameconsigner }}
+                        </td>
+                        <td data-label="Facturas">
+                          {{ child.expedientes }}
+                        </td>
+                        <td data-label="Fecha Disponibilidad">
+                          {{ child.fecha_disponibilidad }}
+                        </td>
+                        <td data-label="Total a Pagar">
+                          {{ child.symbol }}
+                          {{ parseFloat(child.total_pagar).toFixed(2) }}
+                        </td>
+                        <td data-label="Status">
+                          {{ child.llegada == 1 ? "LLEGADA" : "NO LLEGADA" }}
+                        </td>
+                        <!-- <td>
+                          {{ child.pagado == 1 ? "SI" : "NO" }}
+                        </td> -->
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </div>
               </td>
             </tr>
           </template>
@@ -885,6 +958,7 @@ onMounted(async () => {
           :search="search"
           :headers="headersdbpa"
           :items="itemsCppa"
+          :mobile="smAndDown"
           no-data-text="No hay cuentas por pagar administrativas con estos filtros. Cambia o limpia los filtros."
           v-model:expanded="expandeda"
           item-value="nameconsigner"
@@ -893,8 +967,10 @@ onMounted(async () => {
           @click:row="(event: Event, { item }: { item: CuentaPagarAdmin }) => clickRowa(item, event)"
         >
           <template #[`item.nameconsigner`]="{ item }">
-            <div class="d-flex">
-              <div>{{ item.nameconsigner }}</div>
+            <div class="d-flex align-center flex-wrap ga-2 cuentas-celda">
+              <div class="cuentas-nombre">
+                {{ item.nameconsigner }}
+              </div>
               <v-btn
                 size="small"
                 color="primary"
@@ -914,43 +990,56 @@ onMounted(async () => {
           <template #expanded-row="{ item }">
             <tr>
               <td colspan="11">
-                <v-table style="width: 100%">
-                  <thead>
-                    <tr style="background: #fff1cf">
-                      <th>Acción</th>
-                      <th>Factura</th>
-                      <th>Fecha Registro</th>
-                      <th>Monto</th>
-                      <th>
-                        {{ enterprisesStore.impuesto.nombre_impuesto }}
-                      </th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      style="background: #fff1cf"
-                      v-for="child of item.details"
-                      :key="child.id"
-                    >
-                      <td>
-                        <v-icon
-                          v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
-                          @click="nuevaFecha({ item: item, tipo: 2 })"
-                        >
-                          mdi-clock-outline
-                        </v-icon>
-                      </td>
-                      <td>
-                        {{ child.nro_factura }}
-                      </td>
-                      <td>{{ child.fecha }}</td>
-                      <td>{{ child.symbol }} {{ child.monto }}</td>
-                      <td>{{ child.symbol }} {{ child.igv }}</td>
-                      <td>{{ child.symbol }} {{ child.total }}</td>
-                    </tr>
-                  </tbody>
-                </v-table>
+                <div class="cuentas-detalle">
+                  <v-table
+                    class="cuentas-tabla"
+                    style="width: 100%"
+                  >
+                    <thead>
+                      <tr style="background: #fff1cf">
+                        <th>Acción</th>
+                        <th>Factura</th>
+                        <th>Fecha Registro</th>
+                        <th>Monto</th>
+                        <th>
+                          {{ enterprisesStore.impuesto.nombre_impuesto }}
+                        </th>
+                        <th>Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr
+                        style="background: #fff1cf"
+                        v-for="child of item.details"
+                        :key="child.id"
+                      >
+                        <td data-label="Acción">
+                          <v-icon
+                            v-if="child.programado == 0 && can('debstopay', 'NUEVO')"
+                            @click="nuevaFecha({ item: item, tipo: 2 })"
+                          >
+                            mdi-clock-outline
+                          </v-icon>
+                        </td>
+                        <td data-label="Factura">
+                          {{ child.nro_factura }}
+                        </td>
+                        <td data-label="Fecha Registro">
+                          {{ child.fecha }}
+                        </td>
+                        <td data-label="Monto">
+                          {{ child.symbol }} {{ child.monto }}
+                        </td>
+                        <td :data-label="enterprisesStore.impuesto.nombre_impuesto">
+                          {{ child.symbol }} {{ child.igv }}
+                        </td>
+                        <td data-label="Total">
+                          {{ child.symbol }} {{ child.total }}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </v-table>
+                </div>
               </td>
             </tr>
           </template>
@@ -962,10 +1051,11 @@ onMounted(async () => {
     <v-dialog
       v-model="dialogComentarios"
       persistent
-      width="70%"
+      :width="smAndDown ? undefined : '70%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap">
+        <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
           Estados/Comentarios de la CxP - {{ dataCXP.proveedor }}
           <v-spacer />
           <template v-if="dataCXP.esoperativo && can('debstopay', 'NUEVO')">
@@ -993,6 +1083,7 @@ onMounted(async () => {
           <v-data-table
             :headers="headersLstComentarios"
             :items="lstComentarios"
+            :mobile="smAndDown"
             class="elevation-1"
             no-data-text="Este proveedor aún no tiene comentarios. Agrega el primero con Nuevo Comentario."
             :loading="loadingDataTableComentarios"
@@ -1014,10 +1105,11 @@ onMounted(async () => {
     <v-dialog
       v-model="dialogNuevoComentario"
       persistent
-      width="50%"
+      :width="smAndDown ? undefined : '50%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="d-flex align-center flex-wrap">
+        <v-card-title class="d-flex align-center flex-wrap cuentas-titulo">
           Registro de Estado/Comentario de la CxP - {{ dataCXP.proveedor }}
           <v-spacer />
           <v-btn
@@ -1115,7 +1207,8 @@ onMounted(async () => {
       v-model="dialogNuevoPago"
       scrollable
       persistent
-      max-width="70%"
+      :max-width="smAndDown ? undefined : '70%'"
+      :fullscreen="smAndDown"
     >
       <v-card>
         <v-card-title
@@ -1175,6 +1268,7 @@ onMounted(async () => {
                 v-model="selected"
                 :headers="headerProgramacion"
                 :items="details"
+                :mobile="smAndDown"
                 no-data-text="Todas las cuentas de este proveedor ya están programadas."
                 item-value="index"
                 return-object
@@ -1186,6 +1280,23 @@ onMounted(async () => {
         </v-card-text>
       </v-card>
     </v-dialog>
+    <SolicitudReporteDialog
+      v-model="dialogSolicitud"
+      tipo="pago"
+      :entidad="entidadSolicitud"
+      @guardado="cargarAmarrados"
+    />
+    <!-- ver / editar una solicitud registrada desde el reporte -->
+    <SolicitudReporteDialog
+      v-model="accionesSolicitud.abierto.value"
+      tipo="pago"
+      :entidad="accionesSolicitud.entidad.value"
+      :solicitud="accionesSolicitud.solicitud.value"
+      :modo="accionesSolicitud.modo.value"
+      :autorizacion="accionesSolicitud.autorizacion.value"
+      @guardado="cargarAmarrados"
+    />
+
     <v-navigation-drawer
       v-model="offcanvas"
       v-if="offcanvas"
@@ -1335,5 +1446,96 @@ onMounted(async () => {
 .v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up),
 .v-data-table > .v-table__wrapper tbody tr.v-data-table__tr:has(> .v-data-table__td--expanded-row .mdi-chevron-up) + tr {
   background: #ffccab;
+}
+</style>
+
+<style lang="scss" scoped>
+/* "Solicitar Pago": mismo estilo que el botón "Solicitar" de Control de Gastos > Costos */
+.cuentas-acciones :deep(.solreq__btn) {
+  flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+/* celular / tablet: cada fila del detalle expandido es una tarjeta "etiqueta: valor" (en la web sigue la tabla) */
+@media (max-width: 959.98px) {
+  .cuentas-detalle {
+    width: 0;
+    min-width: 100%;
+  }
+  .cuentas-tabla :deep(thead) {
+    display: none;
+  }
+  .cuentas-tabla :deep(table),
+  .cuentas-tabla :deep(tbody) {
+    display: block;
+    width: 100%;
+  }
+  .cuentas-tabla :deep(tbody tr) {
+    display: block;
+    margin: 8px 0;
+    padding: 4px 12px;
+    border: 1px solid #f1d59b;
+    border-radius: 10px;
+    background: #fff7e3 !important;
+  }
+  .cuentas-tabla :deep(tbody td) {
+    display: block;
+    height: auto !important;
+    min-height: 34px;
+    padding: 7px 0 !important;
+    border-bottom: 1px dashed #efd9a8 !important;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+  .cuentas-tabla :deep(tbody td:last-child) {
+    border-bottom: 0 !important;
+  }
+  .cuentas-tabla :deep(tbody td[data-label])::before {
+    content: attr(data-label);
+    float: left;
+    max-width: 48%;
+    margin-right: 12px;
+    color: #6b5a33;
+    font-weight: 600;
+    text-align: left;
+  }
+  .cuentas-tabla :deep(tbody td)::after {
+    content: "";
+    display: block;
+    clear: both;
+  }
+}
+/* títulos largos (reporte y comentarios): bajan de línea en vez de cortarse */
+.cuentas-titulo {
+  row-gap: 4px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 599.98px) {
+  .cuentas-titulo h3 {
+    flex: 1 1 100%;
+    font-size: 1.05rem;
+  }
+  .cuentas-titulo :deep(.v-btn.ml-5) {
+    margin-left: 0 !important;
+  }
+}
+/* celular / tablet (tabla en tarjetas): el nombre y los botones bajan de línea sin salirse */
+.cuentas-celda {
+  min-width: 0;
+  max-width: 100%;
+}
+:deep(.v-data-table__tr--mobile .v-data-table__td-value):has(.cuentas-celda) {
+  min-width: 0;
+  max-width: 65%;
+}
+:deep(.v-data-table__tr--mobile) .cuentas-celda {
+  justify-content: flex-end;
+  text-align: right;
+}
+:deep(.v-data-table__tr--mobile) .cuentas-nombre {
+  flex: 1 1 100%;
+  overflow-wrap: anywhere;
 }
 </style>
