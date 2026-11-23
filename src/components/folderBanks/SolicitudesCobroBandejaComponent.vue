@@ -1,5 +1,6 @@
 ﻿<script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -473,28 +474,34 @@ onMounted(cargar);
           <span v-else>Sin enviar</span>
         </template>
         <template #[`item.expediente`]="{ item }">
-          <!-- solicitud del Reporte con varios expedientes: no abre ninguno (no hay uno solo al que ir) -->
-          <span
-            v-if="item.multiexpedienteflag"
-            class="cobl__exp cobl__exp--multi"
-            title="Solicitud con varios expedientes (Reporte de Cuentas por Cobrar)"
+          <!-- varios expedientes (Reporte de Cuentas por Cobrar): "Varios" + Ver Detalle -->
+          <ExpedienteVarios
+            tipo="cobro"
+            :solicitud="item"
           >
-            {{ item.expediente }}
-          </span>
-          <button
-            v-else
-            type="button"
-            class="cobl__exp"
-            @click="verExpediente(item)"
-          >
-            {{ item.expediente }}
-          </button>
-          <div
-            v-if="item.correlativo"
-            class="cobl__corr"
-          >
-            Corr. {{ item.correlativo }}
-          </div>
+            <!-- solicitud del Reporte con un expediente: no abre ninguno -->
+            <span
+              v-if="item.multiexpedienteflag"
+              class="cobl__exp cobl__exp--multi"
+              title="Solicitud con varios expedientes (Reporte de Cuentas por Cobrar)"
+            >
+              {{ item.expediente }}
+            </span>
+            <button
+              v-else
+              type="button"
+              class="cobl__exp"
+              @click="verExpediente(item)"
+            >
+              {{ item.expediente }}
+            </button>
+            <div
+              v-if="item.correlativo"
+              class="cobl__corr"
+            >
+              Corr. {{ item.correlativo }}
+            </div>
+          </ExpedienteVarios>
         </template>
         <template #[`item.cliente`]="{ item }">
           <span class="cobl__cliente">{{ item.cliente }}</span>

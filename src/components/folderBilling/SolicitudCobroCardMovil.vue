@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 // Tarjeta móvil / tablet de una solicitud de cobro (mismo diseño que la de Solicitudes de Pago).
 // La usan Control de Gastos > Solicitudes de Cobro e Ingresos pendientes por confirmar.
@@ -141,7 +142,13 @@ function abrir(url: string | null | undefined) {
     </div>
 
     <div class="ccm__exp">
-      Expediente: <b>{{ s.expediente }}{{ s.correlativo ? ` - ${s.correlativo}` : "" }}</b>
+      Expediente:
+      <ExpedienteVarios
+        tipo="cobro"
+        :solicitud="s"
+      >
+        <b>{{ s.expediente }}{{ s.correlativo ? ` - ${s.correlativo}` : "" }}</b>
+      </ExpedienteVarios>
     </div>
 
     <div class="ccm__estado">

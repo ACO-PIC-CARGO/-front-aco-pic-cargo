@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 // Vista móvil de solicitudes de pago: grupos por estado (se pliegan) y tarjetas que se despliegan.
 // La usan Control de Gastos > Pagos Pendientes y Bancos > Solicitudes de Pago (cada pestaña).
@@ -272,7 +273,12 @@ function abrir(url: string | null | undefined) {
                 </div>
                 <div class="mov__resumenfoot">
                   <span class="mov__meta">
-                    <span class="mov__pill">{{ s.expediente }}</span>
+                    <ExpedienteVarios
+                      tipo="pago"
+                      :solicitud="s"
+                    >
+                      <span class="mov__pill">{{ s.expediente }}</span>
+                    </ExpedienteVarios>
                     <!-- ya registrada en Bancos > Salidas -->
                     <span
                       v-if="s.id_pagoegreso"
@@ -350,7 +356,13 @@ function abrir(url: string | null | undefined) {
                   </div>
 
                   <div class="mov__xexp">
-                    Expediente: <b>{{ s.expediente }}</b>
+                    Expediente:
+                    <ExpedienteVarios
+                      tipo="pago"
+                      :solicitud="s"
+                    >
+                      <b>{{ s.expediente }}</b>
+                    </ExpedienteVarios>
                   </div>
 
                   <div class="mov__xestado">

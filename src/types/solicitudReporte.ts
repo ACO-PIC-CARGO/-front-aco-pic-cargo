@@ -64,3 +64,36 @@ export interface SolicitudReporteVer {
   voucher_nombre?: string | null;
   comentario?: string | null;
 }
+
+/** "Ver Detalle" (Expedientes Asociados) de una solicitud con varios expedientes — fila de pago */
+export interface DetalleExpedientePago {
+  proveedor: string;
+  fechasolicitud: string | null;
+  moneda: string | null;
+  monto_solicitud: number | string;
+  id_master: number;
+  expediente: string;
+  correlativo: string | null;
+  cliente: string | null;
+  cliente_pago: "SI" | "PARCIAL" | "NO" | null;
+  monto_pricing: number | string;
+  monto_operaciones: number | string;
+  ganancia: number | string;
+}
+
+/** "Ver Detalle" (Expedientes Asociados) — fila de cobro */
+export interface DetalleExpedienteCobro {
+  cliente_solicitud: string;
+  fechasolicitud: string | null;
+  moneda: string | null;
+  monto_solicitud: number | string;
+  id_master: number;
+  id_house: number;
+  expediente: string;
+  correlativo: string | null;
+  cliente: string | null;
+  monto_pricing: number | string;
+  monto_operaciones: number | string;
+  monto_solicitado: number | string;
+  ganancia: number | string;
+}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { useDisplay } from "vuetify";
@@ -2028,6 +2029,12 @@ watch(
                         />
                       </div>
                     </div>
+                    <!-- varios expedientes (Reporte de Cuentas por Cobrar): Ver Detalle -->
+                    <ExpedienteVarios
+                      tipo="cobro"
+                      solo-boton
+                      :solicitud="solicitudCobroEnviada(houseIngreso)!"
+                    />
                     <v-btn
                       v-if="solicitudesPendientesCobro(houseIngreso).length < 2 && confirmadaPorRegistrar(houseIngreso) && can('registroPayForCliente', 'NUEVO')"
                       size="small"

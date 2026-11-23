@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
@@ -2678,6 +2679,17 @@ watch(
                           @click="eliminarSolicitudPago(egresoProveedor)"
                         />
                       </div>
+                      <!-- varios expedientes (Reporte de Cuentas por Pagar): Ver Detalle -->
+                      <div
+                        v-if="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag"
+                        class="solreq__detalle"
+                      >
+                        <ExpedienteVarios
+                          tipo="pago"
+                          solo-boton
+                          :solicitud="solicitudPagoDe(egresoProveedor)!"
+                        />
+                      </div>
                     </div>
                     <!-- PDF de pago guardado, falta enviarlo: clic para enviarlo; lápiz para generar otro; eliminar el PDF -->
                     <div
@@ -4726,6 +4738,18 @@ watch(
   --solreq-fg: #c0261b;
   --solreq-bg: #fef3f2;
   --solreq-border: #fbd3cf;
+}
+/* "Ver Detalle" de la solicitud con varios expedientes: fila propia al pie de la tarjeta */
+.solreq:has(> .solreq__detalle) {
+  flex-wrap: wrap;
+}
+.solreq__detalle {
+  display: flex;
+  flex-basis: 100%;
+  justify-content: flex-start;
+}
+.solreq__detalle:empty {
+  display: none;
 }
 .solreq__info {
   display: flex;
