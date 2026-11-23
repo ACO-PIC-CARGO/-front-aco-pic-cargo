@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { defineComponent } from "vue";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import type { VueWrapper } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
@@ -31,9 +32,17 @@ interface TopBar {
 
 const REFUSED = "El tiempo de tránsito de la opción 1 debe ser un número entero de días, por ejemplo 15.";
 let wrapper: VueWrapper | undefined;
+const askSaveChoice = vi.fn();
+const SaveChoiceDialogStub = defineComponent({
+  setup: (_, { expose }) => {
+    expose({ ask: askSaveChoice });
+    return () => null;
+  },
+});
 
 beforeEach(() => {
   vi.clearAllMocks();
+  askSaveChoice.mockResolvedValue("save_and_request");
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
   sessionStorage.setItem("dataUser", JSON.stringify([{ id: 4, id_branch: 1 }]));
   sessionStorage.setItem("dataBranch", JSON.stringify([{ id: 1, esnuevoflag: false }]));
@@ -52,7 +61,9 @@ async function topBarOn(routeName: string, tiempo_transito: Numerico = 30) {
     { nro_propuesta: 1, date_end: "2099-12-31", tiempo_transito, listCostos: [], listImpuestos: [], listNotasQuote: [], selected: true },
   ];
   const folder = vi.spyOn(pricing, "crearCarpetaOneDrive").mockResolvedValue({ url: null, motivo: null });
-  wrapper = shallowMount(DashboardMain, { global: { plugins: [pinia], stubs: { RouterView: true } } });
+  wrapper = shallowMount(DashboardMain, {
+    global: { plugins: [pinia], stubs: { RouterView: true, QuoteSaveChoiceDialog: SaveChoiceDialogStub } },
+  });
   await flushPromises();
   return { pricing, folder, topBar: wrapper.vm as unknown as TopBar };
 }
@@ -103,6 +114,27 @@ test("a pricing request refused after saving a new quote is a warning of its own
 
   expect(Swal.fire).toHaveBeenCalledWith(expect.objectContaining({ icon: "info", text: "Cotización ingresada con el número 15000-P" }));
   expect(Swal.fire).toHaveBeenLastCalledWith(expect.objectContaining({ icon: "warning", text: "Esta cotización no tiene pricing asignado." }));
+});
+
+test("cancelling the save choice leaves a new quote unsaved", async () => {
+  const { pricing, topBar } = await topBarOn("newQuote");
+  askSaveChoice.mockResolvedValueOnce(null);
+  const save = vi.spyOn(pricing, "registrarQuote");
+
+  await topBar.guardarCotizacion();
+
+  expect(askSaveChoice).toHaveBeenCalled();
+  expect(save).not.toHaveBeenCalled();
+});
+
+test("an edit saved with only save sends no pricing request", async () => {
+  const { pricing, topBar } = await topBarOn("editQuote");
+  askSaveChoice.mockResolvedValueOnce("save_only");
+  vi.spyOn(pricing, "updateQuote").mockResolvedValue(true);
+
+  await topBar.editarCotizacion();
+
+  expect(requestPricingAfterSave).toHaveBeenCalledWith("save_only", expect.objectContaining({ quoteId: 77 }));
 });
 
 test("an edit the server refuses stays on the edit screen", async () => {

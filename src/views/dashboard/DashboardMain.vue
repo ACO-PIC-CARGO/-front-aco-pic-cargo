@@ -18,7 +18,8 @@ import axios from "@/api/http";
 import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotifications/QuoteNotificationPopup.vue";
 import GeneratedQuoteDialog from "@/components/folderPricing/QuoteNotifications/GeneratedQuoteDialog.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
-import { askSaveChoice, requestPricingAfterSave } from "@/components/folderPricing/PricingRequest/requestAfterSave";
+import QuoteSaveChoiceDialog from "@/components/folderPricing/PricingRequest/QuoteSaveChoiceDialog.vue";
+import { requestPricingAfterSave } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 import type { RequestOutcome, SaveChoice } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
@@ -119,6 +120,7 @@ const idRole = ref<number[]>([]);
 const lstDatosTarifa = ref<DatoTarifaProveedor[]>([]);
 const templateLoadError = ref<string | null>(null);
 const formVigencia = useTemplateRef("formVigencia");
+const saveChoiceDialog = useTemplateRef("saveChoiceDialog");
 
 onMounted(async () => {
   const urlPricing = [
@@ -244,7 +246,7 @@ function abrirSwalConfigFlete() {
   }
 }
 async function chooseSaveAction(): Promise<SaveChoice | null> {
-  return can("lstQuote", "MODIFICAR") ? askSaveChoice() : "save_only";
+  return can("lstQuote", "MODIFICAR") ? saveChoiceDialog.value!.ask() : "save_only";
 }
 function showPricingRequestOutcome(outcome: RequestOutcome) {
   void Swal.fire({
@@ -1996,6 +1998,7 @@ watch(idRole, async () => {
     </v-dialog>
     <QuoteNotificationPopup :socket="socket" />
     <GeneratedQuoteDialog :socket="socket" />
+    <QuoteSaveChoiceDialog ref="saveChoiceDialog" />
   </div>
 </template>
 
