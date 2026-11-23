@@ -170,6 +170,44 @@ onBeforeUnmount(() => {
   padding: 4px 32px 20px;
 }
 
+@media (max-width: 599px) {
+  .bottom-bar__bar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin: 4px 8px;
+    padding: 0 12px;
+  }
+
+  .bottom-bar__toggle {
+    grid-column: 1;
+    min-width: 0;
+  }
+
+  .bottom-bar__end {
+    display: contents;
+  }
+
+  .bottom-bar__end > .v-icon {
+    grid-area: 1 / 2;
+  }
+
+  .bottom-bar__end > :deep(:not(.v-icon)) {
+    grid-column: 1 / -1;
+    margin-bottom: 8px;
+  }
+
+  .bottom-bar__title {
+    min-width: 0;
+    overflow: hidden;
+    font-size: 1.125rem;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .bottom-bar__content {
+    padding: 4px 12px 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bottom-bar__sheet {
     transition: none;

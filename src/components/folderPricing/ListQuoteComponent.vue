@@ -1916,6 +1916,16 @@ onMounted(async () => {
   width: 100cqi;
   padding: 8px 16px 16px;
 }
+@media (max-width: 959.98px) {
+  .thread-row__cell {
+    text-align: left;
+  }
+  .thread-row__content {
+    position: static;
+    width: auto;
+    padding: 0;
+  }
+}
 /* #create .v-speed-dial {
   position: absolute;
 }

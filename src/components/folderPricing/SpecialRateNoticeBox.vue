@@ -33,7 +33,7 @@ defineProps<{ notice: SpecialRateNotice }>();
       </ul>
     </div>
     <v-sheet
-      class="d-flex align-center flex-shrink-0 ga-3 pa-3"
+      class="d-flex align-center flex-md-shrink-0 ga-3 pa-3"
       color="deep-orange-darken-3"
       rounded="lg"
       max-width="260"

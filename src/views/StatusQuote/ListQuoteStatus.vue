@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineAsyncComponent, onMounted } from "vue";
+import { useDisplay } from "vuetify";
 import { useAppStore } from "@/stores/app";
 import { useAirlinesStore } from "@/stores/airlines";
 import { useQuoteStatusStore } from "@/stores/QuoteStatus";
@@ -10,6 +11,7 @@ const FilterQuoteStatus = defineAsyncComponent(() => import("../../components/fi
 const QuoteStatusStore = useQuoteStatusStore();
 const airlinesStore = useAirlinesStore();
 const appStore = useAppStore();
+const { smAndDown, width: displayWidth } = useDisplay();
 
 onMounted(() => {
   appStore.mainTitle = `LISTADO DE ESTADOS DE LA COTIZACIÓN`;
@@ -22,8 +24,7 @@ onMounted(() => {
     <v-navigation-drawer
       v-model="QuoteStatusStore.drawer"
       location="right"
-      
-      width="30%"
+      :width="smAndDown ? displayWidth : '30%'"
       temporary
     >
       <FilterQuoteStatus :type="airlinesStore.tipo" />

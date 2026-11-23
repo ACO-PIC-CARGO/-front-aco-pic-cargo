@@ -375,4 +375,21 @@ const quoteHref = (id: number) => router.resolve({ name: "verQuote", params: { i
   gap: 16px;
   margin-top: 16px;
 }
+
+@media (max-width: 599px) {
+  .client-history__filter-button {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .client-history__filters {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .client-history__footer {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 8px;
+  }
+}
 </style>

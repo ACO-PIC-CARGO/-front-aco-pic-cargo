@@ -17,7 +17,7 @@ const inputId = useId();
     class="my-1"
     :class="{ 'dangerous-goods-section rounded-lg pa-3': modelValue === true }"
   >
-    <div class="d-flex align-center ga-3">
+    <div class="d-flex flex-wrap align-center ga-3">
       <label
         :for="inputId"
         class="dangerous-goods__question"
@@ -31,6 +31,7 @@ const inputId = useId();
       </label>
       <v-select
         :id="inputId"
+        class="dangerous-goods__answer"
         :model-value="modelValue"
         placeholder="Selecciona"
         variant="outlined"
@@ -92,6 +93,10 @@ const inputId = useId();
 
 .dangerous-goods__warning {
   flex: 0 1 200px;
+}
+
+.dangerous-goods__answer {
+  flex: 1 1 140px;
 }
 
 .dangerous-goods__question {

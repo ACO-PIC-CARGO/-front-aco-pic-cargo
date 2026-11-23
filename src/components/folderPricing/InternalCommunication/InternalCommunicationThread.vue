@@ -37,6 +37,7 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
         size="small"
         color="blue-darken-3"
         variant="tonal"
+        class="flex-shrink-0"
       >
         {{ count === 1 ? "1 mensaje" : `${count} mensajes` }}
       </v-chip>
@@ -110,7 +111,7 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
       </v-alert>
       <div
         v-if="!readonly"
-        class="d-flex ga-3 align-center mt-3"
+        class="internal-thread__compose d-flex flex-wrap justify-end ga-3 align-center mt-3"
       >
         <v-textarea
           v-model="draft"
@@ -137,6 +138,10 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
 </template>
 
 <style scoped>
+.internal-thread {
+  container-type: inline-size;
+}
+
 .internal-thread--card {
   border: 1px solid rgba(var(--v-theme-secondary), 0.35);
   border-radius: 12px;
@@ -150,6 +155,19 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
   gap: 8px;
   padding: 6px 12px;
   background: rgba(var(--v-theme-primary), 0.08);
+}
+
+@container (max-width: 360px) {
+  .internal-thread__header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    column-gap: 8px;
+  }
+
+  .internal-thread__header .v-chip {
+    grid-area: 2 / 2;
+    justify-self: start;
+  }
 }
 
 .internal-thread--card .internal-thread__body {
@@ -174,8 +192,12 @@ const formatDate = (value: string) => moment(value).format("DD/MM/YYYY HH:mm");
   display: flex;
   align-items: center;
   gap: 10px;
-  min-width: 240px;
-  white-space: nowrap;
+  min-width: min(240px, 100%);
+  overflow-wrap: anywhere;
+}
+
+.internal-thread__compose .v-textarea {
+  min-width: 180px;
 }
 
 .internal-thread__date {

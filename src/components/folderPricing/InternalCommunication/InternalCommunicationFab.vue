@@ -60,7 +60,9 @@ watch(active, (value) => {
       :aria-label="TITLE"
     >
       <v-card>
-        <v-card-title>{{ TITLE }} ({{ count }})</v-card-title>
+        <v-card-title class="text-wrap">
+          {{ TITLE }} ({{ count }})
+        </v-card-title>
         <v-card-text>
           <InternalCommunicationThread
             ref="thread"
