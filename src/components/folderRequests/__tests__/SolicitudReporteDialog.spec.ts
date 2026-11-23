@@ -177,3 +177,44 @@ test("editar una solicitud del reporte guarda los datos del paso 1 con la autori
   }));
   w.unmount();
 });
+
+test("un expediente con solicitud rechazada se puede volver a elegir y se avisa que la rechazada pasa a eliminada", async () => {
+  const conRechazada = [
+    expediente(273, 445.3),
+    expediente(610, 6600, { id_solicitud: 19, codigo_solicitud: "N° 19", codigo_estado: "RECHAZADA", estado: "Rechazada" }),
+    expediente(500, 50, { id_solicitud: 44, codigo_solicitud: "N° 44", codigo_estado: "PENADM", estado: "Pendiente por Administración" }),
+  ];
+  requestMock.mockImplementation(({ url }: { url: string }) => {
+    if (url.endsWith("cargar_master_detalle_tipo_pago_solicitud")) {
+      return Promise.resolve({ estadoflag: true, data: [{ id: 2131, codigo: "01", descripcion: "Transferencia" }] });
+    }
+    if (url.endsWith("solicitud_pago_reporte_expedientes")) return Promise.resolve({ estadoflag: true, data: conRechazada });
+    return Promise.resolve({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGINF", data: [] });
+  });
+  const w = render();
+  await w.setProps({ modelValue: true });
+  await flushPromises();
+  [...document.querySelectorAll("button")].find((b) => b.textContent?.includes("SIGUIENTE"))!.click();
+  await flushPromises();
+
+  const filas = [...document.querySelectorAll(".solrep__fila:not(.solrep__fila--head)")] as HTMLElement[];
+  const rechazada = filas.find((f) => f.textContent?.includes("EXP-610"))!;
+  const viva = filas.find((f) => f.textContent?.includes("EXP-500"))!;
+  expect(rechazada.classList.contains("solrep__fila--amarrado")).toBe(false);
+  expect(rechazada.textContent).toContain("pasa a eliminada");
+  expect(viva.classList.contains("solrep__fila--amarrado")).toBe(true);
+
+  rechazada.click();
+  viva.click(); // sigue bloqueada
+  await flushPromises();
+  expect(document.querySelector(".solrep__total")!.textContent).toContain("USD 6,600.00");
+
+  [...document.querySelectorAll("button")].find((b) => b.textContent?.includes("ENVIAR SOLICITUD"))!.click();
+  await flushPromises();
+  expect(swalMock).toHaveBeenCalledWith(expect.objectContaining({ html: expect.stringContaining("N° 19</b> pasan a eliminadas") }));
+  expect(requestMock).toHaveBeenCalledWith(expect.objectContaining({
+    url: URL_MAIN + "solicitud_pago_reporte_insertar",
+    data: expect.objectContaining({ expedientes: [{ id_master: 610, id_correlativo: 1 }] }),
+  }));
+  w.unmount();
+});

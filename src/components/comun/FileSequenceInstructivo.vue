@@ -10,6 +10,8 @@ import InstructivoStep from "./InstructivoStep.vue";
 import InstructivoPreviewRow from "./InstructivoPreviewRow.vue";
 import FormatFecha from "./FormatFecha.vue";
 import LogoPlataformaPago from "./LogoPlataformaPago.vue";
+import ComprobantePagoCliente from "./ComprobantePagoCliente.vue";
+import { useBancosStore } from "@/stores/bancos";
 import { shortDate } from "@/utils/dates";
 import {
   CODIGO_METODO_PAGO,
@@ -22,7 +24,7 @@ import {
 import { usePuertoStore } from "@/stores/puerto";
 import { usePricingStore } from "@/stores/pricing";
 import { useShipmentSubtypeStore } from "@/stores/shipmentSubtype";
-import type { ArchivoInicial } from "@/types/archivos";
+import type { ArchivoComprobante, ArchivoInicial } from "@/types/archivos";
 import type { Modalidad } from "@/types/catalogos";
 import type { ProveedorPricing } from "@/types/entidades";
 import { useFilesStore } from "@/stores/files";
@@ -55,6 +57,7 @@ const emit = defineEmits<{ cerrarDialogo: []; continuar: [] }>();
 const route = useRoute();
 const appStore = useAppStore();
 const filesStore = useFilesStore();
+const bancosStore = useBancosStore();
 const pricingStore = usePricingStore() as ReturnType<typeof usePricingStore> & {
   emailaddress?: string;
   itemsProveedorList?: FichaInstructivo[];
@@ -372,6 +375,51 @@ const clienteYaPago = computed<boolean>({
     datosManuales.value.clientePago = valor ? "Si" : "No";
   },
 });
+// 6.1: comprobante del cliente + cuenta de la empresa / banco del cliente. Al aprobar la cotización se carga solo
+// en Control de Gastos > Ingresos > "Cargar Pago Cliente" (0002) y se envía a Administración.
+const comprobantePagoCliente = computed<ArchivoComprobante | null>({
+  get: () => (datosManuales.value.comprobantePagoCliente as ArchivoComprobante | null | undefined) ?? null,
+  set: (valor) => {
+    datosManuales.value.comprobantePagoCliente = valor;
+  },
+});
+// Solo cuentas de la moneda del monto (la principal primero, como en "Cargar Pago Cliente").
+// Se compara por id de moneda: el symbol de la cuenta es "S/." y la moneda del monto es "PEN".
+const idMonedaRecibido = computed(
+  () => (appStore.itemsCoinsList ?? []).find((m) => m.acronym === monedaRecibido.value)?.id ?? null,
+);
+const cuentasPagoCliente = computed(() =>
+  bancosStore.cuentasSucursal
+    .filter((c) =>
+      idMonedaRecibido.value ? Number(c.id_coins) === Number(idMonedaRecibido.value) : c.symbol === monedaRecibido.value,
+    )
+    .sort((a, b) => Number(!!b.esprincipalflag) - Number(!!a.esprincipalflag))
+    .map((c) => ({
+      id: c.id,
+      titulo: [[c.banco, c.banco_nombre].filter(Boolean).join(" - "), c.cuenta?.trim()].filter(Boolean).join(" · "),
+    })),
+);
+const bancosPagoCliente = computed(() =>
+  bancosStore.bancosSucursal.map((b) => ({ id: b.id, titulo: [b.acronym, b.name].filter(Boolean).join(" - ") })),
+);
+// los combos se ven en cuanto el cliente ya pagó ("Sí"); se cargan una sola vez
+let catalogosBancoCargados = false;
+watch(clienteYaPago, (pago) => {
+  if (!pago || catalogosBancoCargados) return;
+  catalogosBancoCargados = true;
+  void bancosStore.loadCatalogosSucursal();
+}, { immediate: true });
+// la cuenta elegida debe ser de la moneda del monto
+watch(cuentasPagoCliente, (cuentas) => {
+  const actual = datosManuales.value.cuentaPagoCliente;
+  if (!bancosStore.cuentasSucursal.length) return;
+  if (actual && !cuentas.some((c) => c.id === actual)) datosManuales.value.cuentaPagoCliente = null;
+  if (!datosManuales.value.cuentaPagoCliente && cuentas.length === 1) datosManuales.value.cuentaPagoCliente = cuentas[0]!.id;
+});
+// hoy (YYYY-MM-DD) en hora local: tope de la fecha en que nos pagó
+function hoyLima() {
+  return moment().format("YYYY-MM-DD");
+}
 // FormatFecha trabaja con string | null.
 const fechaPagoCliente = computed<string | null>({
   get: () => (datosManuales.value.fechaPagoCliente as string | undefined) || null,
@@ -774,6 +822,11 @@ function continuarPagarProveedor() {
     const faltantes = [
       ...(Number(datosManuales.value.montoRecibido) > 0 ? [] : ["Monto que nos pagó"]),
       ...(datosManuales.value.fechaPagoCliente ? [] : ["Fecha en que nos pagó"]),
+      // "Cargar Pago Cliente" no acepta fechas futuras: con fecha futura no se cargaría al aprobar
+      ...(String(datosManuales.value.fechaPagoCliente ?? "") > hoyLima() ? ["Fecha en que nos pagó (no puede ser posterior a hoy)"] : []),
+      // con comprobante se carga solo al aprobar: la cuenta y el banco son obligatorios (el N.° de operación se llena en Bancos)
+      ...(comprobantePagoCliente.value && !datosManuales.value.cuentaPagoCliente ? ["Cuenta donde depositó"] : []),
+      ...(comprobantePagoCliente.value && !datosManuales.value.bancoPagoCliente ? ["Banco del cliente"] : []),
     ];
     if (faltantes.length) {
       avisoFaltantes(faltantes);
@@ -916,12 +969,7 @@ async function guardarYContinuarPago() {
       ? ["Factura Comercial / Proforma"]
       : []),
     ...(esPlataforma.value && !d.contratoAlibaba ? [`Contrato de ${plataforma.value} (PDF)`] : []),
-    ...(esTransferenciaInternacional.value
-      ? [
-          ...(docComprobanteTransferencia.value?.flag ? [] : ["Comprobante de Transferencia"]),
-          ...(d.capturaDatosBancarios ? [] : ["Captura de los Datos Bancarios del Proveedor"]),
-        ]
-      : []),
+    ...(esTransferenciaInternacional.value && !d.capturaDatosBancarios ? ["Captura de los Datos Bancarios del Proveedor"] : []),
     ...(esPlataformaTransferencia.value && !docComprobanteTransferencia.value?.flag
       ? ["Comprobante / Datos de Transferencia (PDF)"]
       : []),
@@ -2589,6 +2637,55 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       </div>
                     </div>
                   </div>
+                  <!-- Al aprobar la cotización, con comprobante se carga solo en "Cargar Pago Cliente" y se envía a Administración -->
+                  <ComprobantePagoCliente v-model="comprobantePagoCliente" />
+                  <!-- con comprobante, cuenta y banco son obligatorios (se cargan solos al aprobar) -->
+                  <template v-if="clienteYaPago">
+                    <div class="pg-field">
+                      <span class="pg-field__icon"><v-icon size="28">mdi-bank-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Cuenta donde depositó <span
+                            v-if="comprobantePagoCliente"
+                            class="pg-req"
+                          >*</span>
+                        </div>
+                        <v-autocomplete
+                          v-model="datosManuales.cuentaPagoCliente"
+                          :items="cuentasPagoCliente"
+                          item-title="titulo"
+                          item-value="id"
+                          placeholder="Seleccionar banco y cuenta"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          :no-data-text="`No hay cuentas de la empresa en ${monedaRecibido}`"
+                        />
+                      </div>
+                    </div>
+                    <div class="pg-field">
+                      <span class="pg-field__icon"><v-icon size="28">mdi-bank-transfer-out</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Banco del cliente <span
+                            v-if="comprobantePagoCliente"
+                            class="pg-req"
+                          >*</span>
+                        </div>
+                        <v-autocomplete
+                          v-model="datosManuales.bancoPagoCliente"
+                          :items="bancosPagoCliente"
+                          item-title="titulo"
+                          item-value="id"
+                          placeholder="Desde donde envió el pago"
+                          variant="outlined"
+                          density="compact"
+                          hide-details="auto"
+                          no-data-text="No hay bancos registrados"
+                        />
+                      </div>
+                    </div>
+                  </template>
                   <div class="pg-field">
                     <span class="pg-field__icon"><v-icon size="28">mdi-calendar-month-outline</v-icon></span>
                     <div class="pg-field__main">
@@ -2598,6 +2695,8 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       <FormatFecha
                         v-model="fechaPagoCliente"
                         label=""
+                        :max="hoyLima()"
+                        :error-messages="(fechaPagoCliente ?? '') > hoyLima() ? 'No puede ser posterior a hoy' : ''"
                         prepend-inner-icon="mdi-calendar-month-outline"
                         density="compact"
                         :outlined="true"
@@ -3037,27 +3136,8 @@ watch(() => datosManuales.value.agregarOtros, () => {
                       </div>
                     </template>
 
-                    <!-- Transferencia internacional (03): comprobante y captura de datos bancarios -->
+                    <!-- Transferencia internacional (03): captura de datos bancarios (el comprobante va en 6.1, pago del cliente) -->
                     <template v-if="esTransferenciaInternacional">
-                      <div class="pg-field">
-                        <span class="pg-field__icon"><v-icon>mdi-swap-horizontal-variant</v-icon></span>
-                        <div class="pg-field__main">
-                          <div class="pg-field__label">
-                            Comprobante de Transferencia <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
-                          </div>
-                          <ArrastraYSolarComponent
-                            v-if="docComprobanteTransferencia"
-                            zona
-                            accept=".pdf"
-                            titulo="Subir comprobante (PDF)"
-                            subtitulo=""
-                            :id="docComprobanteTransferencia.key"
-                            :archivo-inicial="docComprobanteTransferencia.file as ArchivoInicial"
-                            @archivo-cargado="(datoEmit) => cargarArchivoDinamico(datoEmit, docComprobanteTransferencia!)"
-                            @archivo-eliminado="eliminarArchivoDinamico(docComprobanteTransferencia!)"
-                          />
-                        </div>
-                      </div>
                       <div class="pg-field">
                         <span class="pg-field__icon"><v-icon>mdi-image-outline</v-icon></span>
                         <div class="pg-field__main">

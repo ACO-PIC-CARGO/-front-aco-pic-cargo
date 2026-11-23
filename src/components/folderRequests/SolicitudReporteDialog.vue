@@ -131,11 +131,13 @@ const seleccionados = computed(() => expedientes.value.filter((e) => seleccion.v
 const monedaSolicitud = computed(() => monedaCuenta.value ?? seleccionados.value[0]?.moneda ?? null);
 const redondear = (n: number) => Math.round(n * 100) / 100;
 const total = computed(() => redondear(seleccionados.value.reduce((acc, e) => acc + Number(e.monto || 0), 0)));
-const pendientes = computed(() => expedientes.value.filter((e) => !e.id_solicitud));
-const amarrados = computed(() => expedientes.value.filter((e) => !!e.id_solicitud));
+// con solicitud rechazada se puede volver a elegir: al enviar la nueva, la rechazada pasa a eliminada
+const reelegible = (e: ExpedienteSolicitudReporte) => !!e.id_solicitud && e.codigo_estado === "RECHAZADA";
+const pendientes = computed(() => expedientes.value.filter((e) => !e.id_solicitud || reelegible(e)));
+const amarrados = computed(() => expedientes.value.filter((e) => !!e.id_solicitud && !reelegible(e)));
 
 function motivoBloqueo(e: ExpedienteSolicitudReporte): string {
-  if (e.id_solicitud) return `Ya está en la solicitud ${e.codigo_solicitud ?? ""}`.trim();
+  if (e.id_solicitud && !reelegible(e)) return `Ya está en la solicitud ${e.codigo_solicitud ?? ""}`.trim();
   if (monedaSolicitud.value && e.moneda !== monedaSolicitud.value) return `Otra moneda (${e.moneda ?? "-"})`;
   return "";
 }
@@ -347,6 +349,8 @@ async function subirArchivo(archivo: File) {
 }
 
 // ---------------- Envío ----------------
+const rechazadasElegidas = computed(() =>
+  [...new Set(seleccionados.value.filter(reelegible).map((e) => e.codigo_solicitud ?? ""))].filter(Boolean));
 async function enviar() {
   const entidad = props.entidad;
   if (!entidad || !paso1Completo.value || !seleccionados.value.length || enviando.value) return;
@@ -355,6 +359,9 @@ async function enviar() {
     html:
       `¿Enviar la solicitud de ${esPago.value ? "pago" : "cobro"} de <b>${entidad.nombre}</b> con `
       + `<b>${seleccionados.value.length}</b> expediente(s) por <b>${monedaSolicitud.value ?? ""} ${formatoMonto(total.value)}</b>?`
+      + (rechazadasElegidas.value.length
+        ? `<br><br>Las solicitudes rechazadas <b>${rechazadasElegidas.value.join(", ")}</b> pasan a eliminadas.`
+        : "")
       + "<br><br>Una vez enviada, sus datos ya no se pueden editar.",
     showCancelButton: true,
     confirmButtonText: "Sí, enviar",
@@ -830,7 +837,7 @@ async function enviar() {
               :class="{
                 'solrep__fila--sel': seleccion.includes(clave(e)),
                 'solrep__fila--bloq': !!motivoBloqueo(e) && !seleccion.includes(clave(e)),
-                'solrep__fila--amarrado': !!e.id_solicitud,
+                'solrep__fila--amarrado': !!e.id_solicitud && !reelegible(e),
               }"
               role="row"
               @click="alternar(e)"
@@ -888,10 +895,18 @@ async function enviar() {
                 </span>
                 <!-- pedida desde Control de Gastos: avisar dónde revisarla -->
                 <SolicitudOrigenNota
-                  v-if="e.id_solicitud && !e.multiexpedienteflag"
+                  v-if="e.id_solicitud && !e.multiexpedienteflag && !reelegible(e)"
                   origen="cg"
                   :tipo="tipo"
                 />
+                <!-- rechazada: se vuelve a elegir y la rechazada pasa a eliminada -->
+                <span
+                  v-else-if="reelegible(e) && !detalle"
+                  class="solrep__reelegir"
+                >
+                  <v-icon size="14">mdi-information-outline</v-icon>
+                  Se puede volver a elegir: al enviar, la {{ e.codigo_solicitud }} pasa a eliminada.
+                </span>
                 <span
                   v-else-if="motivoBloqueo(e)"
                   class="text-medium-emphasis text-body-small"
@@ -1254,6 +1269,15 @@ async function enviar() {
 .solrep__fila--bloq {
   cursor: not-allowed;
   color: #8a97ab;
+}
+.solrep__reelegir {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  margin-top: 4px;
+  color: #92400e;
+  font-size: 0.6875rem;
+  line-height: 1.25;
 }
 .solrep__fila--amarrado {
   background: #fafbfd;
