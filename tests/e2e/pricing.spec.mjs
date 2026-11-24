@@ -51,7 +51,7 @@ test("creates a draft quote, then views and edits it from the list", async ({ pa
   await page.getByRole("button", { name: "Agregar Notas Importantes" }).click();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   const saved = page.waitForResponse((r) => r.url().endsWith("/setQuote") && r.request().method() === "POST");
-  await page.getByRole("button", { name: "Guardar Borrador" }).click();
+  await page.getByRole("dialog", { name: "Cotizar" }).getByRole("button", { name: "Guardar", exact: true }).click();
   const { insertId, nro_quote } = await (await saved).json();
   const quoteId = String(insertId);
   const quoteNumber = String(nro_quote).match(/\d+/)[0];
