@@ -1202,7 +1202,7 @@ function formatearCostoTotal(valor: Costo) {
               <template v-if="ServicesComponentFlag">
                 <ImportantNoteField
                   class="mt-4"
-                  :quote-id="null"
+                  :quote-id="Number(pricingStore.id) || null"
                 />
                 <div class="d-flex justify-end">
                   <v-btn

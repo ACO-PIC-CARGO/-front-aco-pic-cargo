@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from "vue";
+import colors from "vuetify/util/colors";
 import { usePricingStore } from "@/stores/pricing";
 import { getInternalMessages } from "./internalCommunicationApi";
 
@@ -39,9 +40,16 @@ watch(
     class="important-note"
     aria-labelledby="important-note-title"
   >
-    <div class="important-note__banner">
+    <v-sheet
+      class="important-note__banner"
+      color="orange-lighten-5"
+      rounded="lg"
+      border="md"
+      :style="{ borderColor: colors.orange.darken2 }"
+    >
       <v-icon
         icon="mdi-alert"
+        color="orange-darken-2"
         class="important-note__icon"
       />
       <span
@@ -50,11 +58,11 @@ watch(
       />
       <h2
         id="important-note-title"
-        class="important-note__title"
+        class="important-note__title text-red-darken-4"
       >
         NOTA IMPORTANTE
       </h2>
-    </div>
+    </v-sheet>
     <div
       v-if="quoteId === null"
       class="important-note__body"
@@ -98,7 +106,7 @@ watch(
           aria-hidden="true"
         />
         <span
-          class="important-note__fab"
+          class="important-note__fab bg-blue-darken-4"
           aria-hidden="true"
         >H</span>
       </p>
@@ -121,13 +129,9 @@ watch(
   gap: 20px;
   width: 100%;
   padding: 12px 16px;
-  border: 2px solid rgb(var(--v-theme-warning));
-  border-radius: 8px;
-  background: rgba(var(--v-theme-warning), 0.12);
 }
 
 .important-note__icon {
-  color: rgb(var(--v-theme-warning));
   font-size: 48px;
 }
 
@@ -135,12 +139,11 @@ watch(
   align-self: stretch;
   width: 2px;
   margin: 4px 0;
-  background: rgba(var(--v-theme-on-surface), 0.35);
+  background: rgba(var(--v-theme-on-surface), 0.25);
 }
 
 .important-note__title {
   margin: 0;
-  color: rgb(var(--v-theme-error));
   font-size: 2.25rem;
   font-weight: 800;
   line-height: 1.2;
@@ -161,25 +164,24 @@ watch(
 }
 
 .important-note__help {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   margin: 0;
+  text-align: center;
   color: rgb(var(--v-theme-primary));
   font-weight: 600;
 }
 
+.important-note__help > * {
+  vertical-align: middle;
+}
+
 .important-note__fab {
   display: inline-flex;
+  margin-left: 4px;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgb(var(--v-theme-primary));
-  color: rgb(var(--v-theme-on-primary));
   font-weight: 800;
 }
 
