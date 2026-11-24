@@ -19,8 +19,8 @@ import QuoteNotificationPopup from "@/components/folderPricing/QuoteNotification
 import GeneratedQuoteDialog from "@/components/folderPricing/QuoteNotifications/GeneratedQuoteDialog.vue";
 import PricingRequestButton from "@/components/folderPricing/PricingRequest/PricingRequestButton.vue";
 import QuoteSaveChoiceDialog from "@/components/folderPricing/PricingRequest/QuoteSaveChoiceDialog.vue";
-import { requestPricingAfterSave } from "@/components/folderPricing/PricingRequest/requestAfterSave";
-import type { RequestOutcome, SaveChoice } from "@/components/folderPricing/PricingRequest/requestAfterSave";
+import { requestPricingAfterSave, showPricingRequestOutcome } from "@/components/folderPricing/PricingRequest/requestAfterSave";
+import type { SaveChoice } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 import ListMenu from "@/components/ListMenu.vue";
 import CotizacionPilotoAutomatico from "@/components/folderPricing/CotizacionPilotoAutomatico.vue";
 import { blockedQuoteSave } from "@/components/folderPricing/quoteRules";
@@ -247,13 +247,6 @@ function abrirSwalConfigFlete() {
 }
 async function chooseSaveAction(): Promise<SaveChoice | null> {
   return can("lstQuote", "MODIFICAR") ? saveChoiceDialog.value!.ask() : "save_only";
-}
-function showPricingRequestOutcome(outcome: RequestOutcome) {
-  void Swal.fire({
-    icon: outcome.estadoflag ? "success" : "warning",
-    title: outcome.estadoflag ? "Solicitud enviada" : "No se envió la solicitud a pricing",
-    text: outcome.mensaje,
-  });
 }
 const pricingRequestRefreshToken = ref(0);
 async function guardarCotizacion() {

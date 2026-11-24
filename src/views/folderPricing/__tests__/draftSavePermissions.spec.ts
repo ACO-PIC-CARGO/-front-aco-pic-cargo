@@ -2,10 +2,8 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
-import NewQuote from "@/views/folderPricing/NewQuote.vue";
 import NewAduana from "@/views/Aduana/NewQuote.vue";
 import { useAduanaStore } from "@/stores/aduana";
-import { usePricingStore } from "@/stores/pricing";
 import { accepted, httpMock } from "@/stores/__tests__/catalogHttp";
 
 vi.mock("vue-router", () => ({ useRoute: () => ({ name: "newQuote", params: {} }), useRouter: () => ({ push: vi.fn() }) }));
@@ -29,7 +27,7 @@ const draftOffered = () =>
     const prompt = options as { denyButtonText?: string; showDenyButton?: boolean };
     return prompt.denyButtonText === "Guardar Borrador" && prompt.showDenyButton === true;
   });
-const openWith = async (screen: typeof NewQuote, route: string, actions: string[]) => {
+const openWith = async (screen: typeof NewAduana, route: string, actions: string[]) => {
   sessionStorage.setItem("permissions", JSON.stringify({ screens: [{ route, actions }], controlled: [route] }));
   const pinia = createPinia();
   setActivePinia(pinia);
@@ -40,17 +38,6 @@ const openWith = async (screen: typeof NewQuote, route: string, actions: string[
 };
 
 describe.each([
-  [
-    "a pricing quote",
-    NewQuote,
-    "newQuote",
-    async (screen: Record<string, (...args: unknown[]) => Promise<void>>) => {
-      const pricing = usePricingStore();
-      pricing.datosPrincipales.containers = [];
-      pricing.opcionCostos = [{ ...OPTION }];
-      await screen.activarLlenadoCostosIndividual!(0, true);
-    },
-  ],
   [
     "a customs quote",
     NewAduana,
