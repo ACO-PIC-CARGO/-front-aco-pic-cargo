@@ -197,6 +197,17 @@ test("the call dialog stays open until the call is saved, then the list and its 
   expect(requestsTo("resumen_por_estado")).toHaveLength(1);
 });
 
+test("registering a call also opens that quote's call history under its row", async () => {
+  const PAST_CALL = { id: 1, fecha: "20/11/2026", notes: "Cliente pidió otra fecha", namelong: "ANA PÉREZ" };
+  answerWith({ getQuoteList: accepted([{ ...DRAFT, totalregistro: "1", details: [PAST_CALL] }]) });
+  await mountList();
+
+  await click(actionIn(rowOf("BORRADOR SAC"), "Registrar llamada")!);
+
+  expect(callDialog()!.textContent).toContain("Detalle de Nota de llamada");
+  expect(rowOf(PAST_CALL.notes)).toBeDefined();
+});
+
 test("a call on an approved quote offers no status change", async () => {
   await mountList();
   await click(actionIn(rowOf("APROBADA SAC"), "Registrar llamada")!);

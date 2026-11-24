@@ -6,6 +6,7 @@ export function isAlreadyRequested(info: Pick<PricingRequestInfo, "already_reque
   return info?.already_requested === true;
 }
 
-export function alreadyRequestedTooltip(reason: string | null): string {
-  return reason ?? ALREADY_REQUESTED_TOOLTIP;
+export function alreadyRequestedTooltip(reason: string | null, requestedAt?: string | null): string {
+  if (reason) return reason;
+  return requestedAt ? `Ya fue solicitado a Pricing el ${requestedAt}. Edita la cotización para volver a solicitarla.` : ALREADY_REQUESTED_TOOLTIP;
 }

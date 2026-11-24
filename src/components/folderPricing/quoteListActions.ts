@@ -11,7 +11,14 @@ export const showsCancelRequestAction = (view: PricingView): boolean => view !==
 
 export const reloadsAfterPricingRequest = (view: PricingView): boolean => view !== "";
 
-export const showsInternalThread = (view: PricingView): boolean => view !== "";
+export type RowDetail = "calls" | "thread";
+
+export const rowClickDetail = (view: PricingView): RowDetail => (view === "" ? "calls" : "thread");
+
+export function toggledRowDetail<Row>(open: { rows: Row[]; detail: RowDetail }, row: Row, detail: RowDetail) {
+  const alreadyShown = open.rows.includes(row) && open.detail === detail;
+  return { rows: alreadyShown ? [] : [row], detail };
+}
 
 export interface ListHeader {
   key: string;
@@ -22,10 +29,13 @@ export interface ListHeader {
 
 const HIDDEN_IN_PRICING_TABS = new Set(["status", "marketing", "fechaemisionpdf"]);
 
-const DATE_COLUMNS: Partial<Record<PricingView, { after: string; column: ListHeader }>> = {
-  pending_send: { after: "created", column: { key: "last_sent_to_client_at", title: "ÚLTIMO ENVÍO A CLIENTE", align: "center" } },
-  sent_to_client: { after: "acciones", column: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" } },
-  returned: { after: "created", column: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" } },
+const DATE_COLUMNS: Partial<Record<PricingView, { after: string; column: ListHeader }[]>> = {
+  pending_send: [
+    { after: "acciones", column: { key: "last_pricing_request_at", title: "ÚLTIMA SOLICITUD", align: "center" } },
+    { after: "created", column: { key: "last_sent_to_client_at", title: "ÚLTIMO ENVÍO A CLIENTE", align: "center" } },
+  ],
+  sent_to_client: [{ after: "acciones", column: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" } }],
+  returned: [{ after: "created", column: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" } }],
 };
 
 const LAST_COMMENT_COLUMN: ListHeader = { key: "last_message_body", title: "ÚLTIMO COMENTARIO", align: "start", minWidth: "300px" };
@@ -33,8 +43,9 @@ const LAST_COMMENT_COLUMN: ListHeader = { key: "last_message_body", title: "ÚLT
 export function quoteListHeaders(view: PricingView, base: readonly ListHeader[]): ListHeader[] {
   if (view === "") return [...base];
   const headers = base.filter((header) => !HIDDEN_IN_PRICING_TABS.has(header.key));
-  const date = DATE_COLUMNS[view];
-  if (date) headers.splice(headers.findIndex((header) => header.key === date.after) + 1, 0, date.column);
+  for (const { after, column } of DATE_COLUMNS[view] ?? []) {
+    headers.splice(headers.findIndex((header) => header.key === after) + 1, 0, column);
+  }
   return [...headers, LAST_COMMENT_COLUMN];
 }
 
