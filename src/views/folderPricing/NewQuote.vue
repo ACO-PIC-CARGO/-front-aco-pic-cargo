@@ -1182,7 +1182,7 @@ function formatearCostoTotal(valor: Costo) {
                 class="d-flex justify-end mt-4"
               >
                 <v-btn
-                  color="#3F51B5"
+                  color="indigo"
                   size="large"
                   @click="importantNoteFlag = true"
                 >
