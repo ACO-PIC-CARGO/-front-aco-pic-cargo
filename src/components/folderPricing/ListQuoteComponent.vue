@@ -1388,6 +1388,14 @@ onMounted(async () => {
             {{ item.created }}
           </td>
           <td
+            v-if="visibleColumns.has('last_sent_to_client_at')"
+            class="text-center"
+            @click="toggleExpand(internalItem)"
+            data-label="Último envío al cliente"
+          >
+            {{ item.sent_to_client_at || "Sin envíos" }}
+          </td>
+          <td
             v-if="visibleColumns.has('returned_to_sales_at')"
             class="text-center"
             @click="toggleExpand(internalItem)"

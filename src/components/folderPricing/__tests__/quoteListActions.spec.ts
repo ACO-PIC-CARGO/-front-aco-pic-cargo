@@ -48,8 +48,9 @@ describe("quoteListHeaders", () => {
     expect(keys("")).toEqual(BASE.map((header) => header.key));
   });
 
-  it("drops status, marketing and the PDF send date in Solicitadas por Ventas and ends with the last comment", () => {
-    expect(keys("pending_send")).toEqual(REQUEST_TAB_COLUMNS);
+  it("drops status, marketing and the PDF send date in Solicitadas por Ventas, adds the last send after the creation date and ends with the last comment", () => {
+    expect(keys("pending_send")).toEqual(["acciones", "priority_name", "created", "last_sent_to_client_at", ...REQUEST_TAB_COLUMNS.slice(3)]);
+    expect(quoteListHeaders("pending_send", BASE)[3]).toMatchObject({ title: "ÚLTIMO ENVÍO A CLIENTE" });
   });
 
   it("leads Enviadas al Cliente with the send date", () => {

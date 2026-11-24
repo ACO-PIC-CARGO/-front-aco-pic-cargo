@@ -23,6 +23,7 @@ export interface ListHeader {
 const HIDDEN_IN_PRICING_TABS = new Set(["status", "marketing", "fechaemisionpdf"]);
 
 const DATE_COLUMNS: Partial<Record<PricingView, { after: string; column: ListHeader }>> = {
+  pending_send: { after: "created", column: { key: "last_sent_to_client_at", title: "ÚLTIMO ENVÍO A CLIENTE", align: "center" } },
   sent_to_client: { after: "acciones", column: { key: "sent_to_client_at", title: "FECHA DE ENVÍO AL CLIENTE", align: "center" } },
   returned: { after: "created", column: { key: "returned_to_sales_at", title: "FECHA DE RETORNO A VENTAS", align: "center" } },
 };
