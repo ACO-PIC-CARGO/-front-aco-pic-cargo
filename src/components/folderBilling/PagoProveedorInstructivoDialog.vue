@@ -119,7 +119,33 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
                 <div class="ppi__field-label">
                   {{ campo.label }}
                 </div>
+                <!-- comprobante del cliente: nombre + ojo -->
                 <div
+                  v-if="campo.archivo"
+                  class="ppi__file"
+                >
+                  <v-icon
+                    size="16"
+                    color="success"
+                  >
+                    mdi-file-document-outline
+                  </v-icon>
+                  <span
+                    class="ppi__file-name"
+                    :title="campo.archivo.name"
+                  >{{ campo.archivo.name }}</span>
+                  <v-btn
+                    icon="mdi-eye-outline"
+                    variant="text"
+                    size="small"
+                    color="primary"
+                    :title="`Ver ${campo.label}`"
+                    :aria-label="`Ver ${campo.label}`"
+                    @click="verArchivo(campo)"
+                  />
+                </div>
+                <div
+                  v-else
                   class="ppi__value"
                   :class="{ 'ppi__value--empty': !campo.valor }"
                 >

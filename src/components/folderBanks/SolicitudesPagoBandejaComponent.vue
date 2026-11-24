@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useDisplay } from "vuetify";
@@ -568,13 +569,19 @@ onMounted(cargar);
           <span class="text-no-wrap">{{ formatoFecha(item.fechasolicitud) }}</span>
         </template>
         <template #[`item.expediente`]="{ item }">
-          <span class="spb__pill">{{ item.expediente }}</span>
-          <div
-            v-if="item.correlativo"
-            class="spb__sub"
+          <!-- varios expedientes (Reporte de Cuentas por Pagar): "Varios" + Ver Detalle -->
+          <ExpedienteVarios
+            tipo="pago"
+            :solicitud="item"
           >
-            Corr. {{ item.correlativo }}
-          </div>
+            <span class="spb__pill">{{ item.expediente }}</span>
+            <div
+              v-if="item.correlativo"
+              class="spb__sub"
+            >
+              Corr. {{ item.correlativo }}
+            </div>
+          </ExpedienteVarios>
         </template>
         <template #[`item.proveedor`]="{ item }">
           <div class="spb__provrow">

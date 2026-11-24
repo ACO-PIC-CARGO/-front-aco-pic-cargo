@@ -93,6 +93,17 @@ export function detalleClientePago(datos: Record<string, unknown>): { pago: bool
     campos: pago
       ? [
           { label: "Monto que nos pagó", icon: "mdi-database-outline", valor: montoTexto(d.montoRecibido, d.monedaRecibido) },
+          // comprobante del cliente (antes "Comprobante de Transferencia" del 6.3); solo si se adjuntó
+          ...(archivoDe(d.comprobantePagoCliente)
+            ? [documento("Comprobante de pago del cliente", "mdi-file-upload-outline", d.comprobantePagoCliente)]
+            : []),
+          // cuenta de la empresa y banco del cliente (el nombre se guarda en el instructivo junto al id)
+          ...(texto(d.cuentaPagoClienteTexto)
+            ? [{ label: "Cuenta donde depositó", icon: "mdi-bank-outline", valor: texto(d.cuentaPagoClienteTexto) }]
+            : []),
+          ...(texto(d.bancoPagoClienteTexto)
+            ? [{ label: "Banco del cliente", icon: "mdi-bank-transfer-out", valor: texto(d.bancoPagoClienteTexto) }]
+            : []),
           { label: "Fecha en que nos pagó", icon: "mdi-calendar-month-outline", valor: fecha ? shortDate(fecha) : "" },
         ]
       : [],
@@ -148,7 +159,8 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
         monto,
         nroFactura,
         factura,
-        comprobante,
+        // el comprobante pasó al 6.1 (pago del cliente): aquí solo en registros antiguos que lo tienen
+        ...(comprobante.archivo || comprobante.sinArchivo ? [comprobante] : []),
         documento("Captura de los Datos Bancarios del Proveedor", "mdi-image-outline", d.capturaDatosBancarios),
         ...transferencia,
       ],

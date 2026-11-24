@@ -4626,6 +4626,10 @@ export const usePricingStore = defineStore("pricing", () => {
       return false;
     }
   }
+  // Aprobada, pero el pago del cliente del instructivo (6.1) no se pudo cargar: aviso en amarillo para que se vea
+  function iconoAprobacion(mensaje: string | undefined): "success" | "warning" {
+    return String(mensaje ?? "").includes("No se cargó el pago del cliente") ? "warning" : "success";
+  }
   async function aprobarCotizacion(dataParaAprobar: AprobacionCotizacion): Promise<boolean> {
     const data = await request<MasterAprobado>({
       method: "put",
@@ -4642,7 +4646,7 @@ export const usePricingStore = defineStore("pricing", () => {
       return false;
     }
     if (!data.data[0].id_master) {
-      Swal.fire({ icon: "success", title: "Cotización asociada", text: data.mensaje });
+      Swal.fire({ icon: iconoAprobacion(data.mensaje), title: "Cotización asociada", text: data.mensaje });
       return true;
     }
     finishApprovalOnMaster({
@@ -4700,7 +4704,7 @@ export const usePricingStore = defineStore("pricing", () => {
       ]);
     }
     Swal.fire({
-      icon: "success",
+      icon: iconoAprobacion(mensaje),
       title: "Aviso",
       text: mensaje,
       timerProgressBar: true,

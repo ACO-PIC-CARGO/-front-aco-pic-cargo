@@ -61,6 +61,33 @@ describe("detalle del pago al proveedor del instructivo (6.3)", () => {
     expect(detalleClientePago({ metodoPagoCodigo: "03" })).toBeNull();
   });
 
+  it("6.1 cliente pagó: con comprobante se muestra entre el monto y la fecha", () => {
+    const comprobante = { id: 9, ruta: "https://x/pago.pdf", name: "pago.pdf" };
+    const si = detalleClientePago({ clientePago: "Si", montoRecibido: "10", fechaPagoCliente: "2026-08-25", comprobantePagoCliente: comprobante });
+    expect(si?.campos.map((c) => c.label)).toEqual(["Monto que nos pagó", "Comprobante de pago del cliente", "Fecha en que nos pagó"]);
+    expect(si?.campos[1]?.archivo).toEqual({ ruta: comprobante.ruta, name: "pago.pdf" });
+  });
+
+  it("6.1 cliente pagó: muestra la cuenta y el banco con su nombre", () => {
+    const si = detalleClientePago({
+      clientePago: "Si",
+      montoRecibido: "10",
+      cuentaPagoClienteTexto: "BCP - Banco de Crédito · 192-2190795",
+      bancoPagoClienteTexto: "BANCO PICHINCHA - BANCO PICHINCHA",
+    });
+    expect(si?.campos.map((c) => c.valor)).toEqual([
+      "USD 10.00",
+      "BCP - Banco de Crédito · 192-2190795",
+      "BANCO PICHINCHA - BANCO PICHINCHA",
+      "",
+    ]);
+  });
+
+  it("transferencia internacional sin comprobante ya no lo lista (pasó al 6.1)", () => {
+    const detalle = detallePagoProveedor({ metodoPagoCodigo: "03", comprobantePago: { flag: false, file: null } });
+    expect(detalle.campos.some((c) => c.label === "Comprobante de Transferencia")).toBe(false);
+  });
+
   it("archivoDe acepta el archivo plano, el de «Se adjunta» y { archivo }", () => {
     expect(archivoDe(archivo)?.name).toBe("captura.png");
     expect(archivoDe({ flag: true, file: archivo })?.ruta).toBe(archivo.ruta);

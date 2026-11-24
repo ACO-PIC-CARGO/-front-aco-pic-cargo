@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { computed, ref, watch } from "vue";
@@ -218,17 +219,22 @@ defineExpose({ cargar });
               <span v-else>Sin enviar</span>
             </td>
             <td>
-              <span
-                class="cobl__exp"
+              <ExpedienteVarios
+                tipo="cobro"
+                :solicitud="s"
               >
-                {{ s.expediente }}
-              </span>
-              <div
-                v-if="s.correlativo"
-                class="cobl__corr"
-              >
-                Corr. {{ s.correlativo }}
-              </div>
+                <span
+                  class="cobl__exp"
+                >
+                  {{ s.expediente }}
+                </span>
+                <div
+                  v-if="s.correlativo"
+                  class="cobl__corr"
+                >
+                  Corr. {{ s.correlativo }}
+                </div>
+              </ExpedienteVarios>
             </td>
             <td>
               <span class="cobl__cliente">{{ s.cliente }}</span>

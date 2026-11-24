@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { computed, ref, watch } from "vue";
@@ -306,13 +307,18 @@ defineExpose({ cargar });
               {{ formatoFecha(s.fechasolicitud) }}
             </td>
             <td>
-              <span class="solpago__pill">{{ s.expediente }}</span>
-              <div
-                v-if="s.correlativo"
-                class="solpago__sub"
+              <ExpedienteVarios
+                tipo="pago"
+                :solicitud="s"
               >
-                Corr. {{ s.correlativo }}
-              </div>
+                <span class="solpago__pill">{{ s.expediente }}</span>
+                <div
+                  v-if="s.correlativo"
+                  class="solpago__sub"
+                >
+                  Corr. {{ s.correlativo }}
+                </div>
+              </ExpedienteVarios>
             </td>
             <td>
               <div class="solpago__prov">
