@@ -52,6 +52,7 @@ const UnificarCotizacion = defineAsyncComponent(
     import("@/components/folderPricing/VerComponent/UnificarCotizacion.vue"),
 );
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
+import ImportantNoteField from "@/components/folderPricing/InternalCommunication/ImportantNoteField.vue";
 const InternalCommunicationFab = defineAsyncComponent(
   () => import("@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue"),
 );
@@ -259,6 +260,10 @@ onMounted(async () => {
               </v-col>
               <v-col cols="12">
                 <Services />
+                <ImportantNoteField
+                  class="mt-4"
+                  :quote-id="Number(route.params.id) || null"
+                />
               </v-col>
             </v-row>
           </v-stepper-window-item>
