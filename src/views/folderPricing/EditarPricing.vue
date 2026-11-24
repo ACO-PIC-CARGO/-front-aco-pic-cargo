@@ -23,7 +23,7 @@ import { askAdminCredentials } from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
-import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
+import ImportantNoteField from "@/components/folderPricing/InternalCommunication/ImportantNoteField.vue";
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
 import InternalCommunicationFab from "@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue";
 
@@ -637,7 +637,10 @@ function irANotas() {
                 @recargar-costos="recargarCostos()"
                 :mostrar-btn="false"
               />
-              <NewNoteField class="mt-4" />
+              <ImportantNoteField
+                class="mt-4"
+                :quote-id="Number(route.params.id) || null"
+              />
             </v-col>
           </v-row>
 

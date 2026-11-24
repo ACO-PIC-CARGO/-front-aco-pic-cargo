@@ -12,7 +12,7 @@ import ServicesComponent from "../../components/folderPricing/ServicesComponent.
 import DatosCostosComponent from "../../components/folderPricing/DatosCostosComponent.vue";
 import ComparativaComponent from "../../components/folderPricing/ComparativaComponent.vue";
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
-import NewNoteField from "@/components/folderPricing/InternalCommunication/NewNoteField.vue";
+import ImportantNoteField from "@/components/folderPricing/InternalCommunication/ImportantNoteField.vue";
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
 import InternalCommunicationFab from "@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue";
 const QuoteClientHistoryPanel = defineAsyncComponent(
@@ -1200,7 +1200,10 @@ function formatearCostoTotal(valor: Costo) {
                 @recargar-costos="recargarCostos()"
               />
               <template v-if="ServicesComponentFlag">
-                <NewNoteField class="mt-4" />
+                <ImportantNoteField
+                  class="mt-4"
+                  :quote-id="null"
+                />
                 <div class="d-flex justify-end">
                   <v-btn
                     color="primary"
