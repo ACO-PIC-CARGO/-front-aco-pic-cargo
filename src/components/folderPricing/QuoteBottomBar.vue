@@ -3,11 +3,17 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { BOTTOM_BAR_HEIGHT, BOTTOM_SHEET_HEIGHT, openBottomBars } from "./bottomBar";
 
 const props = withDefaults(
-  defineProps<{ icon: string; title: string; label: string; contentId: string; active?: boolean }>(),
-  { active: true },
+  defineProps<{ icon: string; title: string; label: string; contentId: string; active?: boolean; expands?: boolean }>(),
+  { active: true, expands: true },
 );
+const emit = defineEmits<{ activate: [] }>();
 
 const open = ref(false);
+
+function onBarClick() {
+  if (props.expands) open.value = !open.value;
+  else emit("activate");
+}
 const isActive = computed(() => props.active);
 watch(isActive, (value) => {
   if (!value) open.value = false;
@@ -44,9 +50,10 @@ onBeforeUnmount(() => {
         <button
           type="button"
           class="bottom-bar__toggle"
-          :aria-expanded="open"
-          :aria-controls="contentId"
-          @click="open = !open"
+          :aria-expanded="expands ? open : undefined"
+          :aria-controls="expands ? contentId : undefined"
+          :aria-haspopup="expands ? undefined : 'dialog'"
+          @click="onBarClick"
         >
           <v-icon
             :icon="icon"
@@ -72,6 +79,7 @@ onBeforeUnmount(() => {
         </div>
       </header>
       <div
+        v-if="expands"
         :id="contentId"
         class="bottom-bar__content"
         :inert="!open"
