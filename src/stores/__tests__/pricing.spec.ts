@@ -167,13 +167,15 @@ describe("pricing store", () => {
   });
 
   describe("lists", () => {
-    test("each list tab keeps its own filters, and the queues start without dates", () => {
+    test("each list tab keeps its own filters, and the queues start on their own recent dates", () => {
+      vi.useFakeTimers({ toFake: ["Date"] });
+      vi.setSystemTime(new Date(2026, 10, 23, 9, 0));
       const pricing = usePricingStore();
       pricing.filtro = { fechainicio: "2026-01-01", fechafin: "2026-11-30", tipopdf: 1, id_status: 3 };
       pricing.search = "zev";
 
       pricing.switchListView("pending_send");
-      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1 });
+      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1, view_date_from: "2026-10-24", view_date_to: "2026-11-23" });
       expect(pricing.search).toBe("");
       pricing.filtro.id_status = 5;
 
@@ -182,8 +184,31 @@ describe("pricing store", () => {
       expect(pricing.search).toBe("zev");
 
       pricing.switchListView("pending_send");
-      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1, id_status: 5 });
+      expect(pricing.filtro).toMatchObject({ id_status: 5, view_date_from: "2026-10-24" });
       expect(pricing.pagina).toBe(1);
+
+      pricing.switchListView("sent_to_client");
+      expect(pricing.filtro).toMatchObject({ view_date_from: "2026-11-13", view_date_to: "2026-11-23" });
+      pricing.switchListView("returned");
+      expect(pricing.filtro).toEqual({ fechainicio: "", fechafin: "", tipopdf: 1 });
+    });
+
+    test("the list, its summary and both reports send the tab's dates", async () => {
+      const pricing = usePricingStore();
+      pricing.switchListView("pending_send");
+      pricing.filtro.view_date_from = "2026-09-01";
+      pricing.filtro.view_date_to = "2026-11-23";
+      const sent = { view_date_from: "2026-09-01", view_date_to: "2026-11-23" };
+
+      await pricing.reloadQuoteList();
+      await pricing.imprimiReporteListado({ filtroSeleccionado: {}, filtroCabecera: {} });
+      await pricing.exportarExcelListadoQuote();
+
+      const listCalls = httpMock.mock.calls.filter(([config]) => /getQuoteList|resumen_por_estado/.test(String(config.url)));
+      expect(listCalls).toHaveLength(2);
+      for (const [config] of listCalls) expect(config.params).toMatchObject(sent);
+      expect(vi.mocked(requestQuoteReport).mock.calls[0]![0].data.filtro).toMatchObject(sent);
+      expect(vi.mocked(downloadExcel).mock.calls[0]![0].data.filtro).toMatchObject(sent);
     });
 
     test("both quote list reports carry the active tab", async () => {

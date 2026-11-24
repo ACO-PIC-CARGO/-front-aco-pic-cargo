@@ -112,7 +112,7 @@ const quoteFields = computed(() => [
                     icon="mdi-note-text-outline"
                     size="22"
                   />
-                  NOTAS
+                  NUEVA NOTA
                 </label>
                 <v-textarea
                   id="pricing-request-note"

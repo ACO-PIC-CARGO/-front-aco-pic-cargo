@@ -9,6 +9,7 @@ export interface InternalMessage {
   author_name: string | null;
   recipient_name: string | null;
   created_at: string;
+  is_creation_note?: boolean;
 }
 
 export interface SentMessage {

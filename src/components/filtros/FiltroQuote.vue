@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useAppStore } from "@/stores/app";
 import FormatFecha from "../comun/FormatFecha.vue";
 import moment from "moment";
@@ -8,6 +8,7 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
 import { chosenOptionTitle } from "@/utils/selectOptions";
+import { viewDateLabel, viewDatesProblem } from "@/components/folderPricing/quoteListViewDates";
 
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
@@ -15,6 +16,7 @@ const canPrint = usePermissions().can("lstQuote", "EXPORTAR");
 const masterusuariosStore = useMasterusuariosStore();
 
 const errorFiltroFecha = ref("");
+const viewDates = computed(() => viewDateLabel(pricingStore.pricingView));
 const loadingReporte = ref(false);
 const loadingExcel = ref(false);
 
@@ -52,8 +54,16 @@ function validarFiltroFechas() {
     return false;
   }
 
+  const problemaVista = viewDatesProblem(pricingStore.pricingView, filtro);
+  if (problemaVista) {
+    errorFiltroFecha.value = problemaVista;
+
+    return false;
+  }
+  const vistaConFechas = Boolean(viewDates.value && filtro.view_date_from && filtro.view_date_to);
+
   // 2. Obligatoriamente debe existir un rango completo
-  if (!creacionDesde && !creacionHasta && !envioDesde && !envioHasta) {
+  if (!vistaConFechas && !creacionDesde && !creacionHasta && !envioDesde && !envioHasta) {
     errorFiltroFecha.value =
       "Debes seleccionar un rango de fechas: Creación o de envío.";
 
@@ -583,6 +593,32 @@ onMounted(async () => {
             <v-col cols="12">
               <b>Filtro Fechas:</b>
             </v-col>
+            <template v-if="viewDates">
+              <v-col
+                cols="12"
+                md="6"
+                class="py-1"
+              >
+                <FormatFecha
+                  :dense="true"
+                  :label="`${viewDates} Desde`"
+                  v-model="pricingStore.filtro.view_date_from"
+                  clearable
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                md="6"
+                class="py-1"
+              >
+                <FormatFecha
+                  :dense="true"
+                  :label="`${viewDates} Hasta`"
+                  v-model="pricingStore.filtro.view_date_to"
+                  clearable
+                />
+              </v-col>
+            </template>
             <v-col
               cols="12"
               md="6"
