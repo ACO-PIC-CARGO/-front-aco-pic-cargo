@@ -66,6 +66,7 @@ const step = ref(1);
 const editableStep3 = ref(false);
 const DatosCargaComponentFlag = ref(false);
 const ServicesComponentFlag = ref(false);
+const importantNoteFlag = ref(false);
 const servicesComponent = ref<InstanceType<typeof ServicesComponent>>();
 const editableStep2 = ref(false);
 const editableStep4 = ref(false);
@@ -1176,7 +1177,19 @@ function formatearCostoTotal(valor: Costo) {
                 @activar-llenado-costos="activarLlenadoCostos()"
                 @recargar-costos="recargarCostos()"
               />
-              <template v-if="ServicesComponentFlag">
+              <div
+                v-if="ServicesComponentFlag && !importantNoteFlag"
+                class="d-flex justify-end mt-4"
+              >
+                <v-btn
+                  color="#3F51B5"
+                  size="large"
+                  @click="importantNoteFlag = true"
+                >
+                  Agregar Notas Importantes
+                </v-btn>
+              </div>
+              <template v-if="ServicesComponentFlag && importantNoteFlag">
                 <ImportantNoteField
                   class="mt-4"
                   :quote-id="Number(pricingStore.id) || null"

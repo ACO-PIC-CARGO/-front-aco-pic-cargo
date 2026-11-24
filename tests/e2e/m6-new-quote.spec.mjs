@@ -53,6 +53,7 @@ async function continueToQuoteChoice(page) {
     }).toPass();
   }
   await outsideInert(page, page.getByLabel("Valor de la mercancia").filter({ visible: true })).fill("1000");
+  await page.getByRole("button", { name: "Agregar Notas Importantes" }).click();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
   await expect(page.getByRole("button", { name: "Guardar Borrador" })).toBeVisible();
 }
