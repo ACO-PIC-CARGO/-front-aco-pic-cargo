@@ -7,6 +7,7 @@ import { useDisplay } from "vuetify";
 import ClientePagoChip from "@/components/folderBilling/ClientePagoChip.vue";
 import { request } from "@/utils/request";
 import { shortDate } from "@/utils/dates";
+import { sessionBranchId } from "@/utils/sesion";
 import type { DetalleExpedienteCobro, DetalleExpedientePago, TipoSolicitudReporte } from "@/types/solicitudReporte";
 
 const props = defineProps<{
@@ -43,6 +44,17 @@ const totales = computed(() => ({
   solicitado: suma("monto_solicitado"),
 }));
 const clientePago = (f: DetalleExpedientePago | DetalleExpedienteCobro) => ("cliente_pago" in f ? f.cliente_pago : null);
+// expediente con varios clientes: "Cliente Varios" y, en vez de "Cliente Pagó", "Ver Expediente"
+const variosClientes = (f: DetalleExpedientePago | DetalleExpedienteCobro) =>
+  "clientes_cantidad" in f && Number(f.clientes_cantidad ?? 0) > 1;
+// igual que el ojo del Reporte de Cuentas por Pagar / Cobrar: Control de Gastos del expediente en otra ventana
+function verExpediente(f: DetalleExpedientePago | DetalleExpedienteCobro) {
+  window.open(
+    `/home/folderBilling/editControlGastos/view/${f.id_master}/${sessionBranchId()}`,
+    "Instructivo",
+    "width=1593,height=1293",
+  );
+}
 const solicitado = (f: DetalleExpedientePago | DetalleExpedienteCobro) => ("monto_solicitado" in f ? f.monto_solicitado : 0);
 
 async function cargar() {
@@ -175,14 +187,33 @@ watch(abierto, (visible) => {
               <span
                 role="cell"
                 data-label="Cliente"
-              >{{ f.cliente || "-" }}</span>
+                :title="variosClientes(f) ? f.cliente ?? undefined : undefined"
+              >
+                <b v-if="variosClientes(f)">Cliente Varios</b>
+                <template v-else>{{ f.cliente || "-" }}</template>
+              </span>
               <span
                 v-if="esPago"
                 role="cell"
                 data-label="Cliente Pagó"
                 class="text-center"
               >
-                <ClientePagoChip :estado="clientePago(f)" />
+                <v-btn
+                  v-if="variosClientes(f)"
+                  size="small"
+                  variant="flat"
+                  color="primary"
+                  prepend-icon="mdi-eye-outline"
+                  class="expas__verexp"
+                  data-modo-ver="permitido"
+                  @click="verExpediente(f)"
+                >
+                  Ver Expediente
+                </v-btn>
+                <ClientePagoChip
+                  v-else
+                  :estado="clientePago(f)"
+                />
               </span>
               <span
                 role="cell"
@@ -366,6 +397,12 @@ watch(abierto, (visible) => {
 .expas__exp small {
   color: #667085;
   font-weight: 400;
+}
+.expas__verexp {
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
 }
 .expas__ganancia {
   display: inline-block;

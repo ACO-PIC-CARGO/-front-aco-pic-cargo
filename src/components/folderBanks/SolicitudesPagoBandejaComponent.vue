@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import { tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -172,7 +173,8 @@ function aprobaciones(s: SolicitudPagoBandeja) {
     const adm = tipo === "ADM";
     return {
       tipo,
-      usuario: adm ? s.usuario_aprobadoadministracion : s.usuario_aprobadogerencia,
+      // correo -> solo hasta la arroba (ocupa menos)
+      usuario: usuarioCorto(adm ? s.usuario_aprobadoadministracion : s.usuario_aprobadogerencia),
       fecha: adm ? s.fecha_aprobadoadministracion : s.fecha_aprobadogerencia,
       rechazado: s.codigo_estado === "RECHAZADA" && s.area_rechazo === tipo,
       pendiente: s.codigo_estado === (adm ? "PENADM" : "PENGER"),
@@ -245,6 +247,8 @@ const hayFiltros = computed(() => filtrosActivos.value.length > 0 || !!busqueda.
 // mismas columnas y orden que Pagos Pendientes (Control de Gastos), todas centradas
 const columna = (title: string, key: string) => ({ title, key, sortable: false, align: "center" as const });
 const headers = computed(() => [
+  // primera columna en Histórico: ya tiene la salida registrada en Bancos
+  ...(esHistorico.value ? [columna("Registrado en banco", "registrado_banco")] : []),
   columna("Fecha de solicitud", "fechasolicitud"),
   columna("Expediente", "expediente"),
   columna("Proveedor", "proveedor"),
@@ -356,7 +360,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", PPG: "Pendiente de Pago", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -409,6 +413,74 @@ function abrir(url: string | null | undefined) {
 // la vista recarga las tres.
 defineExpose({ cargar });
 onMounted(cargar);
+// menú "Acciones" de la fila (mismo diseño que Ingresos por confirmar): ver, pago proveedor, editar, eliminar, rechazar
+interface AccionFila {
+  titulo: string;
+  detalle: string;
+  icono: string;
+  color: "azul" | "rojo" | "naranja" | "morado";
+  deshabilitado?: boolean;
+  ayuda?: string;
+  /** también en modo solo lectura */
+  soloVer?: boolean;
+  accion: () => void;
+}
+function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
+  const lista: AccionFila[] = [{
+    titulo: "Ver solicitud",
+    detalle: "Facturas cargadas y la solicitud de pago.",
+    icono: "mdi-eye-outline",
+    color: "azul",
+    soloVer: true,
+    accion: () => verSolicitud(item),
+  }];
+  if (item.pago_instructivoflag) {
+    lista.push({
+      titulo: "Pago proveedor",
+      detalle: "Pago al proveedor del instructivo (6.3).",
+      icono: "mdi-eye-outline",
+      color: "azul",
+      soloVer: true,
+      accion: () => verPagoInstructivo(item),
+    });
+  }
+  const viva = !anuladaSolicitud(item);
+  if (puedeEditarSolicitud.value && viva && !item.multiexpedienteflag) {
+    lista.push({
+      titulo: "Editar",
+      detalle: "Cambia los datos de la solicitud.",
+      icono: "mdi-pencil-outline",
+      color: "morado",
+      deshabilitado: tieneSalidaBancosSolicitud(item),
+      ayuda: tituloAccion(item, "Editar"),
+      accion: () => editarSolicitud(item),
+    });
+  }
+  if (puedeModificar.value && viva && item.codigo_estado !== "RECHAZADA") {
+    lista.push({
+      titulo: "Rechazar / Devolver",
+      detalle: "Devuelve la solicitud por datos incorrectos.",
+      icono: "mdi-arrow-u-left-top",
+      color: "naranja",
+      deshabilitado: !puedeRechazar(item.codigo_estado, true),
+      ayuda: tituloRechazar(item.codigo_estado),
+      accion: () => abrirRechazo(item.id, item.codigo_estado),
+    });
+  }
+  if (puedeEliminarSolicitud.value && viva) {
+    lista.push({
+      titulo: "Eliminar",
+      detalle: "Elimina la solicitud de pago.",
+      icono: "mdi-trash-can-outline",
+      color: "rojo",
+      deshabilitado: tieneSalidaBancosSolicitud(item),
+      ayuda: tituloAccion(item, "Eliminar"),
+      accion: () => void eliminarSolicitud(item),
+    });
+  }
+  return lista;
+}
+
 </script>
 
 <template>
@@ -585,7 +657,10 @@ onMounted(cargar);
         </template>
         <template #[`item.proveedor`]="{ item }">
           <div class="spb__provrow">
-            <span class="spb__prov">{{ proveedor(item) }}</span>
+            <span
+              class="spb__prov"
+              :title="proveedor(item)"
+            >{{ proveedor(item) }}</span>
             <v-btn
               icon="mdi-content-copy"
               variant="text"
@@ -650,7 +725,15 @@ onMounted(cargar);
           </div>
         </template>
         <template #[`item.cliente_pago`]="{ item }">
-          <ClientePagoChip :estado="item.cliente_pago" />
+          <!-- varios expedientes: cada uno tiene su "Cliente Pagó" en Ver Detalle -->
+          <span
+            v-if="tieneVariosExpedientes(item)"
+            class="spb__muted"
+          >-</span>
+          <ClientePagoChip
+            v-else
+            :estado="item.cliente_pago"
+          />
         </template>
         <template #[`item.estado`]="{ item }">
           <v-tooltip location="top">
@@ -666,16 +749,16 @@ onMounted(cargar);
             </template>
             <div>Solicitado: {{ item.usuario_solicitud || "—" }} · {{ formatoFechaHora(item.fechasolicitud) }}</div>
             <div v-if="item.usuario_aprobadoadministracion">
-              Administración: {{ item.usuario_aprobadoadministracion }} · {{ formatoFechaHora(item.fecha_aprobadoadministracion) }}
+              Administración: {{ usuarioCorto(item.usuario_aprobadoadministracion) }} · {{ formatoFechaHora(item.fecha_aprobadoadministracion) }}
             </div>
             <div v-if="item.usuario_aprobadogerencia">
-              Gerencia: {{ item.usuario_aprobadogerencia }} · {{ formatoFechaHora(item.fecha_aprobadogerencia) }}
+              Gerencia: {{ usuarioCorto(item.usuario_aprobadogerencia) }} · {{ formatoFechaHora(item.fecha_aprobadogerencia) }}
             </div>
             <div v-if="item.numerooperacion_pago">
               Salida N° {{ item.numerooperacion_pago }}
             </div>
             <div v-if="item.usuario_rechazo">
-              Rechazado ({{ item.area_rechazo === "ADM" ? "Administración" : "Gerencia" }}): {{ item.usuario_rechazo }} · {{ formatoFechaHora(item.fecha_rechazo) }}
+              Rechazado ({{ item.area_rechazo === "ADM" ? "Administración" : "Gerencia" }}): {{ usuarioCorto(item.usuario_rechazo) }} · {{ formatoFechaHora(item.fecha_rechazo) }}
             </div>
             <div v-if="item.usuario_anulado">
               Eliminado: {{ item.usuario_anulado }} · {{ formatoFechaHora(item.fecha_anulado) }}
@@ -697,7 +780,7 @@ onMounted(cargar);
               <template v-else-if="a.rechazado">
                 <span class="spb__rechazotag">Rechazado</span>
                 <div class="spb__aprobuser">
-                  {{ item.usuario_rechazo || "—" }}
+                  {{ usuarioCorto(item.usuario_rechazo) || "—" }}
                 </div>
                 <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
               </template>
@@ -734,7 +817,7 @@ onMounted(cargar);
               <template v-else-if="a.rechazado">
                 <span class="spb__rechazotag">Rechazado</span>
                 <div class="spb__aprobuser">
-                  {{ item.usuario_rechazo || "—" }}
+                  {{ usuarioCorto(item.usuario_rechazo) || "—" }}
                 </div>
                 <span class="spb__aprobfecha spb__aprobfecha--rechazo">{{ formatoFecha(item.fecha_rechazo) }}<template v-if="horaDe(item.fecha_rechazo)"><br>{{ horaDe(item.fecha_rechazo) }}</template></span>
               </template>
@@ -841,53 +924,8 @@ onMounted(cargar);
           >—</span>
         </template>
         <template #[`item.ver`]="{ item }">
-          <!-- 1. editar  2. eliminar  3. ver: editar/eliminar con las mismas reglas que Control de Gastos -->
+          <!-- un solo botón "Acciones" con menú, como en Ingresos por confirmar (cobros) -->
           <div class="spb__acciones">
-            <v-btn
-              v-if="puedeEditarSolicitud && !anuladaSolicitud(item) && !item.multiexpedienteflag"
-              icon="mdi-pencil-outline"
-              variant="text"
-              size="small"
-              :color="tieneSalidaBancosSolicitud(item) ? 'grey' : 'primary'"
-              :title="tituloAccion(item, 'Editar')"
-              aria-label="Editar solicitud de pago"
-              @click="editarSolicitud(item)"
-            />
-            <v-btn
-              v-if="puedeEliminarSolicitud && !anuladaSolicitud(item)"
-              icon="mdi-trash-can-outline"
-              variant="text"
-              size="small"
-              :color="tieneSalidaBancosSolicitud(item) ? 'grey' : 'error'"
-              :title="tituloAccion(item, 'Eliminar')"
-              aria-label="Eliminar solicitud de pago"
-              :loading="eliminandoSolicitud === item.id"
-              @click="eliminarSolicitud(item)"
-            />
-            <v-btn
-              icon="mdi-eye-outline"
-              variant="tonal"
-              size="small"
-              color="primary"
-              title="Ver solicitud de pago"
-              aria-label="Ver solicitud de pago"
-              @click="verSolicitud(item)"
-            />
-            <!-- pago al proveedor del instructivo de Pricing (6.3): método, datos y archivos -->
-            <v-btn
-              v-if="item.pago_instructivoflag"
-              variant="tonal"
-              size="small"
-              color="primary"
-              prepend-icon="mdi-eye-outline"
-              class="spb__pago6"
-              title="Ver el pago al proveedor del instructivo (6.3)"
-              aria-label="Ver el pago al proveedor del instructivo"
-              data-modo-ver="permitido"
-              @click="verPagoInstructivo(item)"
-            >
-              Pago proveedor
-            </v-btn>
             <v-btn
               v-if="item.codigo_estado === 'RECHAZADA'"
               size="small"
@@ -901,20 +939,59 @@ onMounted(cargar);
             >
               Ver motivo
             </v-btn>
-            <v-btn
-              v-else-if="puedeModificar && !anuladaSolicitud(item)"
-              size="small"
-              variant="outlined"
-              rounded="lg"
-              color="error"
-              class="spb__rechazar"
-              :disabled="!puedeRechazar(item.codigo_estado, true)"
-              :title="tituloRechazar(item.codigo_estado)"
-              @click="abrirRechazo(item.id, item.codigo_estado)"
-            >
-              Rechazar
-            </v-btn>
+            <v-menu location="bottom end">
+              <template #activator="{ props: menu }">
+                <v-btn
+                  v-bind="menu"
+                  size="small"
+                  variant="flat"
+                  color="primary"
+                  class="spb__menubtn"
+                  prepend-icon="mdi-dots-horizontal"
+                  append-icon="mdi-menu-down"
+                  data-modo-ver="permitido"
+                  :loading="eliminandoSolicitud === item.id"
+                >
+                  Acciones
+                </v-btn>
+              </template>
+              <div class="spb__menu">
+                <template
+                  v-for="(a, i) in accionesMenu(item)"
+                  :key="a.titulo"
+                >
+                  <v-divider v-if="i > 0" />
+                  <button
+                    type="button"
+                    class="spb__menuitem"
+                    :class="`spb__menuitem--${a.color}`"
+                    :disabled="a.deshabilitado"
+                    :title="a.ayuda"
+                    :data-modo-ver="a.soloVer ? 'permitido' : undefined"
+                    @click="a.accion()"
+                  >
+                    <v-icon size="26">
+                      {{ a.icono }}
+                    </v-icon>
+                    <span>
+                      <b>{{ a.titulo }}</b>
+                      <small>{{ a.detalle }}</small>
+                    </span>
+                  </button>
+                </template>
+              </div>
+            </v-menu>
           </div>
+        </template>
+        <template #[`item.registrado_banco`]="{ item }">
+          <v-chip
+            size="small"
+            variant="flat"
+            :color="!!item.id_pagoegreso ? 'success' : 'error'"
+            :prepend-icon="!!item.id_pagoegreso ? 'mdi-check-circle' : 'mdi-close-circle'"
+          >
+            {{ !!item.id_pagoegreso ? "Sí" : "No" }}
+          </v-chip>
         </template>
         <template #[`item.motivo_rechazo`]="{ item }">
           <span class="spb__motivo">{{ item.motivo_rechazo || "Sin motivo" }}</span>
@@ -1342,9 +1419,21 @@ onMounted(cargar);
   white-space: nowrap;
   cursor: pointer;
 }
+/* el proveedor baja a 2 o 3 líneas en vez de ensanchar la tabla */
+.spb__provrow {
+  white-space: normal;
+}
 .spb__prov {
+  display: -webkit-box;
+  max-width: 220px;
+  overflow: hidden;
   font-weight: 700;
   color: var(--spb-primary);
+  line-height: 1.25;
+  text-align: left;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
 }
 .spb__monto {
   font-weight: 700;
@@ -1530,6 +1619,65 @@ onMounted(cargar);
 }
 
 /* acciones: editar, eliminar y ver */
+.spb__menubtn {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 700 !important;
+  border-radius: 8px !important;
+  background: #1d4ed8 !important;
+}
+.spb__menu {
+  min-width: 290px;
+  padding: 6px;
+  border: 1px solid #e3e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.16);
+}
+.spb__menuitem {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-align: left;
+}
+.spb__menuitem:hover:not(:disabled) {
+  background: #f5f7fb;
+}
+.spb__menuitem:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.spb__menuitem span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.spb__menuitem b {
+  font-size: 0.95rem;
+}
+.spb__menuitem small {
+  color: #5b6b86;
+  font-size: 0.8rem;
+}
+.spb__menuitem--azul .v-icon,
+.spb__menuitem--azul b {
+  color: #1d4ed8;
+}
+.spb__menuitem--rojo .v-icon,
+.spb__menuitem--rojo b {
+  color: #dc2626;
+}
+.spb__menuitem--naranja .v-icon,
+.spb__menuitem--naranja b {
+  color: #ea8a0c;
+}
+.spb__menuitem--morado .v-icon,
+.spb__menuitem--morado b {
+  color: #6d28d9;
+}
 .spb__acciones {
   display: inline-flex;
   align-items: center;

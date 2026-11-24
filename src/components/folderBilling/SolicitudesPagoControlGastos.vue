@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import { tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
@@ -111,7 +112,7 @@ function aprobaciones(s: SolicitudPagoControl) {
       area: "administracion",
       tipo: "ADM" as const,
       aprobado: !!s.aprobadoadministracionflag,
-      usuario: s.usuario_aprobadoadministracion,
+      usuario: usuarioCorto(s.usuario_aprobadoadministracion),
       fecha: s.fecha_aprobadoadministracion,
       rechazado: !!s.rechazadoflag && s.area_rechazo === "ADM",
       pendiente: s.codigo_estado === "PENADM",
@@ -120,7 +121,7 @@ function aprobaciones(s: SolicitudPagoControl) {
       area: "gerencia",
       tipo: "GER" as const,
       aprobado: !!s.aprobadogerenciaflag,
-      usuario: s.usuario_aprobadogerencia,
+      usuario: usuarioCorto(s.usuario_aprobadogerencia),
       fecha: s.fecha_aprobadogerencia,
       rechazado: !!s.rechazadoflag && s.area_rechazo === "GER",
       pendiente: s.codigo_estado === "PENGER",
@@ -373,7 +374,12 @@ defineExpose({ cargar });
               </div>
             </td>
             <td class="text-center">
-              <ClientePagoChip :estado="s.cliente_pago" />
+              <!-- varios expedientes: cada uno tiene su "Cliente Pagó" en Ver Detalle -->
+              <span v-if="tieneVariosExpedientes(s)">-</span>
+              <ClientePagoChip
+                v-else
+                :estado="s.cliente_pago"
+              />
             </td>
             <td>
               <v-tooltip location="top">
@@ -386,10 +392,10 @@ defineExpose({ cargar });
                 </template>
                 <div>Solicitado: {{ s.usuario_solicitud || "—" }} · {{ s.fechasolicitud }}</div>
                 <div v-if="s.aprobadoadministracionflag">
-                  Administración: {{ s.usuario_aprobadoadministracion }} · {{ s.fecha_aprobadoadministracion }}
+                  Administración: {{ usuarioCorto(s.usuario_aprobadoadministracion) }} · {{ s.fecha_aprobadoadministracion }}
                 </div>
                 <div v-if="s.aprobadogerenciaflag">
-                  Gerencia: {{ s.usuario_aprobadogerencia }} · {{ s.fecha_aprobadogerencia }}
+                  Gerencia: {{ usuarioCorto(s.usuario_aprobadogerencia) }} · {{ s.fecha_aprobadogerencia }}
                 </div>
                 <div v-if="s.pagadoflag">
                   Pago registrado: {{ s.usuario_pagado }} · {{ s.fecha_registropago }}
@@ -419,7 +425,7 @@ defineExpose({ cargar });
               >
                 <span class="solpago__rechazotag">Rechazado</span>
                 <div class="solpago__aprobuser">
-                  {{ s.usuario_rechazo || "—" }}
+                  {{ usuarioCorto(s.usuario_rechazo) || "—" }}
                 </div>
                 <span class="solpago__aprobfecha solpago__aprobfecha--rechazo">{{ formatoFecha(s.fecha_rechazo ?? null) }}<template v-if="horaDe(s.fecha_rechazo ?? null)"><br>{{ horaDe(s.fecha_rechazo ?? null) }}</template></span>
               </div>

@@ -136,9 +136,19 @@ const reelegible = (e: ExpedienteSolicitudReporte) => !!e.id_solicitud && e.codi
 const pendientes = computed(() => expedientes.value.filter((e) => !e.id_solicitud || reelegible(e)));
 const amarrados = computed(() => expedientes.value.filter((e) => !!e.id_solicitud && !reelegible(e)));
 
+// el reporte mezcla sucursales: una solicitud solo lleva expedientes de una sucursal
+// (se registra en la sucursal de sus expedientes, no en la activa)
+const sucursalSolicitud = computed(() => seleccionados.value[0]?.id_branch ?? null);
+const variasSucursales = computed(() => new Set(expedientes.value.map((e) => e.id_branch ?? null)).size > 1);
+const otraSucursal = (e: ExpedienteSolicitudReporte) =>
+  sucursalSolicitud.value != null && e.id_branch != null && e.id_branch !== sucursalSolicitud.value;
+/** se intentó elegir uno de otra sucursal: nota debajo de la lista */
+const avisoSucursal = ref(false);
+
 function motivoBloqueo(e: ExpedienteSolicitudReporte): string {
   if (e.id_solicitud && !reelegible(e)) return `Ya está en la solicitud ${e.codigo_solicitud ?? ""}`.trim();
   if (monedaSolicitud.value && e.moneda !== monedaSolicitud.value) return `Otra moneda (${e.moneda ?? "-"})`;
+  if (otraSucursal(e)) return `Otra sucursal (${e.sucursal ?? "-"})`;
   return "";
 }
 const seleccionables = computed(() => pendientes.value.filter((e) => !motivoBloqueo(e)));
@@ -146,11 +156,21 @@ const todos = computed({
   get: () => seleccionables.value.length > 0 && seleccionables.value.every((e) => seleccion.value.includes(clave(e))),
   set: (valor: boolean) => {
     if (soloLectura.value) return;
-    seleccion.value = valor ? seleccionables.value.map(clave) : [];
+    if (!valor) {
+      seleccion.value = [];
+      return;
+    }
+    // sin nada elegido: los de la sucursal del primero (no se mezclan sucursales)
+    const sucursal = sucursalSolicitud.value ?? seleccionables.value[0]?.id_branch ?? null;
+    seleccion.value = seleccionables.value.filter((e) => sucursal == null || e.id_branch == null || e.id_branch === sucursal).map(clave);
   },
 });
 function alternar(e: ExpedienteSolicitudReporte) {
   if (soloLectura.value) return;
+  if (otraSucursal(e) && !seleccion.value.includes(clave(e))) {
+    avisoSucursal.value = true;
+    return;
+  }
   if (motivoBloqueo(e) && !seleccion.value.includes(clave(e))) return;
   const k = clave(e);
   seleccion.value = seleccion.value.includes(k) ? seleccion.value.filter((x) => x !== k) : [...seleccion.value, k];
@@ -216,6 +236,7 @@ watch(
     if (!visible) return;
     paso.value = 1;
     seleccion.value = [];
+    avisoSucursal.value = false;
     expedientes.value = [];
     formPago.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
     cuentasProveedor.value = [];
@@ -861,6 +882,10 @@ async function enviar() {
               >
                 <b>{{ e.expediente }}</b>
                 <small v-if="e.nro_master">N° {{ e.nro_master }}</small>
+                <small
+                  v-if="variasSucursales && e.sucursal"
+                  class="solrep__sucursal"
+                >{{ e.sucursal }}</small>
               </span>
               <span
                 role="cell"
@@ -918,6 +943,18 @@ async function enviar() {
               </span>
             </div>
           </div>
+
+          <!-- no se mezclan sucursales en una solicitud -->
+          <p
+            v-if="avisoSucursal && !detalle"
+            class="solrep__aviso"
+            role="alert"
+          >
+            <v-icon size="16">
+              mdi-alert-circle-outline
+            </v-icon>
+            No puede seleccionar expedientes de diferentes sucursales.
+          </p>
 
           <!-- totalizador -->
           <div class="solrep__total">
@@ -1269,6 +1306,23 @@ async function enviar() {
 .solrep__fila--bloq {
   cursor: not-allowed;
   color: #8a97ab;
+}
+.solrep__sucursal {
+  color: #1d4ed8 !important;
+  font-weight: 600;
+}
+.solrep__aviso {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border: 1px solid #fbd3cf;
+  border-radius: 10px;
+  background: #fef3f2;
+  color: #b42318;
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 .solrep__reelegir {
   display: flex;

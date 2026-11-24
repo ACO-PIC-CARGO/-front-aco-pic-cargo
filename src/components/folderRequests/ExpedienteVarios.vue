@@ -2,6 +2,7 @@
 // Celda "Expediente" de una solicitud: si viene del Reporte de Cuentas por Pagar / por Cobrar con más de un
 // expediente muestra "Varios" + "Ver Detalle" (modal Expedientes Asociados); si no, el contenido de siempre (slot).
 import { computed, ref } from "vue";
+import { tieneVariosExpedientes } from "@/utils/solicitudVista";
 import ExpedientesAsociadosDialog from "./ExpedientesAsociadosDialog.vue";
 import type { TipoSolicitudReporte } from "@/types/solicitudReporte";
 
@@ -21,10 +22,7 @@ const props = defineProps<{
 }>();
 
 /** más de un expediente (o correlativo): la bandeja los manda separados por coma */
-const varios = computed(() =>
-  !!props.solicitud.multiexpedienteflag
-  && [props.solicitud.expediente, props.solicitud.correlativo, props.solicitud.expedientes_solicitud]
-    .some((texto) => `${texto ?? ""}`.includes(",")));
+const varios = computed(() => tieneVariosExpedientes(props.solicitud));
 const abierto = ref(false);
 </script>
 

@@ -162,6 +162,9 @@ const borrador = ref<Filtros>(filtrosVacios());
 
 const esRechazadas = computed(() => props.tab === "REC");
 const esHistorico = computed(() => props.tab === "HIS");
+// "Registrado en banco" (Histórico): el pago de la fila ya tiene su ingreso en Bancos
+const registradoEnBanco = (f: { codigo_estado: string; id_pagoingreso?: number | null }) =>
+  f.codigo_estado === "COBRADO" || !!f.id_pagoingreso;
 // con Sí y No marcados (o ninguno) no filtra
 const OPCIONES_SI_NO = [
   { title: "Sí", value: "SI" },
@@ -184,6 +187,8 @@ const hayFiltros = computed(() => {
 
 const columna = (title: string, key: string) => ({ title, key, sortable: false, align: "center" as const });
 const headers = computed(() => [
+  // primera columna en Histórico: el pago del cliente ya está registrado en Bancos (ingreso)
+  ...(esHistorico.value ? [columna("Registrado en banco", "registrado_banco")] : []),
   columna("Fecha de solicitud", "fechasolicitud"),
   columna("Expediente", "expediente"),
   columna("Cliente", "cliente"),
@@ -274,7 +279,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", PPG: "Pendiente de Pago", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -657,6 +662,16 @@ onMounted(cargar);
             class="cobl__chipfecha"
           >{{ soloFecha(item.fecha_confirmacion) }}<br>{{ horaDe(item.fecha_confirmacion) }}</span>
           <span v-else>—</span>
+        </template>
+        <template #[`item.registrado_banco`]="{ item }">
+          <v-chip
+            size="small"
+            variant="flat"
+            :color="registradoEnBanco(item) ? 'success' : 'error'"
+            :prepend-icon="registradoEnBanco(item) ? 'mdi-check-circle' : 'mdi-close-circle'"
+          >
+            {{ registradoEnBanco(item) ? "Sí" : "No" }}
+          </v-chip>
         </template>
         <template #[`item.acciones`]="{ item }">
           <div class="scb__acciones">

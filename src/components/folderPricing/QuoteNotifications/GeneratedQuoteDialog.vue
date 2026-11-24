@@ -233,6 +233,13 @@ async function reloadList() {
             >
               {{ SOURCE_LABELS[notice.source] }}
             </v-chip>
+            <div
+              v-if="notice.nombrevendedor_chatwoot"
+              class="generated-quote__seller"
+            >
+              <span class="generated-quote__label">Vendedor:</span>
+              {{ notice.nombrevendedor_chatwoot }}
+            </div>
           </div>
           <div class="generated-quote__actions">
             <v-btn
@@ -361,6 +368,13 @@ async function reloadList() {
             >
               {{ SOURCE_LABELS[current.source] }}
             </v-chip>
+            <div
+              v-if="current.nombrevendedor_chatwoot"
+              class="generated-quote__seller"
+            >
+              <span class="generated-quote__label">Vendedor:</span>
+              {{ current.nombrevendedor_chatwoot }}
+            </div>
           </div>
         </div>
       </v-card-text>
@@ -559,6 +573,18 @@ async function reloadList() {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+/* debajo de la fuente: vendedor asignado en Chatwoot */
+.generated-quote__seller {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+  color: #12263f;
+  font-size: 0.8rem;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 .generated-quote__cancel {
   background: linear-gradient(180deg, #e53935, #b71c1c) !important;

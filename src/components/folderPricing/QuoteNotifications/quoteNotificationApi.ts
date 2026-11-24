@@ -60,6 +60,7 @@ export interface CotizacionAvisoPendiente {
   tieneindividualflag: boolean | null;
   tienegrupalflag: boolean | null;
   fecha_registro: string | null;
+  nombrevendedor_chatwoot: string | null;
 }
 
 // Cotizaciones nuevas que este usuario aún no vio (al abrir ACO o al reconectarse)

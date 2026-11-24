@@ -15,10 +15,10 @@ const totales = ref<Record<TabBandejaSolicitudCobro, number | null>>({ PEN: null
 
 const TABS: { valor: TabBandejaSolicitudCobro; titulo: string; icono: string; color: string }[] = [
   { valor: "PEN", titulo: "Pendientes", icono: "mdi-clock-outline", color: "primary" },
-  // pasaron las validaciones y aún no se pagan / registran en Bancos
-  { valor: "PPG", titulo: "Pendiente de Pago", icono: "mdi-cash-clock", color: "warning" },
   { valor: "REC", titulo: "Rechazadas", icono: "mdi-close-circle-outline", color: "error" },
   { valor: "HIS", titulo: "Histórico", icono: "mdi-history", color: "grey-darken-1" },
+  // 4.ª pestaña: pasaron las validaciones y solo falta registrarlas en Bancos
+  { valor: "PPG", titulo: "Pendiente por Registrar en banco", icono: "mdi-cash-clock", color: "warning" },
 ];
 
 // Al entrar se cargan las cuatro pestañas. Cualquier acción (aprobar, rechazar, editar, eliminar,
@@ -157,7 +157,7 @@ onMounted(async () => {
   line-height: 18px;
   text-align: center;
 }
-/* cuatro pestañas: "Pendiente de Pago" pasa a dos líneas en vez de cortarse */
+/* cuatro pestañas: "Pendiente por Registrar en banco" pasa a dos líneas en vez de cortarse */
 .spbv-tab__label {
   max-width: 100%;
   line-height: 1.15;

@@ -30,6 +30,8 @@ export interface GeneratedQuotePayload {
   /** FCL: contenedor y cantidad (ej. 40S x 1) */
   contenedor?: string | null;
   cantidad_contenedor?: number | string | null;
+  /** bot: vendedor asignado en Chatwoot (table_quote.nombrevendedor_chatwoot) */
+  nombrevendedor_chatwoot?: string | null;
 }
 
 export type QuoteModality = "individual" | "grupal";

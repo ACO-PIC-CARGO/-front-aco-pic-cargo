@@ -31,6 +31,9 @@ export interface ExpedienteSolicitudReporte {
   codigo_estado: string | null;
   estado: string | null;
   multiexpedienteflag: boolean;
+  /** sucursal del expediente (el reporte mezcla sucursales de la empresa) */
+  id_branch?: number | null;
+  sucursal?: string | null;
 }
 
 /** Expediente amarrado que devuelve el token de la solicitud (Bancos precarga el movimiento) */
@@ -75,6 +78,8 @@ export interface DetalleExpedientePago {
   expediente: string;
   correlativo: string | null;
   cliente: string | null;
+  /** más de uno: "Cliente Varios" y botón "Ver Expediente" en vez de "Cliente Pagó" */
+  clientes_cantidad?: number;
   cliente_pago: "SI" | "PARCIAL" | "NO" | null;
   monto_pricing: number | string;
   monto_operaciones: number | string;

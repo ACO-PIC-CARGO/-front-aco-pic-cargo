@@ -218,3 +218,36 @@ test("un expediente con solicitud rechazada se puede volver a elegir y se avisa 
   }));
   w.unmount();
 });
+
+test("no se mezclan expedientes de diferentes sucursales: se bloquean y sale la nota", async () => {
+  const mezcla = [
+    expediente(1519, 124.55, { id_branch: 2, sucursal: "PIC CARGO SA - PANAMÁ" }),
+    expediente(1522, 103.13, { id_branch: 2, sucursal: "PIC CARGO SA - PANAMÁ" }),
+    expediente(2602, 50, { id_branch: 1, sucursal: "PIC LOGISTICA SAC" }),
+  ];
+  requestMock.mockImplementation(({ url }: { url: string }) => {
+    if (url.endsWith("cargar_master_detalle_tipo_pago_solicitud")) {
+      return Promise.resolve({ estadoflag: true, data: [{ id: 2131, codigo: "01", descripcion: "Transferencia" }] });
+    }
+    if (url.endsWith("solicitud_pago_reporte_expedientes")) return Promise.resolve({ estadoflag: true, data: mezcla });
+    return Promise.resolve({ estadoflag: true, mensaje: "ok", tipomensaje: "TMSGINF", data: [] });
+  });
+  const w = render();
+  await w.setProps({ modelValue: true });
+  await flushPromises();
+  [...document.querySelectorAll("button")].find((b) => b.textContent?.includes("SIGUIENTE"))!.click();
+  await flushPromises();
+
+  const fila = (exp: string) =>
+    ([...document.querySelectorAll(".solrep__fila:not(.solrep__fila--head)")] as HTMLElement[]).find((f) => f.textContent?.includes(exp))!;
+  expect(fila("EXP-1519").textContent).toContain("PIC CARGO SA - PANAMÁ");
+  fila("EXP-1519").click();
+  fila("EXP-1522").click();
+  await flushPromises();
+  expect(document.querySelector(".solrep__aviso")).toBeNull();
+  fila("EXP-2602").click(); // otra sucursal
+  await flushPromises();
+  expect(document.querySelector(".solrep__aviso")!.textContent).toContain("No puede seleccionar expedientes de diferentes sucursales");
+  expect(document.querySelector(".solrep__total")!.textContent).toContain("USD 227.68");
+  w.unmount();
+});

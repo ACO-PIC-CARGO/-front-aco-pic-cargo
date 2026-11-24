@@ -7,6 +7,7 @@ import ExpedienteVarios from "../ExpedienteVarios.vue";
 
 const { requestMock } = vi.hoisted(() => ({ requestMock: vi.fn() }));
 vi.mock("@/utils/request", () => ({ CONNECTION_ERROR_MESSAGE: "error", request: requestMock }));
+vi.mock("@/utils/sesion", async (importOriginal) => ({ ...(await importOriginal<object>()), sessionBranchId: () => 1 }));
 
 globalThis.ResizeObserver ??= class {
   observe() {}
@@ -57,5 +58,26 @@ test("con varios expedientes muestra Varios y Ver Detalle abre los expedientes a
   expect(texto).toContain("Totales del Expediente (2)");
   expect(texto).toContain("17,300.00 USD"); // pricing
   expect(texto).toContain("420.00 USD"); // ganancia total
+  w.unmount();
+});
+
+test("un expediente con varios clientes dice Cliente Varios y Ver Expediente abre su Control de Gastos", async () => {
+  requestMock.mockResolvedValue({
+    estadoflag: true,
+    data: [
+      { ...fila("2026MBL01436", "NO", 100, 90), id_master: 1436, cliente: "ALFREDO, DAIVITS", clientes_cantidad: 2 },
+      { ...fila("2026MBL01647", "SI", 9500, 9200), clientes_cantidad: 1 },
+    ],
+  });
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  const w = montar({ id: 42, expediente: "2026MBL01436, 2026MBL01647", multiexpedienteflag: true });
+  [...document.querySelectorAll("button")].find((b) => b.textContent?.includes("Ver Detalle"))!.click();
+  await flushPromises();
+  const texto = document.body.textContent ?? "";
+  expect(texto).toContain("Cliente Varios");
+  expect(texto).toContain("PIC CARGO SAC");
+  [...document.querySelectorAll("button")].find((b) => b.textContent?.includes("Ver Expediente"))!.click();
+  expect(open).toHaveBeenCalledWith("/home/folderBilling/editControlGastos/view/1436/1", "Instructivo", "width=1593,height=1293");
+  open.mockRestore();
   w.unmount();
 });
