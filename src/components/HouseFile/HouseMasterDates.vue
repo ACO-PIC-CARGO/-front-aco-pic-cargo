@@ -2,6 +2,8 @@
 import { computed, shallowRef, watch } from "vue";
 import { request } from "@/utils/request";
 import { calendarDateLabel } from "./houseTrackingFormat";
+import MasterDateHistory from "@/components/folderMaster/MasterDateHistory.vue";
+import type { CampoFechaMaster } from "@/types/operaciones";
 
 interface MasterDates {
   fecha_etd: string | null;
@@ -33,18 +35,24 @@ watch(
 
 const dates = computed(() => [
   {
+    campo: "fecha_etd" as CampoFechaMaster,
+    column: "ETD",
     label: "Salida (ETD)",
     date: calendarDateLabel(master.value?.fecha_etd),
     confirmedLabel: "Salida Confirmada",
     confirmed: master.value?.salidaflag,
   },
   {
+    campo: "fecha_eta" as CampoFechaMaster,
+    column: "ETA",
     label: "Llegada (ETA)",
     date: calendarDateLabel(master.value?.fecha_eta),
     confirmedLabel: "Llegada Confirmada",
     confirmed: master.value?.llegadaflag,
   },
   {
+    campo: "fecha_disponibilidad" as CampoFechaMaster,
+    column: "Disponibilidad",
     label: "Fecha de Disponibilidad",
     date: calendarDateLabel(master.value?.fecha_disponibilidad),
     confirmedLabel: "Confirmación Disponibilidad",
@@ -79,6 +87,12 @@ const dates = computed(() => [
             :model-value="item.date"
             :label="item.label"
             readonly
+          />
+          <MasterDateHistory
+            :master-id="masterId"
+            :campo="item.campo"
+            :title="item.label"
+            :column="item.column"
           />
         </v-col>
         <v-col
