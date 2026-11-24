@@ -36,8 +36,8 @@ const expediente = (id_master: number, monto: number, extra: Record<string, unkn
   ...extra,
 });
 const expedientes = [
-  expediente(273, 445.3),
-  expediente(460, 448.84),
+  expediente(273, 445.3, { monto_pricing: 500 }),
+  expediente(460, 448.84, { monto_pricing: 400 }),
   expediente(493, 100, { moneda: "PEN", id_coins: 2 }),
   expediente(500, 50, { id_solicitud: 44, codigo_solicitud: "N° 44", codigo_estado: "PENADM", estado: "Pendiente por Administración" }),
 ];
@@ -97,6 +97,32 @@ test("paso 1 con la cuenta del proveedor, paso 2 totaliza y envía una sola soli
   filas[2]!.click(); // PEN: no se puede con una cuenta en USD
   filas[3]!.click(); // ya amarrado
   await flushPromises();
+  // comentario por expediente (columna Comentario)
+  const comentario = filas[0]!.querySelector("textarea") as HTMLTextAreaElement;
+  comentario.value = "  Factura llega el lunes ";
+  comentario.dispatchEvent(new Event("input"));
+  await flushPromises();
+  expect(filas[3]!.querySelector("textarea")).toBeNull(); // ya amarrado: sin comentario
+  // columnas del diseño: Operación y Pricing; OK marcado solo en las elegidas
+  expect(body().querySelector(".solrep__fila--head")!.textContent).toContain("Monto según Operaciones");
+  expect(body().querySelector(".solrep__fila--head")!.textContent).toContain("Monto según Pricing");
+  // OK: Operación <= Pricing (273: 445.30 vs 500; 460: 448.84 vs 400)
+  expect(filas[0]!.querySelector(".solrep__ok--si")).not.toBeNull();
+  expect(filas[1]!.querySelector(".solrep__ok--si")).toBeNull();
+  expect(body().textContent).toContain("Seleccione Facturas a Pagar");
+  // ojo: Control de Gastos del expediente en otra ventana, como el ojo del reporte
+  const open = vi.spyOn(window, "open").mockReturnValue(null);
+  (filas[0]!.querySelector("[aria-label='Ver expediente EXP-273']") as HTMLButtonElement).click();
+  expect(open).toHaveBeenCalledWith("/home/folderBilling/editControlGastos/view/273/1", "Instructivo", "width=1593,height=1293");
+  open.mockRestore();
+  // factura: busca las facturas / proformas del proveedor en ese expediente
+  (filas[0]!.querySelector("[aria-label='Ver factura de EXP-273']") as HTMLButtonElement).click();
+  await flushPromises();
+  expect(requestMock).toHaveBeenCalledWith(expect.objectContaining({
+    url: URL_MAIN + "list_invoice_path",
+    params: { id_master: 273, id_proveedor: 464, id_correlativo: 1 },
+  }));
+  expect((filas[2]!.querySelector("textarea") as HTMLTextAreaElement).disabled).toBe(true); // no seleccionada
   expect(body().querySelector(".solrep__total")!.textContent).toContain("USD 894.14");
 
   const enviar = [...body().querySelectorAll("button")].find((b) => b.textContent?.includes("ENVIAR SOLICITUD"))!;
@@ -111,7 +137,7 @@ test("paso 1 con la cuenta del proveedor, paso 2 totaliza y envía una sola soli
       id_tipopago: 2131,
       id_cuenta: 68,
       codigopago: null,
-      expedientes: [{ id_master: 273, id_correlativo: 1 }, { id_master: 460, id_correlativo: 1 }],
+      expedientes: [{ id_master: 273, id_correlativo: 1, comentario: "Factura llega el lunes" }, { id_master: 460, id_correlativo: 1, comentario: null }],
     }),
   }));
   expect(w.emitted("guardado")).toHaveLength(1);
@@ -143,7 +169,8 @@ test("ver una solicitud del reporte: sin pasos, sus datos y solo sus expedientes
   expect(texto).toContain("EXP-500");
   expect(texto).not.toContain("EXP-273");
   expect(texto).not.toContain("ENVIAR SOLICITUD");
-  expect((document.querySelector("#solrep-obs") as HTMLTextAreaElement | null)?.value).toBe("del reporte");
+  // sin observación general en el paso 1
+  expect(document.querySelector("#solrep-obs")).toBeNull();
   w.unmount();
 });
 
@@ -214,7 +241,7 @@ test("un expediente con solicitud rechazada se puede volver a elegir y se avisa 
   expect(swalMock).toHaveBeenCalledWith(expect.objectContaining({ html: expect.stringContaining("N° 19</b> pasan a eliminadas") }));
   expect(requestMock).toHaveBeenCalledWith(expect.objectContaining({
     url: URL_MAIN + "solicitud_pago_reporte_insertar",
-    data: expect.objectContaining({ expedientes: [{ id_master: 610, id_correlativo: 1 }] }),
+    data: expect.objectContaining({ expedientes: [{ id_master: 610, id_correlativo: 1, comentario: null }] }),
   }));
   w.unmount();
 });

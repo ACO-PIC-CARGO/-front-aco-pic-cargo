@@ -14,7 +14,7 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { useBancosStore } from "@/stores/bancos";
 import { useFilesStore } from "@/stores/files";
-import type { CuentaBancariaProveedor, TipoPagoSolicitud } from "@/types/billingEntries";
+import type { CuentaBancariaProveedor, FacturaProveedorCargada, TipoPagoSolicitud } from "@/types/billingEntries";
 import type {
   EntidadSolicitudReporte,
   ExpedienteSolicitudReporte,
@@ -142,6 +142,63 @@ const sucursalSolicitud = computed(() => seleccionados.value[0]?.id_branch ?? nu
 const variasSucursales = computed(() => new Set(expedientes.value.map((e) => e.id_branch ?? null)).size > 1);
 const otraSucursal = (e: ExpedienteSolicitudReporte) =>
   sucursalSolicitud.value != null && e.id_branch != null && e.id_branch !== sucursalSolicitud.value;
+// pago: elegir las facturas a pagar; cobro: pedir a Administración la confirmación del ingreso
+const tituloPaso2 = computed(() => (esPago.value ? "Seleccione Facturas a Pagar" : "Solicitar Confirmación de Ingreso"));
+// columnas de la tabla del paso 2 (pago lleva "Factura"; al ver / editar no hay comentario)
+const columnasPaso2 = computed(() => {
+  const cols = (conFecha: boolean) => [
+    "44px", "46px", esPago.value ? "56px" : null,
+    "minmax(0, 1.3fr)", "minmax(0, 0.75fr)", conFecha ? "minmax(0, 0.95fr)" : null,
+    "minmax(0, 1fr)", "minmax(0, 1fr)", "minmax(0, 0.95fr)", "68px",
+    detalle.value ? null : "minmax(0, 1.3fr)",
+  ].filter(Boolean).join(" ");
+  return { "--solrep-cols": cols(true), "--solrep-cols-tablet": cols(false) };
+});
+// ojo: Control de Gastos del expediente en otra ventana (igual que el ojo del Reporte de Cuentas)
+function verExpediente(e: ExpedienteSolicitudReporte) {
+  window.open(
+    `/home/folderBilling/editControlGastos/view/${e.id_master}/${e.id_branch ?? sessionBranchId()}`,
+    "Instructivo",
+    "width=1593,height=1293",
+  );
+}
+// factura / proforma del proveedor cargada en el expediente (Control de Gastos > Factura o Proforma)
+const abriendoFactura = ref<string | null>(null);
+async function verFactura(e: ExpedienteSolicitudReporte) {
+  if (!props.entidad) return;
+  abriendoFactura.value = clave(e);
+  const response = await request<FacturaProveedorCargada>({
+    method: "get",
+    url: import.meta.env.VITE_URL_MAIN + "list_invoice_path",
+    params: { id_master: e.id_master, id_proveedor: props.entidad.id, id_correlativo: e.id_correlativo },
+  });
+  abriendoFactura.value = null;
+  const facturas = response.estadoflag ? response.data.filter((f) => f.estadoflag !== false && f.path) : [];
+  if (!facturas.length) {
+    Swal.fire({ icon: "info", text: `El expediente ${e.expediente} aún no tiene factura o proforma del proveedor cargada.` });
+    return;
+  }
+  if (facturas.length === 1) {
+    abrirArchivo(facturas[0]!.path, facturas[0]!.originalname);
+    return;
+  }
+  const nombre = (f: FacturaProveedorCargada) =>
+    `${f.type_pago == 1 ? "Factura" : f.type_pago == 2 ? "Proforma" : "Archivo"}${f.number ? " " + f.number : ""}`;
+  Swal.fire({
+    icon: "info",
+    title: `Facturas de ${e.expediente}`,
+    html: facturas
+      .map((f) => `<a href="${encodeURI(f.path)}" target="_blank" rel="noopener" style="display:block;margin:6px 0">${nombre(f)}</a>`)
+      .join(""),
+    confirmButtonText: "Cerrar",
+  });
+}
+/** OK del paso 2: el monto según Operación no pasa el de Pricing */
+const montoOk = (e: ExpedienteSolicitudReporte) =>
+  e.monto_pricing != null && Number(e.monto || 0) <= Number(e.monto_pricing || 0);
+/** paso 2: comentario de cada expediente elegido (se ve en "Ver Detalle" de Bancos / Control de Gastos) */
+const comentarios = ref<Record<string, string>>({});
+const comentarioDe = (e: ExpedienteSolicitudReporte) => comentarios.value[clave(e)]?.trim() || null;
 /** se intentó elegir uno de otra sucursal: nota debajo de la lista */
 const avisoSucursal = ref(false);
 
@@ -236,6 +293,7 @@ watch(
     if (!visible) return;
     paso.value = 1;
     seleccion.value = [];
+    comentarios.value = {};
     avisoSucursal.value = false;
     expedientes.value = [];
     formPago.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
@@ -401,7 +459,7 @@ async function enviar() {
         id_cuenta: esCodigo.value ? null : formPago.value.id_cuenta,
         codigopago: esCodigo.value ? formPago.value.codigopago : null,
         comentario: formPago.value.comentario,
-        expedientes: seleccionados.value.map((e) => ({ id_master: e.id_master, id_correlativo: e.id_correlativo })),
+        expedientes: seleccionados.value.map((e) => ({ id_master: e.id_master, id_correlativo: e.id_correlativo, comentario: comentarioDe(e) })),
       },
     })
     : await request({
@@ -416,7 +474,7 @@ async function enviar() {
         numerooperacion: aplicaNroOperacion.value ? numeroOperacion.value.trim() : null,
         aplica_nrooperacion: aplicaNroOperacion.value,
         comentario: comentarioCobro.value,
-        expedientes: seleccionados.value.map((e) => ({ id_house: e.id_house, id_correlativo: e.id_correlativo })),
+        expedientes: seleccionados.value.map((e) => ({ id_house: e.id_house, id_correlativo: e.id_correlativo, comentario: comentarioDe(e) })),
       },
     });
   enviando.value = false;
@@ -436,7 +494,7 @@ async function enviar() {
 <template>
   <v-dialog
     v-model="abierto"
-    max-width="820"
+    :max-width="detalle ? 900 : 1200"
     :fullscreen="smAndDown"
     persistent
     scrollable
@@ -455,7 +513,7 @@ async function enviar() {
         <div class="solrep__titles">
           <h3>{{ titulo }}</h3>
           <span v-if="detalle">{{ editando ? "Datos de la solicitud · los expedientes no cambian" : "Solo lectura" }}</span>
-          <span v-else>{{ paso === 1 ? "Paso 1 de 2 · Datos de la solicitud" : "Paso 2 de 2 · Expedientes a " + (esPago ? "pagar" : "cobrar") }}</span>
+          <span v-else>{{ paso === 1 ? "Paso 1 de 2 · Datos de la solicitud" : "Paso 2 de 2 · " + tituloPaso2 }}</span>
         </div>
         <v-btn
           icon
@@ -497,7 +555,7 @@ async function enviar() {
           :class="{ 'solrep__step--activo': paso === 2 }"
         >
           <span class="solrep__step-num">2</span>
-          Expedientes
+          {{ tituloPaso2 }}
         </div>
       </div>
 
@@ -590,21 +648,7 @@ async function enviar() {
                 :error-messages="formPago.codigopago.trim() ? '' : DATO_REQUERIDO"
               />
             </template>
-            <label
-              class="solrep__label"
-              for="solrep-obs"
-            >OBSERVACIONES (OPCIONAL)</label>
-            <v-textarea
-              :readonly="soloLectura"
-              id="solrep-obs"
-              v-model="formPago.comentario"
-              rows="2"
-              auto-grow
-              variant="outlined"
-              density="compact"
-              class="solrep__input"
-              hide-details
-            />
+            <!-- sin observación general: cada expediente lleva su comentario en el paso 2 -->
           </template>
 
           <!-- Cobro: igual que "Cargar Pago Cliente" de Control de Gastos (el monto es el total del paso 2) -->
@@ -708,21 +752,7 @@ async function enviar() {
                 </div>
               </div>
             </div>
-            <label
-              class="solrep__label"
-              for="solrep-comentario"
-            >COMENTARIO</label>
-            <v-textarea
-              :readonly="soloLectura"
-              id="solrep-comentario"
-              v-model="comentarioCobro"
-              rows="1"
-              auto-grow
-              variant="outlined"
-              density="compact"
-              class="solrep__input"
-              hide-details
-            />
+            <!-- sin comentario general: cada expediente lleva su comentario en el paso 2 -->
             <div
               v-if="!voucher && !soloLectura"
               class="solrep__drop"
@@ -824,9 +854,11 @@ async function enviar() {
             No hay expedientes pendientes de {{ esPago ? "pago" : "cobro" }} para este {{ esPago ? "proveedor" : "cliente" }}.
           </div>
 
+          <!-- tabla de expedientes: Operación (verde) y Pricing (azul), OK y comentario por fila -->
           <div
             v-else
             class="solrep__lista"
+            :style="columnasPaso2"
             role="table"
             :aria-label="'Expedientes a ' + (esPago ? 'pagar' : 'cobrar')"
           >
@@ -834,7 +866,10 @@ async function enviar() {
               class="solrep__fila solrep__fila--head"
               role="row"
             >
-              <span role="columnheader">
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--check"
+              >
                 <v-checkbox-btn
                   v-model="todos"
                   density="compact"
@@ -842,14 +877,49 @@ async function enviar() {
                   aria-label="Seleccionar todos"
                 />
               </span>
-              <span role="columnheader">Expediente</span>
-              <span role="columnheader">Correlativo</span>
-              <span role="columnheader">F. Disponibilidad</span>
               <span
                 role="columnheader"
-                class="text-right"
-              >Monto</span>
-              <span role="columnheader">Estado</span>
+                class="solrep__c solrep__c--centro"
+                aria-label="Ver expediente"
+              />
+              <span
+                v-if="esPago"
+                role="columnheader"
+                class="solrep__c solrep__c--centro"
+              >Factura</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro"
+              >Expediente</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro"
+              >Correlativo</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro solrep__c--fecha"
+              >F. Disponibilidad</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro solrep__c--op"
+              >Monto según Operaciones</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro solrep__c--pr"
+              >Monto según Pricing</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro solrep__c--gan"
+              >Ganancia del Expediente</span>
+              <span
+                role="columnheader"
+                class="solrep__c solrep__c--centro"
+              >Chequeado OK</span>
+              <span
+                v-if="!detalle"
+                role="columnheader"
+                class="solrep__c solrep__c--centro"
+              >Comentario</span>
             </div>
             <div
               v-for="e in [...pendientes, ...amarrados]"
@@ -865,11 +935,12 @@ async function enviar() {
             >
               <span
                 role="cell"
-                class="solrep__check"
+                class="solrep__c solrep__c--check"
               >
                 <v-checkbox-btn
                   :model-value="seleccion.includes(clave(e))"
                   density="compact"
+                  color="primary"
                   :disabled="detalle || (!!motivoBloqueo(e) && !seleccion.includes(clave(e)))"
                   :aria-label="'Seleccionar ' + e.expediente"
                   @click.stop="alternar(e)"
@@ -877,69 +948,158 @@ async function enviar() {
               </span>
               <span
                 role="cell"
-                data-label="Expediente"
-                class="solrep__exp"
+                data-label="Ver"
+                class="solrep__c solrep__c--centro"
+                @click.stop
               >
-                <b>{{ e.expediente }}</b>
-                <small v-if="e.nro_master">N° {{ e.nro_master }}</small>
-                <small
-                  v-if="variasSucursales && e.sucursal"
-                  class="solrep__sucursal"
-                >{{ e.sucursal }}</small>
+                <v-btn
+                  icon="mdi-eye-outline"
+                  size="small"
+                  variant="outlined"
+                  color="primary"
+                  density="comfortable"
+                  class="solrep__icobtn"
+                  data-modo-ver="permitido"
+                  :title="'Ver expediente ' + e.expediente"
+                  :aria-label="'Ver expediente ' + e.expediente"
+                  @click="verExpediente(e)"
+                />
+              </span>
+              <span
+                v-if="esPago"
+                role="cell"
+                data-label="Factura"
+                class="solrep__c solrep__c--centro"
+                @click.stop
+              >
+                <v-btn
+                  icon="mdi-file-document-outline"
+                  size="small"
+                  variant="text"
+                  color="primary"
+                  density="comfortable"
+                  data-modo-ver="permitido"
+                  :loading="abriendoFactura === clave(e)"
+                  :title="'Ver factura / proforma de ' + e.expediente"
+                  :aria-label="'Ver factura de ' + e.expediente"
+                  @click="verFactura(e)"
+                />
+              </span>
+              <span
+                role="cell"
+                data-label="Expediente"
+                class="solrep__c solrep__exp"
+              >
+                <span class="solrep__expbox">
+                  <b>{{ e.expediente }}</b>
+                  <small v-if="e.nro_master">N° {{ e.nro_master }}</small>
+                  <small
+                    v-if="variasSucursales && e.sucursal"
+                    class="solrep__sucursal"
+                  >{{ e.sucursal }}</small>
+                  <!-- ya en una solicitud: misma tarjeta que "Solicitado a Administración" -->
+                  <span
+                    v-if="e.id_solicitud"
+                    class="solreq solreq--mini"
+                    :class="e.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
+                  >
+                    <span class="solreq__badge">
+                      <v-icon size="16">{{ e.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}</v-icon>
+                    </span>
+                    <span class="solreq__text">
+                      <span class="solreq__title">{{ e.codigo_solicitud }}</span>
+                      <span class="solreq__date">{{ e.estado }}</span>
+                    </span>
+                  </span>
+                  <!-- pedida desde Control de Gastos: avisar dónde revisarla -->
+                  <SolicitudOrigenNota
+                    v-if="e.id_solicitud && !e.multiexpedienteflag && !reelegible(e)"
+                    origen="cg"
+                    :tipo="tipo"
+                  />
+                  <!-- rechazada: se vuelve a elegir y la rechazada pasa a eliminada -->
+                  <span
+                    v-else-if="reelegible(e) && !detalle"
+                    class="solrep__reelegir"
+                  >
+                    <v-icon size="14">mdi-information-outline</v-icon>
+                    Se puede volver a elegir: al enviar, la {{ e.codigo_solicitud }} pasa a eliminada.
+                  </span>
+                  <span
+                    v-else-if="motivoBloqueo(e) && !e.id_solicitud"
+                    class="solrep__motivo"
+                  >{{ motivoBloqueo(e) }}</span>
+                </span>
               </span>
               <span
                 role="cell"
                 data-label="Correlativo"
+                class="solrep__c solrep__c--centro"
               >{{ e.correlativo ?? "-" }}</span>
               <span
                 role="cell"
                 data-label="F. Disponibilidad"
+                class="solrep__c solrep__c--centro solrep__c--fecha"
               >{{ e.fecha_disponibilidad ?? "-" }}</span>
               <span
                 role="cell"
-                data-label="Monto"
-                class="solrep__monto"
+                data-label="Monto según Operaciones"
+                class="solrep__c solrep__c--monto solrep__c--op"
               >{{ e.moneda }} {{ formatoMonto(e.monto) }}</span>
               <span
                 role="cell"
-                data-label="Estado"
+                data-label="Monto según Pricing"
+                class="solrep__c solrep__c--monto solrep__c--pr"
+              >{{ e.moneda }} {{ formatoMonto(e.monto_pricing ?? 0) }}</span>
+              <span
+                role="cell"
+                data-label="Ganancia del Expediente"
+                class="solrep__c solrep__c--monto solrep__c--gan"
+                :class="{ 'solrep__c--neg': Number(e.ganancia ?? 0) < 0 }"
+              >{{ e.ganancia == null ? "-" : `${e.moneda ?? ""} ${formatoMonto(e.ganancia)}`.trim() }}</span>
+              <span
+                role="cell"
+                data-label="Chequeado OK"
+                class="solrep__c solrep__c--centro"
               >
-                <!-- amarrado: misma tarjeta que "Solicitado a Administración" -->
+                <!-- OK: Operación menor o igual a Pricing -->
                 <span
-                  v-if="e.id_solicitud"
-                  class="solreq solreq--mini"
-                  :class="e.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
+                  class="solrep__ok"
+                  :class="{ 'solrep__ok--si': montoOk(e) }"
+                  :title="montoOk(e) ? 'Operación dentro de lo cotizado en Pricing' : 'Operación mayor a Pricing'"
+                  :aria-label="montoOk(e) ? 'OK: Operación menor o igual a Pricing' : 'Operación mayor a Pricing'"
                 >
-                  <span class="solreq__badge">
-                    <v-icon size="16">{{ e.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}</v-icon>
-                  </span>
-                  <span class="solreq__text">
-                    <span class="solreq__title">{{ e.codigo_solicitud }}</span>
-                    <span class="solreq__date">{{ e.estado }}</span>
-                  </span>
+                  <v-icon size="16">{{ montoOk(e) ? "mdi-check-bold" : "mdi-minus" }}</v-icon>
                 </span>
-                <!-- pedida desde Control de Gastos: avisar dónde revisarla -->
-                <SolicitudOrigenNota
-                  v-if="e.id_solicitud && !e.multiexpedienteflag && !reelegible(e)"
-                  origen="cg"
-                  :tipo="tipo"
-                />
-                <!-- rechazada: se vuelve a elegir y la rechazada pasa a eliminada -->
+              </span>
+              <!-- comentario del expediente (opcional, al seleccionarlo): se ve en "Ver Detalle" -->
+              <span
+                v-if="!detalle"
+                role="cell"
+                data-label="Comentario"
+                class="solrep__c solrep__coment"
+                @click.stop
+              >
                 <span
-                  v-else-if="reelegible(e) && !detalle"
-                  class="solrep__reelegir"
-                >
-                  <v-icon size="14">mdi-information-outline</v-icon>
-                  Se puede volver a elegir: al enviar, la {{ e.codigo_solicitud }} pasa a eliminada.
-                </span>
-                <span
-                  v-else-if="motivoBloqueo(e)"
-                  class="text-medium-emphasis text-body-small"
-                >{{ motivoBloqueo(e) }}</span>
-                <span
+                  v-if="e.id_solicitud && !reelegible(e)"
+                  class="text-medium-emphasis"
+                >—</span>
+                <v-textarea
                   v-else
-                  class="text-body-small solrep__pend"
-                >Pendiente</span>
+                  v-model="comentarios[clave(e)]"
+                  rows="1"
+                  auto-grow
+                  variant="outlined"
+                  density="compact"
+                  rounded="lg"
+                  hide-details
+                  maxlength="1000"
+                  prepend-inner-icon="mdi-comment-text-outline"
+                  class="solrep__comentbox"
+                  :disabled="!seleccion.includes(clave(e))"
+                  :placeholder="seleccion.includes(clave(e)) ? 'Comentario...' : 'Seleccione el expediente'"
+                  :aria-label="'Comentario del expediente ' + e.expediente"
+                />
               </span>
             </div>
           </div>
@@ -1276,37 +1436,6 @@ async function enviar() {
   text-align: center;
   color: #3b4a63;
 }
-/* lista de expedientes: tabla en escritorio, tarjetas en celular */
-.solrep__lista {
-  border: 1px solid #d1defc;
-  border-radius: 12px;
-  overflow: hidden;
-}
-.solrep__fila {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1.4fr) minmax(0, 0.8fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.5fr);
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-top: 1px solid #e6edf8;
-  font-size: 13px;
-  cursor: pointer;
-}
-.solrep__fila--head {
-  border-top: 0;
-  background: #f1f7ff;
-  font-size: 12px;
-  font-weight: 800;
-  color: #1e2c44;
-  cursor: default;
-}
-.solrep__fila--sel {
-  background: #eff4ff;
-}
-.solrep__fila--bloq {
-  cursor: not-allowed;
-  color: #8a97ab;
-}
 .solrep__sucursal {
   color: #1d4ed8 !important;
   font-weight: 600;
@@ -1332,27 +1461,6 @@ async function enviar() {
   color: #92400e;
   font-size: 0.6875rem;
   line-height: 1.25;
-}
-.solrep__fila--amarrado {
-  background: #fafbfd;
-}
-.solrep__exp {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  line-height: 1.2;
-}
-.solrep__exp small {
-  color: #667085;
-}
-.solrep__monto {
-  font-weight: 700;
-  text-align: right;
-  white-space: nowrap;
-}
-.solrep__pend {
-  color: #b45309;
-  font-weight: 700;
 }
 .solrep__total {
   display: flex;
@@ -1448,14 +1556,6 @@ async function enviar() {
 }
 
 /* tablet */
-@media (max-width: 960px) {
-  .solrep__fila {
-    grid-template-columns: 40px minmax(0, 1.3fr) minmax(0, 0.7fr) minmax(0, 1fr) minmax(0, 1.4fr);
-  }
-  .solrep__fila > :nth-child(4) {
-    display: none;
-  }
-}
 /* celular: una columna, botones a lo ancho y cada expediente como tarjeta */
 @media (max-width: 600px) {
   .solrep__head,
@@ -1478,48 +1578,188 @@ async function enviar() {
   .solrep__ent-value {
     grid-column: 2;
   }
+}
+/* ---------- paso 2: tabla de expedientes (mismo estilo que el diseño aprobado) ---------- */
+.solrep__lista {
+  overflow: hidden;
+  border: 1px solid #cddcf3;
+  border-radius: 12px;
+  background: #ffffff;
+}
+.solrep__fila {
+  display: grid;
+  grid-template-columns: var(--solrep-cols);
+  align-items: stretch;
+  border-top: 1px solid #e3eaf5;
+  color: #0a1f44;
+  font-size: 13px;
+  cursor: pointer;
+}
+.solrep__c {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 10px;
+  border-left: 1px solid #e3eaf5;
+}
+.solrep__c:first-child {
+  border-left: 0;
+}
+.solrep__c--check {
+  justify-content: center;
+  padding: 4px;
+}
+.solrep__c--centro {
+  justify-content: center;
+  text-align: center;
+}
+.solrep__c--monto {
+  justify-content: flex-end;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.solrep__c--op {
+  background: #ecfbf1;
+}
+.solrep__c--pr {
+  background: #eaf2ff;
+}
+.solrep__c--gan {
+  background: #fff8db;
+}
+.solrep__c--neg {
+  color: #b42318;
+}
+.solrep__icobtn {
+  border-radius: 8px !important;
+}
+.solrep__fila--head {
+  border-top: 0;
+  background: #eaf2ff;
+  color: #0a1f44;
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: default;
+}
+.solrep__fila--head .solrep__c--op {
+  background: #d9f5e3;
+}
+.solrep__fila--head .solrep__c--pr {
+  background: #d8e6ff;
+}
+.solrep__fila--head .solrep__c--gan {
+  background: #fdefb2;
+}
+.solrep__fila--sel {
+  background: #f5f9ff;
+}
+.solrep__fila--bloq {
+  color: #8a97ab;
+  cursor: not-allowed;
+}
+.solrep__fila--amarrado {
+  background: #fafbfd;
+}
+.solrep__expbox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.solrep__expbox b {
+  font-size: 13.5px;
+  font-weight: 800;
+}
+.solrep__expbox small {
+  color: #667085;
+  font-size: 11.5px;
+}
+.solrep__motivo {
+  color: #8a97ab;
+  font-size: 11px;
+}
+.solrep__ok {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #e4e8ef;
+  color: #667085;
+}
+.solrep__ok--si {
+  background: #22a447;
+  color: #ffffff;
+}
+.solrep__coment {
+  cursor: auto;
+}
+.solrep__comentbox {
+  width: 100%;
+}
+.solrep__comentbox :deep(.v-field) {
+  font-size: 12.5px;
+}
+.solrep__comentbox :deep(.v-field__input) {
+  min-height: 34px;
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+/* tablet: sin la fecha de disponibilidad */
+@media (max-width: 960px) {
+  .solrep__fila {
+    grid-template-columns: var(--solrep-cols-tablet);
+  }
+  .solrep__c--fecha {
+    display: none;
+  }
+}
+/* celular: cada expediente es una tarjeta "etiqueta: valor" */
+@media (max-width: 600px) {
+  .solrep__lista {
+    border: 0;
+    background: transparent;
+  }
   .solrep__fila--head {
-    grid-template-columns: 40px minmax(0, 1fr);
-  }
-  .solrep__fila--head > :nth-child(n + 3) {
     display: none;
   }
-  .solrep__fila:not(.solrep__fila--head) {
-    grid-template-columns: 40px minmax(0, 1fr) auto;
-    grid-template-areas:
-      "check exp monto"
-      "check corr corr"
-      "check estado estado";
-    row-gap: 2px;
+  .solrep__fila {
+    display: block;
+    margin-bottom: 10px;
+    border: 1px solid #cddcf3;
+    border-radius: 12px;
+    overflow: hidden;
   }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(1) {
-    grid-area: check;
+  .solrep__c {
+    justify-content: space-between;
+    gap: 12px;
+    border-left: 0;
+    border-top: 1px solid #eef2f8;
+    text-align: right;
   }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(2) {
-    grid-area: exp;
+  .solrep__c:first-child {
+    border-top: 0;
   }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(3) {
-    grid-area: corr;
+  .solrep__c--check {
+    justify-content: flex-start;
+  }
+  .solrep__c--fecha {
+    display: flex;
+  }
+  .solrep__c[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    color: #475467;
     font-size: 12px;
-    color: #667085;
+    font-weight: 700;
+    text-align: left;
   }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(3)::before {
-    content: "Correlativo ";
-  }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(4) {
-    display: none;
-  }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(5) {
-    grid-area: monto;
-  }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(6) {
-    grid-area: estado;
-    justify-self: start;
-    max-width: 100%;
-    min-width: 0;
-  }
-  .solrep__fila:not(.solrep__fila--head) > :nth-child(6):empty {
-    display: none;
+  .solrep__coment {
+    flex-direction: column;
+    align-items: stretch;
   }
 }
 </style>

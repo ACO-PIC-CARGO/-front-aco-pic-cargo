@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { defineAsyncComponent, nextTick, onBeforeUnmount, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
@@ -70,19 +70,11 @@ const masterusuariosStore = useMasterusuariosStore();
 const editable1 = true;
 const verFlag = ref(true);
 const mostrarStepS = ref(false);
-const snackbarSinFlete = ref(false);
 let leftScreen = false;
 
 onBeforeUnmount(() => {
   leftScreen = true;
 });
-
-watch(
-  [mostrarStepS, () => pricingStore.datosPrincipales.tienefleteflag],
-  ([listo, tieneFlete]) => {
-    snackbarSinFlete.value = listo && tieneFlete === false;
-  },
-);
 
 onMounted(async () => {
   appStore.spiner = true;
@@ -313,21 +305,6 @@ onMounted(async () => {
       :client-id="pricingStore.datosPrincipales.id_entitie"
       :visible="Number(pricingStore.e1) <= 4"
     />
-    <v-snackbar
-      v-model="snackbarSinFlete"
-      location="bottom"
-      color="warning"
-      :timeout="-1"
-    >
-      Está cotización no había Tarifa de Flete predefinida.
-      <template #actions>
-        <v-btn
-          variant="text"
-          icon="mdi-close"
-          @click="snackbarSinFlete = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 

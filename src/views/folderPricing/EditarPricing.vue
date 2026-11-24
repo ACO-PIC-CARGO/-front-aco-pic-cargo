@@ -51,15 +51,6 @@ const mostrar = ref(false);
 const abrirModalContenedorRecargar = ref(false);
 const mostrarCostos = ref(true);
 
-const snackbarSinFlete = ref(false);
-
-watch(
-  [mostrarStepS, () => pricingStore.datosPrincipales.tienefleteflag],
-  ([listo, tieneFlete]) => {
-    snackbarSinFlete.value = listo && tieneFlete === false;
-  },
-);
-
 watch(step, () => {
   pricingStore.step = step.value;
 });
@@ -695,21 +686,6 @@ function irANotas() {
     <BottomBarsSpacer />
     <InternalCommunicationBar :quote-id="Number(route.params.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
-    <v-snackbar
-      v-model="snackbarSinFlete"
-      location="bottom"
-      color="warning"
-      :timeout="-1"
-    >
-      Está cotización no había Tarifa de Flete predefinida.
-      <template #actions>
-        <v-btn
-          variant="text"
-          icon="mdi-close"
-          @click="snackbarSinFlete = false"
-        />
-      </template>
-    </v-snackbar>
   </v-container>
 </template>
 
