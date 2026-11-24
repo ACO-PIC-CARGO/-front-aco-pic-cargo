@@ -13,7 +13,9 @@ const push = vi.hoisted(() => vi.fn());
 vi.mock("vue-router", () => ({ useRouter: () => ({ push }), useRoute: () => ({ name: "newQuote", params: {} }) }));
 vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {} } } } }));
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn().mockResolvedValue({ data: { estadoflag: false, data: [] } }), { post: vi.fn() }) }));
-vi.mock("axios", () => ({ default: vi.fn().mockResolvedValue({ data: { estadoflag: false, data: [] } }) }));
+vi.mock("axios", () => ({
+  default: Object.assign(vi.fn().mockResolvedValue({ data: { estadoflag: false, data: [] } }), { create: () => ({ post: vi.fn() }) }),
+}));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
 const ISO_PERU = 9589;
