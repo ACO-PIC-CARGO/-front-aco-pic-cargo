@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { lastCommentParts, quoteListHeaders, lastCommentPillStyle, showsCallActions, reloadsAfterPricingRequest, showsCancelRequestAction, showsInternalThread, showsReturnToSalesAction, withLastMessage } from "../quoteListActions";
+import { lastCommentParts, quoteListHeaders, lastCommentPillStyle, showsCallActions, reloadsAfterPricingRequest, showsCancelRequestAction, rowClickDetail, showsReturnToSalesAction, toggledRowDetail, withLastMessage } from "../quoteListActions";
 
 describe("showsCallActions", () => {
   it("shows the call buttons in Todas las cotizaciones", () => {
@@ -28,13 +28,34 @@ describe("showsReturnToSalesAction", () => {
   });
 });
 
-describe("showsInternalThread", () => {
-  it("keeps the call details in Todas las cotizaciones", () => {
-    expect(showsInternalThread("")).toBe(false);
+describe("rowClickDetail", () => {
+  it("opens the call history when a row of Todas las cotizaciones is clicked", () => {
+    expect(rowClickDetail("")).toBe("calls");
   });
 
-  it.each(["pending_send", "sent_to_client", "returned"] as const)("shows the thread in %s", (view) => {
-    expect(showsInternalThread(view)).toBe(true);
+  it.each(["pending_send", "sent_to_client", "returned"] as const)("opens the internal thread when a row of %s is clicked", (view) => {
+    expect(rowClickDetail(view)).toBe("thread");
+  });
+});
+
+describe("toggledRowDetail", () => {
+  const first = { id: 1 };
+  const second = { id: 2 };
+
+  it("opens a closed row with the chosen detail", () => {
+    expect(toggledRowDetail({ rows: [], detail: "calls" }, first, "thread")).toEqual({ rows: [first], detail: "thread" });
+  });
+
+  it("closes a row when its open detail is chosen again", () => {
+    expect(toggledRowDetail({ rows: [first], detail: "thread" }, first, "thread").rows).toEqual([]);
+  });
+
+  it("keeps an open row open and switches what it shows", () => {
+    expect(toggledRowDetail({ rows: [first], detail: "calls" }, first, "thread")).toEqual({ rows: [first], detail: "thread" });
+  });
+
+  it("moves the opening to another row", () => {
+    expect(toggledRowDetail({ rows: [first], detail: "thread" }, second, "thread")).toEqual({ rows: [second], detail: "thread" });
   });
 });
 
@@ -48,9 +69,10 @@ describe("quoteListHeaders", () => {
     expect(keys("")).toEqual(BASE.map((header) => header.key));
   });
 
-  it("drops status, marketing and the PDF send date in Solicitadas por Ventas, adds the last send after the creation date and ends with the last comment", () => {
-    expect(keys("pending_send")).toEqual(["acciones", "priority_name", "created", "last_sent_to_client_at", ...REQUEST_TAB_COLUMNS.slice(3)]);
-    expect(quoteListHeaders("pending_send", BASE)[3]).toMatchObject({ title: "ÚLTIMO ENVÍO A CLIENTE" });
+  it("drops status, marketing and the PDF send date in Solicitadas por Ventas, leads with the last request, adds the last send after the creation date and ends with the last comment", () => {
+    expect(keys("pending_send")).toEqual(["acciones", "last_pricing_request_at", "priority_name", "created", "last_sent_to_client_at", ...REQUEST_TAB_COLUMNS.slice(3)]);
+    expect(quoteListHeaders("pending_send", BASE)[1]).toMatchObject({ title: "ÚLTIMA SOLICITUD" });
+    expect(quoteListHeaders("pending_send", BASE)[4]).toMatchObject({ title: "ÚLTIMO ENVÍO A CLIENTE" });
   });
 
   it("leads Enviadas al Cliente with the send date", () => {

@@ -21,11 +21,12 @@ const COLORS: { key: ColorKey; label: string }[] = [
 const HEADERS = [
   { title: "Nombre", key: "name" },
   ...COLORS.map(({ key, label }) => ({ title: label, key, sortable: false })),
-  { title: "Posición", key: "position" },
+  { title: "Orden", key: "position" },
   { title: "Activa", key: "active" },
   { title: "Acciones", key: "actions", sortable: false },
 ];
 const DEFAULT_COLOR = "#9E9E9E";
+const ORDER_HINT = "El 1 es la prioridad más importante. En Solicitadas por Ventas las cotizaciones se ordenan por este número, del más bajo al más alto.";
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -136,8 +137,10 @@ onMounted(() => {
     :loading="loading"
     class="ma-4"
   >
-    <v-card-title class="d-flex align-center">
-      <v-spacer />
+    <v-card-title class="d-flex align-center flex-wrap ga-3">
+      <p class="text-body-medium text-medium-emphasis text-wrap flex-1-1">
+        {{ ORDER_HINT }}
+      </p>
       <v-btn
         v-if="can(SCREEN, 'NUEVO')"
         color="primary"
@@ -236,9 +239,12 @@ onMounted(() => {
         </div>
         <v-text-field
           v-model.number="draft.position"
-          label="Posición"
+          label="Orden"
           type="number"
           min="1"
+          :hint="ORDER_HINT"
+          persistent-hint
+          class="mb-2"
         />
         <v-switch
           v-model="draft.active"

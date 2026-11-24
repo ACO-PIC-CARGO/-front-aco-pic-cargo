@@ -5,7 +5,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
-import InternalCommunicationFab from "../InternalCommunicationFab.vue";
+import InternalCommunicationBar from "../InternalCommunicationBar.vue";
 import { getInternalMessages } from "../internalCommunicationApi";
 
 vi.mock("../internalCommunicationApi", () => ({ getInternalMessages: vi.fn(), sendInternalMessage: vi.fn() }));
@@ -19,16 +19,16 @@ globalThis.ResizeObserver ??= class {
 const vuetify = createVuetify({ components, directives });
 const message = (id: number) => ({ id, direction: "sales_to_pricing", body: "hola", author_name: "Ana", created_at: "2026-11-10T10:00:00Z" });
 
-function mountFab(props: { quoteId: number | null; visible: boolean }) {
+function mountBar(props: { quoteId: number | null; visible: boolean }) {
   const Host = defineComponent({
     props: { quoteId: { type: Number as PropType<number | null>, default: null }, visible: Boolean },
     setup: (hostProps) => () =>
-      h(components.VApp, null, () => h(InternalCommunicationFab, { quoteId: hostProps.quoteId, visible: hostProps.visible })),
+      h(components.VApp, null, () => h(InternalCommunicationBar, { quoteId: hostProps.quoteId, visible: hostProps.visible })),
   });
   return mount(Host, { props, attachTo: document.body, global: { plugins: [vuetify] } });
 }
 
-const historyButton = () => document.querySelector<HTMLElement>("button[aria-label='Historial de comunicación interna']");
+const historyButton = () => document.querySelector<HTMLElement>("section[aria-label='Historial de comunicación interna'] button");
 const isShown = (element: HTMLElement | null) => !!element && !element.closest("[style*='display: none']");
 const historyModal = () =>
   document.querySelector<HTMLElement>("[role='dialog'][aria-label='Historial de comunicación interna'] .v-overlay__content");
@@ -47,18 +47,20 @@ afterEach(() => {
   document.body.innerHTML = "";
 });
 
-test("a quote that is not saved yet has no history button and loads nothing", async () => {
-  mountFab({ quoteId: null, visible: true });
+test("a quote that is not saved yet has no history bar and loads nothing", async () => {
+  mountBar({ quoteId: null, visible: true });
   await flushPromises();
 
   expect(isShown(historyButton())).toBe(false);
   expect(getInternalMessages).not.toHaveBeenCalled();
 });
 
-test("the history button opens the thread with its message count", async () => {
-  mountFab({ quoteId: 15, visible: true });
+test("the history bar shows the message count and opens the thread in a dialog", async () => {
+  mountBar({ quoteId: 15, visible: true });
   await flushPromises();
   expect(isShown(historyModal())).toBe(false);
+  expect(historyButton()!.textContent).toContain("Historial de comunicación interna (2)");
+  expect(historyButton()!.getAttribute("aria-haspopup")).toBe("dialog");
 
   await openHistory();
 
@@ -68,7 +70,7 @@ test("the history button opens the thread with its message count", async () => {
 });
 
 test("an open history closes when it leaves the tabs where it belongs", async () => {
-  const wrapper = mountFab({ quoteId: 15, visible: true });
+  const wrapper = mountBar({ quoteId: 15, visible: true });
   await flushPromises();
   await openHistory();
 

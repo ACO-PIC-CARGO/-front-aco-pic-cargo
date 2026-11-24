@@ -8,8 +8,9 @@ import { newNoteToSend } from "../InternalCommunication/newNote";
 import { internalThreadChanged } from "../InternalCommunication/internalThreadRefresh";
 import { alreadyRequestedTooltip, isAlreadyRequested } from "./pricingRequestState";
 
-const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean; refreshToken?: number }>(), {
+const props = withDefaults(defineProps<{ quoteId: number; activator?: "icon" | "text"; blocked?: boolean; requestedAt?: string | null; refreshToken?: number }>(), {
   activator: "icon",
+  requestedAt: null,
   refreshToken: 0,
 });
 
@@ -125,7 +126,7 @@ async function send() {
         </v-btn>
       </span>
     </template>
-    <span>{{ alreadyRequestedTooltip(alreadyRequestedReason) }}</span>
+    <span>{{ alreadyRequestedTooltip(alreadyRequestedReason, requestedAt) }}</span>
   </v-tooltip>
   <v-btn
     v-else-if="activator === 'text'"

@@ -53,8 +53,9 @@ async function continueToQuoteChoice(page) {
     }).toPass();
   }
   await outsideInert(page, page.getByLabel("Valor de la mercancia").filter({ visible: true })).fill("1000");
+  await page.getByRole("button", { name: "Agregar Notas Importantes" }).click();
   await page.getByRole("button", { name: "Continuar", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Guardar Borrador" })).toBeVisible();
+  await expect(page.getByRole("dialog", { name: "Cotizar" }).getByRole("button", { name: "Guardar", exact: true })).toBeVisible();
 }
 
 async function openLclFobQuote(page) {
@@ -94,7 +95,7 @@ test.describe("new quote", () => {
       await openLclFobQuote(page);
       await continueToQuoteChoice(page);
 
-      await page.getByRole("button", { name: "Guardar Borrador" }).click();
+      await page.getByRole("dialog", { name: "Cotizar" }).getByRole("button", { name: "Guardar", exact: true }).click();
 
       const dialog = page.getByRole("dialog").filter({ hasText: "No se guardó la cotización" });
       await expect(dialog).toContainText(message);
@@ -154,7 +155,7 @@ test.describe("new quote", () => {
     ];
     test.skip(invalid.length === 0, "this company's air EXW import template has no line with an inactive multiplier");
 
-    await page.getByRole("button", { name: "Guardar Borrador" }).click();
+    await page.getByRole("dialog", { name: "Cotizar" }).getByRole("button", { name: "Guardar", exact: true }).click();
 
     await expect.poll(() => saves.length).toBe(1);
     await expect(page.getByRole("dialog").filter({ hasText: "Revisa la cotización antes de guardar" })).toHaveCount(0);

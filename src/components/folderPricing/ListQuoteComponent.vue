@@ -12,7 +12,9 @@ import { usePricingStore } from "@/stores/pricing";
 import {
   quoteListHeaders,
   showsCallActions,
-  showsInternalThread,
+  rowClickDetail,
+  toggledRowDetail,
+  type RowDetail,
   showsReturnToSalesAction,
   reloadsAfterPricingRequest,
   showsCancelRequestAction,
@@ -238,7 +240,8 @@ const NO_DATA_TEXTS = {
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
 const viewDates = computed(() => viewDateFilterBy(pricingStore.pricingView));
-const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
+const rowDetail = ref<RowDetail>(rowClickDetail(pricingStore.pricingView));
+const cellDetail = computed(() => rowClickDetail(pricingStore.pricingView));
 const headersCotizaciones = computed(() => quoteListHeaders(pricingStore.pricingView, cabCotizaciones));
 const visibleColumns = computed(() => new Set(headersCotizaciones.value.map((header) => header.key)));
 function onThreadMessageSent(item: CotizacionListado, message: { direction: MessageDirection; body: string }) {
@@ -250,6 +253,7 @@ async function onPricingRequested(item: CotizacionListado, note: string | null) 
     return;
   }
   item.pricing_request_blocked = true;
+  item.last_pricing_request_at = moment().format("DD/MM/YYYY HH:mm");
   if (note) onThreadMessageSent(item, { direction: "sales_to_pricing", body: note });
 }
 // filtro: {
@@ -329,14 +333,10 @@ function clickRow(item: CotizacionListado, event: { isExpanded: boolean }) {
     expanded.value.push(item);
   }
 }
-function toggleRow(item: CotizacionListado) {
-  const isExpanded = expanded.value.includes(item);
-  if (isExpanded) {
-    const index = expanded.value.findIndex((i) => i === item);
-    expanded.value.splice(index, 1);
-  } else {
-    expanded.value.push(item);
-  }
+function toggleRowDetail(item: CotizacionListado, detail: RowDetail) {
+  const next = toggledRowDetail({ rows: expanded.value, detail: rowDetail.value }, item, detail);
+  expanded.value = next.rows;
+  rowDetail.value = next.detail;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function to_direct({ url }: { url: string }) {
@@ -400,6 +400,8 @@ async function updateQuoteRecibidoEnviado() {
   }
 }
 function registrarLlamada(item: CotizacionListado) {
+  expanded.value = [item];
+  rowDetail.value = "calls";
   fromData.value = {
     date: moment().format("YYYY-MM-DD"),
     descripcion: "",
@@ -1089,13 +1091,12 @@ onMounted(async () => {
       return-object
       show-expand
       hide-default-footer
-      class="elevation-1 quote-tabla"
-      :class="{ 'quote-table--threads': showsLastComment }"
+      class="elevation-1 quote-tabla quote-table--threads"
       disable-sort
       :no-data-text="noDataText"
       @update:options="cambiarPagina"
     >
-      <template #item="{ item, internalItem, isExpanded, toggleExpand }">
+      <template #item="{ item, internalItem, isExpanded }">
         <tr
           :key="item.rowId"
           :class="[
@@ -1111,7 +1112,7 @@ onMounted(async () => {
                 : item.status_code == 5
                   ? 't-green'
                   : 't-black',
-            isExpanded(internalItem) ? (showsLastComment ? 'row--thread-open' : 'filaActivda') : '',
+            isExpanded(internalItem) ? (rowDetail === 'thread' ? 'row--thread-open' : 'filaActivda') : '',
           ]"
         >
           <!-- <td></td> -->
@@ -1216,13 +1217,13 @@ onMounted(async () => {
               <v-tooltip location="top">
                 <template #activator="{ props }">
                   <v-btn
-                    v-if="showsLastComment && item.id"
+                    v-if="item.statusmain != 0 && item.id"
                     v-bind="props"
                     variant="text"
                     icon
                     size="x-small"
                     aria-label="Comunicación interna"
-                    @click="toggleRow(item)"
+                    @click="toggleRowDetail(item, 'thread')"
                   >
                     <v-icon
                       color="#1A237E"
@@ -1238,6 +1239,7 @@ onMounted(async () => {
                 v-if="item.statusmain != 0 && can('lstQuote', 'MODIFICAR') && item.id"
                 :quote-id="item.id"
                 :blocked="item.pricing_request_blocked"
+                :requested-at="item.last_pricing_request_at"
                 @requested="onPricingRequested(item, $event)"
               />
               <v-tooltip location="top">
@@ -1320,7 +1322,7 @@ onMounted(async () => {
                     size="x-small"
                    
                     v-bind="props"
-                    @click="toggleRow(item)"
+                    @click="toggleRowDetail(item, 'calls')"
                     v-if="showsCallActions(pricingStore.pricingView) && mostrarBoton(item)"
                   >
                     <v-icon
@@ -1364,16 +1366,24 @@ onMounted(async () => {
           <!-- <td @click="toggleExpand(internalItem)">{{ item.recibidocotizacion }}</td> -->
           <!-- <td @click="toggleExpand(internalItem)">{{ item.enviadocliente }}</td> -->
           <td
+            v-if="visibleColumns.has('last_pricing_request_at')"
+            class="text-center"
+            @click="toggleRowDetail(item, cellDetail)"
+            data-label="Última solicitud"
+          >
+            {{ item.last_pricing_request_at }}
+          </td>
+          <td
             v-if="visibleColumns.has('sent_to_client_at')"
             class="text-center"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Envío al cliente"
           >
             {{ item.sent_to_client_at }}
           </td>
           <td
             class="text-center"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Prioridad"
           >
             <QuotePriorityChip
@@ -1382,7 +1392,7 @@ onMounted(async () => {
             />
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Fecha creación"
           >
             {{ item.created }}
@@ -1390,7 +1400,7 @@ onMounted(async () => {
           <td
             v-if="visibleColumns.has('last_sent_to_client_at')"
             class="text-center"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Último envío al cliente"
           >
             {{ item.sent_to_client_at || "Sin envíos" }}
@@ -1398,88 +1408,88 @@ onMounted(async () => {
           <td
             v-if="visibleColumns.has('returned_to_sales_at')"
             class="text-center"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Retorno a Ventas"
           >
             {{ item.returned_to_sales_at }}
           </td>
           <td
             v-if="visibleColumns.has('status')"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Estatus"
           >
             {{ item.status }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="N° cotización"
           >
             {{ item.codigo }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Ejecutivo pricing"
           >
             {{ item.pricing }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Ejecutivo ventas"
           >
             {{ item.ejecutivo_ventas }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Cliente"
           >
             {{ item.nombres }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Teléfono"
           >
             {{ item.telefono }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Sentido"
           >
             {{ item.sentido }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="T. C."
           >
             {{ item.tipo_de_carga }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Incoterms"
           >
             {{ item.incoterms }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Origen"
           >
             {{ item.origen }}
           </td>
           <td
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Destino"
           >
             {{ item.destino }}
           </td>
           <td
             v-if="visibleColumns.has('marketing')"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Marketing"
           >
             {{ displayMarketing(item) }}
           </td>
           <td
             v-if="visibleColumns.has('fechaemisionpdf')"
-            @click="toggleExpand(internalItem)"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Fecha enviado a cliente"
           >
             {{ item.fechaemisionpdf }}
@@ -1497,8 +1507,8 @@ onMounted(async () => {
             </span> -->
           </td>
           <td
-            v-if="showsLastComment"
-            @click="toggleExpand(internalItem)"
+            v-if="visibleColumns.has('last_message_body')"
+            @click="toggleRowDetail(item, cellDetail)"
             data-label="Último comentario"
           >
             <LastCommentPill
@@ -1511,7 +1521,7 @@ onMounted(async () => {
       </template>
 
       <template #expanded-row="{ columns, item, internalItem, toggleExpand }">
-        <tr v-if="item && showsLastComment && item.id">
+        <tr v-if="item && rowDetail === 'thread' && item.id">
           <td
             :colspan="columns.length"
             class="thread-row__cell"

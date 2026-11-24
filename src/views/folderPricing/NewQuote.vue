@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, onBeforeMount, onMounted, ref } from "vue";
+import { computed, defineAsyncComponent, nextTick, onBeforeMount, onMounted, ref, useTemplateRef } from "vue";
 import { useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import Swal from "sweetalert2";
@@ -14,7 +14,10 @@ import ComparativaComponent from "../../components/folderPricing/ComparativaComp
 import NotasComponent from "../../components/folderPricing/NotasComponent.vue";
 import ImportantNoteField from "@/components/folderPricing/InternalCommunication/ImportantNoteField.vue";
 import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
-import InternalCommunicationFab from "@/components/folderPricing/InternalCommunication/InternalCommunicationFab.vue";
+import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
+import NewQuoteActionDialog from "@/components/folderPricing/NewQuoteActionDialog.vue";
+import { requestPricingAfterSave, showPricingRequestOutcome } from "@/components/folderPricing/PricingRequest/requestAfterSave";
+import type { RequestOutcome, SaveChoice } from "@/components/folderPricing/PricingRequest/requestAfterSave";
 const QuoteClientHistoryPanel = defineAsyncComponent(
   () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
 );
@@ -48,7 +51,10 @@ import type {
 const router = useRouter();
 const appStore = useAppStore();
 const pricingStore = usePricingStore();
-const canSaveDraft = usePermissions().can("newQuote", "NUEVO");
+const { can } = usePermissions();
+const canSaveDraft = can("newQuote", "NUEVO");
+const canRequestPricing = canSaveDraft && can("lstQuote", "MODIFICAR");
+const actionDialog = useTemplateRef("actionDialog");
 const calculadorasStore = useCalculadorasStore();
 const masterusuariosStore = useMasterusuariosStore();
 const quoteStatusStore = useQuoteStatusStore();
@@ -60,6 +66,7 @@ const step = ref(1);
 const editableStep3 = ref(false);
 const DatosCargaComponentFlag = ref(false);
 const ServicesComponentFlag = ref(false);
+const importantNoteFlag = ref(false);
 const servicesComponent = ref<InstanceType<typeof ServicesComponent>>();
 const editableStep2 = ref(false);
 const editableStep4 = ref(false);
@@ -310,15 +317,27 @@ async function continuarLlenadoCostos() {
     await activarLlenadoCostosIndividual();
   }
 }
-function textoPasarACotizar() {
+const freightWarning = computed(() => {
   const { idtipocarga } = pricingStore.datosPrincipales;
-  const idTipoCarga = typeof idtipocarga === "object" ? idtipocarga.id : idtipocarga;
+  const idTipoCarga = typeof idtipocarga === "object" ? idtipocarga?.id : idtipocarga;
   const sinFlete = missingCalculatorFreight(
     calculadorasStore.fletePricing,
     pricingStore.datosPrincipales.esgrupalflag,
     pricingStore.listShipment.find((v) => v.id == idTipoCarga)?.code,
   );
-  return `${sinFlete ? `${NO_CALCULATOR_FREIGHT} ` : ""}¿Desea pasar a Cotizar?`;
+  return sinFlete ? NO_CALCULATOR_FREIGHT : null;
+});
+async function askNextStep() {
+  const action = await actionDialog.value!.ask();
+  if (action === "quote") {
+    step.value = 2;
+    pricingStore.step = 2;
+    editableStep2.value = true;
+    pricingStore.btnRegistrar = true;
+    pricingStore.bloquearBtnImprimir = false;
+  } else if (action) {
+    await guardar(action);
+  }
 }
 async function activarLlenadoCostosGrupal(
   indiceOpcion = 0,
@@ -446,31 +465,7 @@ async function activarLlenadoCostosGrupal(
     .filter((v) => v.grupalflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
   appStore.spiner = false;
-  if (mostrarConfirmacion) {
-    Swal.fire({
-      icon: "question",
-      title: "Cotizar",
-      text: textoPasarACotizar(),
-      confirmButtonText: "Pasar a Cotizar",
-      denyButtonText: "Guardar Borrador",
-      allowEnterKey: false,
-      allowOutsideClick: false,
-      confirmButtonColor: "green",
-      showDenyButton: canSaveDraft,
-      allowEscapeKey: false,
-      showCloseButton: true,
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        step.value = 2;
-        pricingStore.step = 2;
-        editableStep2.value = true;
-        pricingStore.btnRegistrar = true;
-        pricingStore.bloquearBtnImprimir = false;
-      } else if (result.isDenied) {
-        await guardar();
-      }
-    });
-  }
+  if (mostrarConfirmacion) void askNextStep();
 }
 async function activarLlenadoCostosIndividual(
   indiceOpcion = 0,
@@ -598,31 +593,7 @@ async function activarLlenadoCostosIndividual(
     .filter((v) => v.individualflag)
     .map((nota) => ({ ...nota, nro_propuesta }));
   appStore.spiner = false;
-  if (mostrarConfirmacion) {
-    Swal.fire({
-      icon: "question",
-      title: "Cotizar",
-      text: textoPasarACotizar(),
-      confirmButtonText: "Pasar a Cotizar",
-      denyButtonText: "Guardar Borrador",
-      allowEnterKey: false,
-      allowOutsideClick: false,
-      confirmButtonColor: "green",
-      showDenyButton: canSaveDraft,
-      allowEscapeKey: false,
-      showCloseButton: true,
-    }).then(async (result) => {
-      if (result.isConfirmed) {
-        step.value = 2;
-        pricingStore.step = 2;
-        editableStep2.value = true;
-        pricingStore.btnRegistrar = true;
-        pricingStore.bloquearBtnImprimir = false;
-      } else if (result.isDenied) {
-        await guardar();
-      }
-    });
-  }
+  if (mostrarConfirmacion) void askNextStep();
 }
 function obtenerFleteOpcionGrupal(item: Costo) {
   const datoFlete: FleteOpcionCosto = {
@@ -757,15 +728,19 @@ function obtenerTransporteIndividual(item: Costo) {
   }
   return monto;
 }
-async function guardar() {
+async function guardar(choice: SaveChoice = "save_only") {
   if (blockedQuoteSave(pricingStore)) return;
   appStore.spiner = true;
   pricingStore.opcionCostos[0]!.selected = true;
   let respuesta;
   let avisoCarpeta = "";
+  let solicitud: RequestOutcome | null = null;
   try {
     respuesta = await pricingStore.registrarQuote({ fullflag: false });
-    if (respuesta.estadoflag) avisoCarpeta = await crearCarpetaCotizacion();
+    if (respuesta.estadoflag) {
+      avisoCarpeta = await crearCarpetaCotizacion();
+      solicitud = await requestPricingAfterSave(choice, { saved: true, quoteId: pricingStore.id });
+    }
   } finally {
     appStore.spiner = false;
   }
@@ -783,7 +758,10 @@ async function guardar() {
     text: `${pricingStore.mensaje} ${avisoCarpeta}`.trim(),
     confirmButtonText: "Ver cotización",
     showConfirmButton: true,
-  }).then(() => router.push({ name: "verQuote", params: { id: pricingStore.id } }));
+  }).then(() => {
+    router.push({ name: "verQuote", params: { id: pricingStore.id } });
+    if (solicitud) showPricingRequestOutcome(solicitud);
+  });
 }
 async function crearCarpetaCotizacion() {
   if (![1, 2].includes(sessionBranchId())) return "";
@@ -1199,7 +1177,19 @@ function formatearCostoTotal(valor: Costo) {
                 @activar-llenado-costos="activarLlenadoCostos()"
                 @recargar-costos="recargarCostos()"
               />
-              <template v-if="ServicesComponentFlag">
+              <div
+                v-if="ServicesComponentFlag && !importantNoteFlag"
+                class="d-flex justify-end mt-4"
+              >
+                <v-btn
+                  color="indigo"
+                  size="large"
+                  @click="importantNoteFlag = true"
+                >
+                  Agregar Notas Importantes
+                </v-btn>
+              </div>
+              <template v-if="ServicesComponentFlag && importantNoteFlag">
                 <ImportantNoteField
                   class="mt-4"
                   :quote-id="Number(pricingStore.id) || null"
@@ -1251,8 +1241,14 @@ function formatearCostoTotal(valor: Costo) {
       </v-stepper-window>
     </v-stepper>
     <BottomBarsSpacer />
-    <InternalCommunicationFab :quote-id="Number(pricingStore.id) || null" />
+    <InternalCommunicationBar :quote-id="Number(pricingStore.id) || null" />
     <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
+    <NewQuoteActionDialog
+      ref="actionDialog"
+      :can-save="canSaveDraft"
+      :can-request="canRequestPricing"
+      :warning="freightWarning"
+    />
 
     <!-- DIÁLOGO: NO EXISTE TARIFA DE TRANSPORTE -->
     <v-dialog

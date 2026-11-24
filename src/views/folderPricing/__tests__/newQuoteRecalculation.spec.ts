@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { defineComponent } from "vue";
 import { flushPromises, shallowMount } from "@vue/test-utils";
 import { createPinia, setActivePinia } from "pinia";
 import Swal from "sweetalert2";
@@ -17,6 +18,12 @@ vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn(), { post: vi.fn(), 
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn(), showLoading: vi.fn(), close: vi.fn() } }));
 
 type Screen = Record<string, (...args: unknown[]) => Promise<void>>;
+const ActionDialogStub = defineComponent({
+  setup(_, { expose }) {
+    expose({ ask: () => Promise.resolve(null) });
+    return () => null;
+  },
+});
 const ROUTE = { id_incoterms: 1, id_modality: 1, id_shipment: 3 };
 const PROFIT = { esindividualflag: true, profitprimeraimportacion: 10, profitsegundaimportacion: 20 };
 let responses: Record<string, unknown>;
@@ -49,7 +56,9 @@ afterEach(() => vi.restoreAllMocks());
 async function openNewQuote() {
   const pinia = createPinia();
   setActivePinia(pinia);
-  const wrapper = shallowMount(NewQuote, { global: { plugins: [pinia] } });
+  const wrapper = shallowMount(NewQuote, {
+    global: { plugins: [pinia], renderStubDefaultSlot: true, stubs: { NewQuoteActionDialog: ActionDialogStub } },
+  });
   await flushPromises();
   vi.mocked(Swal.fire).mockClear();
   return wrapper.vm as unknown as Screen;

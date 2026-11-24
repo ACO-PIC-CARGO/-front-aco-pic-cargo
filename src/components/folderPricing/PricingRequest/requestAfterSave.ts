@@ -1,3 +1,4 @@
+import Swal from "sweetalert2";
 import { createPricingRequest } from "./pricingRequestApi";
 
 export type SaveChoice = "save_only" | "save_and_request";
@@ -28,4 +29,12 @@ export async function requestPricingAfterSave(choice: SaveChoice, result: SaveRe
   } catch {
     return { estadoflag: false, mensaje: REQUEST_FAILED };
   }
+}
+
+export function showPricingRequestOutcome(outcome: RequestOutcome) {
+  void Swal.fire({
+    icon: outcome.estadoflag ? "success" : "warning",
+    title: outcome.estadoflag ? "Solicitud enviada" : "No se envió la solicitud a pricing",
+    text: outcome.mensaje,
+  });
 }

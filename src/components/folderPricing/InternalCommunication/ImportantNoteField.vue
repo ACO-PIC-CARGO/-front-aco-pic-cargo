@@ -99,16 +99,18 @@ watch(
           icon="mdi-information-outline"
           size="18"
         />
-        Para notas importantes usa el historial de comunicación
+        Para notas importantes usa el historial de comunicación interna, en la barra de abajo
         <v-icon
-          icon="mdi-arrow-bottom-right"
+          icon="mdi-arrow-down"
           size="20"
           aria-hidden="true"
         />
-        <span
-          class="important-note__fab bg-blue-darken-4"
+        <v-icon
+          icon="mdi-message-text"
+          color="blue-darken-4"
+          size="22"
           aria-hidden="true"
-        >H</span>
+        />
       </p>
     </template>
   </section>
@@ -172,17 +174,6 @@ watch(
 
 .important-note__help > * {
   vertical-align: middle;
-}
-
-.important-note__fab {
-  display: inline-flex;
-  margin-left: 4px;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  font-weight: 800;
 }
 
 @media (max-width: 599px) {
