@@ -24,6 +24,10 @@ export interface ExpedienteSolicitudReporte {
   moneda: string | null;
   /** monto a solicitar del expediente (hoy el total pendiente; preparado para parcial) */
   monto: number | string;
+  /** monto según Pricing de los mismos conceptos (paso 2, junto al de Operación) */
+  monto_pricing?: number | string | null;
+  /** ganancia del expediente (profit OP de Control de Gastos) */
+  ganancia?: number | string | null;
   fecha_disponibilidad: string | null;
   /** solicitud viva que ya amarra el expediente (null = se puede seleccionar) */
   id_solicitud: number | null;
@@ -83,7 +87,8 @@ export interface DetalleExpedientePago {
   cliente_pago: "SI" | "PARCIAL" | "NO" | null;
   monto_pricing: number | string;
   monto_operaciones: number | string;
-  ganancia: number | string;
+  ganancia: number | string;  /** comentario del expediente escrito en el paso 2 del reporte */
+  comentario?: string | null;
 }
 
 /** "Ver Detalle" (Expedientes Asociados) — fila de cobro */
@@ -100,5 +105,6 @@ export interface DetalleExpedienteCobro {
   monto_pricing: number | string;
   monto_operaciones: number | string;
   monto_solicitado: number | string;
-  ganancia: number | string;
+  ganancia: number | string;  /** comentario del expediente escrito en el paso 2 del reporte */
+  comentario?: string | null;
 }

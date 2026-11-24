@@ -85,7 +85,7 @@ watch(abierto, (visible) => {
 <template>
   <v-dialog
     v-model="abierto"
-    :max-width="smAndDown ? undefined : 1000"
+    :max-width="smAndDown ? undefined : 1140"
     :fullscreen="smAndDown"
     scrollable
   >
@@ -168,6 +168,7 @@ watch(abierto, (visible) => {
                 role="columnheader"
                 class="text-right"
               >Ganancia del Expediente</span>
+              <span role="columnheader">Comentario</span>
             </div>
             <div
               v-for="f in filas"
@@ -241,6 +242,18 @@ watch(abierto, (visible) => {
                   :class="{ 'expas__ganancia--neg': num(f.ganancia) < 0 }"
                 >{{ formato(f.ganancia) }}</span>
               </span>
+              <!-- comentario del expediente escrito al solicitar desde el reporte (columna propia) -->
+              <span
+                role="cell"
+                data-label="Comentario"
+                class="expas__coment"
+              >
+                <template v-if="f.comentario">{{ f.comentario }}</template>
+                <span
+                  v-else
+                  class="expas__sin"
+                >—</span>
+              </span>
             </div>
             <div
               class="expas__fila expas__fila--total"
@@ -286,6 +299,10 @@ watch(abierto, (visible) => {
                   :class="{ 'expas__ganancia--neg': totales.ganancia < 0 }"
                 >{{ formato(totales.ganancia) }}</span>
               </span>
+              <span
+                role="cell"
+                class="expas__vacio"
+              />
             </div>
           </div>
         </template>
@@ -369,7 +386,7 @@ watch(abierto, (visible) => {
 }
 .expas__fila {
   display: grid;
-  grid-template-columns: 1.1fr 1.6fr 0.8fr 1.1fr 1.2fr 1.1fr;
+  grid-template-columns: 1.05fr 1.4fr 0.75fr 1fr 1.1fr 1.05fr 1.5fr;
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
@@ -377,7 +394,7 @@ watch(abierto, (visible) => {
   font-size: 0.8125rem;
 }
 .expas__fila--cobro {
-  grid-template-columns: 1.1fr 1.6fr 1.1fr 1.2fr 1fr 1.1fr;
+  grid-template-columns: 1.05fr 1.4fr 1fr 1.1fr 0.95fr 1.05fr 1.5fr;
 }
 .expas__fila--head {
   background: #f4f7fc;
@@ -403,6 +420,16 @@ watch(abierto, (visible) => {
   letter-spacing: 0;
   text-transform: none;
   white-space: nowrap;
+}
+.expas__coment {
+  min-width: 0;
+  color: #344054;
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+.expas__sin {
+  color: #98a2b3;
 }
 .expas__ganancia {
   display: inline-block;
