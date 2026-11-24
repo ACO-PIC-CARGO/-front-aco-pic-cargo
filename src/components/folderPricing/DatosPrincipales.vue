@@ -701,7 +701,7 @@ function recargarNuevo(id_incoterms?: number | string) {
                 <v-btn
                   color="#3F51B5"
                   @click="continuarDatosCarga()"
-                  size="small"
+                  size="large"
                 >
                   Continuar Datos Carga
                 </v-btn>

@@ -1567,7 +1567,7 @@ function finalizarSeleccionDistrito() {
         <v-spacer />
         <v-btn
           color="#3F51B5"
-          size="small"
+          size="large"
           @click="aceptar()"
         >
           Continuar Servicios
