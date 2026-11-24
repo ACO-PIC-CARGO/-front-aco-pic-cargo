@@ -7,12 +7,14 @@ interface ViewDates {
   view_date_to?: string | null;
 }
 
-const VIEW_DATES: Partial<Record<QuoteListView, { label: string; lastDays: number }>> = {
-  pending_send: { label: "Fecha de solicitud a Pricing", lastDays: 30 },
-  sent_to_client: { label: "Fecha de envío al cliente", lastDays: 10 },
+const VIEW_DATES: Partial<Record<QuoteListView, { label: string; filterBy: string; lastDays: number }>> = {
+  pending_send: { label: "Fecha de solicitud a Pricing", filterBy: "Solicitud a Pricing", lastDays: 30 },
+  sent_to_client: { label: "Fecha de envío al cliente", filterBy: "Envío al cliente", lastDays: 10 },
 };
 
 export const viewDateLabel = (view: QuoteListView): string | null => VIEW_DATES[view]?.label ?? null;
+
+export const viewDateFilterBy = (view: QuoteListView): string | null => VIEW_DATES[view]?.filterBy ?? null;
 
 export const defaultViewDates = (view: QuoteListView, today = moment()): ViewDates => {
   const dates = VIEW_DATES[view];

@@ -20,7 +20,7 @@ import {
 } from "@/components/folderPricing/quoteListActions";
 import InternalCommunicationThread from "@/components/folderPricing/InternalCommunication/InternalCommunicationThread.vue";
 import LastCommentPill from "@/components/folderPricing/LastCommentPill.vue";
-import { viewDateLabel } from "@/components/folderPricing/quoteListViewDates";
+import { viewDateFilterBy } from "@/components/folderPricing/quoteListViewDates";
 import type { MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
@@ -237,7 +237,7 @@ const NO_DATA_TEXTS = {
   returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
-const viewDates = computed(() => viewDateLabel(pricingStore.pricingView));
+const viewDates = computed(() => viewDateFilterBy(pricingStore.pricingView));
 const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
 const headersCotizaciones = computed(() => quoteListHeaders(pricingStore.pricingView, cabCotizaciones));
 const visibleColumns = computed(() => new Set(headersCotizaciones.value.map((header) => header.key)));
@@ -689,13 +689,13 @@ onMounted(async () => {
           <v-col
             v-if="viewDates"
             cols="12"
-            md="6"
+            md="8"
             class="py-1"
           >
             <v-row>
               <v-col
                 cols="12"
-                sm="4"
+                sm="6"
                 class="clsFechaPor"
               >
                 <v-text-field
@@ -710,7 +710,7 @@ onMounted(async () => {
               </v-col>
               <v-col
                 cols="12"
-                sm="4"
+                sm="3"
               >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
@@ -724,7 +724,7 @@ onMounted(async () => {
               </v-col>
               <v-col
                 cols="12"
-                sm="4"
+                sm="3"
               >
                 <v-text-field
                   prepend-inner-icon="mdi-calendar-month"
