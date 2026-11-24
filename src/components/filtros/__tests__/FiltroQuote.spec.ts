@@ -83,3 +83,29 @@ test("executive and pricing filters reuse the executives loaded by the list pane
     expect(httpMock.mock.calls.some(([config]) => String(config.url).startsWith(URL_MAIN + endpoint))).toBe(false);
   }
 });
+
+test("in Solicitadas por Ventas the tab's own dates are enough to filter", async () => {
+  await mountFiltroQuote();
+  usePricingStore().switchListView("pending_send");
+  usePricingStore().filtro.view_date_from = "2026-10-01";
+  usePricingStore().filtro.view_date_to = "2026-11-23";
+  await flushPromises();
+
+  buttonNamed("Filtrar").click();
+  await flushPromises();
+
+  expect(lastListParams()).toMatchObject({ pricing_view: "pending_send", view_date_from: "2026-10-01", view_date_to: "2026-11-23" });
+});
+
+test("a tab range missing one end is not sent and says which date is missing", async () => {
+  await mountFiltroQuote();
+  usePricingStore().switchListView("pending_send");
+  usePricingStore().filtro.view_date_to = null;
+  await flushPromises();
+
+  buttonNamed("Filtrar").click();
+  await flushPromises();
+
+  expect(httpMock.mock.calls.some(([config]) => config.url === URL_MAIN + "getQuoteList")).toBe(false);
+  expect(document.body.textContent).toContain("Debes seleccionar la Fecha de solicitud a Pricing Hasta.");
+});

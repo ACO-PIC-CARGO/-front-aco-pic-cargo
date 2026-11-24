@@ -87,6 +87,7 @@ import { CONNECTION_ERROR_MESSAGE, hasFailed, notifySuccess, request } from "@/u
 import { APPROVE_FAILED_MESSAGE } from "@/utils/quoteApproval";
 import { COPY_FAILED_MESSAGE, QUOTE_NOT_FOUND_MESSAGE } from "@/utils/quoteScreen";
 import { newNoteSaved, newNoteToSend } from "@/components/folderPricing/InternalCommunication/newNote";
+import { defaultViewDates } from "@/components/folderPricing/quoteListViewDates";
 import { sessionBranchId, sessionIsoPais, sessionSucursal, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -707,7 +708,7 @@ export const usePricingStore = defineStore("pricing", () => {
   function switchListView(view: ListView): void {
     listViewFilters.set(pricingView.value, { filtro: { ...filtro.value }, search: search.value });
     const saved = listViewFilters.get(view);
-    filtro.value = saved ? { ...saved.filtro } : { fechainicio: "", fechafin: "", tipopdf: 1 };
+    filtro.value = saved ? { ...saved.filtro } : { fechainicio: "", fechafin: "", tipopdf: 1, ...defaultViewDates(view) };
     search.value = saved?.search ?? "";
     pricingView.value = view;
     pagina.value = 1;
@@ -771,12 +772,11 @@ export const usePricingStore = defineStore("pricing", () => {
     filtroCalls.value = { ...currentMonthToDate(), tipopdf: 1 };
   }
   function resetQuoteFilter(): void {
-    filtro.value = {
-      fechainicio: moment().format("YYYY-01-01"),
-      fechafin: moment().endOf("month").format("YYYY-MM-DD"),
-      tipopdf: 1,
-      estado: "1",
-    };
+    const viewDates = defaultViewDates(pricingView.value);
+    const creationDates = Object.keys(viewDates).length
+      ? { fechainicio: "", fechafin: "" }
+      : { fechainicio: moment().format("YYYY-01-01"), fechafin: moment().endOf("month").format("YYYY-MM-DD") };
+    filtro.value = { ...creationDates, tipopdf: 1, estado: "1", ...viewDates };
   }
   async function getTipoCostos(): Promise<void> {
     const config = {

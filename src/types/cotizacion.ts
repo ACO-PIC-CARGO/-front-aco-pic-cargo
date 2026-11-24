@@ -549,6 +549,8 @@ export interface FiltroCotizaciones {
   fechafin: string;
   fechaemisiondesde?: string | null;
   fechaemisionhasta?: string | null;
+  view_date_from?: string | null;
+  view_date_to?: string | null;
   tipopdf?: number;
   id_cliente?: number | string | null;
   id_pricing?: number | string | null;

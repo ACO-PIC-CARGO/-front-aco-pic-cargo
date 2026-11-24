@@ -20,6 +20,7 @@ import {
 } from "@/components/folderPricing/quoteListActions";
 import InternalCommunicationThread from "@/components/folderPricing/InternalCommunication/InternalCommunicationThread.vue";
 import LastCommentPill from "@/components/folderPricing/LastCommentPill.vue";
+import { viewDateLabel } from "@/components/folderPricing/quoteListViewDates";
 import type { MessageDirection } from "@/components/folderPricing/InternalCommunication/messageLabel";
 import { usePermissions } from "@/composables/usePermissions";
 import { sessionBranchId, sessionUser, sessionUserIdOrEmpty } from "@/utils/sesion";
@@ -231,11 +232,12 @@ async function onRequestCancelled() {
 }
 const NO_DATA_TEXTS = {
   "": "No hay cotizaciones en este rango. Cambia las fechas o limpia los filtros.",
-  pending_send: "No hay cotizaciones pendientes de envío.",
-  sent_to_client: "No hay cotizaciones enviadas al cliente en los últimos 10 días. Las anteriores están en Todas las cotizaciones.",
+  pending_send: "No hay cotizaciones pendientes en esas fechas. Amplía las fechas en el filtro.",
+  sent_to_client: "No hay cotizaciones enviadas al cliente en esas fechas. Amplía las fechas en el filtro.",
   returned: "No hay solicitudes retornadas a Ventas por corregir.",
 } as const;
 const noDataText = computed(() => NO_DATA_TEXTS[pricingStore.pricingView]);
+const viewDates = computed(() => viewDateLabel(pricingStore.pricingView));
 const showsLastComment = computed(() => showsInternalThread(pricingStore.pricingView));
 const headersCotizaciones = computed(() => quoteListHeaders(pricingStore.pricingView, cabCotizaciones));
 const visibleColumns = computed(() => new Set(headersCotizaciones.value.map((header) => header.key)));
@@ -685,6 +687,59 @@ onMounted(async () => {
         <v-divider class="applied-filters-divider" />
         <v-row>
           <v-col
+            v-if="viewDates"
+            cols="12"
+            md="6"
+            class="py-1"
+          >
+            <v-row>
+              <v-col
+                cols="12"
+                sm="4"
+                class="clsFechaPor"
+              >
+                <v-text-field
+                  :model-value="viewDates"
+                  label="Fecha Por"
+                  readonly
+                  hide-details
+                  density="compact"
+                  variant="outlined"
+                  prepend-icon="mdi-calendar-month"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="4"
+              >
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :model-value="formatearFecha(pricingStore.filtro.view_date_from) || 'Sin límite'"
+                  density="compact"
+                  readonly
+                  hide-details
+                  variant="outlined"
+                  label="Desde"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                sm="4"
+              >
+                <v-text-field
+                  prepend-inner-icon="mdi-calendar-month"
+                  :model-value="formatearFecha(pricingStore.filtro.view_date_to) || 'Sin límite'"
+                  density="compact"
+                  readonly
+                  hide-details
+                  variant="outlined"
+                  label="Hasta"
+                />
+              </v-col>
+            </v-row>
+          </v-col>
+          <v-col
+            v-if="!viewDates || pricingStore.filtro.fechainicio || pricingStore.filtro.fechafin"
             cols="12"
             md="6"
             class="py-1"

@@ -173,4 +173,23 @@ describe("quote list", () => {
 
     expect(pricing.filtro).toEqual({ fechainicio: "2026-01-01", fechafin: "2026-10-31", tipopdf: 1, estado: "1" });
   });
+
+  test("clearing the filters of Enviadas al Cliente goes back to its last 10 days, without creation dates", () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date(2026, 10, 23, 9, 0));
+    const pricing = usePricingStore();
+    pricing.switchListView("sent_to_client");
+    pricing.filtro = { fechainicio: "2026-03-01", fechafin: "2026-03-31", tipopdf: 2, id_status: 3, view_date_from: "2026-01-01", view_date_to: null };
+
+    pricing.resetQuoteFilter();
+
+    expect(pricing.filtro).toEqual({
+      fechainicio: "",
+      fechafin: "",
+      tipopdf: 1,
+      estado: "1",
+      view_date_from: "2026-11-13",
+      view_date_to: "2026-11-23",
+    });
+  });
 });
