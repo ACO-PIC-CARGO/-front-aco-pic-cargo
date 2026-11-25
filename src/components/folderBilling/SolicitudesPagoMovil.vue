@@ -11,6 +11,7 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { tieneAprobacionesSolicitud, tieneSalidaBancosSolicitud } from "@/composables/useAccionesSolicitudPago";
 import { notifySuccess } from "@/utils/request";
+import { usuarioCorto } from "@/utils/solicitudVista";
 import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ClientePagoEstado } from "@/types/billingEntries";
 
@@ -41,6 +42,9 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   total_op?: number | string | null;
   /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
   pago_instructivoflag?: boolean | null;
+  /** fecha de la salida en Bancos y su N° de operación */
+  fecha_pago_banco?: string | null;
+  numerooperacion_pago?: string | null;
 }
 
 const props = defineProps<{
@@ -151,7 +155,8 @@ function seguimiento(s: SolicitudPagoMovilItem) {
   if (eliminada(s)) {
     filas.push({ titulo: "Eliminada:", icono: "mdi-trash-can-outline", fecha: fechaHora(s.fecha_anulado), usuario: s.usuario_anulado ?? null, error: true });
   }
-  return filas;
+  // correo -> solo hasta la arroba (en el celular el correo completo se partía en dos líneas)
+  return filas.map((f) => ({ ...f, usuario: usuarioCorto(f.usuario) }));
 }
 function tituloAccion(s: SolicitudPagoMovilItem, accion: "Editar" | "Eliminar") {
   if (tieneSalidaBancosSolicitud(s)) return "Ya está pagada en Bancos: elimine primero el movimiento";
@@ -477,18 +482,44 @@ function abrir(url: string | null | undefined) {
                         {{ f.nota }}
                       </div>
                     </div>
-                    <div class="mov__xrow mov__xrow--inline">
+                    <!-- Fecha de pago: mismo diseño que las filas de arriba (etiqueta y "fecha | detalle") -->
+                    <div
+                      class="mov__xrow"
+                      :class="{ 'mov__xrow--inline': !s.pagadoflag }"
+                    >
                       <div class="mov__xrowlabel">
                         <v-icon size="20">
                           mdi-calendar-check-outline
                         </v-icon>
                         Fecha de pago:
                       </div>
-                      <strong v-if="s.pagadoflag">{{ formatoFecha(s.fechapago) }}</strong>
+                      <div
+                        v-if="s.pagadoflag"
+                        class="mov__xrowpill"
+                      >
+                        <span>{{ formatoFecha(s.fechapago) }}</span>
+                        <span class="mov__xrowuser">Soporte de pago</span>
+                      </div>
                       <span
                         v-else
                         class="mov__xpendiente"
                       >{{ s.codigo_estado === "LISTO" ? "Se ingresa al subir el soporte" : "Pendiente" }}</span>
+                    </div>
+                    <!-- ya pasó por Bancos: fecha de la salida y su número -->
+                    <div
+                      v-if="s.fecha_pago_banco"
+                      class="mov__xrow"
+                    >
+                      <div class="mov__xrowlabel">
+                        <v-icon size="20">
+                          mdi-bank-check
+                        </v-icon>
+                        Registrado en Bancos:
+                      </div>
+                      <div class="mov__xrowpill">
+                        <span>{{ formatoFecha(s.fecha_pago_banco) }}</span>
+                        <span class="mov__xrowuser">{{ s.numerooperacion_pago ? `Salida N° ${s.numerooperacion_pago}` : "Salida registrada" }}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -666,6 +697,20 @@ function abrir(url: string | null | undefined) {
                       @click="emit('ver-pago-instructivo', s)"
                     >
                       Pago proveedor
+                    </v-btn>
+                    <!-- mismo modal que "Pago proveedor": los datos bancarios del proveedor para copiar -->
+                    <v-btn
+                      v-if="s.pago_instructivoflag"
+                      size="small"
+                      variant="tonal"
+                      color="indigo"
+                      rounded="pill"
+                      prepend-icon="mdi-bank-outline"
+                      class="mov__captura"
+                      data-modo-ver="permitido"
+                      @click="emit('ver-pago-instructivo', s)"
+                    >
+                      Captura de los datos bancarios
                     </v-btn>
                     <v-btn
                       size="small"
@@ -1148,5 +1193,14 @@ function abrir(url: string | null | undefined) {
   justify-content: flex-end;
   padding-top: 10px;
   border-top: 1px solid var(--sp-border);
+}
+/* "Captura de los datos bancarios": texto en dos líneas si no entra */
+.mov__captura {
+  height: auto !important;
+  min-height: 32px;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  white-space: normal;
+  text-align: left;
 }
 </style>

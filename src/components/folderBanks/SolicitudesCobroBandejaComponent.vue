@@ -50,7 +50,7 @@ const MENU = "ingresosPendientesConfirmar";
 const ESTADOS: { codigo: CodigoEstadoSolicitudCobro; titulo: string; tabs: TabBandejaSolicitudCobro[] }[] = [
   { codigo: "LISTO", titulo: "Pendiente por confirmar", tabs: ["PEN", "HIS"] },
   { codigo: "CONFIRMADO", titulo: "Confirmado", tabs: ["PPG", "HIS"] },
-  { codigo: "COBRADO", titulo: "Registrado en Bancos", tabs: ["HIS"] },
+  { codigo: "COBRADO", titulo: "Registrado en Bancos", tabs: ["HIS", "PAG"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
 ];
@@ -71,6 +71,8 @@ const filasSoporte = computed(() => {
   const porPagar = (f: { codigo_estado: string }) => f.codigo_estado === "CONFIRMADO";
   if (props.tab === "PEN") return lista.filter((f) => !["CONFIRMADO", "COBRADO"].includes(f.codigo_estado));
   if (props.tab === "PPG") return lista.filter(porPagar);
+  // Solicitudes Pagadas: los pagos ya registrados en Bancos
+  if (props.tab === "PAG") return lista.filter((f) => f.codigo_estado === "COBRADO");
   const pago = pendientePagoDe(filtros.value);
   if (pago) return lista.filter((f) => porPagar(f) === (pago === "SI"));
   return lista;
@@ -202,6 +204,8 @@ const headers = computed(() => [
   columna("Soporte de confirmación (Administración)", "soporte_confirmacion"),
   columna("Persona que confirma", "usuario_confirma"),
   columna("Fecha de confirmación", "fecha_confirmacion"),
+  // Histórico y Solicitudes Pagadas: fecha del ingreso en Bancos
+  ...(esHistorico.value || props.tab === "PAG" ? [columna("Fecha de Pago", "fecha_pago_banco")] : []),
   columna("Acciones", "acciones"),
 ]);
 
@@ -279,7 +283,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico", PAG: "Solicitudes Pagadas" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -661,6 +665,13 @@ onMounted(cargar);
             v-if="item.fecha_confirmacion"
             class="cobl__chipfecha"
           >{{ soloFecha(item.fecha_confirmacion) }}<br>{{ horaDe(item.fecha_confirmacion) }}</span>
+          <span v-else>—</span>
+        </template>
+        <template #[`item.fecha_pago_banco`]="{ item }">
+          <span
+            v-if="item.fecha_pago_banco"
+            class="cobl__chipfecha"
+          >{{ soloFecha(item.fecha_pago_banco) }}</span>
           <span v-else>—</span>
         </template>
         <template #[`item.registrado_banco`]="{ item }">

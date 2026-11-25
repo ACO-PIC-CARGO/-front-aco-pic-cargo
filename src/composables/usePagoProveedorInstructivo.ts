@@ -248,3 +248,24 @@ export function usePagoProveedorInstructivo() {
 
   return { pagos, cargando, listar };
 }
+
+// Bancos > Salidas: pagos al proveedor del instructivo por salida (solo las que pagan un "Pago a Proveedor"
+// que viene de una aprobación). Devuelve { id_salida: pagos }.
+export async function pagosInstructivoPorSalida(ids: number[]): Promise<Record<number, PagoProveedorInstructivo[]>> {
+  const unicos = [...new Set(ids.filter((id) => Number(id) > 0))];
+  if (!unicos.length) return {};
+  try {
+    const { data } = await axios.get<ApiResponse<(PagoProveedorInstructivo & { id_pago: number })[]>>(
+      `${URL}pago_proveedor_instructivo_salidas`,
+      { params: { ids: unicos.join(",") } },
+    );
+    const porSalida: Record<number, PagoProveedorInstructivo[]> = {};
+    for (const pago of data.estadoflag ? (data.data ?? []) : []) {
+      (porSalida[Number(pago.id_pago)] ??= []).push(pago);
+    }
+    return porSalida;
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+}

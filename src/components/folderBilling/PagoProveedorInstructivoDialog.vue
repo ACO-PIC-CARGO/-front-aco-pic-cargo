@@ -15,10 +15,13 @@ const props = withDefaults(
     modelValue: boolean;
     pagos: PagoProveedorInstructivo[];
     cargando?: boolean;
+    // "Solicitar" del Pago a Proveedor de una aprobación: pie con Cancelar / Solicitar Pago
+    solicitar?: boolean;
+    solicitando?: boolean;
   }>(),
-  { cargando: false },
+  { cargando: false, solicitar: false, solicitando: false },
 );
-const emit = defineEmits<{ "update:modelValue": [valor: boolean] }>();
+const emit = defineEmits<{ "update:modelValue": [valor: boolean]; solicitar: [] }>();
 
 const { smAndDown } = useDisplay();
 const abierto = computed({
@@ -255,6 +258,31 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
           </div>
         </section>
       </v-card-text>
+
+      <div
+        v-if="solicitar"
+        class="ppi__foot"
+      >
+        <v-btn
+          variant="outlined"
+          class="ppi__foot-btn"
+          :disabled="solicitando"
+          @click="abierto = false"
+        >
+          Cancelar
+        </v-btn>
+        <v-btn
+          color="primary"
+          variant="flat"
+          prepend-icon="mdi-send-outline"
+          class="ppi__foot-btn"
+          :loading="solicitando"
+          :disabled="cargando || !pagos.length"
+          @click="emit('solicitar')"
+        >
+          Solicitar Pago
+        </v-btn>
+      </div>
     </v-card>
   </v-dialog>
 </template>
@@ -298,6 +326,20 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
   color: #4b5563;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.ppi__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #ffffff;
+  border-top: 1px solid #dbe5f5;
+}
+.ppi__foot-btn {
+  min-width: 140px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
 }
 .ppi__body {
   overflow-y: auto;
@@ -485,6 +527,12 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
   white-space: nowrap;
 }
 @media (max-width: 599.98px) {
+  .ppi__foot {
+    flex-direction: column-reverse;
+  }
+  .ppi__foot-btn {
+    width: 100%;
+  }
   .ppi__body {
     padding: 12px !important;
   }

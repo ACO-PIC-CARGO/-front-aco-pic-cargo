@@ -23,6 +23,9 @@ import type {
   PagoProveedorEditable,
 } from "@/types/banksProveedor";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
+import PagoProveedorInstructivoDialog from "@/components/folderBilling/PagoProveedorInstructivoDialog.vue";
+import { pagosInstructivoPorSalida } from "@/composables/usePagoProveedorInstructivo";
+import type { PagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 
 const appStore = useAppStore();
 const { can } = usePermissions();
@@ -42,6 +45,22 @@ let dialogPayControlGasto: boolean | undefined;
 let name_proveedor: string | undefined;
 
 const registrosEgreso = computed(() => bankStore.list as unknown as PagoEgresoFila[]);
+// "Pago proveedor": datos del instructivo de las salidas que pagan un "Pago a Proveedor" de una aprobación
+const pagosInstructivoSalida = ref<Record<number, PagoProveedorInstructivo[]>>({});
+const dialogPagoInstructivo = ref(false);
+const pagosInstructivoVer = ref<PagoProveedorInstructivo[]>([]);
+watch(
+  () => registrosEgreso.value.map((fila) => Number(fila.id)).join(","),
+  async (ids) => {
+    pagosInstructivoSalida.value = await pagosInstructivoPorSalida(ids ? ids.split(",").map(Number) : []);
+  },
+  { immediate: true },
+);
+const pagosInstructivoDe = (fila: { id?: unknown }) => pagosInstructivoSalida.value[Number(fila.id)] ?? [];
+function verPagoInstructivo(fila: { id?: unknown }) {
+  pagosInstructivoVer.value = pagosInstructivoDe(fila);
+  dialogPagoInstructivo.value = true;
+}
 const lstFacturas = ref<FacturasAsociadas>([] as unknown as FacturasAsociadas);
 const dialogFacturas = ref(false);
 const loading = ref(false);
@@ -586,6 +605,19 @@ onMounted(async () => {
             <v-icon>mdi-eye</v-icon>
           </v-btn>
           <v-btn
+            v-if="pagosInstructivoDe(item).length"
+            size="small"
+            variant="tonal"
+            color="primary"
+            prepend-icon="mdi-eye-outline"
+            class="lpp__pago6"
+            title="Ver el pago al proveedor del instructivo"
+            aria-label="Ver el pago al proveedor del instructivo"
+            @click.stop="verPagoInstructivo(item)"
+          >
+            Pago proveedor
+          </v-btn>
+          <v-btn
             variant="text"
             size="small"
             icon
@@ -935,7 +967,17 @@ onMounted(async () => {
         </v-card-text>
       </v-card>
     </v-dialog>
+    <PagoProveedorInstructivoDialog
+      v-model="dialogPagoInstructivo"
+      :pagos="pagosInstructivoVer"
+    />
   </v-card>
 </template>
 
-<style></style>
+<style scoped>
+.lpp__pago6 {
+  margin-left: 4px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+</style>

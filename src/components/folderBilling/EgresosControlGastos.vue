@@ -2131,6 +2131,11 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   if (modo === "nuevo") {
     const estado = await clientePagoDe(item);
     if ((estado === "NO" || estado === "PARCIAL") && !(await confirmarPagoSinCobro(estado))) return;
+    // "Pago a Proveedor" de una aprobación: se revisan los datos del instructivo y se solicita directo
+    if (pagosInstructivoDe(item).length) {
+      await abrirSolicitudInstructivo(item);
+      return;
+    }
   }
   adminEdicionSolicitud.value = null;
   if (modo === "editar" && existente && tieneAprobaciones(existente)) {
@@ -2288,9 +2293,69 @@ const pagosInstructivoDe = (e: EgresoProveedor) =>
     Number(p.id_master) === Number(e.id_master)
     && Number(p.id_proveedor) === Number(e.id_proveedor)
     && Number(p.id_correlativo ?? 0) === Number(e.id_correlativo ?? 0));
+// "Solicitar" desactivado: falta cargar la factura o proforma
+const MENSAJE_SIN_DOCUMENTO = "Para solicitar, necesita cargar una factura o proforma";
 function verPagoInstructivo(e: EgresoProveedor) {
+  egresoSolicitudInstructivo.value = null;
   pagosInstructivoVer.value = pagosInstructivoDe(e);
   dialogPagoInstructivo.value = true;
+}
+// "Solicitar" del "Pago a Proveedor" que viene de la aprobación (también si después le cambian el correlativo):
+// aviso -> modal con los datos del instructivo -> "Solicitar Pago" genera el PDF y envía a Administración
+// sin pasar por el formulario de Enviar a Administración.
+const egresoSolicitudInstructivo = ref<EgresoProveedor | null>(null);
+const solicitandoInstructivo = ref(false);
+async function abrirSolicitudInstructivo(item: EgresoProveedor) {
+  const { isConfirmed } = await Swal.fire({
+    icon: "info",
+    title: "Verifique que los datos son correctos",
+    html: `Se mostrarán los datos del pago a <b>${item.nombre_proveedor ?? "el proveedor"}</b> del instructivo de la cotización.<br>
+      Si están bien, presione <b>Solicitar Pago</b>.`,
+    confirmButtonText: "OK",
+    showCancelButton: true,
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#1e5bd8",
+  });
+  if (!isConfirmed) return;
+  egresoSolicitudInstructivo.value = item;
+  pagosInstructivoVer.value = pagosInstructivoDe(item);
+  dialogPagoInstructivo.value = true;
+}
+async function solicitarPagoInstructivo() {
+  const item = egresoSolicitudInstructivo.value;
+  if (!item || solicitandoInstructivo.value) return;
+  // mismo estado que el formulario de Enviar a Administración (sin abrirlo)
+  solicitudPagoActual.value = null;
+  modoSolicitudPago.value = "nuevo";
+  adminEdicionSolicitud.value = null;
+  solicitudPagoProveedor.value = item;
+  proveedorId = item.id_proveedor;
+  if (!(await validarGenerarPdfPago(item))) return;
+  solicitandoInstructivo.value = true;
+  try {
+    const preparado = await request<{ id_tipopago: number | string; id_cuenta: number | null; codigopago: string | null; comentario: string | null }>({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_instructivo_preparar",
+      data: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+    });
+    if (warnIfRefused(preparado)) return;
+    const datos = preparado.data[0]!;
+    await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
+    solicitudPagoForm.value = {
+      id_tipopago: tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(datos.id_tipopago))?.id ?? null,
+      id_cuenta: datos.id_cuenta ?? null,
+      codigopago: datos.codigopago ?? "",
+      comentario: datos.comentario ?? "",
+    };
+    if (!solicitudPagoValida.value) {
+      void Swal.fire({ icon: "warning", text: "No se pudo armar la solicitud con los datos del instructivo. Usa Enviar a Administración." });
+      return;
+    }
+    dialogPagoInstructivo.value = false;
+    await generarPdfPago(true);
+  } finally {
+    solicitandoInstructivo.value = false;
+  }
 }
 
 defineExpose({ cargarSolicitudesExistentes });
@@ -2595,7 +2660,10 @@ watch(
                   class="solreq-cell"
                   @click.stop
                 >
-                  <div class="solreq-fila">
+                  <div
+                    class="solreq-fila"
+                    :class="{ 'solreq-fila--pago': pagosInstructivoDe(egresoProveedor).length }"
+                  >
                     <!-- pago al proveedor del instructivo de Pricing (6.3): método, datos y archivos -->
                     <v-btn
                       data-modo-ver="permitido"
@@ -2611,6 +2679,11 @@ watch(
                     >
                       Pago proveedor
                     </v-btn>
+                    <!-- con "Pago proveedor" la solicitud va debajo -->
+                    <span
+                      v-if="pagosInstructivoDe(egresoProveedor).length"
+                      class="solreq__salto"
+                    />
                     <!-- Solicitud de pago del correlativo: solicitar / ver / editar si la rechazaron / eliminar -->
                     <div
                       v-if="solicitudPagoDe(egresoProveedor)"
@@ -2766,20 +2839,52 @@ watch(
                     <!-- Paso 2: con factura (paso 1) se abre Enviar a Administración; ahí se genera el PDF de pago -->
                     <span
                       v-else-if="can('listControlGastos', 'NUEVO')"
-                      class="d-inline-block"
-                      :title="egresoProveedor.docs > 0 ? 'Solicitar a Administración' : 'Primero carga la factura o proforma'"
+                      class="solreq__solicitar"
                     >
-                      <v-btn
-                        size="small"
-                        variant="flat"
-                        color="primary"
-                        prepend-icon="mdi-send-outline"
-                        class="solreq__btn"
-                        :disabled="!(egresoProveedor.docs > 0)"
-                        @click="abrirSolicitudPagoNueva(egresoProveedor)"
+                      <!-- desactivado (sin factura o proforma): aviso al pasar el mouse y el (i) al costado -->
+                      <v-tooltip
+                        :text="MENSAJE_SIN_DOCUMENTO"
+                        location="bottom"
+                        :disabled="egresoProveedor.docs > 0"
                       >
-                        Solicitar
-                      </v-btn>
+                        <!-- sin factura no se desactiva de verdad (un botón disabled no recibe el mouse y no
+                             saldría el aviso): se ve desactivado y el clic no hace nada -->
+                        <template #activator="{ props: tooltipProps }">
+                          <v-btn
+                            v-bind="tooltipProps"
+                            size="small"
+                            variant="flat"
+                            :color="egresoProveedor.docs > 0 ? 'primary' : undefined"
+                            prepend-icon="mdi-send-outline"
+                            class="solreq__btn"
+                            :class="{ 'solreq__btn--off': !(egresoProveedor.docs > 0) }"
+                            :aria-disabled="!(egresoProveedor.docs > 0)"
+                            :ripple="egresoProveedor.docs > 0"
+                            @click="egresoProveedor.docs > 0 && abrirSolicitudPagoNueva(egresoProveedor)"
+                          >
+                            Solicitar
+                          </v-btn>
+                        </template>
+                      </v-tooltip>
+                      <v-tooltip
+                        v-if="!(egresoProveedor.docs > 0)"
+                        :text="MENSAJE_SIN_DOCUMENTO"
+                        location="bottom"
+                        open-on-click
+                      >
+                        <template #activator="{ props: infoProps }">
+                          <v-btn
+                            v-bind="infoProps"
+                            icon="mdi-information-outline"
+                            variant="text"
+                            size="x-small"
+                            color="primary"
+                            class="solreq__info-btn"
+                            :aria-label="MENSAJE_SIN_DOCUMENTO"
+                            data-modo-ver="permitido"
+                          />
+                        </template>
+                      </v-tooltip>
                     </span>
                     <span
                       v-else
@@ -4583,6 +4688,9 @@ watch(
     <PagoProveedorInstructivoDialog
       v-model="dialogPagoInstructivo"
       :pagos="pagosInstructivoVer"
+      :solicitar="!!egresoSolicitudInstructivo"
+      :solicitando="solicitandoInstructivo"
+      @solicitar="solicitarPagoInstructivo"
     />
 
     <!-- Antes de Solicitar pago: el cliente aún no nos pagó -->
@@ -4712,6 +4820,29 @@ watch(
 .solreq__pago6 {
   flex: 0 0 auto;
   text-transform: none;
+}
+.solreq__solicitar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+/* "Solicitar" sin factura o proforma: se ve desactivado pero recibe el mouse para mostrar el aviso */
+.solreq__btn.solreq__btn--off {
+  color: rgba(0, 0, 0, 0.38) !important;
+  background-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+.solreq__btn.solreq__btn--off :deep(.v-btn__overlay) {
+  opacity: 0 !important;
+}
+.solreq-fila--pago {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+.solreq__salto {
+  flex-basis: 100%;
+  height: 0;
 }
 @media (max-width: 599.98px) {
   .solreq-fila {

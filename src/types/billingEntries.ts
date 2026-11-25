@@ -454,12 +454,15 @@ export interface SolicitudPagoDetalle {
 }
 
 // Bancos > Solicitudes de Pago (bandeja paginada)
-export type TabBandejaSolicitudPago = "PEN" | "PPG" | "REC" | "HIS";
+/** PAG: Solicitudes Pagadas (ya pasaron por Bancos) */
+export type TabBandejaSolicitudPago = "PEN" | "PPG" | "REC" | "HIS" | "PAG";
 export type EstadoBandejaSolicitudPago = EstadoSolicitudPago | "ELIMINADA";
 
 export interface SolicitudPagoBandeja {
   /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
   multiexpedienteflag?: boolean;
+  /** fecha de la salida / ingreso en Bancos (Fecha de Pago del Histórico y de Solicitudes Pagadas) */
+  fecha_pago_banco?: string | null;
   /** expedientes amarrados a la solicitud (solo la del reporte) */
   expedientes_solicitud?: string | null;
   total: number | string;

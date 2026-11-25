@@ -12,7 +12,7 @@ const appStore = useAppStore();
 const { smAndDown } = useDisplay();
 const tab = ref<TabBandejaSolicitudPago>("PEN");
 const opciones = ref<OpcionFiltroSolicitudPago[]>([]);
-const totales = ref<Record<TabBandejaSolicitudPago, number | null>>({ PEN: null, PPG: null, REC: null, HIS: null });
+const totales = ref<Record<TabBandejaSolicitudPago, number | null>>({ PEN: null, PPG: null, REC: null, HIS: null, PAG: null });
 
 const TABS: { valor: TabBandejaSolicitudPago; titulo: string; icono: string; color: string }[] = [
   { valor: "PEN", titulo: "Pendientes", icono: "mdi-clock-outline", color: "primary" },
@@ -20,6 +20,8 @@ const TABS: { valor: TabBandejaSolicitudPago; titulo: string; icono: string; col
   { valor: "HIS", titulo: "Histórico", icono: "mdi-history", color: "grey-darken-1" },
   // 4.ª pestaña: pasaron las validaciones y solo falta registrarlas en Bancos
   { valor: "PPG", titulo: "Pendiente por Registrar en banco", icono: "mdi-cash-clock", color: "warning" },
+  // 5.ª pestaña: ya pasaron por Bancos (salida / ingreso registrado)
+  { valor: "PAG", titulo: "Solicitudes Pagadas", icono: "mdi-cash-check", color: "success" },
 ];
 
 // Al entrar se cargan las cuatro pestañas. Cualquier acción (aprobar, rechazar, editar, eliminar,
@@ -125,7 +127,7 @@ onMounted(async () => {
 <style scoped>
 .spbv-tabs {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 4px;
   margin-bottom: 14px;
   padding: 4px;
@@ -176,10 +178,12 @@ onMounted(async () => {
 }
 .spbv-tab--PEN.spbv-tab--activa { color: #1e5bd8; }
 .spbv-tab--PPG.spbv-tab--activa { color: #b45309; }
+.spbv-tab--PAG.spbv-tab--activa { color: #15803d; }
 .spbv-tab--REC.spbv-tab--activa { color: #c62828; }
 .spbv-tab--HIS.spbv-tab--activa { color: #374151; }
 .spbv-tab--PEN.spbv-tab--activa .spbv-tab__count { background: #1e5bd8; }
 .spbv-tab--PPG.spbv-tab--activa .spbv-tab__count { background: #b45309; }
+.spbv-tab--PAG.spbv-tab--activa .spbv-tab__count { background: #15803d; }
 .spbv-tab--REC.spbv-tab--activa .spbv-tab__count { background: #c62828; }
 .spbv-tab--HIS.spbv-tab--activa .spbv-tab__count { background: #374151; }
 </style>

@@ -11,7 +11,8 @@ export type CodigoEstadoSolicitudCobro =
   | "RECHAZADA"
   | "ELIMINADA";
 
-export type TabBandejaSolicitudCobro = "PEN" | "PPG" | "REC" | "HIS";
+/** PAG: Solicitudes Pagadas (ya pasaron por Bancos) */
+export type TabBandejaSolicitudCobro = "PEN" | "PPG" | "REC" | "HIS" | "PAG";
 
 export interface ConceptoSolicitudCobro {
   codigo: string;
@@ -118,6 +119,8 @@ export interface SoporteCobro {
 export interface SolicitudCobroBandeja
   extends Omit<SolicitudCobro, "enviadoflag" | "fecha_registro" | "usuario_registro" | "id_path_voucher" | "conceptos"> {
   total: number | string;
+  /** fecha del ingreso en Bancos (Fecha de Pago del Histórico y de Solicitudes Pagadas) */
+  fecha_pago_banco?: string | null;
   usuario_anulado: string | null;
   fecha_anulado: string | null;
 }

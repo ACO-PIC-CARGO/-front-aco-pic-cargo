@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
+import { shortDate } from "@/utils/dates";
 import { tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
@@ -52,7 +53,7 @@ const ESTADOS: { codigo: EstadoBandejaSolicitudPago; titulo: string; tabs: TabBa
   { codigo: "PENADM", titulo: "Pendiente por Administración", tabs: ["PEN", "HIS"] },
   { codigo: "PENGER", titulo: "Pendiente por Gerencia", tabs: ["PEN", "HIS"] },
   { codigo: "LISTO", titulo: "Listo para transferir", tabs: ["PEN", "HIS"] },
-  { codigo: "PAGADO", titulo: "Pagado", tabs: ["PPG", "HIS"] },
+  { codigo: "PAGADO", titulo: "Pagado", tabs: ["PPG", "HIS", "PAG"] },
   { codigo: "RECHAZADA", titulo: "Rechazada", tabs: ["HIS"] },
   { codigo: "ELIMINADA", titulo: "Eliminada", tabs: ["HIS"] },
 ];
@@ -263,6 +264,8 @@ const headers = computed(() => [
   ...(esRechazadas.value
     ? [columna("Motivo", "motivo_rechazo")]
     : [columna("Fecha de pago", "fechapago"), columna("Soporte", "soporte")]),
+  // Histórico y Solicitudes Pagadas: fecha de la salida en Bancos
+  ...(esHistorico.value || props.tab === "PAG" ? [columna("Fecha de Pago", "fecha_pago_banco")] : []),
   columna("Acciones", "ver"),
 ]);
 
@@ -360,7 +363,7 @@ async function exportar() {
       params: parametros(false),
       responseType: "blob",
     });
-    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico" }[props.tab];
+    const nombre = { PEN: "Pendientes", PPG: "Pendiente por Registrar en banco", REC: "Rechazadas", HIS: "Historico", PAG: "Solicitudes Pagadas" }[props.tab];
     const url = window.URL.createObjectURL(new Blob([data]));
     const link = document.createElement("a");
     link.href = url;
@@ -840,7 +843,11 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
           </template>
         </template>
         <template #[`item.fechapago`]="{ item }">
-          <span class="text-no-wrap">{{ item.fechapago ? formatoFecha(item.fechapago) : "—" }}</span>
+          <span
+            v-if="item.fechapago"
+            class="spb__chipfecha"
+          >{{ shortDate(item.fechapago.slice(0, 10)) }}</span>
+          <span v-else>—</span>
         </template>
         <template #[`item.soporte`]="{ item }">
           <div
@@ -982,6 +989,14 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
               </div>
             </v-menu>
           </div>
+        </template>
+        <template #[`item.fecha_pago_banco`]="{ item }">
+          <!-- mismo estilo que las fechas de Ingresos por confirmar (cobros) -->
+          <span
+            v-if="item.fecha_pago_banco"
+            class="spb__chipfecha"
+          >{{ shortDate(item.fecha_pago_banco.slice(0, 10)) }}</span>
+          <span v-else>—</span>
         </template>
         <template #[`item.registrado_banco`]="{ item }">
           <v-chip
@@ -1486,6 +1501,18 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
 }
 .spb__aprobuser {
   font-weight: 600;
+  white-space: nowrap;
+}
+/* fechas de pago: píldora, igual que en Ingresos por confirmar */
+.spb__chipfecha {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #e3ebfa;
+  color: #1e3a8a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.3;
   white-space: nowrap;
 }
 .spb__aprobfecha {
