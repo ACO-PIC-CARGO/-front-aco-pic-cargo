@@ -377,12 +377,21 @@ const clienteYaPago = computed<boolean>({
 });
 // 6.1: comprobante del cliente + cuenta de la empresa / banco del cliente. Al aprobar la cotización se carga solo
 // en Control de Gastos > Ingresos > "Cargar Pago Cliente" (0002) y se envía a Administración.
-const comprobantePagoCliente = computed<ArchivoComprobante | null>({
-  get: () => (datosManuales.value.comprobantePagoCliente as ArchivoComprobante | null | undefined) ?? null,
+// Varios soportes en comprobantesPagoCliente; comprobantePagoCliente sigue siendo el primero (voucher de la
+// solicitud de cobro) y es lo que traen los instructivos guardados antes.
+const comprobantesPagoCliente = computed<ArchivoComprobante[]>({
+  get: () => {
+    const d = datosManuales.value;
+    if (Array.isArray(d.comprobantesPagoCliente)) return d.comprobantesPagoCliente as ArchivoComprobante[];
+    const unico = d.comprobantePagoCliente as ArchivoComprobante | null | undefined;
+    return unico ? [unico] : [];
+  },
   set: (valor) => {
-    datosManuales.value.comprobantePagoCliente = valor;
+    datosManuales.value.comprobantesPagoCliente = valor;
+    datosManuales.value.comprobantePagoCliente = valor[0] ?? null;
   },
 });
+const comprobantePagoCliente = computed(() => comprobantesPagoCliente.value[0] ?? null);
 // Solo cuentas de la moneda del monto (la principal primero, como en "Cargar Pago Cliente").
 // Se compara por id de moneda: el symbol de la cuenta es "S/." y la moneda del monto es "PEN".
 const idMonedaRecibido = computed(
@@ -618,7 +627,10 @@ function resumenPago(
   const codigo = String(d.metodoPagoCodigo ?? "");
   const nombre = CODIGOS_ALIBABA.includes(codigo) ? "Alibaba" : CODIGOS_MADE_IN_CHINA.includes(codigo) ? "Made in China" : null;
   const conTransferencia = codigo === CODIGO_METODO_PAGO.ALIBABA_TRANSFERENCIA || codigo === CODIGO_METODO_PAGO.MADE_IN_CHINA_TRANSFERENCIA;
-  const metodo = [{ label: "Método de pago", valor: textoMetodoDe(d) }];
+  const metodo = [
+    { label: "Método de pago", valor: textoMetodoDe(d) },
+    { label: "Tipo de documento", valor: tipoDocumentoPagoTexto(d.tipoDocumentoPago) },
+  ];
   const monto = codigo === CODIGO_METODO_PAGO.ALIPAY
     ? []
     : [{ label: "Monto a pagar", valor: d.monto ? `${String(d.monedaPago || "USD")} ${d.monto}` : "" }];
@@ -963,6 +975,18 @@ const permisosTexto = computed(() => {
   const comentario = String(datosManuales.value.comentarioPermisos ?? "").trim();
   return [respuesta, comentario].filter(Boolean).join(": ");
 });
+// 6.3 "Tipo de documento": mismos tipos que "Cargar documento a pagar" de Control de Gastos.
+// Al aprobar, el comprobante / datos de transferencia se carga solo como documento a pagar con este tipo.
+const TIPOS_DOCUMENTO_PAGO = [
+  { value: "1", title: "Factura Fiscal" },
+  { value: "2", title: "Proforma" },
+  { value: "3", title: "Otros (ej. email)" },
+];
+// (sin usar la constante: el resumen puede calcularse antes de esta línea)
+function tipoDocumentoPagoTexto(valor: unknown) {
+  const tipos: Record<string, string> = { 1: "Factura Fiscal", 2: "Proforma", 3: "Otros (ej. email)" };
+  return tipos[String(valor ?? "")] ?? "";
+}
 // "Otros" y métodos sin formulario propio solo piden el monto.
 const pideNroFactura = computed(
   () => esPlataforma.value || esTransferenciaInternacional.value || esAlipay.value || esOtrosPago.value,
@@ -975,6 +999,8 @@ async function guardarYContinuarPago() {
   const montoInvalido = (valor: unknown, etiqueta: string) => (positivo(valor) ? [] : [etiqueta]);
   const faltantes = [
     ...(pideMontoPago.value ? montoInvalido(d.monto, "Monto a pagar al proveedor (número mayor a 0)") : []),
+    // tipo del documento a pagar que se crea solo en Control de Gastos (Facturas y Proformas) al aprobar
+    ...(vacio(d.tipoDocumentoPago) ? ["Tipo de documento"] : []),
     ...(esOtrosPago.value && !docComprobanteTransferencia.value?.flag ? ["Comprobante / Datos de Transferencia"] : []),
     ...((esPlataforma.value || esTransferenciaInternacional.value) && !docFacturaPago.value?.flag
       ? ["Factura Comercial / Proforma"]
@@ -1154,6 +1180,7 @@ const CAMPOS_PAGO_PROVEEDOR = [
   "linkDePagoAlibaba", "contratoAlibaba", "numeroContratoAlibaba", "nombreBeneficiario", "direccionBeneficiario",
   "bancoBenbeficiario", "direccionBancoBeneficiario", "codigoSwift", "numeroCuentaBeneficiario",
   "capturaDatosBancarios", "qrPagoProveedor", "montoCNY", "montoUSD", "facturaPagoDoc", "comprobantePagoDoc",
+  "tipoDocumentoPago",
 ];
 const VALOR_INICIAL_PAGO: Record<string, unknown> = { monedaPago: "USD" };
 const ARCHIVOS_PAGO = ["contratoAlibaba", "capturaDatosBancarios", "qrPagoProveedor"];
@@ -2649,7 +2676,7 @@ watch(() => datosManuales.value.agregarOtros, () => {
                     </div>
                   </div>
                   <!-- Al aprobar la cotización, con comprobante se carga solo en "Cargar Pago Cliente" y se envía a Administración -->
-                  <ComprobantePagoCliente v-model="comprobantePagoCliente" />
+                  <ComprobantePagoCliente v-model="comprobantesPagoCliente" />
                   <!-- con comprobante, cuenta y banco son obligatorios (se cargan solos al aprobar) -->
                   <template v-if="clienteYaPago">
                     <div class="pg-field">
@@ -3001,6 +3028,29 @@ watch(() => datosManuales.value.agregarOtros, () => {
                             class="pg-money__coin"
                           />
                         </div>
+                      </div>
+                    </div>
+
+                    <!-- Tipo de documento: con este tipo se carga solo el comprobante en Control de Gastos al aprobar -->
+                    <div class="pg-field">
+                      <span class="pg-field__icon"><v-icon>mdi-file-document-multiple-outline</v-icon></span>
+                      <div class="pg-field__main">
+                        <div class="pg-field__label">
+                          Tipo de documento <span class="pg-req">*</span><span class="pg-badge">Obligatorio</span>
+                        </div>
+                        <div class="pg-field__hint">
+                          Al aprobar, el comprobante / datos de transferencia se carga como documento a pagar en Control de Gastos.
+                        </div>
+                        <v-select
+                          v-model="datosManuales.tipoDocumentoPago"
+                          :items="TIPOS_DOCUMENTO_PAGO"
+                          item-title="title"
+                          item-value="value"
+                          placeholder="Seleccionar tipo de documento"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                        />
                       </div>
                     </div>
 

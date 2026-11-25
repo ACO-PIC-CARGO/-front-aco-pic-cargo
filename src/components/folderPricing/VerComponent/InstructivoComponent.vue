@@ -11,6 +11,7 @@ import AprobarDestinoDialog from "@/components/comun/AprobarDestinoDialog.vue";
 import QuoteInTrafficNotice from "@/components/folderTraffic/QuoteInTrafficNotice.vue";
 import { askExpedienteKind, askMasterAvailabilityDate } from "@/utils/expedienteChoice";
 import { generateIdempotencyKey } from "@/utils/idempotencia";
+import { reversarCotizacion } from "@/utils/reversarCotizacion";
 import { useConfigEmpresaStore } from "@/stores/configEmpresa";
 import { usePricingStore } from "@/stores/pricing";
 import { usePermissions } from "@/composables/usePermissions";
@@ -348,6 +349,10 @@ async function imprimir() {
         url_folderonedrive: pricingStore.datosPrincipales.url_folderonedrive,
       } as { nro_propuesta?: number });
     });
+}
+async function reversar() {
+  const reversada = await reversarCotizacion(route.params.id as string, pricingStore.listInstructivo[0]?.expediente);
+  if (reversada) window.location.reload();
 }
 async function approveQuote(details: AprobacionCotizacion) {
   Swal.fire({
@@ -747,6 +752,22 @@ function getProveedor(element: OpcionCosto) {
         <v-icon color="white">
           mdi-printer-outline
         </v-icon>
+      </v-btn>
+      <v-btn
+        class="mx-1"
+        color="#e65359"
+        elevation="2"
+        size="small"
+        v-if="pricingStore.aprobadoflag && pricingStore.listInstructivo[0]!.code_house && can('lstQuote', 'MODIFICAR')"
+        @click="reversar()"
+      >
+        <v-icon
+          color="white"
+          class="mr-1"
+        >
+          mdi-undo-variant
+        </v-icon>
+        <span style="color: #ffffff">Reversar</span>
       </v-btn>
 
       <v-btn

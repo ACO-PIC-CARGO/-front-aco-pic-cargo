@@ -24,6 +24,8 @@ interface SolicitudCobroDetalle {
   numerooperacion: string | null;
   voucher_path: string | null;
   voucher_nombre: string | null;
+  // todos los archivos del cliente (voucher, el de cada pago cargado y los adicionales del instructivo)
+  vouchers?: { id: number; ruta: string; nombre: string | null }[] | null;
   comentario: string | null;
   fechasolicitud: string | null;
   usuario_registro: string | null;
@@ -62,13 +64,25 @@ const COLOR_ESTADO: Record<string, string> = {
   ELIMINADA: "grey",
 };
 
-const esPdf = computed(() => /\.pdf($|\?)/i.test(detalle.value?.voucher_path ?? ""));
+// pestaña Voucher: todos los archivos; se ve uno a la vez
+const vouchers = computed(() => {
+  const lista = detalle.value?.vouchers ?? [];
+  if (lista.length) return lista;
+  return detalle.value?.voucher_path
+    ? [{ id: 0, ruta: detalle.value.voucher_path, nombre: detalle.value.voucher_nombre }]
+    : [];
+});
+const indiceVoucher = ref(0);
+const voucherActual = computed(() => vouchers.value[indiceVoucher.value] ?? vouchers.value[0] ?? null);
+const esPdfRuta = (ruta: string | null | undefined) => /\.pdf($|\?)/i.test(ruta ?? "");
+const esPdf = computed(() => esPdfRuta(voucherActual.value?.ruta));
 const totalConceptos = computed(() =>
   (detalle.value?.conceptos ?? []).reduce((acc, c) => acc + Number(c.total_op || 0), 0));
 
 watch(abierto, async (valor) => {
   if (!valor || !props.codigo) return;
   tab.value = "solicitud";
+  indiceVoucher.value = 0;
   detalle.value = null;
   error.value = "";
   cargando.value = true;
@@ -154,9 +168,13 @@ const autorizaciones = computed(() => [
         <v-tab
           value="voucher"
           prepend-icon="mdi-receipt-text-outline"
-          :disabled="!detalle?.voucher_path"
+          :disabled="!vouchers.length"
         >
           Voucher
+          <span
+            v-if="vouchers.length > 1"
+            class="vercob__count"
+          >{{ vouchers.length }}</span>
         </v-tab>
       </v-tabs>
 
@@ -326,27 +344,47 @@ const autorizaciones = computed(() => [
             </v-tabs-window-item>
 
             <v-tabs-window-item value="voucher">
+              <div
+                v-if="vouchers.length > 1"
+                class="vercob__files"
+              >
+                <button
+                  v-for="(archivo, indice) in vouchers"
+                  :key="`${archivo.id}-${indice}`"
+                  type="button"
+                  class="vercob__file"
+                  :class="{ 'is-active': voucherActual === archivo }"
+                  :title="archivo.nombre || 'Archivo'"
+                  @click="indiceVoucher = indice"
+                >
+                  <v-icon size="16">
+                    {{ esPdfRuta(archivo.ruta) ? "mdi-file-pdf-box" : "mdi-file-image-outline" }}
+                  </v-icon>
+                  <span class="text-truncate">{{ archivo.nombre || `Archivo ${indice + 1}` }}</span>
+                </button>
+              </div>
               <div class="vercob__voucher-bar">
-                <span class="text-truncate">{{ detalle.voucher_nombre || "Voucher" }}</span>
+                <span class="text-truncate">{{ voucherActual?.nombre || "Voucher" }}</span>
                 <v-btn
                   size="small"
                   variant="tonal"
                   color="primary"
                   prepend-icon="mdi-open-in-new"
-                  @click="abrir(detalle.voucher_path)"
+                  @click="abrir(voucherActual?.ruta)"
                 >
                   Abrir en otra pestaña
                 </v-btn>
               </div>
               <iframe
                 v-if="esPdf"
-                :src="detalle.voucher_path || undefined"
+                :key="voucherActual?.ruta"
+                :src="voucherActual?.ruta || undefined"
                 class="vercob__pdf"
                 title="Voucher del cliente"
               />
               <img
                 v-else
-                :src="detalle.voucher_path || undefined"
+                :src="voucherActual?.ruta || undefined"
                 class="vercob__img"
                 alt="Voucher del cliente"
               >
@@ -480,6 +518,41 @@ const autorizaciones = computed(() => [
 .vercob__table tfoot td {
   font-weight: 800;
   background: #f8fbff;
+}
+.vercob__count {
+  margin-left: 6px;
+  min-width: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+  line-height: 20px;
+  text-align: center;
+  color: #ffffff;
+  background: #1f73e8;
+  border-radius: 10px;
+}
+.vercob__files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.vercob__file {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 260px;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: #1f2a44;
+  background: #f4f8ff;
+  border: 1px solid #d6e3f7;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.vercob__file.is-active {
+  color: #ffffff;
+  background: #1f73e8;
+  border-color: #1f73e8;
 }
 .vercob__voucher-bar {
   display: flex;

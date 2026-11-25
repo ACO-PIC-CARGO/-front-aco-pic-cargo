@@ -68,6 +68,21 @@ describe("detalle del pago al proveedor del instructivo (6.3)", () => {
     expect(si?.campos[1]?.archivo).toEqual({ ruta: comprobante.ruta, name: "pago.pdf" });
   });
 
+  it("6.1 cliente pagó: varios soportes, uno por fila", () => {
+    const uno = { id: 1, ruta: "https://x/a.pdf", name: "a.pdf" };
+    const dos = { id: 2, ruta: "https://x/b.png", name: "b.png" };
+    const si = detalleClientePago({ clientePago: "Si", montoRecibido: "10", comprobantePagoCliente: uno, comprobantesPagoCliente: [uno, dos] });
+    const soportes = si?.campos.filter((c) => c.archivo) ?? [];
+    expect(soportes.map((c) => c.label)).toEqual(["Soporte de pago del cliente (1)", "Soporte de pago del cliente (2)"]);
+    expect(soportes[1]?.archivo?.name).toBe("b.png");
+  });
+
+  it("6.3 muestra el tipo de documento elegido", () => {
+    const detalle = detallePagoProveedor({ metodoPagoCodigo: "05", tipoDocumentoPago: "2" });
+    expect(detalle.campos[0]).toMatchObject({ label: "Tipo de documento", valor: "Proforma" });
+    expect(detallePagoProveedor({ metodoPagoCodigo: "05" }).campos.some((c) => c.label === "Tipo de documento")).toBe(false);
+  });
+
   it("6.1 cliente pagó: muestra la cuenta y el banco con su nombre", () => {
     const si = detalleClientePago({
       clientePago: "Si",

@@ -1717,6 +1717,16 @@ const egresoSolicitudPago = computed(() => {
 // ya tiene PDF de pago (table_spaymentpro): habilita "Enviar solicitud" y el botón pasa a "Eliminar y Generar PDF"
 const tienePdfPago = computed(() => Number(egresoSolicitudPago.value?.solicitudes || 0) > 0);
 
+// Cliente(s) del PDF: solo los de los costos que se pagan (sin repetir). Costo global del expediente
+// (sin house): todos los clientes del master.
+function clientesDeSolicitud(item: EgresoProveedor) {
+  const houses = controlGastosStore.master_houses || [];
+  const deCostos = item.detalle
+    .map((d) => d.consigner || houses.find((h) => d.id_house && (h.id_house == d.id_house || h.id == d.id_house))?.consigner)
+    .filter((c): c is string => !!c);
+  const clientes = deCostos.length ? deCostos : houses.map((h) => h.consigner as string);
+  return [...new Set(clientes.filter(Boolean))].join(", ");
+}
 // Los datos del PDF salen del formulario de Enviar a Administración (tipo de pago por código, no por id)
 function datosPdfPago(item: EgresoProveedor, number: number | null) {
   const f = solicitudPagoForm.value;
@@ -1726,7 +1736,7 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
   const totalPagar = item.detalle.reduce((suma, d) => suma + Number(d.total_op || 0), 0);
   return {
     nameProveedor: item.nombre_proveedor,
-    nameConsignatario: controlGastosStore.master_houses.map((h) => h.consigner).join(", "),
+    nameConsignatario: clientesDeSolicitud(item),
     totalPagar,
     expediente: master.master_nromaster,
     fecha: currentDate(),

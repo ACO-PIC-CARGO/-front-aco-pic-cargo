@@ -2,6 +2,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import { reversarCotizacion } from "@/utils/reversarCotizacion";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import { useDisplay } from "vuetify";
 import { useRoute, useRouter } from "vue-router";
@@ -347,6 +348,10 @@ async function setDatosInstructivo() {
 function continueStep2() {
   stepProforma.value = 2;
   firstCompleteProforma.value = true;
+}
+async function reversar(houseIngreso: HouseIngreso) {
+  if (!(await reversarCotizacion(houseIngreso.id_quote, houseIngreso.quote))) return;
+  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
 }
 function abrirCotizacion(id: number) {
   const routeData = appRouter.resolve({
@@ -1785,6 +1790,16 @@ watch(
                     @click="abrirCotizacion(houseIngreso.id_quote)"
                   >
                     <v-icon>mdi-eye</v-icon>
+                  </v-btn>
+                  <v-btn
+                    variant="text"
+                    color="#e65359"
+                    icon
+                    title="Reversar cotización"
+                    v-if="houseIngreso.id_quote && can('listControlGastos', 'MODIFICAR')"
+                    @click="reversar(houseIngreso)"
+                  >
+                    <v-icon>mdi-undo-variant</v-icon>
                   </v-btn>
 
                   <v-btn

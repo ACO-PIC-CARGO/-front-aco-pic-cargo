@@ -82,6 +82,12 @@ function montoTexto(monto: unknown, moneda: unknown) {
   return `${texto(moneda) || "USD"} ${formateado}`;
 }
 
+// 6.1: varios soportes (comprobantesPagoCliente); los instructivos anteriores traen uno solo.
+function comprobantesCliente(d: Record<string, unknown>) {
+  const lista = Array.isArray(d.comprobantesPagoCliente) ? (d.comprobantesPagoCliente as unknown[]) : [d.comprobantePagoCliente];
+  return lista.filter((archivo) => archivoDe(archivo));
+}
+
 // 6.1 "¿El cliente ya nos pagó?" (de la cotización). null en registros sin ese dato.
 export function detalleClientePago(datos: Record<string, unknown>): { pago: boolean; campos: CampoPago[] } | null {
   const d = datos ?? {};
@@ -94,9 +100,9 @@ export function detalleClientePago(datos: Record<string, unknown>): { pago: bool
       ? [
           { label: "Monto que nos pagó", icon: "mdi-database-outline", valor: montoTexto(d.montoRecibido, d.monedaRecibido) },
           // comprobante del cliente (antes "Comprobante de Transferencia" del 6.3); solo si se adjuntó
-          ...(archivoDe(d.comprobantePagoCliente)
-            ? [documento("Comprobante de pago del cliente", "mdi-file-upload-outline", d.comprobantePagoCliente)]
-            : []),
+          ...comprobantesCliente(d).map((archivo, i, todos) =>
+            documento(todos.length > 1 ? `Soporte de pago del cliente (${i + 1})` : "Comprobante de pago del cliente",
+              "mdi-file-upload-outline", archivo)),
           // cuenta de la empresa y banco del cliente (el nombre se guarda en el instructivo junto al id)
           ...(texto(d.cuentaPagoClienteTexto)
             ? [{ label: "Cuenta donde depositó", icon: "mdi-bank-outline", valor: texto(d.cuentaPagoClienteTexto) }]
@@ -109,6 +115,8 @@ export function detalleClientePago(datos: Record<string, unknown>): { pago: bool
       : [],
   };
 }
+
+const TIPOS_DOCUMENTO: Record<string, string> = { 1: "Factura Fiscal", 2: "Proforma", 3: "Otros (ej. email)" };
 
 const CAMPOS_TRANSFERENCIA:{ key: string; label: string; icon: string }[] = [
   { key: "nombreBeneficiario", label: "Beneficiario", icon: "mdi-account-outline" },
@@ -126,6 +134,10 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
   const plataforma = CODIGOS_ALIBABA.includes(codigo) ? "Alibaba" : CODIGOS_MADE_IN_CHINA.includes(codigo) ? "Made in China" : null;
   const nombreMetodo = texto(metodo) || texto(d.metodoPagoNombre) || codigo;
   const monto: CampoPago = { label: "Monto a pagar al proveedor", icon: "mdi-cash-multiple", valor: montoTexto(d.monto, d.monedaPago) };
+  // tipo del documento a pagar (se cargó solo en Facturas y Proformas); solo si se eligió
+  const tipoDocumento: CampoPago[] = TIPOS_DOCUMENTO[texto(d.tipoDocumentoPago)]
+    ? [{ label: "Tipo de documento", icon: "mdi-file-document-multiple-outline", valor: TIPOS_DOCUMENTO[texto(d.tipoDocumentoPago)] }]
+    : [];
   const nroFactura: CampoPago = { label: "N.° de Factura Comercial", icon: "mdi-pound-box-outline", valor: texto(d.nroFactura) };
   const factura = documento("Factura Comercial / Proforma", "mdi-file-document-outline", d.facturaPago);
   const comprobante = documento("Comprobante de Transferencia", "mdi-swap-horizontal", d.comprobantePago);
@@ -139,6 +151,7 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
       plataforma,
       icono: "mdi-storefront-outline",
       campos: [
+        ...tipoDocumento,
         monto,
         nroFactura,
         factura,
@@ -156,6 +169,7 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
       plataforma: null,
       icono: "mdi-bank-transfer",
       campos: [
+        ...tipoDocumento,
         monto,
         nroFactura,
         factura,
@@ -173,6 +187,7 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
       plataforma: null,
       icono: "mdi-qrcode",
       campos: [
+        ...tipoDocumento,
         nroFactura,
         documento("QR de pago (Alipay / WeChat Pay)", "mdi-qrcode", d.qrPagoProveedor),
         { label: "Monto a transferir (CNY)", icon: "mdi-currency-cny", valor: montoTexto(d.montoCNY, "CNY") },
@@ -188,6 +203,7 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
       plataforma: null,
       icono: "mdi-dots-horizontal-circle-outline",
       campos: [
+        ...tipoDocumento,
         { label: "Método de Pago (Otros)", icon: "mdi-format-list-bulleted", valor: otro },
         monto,
         documento("Comprobante / Datos de Transferencia", "mdi-swap-horizontal", d.comprobantePago),
@@ -200,7 +216,7 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
     subtitulo: nombreMetodo ? `(${nombreMetodo})` : "",
     plataforma: null,
     icono: "mdi-cash-multiple",
-    campos: [monto],
+    campos: [...tipoDocumento, monto],
   };
 }
 

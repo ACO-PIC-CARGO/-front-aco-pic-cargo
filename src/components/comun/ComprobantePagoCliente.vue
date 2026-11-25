@@ -5,10 +5,11 @@ import { useFilesStore } from "@/stores/files";
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import type { ArchivoComprobante } from "@/types/archivos";
 
-// Instructivo 6.1 "¿El CLIENTE ya nos pagó?": comprobante de pago del cliente. Guarda el id de table_allpath
-// porque al aprobar la cotización se carga solo en "Cargar Pago Cliente" (Control de Gastos > Ingresos).
+// Instructivo 6.1 "¿El CLIENTE ya nos pagó?": soportes de pago del cliente (varios archivos). Guarda el id de
+// table_allpath porque al aprobar la cotización se cargan solos en "Cargar Pago Cliente" (Control de Gastos > Ingresos):
+// el primero es el voucher y todos se ven en la solicitud de cobro.
 
-const modelo = defineModel<ArchivoComprobante | null>({ default: null });
+const modelo = defineModel<ArchivoComprobante[]>({ default: () => [] });
 
 const MAX_MB = 10;
 const filesStore = useFilesStore();
@@ -21,35 +22,43 @@ function seleccionar() {
 }
 async function alElegir(event: Event) {
   const input = event.target as HTMLInputElement;
-  const archivo = input.files?.[0];
+  const archivos = Array.from(input.files ?? []);
   input.value = "";
-  if (archivo) await subir(archivo);
+  await subirVarios(archivos);
 }
 async function alSoltar(event: DragEvent) {
   arrastrando.value = false;
-  const archivo = event.dataTransfer?.files?.[0];
-  if (archivo) await subir(archivo);
+  await subirVarios(Array.from(event.dataTransfer?.files ?? []));
+}
+async function subirVarios(archivos: File[]) {
+  for (const archivo of archivos) {
+    if (!(await subir(archivo))) break;
+  }
 }
 async function subir(archivo: File) {
   if (!(archivo.type === "application/pdf" || archivo.type.startsWith("image/"))) {
-    void Swal.fire({ icon: "warning", title: "Formato no válido", text: "Sube un PDF, JPG o PNG." });
-    return;
+    void Swal.fire({ icon: "warning", title: "Formato no válido", text: `«${archivo.name}»: sube un PDF, JPG o PNG.` });
+    return false;
   }
   if (archivo.size > MAX_MB * 1024 * 1024) {
-    void Swal.fire({ icon: "warning", title: "Archivo muy pesado", text: `El archivo no puede pasar de ${MAX_MB} MB.` });
-    return;
+    void Swal.fire({ icon: "warning", title: "Archivo muy pesado", text: `«${archivo.name}» no puede pasar de ${MAX_MB} MB.` });
+    return false;
   }
   subiendo.value = true;
   try {
     const error = await filesStore._uploadFile(archivo);
     if (error || !filesStore.payPath) {
       void Swal.fire({ icon: "error", text: error || "No pudimos subir el archivo. Intenta de nuevo." });
-      return;
+      return false;
     }
-    modelo.value = { id: Number(filesStore.payPath), ruta: filesStore.datosPath?.ruta || "", name: archivo.name };
+    modelo.value = [...modelo.value, { id: Number(filesStore.payPath), ruta: filesStore.datosPath?.ruta || "", name: archivo.name }];
+    return true;
   } finally {
     subiendo.value = false;
   }
+}
+function quitar(indice: number) {
+  modelo.value = modelo.value.filter((_, i) => i !== indice);
 }
 </script>
 
@@ -60,10 +69,15 @@ async function subir(archivo: File) {
         mdi-file-upload-outline
       </v-icon>
       Cargar soporte de pago del cliente
+      <span
+        v-if="modelo.length"
+        class="cpc__count"
+      >{{ modelo.length }}</span>
     </div>
     <div class="cpc__body">
       <div
-        v-if="modelo"
+        v-for="(archivo, indice) in modelo"
+        :key="`${archivo.id}-${indice}`"
         class="cpc__file"
       >
         <v-icon size="18">
@@ -71,15 +85,15 @@ async function subir(archivo: File) {
         </v-icon>
         <span
           class="cpc__name"
-          :title="modelo.name"
-        >{{ modelo.name }}</span>
+          :title="archivo.name"
+        >{{ archivo.name }}</span>
         <button
-          v-if="modelo.ruta"
+          v-if="archivo.ruta"
           type="button"
           class="cpc__icon-btn cpc__icon-btn--ver"
           title="Ver archivo"
           aria-label="Ver archivo"
-          @click="abrirArchivo(modelo.ruta, modelo.name)"
+          @click="abrirArchivo(archivo.ruta, archivo.name)"
         >
           <v-icon size="20">
             mdi-eye-outline
@@ -90,7 +104,7 @@ async function subir(archivo: File) {
           class="cpc__icon-btn"
           title="Quitar archivo"
           aria-label="Quitar archivo"
-          @click="modelo = null"
+          @click="quitar(indice)"
         >
           <v-icon size="18">
             mdi-close
@@ -98,7 +112,6 @@ async function subir(archivo: File) {
         </button>
       </div>
       <div
-        v-else
         class="cpc__zona"
         :class="{ 'is-dragging': arrastrando }"
         @dragover.prevent="arrastrando = true"
@@ -122,8 +135,8 @@ async function subir(archivo: File) {
         </v-icon>
         <span class="cpc__sep" />
         <span class="cpc__text">
-          <b>{{ subiendo ? "Subiendo archivo…" : "Adjunta el comprobante de pago" }}</b>
-          <span>PDF, JPG o PNG (máx. {{ MAX_MB }} MB)</span>
+          <b>{{ subiendo ? "Subiendo archivo…" : modelo.length ? "Agregar otro soporte" : "Adjunta los soportes de pago" }}</b>
+          <span>PDF, JPG o PNG (máx. {{ MAX_MB }} MB c/u). Puedes subir varios.</span>
         </span>
         <button
           type="button"
@@ -134,11 +147,12 @@ async function subir(archivo: File) {
           <v-icon size="18">
             mdi-paperclip
           </v-icon>
-          Seleccionar archivo
+          {{ modelo.length ? "Agregar archivos" : "Seleccionar archivos" }}
         </button>
         <input
           ref="inputArchivo"
           type="file"
+          multiple
           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
           hidden
           @change="alElegir"
@@ -171,7 +185,21 @@ async function subir(archivo: File) {
   color: #1f73e8;
 }
 .cpc__body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   padding: 10px;
+}
+.cpc__count {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 0 7px;
+  font-size: 12px;
+  line-height: 22px;
+  text-align: center;
+  color: #ffffff;
+  background: #1f73e8;
+  border-radius: 11px;
 }
 .cpc__zona {
   display: flex;
