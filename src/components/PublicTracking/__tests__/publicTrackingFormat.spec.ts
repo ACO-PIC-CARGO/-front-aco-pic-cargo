@@ -74,20 +74,20 @@ test("updates follow the send order, latest sent step first, even when an earlie
   expect(trackingUpdates(phases).map((item) => item.stepName)).toEqual(["ETA", "Telex Release", "ETD", "Arribo al almacén de origen"]);
 });
 
-test("a step's comments stay together under it, newest first", () => {
+test("a step's comments stay together under it, latest sent first as the server lists them, even if written earlier", () => {
   const phases = [
     phase("in_progress", [
       step({
         id: 1,
         comments: [
-          { id: 2, comment: "Pago parcial.", created_at: "2026-10-10T10:00:00Z" },
-          { id: 7, comment: "Pago final.", created_at: "2026-10-20T10:00:00Z" },
+          { id: 2, comment: "Escrito antes, enviado al final.", created_at: "2026-10-10T10:00:00Z" },
+          { id: 7, comment: "Escrito después, enviado antes.", created_at: "2026-10-20T10:00:00Z" },
         ],
       }),
       step({ id: 2, comments: [{ id: 5, comment: "Lista.", created_at: "2026-10-15T10:00:00Z" }] }),
     ]),
   ];
-  expect(trackingUpdates(phases).map((item) => item.key)).toEqual(["comment-5", "comment-7", "comment-2"]);
+  expect(trackingUpdates(phases).map((item) => item.key)).toEqual(["comment-5", "comment-2", "comment-7"]);
 });
 
 test("a step that hides its date shows its comments without a date, in their place", () => {
@@ -140,18 +140,6 @@ test("a step that gets news again after another step shows again, so the timelin
   expect(groups.map((group) => group.stepId)).toEqual([3, 2, 3]);
   expect(groups.flatMap((group) => group.updates)).toEqual(updates);
   expect(new Set(groups.map((group) => group.key)).size).toBe(groups.length);
-});
-
-test("updates with the same time keep a stable order", () => {
-  const at = "2026-10-14T14:35:00+00:00";
-  const comments = [
-    { id: 4, comment: "Listo", created_at: at },
-    { id: 5, comment: "Cargado", created_at: at },
-  ];
-  expect(trackingUpdates([phase("in_progress", [step({ comments })])]).map((item) => item.key)).toEqual([
-    "comment-5",
-    "comment-4",
-  ]);
 });
 
 test("the next move shows its date in the company's zone or that it is still to be set", () => {

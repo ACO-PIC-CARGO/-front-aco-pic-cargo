@@ -20,25 +20,22 @@ export interface TrackingStepUpdates {
   updates: TrackingUpdate[];
 }
 
-const newestFirst = (a: TrackingUpdate, b: TrackingUpdate) => Date.parse(b.at) - Date.parse(a.at) || b.key.localeCompare(a.key);
-
-// Steps can only be sent in their tracking order, so the reversed step order is the latest-sent-first order.
+// Steps can only be sent in their tracking order, so the reversed step order is the latest-sent-first order;
+// the server already lists each step's comments latest sent first.
 export const trackingUpdates = (phases: PublicTrackingPhase[]): TrackingUpdate[] =>
   phases
     .flatMap((phase) => phase.steps)
     .reverse()
     .flatMap((step) =>
-      step.comments
-        .map((comment) => ({
-          key: `comment-${comment.id}`,
-          stepId: step.id,
-          stepName: step.name,
-          icon: step.icon,
-          text: comment.comment,
-          at: comment.created_at,
-          showDate: step.show_date,
-        }))
-        .sort(newestFirst),
+      step.comments.map((comment) => ({
+        key: `comment-${comment.id}`,
+        stepId: step.id,
+        stepName: step.name,
+        icon: step.icon,
+        text: comment.comment,
+        at: comment.created_at,
+        showDate: step.show_date,
+      })),
     );
 
 export const updatesByStep = (updates: TrackingUpdate[]): TrackingStepUpdates[] =>
