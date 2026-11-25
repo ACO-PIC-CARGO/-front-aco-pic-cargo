@@ -6,7 +6,7 @@ import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
 import { useHouseTrackingStore } from "@/stores/houseTracking";
 import { useTrackingStepCommentsStore } from "@/stores/trackingStepComments";
 import SendToTrackingButton from "./SendToTrackingButton.vue";
-import { commentSendState, stepDateTimeLabel } from "./houseTrackingFormat";
+import { commentSendState, isLastSentComment, stepDateTimeLabel } from "./houseTrackingFormat";
 import type { HouseTrackingComment, HouseTrackingStep } from "@/types/houseTracking";
 import { usePermissions } from "@/composables/usePermissions";
 import { useHouseScreen } from "@/composables/useHouseScreen";
@@ -56,11 +56,18 @@ async function add() {
   if (!serverError.value) close();
 }
 
+const withdrawConfirmText = (item: HouseTrackingComment) =>
+  isLastSentComment(props.step, item)
+    ? `¿Retirar este comentario y «${props.step.name}» del tracking del cliente?`
+    : "¿Retirar este comentario del tracking del cliente?";
+
 async function remove(item: HouseTrackingComment) {
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
     titleText: "¿Eliminar este comentario?",
-    text: "Si ya estaba en el tracking, tu cliente deja de verlo.",
+    text: isLastSentComment(props.step, item)
+      ? `Es el último comentario enviado de «${props.step.name}»: el paso también se retirará del tracking del cliente.`
+      : "Si ya estaba en el tracking, tu cliente deja de verlo.",
     showCancelButton: true,
     confirmButtonText: "Eliminar",
     cancelButtonText: "Cancelar",
@@ -97,7 +104,7 @@ async function remove(item: HouseTrackingComment) {
               blocked-hint="Confirma el paso para enviar el comentario."
               confirm-text="¿Enviar este comentario al tracking del cliente?"
               :send="() => store.sendComment(houseId, item.id)"
-              withdraw-confirm-text="¿Retirar este comentario del tracking del cliente?"
+              :withdraw-confirm-text="withdrawConfirmText(item)"
               :withdraw="() => store.withdrawComment(houseId, item.id)"
             />
             <span v-if="commentSendState(step, item) === 'blocked'">Primero debes confirmar</span>

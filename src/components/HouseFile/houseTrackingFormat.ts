@@ -48,7 +48,10 @@ export const commentSendState = (step: HouseTrackingStep, comment: HouseTracking
   return comment.sent_at && step.sent_at ? "sent" : "ready";
 };
 
-export const stepDialogPreset = (step: HouseTrackingStep, mode: StepDialogMode) => {
+export const isLastSentComment = (step: HouseTrackingStep, comment: HouseTrackingComment): boolean =>
+  !!step.sent_at && !!comment.sent_at && step.comments.every((other) => other.id === comment.id || !other.sent_at);
+
+export const stepDialogPreset =(step: HouseTrackingStep, mode: StepDialogMode) => {
   if (mode === "date") return { title: `Fecha de «${step.name}»`, action: "Guardar fecha", initial: step.scheduled_at };
   if (step.confirmed_at) {
     return { title: `Corregir fecha de «${step.name}»`, action: "Guardar fecha", initial: step.confirmed_at };

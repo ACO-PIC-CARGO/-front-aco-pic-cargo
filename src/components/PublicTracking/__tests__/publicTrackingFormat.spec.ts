@@ -21,7 +21,7 @@ const phase = (status: PublicTrackingPhase["status"], steps: PublicTrackingStep[
   steps,
 });
 
-test("public comments become updates, newest first by time; a sent step without comments adds none", () => {
+test("public comments become updates; a sent step without comments adds none", () => {
   const phases = [
     phase("completed", [
       step({ id: 1, comments: [{ id: 3, comment: "Pago recibido.", created_at: "2026-10-14T14:35:00+00:00" }] }),
@@ -56,6 +56,40 @@ test("public comments become updates, newest first by time; a sent step without 
   ]);
 });
 
+test("updates follow the send order, latest sent step first, even when an earlier step's comment was written later", () => {
+  const comment = (id: number, created_at: string) => [{ id, comment: `Comentario ${id}`, created_at }];
+  const phases = [
+    phase("completed", [
+      step({ id: 1, name: "Arribo al almacén de origen", comments: comment(888, "2026-11-24T17:22:49Z") }),
+      step({ id: 2, name: "ETD", comments: comment(887, "2026-11-24T16:34:42Z") }),
+    ]),
+    {
+      ...phase("in_progress", [
+        step({ id: 3, name: "Telex Release", comments: comment(289, "2026-11-13T16:33:43Z") }),
+        step({ id: 4, name: "ETA", comments: comment(734, "2026-11-19T17:47:22Z") }),
+      ]),
+      id: 2,
+    },
+  ];
+  expect(trackingUpdates(phases).map((item) => item.stepName)).toEqual(["ETA", "Telex Release", "ETD", "Arribo al almacén de origen"]);
+});
+
+test("a step's comments stay together under it, latest sent first as the server lists them, even if written earlier", () => {
+  const phases = [
+    phase("in_progress", [
+      step({
+        id: 1,
+        comments: [
+          { id: 2, comment: "Escrito antes, enviado al final.", created_at: "2026-10-10T10:00:00Z" },
+          { id: 7, comment: "Escrito después, enviado antes.", created_at: "2026-10-20T10:00:00Z" },
+        ],
+      }),
+      step({ id: 2, comments: [{ id: 5, comment: "Lista.", created_at: "2026-10-15T10:00:00Z" }] }),
+    ]),
+  ];
+  expect(trackingUpdates(phases).map((item) => item.key)).toEqual(["comment-5", "comment-2", "comment-7"]);
+});
+
 test("a step that hides its date shows its comments without a date, in their place", () => {
   const phases = [
     phase("in_progress", [
@@ -68,8 +102,8 @@ test("a step that hides its date shows its comments without a date, in their pla
     ]),
   ];
   expect(trackingUpdates(phases).map(({ key, showDate }) => [key, showDate])).toEqual([
-    ["comment-4", false],
     ["comment-5", true],
+    ["comment-4", false],
   ]);
 });
 
@@ -106,18 +140,6 @@ test("a step that gets news again after another step shows again, so the timelin
   expect(groups.map((group) => group.stepId)).toEqual([3, 2, 3]);
   expect(groups.flatMap((group) => group.updates)).toEqual(updates);
   expect(new Set(groups.map((group) => group.key)).size).toBe(groups.length);
-});
-
-test("updates with the same time keep a stable order", () => {
-  const at = "2026-10-14T14:35:00+00:00";
-  const comments = [
-    { id: 4, comment: "Listo", created_at: at },
-    { id: 5, comment: "Cargado", created_at: at },
-  ];
-  expect(trackingUpdates([phase("in_progress", [step({ comments })])]).map((item) => item.key)).toEqual([
-    "comment-5",
-    "comment-4",
-  ]);
 });
 
 test("the next move shows its date in the company's zone or that it is still to be set", () => {
