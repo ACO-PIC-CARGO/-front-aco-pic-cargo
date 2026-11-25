@@ -6,12 +6,12 @@ import { request } from "@/utils/request";
 export async function reversarCotizacion(idQuote: number | string, quote?: string | number | null): Promise<boolean> {
   const answer = await Swal.fire({
     icon: "warning",
-    title: "¿Desea reversar la cotización?",
+    title: "¿Desea reversar la aprobación?",
     html:
       `La cotización${quote ? ` <b>${quote}</b>` : ""} se desasociará del house, se anularán sus ingresos y costos ` +
       "en Control de Gastos y quedará sin aprobar.",
     showCancelButton: true,
-    confirmButtonText: "Sí, reversar",
+    confirmButtonText: "Sí, reversar aprobación",
     cancelButtonText: "Cancelar",
     confirmButtonColor: "#e65359",
     allowOutsideClick: false,
@@ -28,7 +28,7 @@ export async function reversarCotizacion(idQuote: number | string, quote?: strin
   });
   await Swal.fire({
     icon: res.estadoflag ? "success" : "warning",
-    title: res.estadoflag ? "Cotización reversada" : "No se pudo reversar",
+    title: res.estadoflag ? "Aprobación reversada" : "No se pudo reversar la aprobación",
     text: res.mensaje,
   });
   return !!res.estadoflag;

@@ -767,7 +767,7 @@ function getProveedor(element: OpcionCosto) {
         >
           mdi-undo-variant
         </v-icon>
-        <span style="color: #ffffff">Reversar</span>
+        <span style="color: #ffffff">Reversar aprobación</span>
       </v-btn>
 
       <v-btn

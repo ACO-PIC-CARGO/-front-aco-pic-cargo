@@ -1792,14 +1792,15 @@ watch(
                     <v-icon>mdi-eye</v-icon>
                   </v-btn>
                   <v-btn
-                    variant="text"
+                    variant="tonal"
                     color="#e65359"
-                    icon
-                    title="Reversar cotización"
+                    size="x-small"
+                    class="text-none my-1"
+                    prepend-icon="mdi-undo-variant"
                     v-if="houseIngreso.id_quote && can('listControlGastos', 'MODIFICAR')"
                     @click="reversar(houseIngreso)"
                   >
-                    <v-icon>mdi-undo-variant</v-icon>
+                    Reversar aprobación
                   </v-btn>
 
                   <v-btn
