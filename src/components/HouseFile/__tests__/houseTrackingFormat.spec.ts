@@ -6,6 +6,7 @@ import {
   commentSendState,
   dayMonth,
   fromDateAndTime,
+  isLastSentComment,
   latestComment,
   dateLabel,
   displayValue,
@@ -38,6 +39,17 @@ const step = (over: Partial<HouseTrackingStep> = {}): HouseTrackingStep => ({
   allows_skip: false,
   comments: [],
   ...over,
+});
+
+test("a comment is the last one the client sees of its step only while the step is sent and no other comment of it is", () => {
+  const sent = (id: number) => ({ id, comment: "Nota", sent_at: "2026-10-03T17:00:00Z", author: null, created_at: "2026-10-03T16:00:00Z" });
+  const unsent = (id: number) => ({ ...sent(id), sent_at: null });
+  const sentStep = (comments: HouseTrackingStep["comments"]) => step({ state: "confirmed", sent_at: "2026-10-03T17:00:00Z", comments });
+
+  expect(isLastSentComment(sentStep([sent(1), unsent(2)]), sent(1))).toBe(true);
+  expect(isLastSentComment(sentStep([sent(1), sent(2)]), sent(1))).toBe(false);
+  expect(isLastSentComment(sentStep([unsent(1), sent(2)]), unsent(1))).toBe(false);
+  expect(isLastSentComment(step({ state: "confirmed", comments: [sent(1)] }), sent(1))).toBe(false);
 });
 
 test("timestamps are shown in the company's zone with the project date format", () => {
