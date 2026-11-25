@@ -21,7 +21,7 @@ const phase = (status: PublicTrackingPhase["status"], steps: PublicTrackingStep[
   steps,
 });
 
-test("public comments become updates, newest first by time; a sent step without comments adds none", () => {
+test("public comments become updates; a sent step without comments adds none", () => {
   const phases = [
     phase("completed", [
       step({ id: 1, comments: [{ id: 3, comment: "Pago recibido.", created_at: "2026-10-14T14:35:00+00:00" }] }),
@@ -56,6 +56,40 @@ test("public comments become updates, newest first by time; a sent step without 
   ]);
 });
 
+test("updates follow the send order, latest sent step first, even when an earlier step's comment was written later", () => {
+  const comment = (id: number, created_at: string) => [{ id, comment: `Comentario ${id}`, created_at }];
+  const phases = [
+    phase("completed", [
+      step({ id: 1, name: "Arribo al almacén de origen", comments: comment(888, "2026-11-24T17:22:49Z") }),
+      step({ id: 2, name: "ETD", comments: comment(887, "2026-11-24T16:34:42Z") }),
+    ]),
+    {
+      ...phase("in_progress", [
+        step({ id: 3, name: "Telex Release", comments: comment(289, "2026-11-13T16:33:43Z") }),
+        step({ id: 4, name: "ETA", comments: comment(734, "2026-11-19T17:47:22Z") }),
+      ]),
+      id: 2,
+    },
+  ];
+  expect(trackingUpdates(phases).map((item) => item.stepName)).toEqual(["ETA", "Telex Release", "ETD", "Arribo al almacén de origen"]);
+});
+
+test("a step's comments stay together under it, newest first", () => {
+  const phases = [
+    phase("in_progress", [
+      step({
+        id: 1,
+        comments: [
+          { id: 2, comment: "Pago parcial.", created_at: "2026-10-10T10:00:00Z" },
+          { id: 7, comment: "Pago final.", created_at: "2026-10-20T10:00:00Z" },
+        ],
+      }),
+      step({ id: 2, comments: [{ id: 5, comment: "Lista.", created_at: "2026-10-15T10:00:00Z" }] }),
+    ]),
+  ];
+  expect(trackingUpdates(phases).map((item) => item.key)).toEqual(["comment-5", "comment-7", "comment-2"]);
+});
+
 test("a step that hides its date shows its comments without a date, in their place", () => {
   const phases = [
     phase("in_progress", [
@@ -68,8 +102,8 @@ test("a step that hides its date shows its comments without a date, in their pla
     ]),
   ];
   expect(trackingUpdates(phases).map(({ key, showDate }) => [key, showDate])).toEqual([
-    ["comment-4", false],
     ["comment-5", true],
+    ["comment-4", false],
   ]);
 });
 
