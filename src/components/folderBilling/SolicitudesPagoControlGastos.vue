@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
-import { tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
+import { editadoEnBancos, operacionBanco, tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
@@ -500,11 +500,11 @@ defineExpose({ cargar });
                 >
                   <v-icon
                     size="16"
-                    color="success"
+                    :color="editadoEnBancos(s) ? 'warning' : 'success'"
                   >
-                    mdi-check-decagram
+                    {{ editadoEnBancos(s) ? "mdi-pencil-circle" : "mdi-check-decagram" }}
                   </v-icon>
-                  Salida N° {{ s.numerooperacion_pago }}
+                  {{ operacionBanco(s, "Salida", s.numerooperacion_pago) }}
                 </button>
                 <v-btn
                   v-else-if="puedeTransferir"

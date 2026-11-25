@@ -365,6 +365,9 @@ export interface SolicitudPagoControl {
   /** Salida registrada en Bancos (table_pagoegresos) desde la solicitud */
   id_pagoegreso?: number | string | null;
   numerooperacion_pago?: string | null;
+  /** Editado en Bancos: abono parcial / otro monto autorizado por un administrador (motivo del error) */
+  editadobancoflag?: boolean | null;
+  motivo_edicion_banco?: string | null;
   id_cuenta?: number | null;
   id_cuentasalida?: number | null;
   /** Rechazada por Administración o Gerencia: el solicitante la edita y la vuelve a enviar */
@@ -493,6 +496,9 @@ export interface SolicitudPagoBandeja {
   fechapago: string | null;
   soporte_path: string | null;
   numerooperacion_pago: string | null;
+  /** Editado en Bancos: abono parcial / otro monto autorizado por un administrador (motivo del error) */
+  editadobancoflag?: boolean | null;
+  motivo_edicion_banco?: string | null;
   area_rechazo: "ADM" | "GER" | null;
   usuario_rechazo: string | null;
   fecha_rechazo: string | null;

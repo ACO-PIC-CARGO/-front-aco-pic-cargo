@@ -47,3 +47,37 @@ export async function askAdminCredentials(reason: string): Promise<AdminCredenti
 }
 
 export const withAuthorization = (admin: AdminCredentials | null | undefined) => (admin ? { autorizacion: admin } : {});
+
+const MOTIVO_INPUT = "swal-admin-motivo";
+export type EdicionBancos = { admin: AdminCredentials; motivo: string };
+
+// Bancos > Nueva Salida / Nuevo Ingreso desde una solicitud: "Editar" pide la clave de un administrador
+// y el motivo del error (se guarda con el movimiento y se muestra como "Editado en Bancos")
+export async function askAdminEdicionBancos(reason: string): Promise<EdicionBancos | undefined> {
+  const { value } = await Swal.fire<EdicionBancos>({
+    icon: "warning",
+    title: "Se necesita un administrador",
+    html:
+      `<p>${reason}</p>` +
+      ADMIN_CREDENTIAL_INPUTS +
+      `<label for="${MOTIVO_INPUT}" style="display:block;text-align:left;font-weight:600;margin:16px 0 4px">Indique el motivo del Error</label>` +
+      `<textarea id="${MOTIVO_INPUT}" class="swal2-textarea" maxlength="500" rows="3" style="margin:0;width:100%" ` +
+      `placeholder="Indique el motivo del Error" aria-label="Indique el motivo del Error"></textarea>`,
+    showCancelButton: true,
+    confirmButtonText: "Autorizar",
+    cancelButtonText: "Cancelar",
+    allowOutsideClick: false,
+    focusConfirm: false,
+    showLoaderOnConfirm: true,
+    preConfirm: async () => {
+      const motivo = (document.getElementById(MOTIVO_INPUT) as HTMLTextAreaElement).value.trim();
+      if (!motivo) {
+        Swal.showValidationMessage("Indique el motivo del Error.");
+        return false;
+      }
+      const admin = await verifiedAdminCredentials();
+      return admin ? { admin, motivo } : false;
+    },
+  });
+  return value;
+}

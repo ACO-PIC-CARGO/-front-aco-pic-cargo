@@ -17,6 +17,7 @@ import type {
 } from "@/types/banks";
 import type { SolicitudCobroActiva, SolicitudCobroTransferencia } from "@/types/solicitudCobro";
 import { request } from "@/utils/request";
+import { askAdminEdicionBancos, type EdicionBancos } from "@/utils/adminCredentials";
 import { sessionSucursal } from "@/utils/sesion";
 
 // token: Nuevo ingreso desde una Solicitud de Cobro confirmada (Ingresos pendientes por confirmar).
@@ -34,6 +35,15 @@ const clientes = computed(() => appStore.clientes);
 const solicitud = ref<SolicitudCobroTransferencia | null>(null);
 const errorSolicitud = ref(false);
 const desdeSolicitud = computed(() => !!props.token);
+// Desde una solicitud va fijo en el monto del pago del cliente; "Editar" (clave de administrador + motivo del error)
+// habilita Abono Parcial, el monto (máximo: la deuda del expediente) y el monto depositado
+// (la cuenta sigue siendo la del depósito del cliente)
+const edicionBancos = ref<EdicionBancos | null>(null);
+const bloqueadoSolicitud = computed(() => !!solicitud.value && !edicionBancos.value);
+async function editarSolicitudBancos() {
+  const edicion = await askAdminEdicionBancos("Para pasar a Abono Parcial o cambiar el monto de la solicitud de cobro se necesita la clave de un administrador.");
+  if (edicion) edicionBancos.value = edicion;
+}
 // Sin token: correlativos del cliente con solicitud de cobro activa (se cobran solo con el token)
 const solicitudesActivas = ref<SolicitudCobroActiva[]>([]);
 function solicitudActivaDe(item: FacturaPorCobrar & { id_correlativo?: number | null }) {
@@ -278,7 +288,8 @@ function montoSolicitudDe(item: FacturaPorCobrar): number {
 }
 function aplicarMontoSolicitud(item: FacturaPorCobrar): boolean {
   const sol = solicitud.value;
-  if (!sol) return false;
+  // editada en Bancos: el abono y el monto los elige el usuario (no se vuelven al monto de la solicitud)
+  if (!sol || edicionBancos.value) return false;
   const montoPago = montoSolicitudDe(item);
   const deuda = aNumero(item.total_mon_local);
   const parcial = montoPago > 0 && montoPago < deuda;
@@ -538,6 +549,18 @@ function continuarGastoBancario() {
   editable.value = true;
 }
 async function finalizarOperacion() {
+  // editada en Bancos: ningún monto supera la deuda del expediente
+  const excedido = edicionBancos.value
+    ? selected.value.find((i) => aNumero(i.montoparcial) > aNumero(i.total_mon_local) + 0.004 || aNumero(i.montoparcial) <= 0)
+    : undefined;
+  if (excedido) {
+    Swal.fire({
+      icon: "warning",
+      title: "Monto no válido",
+      html: `El monto debe ser mayor a 0 y no puede superar la deuda del expediente: <b>${excedido.symbol} ${aNumero(excedido.total_mon_local).toFixed(2)}</b>.`,
+    });
+    return;
+  }
   if (
     Number(totalGeneralAbonadoMonLocal.value) !== Number(monto_local.value)
   ) {
@@ -593,7 +616,11 @@ async function finalizarOperacion() {
   loading.value = true;
   if (props.token) {
     // cliente, cuenta y voucher los toma el backend de la solicitud
-    await bankStore.setRegistroIngresosSolicitud({ ...data, token: props.token });
+    await bankStore.setRegistroIngresosSolicitud({
+      ...data,
+      token: props.token,
+      ...(edicionBancos.value ? { motivo_edicion: edicionBancos.value.motivo, autorizacion: edicionBancos.value.admin } : {}),
+    });
   } else {
     await bankStore.setRegistroIgresos(data);
   }
@@ -695,8 +722,8 @@ watch(fecha_operacion, (newVal) => {
   }
 });
 watch(selected, () => {
-  // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente
-  if (solicitud.value) {
+  // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente (salvo editada en Bancos)
+  if (solicitud.value && !edicionBancos.value) {
     selected.value.forEach((item) => {
       const montoPago = montoSolicitudDe(item);
       const parcial = montoPago > 0 && montoPago < aNumero(item.total_mon_local);
@@ -712,7 +739,7 @@ watch(selected, () => {
 // así el detalle + gasto suma lo depositado. Se llena solo y no se edita.
 const CONCEPTO_EXCEDENTE = "EXCEDENTE DEL CLIENTE";
 const excedenteSolicitud = computed(() => {
-  if (!solicitud.value || !selected.value.length) return 0;
+  if (!solicitud.value || !selected.value.length || edicionBancos.value) return 0;
   const detalle = selected.value.reduce((acc, item) => acc + aNumero(item.montoparcial), 0);
   return Math.max(Math.round((aNumero(solicitud.value.monto) - detalle) * 100) / 100, 0);
 });
@@ -842,7 +869,7 @@ onMounted(async () => {
             variant="outlined"
             density="compact"
             v-model="monto_local"
-            :readonly="!!solicitud"
+            :readonly="bloqueadoSolicitud"
             type="number"
             :prefix="symbol"
             :error-messages="errorMesage.monto_local"
@@ -999,6 +1026,21 @@ onMounted(async () => {
                       <b>SELECCIONE UNA(S) FACTURA PARA CONTINUAR</b>
                     </v-alert>
                   </div>
+                  <!-- desde una solicitud: Editar (clave de administrador + motivo del error) -->
+                  <div
+                    v-if="!!solicitud && edicionBancos"
+                    class="edicion-bancos"
+                  >
+                    <v-alert
+                      type="warning"
+                      variant="tonal"
+                      density="compact"
+                      icon="mdi-pencil"
+                      class="edicion-bancos__nota"
+                    >
+                      <b>Editado en Bancos</b> (autorizó {{ edicionBancos.admin.usuario }}): {{ edicionBancos.motivo }}
+                    </v-alert>
+                  </div>
                   <!-- @vue-expect-error the current-items handler parameter has no type -->
                   <v-data-table
                     :headers="headers"
@@ -1104,18 +1146,36 @@ onMounted(async () => {
                       >
                         Solicitud de cobro
                       </v-chip>
-                      <v-select
+                      <!-- desde una solicitud: lápiz para editar (clave de administrador + motivo del error) -->
+                      <div
                         v-else
-                        item-title="text"
-                        :items="cboParcial"
-                        v-model="item.parcialflag"
-                        density="compact"
-                        variant="outlined"
-                        :disabled="!selected.includes(item) || !!solicitud"
-                        hide-details
-                        @update:model-value="verificarMontoCompleto(item)"
-                        style="max-width: 200px"
-                      />
+                        class="d-flex flex-nowrap align-center ga-1"
+                      >
+                        <v-btn
+                          v-if="!!solicitud && !edicionBancos"
+                          size="small"
+                          variant="flat"
+                          min-width="0"
+                          color="primary"
+                          class="flex-shrink-0 px-2"
+                          title="Editar (clave de administrador)"
+                          aria-label="Editar abono y monto (clave de administrador)"
+                          @click="editarSolicitudBancos"
+                        >
+                          <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                        <v-select
+                          item-title="text"
+                          :items="cboParcial"
+                          v-model="item.parcialflag"
+                          density="compact"
+                          variant="outlined"
+                          :disabled="!selected.includes(item) || bloqueadoSolicitud"
+                          hide-details
+                          @update:model-value="verificarMontoCompleto(item)"
+                          style="min-width: 175px; width: max-content"
+                        />
+                      </div>
                     </template>
                     <template #[`item.montopagar`]="{ item }">
                       <!-- @vue-expect-error parseFloat gets a string or number -->
@@ -1128,8 +1188,9 @@ onMounted(async () => {
                         :disabled="
                           !selected.includes(item) || !item.parcialflag
                         "
-                        :readonly="!!solicitud"
+                        :readonly="bloqueadoSolicitud"
                         :prefix="item.symbol"
+                        style="min-width: 140px"
                         @update:model-value="calcularTotal"
                         :rules="[
                           (v) =>
@@ -1625,6 +1686,18 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* desde una solicitud: botón Editar / nota "Editado en Bancos" */
+.edicion-bancos {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+}
+.edicion-bancos__nota {
+  flex: 1 1 auto;
+  max-width: 100%;
+  white-space: pre-line;
+  word-break: break-word;
+}
 /* Bancos > Nuevo Ingreso: diseño acordado (tarjetas verdes, nombres y botones a la derecha en los 3 pasos) */
 .ing-form {
   --ing-verde: #1b5e20;

@@ -17,3 +17,12 @@ export function tieneVariosExpedientes(s: {
   return !!s.multiexpedienteflag
     && [s.expediente, s.correlativo, s.expedientes_solicitud].some((texto) => `${texto ?? ""}`.includes(","));
 }
+
+// "Editado en Bancos": la salida / ingreso se registró editado (abono parcial u otro monto, autorizado por un
+// administrador); en los listados va el motivo del error en lugar del N° de operación
+type OperacionBancos = { editadobancoflag?: boolean | null; motivo_edicion_banco?: string | null };
+export const editadoEnBancos = (s: OperacionBancos) => !!s.editadobancoflag;
+export function operacionBanco(s: OperacionBancos, tipo: "Salida" | "Ingreso", numero: string | null | undefined): string {
+  if (s.editadobancoflag) return `Editado en Bancos: ${s.motivo_edicion_banco?.trim() || "sin motivo"}`;
+  return `${tipo} N° ${numero ?? ""}`.trim();
+}

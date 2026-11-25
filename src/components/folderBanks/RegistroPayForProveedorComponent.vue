@@ -16,6 +16,7 @@ import type {
 } from "@/types/banksProveedor";
 import type { SolicitudPagoTransferencia } from "@/types/billingEntries";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
+import { askAdminEdicionBancos, type EdicionBancos } from "@/utils/adminCredentials";
 
 // token: Nueva salida desde una Solicitud de Pago (Control de Gastos > Transferir).
 // El proveedor, el correlativo del master, la fecha de pago y el soporte vienen de la solicitud.
@@ -71,6 +72,14 @@ const loading = ref(false);
 const solicitud = ref<SolicitudPagoTransferencia | null>(null);
 const errorSolicitud = ref("");
 const desdeSolicitud = computed(() => !!props.token);
+// Desde una solicitud va fijo en Abono Completo; "Editar" (clave de administrador + motivo del error)
+// habilita Abono Parcial, el monto (máximo: la deuda del expediente) y la cuenta / monto debitado
+const edicionBancos = ref<EdicionBancos | null>(null);
+const bloqueadoSolicitud = computed(() => desdeSolicitud.value && !edicionBancos.value);
+async function editarSolicitudBancos() {
+  const edicion = await askAdminEdicionBancos("Para pasar a Abono Parcial o cambiar el monto de la solicitud de pago se necesita la clave de un administrador.");
+  if (edicion) edicionBancos.value = edicion;
+}
 // Sin token: correlativos del proveedor con solicitud de pago activa (no se pagan por este menú)
 type SolicitudActiva = { id: number; id_master: number; id_correlativo: number | null; expediente: string; correlativo: string | null; estado: string };
 const solicitudesActivas = ref<SolicitudActiva[]>([]);
@@ -583,6 +592,18 @@ function continuarGastoBancario() {
   editable.value = true;
 }
 async function finalizarOperacion() {
+  // editada en Bancos: ningún monto supera la deuda del expediente
+  const excedido = edicionBancos.value
+    ? selected.value.find((i) => Number(i.montoparcial || 0) > Number(i.saldo_pendiente_local || 0) + 0.004 || Number(i.montoparcial || 0) <= 0)
+    : undefined;
+  if (excedido) {
+    Swal.fire({
+      icon: "warning",
+      title: "Monto no válido",
+      html: `El monto de <b>${excedido.code_master ?? ""}</b> debe ser mayor a 0 y no puede superar la deuda del expediente: <b>${excedido.symbol} ${Number(excedido.saldo_pendiente_local || 0).toFixed(2)}</b>.`,
+    });
+    return;
+  }
   if (
     Number(totalGeneralAbonadoMonLocal.value) !== Number(monto_local.value)
   ) {
@@ -639,7 +660,11 @@ async function finalizarOperacion() {
   loading.value = true;
   if (props.token) {
     // proveedor y soporte los toma el backend de la solicitud
-    const datos: Record<string, unknown> = { ...data, token: props.token };
+    const datos: Record<string, unknown> = {
+      ...data,
+      token: props.token,
+      ...(edicionBancos.value ? { motivo_edicion: edicionBancos.value.motivo, autorizacion: edicionBancos.value.admin } : {}),
+    };
     delete datos.id_proveedor;
     delete datos.id_soporte;
     await bankStore.setRegistroEgresosSolicitud(datos).catch((er) => console.error(er));
@@ -829,7 +854,7 @@ onMounted(async () => {
             v-model="monto_local"
             type="number"
             :prefix="symbol"
-            :readonly="desdeSolicitud"
+            :readonly="bloqueadoSolicitud"
             :error-messages="errorMesage.monto_local"
             @update:model-value="
               monto_local
@@ -937,7 +962,7 @@ onMounted(async () => {
                     return-object
                     variant="outlined"
                     density="compact"
-                    :readonly="desdeSolicitud"
+                    :readonly="bloqueadoSolicitud"
                     :error-messages="errorMesage.id_cuenta"
                     @update:model-value="errorMesage.id_cuenta = null"
                   />
@@ -980,6 +1005,21 @@ onMounted(async () => {
                       color="purple"
                     >
                       <b>{{ desdeSolicitud ? "CORRELATIVO DE LA SOLICITUD DE PAGO" : "SELECCIONE UNA(S) FACTURA PARA CONTINUAR" }}</b>
+                    </v-alert>
+                  </div>
+                  <!-- desde una solicitud: Editar (clave de administrador + motivo del error) -->
+                  <div
+                    v-if="desdeSolicitud && edicionBancos"
+                    class="edicion-bancos"
+                  >
+                    <v-alert
+                      type="warning"
+                      variant="tonal"
+                      density="compact"
+                      icon="mdi-pencil"
+                      class="edicion-bancos__nota"
+                    >
+                      <b>Editado en Bancos</b> (autorizó {{ edicionBancos.admin.usuario }}): {{ edicionBancos.motivo }}
                     </v-alert>
                   </div>
                   <!-- @vue-expect-error the current-items handler parameter has no type -->
@@ -1093,16 +1133,32 @@ onMounted(async () => {
                       </v-btn>
                     </template>
                     <template #[`item.parcialflag`]="{ item }">
-                      <v-select
-                        item-title="text"
-                        :items="cboParcial"
-                        v-model="item.parcialflag"
-                        density="compact"
-                        variant="outlined"
-                        :disabled="desdeSolicitud || !selected.includes(item)"
-                        style="max-width: 200px"
-                        hide-details
-                      />
+                      <!-- desde una solicitud: lápiz para editar (clave de administrador + motivo del error) -->
+                      <div class="d-flex flex-nowrap align-center ga-1">
+                        <v-btn
+                          v-if="desdeSolicitud && !edicionBancos"
+                          size="small"
+                          variant="flat"
+                          min-width="0"
+                          color="primary"
+                          class="flex-shrink-0 px-2"
+                          title="Editar (clave de administrador)"
+                          aria-label="Editar abono y monto (clave de administrador)"
+                          @click="editarSolicitudBancos"
+                        >
+                          <v-icon>mdi-pencil</v-icon>
+                        </v-btn>
+                        <v-select
+                          item-title="text"
+                          :items="cboParcial"
+                          v-model="item.parcialflag"
+                          density="compact"
+                          variant="outlined"
+                          :disabled="bloqueadoSolicitud || !selected.includes(item)"
+                          style="min-width: 175px; width: max-content"
+                          hide-details
+                        />
+                      </div>
                     </template>
                     <template #[`item.montopagar`]="{ item }">
                       <!-- @vue-expect-error parseFloat gets a string or number -->
@@ -1113,9 +1169,9 @@ onMounted(async () => {
                         v-model="item.montoparcial"
                         type="number"
                         :disabled="
-                          desdeSolicitud || !selected.includes(item) || !item.parcialflag
+                          bloqueadoSolicitud || !selected.includes(item) || !item.parcialflag
                         "
-                        style="max-width: 120px"
+                        style="min-width: 140px; max-width: 160px"
                         :prefix="item.symbol"
                         :rules="[
                           (v) =>
@@ -1576,6 +1632,18 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+/* desde una solicitud: botón Editar / nota "Editado en Bancos" */
+.edicion-bancos {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0;
+}
+.edicion-bancos__nota {
+  flex: 1 1 auto;
+  max-width: 100%;
+  white-space: pre-line;
+  word-break: break-word;
+}
 /* Bancos > Nueva salida: botones de los tabs 2 y 3 a la derecha */
 .bank-actions {
   display: flex;

@@ -64,6 +64,9 @@ export interface SolicitudCobro {
   estado: string;
   id_pagoingreso: number | null;
   numerooperacion_ingreso: string | null;
+  /** Editado en Bancos: abono parcial / otro monto autorizado por un administrador (motivo del error) */
+  editadobancoflag?: boolean | null;
+  motivo_edicion_banco?: string | null;
   area_rechazo: "ADM" | "GER" | null;
   usuario_rechazo: string | null;
   fecha_rechazo: string | null;
@@ -106,6 +109,10 @@ export interface SoporteCobro {
   fecha_registro: string | null;
   id_pagoingreso: number | null;
   numerooperacion_ingreso: string | null;
+  /** Editado en Bancos (por pago): motivo del error y administrador que autorizó */
+  editadoflag?: boolean | null;
+  motivo_edicion?: string | null;
+  usuario_autoriza?: string | null;
   // confirmación de este pago (cada soporte se confirma y se registra en Bancos por separado)
   confirmadoflag?: boolean;
   fecha_ingreso?: string | null;

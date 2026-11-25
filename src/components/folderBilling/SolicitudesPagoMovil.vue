@@ -11,7 +11,7 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import type { SolicitudPagoAccion } from "@/composables/useAccionesSolicitudPago";
 import { tieneAprobacionesSolicitud, tieneSalidaBancosSolicitud } from "@/composables/useAccionesSolicitudPago";
 import { notifySuccess } from "@/utils/request";
-import { usuarioCorto } from "@/utils/solicitudVista";
+import { operacionBanco, usuarioCorto } from "@/utils/solicitudVista";
 import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ClientePagoEstado } from "@/types/billingEntries";
 
@@ -45,6 +45,8 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   /** fecha de la salida en Bancos y su N° de operación */
   fecha_pago_banco?: string | null;
   numerooperacion_pago?: string | null;
+  editadobancoflag?: boolean | null;
+  motivo_edicion_banco?: string | null;
 }
 
 const props = defineProps<{
@@ -290,7 +292,7 @@ function abrir(url: string | null | undefined) {
                       class="mov__chip mov__chip--salida"
                     >
                       <v-icon size="14">mdi-check-decagram</v-icon>
-                      Salida N° {{ s.numerooperacion_pago }}
+                      {{ operacionBanco(s, "Salida", s.numerooperacion_pago) }}
                     </span>
                   </span>
                   <v-btn
@@ -388,7 +390,7 @@ function abrir(url: string | null | undefined) {
                       class="mov__chip mov__chip--salida"
                     >
                       <v-icon size="14">mdi-check-decagram</v-icon>
-                      Salida N° {{ s.numerooperacion_pago }}
+                      {{ operacionBanco(s, "Salida", s.numerooperacion_pago) }}
                     </span>
                     <!-- "Ver más" abre la tarjeta; "Ver menos" la cierra -->
                     <v-btn
@@ -518,7 +520,7 @@ function abrir(url: string | null | undefined) {
                       </div>
                       <div class="mov__xrowpill">
                         <span>{{ formatoFecha(s.fecha_pago_banco) }}</span>
-                        <span class="mov__xrowuser">{{ s.numerooperacion_pago ? `Salida N° ${s.numerooperacion_pago}` : "Salida registrada" }}</span>
+                        <span class="mov__xrowuser">{{ s.numerooperacion_pago || s.editadobancoflag ? operacionBanco(s, "Salida", s.numerooperacion_pago) : "Salida registrada" }}</span>
                       </div>
                     </div>
                   </div>
@@ -571,7 +573,7 @@ function abrir(url: string | null | undefined) {
                         data-modo-ver="permitido"
                         @click="emit('ver-salida', s)"
                       >
-                        Salida N° {{ s.numerooperacion_pago }}
+                        {{ operacionBanco(s, "Salida", s.numerooperacion_pago) }}
                       </v-btn>
                       <v-btn
                         v-else-if="puedeTransferir"

@@ -9,6 +9,12 @@ import { useRevisionSolicitudPago, type AreaRevision } from "@/composables/useRe
 
 type SolicitudCobroFila = SolicitudCobro | SolicitudCobroBandeja;
 
+// Registrada en Bancos con algún pago editado (abono parcial / otro monto con clave de administrador)
+export const soporteEditadoCobro = (s: { codigo_estado?: string; soportes?: SoporteCobro[] | null }) =>
+  s.codigo_estado === "COBRADO" ? (s.soportes ?? []).find((sop) => sop.editadoflag && sop.id_pagoingreso) : undefined;
+export const estadoCobro = (s: { codigo_estado?: string; estado: string; soportes?: SoporteCobro[] | null }) =>
+  soporteEditadoCobro(s) ? "Editado en Bancos" : s.estado;
+
 const URL_MAIN = import.meta.env.VITE_URL_MAIN;
 
 export const montoCobro = (monto: number | string, moneda: string | null) =>
@@ -41,7 +47,7 @@ export function filasPorSoporte<T extends SolicitudCobroFila>(lista: T[]): FilaS
       const confirmado = !!sop.confirmadoflag;
       // estado del pago: en Bancos > confirmado > el de la solicitud (enviada = pendiente por confirmar)
       const codigo = registrado ? "COBRADO" : confirmado ? "CONFIRMADO" : s.codigo_estado === "CONFIRMADO" ? "LISTO" : s.codigo_estado;
-      const estado = registrado ? "Registrado en Bancos" : confirmado ? "Confirmado" : codigo === "LISTO" ? "Pendiente por confirmar" : s.estado;
+      const estado = registrado ? (sop.editadoflag ? "Editado en Bancos" : "Registrado en Bancos") : confirmado ? "Confirmado" : codigo === "LISTO" ? "Pendiente por confirmar" : s.estado;
       return {
         ...s,
         _soporte: sop,
@@ -68,6 +74,8 @@ export function filasPorSoporte<T extends SolicitudCobroFila>(lista: T[]): FilaS
         comentario: sop.comentario,
         id_pagoingreso: sop.id_pagoingreso,
         numerooperacion_ingreso: sop.numerooperacion_ingreso,
+        editadobancoflag: !!sop.editadoflag,
+        motivo_edicion_banco: sop.motivo_edicion ?? null,
         soportes: [sop],
         soportes_total: 1,
         soportes_registrados: registrado ? 1 : 0,

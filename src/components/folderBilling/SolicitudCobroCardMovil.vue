@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { operacionBanco } from "@/utils/solicitudVista";
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
@@ -276,7 +277,7 @@ function abrir(url: string | null | undefined) {
           data-modo-ver="permitido"
           @click="emit('ver-ingreso')"
         >
-          Ingreso N° {{ s.numerooperacion_ingreso }}
+          {{ operacionBanco(s, "Ingreso", s.numerooperacion_ingreso) }}
         </v-btn>
         <v-btn
           v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && puedeRegistrar"
@@ -460,7 +461,7 @@ function abrir(url: string | null | undefined) {
         data-modo-ver="permitido"
         @click="emit('ver-ingreso')"
       >
-        Ingreso N° {{ s.numerooperacion_ingreso }}
+        {{ operacionBanco(s, "Ingreso", s.numerooperacion_ingreso) }}
       </v-btn>
       <v-btn
         v-if="s.codigo_estado === 'CONFIRMADO' && faltaRegistrarCobro(s) && puedeRegistrar"

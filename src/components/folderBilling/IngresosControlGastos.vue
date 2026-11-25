@@ -45,10 +45,12 @@ import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
 import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
 import {
   avisarIngresoBancosCobro,
+  estadoCobro,
   faltaRegistrarCobro,
   filasPorSoporte,
   montoCobrado,
   montoCobro,
+  soporteEditadoCobro,
   useSolicitudCobro,
 } from "@/composables/useSolicitudCobro";
 import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
@@ -1436,6 +1438,9 @@ function solicitudCobroDe(house: HouseIngreso) {
   const abierta = delHouse.find((s) => s.codigo_estado !== "COBRADO" && s.codigo_estado !== "CONFIRMADO")
     ?? delHouse.find((s) => s.codigo_estado === "CONFIRMADO");
   if (abierta) return abierta;
+  // Editada en Bancos (abono parcial): su tarjeta se sigue viendo aunque quede saldo, como en Costos
+  const editada = delHouse.find((s) => soporteEditadoCobro(s));
+  if (editada) return editada;
   return Number(getDeudaActual(house)) > 0 ? undefined : delHouse[0];
 }
 // pagos cargados del correlativo que aún no tienen su ingreso en Bancos (en cualquier solicitud abierta)
@@ -1522,7 +1527,8 @@ async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro
   if (abierta && !nuevo && avisarIngresoBancosCobro(abierta)) return;
   // pago nuevo con la solicitud ya confirmada (aún sin registrar en Bancos): va en una solicitud nueva
   // por el saldo disponible; la confirmada no se toca
-  const s = nuevo && abierta?.codigo_estado === "CONFIRMADO" ? null : abierta;
+  // la editada en Bancos ya está cerrada: el saldo va en una solicitud nueva
+  const s = nuevo && (abierta?.codigo_estado === "CONFIRMADO" || (abierta && soporteEditadoCobro(abierta))) ? null : abierta;
   // varios pagos: se elige cuál editar en la lista de soportes
   if (s && !nuevo && !soporte) {
     const lista = s.soportes ?? [];
@@ -1973,7 +1979,7 @@ watch(
                     <div
                       v-if="solicitudesPendientesCobro(houseIngreso).length < 2"
                       class="cobreq"
-                      :class="`cobreq--${solicitudCobroEnviada(houseIngreso)!.codigo_estado.toLowerCase()}`"
+                      :class="soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!) ? 'cobreq--editado' : `cobreq--${solicitudCobroEnviada(houseIngreso)!.codigo_estado.toLowerCase()}`"
                     >
                       <button
                         type="button"
@@ -1983,12 +1989,25 @@ watch(
                       >
                         <span class="cobreq__badge">
                           <v-icon size="18">
-                            {{ ICONO_ESTADO_COBRO[solicitudCobroEnviada(houseIngreso)!.codigo_estado] ?? "mdi-email-check-outline" }}
+                            {{
+                              soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)
+                                ? "mdi-pencil-circle-outline"
+                                : ICONO_ESTADO_COBRO[solicitudCobroEnviada(houseIngreso)!.codigo_estado] ?? "mdi-email-check-outline"
+                            }}
                           </v-icon>
                         </span>
                         <span class="cobreq__text">
-                          <span class="cobreq__title">{{ solicitudCobroEnviada(houseIngreso)!.estado }}</span>
+                          <span class="cobreq__title">{{ estadoCobro(solicitudCobroEnviada(houseIngreso)!) }}</span>
+                          <!-- Editado en Bancos: el motivo del error en lugar de la fecha -->
                           <span
+                            v-if="soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)"
+                            class="cobreq__date cobreq__motivo"
+                            :title="soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)!.motivo_edicion ?? undefined"
+                          >
+                            {{ soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)!.motivo_edicion || "Sin motivo" }}
+                          </span>
+                          <span
+                            v-else
                             class="cobreq__date"
                             :title="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'RECHAZADA' ? solicitudCobroEnviada(houseIngreso)!.motivo_rechazo ?? undefined : undefined"
                           >
@@ -4026,6 +4045,20 @@ watch(
   --cobreq-fg: #c0261b;
   --cobreq-bg: #fef3f2;
   --cobreq-border: #fbd3cf;
+}
+/* Editado en Bancos (abono parcial / otro monto con clave de administrador) */
+.cobreq--editado {
+  --cobreq-fg: #b45309;
+  --cobreq-bg: #fffbeb;
+  --cobreq-border: #fde68a;
+}
+.cobreq__motivo {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
 }
 .cobreq__info {
   display: flex;

@@ -1,4 +1,5 @@
 ﻿<script setup lang="ts">
+import { editadoEnBancos, operacionBanco } from "@/utils/solicitudVista";
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
@@ -638,11 +639,11 @@ onMounted(cargar);
             >
               <v-icon
                 size="16"
-                color="success"
+                :color="editadoEnBancos(item) ? 'warning' : 'success'"
               >
-                mdi-check-decagram
+                {{ editadoEnBancos(item) ? "mdi-pencil-circle" : "mdi-check-decagram" }}
               </v-icon>
-              Ingreso N° {{ item.numerooperacion_ingreso }}
+              {{ operacionBanco(item, "Ingreso", item.numerooperacion_ingreso) }}
             </button>
           </div>
           <v-btn

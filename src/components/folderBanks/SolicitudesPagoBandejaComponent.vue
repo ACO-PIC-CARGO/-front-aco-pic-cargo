@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { abrirArchivo } from "@/composables/useVisorArchivo";
 import { shortDate } from "@/utils/dates";
-import { tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
+import { editadoEnBancos, operacionBanco, tieneVariosExpedientes, usuarioCorto } from "@/utils/solicitudVista";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -758,7 +758,7 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
               Gerencia: {{ usuarioCorto(item.usuario_aprobadogerencia) }} · {{ formatoFechaHora(item.fecha_aprobadogerencia) }}
             </div>
             <div v-if="item.numerooperacion_pago">
-              Salida N° {{ item.numerooperacion_pago }}
+              {{ operacionBanco(item, "Salida", item.numerooperacion_pago) }}
             </div>
             <div v-if="item.usuario_rechazo">
               Rechazado ({{ item.area_rechazo === "ADM" ? "Administración" : "Gerencia" }}): {{ usuarioCorto(item.usuario_rechazo) }} · {{ formatoFechaHora(item.fecha_rechazo) }}
@@ -895,11 +895,11 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
             >
               <v-icon
                 size="16"
-                color="success"
+                :color="editadoEnBancos(item) ? 'warning' : 'success'"
               >
-                mdi-check-decagram
+                {{ editadoEnBancos(item) ? "mdi-pencil-circle" : "mdi-check-decagram" }}
               </v-icon>
-              Salida N° {{ item.numerooperacion_pago }}
+              {{ operacionBanco(item, "Salida", item.numerooperacion_pago) }}
             </button>
             <v-btn
               v-else-if="item.pagadoflag && item.codigo_estado === 'PAGADO' && puedeTransferir"

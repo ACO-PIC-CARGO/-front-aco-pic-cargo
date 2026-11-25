@@ -2074,6 +2074,14 @@ async function cargarTiposPagoSolicitud() {
 const tieneAprobaciones = (s: SolicitudPagoControl) => tieneAprobacionesSolicitud(s);
 // Con salida registrada en Bancos ya no se edita ni elimina
 const tieneSalidaBancos = (s: SolicitudPagoControl) => !!s.id_pagoegreso;
+// Tarjeta "Solicitar a Administración": mismo estándar que Ingresos
+// (Registrado en Bancos / Editado en Bancos cuando ya tiene la salida)
+function estadoTarjetaPago(s: SolicitudPagoControl) {
+  if (s.codigo_estado === "RECHAZADA") return { titulo: "Solicitud Rechazada", icono: "mdi-email-remove-outline", clase: "rechazada" };
+  if (s.id_pagoegreso && s.editadobancoflag) return { titulo: "Editado en Bancos", icono: "mdi-pencil-circle-outline", clase: "editada" };
+  if (s.id_pagoegreso) return { titulo: "Registrado en Bancos", icono: "mdi-bank-check", clase: "registrada" };
+  return { titulo: "Solicitado a Administración", icono: "mdi-email-check-outline", clase: "enviada" };
+}
 const adminEdicionSolicitud = ref<AdminCredentials | null>(null);
 // Pagada en Bancos (salida registrada): no se edita ni elimina hasta eliminar ese movimiento
 function avisarSalidaBancos(item: EgresoProveedor) {
@@ -2688,7 +2696,7 @@ watch(
                     <div
                       v-if="solicitudPagoDe(egresoProveedor)"
                       class="solreq"
-                      :class="solicitudPagoDe(egresoProveedor)!.codigo_estado === 'RECHAZADA' ? 'solreq--rechazada' : 'solreq--enviada'"
+                      :class="`solreq--${estadoTarjetaPago(solicitudPagoDe(egresoProveedor)!).clase}`"
                     >
                       <button
                         type="button"
@@ -2698,14 +2706,25 @@ watch(
                       >
                         <span class="solreq__badge">
                           <v-icon size="18">
-                            {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "mdi-email-remove-outline" : "mdi-email-check-outline" }}
+                            {{ estadoTarjetaPago(solicitudPagoDe(egresoProveedor)!).icono }}
                           </v-icon>
                         </span>
                         <span class="solreq__text">
                           <span class="solreq__title">
-                            {{ solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA" ? "Solicitud Rechazada" : "Solicitado a Administración" }}
+                            {{ estadoTarjetaPago(solicitudPagoDe(egresoProveedor)!).titulo }}
                           </span>
-                          <span class="solreq__date">
+                          <!-- Editado en Bancos: el motivo del error en lugar de la fecha -->
+                          <span
+                            v-if="solicitudPagoDe(egresoProveedor)!.id_pagoegreso && solicitudPagoDe(egresoProveedor)!.editadobancoflag"
+                            class="solreq__date solreq__motivo"
+                            :title="solicitudPagoDe(egresoProveedor)!.motivo_edicion_banco ?? undefined"
+                          >
+                            {{ solicitudPagoDe(egresoProveedor)!.motivo_edicion_banco || "Sin motivo" }}
+                          </span>
+                          <span
+                            v-else
+                            class="solreq__date"
+                          >
                             {{
                               formatoFechaSolicitud(
                                 solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA"
@@ -4884,6 +4903,25 @@ watch(
   --solreq-fg: #c0261b;
   --solreq-bg: #fef3f2;
   --solreq-border: #fbd3cf;
+}
+/* con salida en Bancos (mismo color que "Registrado en Bancos" de Ingresos) */
+.solreq--registrada {
+  --solreq-fg: #15803d;
+  --solreq-bg: #ecfdf3;
+  --solreq-border: #b7ebc9;
+}
+.solreq--editada {
+  --solreq-fg: #b45309;
+  --solreq-bg: #fffbeb;
+  --solreq-border: #fde68a;
+}
+.solreq__motivo {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: normal;
 }
 /* "Ver Detalle" de la solicitud con varios expedientes: fila propia al pie de la tarjeta */
 .solreq:has(> .solreq__detalle) {
