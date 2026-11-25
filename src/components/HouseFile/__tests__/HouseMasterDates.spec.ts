@@ -1,5 +1,6 @@
 import { expect, test, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
+import { createPinia, setActivePinia } from "pinia";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
@@ -9,9 +10,12 @@ import HouseMasterDates from "@/components/HouseFile/HouseMasterDates.vue";
 vi.mock("@/api/http", () => ({ default: vi.fn() }));
 
 const mountDates = async (masterId: number | null) => {
+  const pinia = createPinia();
+  setActivePinia(pinia);
   const wrapper = mount(HouseMasterDates, {
     props: { masterId },
-    global: { plugins: [createVuetify({ components, directives })] },
+    global: { plugins: [pinia, createVuetify({ components, directives })] },
+    attachTo: document.body,
   });
   await flushPromises();
   return wrapper;
@@ -62,5 +66,38 @@ test("when the master cannot be read the panel says so and how to retry", async 
   vi.mocked(axios).mockRejectedValueOnce(new Error("Network Error"));
   const wrapper = await mountDates(2714);
   expect(wrapper.text()).toContain("No pudimos cargar las fechas del master. Recarga la página para intentarlo de nuevo.");
+  wrapper.unmount();
+});
+
+test("each date opens its change history, newest first, with when and who changed it", async () => {
+  vi.mocked(axios)
+    .mockResolvedValueOnce({ data: { data: [{ fecha_etd: "2026-12-05", fecha_eta: "2026-12-09", fecha_disponibilidad: "2026-12-11" }] } })
+    .mockResolvedValueOnce({
+      data: {
+        estadoflag: true,
+        data: [
+          { id: 2, campo: "fecha_etd", fecha: "2026-12-05", fecha_modificacion: "2026-11-24T16:42:00-05:00", responsable: "ALEXANDRA" },
+          { id: 1, campo: "fecha_etd", fecha: "2026-12-03", fecha_modificacion: "2026-11-22T11:20:00-05:00", responsable: "SAMIRA" },
+        ],
+      },
+    });
+  const wrapper = await mountDates(2714);
+  const links = wrapper.findAll("button").filter((button) => button.text() === "Ver historial");
+  expect(links).toHaveLength(3);
+
+  await links[0]!.trigger("click");
+  await flushPromises();
+
+  expect(vi.mocked(axios)).toHaveBeenLastCalledWith(
+    expect.objectContaining({ url: "master_fechas_historial", params: { id_master: 2714, campo: "fecha_etd" } }),
+  );
+  const rows = [...document.querySelectorAll(".history-table tbody tr")].map((row) =>
+    [...row.querySelectorAll("td")].map((cell) => cell.textContent!.trim()),
+  );
+  expect(document.body.textContent).toContain("Historial de Salida (ETD)");
+  expect(rows.map((row) => [row[0], row[2]])).toEqual([
+    ["05/DIC/2026", "ALEXANDRA"],
+    ["03/DIC/2026", "SAMIRA"],
+  ]);
   wrapper.unmount();
 });

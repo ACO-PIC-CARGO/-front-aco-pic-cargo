@@ -7,6 +7,7 @@ import moment from "moment";
 import Swal from "sweetalert2";
 import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import FormatFecha from "../comun/FormatFecha.vue";
+import MasterDateHistory from "./MasterDateHistory.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
 import { useMastersStore } from "@/stores/masters";
@@ -1150,6 +1151,12 @@ onMounted(async () => {
                 id="filtroDesde"
                 v-model="exp.fecha_etd"
               />
+              <MasterDateHistory
+                :master-id="exp.id"
+                campo="fecha_etd"
+                title="Salida (ETD)"
+                column="ETD"
+              />
             </v-col>
             <v-col cols="5">
               <v-checkbox
@@ -1164,6 +1171,12 @@ onMounted(async () => {
                 id="filtroDesde"
                 v-model="exp.fecha_eta"
               />
+              <MasterDateHistory
+                :master-id="exp.id"
+                campo="fecha_eta"
+                title="Llegada (ETA)"
+                column="ETA"
+              />
             </v-col>
             <v-col cols="5">
               <v-checkbox
@@ -1177,6 +1190,12 @@ onMounted(async () => {
                 label="Disponibilidad Confirmada"
                 id="filtroDesde"
                 v-model="exp.fecha_disponibilidad"
+              />
+              <MasterDateHistory
+                :master-id="exp.id"
+                campo="fecha_disponibilidad"
+                title="Fecha de Disponibilidad"
+                column="Disponibilidad"
               />
             </v-col>
             <v-col cols="5">

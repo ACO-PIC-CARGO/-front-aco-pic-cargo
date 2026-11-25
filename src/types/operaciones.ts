@@ -105,6 +105,23 @@ export interface ComentarioMaster {
   comentario?: number | string;
 }
 
+export interface ComentarioMasterFila {
+  id: number;
+  fecha: string;
+  ejecutivo: string | null;
+  comentario: string;
+}
+
+export type CampoFechaMaster = "fecha_etd" | "fecha_eta" | "fecha_disponibilidad";
+
+export interface HistorialFechaMaster {
+  id: number;
+  campo: CampoFechaMaster;
+  fecha: string | null;
+  fecha_modificacion: string;
+  responsable: string | null;
+}
+
 export interface FilaConsolidacion {
   fecha_operacion_sistema?: string;
   fecha_operacion_banco?: string;

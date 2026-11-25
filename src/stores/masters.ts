@@ -6,7 +6,7 @@ import { useAppStore } from "@/stores/app";
 import type { ApiResponse } from "@/types/api";
 import type { ExpedienteMasterRaiz, FilaRaiz, FiltroExpedientesRaiz, GrupoServiciosRaiz, NroMasterRaiz, ServicioListaRaiz } from "@/types/app";
 import type { Numerico } from "@/types/cotizacion";
-import type { ComentarioMaster } from "@/types/operaciones";
+import type { CampoFechaMaster, ComentarioMaster, ComentarioMasterFila, HistorialFechaMaster } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
 import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
@@ -27,7 +27,7 @@ export const useMastersStore = defineStore("masters", () => {
     id_master = 0,
     fecha = 0,
     comentario = 0,
-  }: ComentarioMaster): Promise<void> {
+  }: ComentarioMaster): Promise<boolean> {
     const config = {
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + `insert_comentario_master`,
@@ -42,7 +42,7 @@ export const useMastersStore = defineStore("masters", () => {
       },
     };
 
-    await axios<ApiResponse>(config).then(function (response) {
+    return axios<ApiResponse>(config).then(function (response) {
       sessionStorage.setItem("auth-token", response.data.token!);
 
       const res = response.data;
@@ -68,6 +68,7 @@ export const useMastersStore = defineStore("masters", () => {
           text: res.mensaje,
         });
       }
+      return res.estadoflag === true;
     });
   }
   function actualizarURLEnElMaster({ id = "", url = "" }: { id?: number | string; url?: string }): Promise<ApiResponse> {
@@ -89,6 +90,20 @@ export const useMastersStore = defineStore("masters", () => {
       .catch((e) => {
         console.error(e);
       });
+  }
+  function listarComentariosMaster(idMaster: number | string): Promise<ApiResponse<ComentarioMasterFila[]>> {
+    return request<ComentarioMasterFila>({
+      method: "get",
+      url: "listar_comentarios_master",
+      params: { id_master: idMaster },
+    });
+  }
+  function historialFechasMaster(idMaster: number | string, campo: CampoFechaMaster): Promise<ApiResponse<HistorialFechaMaster[]>> {
+    return request<HistorialFechaMaster>({
+      method: "get",
+      url: "master_fechas_historial",
+      params: { id_master: idMaster, campo },
+    });
   }
   function controlGastosReactivar(data: Record<string, unknown>): Promise<ApiResponse> {
     return request({ method: "put", url: import.meta.env.VITE_URL_MAIN + `master_control_reactivar`, data });
@@ -405,6 +420,8 @@ export const useMastersStore = defineStore("masters", () => {
     createCarpetaOneDrive,
     actualizarMaster,
     insertComentarioMaster,
+    listarComentariosMaster,
+    historialFechasMaster,
     actualizarURLEnElMaster,
     moverCostos,
     controlGastosReactivar,

@@ -311,14 +311,19 @@ const getNameModalNuevoEditar = computed(() => {
   return "REGISTRO DE NUEVO COSTO";
 });
 const listHouses = computed(() => {
-  const houses = [
+  // master_houses trae una fila por house y correlativo (0001, 0002...):
+  // el combo necesita un house por orden, sin repetir item-value.
+  const unicos = new Map<unknown, ControlGastoHouse>();
+  for (const house of controlGastosStore.master_houses) {
+    if (house.id_orders && !unicos.has(house.id_orders)) unicos.set(house.id_orders, house);
+  }
+  return [
     {
       consigner: "COSTO ASOCIADO AL MASTER",
       id_orders: null,
     },
-    ...controlGastosStore.master_houses,
+    ...unicos.values(),
   ];
-  return houses;
 });
 const nombreCodigoPago = computed(() => {
   const shipment =

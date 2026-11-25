@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useRoute } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
 import Swal from "sweetalert2";
 import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { availabilityBaseDate, isEtaBeforeEtd } from "@/utils/masters";
+import MasterDateHistory from "./MasterDateHistory.vue";
 
 const appStore = useAppStore();
 const mastersStore = useMastersStore();
 const masterusuariosStore = useMasterusuariosStore();
+const route = useRoute();
+const masterId = computed(() => (route.params.id ? String(route.params.id) : null));
 const itemsModality = computed(() => appStore.itemsModality);
 const itemsShipment = computed(() => appStore.itemsShipment);
 
@@ -95,6 +99,12 @@ function _validaDate() {
           @update:model-value="_getDate()"
           label="Salida (ETD)"
         />
+        <MasterDateHistory
+          :master-id="masterId"
+          campo="fecha_etd"
+          title="Salida (ETD)"
+          column="ETD"
+        />
       </v-col>
       <v-col
         cols="12"
@@ -114,6 +124,12 @@ function _validaDate() {
           v-model="mastersStore.master_fecha_eta"
           @update:model-value="_getDate()"
           label="Llegada (ETA)"
+        />
+        <MasterDateHistory
+          :master-id="masterId"
+          campo="fecha_eta"
+          title="Llegada (ETA)"
+          column="ETA"
         />
       </v-col>
       <v-col
@@ -137,6 +153,12 @@ function _validaDate() {
           v-model="mastersStore.master_fecha_disponibilidad"
           @update:model-value="_validaDate()"
           label="Fecha de Disponibilidad"
+        />
+        <MasterDateHistory
+          :master-id="masterId"
+          campo="fecha_disponibilidad"
+          title="Fecha de Disponibilidad"
+          column="Disponibilidad"
         />
       </v-col>
       <v-col

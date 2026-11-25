@@ -9,8 +9,14 @@ import { useHousesStore } from "@/stores/houses";
 import { usePermissions } from "@/composables/usePermissions";
 import type { HouseDeMaster } from "@/types/operacionesMaster";
 import { mastersToMoveHouseTo } from "@/utils/masters";
+import { usePricingStore } from "@/stores/pricing";
+import { hasFailed } from "@/utils/request";
+import { sessionUserIdOrEmpty } from "@/utils/sesion";
+import moment from "moment-timezone";
+import type { ComentarioMasterFila } from "@/types/operaciones";
 
 const HOUSE_NOT_MOVED = "No pudimos mover el house. Revisa tu conexión e intenta de nuevo.";
+const REQUIRED = (value: unknown) => !!String(value ?? "").trim() || "Dato requerido";
 
 const emit = defineEmits<{ recargarDatos: [] }>();
 
@@ -20,6 +26,7 @@ const route = useRoute();
 const router = useRouter();
 const housesStore = useHousesStore();
 const { can } = usePermissions();
+const pricingStore = usePricingStore();
 
 const openExpand = ref(0);
 const showAll = ref(false);
@@ -33,29 +40,13 @@ const displayedItems = computed(() => {
   const list = appStore.itemsHouseList || [];
   return showAll.value ? list : list.slice(0, 3);
 });
-const masterComments = computed(() => {
-  const masterId =
-    mastersStore.master_insertId || mastersStore.master_Id_get;
-  if (!masterId) return [];
-
-  if (
-    mastersStore.rowMaster &&
-    mastersStore.rowMaster.list_comentarios
-  ) {
-    return mastersStore.rowMaster.list_comentarios;
-  }
-
-  if (appStore.itemsMasterList) {
-    const masterItem = appStore.itemsMasterList.find(
-      (m: { id: number }) => m.id == masterId,
-    );
-    return masterItem && masterItem.list_comentarios
-      ? masterItem.list_comentarios
-      : [];
-  }
-
-  return [];
-});
+const masterComments = ref<ComentarioMasterFila[]>([]);
+const commentsNotice = ref("");
+const dialogComentario = ref(false);
+const savingComentario = ref(false);
+const nuevoComentario = ref({ fecha: "", id_entitie: null as number | null, comentario: "" });
+const frmComentario = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null);
+const masterId = computed(() => Number(route.params.id) || 0);
 const totalHouses = computed(() => {
   const list = appStore.itemsHouseList || [];
   return list.length;
@@ -93,6 +84,42 @@ const esAereo = computed(() => {
   return it && it.code === "Aéreo";
 });
 
+async function cargarComentarios() {
+  if (!masterId.value) return;
+  const answer = await mastersStore.listarComentariosMaster(masterId.value);
+  masterComments.value = answer.estadoflag ? answer.data ?? [] : [];
+  commentsNotice.value = hasFailed(answer) ? answer.mensaje || "" : "";
+}
+async function abrirModalComentario() {
+  const sessionEntity = sessionUserIdOrEmpty();
+  nuevoComentario.value = {
+    fecha: moment().format("YYYY-MM-DD"),
+    id_entitie: sessionEntity === "" ? null : sessionEntity,
+    comentario: "",
+  };
+  dialogComentario.value = true;
+  if (!pricingStore.listEjecutivo.length) await pricingStore.getModulesEntities();
+}
+async function guardarComentario() {
+  if (!(await frmComentario.value?.validate())?.valid) return;
+  savingComentario.value = true;
+  try {
+    const saved = await mastersStore.insertComentarioMaster({
+      id_master: masterId.value,
+      id_entitie: nuevoComentario.value.id_entitie ?? undefined,
+      fecha: nuevoComentario.value.fecha,
+      comentario: nuevoComentario.value.comentario.trim(),
+    });
+    if (!saved) return;
+    dialogComentario.value = false;
+    await cargarComentarios();
+  } catch (error) {
+    console.error(error);
+    await Swal.fire({ icon: "error", text: "No pudimos guardar el comentario. Revisa tu conexión e intenta de nuevo." });
+  } finally {
+    savingComentario.value = false;
+  }
+}
 async function abrirModalCambiarExpediente(houseItem: HouseDeMaster = {} as HouseDeMaster) {
   house.value = houseItem;
 
@@ -206,7 +233,10 @@ watch(() => appStore.itemsHouseList, () => {
   openExpand.value = 0;
 });
 
+watch(masterId, cargarComentarios);
+
 onMounted(async () => {
+  cargarComentarios();
   await appStore._getMasterList();
   nextTick(() => {
     openExpand.value = 0;
@@ -376,8 +406,30 @@ onMounted(async () => {
             </v-tabs-window-item>
 
             <v-tabs-window-item key="comments">
+              <div
+                v-if="!isViewMode"
+                class="d-flex justify-end my-2"
+              >
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  size="small"
+                  prepend-icon="mdi-comment-plus-outline"
+                  @click="abrirModalComentario"
+                >
+                  Añadir comentario
+                </v-btn>
+              </div>
+              <v-alert
+                v-if="commentsNotice"
+                type="warning"
+                variant="tonal"
+                density="compact"
+                class="mb-2"
+                :text="commentsNotice"
+              />
               <v-table
-                v-if="masterComments && masterComments.length > 0"
+                v-if="masterComments.length > 0"
               >
                 <thead>
                   <tr>
@@ -416,6 +468,69 @@ onMounted(async () => {
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
+
+    <v-dialog
+      v-model="dialogComentario"
+      max-width="560"
+      persistent
+    >
+      <v-card rounded="lg">
+        <v-card-title class="d-flex align-center flex-wrap">
+          Añadir comentario
+          <v-spacer />
+          <v-btn
+            variant="text"
+            icon="mdi-close"
+            size="small"
+            aria-label="Cerrar"
+            @click="dialogComentario = false"
+          />
+        </v-card-title>
+        <v-card-text>
+          <v-form ref="frmComentario">
+            <v-text-field
+              v-model="nuevoComentario.fecha"
+              label="Fecha"
+              type="date"
+              readonly
+            />
+            <v-autocomplete
+              v-model="nuevoComentario.id_entitie"
+              label="Ejecutivo"
+              :items="pricingStore.listEjecutivo"
+              item-title="name"
+              item-value="id_entitie"
+              :rules="[REQUIRED]"
+            />
+            <v-textarea
+              v-model="nuevoComentario.comentario"
+              label="Estado / Comentario"
+              rows="4"
+              auto-grow
+              :rules="[REQUIRED]"
+            />
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn
+            variant="outlined"
+            color="red"
+            @click="dialogComentario = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            :loading="savingComentario"
+            @click="guardarComentario"
+          >
+            Guardar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- DDDDDDDDDDDDDDDDD -->
     <v-dialog
