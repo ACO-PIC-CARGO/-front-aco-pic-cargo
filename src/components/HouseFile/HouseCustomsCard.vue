@@ -1,12 +1,19 @@
 <script setup lang="ts">
+import { onMounted } from "vue";
 import { storeToRefs } from "pinia";
 import { useHousesStore } from "@/stores/houses";
 import { useHouseEditStore } from "@/stores/houseEdit";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 
 defineProps<{ editing?: boolean }>();
 
 const housesStore = useHousesStore();
 const { form } = storeToRefs(useHouseEditStore());
+const masterusuariosStore = useMasterusuariosStore();
+
+onMounted(() => {
+  if (!masterusuariosStore.lstCanales.length) masterusuariosStore.cargarMasterDetalleCanal();
+});
 </script>
 
 <template>
@@ -45,13 +52,15 @@ const { form } = storeToRefs(useHouseEditStore());
         cols="12"
         md="5"
       >
-        <v-text-field
+        <v-select
           v-model="form.canal_aduana"
+          :items="masterusuariosStore.lstCanales"
+          item-title="descripcion"
+          item-value="descripcion"
           label="Canal"
-          maxlength="50"
           density="compact"
           hide-details="auto"
-          :readonly="false"
+          clearable
         />
       </v-col>
     </v-row>

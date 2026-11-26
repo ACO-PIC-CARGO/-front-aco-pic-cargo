@@ -312,6 +312,8 @@ export interface ConceptoSolicitudPago {
   igv_op: number;
   total_op: number;
   totalopcuentabanco: number | null;
+  montoopcuentabanco?: number | null;
+  igvopcuentabanco?: number | null;
 }
 
 /** "Cliente Pagó" de una solicitud de pago: pagó todo, una parte o nada */

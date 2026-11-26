@@ -25,20 +25,33 @@ const dialogUrl = ref(false);
 const folderMaster = ref<RegistroConUrlCarpeta>({});
 const expanded = ref([]);
 const headers = [
-  { title: "Master", key: "code_master" },
-  { title: "Nro BL House", key: "nro_hbl", align: "start" },
-  { title: "Cotización", key: "quote_number" },
+  { title: "Expediente Master", key: "code_master" },
+  { title: "Cliente del House", key: "nameconsigner" },
+  { title: "Proveedor", key: "nameproveedor" },
+  { title: "Nro. BL House", key: "nro_hbl" },
+  { title: "Cotización", key: "quote_number", align: "center" },
   { title: "Sentido", key: "namemodality" },
   { title: "Origen", key: "nameportbegin" },
   { title: "Destino", key: "nameportend" },
-  { title: "Proveedor", key: "nameproveedor" },
-  { title: "Cliente del House", key: "nameconsigner" },
   { title: "Salida ETD", key: "fecha_etd" },
   { title: "Llegada ETA", key: "fecha_eta" },
+  { title: "N° Declaración de Aduana", key: "nro_declaracion_aduana" },
   { title: "Naviera", key: "naviera" },
-  { title: "Acciones", key: "actions", sortable: false },
+  { title: "Canal de Aduana", key: "canal_aduana", align: "center" },
+  { title: "Acciones", key: "actions", sortable: false, align: "center" },
 ] as const;
-const pagination = undefined as unknown as { page: number };
+const page = ref(1);
+const itemsPerPage = ref(10);
+const itemsPerPageOptions = [
+  { value: 10, title: "10" },
+  { value: 25, title: "25" },
+  { value: 50, title: "50" },
+  { value: 100, title: "100" },
+];
+const canalColors: Record<string, string> = { VERDE: "green", NARANJA: "orange", AMARILLO: "amber", ROJO: "red" };
+function canalColor(canal?: string) {
+  return canalColors[(canal ?? "").trim().toUpperCase()] ?? "grey";
+}
 const dialogComentario = ref(false);
 const loading = ref(false);
 const house = ref<HouseListado>({} as HouseListado);
@@ -55,11 +68,21 @@ async function cerrarCarpeta() {
   dialogUrl.value = false;
   await housesStore.listarHouse(housesStore.house_filtro);
 }
+// The house guard loads the house before the screen changes: show the spinner meanwhile so a click is not repeated.
+async function openHouse(path: string) {
+  if (appStore.spiner) return;
+  appStore.spiner = true;
+  try {
+    await router.push(path);
+  } finally {
+    if (router.currentRoute.value.name === "listHouse") appStore.spiner = false;
+  }
+}
 function editHouse(id: number) {
-  router.push("/home/folderHouse/control/editar/" + id);
+  openHouse("/home/folderHouse/control/editar/" + id);
 }
 function viewHouse(id: number) {
-  router.push("/home/folderHouse/control/ver/" + id);
+  openHouse("/home/folderHouse/control/ver/" + id);
 }
 function verCotizacion(id_quote?: number) {
   if (id_quote) {
@@ -106,7 +129,6 @@ onMounted(async () => {
   appStore.spiner = true;
 
   await housesStore.listarHouse(housesStore.house_filtro);
-  // await this._getHouseListAll();
   appStore.spiner = false;
   await Promise.all([
     pricingStore.getModulesEntities(),
@@ -121,56 +143,50 @@ onMounted(async () => {
 <template>
   <div>
     <v-card elevation="0">
-      <v-card-title>
-        <v-row>
-          <v-col
-            cols="12"
-            lg="6"
-            xl="6"
+      <v-card-text class="pt-4 pb-2">
+        <div class="d-flex align-center flex-wrap ga-4">
+          <v-text-field
+            v-model="search"
+            placeholder="Buscar"
+            variant="solo-filled"
+            flat
+            density="compact"
+            hide-details
+            prepend-icon="mdi-magnify"
+            class="list-house__search"
+            @update:model-value="page = 1"
+          />
+          <v-btn
+            color="primary"
+            elevation="0"
+            @click="housesStore.house_filtrarData = !housesStore.house_filtrarData"
           >
-            <v-text-field
-              v-model="search"
-              label="Buscar"
-              single-line
-              hide-details
-              prepend-icon="mdi-magnify"
-            />
-          </v-col>
-          <v-col
-            cols="12"
-            lg="6"
-            xl="6"
-          >
-            <v-btn
-              color="secondary"
-              elevation="0"
-              @click="
-                housesStore.house_filtrarData = !housesStore.house_filtrarData
-              "
-            >
-              FILTRAR
-            </v-btn>
-          </v-col>
-        </v-row>
-      </v-card-title>
+            FILTRAR
+          </v-btn>
+        </div>
+      </v-card-text>
 
       <v-data-table
+        class="list-house"
         :headers="headers"
         :items="housesStore.listHouse"
         :search="search"
+        v-model:page="page"
+        v-model:items-per-page="itemsPerPage"
+        :items-per-page-options="itemsPerPageOptions"
         expand-on-click
         v-model:expanded="expanded"
         item-value="id"
-        disable-sort
+        density="compact"
+        hover
       >
         <template #expanded-row="{ columns, item }">
-          <tr>
+          <tr v-if="item.list_comentarios?.length && item.status != 0">
             <td
               :colspan="columns.length"
               class="py-3 px-3"
-              v-if="item.list_comentarios?.length && item.status != 0"
             >
-              <v-table v-if="item.list_comentarios.length > 0">
+              <v-table density="compact">
                 <thead>
                   <tr>
                     <th width="10%">
@@ -206,13 +222,22 @@ onMounted(async () => {
           </tr>
         </template>
 
+        <template #[`item.code_master`]="{ item }">
+          <span class="font-weight-medium text-no-wrap">{{ item.code_master }}</span>
+        </template>
+
+        <template #[`item.nameproveedor`]="{ item }">
+          <span class="list-house__proveedor">{{ item.nameproveedor }}</span>
+        </template>
+
         <template #[`item.quote_number`]="{ item }">
           <v-chip
             v-if="item.quote_number"
             color="primary"
+            variant="flat"
             size="small"
-            @click.stop="verCotizacion(item.id_quote)"
             class="cursor-pointer"
+            @click.stop="verCotizacion(item.id_quote)"
           >
             <v-icon
               size="small"
@@ -221,19 +246,50 @@ onMounted(async () => {
               mdi-file-document-outline
             </v-icon>
             {{ item.quote_number }}
+            <v-icon
+              size="small"
+              end
+            >
+              mdi-eye
+            </v-icon>
           </v-chip>
           <span
             v-else
-            class="text-grey-lighten-1"
+            class="text-grey-lighten-1 text-no-wrap"
           >Sin cotización</span>
         </template>
 
+        <template #[`item.fecha_etd`]="{ item }">
+          <span class="text-no-wrap">{{ item.fecha_etd }}</span>
+        </template>
+
+        <template #[`item.fecha_eta`]="{ item }">
+          <span class="text-no-wrap">{{ item.fecha_eta }}</span>
+        </template>
+
+        <template #[`item.nro_declaracion_aduana`]="{ item }">
+          <span class="text-no-wrap">{{ item.nro_declaracion_aduana }}</span>
+        </template>
+
+        <template #[`item.canal_aduana`]="{ item }">
+          <v-chip
+            v-if="item.canal_aduana"
+            :color="canalColor(item.canal_aduana)"
+            variant="flat"
+            size="small"
+            class="list-house__canal font-weight-bold"
+          >
+            {{ item.canal_aduana.toUpperCase() }}
+          </v-chip>
+        </template>
+
         <template #[`item.actions`]="{ item }">
-          <div class="d-flex">
+          <div class="d-flex align-center justify-center ga-1">
             <v-icon
               v-if="statusList != '2' && can('listHouse', 'NUEVO')"
-              color="secondary"
-              class="mr-1"
+              color="primary"
+              size="small"
+              title="Agregar comentario"
               @click.stop="abrirModalComentario(item)"
             >
               mdi-chat-plus
@@ -241,7 +297,8 @@ onMounted(async () => {
 
             <v-icon
               color="#FFD600"
-              class="mr-1"
+              size="small"
+              title="Carpeta"
               @click.stop="abrirCaperta(item)"
             >
               mdi-folder
@@ -249,18 +306,20 @@ onMounted(async () => {
 
             <v-icon
               v-if="statusList != '2'"
-              color="info"
-              class="mr-1"
+              color="primary"
+              size="small"
+              title="Ver house"
               aria-label="Ver house"
               @click.stop="viewHouse(item.id)"
             >
-              mdi-eye
+              mdi-eye-outline
             </v-icon>
 
             <v-icon
               v-if="statusList != '2' && can('listHouse', 'MODIFICAR')"
               color="orange"
-              class="mr-1"
+              size="small"
+              title="Editar house"
               @click.stop="editHouse(item.id)"
             >
               mdi-pencil
@@ -270,7 +329,6 @@ onMounted(async () => {
               v-if="statusList == '2'"
               size="large"
               color="primary"
-              class="mr-1"
               @click.stop="selectHouse(item)"
             >
               mdi-cursor-default-click
@@ -278,15 +336,14 @@ onMounted(async () => {
           </div>
         </template>
       </v-data-table>
-      <v-container>
+      <v-container v-if="statusReport">
         <v-row>
           <v-col>
             <v-btn
-              v-if="statusReport"
               color="primary"
               elevation="0"
             >
-              GENERAR REPORTE {{ pagination.page }}
+              GENERAR REPORTE {{ page }}
             </v-btn>
           </v-col>
         </v-row>
@@ -358,4 +415,31 @@ onMounted(async () => {
   </div>
 </template>
 
-
+<style scoped>
+.list-house__search {
+  max-width: 640px;
+}
+.list-house :deep(thead th) {
+  background: #f1f3f5 !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: normal;
+}
+.list-house :deep(tbody td) {
+  font-size: 0.8rem;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+.list-house__proveedor {
+  display: block;
+  min-width: 200px;
+  max-width: 260px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+.list-house__canal {
+  min-width: 80px;
+  justify-content: center;
+}
+</style>

@@ -2,6 +2,7 @@
 import { computed, onMounted } from "vue";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
+import MasterField from "./MasterField.vue";
 //import axios from '@/api/axios-config';
 
 defineProps<{ isFormActionsDisabled?: boolean }>();
@@ -26,13 +27,8 @@ const obtenerLabelConsignerMasterMBL = computed(() => {
 const obtenerLabelNotifyMasterMBL = computed(() => {
   return isAereo() ? "Notify Master AWE" : "Notify Master MBL";
 });
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const obtenerLabelBLMaster = computed(() => {
   return isAereo() ? "BL Máster Nro." : "BL Máster";
-});
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const obtenerInputTypeBLMaster = computed(() => {
-  return isAereo() ? "number" : "text";
 });
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const obtenerContainerName = computed(() => {
@@ -170,281 +166,346 @@ onMounted(async () => {
 
 <template>
   <div>
-    <h3>Datos del Embarque</h3>
-
-    <!-- FILA 1: Motonave/Vuelo y Viaje -->
     <v-row density="compact">
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <template v-if="isFCL() || isLCL()">
+        <MasterField
+          v-if="isFCL() || isLCL()"
+          label="Motonave"
+          v-slot="{ id }"
+        >
           <v-autocomplete
+            :id="id"
             :items="itemsMotonave"
             item-title="name"
             item-value="id"
-            label="Motonave"
+            placeholder="Seleccionar motonave"
             :model-value="mastersStore.master_id_motonave || null"
-            @update:model-value="(id) => (mastersStore.master_id_motonave = id)"
+            @update:model-value="(val) => (mastersStore.master_id_motonave = val)"
           />
-        </template>
-        <template v-else-if="isAereo()">
+        </MasterField>
+        <MasterField
+          v-else-if="isAereo()"
+          label="Vuelo"
+          v-slot="{ id }"
+        >
           <v-text-field
+            :id="id"
             v-model="mastersStore.master_vuelo"
-            label="Vuelo"
+            placeholder="N.º de vuelo"
           />
-        </template>
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <v-text-field
-          v-model="mastersStore.master_viaje"
+        <MasterField
           label="Viaje"
-        />
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            v-model="mastersStore.master_viaje"
+            placeholder="N.º de viaje"
+          />
+        </MasterField>
       </v-col>
-    </v-row>
+      <v-col cols="12">
+        <MasterField
+          :label="obtenerLabelBLMaster"
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            type="text"
+            v-model="mastersStore.master_blmaster"
+          />
+        </MasterField>
+      </v-col>
 
-    <!-- FILA 2: FCL vs LCL/Aéreo -->
-    <v-row density="compact">
       <template v-if="isFCL()">
-        <!-- FCL: Tipo de Contenedor, Cantidad, Número de Contenedor, Sello -->
         <v-col
           cols="12"
-          md="3"
+          sm="6"
         >
-          <v-autocomplete
-            :items="itemsContainers"
-            item-title="name"
-            item-value="id"
-            return-object
+          <MasterField
             label="Tipo de Contenedor"
-            v-model="appStore.master_id_containers"
-          />
+            v-slot="{ id }"
+          >
+            <v-autocomplete
+              :id="id"
+              :items="itemsContainers"
+              item-title="name"
+              item-value="id"
+              placeholder="Seleccionar"
+              return-object
+              v-model="appStore.master_id_containers"
+            />
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="3"
+          sm="6"
         >
-          <v-text-field
-            type="number"
-            v-model="appStore.master_cantidad"
+          <MasterField
             label="Cantidad"
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              type="number"
+              v-model="appStore.master_cantidad"
+            />
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="3"
+          sm="6"
         >
-          <v-text-field
-            v-model="appStore.master_nro_containers"
+          <MasterField
             label="Número de Contenedor"
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              v-model="appStore.master_nro_containers"
+            />
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="3"
+          sm="6"
         >
-          <v-text-field
-            v-model="appStore.master_nro_precinto"
+          <MasterField
             label="Sello"
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              v-model="appStore.master_nro_precinto"
+            />
+          </MasterField>
         </v-col>
       </template>
       <template v-else>
-        <!-- LCL/Aéreo: Peso, Volumen, Peso Cargable -->
         <v-col
           cols="12"
-          md="4"
+          sm="6"
         >
-          <v-text-field
-            type="number"
-            suffix="kg"
+          <MasterField
             label="Peso"
-            v-model="mastersStore.master_peso"
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              type="number"
+              class="master-unit-field"
+              v-model="mastersStore.master_peso"
+            >
+              <template #append>
+                <span class="master-unit">kg</span>
+              </template>
+            </v-text-field>
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="4"
+          sm="6"
         >
-          <v-text-field
-            type="number"
-            suffix="m3"
+          <MasterField
             label="Volumen"
-            v-model="mastersStore.master_volumen"
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              type="number"
+              class="master-unit-field"
+              v-model="mastersStore.master_volumen"
+            >
+              <template #append>
+                <span class="master-unit">m³</span>
+              </template>
+            </v-text-field>
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="4"
+          sm="6"
           v-if="isAereo()"
         >
-          <v-text-field
-            :model-value="pesoVolumetrico"
+          <MasterField
             label="Peso Volumétrico"
-            suffix="kg"
-            readonly
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              :model-value="pesoVolumetrico"
+              class="master-unit-field"
+              readonly
+            >
+              <template #append>
+                <span class="master-unit">kg</span>
+              </template>
+            </v-text-field>
+          </MasterField>
         </v-col>
         <v-col
           cols="12"
-          md="4"
+          sm="6"
           v-if="isAereo()"
         >
-          <v-text-field
-            :model-value="pesoCargable"
+          <MasterField
             label="Peso Cargable"
-            suffix="kg"
-            readonly
-          />
+            v-slot="{ id }"
+          >
+            <v-text-field
+              :id="id"
+              :model-value="pesoCargable"
+              class="master-unit-field"
+              readonly
+            >
+              <template #append>
+                <span class="master-unit">kg</span>
+              </template>
+            </v-text-field>
+          </MasterField>
         </v-col>
       </template>
-    </v-row>
 
-    <!-- FILA 3: Tipo de flete y Monto -->
-    <v-row density="compact">
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsFleteCon"
-          item-title="name"
-          item-value="id"
-          label="Condición"
-          :model-value="mastersStore.master_id_condicion || null"
-          @update:model-value="(id) => (mastersStore.master_id_condicion = id)"
-        />
+        <MasterField
+          label="Condición del Flete"
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsFleteCon"
+            item-title="name"
+            item-value="id"
+            placeholder="Seleccionar"
+            :model-value="mastersStore.master_id_condicion || null"
+            @update:model-value="(val) => (mastersStore.master_id_condicion = val)"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <v-text-field
-          v-model="mastersStore.master_monto"
-          type="number"
+        <MasterField
           label="Monto"
-        />
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            v-model="mastersStore.master_monto"
+            type="number"
+            placeholder="0.00"
+          />
+        </MasterField>
       </v-col>
     </v-row>
 
-    <!--  <v-col cols="4">
-        <v-autocomplete
-          :items="itemsContainers"
-          item-text="name"
-          item-value="id"
-          return-object
-          label="Tipo de contenedor"
-          v-model="$store.state.master_id_containers"
-        ></v-autocomplete>
-      </v-col>
-     <v-col cols="12" md="3" lg="3" xl="3">
-        <v-text-field label="Nro. Contenedor"></v-text-field>
-      </v-col>
-     <v-col cols="12" md="3" lg="3" xl="3">
-        <v-text-field label="Nro. Precinto"></v-text-field>
-      </v-col> -->
-    <!-- <v-col cols="2">
-        <v-text-field v-model="$store.state.master_cantidad" label="Cant.">
-          <v-icon
-            class="btn__add"
-            @click.native="
-              _setDataContainers(
-                $store.state.master_id_containers.id,
-                $store.state.master_id_containers.id,
-                $store.state.master_id_containers.id,
-                $store.state.master_id_containers.name,
-                $store.state.master_cantidad
-              )
-            "
-            slot="append"
-            color="green"
-          >
-            mdi-plus
-          </v-icon>
-        </v-text-field>
-      </v-col> -->
-
-    <v-col
-      cols="12"
-      md="12"
+    <div
       v-if="isFCL()"
+      class="mt-3"
     >
       <v-btn
         size="small"
         color="primary"
         elevation="0"
         rounded
+        prepend-icon="mdi-plus"
         @click="appStore.modalContainers = !appStore.modalContainers"
         :disabled="isFormActionsDisabled"
       >
-        AGREGAR CONTENEDOR
+        Agregar contenedor
       </v-btn>
 
       <v-table
         fixed-header
+        density="compact"
         height="180px"
+        class="mt-2"
       >
-        <template #default>
-          <thead>
-            <tr>
-              <th class="text-left">
-                Nombre
-              </th>
-              <th class="text-left">
-                N°. Contenedor
-              </th>
-              <th class="text-left">
-                N° Precinto
-              </th>
-              <th class="text-left">
-                Cantidad
-              </th>
-              <th class="text-left">
-                Acción
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(item, index) in appStore.master_itemsContainers"
-              :key="item.name"
-            >
-              <td>{{ item.name }}</td>
-              <td>{{ item.nro_container }}</td>
-              <td>{{ item.nro_precinto }}</td>
-              <td>{{ item.cantidad }}</td>
-              <td>
-                <v-btn
-                  variant="text"
-                  @click="_delContainers(index)"
-                  size="small"
-                  icon
-                  :disabled="isFormActionsDisabled"
-                >
-                  <v-icon color="red">
-                    mdi-delete
-                  </v-icon>
-                </v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </template>
+        <thead>
+          <tr>
+            <th class="text-left">
+              Nombre
+            </th>
+            <th class="text-left">
+              N°. Contenedor
+            </th>
+            <th class="text-left">
+              N° Precinto
+            </th>
+            <th class="text-left">
+              Cantidad
+            </th>
+            <th class="text-left">
+              Acción
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="(item, index) in appStore.master_itemsContainers"
+            :key="item.name"
+          >
+            <td>{{ item.name }}</td>
+            <td>{{ item.nro_container }}</td>
+            <td>{{ item.nro_precinto }}</td>
+            <td>{{ item.cantidad }}</td>
+            <td>
+              <v-btn
+                variant="text"
+                @click="_delContainers(index)"
+                size="small"
+                icon
+                aria-label="Eliminar contenedor"
+                :disabled="isFormActionsDisabled"
+              >
+                <v-icon color="red">
+                  mdi-delete
+                </v-icon>
+              </v-btn>
+            </td>
+          </tr>
+        </tbody>
       </v-table>
-      <!-- <div
-          v-if="$store.state.master_itemsContainers.length === 0"
-          class="text-center"
-        >
-          <img width="10%" :src="$store.state.imgList" alt="" />
-          <p>LISTA DE CONTENTEDORES</p>
-        </div> -->
-    </v-col>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.master-unit-field :deep(.v-input__append) {
+  margin-inline-start: 0;
+  padding: 0;
+  align-self: stretch;
+}
+.master-unit {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding: 0 12px;
+  border: 1px solid #cfd8e3;
+  border-left: 0;
+  border-radius: 0 6px 6px 0;
+  background: #f3f6fa;
+  font-size: 13px;
+  color: #374151;
+}
+.master-unit-field :deep(.v-field) {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .btn__add {
   cursor: pointer;
 }

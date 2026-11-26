@@ -57,14 +57,14 @@ async function limpiar() {
 
     <v-card-text>
       <v-form ref="frmFiltro">
-        <v-autocomplete
+        <!-- <v-autocomplete
           :items="masterusuariosStore.lstCanales"
           item-title="descripcion"
           item-value="id"
           label="Canal"
           density="compact"
           v-model="mastersStore.master_filtro.id_canal"
-        />
+        /> -->
 
         <v-autocomplete
           :items="appStore.itemsModality"

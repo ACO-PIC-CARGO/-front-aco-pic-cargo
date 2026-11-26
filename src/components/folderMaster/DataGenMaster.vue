@@ -2,6 +2,7 @@
 import { serverSearchText } from "@/utils/serverSearch";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
+import MasterField from "./MasterField.vue";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
 import axios from "@/api/http";
@@ -30,13 +31,6 @@ const mostrarflag = ref(true);
 const mostrarGrupal = ref(false);
 const id_transport = ref<number | null>(null);
 
-const obtenerLabelBLMaster = computed(() => {
-  return isAereo() ? "BL Máster Nro." : "BL Máster";
-});
-const obtenerInputTypeBLMaster = computed(() => {
-  return "text";
-  // return this.isAereo() ? "number" : "text";
-});
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const operadorNombre = computed(() => {
   if (!mastersStore.master_id_operador || !itemsOperadorList.value) {
@@ -427,26 +421,11 @@ onMounted(async () => {
 
 <template>
   <div v-if="mostrarflag">
-    <h3>Datos y Servicios a Realizar</h3>
-
-    <v-row density="compact">
-      <v-col
-        cols="12"
-        md="12"
-      >
-        <v-text-field
-          v-model="mastersStore.master_expediente"
-          label="N° de Expedientes"
-          placeholder="Se asigna al guardar"
-          persistent-placeholder
-          disabled
-        />
-      </v-col>
-
-      <v-col
-        cols="6"
-        v-if="mostrarGrupal"
-      >
+    <v-row
+      v-if="mostrarGrupal"
+      density="compact"
+    >
+      <v-col cols="6">
         <v-checkbox
           label="Campañas Grupales"
           v-model="mastersStore.grupalflag"
@@ -454,50 +433,56 @@ onMounted(async () => {
       </v-col>
       <v-col
         cols="6"
-        v-if="mostrarGrupal"
+        v-if="mastersStore.grupalflag"
       >
-        <v-text-field
-          v-if="mastersStore.grupalflag"
+        <MasterField
           label="Nro Cuotas"
-          v-model="appStore.nro_cuotas"
-          min="0"
-          type="number"
-        />
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            v-model="appStore.nro_cuotas"
+            min="0"
+            type="number"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="12"
         v-if="mastersStore.grupalflag"
       >
-        <v-text-field
-          v-model="mastersStore.namecampaign"
+        <MasterField
           label="Nombre de Campaña"
-        />
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            v-model="mastersStore.namecampaign"
+          />
+        </MasterField>
       </v-col>
-
       <v-col
         cols="12"
         v-if="!!mastersStore.grupalflag"
       >
-        <center class="my-5">
-          <h3>Porcentaje y Fecha de pago</h3>
-        </center>
-        <v-row>
+        <div class="text-center font-weight-bold my-3">
+          Porcentaje y Fecha de pago
+        </div>
+        <v-row density="compact">
           <v-col
-            cols="6"
+            cols="12"
             v-for="n in Number(appStore.nro_cuotas)"
             :key="n"
           >
-            <v-row>
-              <v-col cols="4">
+            <v-row density="compact">
+              <v-col cols="5">
                 <v-text-field
-                  :label="`Porcentaje Cuota-${n}`"
+                  :label="`Cuota-${n}`"
                   v-model="appStore.cuota[n - 1]"
                   type="number"
                   suffix="%"
                   min="0"
                   max="100"
-                  density="compact"
                   :rules="[
                     (v) => !!v || 'Dato Requerido',
                     (v) => v > 0 || 'El porcentaje tiene que ser positivo',
@@ -506,178 +491,206 @@ onMounted(async () => {
                   ]"
                 />
               </v-col>
-              <v-col cols="8">
+              <v-col cols="7">
                 <v-text-field
                   :rules="[(v) => !!v || 'Dato Requerido']"
                   :label="`Fecha de pago ${n}`"
                   v-model="appStore.fechacuota[n - 1]"
                   type="date"
-                  density="compact"
                 />
               </v-col>
             </v-row>
           </v-col>
         </v-row>
       </v-col>
+    </v-row>
 
+    <v-row density="compact">
       <v-col
         cols="12"
-        md="4"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsModality"
-          item-title="name"
-          item-value="id"
+        <MasterField
           label="Sentido"
-          v-model="mastersStore.master_sentido"
-          @update:model-value="handleSentido(), _getDataService()"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsModality"
+            item-title="name"
+            item-value="id"
+            placeholder="Seleccionar"
+            v-model="mastersStore.master_sentido"
+            @update:model-value="handleSentido(), _getDataService()"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="4"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsShipment"
-          item-title="embarque"
-          item-value="id"
+        <MasterField
           label="Tipo de Embarque"
-          return-object
-          v-model="appStore.master_id_trasnport"
-          @update:model-value="_activePort(appStore.master_id_trasnport.id_transport)"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsShipment"
+            item-title="embarque"
+            item-value="id"
+            placeholder="Seleccionar"
+            return-object
+            v-model="appStore.master_id_trasnport"
+            @update:model-value="_activePort(appStore.master_id_trasnport.id_transport)"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="4"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsIncoterms"
-          item-title="name"
-          item-value="id"
+        <MasterField
           label="Incoterms"
-          v-model="mastersStore.master_incoterms"
-          @update:model-value="_getDataService()"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsIncoterms"
+            item-title="name"
+            item-value="id"
+            placeholder="Seleccionar"
+            v-model="mastersStore.master_incoterms"
+            @update:model-value="_getDataService()"
+          />
+        </MasterField>
       </v-col>
-
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsPortBegin"
-          item-title="name"
-          item-value="id_port"
+        <MasterField
           label="Origen"
-          v-model="appStore.master_origen"
-          @update:search="recargarPuertoOrigen"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsPortBegin"
+            item-title="name"
+            item-value="id_port"
+            placeholder="Seleccionar"
+            v-model="appStore.master_origen"
+            @update:search="recargarPuertoOrigen"
+          />
+        </MasterField>
       </v-col>
-
       <v-col
         cols="12"
-        md="6"
+        sm="6"
       >
-        <v-autocomplete
-          :items="itemsPortEnd"
-          item-title="name"
-          item-value="id_port"
+        <MasterField
           label="Destino"
-          v-model="appStore.master_destino"
-          @update:search="recargarPuertoDestino"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsPortEnd"
+            item-title="name"
+            item-value="id_port"
+            placeholder="Seleccionar"
+            v-model="appStore.master_destino"
+            @update:search="recargarPuertoDestino"
+          />
+        </MasterField>
       </v-col>
-
       <v-col
         cols="12"
-        md="6"
+        sm="6"
         v-if="route.params.id"
       >
-        <v-text-field
-          type="text"
-          step="1"
-          min="1"
-          readonly
-          v-model="mastersStore.master_cantidad_house"
+        <MasterField
           label="Cantidad de House"
-        />
+          v-slot="{ id }"
+        >
+          <v-text-field
+            :id="id"
+            type="text"
+            readonly
+            v-model="mastersStore.master_cantidad_house"
+          />
+        </MasterField>
       </v-col>
-      <v-col
-        cols="12"
-        md="6"
-      >
-        <v-autocomplete
-          :items="itemsOperadorList"
-          item-title="namelong"
-          item-value="id"
+      <v-col cols="12">
+        <MasterField
           label="Operador"
-          :model-value="mastersStore.master_id_operador || null"
-          @update:model-value="(id) => (mastersStore.master_id_operador = id)"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="itemsOperadorList"
+            item-title="namelong"
+            item-value="id"
+            placeholder="Seleccionar"
+            :model-value="mastersStore.master_id_operador || null"
+            @update:model-value="(val) => (mastersStore.master_id_operador = val)"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="6"
         v-if="isAereo() || isFCL() || isLCL()"
       >
-        <v-autocomplete
-          :items="mastersStore.itemsProveedorRolAgente"
-          item-title="namelong"
-          item-value="id"
+        <MasterField
           label="Agente"
-          :model-value="appStore.master_id_agente || null"
-          @update:model-value="(id) => (appStore.master_id_agente = id)"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="mastersStore.itemsProveedorRolAgente"
+            item-title="namelong"
+            item-value="id"
+            placeholder="Seleccionar"
+            :model-value="appStore.master_id_agente || null"
+            @update:model-value="(val) => (appStore.master_id_agente = val)"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="6"
         v-if="isLCL()"
       >
-        <v-autocomplete
-          :items="mastersStore.itemsProveedorRolColoader"
-          item-title="namelong"
-          item-value="id"
+        <MasterField
           label="Coloader"
-          :model-value="mastersStore.master_id_coloader || null"
-          @update:model-value="(id) => (mastersStore.master_id_coloader = id)"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="mastersStore.itemsProveedorRolColoader"
+            item-title="namelong"
+            item-value="id"
+            placeholder="Seleccionar"
+            :model-value="mastersStore.master_id_coloader || null"
+            @update:model-value="(val) => (mastersStore.master_id_coloader = val)"
+          />
+        </MasterField>
       </v-col>
       <v-col
         cols="12"
-        md="6"
         v-if="isFCL()"
       >
-        <v-autocomplete
-          :items="mastersStore.itemsProveedorRolNaviera"
-          item-title="namelong"
-          item-value="id"
+        <MasterField
           label="Naviera"
-          :model-value="mastersStore.master_id_naviera || null"
-          @update:model-value="(id) => (mastersStore.master_id_naviera = id)"
-        />
-      </v-col>
-      <!--
-      <v-col cols="12" md="6">
-        <v-autocomplete
-          :items="$store.state.clientes"
-          item-text="namelong"
-          item-value="id"
-          label="Notify Master MBL"
-          v-model="$store.state.master_id_notify"
-        ></v-autocomplete>
-      </v-col>
-      -->
-      <v-col
-        cols="12"
-        md="6"
-      >
-        <v-text-field
-          :type="obtenerInputTypeBLMaster"
-          v-model="mastersStore.master_blmaster"
-          :label="obtenerLabelBLMaster"
-        />
+          v-slot="{ id }"
+        >
+          <v-autocomplete
+            :id="id"
+            :items="mastersStore.itemsProveedorRolNaviera"
+            item-title="namelong"
+            item-value="id"
+            placeholder="Seleccionar"
+            :model-value="mastersStore.master_id_naviera || null"
+            @update:model-value="(val) => (mastersStore.master_id_naviera = val)"
+          />
+        </MasterField>
       </v-col>
     </v-row>
   </div>

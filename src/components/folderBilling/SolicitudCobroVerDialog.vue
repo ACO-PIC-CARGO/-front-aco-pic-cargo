@@ -6,6 +6,7 @@ import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { shortDate } from "@/utils/dates";
 import { montoCobro } from "@/composables/useSolicitudCobro";
 import type { ConceptoSolicitudCobro } from "@/types/solicitudCobro";
+import { conceptoEnMoneda } from "@/utils/montoMoneda";
 
 // Modo ver (ojito) de una solicitud de cobro: Control de Gastos e Ingresos pendientes por confirmar.
 // Pestaña "Solicitud" (datos, aprobaciones y conceptos) y pestaña "Voucher" (el archivo del cliente).
@@ -45,7 +46,8 @@ interface SolicitudCobroDetalle {
   fecha_ingreso?: string | null;
 }
 
-const props = defineProps<{ codigo: string | null }>();
+// tabInicial: pestaña con la que abre (el ojo del soporte del cliente abre en "voucher" con todos sus archivos)
+const props = defineProps<{ codigo: string | null; tabInicial?: "solicitud" | "voucher" }>();
 const abierto = defineModel<boolean>({ default: false });
 const { smAndDown } = useDisplay();
 
@@ -77,11 +79,13 @@ const voucherActual = computed(() => vouchers.value[indiceVoucher.value] ?? vouc
 const esPdfRuta = (ruta: string | null | undefined) => /\.pdf($|\?)/i.test(ruta ?? "");
 const esPdf = computed(() => esPdfRuta(voucherActual.value?.ruta));
 const totalConceptos = computed(() =>
-  (detalle.value?.conceptos ?? []).reduce((acc, c) => acc + Number(c.total_op || 0), 0));
+  (detalle.value?.conceptos ?? []).reduce((acc, c) => acc + conceptoEnMoneda(c, detalle.value?.moneda).total, 0));
+// en la moneda de la solicitud (PEN: los montos de la cuenta del banco, no el equivalente en USD)
+const enMoneda = (c: ConceptoSolicitudCobro) => conceptoEnMoneda(c, detalle.value?.moneda);
 
 watch(abierto, async (valor) => {
   if (!valor || !props.codigo) return;
-  tab.value = "solicitud";
+  tab.value = props.tabInicial ?? "solicitud";
   indiceVoucher.value = 0;
   detalle.value = null;
   error.value = "";
@@ -318,9 +322,9 @@ const autorizaciones = computed(() => [
                       <td class="text-left">
                         {{ c.concepto }}
                       </td>
-                      <td>{{ monto(c.monto_op) }}</td>
-                      <td>{{ monto(c.igv_op) }}</td>
-                      <td>{{ monto(c.total_op) }}</td>
+                      <td>{{ monto(enMoneda(c).monto) }}</td>
+                      <td>{{ monto(enMoneda(c).igv) }}</td>
+                      <td>{{ monto(enMoneda(c).total) }}</td>
                     </tr>
                     <tr v-if="!detalle.conceptos.length">
                       <td colspan="4">

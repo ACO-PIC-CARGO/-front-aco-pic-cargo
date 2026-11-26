@@ -48,7 +48,7 @@ const search = ref("");
 const expanded = ref<string[]>([]);
 const loadingDataTable = ref(false);
 const headers = [
-  { title: "Canal", key: "canal" },
+  // { title: "Canal", key: "canal" },
   { title: "Codigo", key: "code_master", align: "start" },
   { title: "BL Master", key: "nro_mbl", align: "start" },
   { title: "Sentido", key: "namemodality" },
@@ -477,71 +477,50 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-card elevation="0">
-      <v-card-title class="align-end d-flex flex-wrap">
+    <v-card
+      elevation="0"
+      class="master-list"
+    >
+      <div class="master-list__toolbar">
         <v-text-field
           v-model="search"
-          append-inner-icon="mdi-magnify"
-          label="Buscar"
-          placeholder="Texto Buscado..."
+          prepend-inner-icon="mdi-magnify"
+          placeholder="Buscar"
+          aria-label="Buscar"
           hide-details
-          variant="outlined"
+          variant="solo-filled"
+          flat
           density="compact"
-          style="max-width: 300px"
+          class="master-list__search"
         />
+        <v-btn
+          color="#1e88e5"
+          variant="flat"
+          class="master-list__btn"
+          @click="
+            mastersStore.master_filtrarData =
+              !mastersStore.master_filtrarData
+          "
+        >
+          FILTRAR
+        </v-btn>
+        <v-btn
+          v-if="can('listMaster', 'NUEVO')"
+          color="#43a047"
+          variant="flat"
+          class="master-list__btn"
+          @click="abrirModalSeleccionQuote()"
+        >
+          NUEVO EXPEDIENTE
+        </v-btn>
         <v-spacer />
-        <div class="">
-          - Leyenda
-          <span
-            style="
-              display: inline-block;
-              background: #00ea80;
-              width: 20px;
-              height: 20px;
-              border-radius: 250px;
-              margin-left: 10px;
-              margin-right: 20px;
-            "
-          />
-          Cargas Llegadas |
-          <span
-            style="
-              display: inline-block;
-              background: #fddd0c;
-              width: 20px;
-              height: 20px;
-              border-radius: 250px;
-              margin-left: 10px;
-              margin-right: 20px;
-            "
-          />
+        <div class="master-list__legend">
+          <span class="master-list__legend-dot master-list__legend-dot--llego" />
+          Cargas Llegadas
+          <span class="master-list__legend-dot master-list__legend-dot--llegar" />
           Cargas a 5 días de llegar
-
-          <div class="d-flex justify-end mt-3">
-            <v-btn
-              v-if="can('listMaster', 'NUEVO')"
-              color="success"
-              elevation="0"
-              rounded
-              @click="abrirModalSeleccionQuote()"
-            >
-              NUEVO EXPEDIENTE
-            </v-btn>
-            <v-btn
-              color="secondary"
-              elevation="0"
-              rounded
-              class="ml-3"
-              @click="
-                mastersStore.master_filtrarData =
-                  !mastersStore.master_filtrarData
-              "
-            >
-              FILTRAR
-            </v-btn>
-          </div>
         </div>
-      </v-card-title>
+      </div>
 
       <!--<v-container v-if="!$store.state.dataMaster" style="height: 400px">
         <v-row class="fill-height" align-content="center" justify="center">
@@ -569,6 +548,8 @@ onMounted(async () => {
         item-value="id"
         :loading="loadingDataTable"
         disable-sort
+        density="compact"
+        class="master-list__table"
       >
         <template #expanded-row="{ columns, item }">
           <tr>
@@ -664,6 +645,8 @@ onMounted(async () => {
           <v-chip
             :color="item.codigo01"
             variant="flat"
+            size="small"
+            class="master-list__canal"
             v-if="item.descripcion_canal && item.status == 1"
           >
             {{ item.descripcion_canal }}
@@ -676,7 +659,7 @@ onMounted(async () => {
           >{{ item.code_master }}</label>
           <label
             v-if="item.status == 1"
-            style="color: black"
+            class="master-list__code"
           >{{
             item.code_master
           }}</label>
@@ -691,10 +674,12 @@ onMounted(async () => {
               <v-btn
                 variant="text"
                 icon
-                color="#212121"
+                color="#1e88e5"
+                size="small"
+                aria-label="Más acciones"
                 v-bind="props"
               >
-                <v-icon class="mx-1">
+                <v-icon>
                   mdi-menu
                 </v-icon>
               </v-btn>
@@ -899,14 +884,14 @@ onMounted(async () => {
               <v-btn
                 variant="text"
                 v-if="!isMasterClosed(item) && item.status == 1 && can('listMaster', 'MODIFICAR')"
-                color="#212121"
+                color="#fb8c00"
                 size="small"
                 icon
-                class="mx-1"
+                aria-label="Editar fechas"
                 v-bind="props"
                 @click="editFechas(item)"
               >
-                <v-icon class="mx-1">
+                <v-icon>
                   mdi-calendar-edit
                 </v-icon>
               </v-btn>
@@ -937,13 +922,13 @@ onMounted(async () => {
                 icon
                 v-bind="props"
                 v-if="item.status == 1"
-                color="#212121"
+                color="#1e88e5"
                 size="small"
                 aria-label="Ver master"
                 @click="viewMaster(item.id)"
               >
-                <v-icon class="mx-1">
-                  mdi-eye
+                <v-icon>
+                  mdi-eye-outline
                 </v-icon>
               </v-btn>
             </template>
@@ -1009,10 +994,11 @@ onMounted(async () => {
                 icon
                 v-bind="props"
                 @click="abrirCaperta(item)"
-                color="#212121"
+                color="#f6b21b"
                 size="small"
+                aria-label="Abrir carpeta"
               >
-                <v-icon class="mx-1">
+                <v-icon>
                   mdi-folder
                 </v-icon>
               </v-btn>
@@ -1236,6 +1222,82 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+.master-list {
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+}
+.master-list__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+.master-list__search {
+  flex: 0 1 520px;
+  min-width: 220px;
+}
+.master-list__search :deep(.v-field) {
+  border-radius: 6px;
+  background: #f1f3f6;
+  border: 1px solid #d5dbe3;
+  font-size: 13px;
+}
+.master-list__btn {
+  border-radius: 4px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.master-list__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #4b5563;
+}
+.master-list__legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-left: 8px;
+  border-radius: 50%;
+}
+.master-list__legend-dot--llego {
+  background: #00ea80;
+}
+.master-list__legend-dot--llegar {
+  background: #fddd0c;
+}
+.master-list__table :deep(thead th) {
+  background: #eef2f7 !important;
+  color: #111827 !important;
+  font-size: 12px;
+  font-weight: 700 !important;
+  line-height: 1.2;
+  vertical-align: middle;
+}
+.master-list__table :deep(tbody td) {
+  font-size: 12px;
+  color: #1f2937;
+  border-bottom: 1px solid #e5e9f0 !important;
+}
+.master-list__table :deep(.v-data-table-footer) {
+  font-size: 13px;
+  padding: 8px 16px;
+}
+.master-list__code {
+  color: #111827;
+  font-weight: 600;
+}
+.master-list__canal {
+  min-width: 72px;
+  justify-content: center;
+  border-radius: 999px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #fff !important;
+}
+
 .itemMenu {
   cursor: pointer;
 }

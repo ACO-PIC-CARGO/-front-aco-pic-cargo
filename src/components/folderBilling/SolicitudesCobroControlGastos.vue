@@ -12,6 +12,7 @@ import SolicitudCobroCardMovil from "./SolicitudCobroCardMovil.vue";
 import ConfirmarCobroDialog from "./ConfirmarCobroDialog.vue";
 import RechazarSolicitudDialog from "./RechazarSolicitudDialog.vue";
 import SoportesCobroDialog from "./SoportesCobroDialog.vue";
+import SolicitudCobroVerDialog from "./SolicitudCobroVerDialog.vue";
 import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
 import { faltaRegistrarCobro } from "@/composables/useSolicitudCobro";
 import type { SolicitudConfirmar } from "./ConfirmarCobroDialog.vue";
@@ -148,6 +149,14 @@ function verIngreso(s: SolicitudCobro) {
 }
 
 defineExpose({ cargar });
+
+// ojo del soporte del cliente: abre Ver solicitud de cobro en la pestaña Voucher (todos los archivos del cliente)
+const dialogVouchers = ref(false);
+const codigoVouchers = ref<string | null>(null);
+function verVouchers(codigo: string) {
+  codigoVouchers.value = codigo;
+  dialogVouchers.value = true;
+}
 </script>
 
 <template>
@@ -302,7 +311,7 @@ defineExpose({ cargar });
                   title="Ver soporte de pago del cliente"
                   aria-label="Ver soporte de pago del cliente"
                   data-modo-ver="permitido"
-                  @click="abrir(s.voucher_path)"
+                  @click="verVouchers(s.codigo)"
                 />
                 <v-btn
                   icon="mdi-download"
@@ -520,6 +529,7 @@ defineExpose({ cargar });
           @rechazar="abrirRechazo(s.codigo, s.codigo_estado)"
           @ver-rechazo="verMotivoRechazo({ motivo: s.motivo_rechazo, usuario: s.usuario_rechazo, fecha: s.fecha_rechazo, area: s.area_rechazo })"
           @ver-soportes="verSoportes(s)"
+          @ver-vouchers="verVouchers(s.codigo)"
           @registrar="registrarEnBancos(s)"
           @confirmar="abrirConfirmar(s)"
           @eliminar-confirmacion="eliminarConfirmacion(s)"
@@ -563,6 +573,12 @@ defineExpose({ cargar });
       v-model="dialogConfirmar"
       :solicitud="solicitudConfirmar"
       @guardado="cargar()"
+    />
+    <!-- ojo del soporte del cliente: todos sus archivos (como el Ver de Control de Gastos) -->
+    <SolicitudCobroVerDialog
+      v-model="dialogVouchers"
+      :codigo="codigoVouchers"
+      tab-inicial="voucher"
     />
   </section>
 </template>

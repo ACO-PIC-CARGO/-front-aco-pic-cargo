@@ -238,7 +238,8 @@ async function clientSaved() {
 onMounted(async () => {
   waitForHeaderTarget();
   appStore.spiner = true;
-  await housesStore.verHouse({ id: houseId.value });
+  // On the House screens trafficHouseGuard already loaded this house before the screen opened.
+  if (isTrafficFile || housesStore.house.id !== houseId.value) await housesStore.verHouse({ id: houseId.value });
   await Promise.all([loadTracking(), branchTimeZoneStore.load(), loadNotices()]);
   await pricingStore.getCargarEjecutivo();
   showTitle();

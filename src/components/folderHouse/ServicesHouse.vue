@@ -7,6 +7,7 @@ import moment from "moment";
 import FormatFecha from "../comun/FormatFecha.vue";
 import Swal from "sweetalert2";
 import { useHousesStore } from "@/stores/houses";
+import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import type { ApiResponse } from "@/types/api";
 import type { ServicioHouse, ServicioPorIncoterm } from "@/types/operaciones";
 import { sessionBranchId } from "@/utils/sesion";
@@ -17,6 +18,7 @@ const componentProps = defineProps<{ isFormActionsDisabled?: boolean }>();
 const appStore = useAppStore();
 const route = useRoute();
 const housesStore = useHousesStore();
+const masterusuariosStore = useMasterusuariosStore();
 const { can } = usePermissions();
 
 const loading = ref(false);
@@ -425,6 +427,7 @@ watch(() => housesStore.telexconfirmado, () => {
 });
 
 onMounted(async () => {
+  if (!masterusuariosStore.lstCanales.length) masterusuariosStore.cargarMasterDetalleCanal();
   await _validaData();
 });
 </script>
@@ -628,8 +631,12 @@ onMounted(async () => {
             cols="12"
             md="6"
           >
-            <v-text-field
+            <v-select
               v-model="housesStore.house_canal_aduana"
+              :items="masterusuariosStore.lstCanales"
+              item-title="descripcion"
+              item-value="descripcion"
+              clearable
               label="Canal de Aduana"
               prepend-icon="mdi-traffic-light"
               :disabled="isFormActionsDisabled"

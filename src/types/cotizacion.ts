@@ -390,6 +390,13 @@ export interface HouseListado {
   nameconsigner?: string;
   nameportbegin?: string;
   nameportend?: string;
+  nameproveedor?: string;
+  namemodality?: string;
+  fecha_etd?: string | null;
+  fecha_eta?: string | null;
+  naviera?: string | null;
+  nro_declaracion_aduana?: string | null;
+  canal_aduana?: string | null;
 }
 
 export interface HouseDisponible {

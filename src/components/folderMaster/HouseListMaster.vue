@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
 import { useMastersStore } from "@/stores/masters";
@@ -16,6 +16,9 @@ import moment from "moment-timezone";
 import type { ComentarioMasterFila } from "@/types/operaciones";
 
 const HOUSE_NOT_MOVED = "No pudimos mover el house. Revisa tu conexión e intenta de nuevo.";
+const HOUSES_PREVIEW = 5;
+const numberFormat = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 3 });
+const formatNumber = (value: unknown) => numberFormat.format(parseFloat(String(value ?? 0)) || 0);
 const REQUIRED = (value: unknown) => !!String(value ?? "").trim() || "Dato requerido";
 
 const emit = defineEmits<{ recargarDatos: [] }>();
@@ -28,7 +31,6 @@ const housesStore = useHousesStore();
 const { can } = usePermissions();
 const pricingStore = usePricingStore();
 
-const openExpand = ref(0);
 const showAll = ref(false);
 const activeTab = ref(0);
 const flagCambiarExpediente = ref(false);
@@ -38,7 +40,7 @@ const house = ref<HouseDeMaster>({} as HouseDeMaster);
 
 const displayedItems = computed(() => {
   const list = appStore.itemsHouseList || [];
-  return showAll.value ? list : list.slice(0, 3);
+  return showAll.value ? list : list.slice(0, HOUSES_PREVIEW);
 });
 const masterComments = ref<ComentarioMasterFila[]>([]);
 const commentsNotice = ref("");
@@ -229,245 +231,281 @@ function eliminar(id: number) {
   });
 }
 
-watch(() => appStore.itemsHouseList, () => {
-  openExpand.value = 0;
-});
-
 watch(masterId, cargarComentarios);
 
 onMounted(async () => {
   cargarComentarios();
   await appStore._getMasterList();
-  nextTick(() => {
-    openExpand.value = 0;
-  });
 });
 </script>
 
 <template>
   <div>
-    <v-expansion-panels v-model="openExpand">
-      <v-expansion-panel>
-        <v-expansion-panel-text>
-          <v-tabs
-            v-model="activeTab"
-            bg-color="transparent"
-            color="primary"
-          >
-            <v-tab key="houses">
-              <v-icon start>
-                mdi-home-group
-              </v-icon>
-              Lista de House
-            </v-tab>
-            <v-tab key="comments">
-              <v-icon start>
-                mdi-comment-text-multiple
-              </v-icon>
-              Comentarios
-            </v-tab>
-          </v-tabs>
+    <v-card
+      class="master-houses"
+      rounded="lg"
+      elevation="0"
+    >
+      <v-tabs
+        v-model="activeTab"
+        bg-color="transparent"
+        color="primary"
+        density="compact"
+        class="master-houses__tabs"
+      >
+        <v-tab key="houses">
+          <v-icon start>
+            mdi-home-outline
+          </v-icon>
+          Lista de House
+        </v-tab>
+        <v-tab key="comments">
+          <v-icon start>
+            mdi-comment-text-multiple-outline
+          </v-icon>
+          Comentarios
+        </v-tab>
+      </v-tabs>
 
-          <v-tabs-window v-model="activeTab">
-            <v-tabs-window-item key="houses">
-              <v-row density="compact">
-                <v-col
-                  cols="12"
-                  md="3"
-                >
-                  <v-text-field
-                    :model-value="totalHouses"
-                    label="Total de House"
-                    readonly
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
-                  <v-text-field
-                    :model-value="totalPesoHouse"
-                    label="Total de House Peso"
-                    suffix="kg"
-                    readonly
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
-                  <v-text-field
-                    :model-value="totalVolumenHouse"
-                    label="Total de House Volumen"
-                    suffix="m3"
-                    readonly
-                  />
-                </v-col>
-              </v-row>
-              <div
-                v-if="
-                  appStore.itemsHouseList &&
-                    appStore.itemsHouseList.length > 3 &&
-                    !showAll
-                "
-                class="mb-2"
+      <v-tabs-window v-model="activeTab">
+        <v-tabs-window-item key="houses">
+          <div class="master-houses__kpis">
+            <div class="master-houses__kpi">
+              <v-icon
+                color="primary"
+                size="28"
               >
-                <v-btn
-                  color="info"
-                  @click="showAll = true"
-                >
-                  Leer más
-                </v-btn>
+                mdi-ferry
+              </v-icon>
+              <div>
+                <div class="master-houses__kpi-label">
+                  Total de House
+                </div>
+                <div class="master-houses__kpi-value">
+                  {{ totalHouses }}
+                </div>
               </div>
-              <v-table>
-                <template #default>
-                  <thead>
-                    <tr>
-                      <th>Listado</th>
-                      <th>Código</th>
-                      <th>Cliente</th>
-                      <th>Incoterm</th>
-                      <th>Peso</th>
-                      <th>Volumen</th>
-                      <th v-if="esAereo">
-                        Peso volumétrico
-                      </th>
-                      <th v-if="esAereo">
-                        Peso Cargable
-                      </th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr
-                      v-for="(item, index) in displayedItems"
-                      :key="index"
-                      @click="showHouse(item.id)"
-                      style="cursor: pointer"
-                    >
-                      <td>{{ (index as number) + 1 }}</td>
-                      <td>{{ item.nro_hbl || item.code_house || "-" }}</td>
-                      <td>
-                        {{
-                          item.cliente_nombre ||
-                            item.nameconsigner ||
-                            item.cliente ||
-                            item.consigner ||
-                            "-"
-                        }}
-                      </td>
-                      <td>{{ getIncotermName(item) }}</td>
-                      <td>{{ item.peso || 0 }}</td>
-                      <td>{{ item.volumen || 0 }}</td>
-                      <td v-if="esAereo">
-                        {{ computePesoVolumetrico(item) }}
-                      </td>
-                      <td v-if="esAereo">
-                        {{ computePesoCargable(item) }}
-                      </td>
-                      <td>
-                        <v-btn
-                          variant="text"
-                          icon
-                          color="info"
-                          @click.stop="showHouse(item.id)"
-                        >
-                          <v-icon>
-                            mdi-open-in-new
-                          </v-icon>
-                        </v-btn>
-                        <v-btn
-                          v-if="!isViewMode && can('listMaster', 'ELIMINAR')"
-                          variant="text"
-                          icon
-                          color="red"
-                          @click.stop="eliminar(item.id)"
-                        >
-                          <v-icon>
-                            mdi-delete
-                          </v-icon>
-                        </v-btn>
-                        <v-btn
-                          v-if="!isViewMode && can('listMaster', 'MODIFICAR')"
-                          variant="text"
-                          icon
-                          color="#F57F17"
-                          @click.stop="abrirModalCambiarExpediente(item)"
-                        >
-                          <v-icon>
-                            mdi-folder-arrow-up-down
-                          </v-icon>
-                        </v-btn>
-                      </td>
-                    </tr>
-                  </tbody>
-                </template>
-              </v-table>
-            </v-tabs-window-item>
+            </div>
+            <div class="master-houses__kpi">
+              <v-icon
+                color="primary"
+                size="28"
+              >
+                mdi-weight-kilogram
+              </v-icon>
+              <div>
+                <div class="master-houses__kpi-label">
+                  Total de House Peso
+                </div>
+                <div class="master-houses__kpi-value">
+                  {{ formatNumber(totalPesoHouse) }} kg
+                </div>
+              </div>
+            </div>
+            <div class="master-houses__kpi">
+              <v-icon
+                color="primary"
+                size="28"
+              >
+                mdi-cube-outline
+              </v-icon>
+              <div>
+                <div class="master-houses__kpi-label">
+                  Total de House Volumen
+                </div>
+                <div class="master-houses__kpi-value">
+                  {{ formatNumber(totalVolumenHouse) }} m³
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <v-tabs-window-item key="comments">
-              <div
-                v-if="!isViewMode"
-                class="d-flex justify-end my-2"
-              >
-                <v-btn
-                  color="primary"
-                  variant="flat"
-                  size="small"
-                  prepend-icon="mdi-comment-plus-outline"
-                  @click="abrirModalComentario"
-                >
-                  Añadir comentario
-                </v-btn>
-              </div>
-              <v-alert
-                v-if="commentsNotice"
-                type="warning"
-                variant="tonal"
-                density="compact"
-                class="mb-2"
-                :text="commentsNotice"
-              />
-              <v-table
-                v-if="masterComments.length > 0"
-              >
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Ejecutivo</th>
-                    <th>Comentario</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr
-                    v-for="(comment, index) in masterComments"
-                    :key="index"
-                    class="bg-comentarios"
+          <div class="master-houses__table-wrap">
+            <v-table
+              density="compact"
+              class="master-houses__table"
+            >
+              <thead>
+                <tr>
+                  <th class="text-center">
+                    Listado
+                  </th>
+                  <th>Código</th>
+                  <th>Cliente</th>
+                  <th>Incoterm</th>
+                  <th class="text-right">
+                    Peso (kg)
+                  </th>
+                  <th class="text-right">
+                    Volumen (m³)
+                  </th>
+                  <th
+                    v-if="esAereo"
+                    class="text-right"
                   >
-                    <td class="bg-comentarios">
-                      {{ comment.fecha }}
-                    </td>
-                    <td class="bg-comentarios">
-                      {{ comment.ejecutivo }}
-                    </td>
-                    <td class="bg-comentarios">
-                      {{ comment.comentario }}
-                    </td>
-                  </tr>
-                </tbody>
-              </v-table>
-              <v-alert
-                v-else
-                type="info"
-                variant="tonal"
+                    Peso volumétrico
+                  </th>
+                  <th
+                    v-if="esAereo"
+                    class="text-right"
+                  >
+                    Peso Cargable
+                  </th>
+                  <th class="text-center">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(item, index) in displayedItems"
+                  :key="item.id ?? index"
+                  @click="showHouse(item.id)"
+                  style="cursor: pointer"
+                >
+                  <td class="text-center">
+                    {{ (index as number) + 1 }}
+                  </td>
+                  <td>{{ item.nro_hbl || item.code_house || "-" }}</td>
+                  <td>
+                    {{
+                      item.cliente_nombre ||
+                        item.nameconsigner ||
+                        item.cliente ||
+                        item.consigner ||
+                        "-"
+                    }}
+                  </td>
+                  <td>{{ getIncotermName(item) }}</td>
+                  <td class="text-right">
+                    {{ formatNumber(item.peso) }}
+                  </td>
+                  <td class="text-right">
+                    {{ formatNumber(item.volumen) }}
+                  </td>
+                  <td
+                    v-if="esAereo"
+                    class="text-right"
+                  >
+                    {{ formatNumber(computePesoVolumetrico(item)) }}
+                  </td>
+                  <td
+                    v-if="esAereo"
+                    class="text-right"
+                  >
+                    {{ formatNumber(computePesoCargable(item)) }}
+                  </td>
+                  <td class="text-center text-no-wrap">
+                    <v-btn
+                      variant="text"
+                      icon
+                      size="small"
+                      color="info"
+                      aria-label="Abrir house"
+                      @click.stop="showHouse(item.id)"
+                    >
+                      <v-icon>mdi-open-in-new</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="!isViewMode && can('listMaster', 'ELIMINAR')"
+                      variant="text"
+                      icon
+                      size="small"
+                      color="red"
+                      aria-label="Eliminar house"
+                      @click.stop="eliminar(item.id)"
+                    >
+                      <v-icon>mdi-delete</v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="!isViewMode && can('listMaster', 'MODIFICAR')"
+                      variant="text"
+                      icon
+                      size="small"
+                      color="#F57F17"
+                      aria-label="Cambiar expediente"
+                      @click.stop="abrirModalCambiarExpediente(item)"
+                    >
+                      <v-icon>mdi-folder-arrow-up-down</v-icon>
+                    </v-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </div>
+          <div
+            v-if="(appStore.itemsHouseList?.length ?? 0) > HOUSES_PREVIEW"
+            class="text-center pa-2"
+          >
+            <v-btn
+              variant="text"
+              color="primary"
+              class="text-decoration-underline text-none"
+              @click="showAll = !showAll"
+            >
+              {{ showAll ? "Ver menos" : "Ver todos" }}
+            </v-btn>
+          </div>
+        </v-tabs-window-item>
+
+        <v-tabs-window-item key="comments">
+          <div class="pa-3">
+            <div
+              v-if="!isViewMode"
+              class="d-flex justify-end mb-2"
+            >
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="small"
+                prepend-icon="mdi-comment-plus-outline"
+                @click="abrirModalComentario"
               >
-                No hay comentarios disponibles
-              </v-alert>
-            </v-tabs-window-item>
-          </v-tabs-window>
-        </v-expansion-panel-text>
-      </v-expansion-panel>
-    </v-expansion-panels>
+                Añadir comentario
+              </v-btn>
+            </div>
+            <v-alert
+              v-if="commentsNotice"
+              type="warning"
+              variant="tonal"
+              density="compact"
+              class="mb-2"
+              :text="commentsNotice"
+            />
+            <v-table
+              v-if="masterComments.length > 0"
+              density="compact"
+              class="master-houses__table"
+            >
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Ejecutivo</th>
+                  <th>Comentario</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(comment, index) in masterComments"
+                  :key="index"
+                >
+                  <td>{{ comment.fecha }}</td>
+                  <td>{{ comment.ejecutivo }}</td>
+                  <td>{{ comment.comentario }}</td>
+                </tr>
+              </tbody>
+            </v-table>
+            <v-alert
+              v-else
+              type="info"
+              variant="tonal"
+            >
+              No hay comentarios disponibles
+            </v-alert>
+          </div>
+        </v-tabs-window-item>
+      </v-tabs-window>
+    </v-card>
 
     <v-dialog
       v-model="dialogComentario"
@@ -592,4 +630,46 @@ onMounted(async () => {
   </div>
 </template>
 
-
+<style scoped>
+.master-houses {
+  border: 1px solid #dbe4ee;
+}
+.master-houses__tabs {
+  border-bottom: 1px solid #e5ebf2;
+}
+.master-houses__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin: 8px 12px;
+}
+.master-houses__kpi {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+}
+.master-houses__kpi + .master-houses__kpi {
+  border-left: 1px solid #e5ebf2;
+}
+.master-houses__kpi-label {
+  font-size: 12px;
+  color: #4b5563;
+}
+.master-houses__kpi-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+.master-houses__table-wrap {
+  margin: 0 12px;
+  overflow-x: auto;
+}
+.master-houses__table :deep(thead th) {
+  background: #eef2f6 !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+}
+.master-houses__table :deep(tbody td) {
+  font-size: 13px;
+}
+</style>

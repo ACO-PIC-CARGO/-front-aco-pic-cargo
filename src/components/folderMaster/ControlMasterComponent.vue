@@ -25,6 +25,14 @@ const appRouter = useRouter();
 const itemsOperadorList = computed(() => appStore.itemsOperadorList);
 
 const formControlMasterReadonly = ref(false);
+// Campos del nuevo diseño: contorno, compactos y con la etiqueta encima (MasterField).
+const masterFieldDefaults = { variant: "outlined", density: "compact", hideDetails: "auto" } as const;
+const fieldDefaults = {
+  VTextField: masterFieldDefaults,
+  VAutocomplete: masterFieldDefaults,
+  VSelect: masterFieldDefaults,
+  VCheckbox: { density: "compact", hideDetails: true },
+};
 const loadingBotonNuevoHouse = ref(false);
 const fab = ref(false);
 const hover = false;
@@ -608,132 +616,217 @@ onMounted(async () => {
     ref="formControlMaster"
     :readonly="formControlMasterReadonly"
   >
-    <v-container fluid>
-      <v-row>
-        <v-col
-          cols="12"
-          md="4"
-        >
-          <v-card>
-            <v-card-text>
-              <dataGen />
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col
-          cols="12"
-          md="5"
-        >
-          <v-card>
-            <v-card-text>
-              <dataEmbar :is-form-actions-disabled="formControlMasterReadonly" />
-            </v-card-text>
-          </v-card>
-        </v-col>
-
-        <v-col
-          cols="12"
-          md="3"
-        >
-          <v-card>
-            <v-card-text>
-              <h3>Fechas</h3>
-              <dataFechas />
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12">
-          <houselist
-            v-if="mastersStore.statusData"
-            @recargar-datos="recargarDatos"
-          />
-        </v-col>
-        <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
-          <v-fab-transition v-if="formControlMasterReadonly && can('listMaster', 'MODIFICAR')">
-            <v-btn
-              icon
-              size="large"
-              location="bottom left"
-              color="info"
-              @click="irAVerMaster()"
-            >
-              <v-icon> mdi-pencil </v-icon>
-            </v-btn>
-          </v-fab-transition>
-          <v-speed-dial
-            v-else-if="!formControlMasterReadonly"
-            v-model="fab"
-            location="top end"
-            :open-on-hover="hover"
-            :transition="transition"
-            content-class="acciones-dial"
+    <v-defaults-provider :defaults="fieldDefaults">
+      <v-container
+        fluid
+        class="control-master"
+      >
+        <v-row>
+          <v-col
+            cols="12"
+            lg="4"
           >
-            <template #activator="{ props }">
+            <v-card
+              class="cm-card"
+              rounded="lg"
+              elevation="0"
+            >
+              <div class="cm-card__header">
+                <span class="cm-card__step">1</span>
+                <h3 class="cm-card__title">
+                  Datos y Servicios
+                </h3>
+                <v-spacer />
+                <v-chip
+                  v-if="mastersStore.master_expediente"
+                  size="small"
+                  color="primary"
+                  variant="tonal"
+                  class="font-weight-bold"
+                >
+                  {{ mastersStore.master_expediente }}
+                </v-chip>
+              </div>
+              <v-card-text>
+                <dataGen />
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col
+            cols="12"
+            md="6"
+            lg="4"
+          >
+            <v-card
+              class="cm-card"
+              rounded="lg"
+              elevation="0"
+            >
+              <div class="cm-card__header">
+                <span class="cm-card__step">2</span>
+                <h3 class="cm-card__title">
+                  Datos del Embarque
+                </h3>
+              </div>
+              <v-card-text>
+                <dataEmbar :is-form-actions-disabled="formControlMasterReadonly" />
+              </v-card-text>
+            </v-card>
+          </v-col>
+
+          <v-col
+            cols="12"
+            md="6"
+            lg="4"
+          >
+            <v-card
+              class="cm-card"
+              rounded="lg"
+              elevation="0"
+            >
+              <div class="cm-card__header">
+                <span class="cm-card__step">3</span>
+                <h3 class="cm-card__title">
+                  Fechas y Confirmaciones
+                </h3>
+              </div>
+              <v-card-text>
+                <dataFechas />
+              </v-card-text>
+            </v-card>
+          </v-col>
+          <v-col cols="12">
+            <houselist
+              v-if="mastersStore.statusData"
+              @recargar-datos="recargarDatos"
+            />
+          </v-col>
+          <div style="position: fixed; bottom: 16px; right: 16px; z-index: 3000">
+            <v-fab-transition v-if="formControlMasterReadonly && can('listMaster', 'MODIFICAR')">
               <v-btn
-                v-bind="props"
-                color="info"
                 icon
-                aria-label="Acciones"
+                size="large"
+                location="bottom left"
+                color="info"
+                @click="irAVerMaster()"
               >
-                <v-icon v-if="fab">
-                  mdi-close
-                </v-icon>
-                <v-icon v-else>
-                  mdi-tools
-                </v-icon>
+                <v-icon> mdi-pencil </v-icon>
               </v-btn>
-            </template>
-            <!-- Invertimos el orden en el DOM para que el último quede ARRIBA al abrir hacia arriba -->
-            <v-btn
-              v-if="mastersStore.url_folderonedrive"
-              @click="mastersStore.openURL({ url: mastersStore.url_folderonedrive })"
-              color="yellow"
+            </v-fab-transition>
+            <v-speed-dial
+              v-else-if="!formControlMasterReadonly"
+              v-model="fab"
+              location="top end"
+              :open-on-hover="hover"
+              :transition="transition"
+              content-class="acciones-dial"
             >
-              <v-icon start>
-                mdi-folder
-              </v-icon>
-              Carpeta
-            </v-btn>
-            <v-btn
-              v-if="mastersStore.statusData && can('listMaster', 'NUEVO')"
-              @click="addNewHouse()"
-              color="primary"
-              :loading="loadingBotonNuevoHouse"
-            >
-              <v-icon start>
-                mdi-home-plus
-              </v-icon>
-              Agregar House
-            </v-btn>
-            <v-btn
-              color="light-green-lighten-1"
-              @click="_putMaster()"
-              v-if="route.params.id && can('listMaster', 'MODIFICAR')"
-            >
-              <v-icon start>
-                mdi-content-save
-              </v-icon>
-              Guardar Cambios
-            </v-btn>
-            <v-btn
-              color="light-green-lighten-1"
-              @click="_setMaster()"
-              v-if="!route.params.id && can('listMaster', 'NUEVO')"
-            >
-              <v-icon start>
-                mdi-content-save
-              </v-icon>
-              Guardar
-            </v-btn>
-          </v-speed-dial>
-        </div>
-      </v-row>
-    </v-container>
+              <template #activator="{ props }">
+                <v-btn
+                  v-bind="props"
+                  color="info"
+                  icon
+                  aria-label="Acciones"
+                >
+                  <v-icon v-if="fab">
+                    mdi-close
+                  </v-icon>
+                  <v-icon v-else>
+                    mdi-tools
+                  </v-icon>
+                </v-btn>
+              </template>
+              <!-- Invertimos el orden en el DOM para que el último quede ARRIBA al abrir hacia arriba -->
+              <v-btn
+                v-if="mastersStore.url_folderonedrive"
+                @click="mastersStore.openURL({ url: mastersStore.url_folderonedrive })"
+                color="yellow"
+              >
+                <v-icon start>
+                  mdi-folder
+                </v-icon>
+                Carpeta
+              </v-btn>
+              <v-btn
+                v-if="mastersStore.statusData && can('listMaster', 'NUEVO')"
+                @click="addNewHouse()"
+                color="primary"
+                :loading="loadingBotonNuevoHouse"
+              >
+                <v-icon start>
+                  mdi-home-plus
+                </v-icon>
+                Agregar House
+              </v-btn>
+              <v-btn
+                color="light-green-lighten-1"
+                @click="_putMaster()"
+                v-if="route.params.id && can('listMaster', 'MODIFICAR')"
+              >
+                <v-icon start>
+                  mdi-content-save
+                </v-icon>
+                Guardar Cambios
+              </v-btn>
+              <v-btn
+                color="light-green-lighten-1"
+                @click="_setMaster()"
+                v-if="!route.params.id && can('listMaster', 'NUEVO')"
+              >
+                <v-icon start>
+                  mdi-content-save
+                </v-icon>
+                Guardar
+              </v-btn>
+            </v-speed-dial>
+          </div>
+        </v-row>
+      </v-container>
+    </v-defaults-provider>
   </v-form>
 </template>
 
 <style lang="scss" scoped>
+.control-master {
+  background: #f4f7fb;
+}
+.cm-card {
+  height: 100%;
+  border: 1px solid #dbe4ee;
+}
+.cm-card__header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #e8f1fb;
+  border-bottom: 1px solid #dbe4ee;
+}
+.cm-card__step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #1e6fd9;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+.cm-card__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
+.cm-card :deep(.v-field) {
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+}
+
 ._content__bitacora {
   height: 90vh;
   overflow-y: scroll;

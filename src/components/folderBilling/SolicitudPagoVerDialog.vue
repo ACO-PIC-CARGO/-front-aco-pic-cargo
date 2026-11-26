@@ -632,11 +632,11 @@ watch(
               </div>
               <div class="pmov__montos">
                 <div>
-                  <span class="pmov__label"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ detalle.moneda || "USD" }})</span>
+                  <span class="pmov__label"><v-icon size="16">mdi-tag-outline</v-icon> Pricing (USD)</span>
                   <b>{{ formatoMonto(p.total_pr) }}</b>
                 </div>
                 <div>
-                  <span class="pmov__label"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ detalle.moneda || "USD" }})</span>
+                  <span class="pmov__label"><v-icon size="16">mdi-cog-outline</v-icon> Operaciones ({{ p.moneda || detalle.moneda || "USD" }})</span>
                   <b>{{ formatoMonto(p.total_op ?? p.total) }}</b>
                 </div>
               </div>
@@ -663,10 +663,10 @@ watch(
                 <tr>
                   <th>Proveedor / Concepto</th>
                   <th class="num">
-                    Pricing ({{ detalle.moneda || "USD" }})
+                    Pricing (USD)
                   </th>
                   <th class="num">
-                    Operaciones ({{ detalle.moneda || "USD" }})
+                    Operaciones
                   </th>
                   <th class="center">
                     Estado
@@ -691,8 +691,9 @@ watch(
                   <td class="num">
                     {{ formatoMonto(p.total_pr) }}
                   </td>
+                  <!-- en la moneda de los conceptos del proveedor (PEN: monto de la cuenta del banco) -->
                   <td class="num">
-                    {{ formatoMonto(p.total_op ?? p.total) }}
+                    {{ formatoMonto(p.total_op ?? p.total) }} {{ p.moneda || detalle.moneda || "USD" }}
                   </td>
                   <td class="center">
                     <span

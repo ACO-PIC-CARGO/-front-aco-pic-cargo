@@ -22,6 +22,8 @@ export interface ConceptoSolicitudCobro {
   igv_op: number | string | null;
   total_op: number | string | null;
   totalopcuentabanco: number | string | null;
+  montoopcuentabanco?: number | string | null;
+  igvopcuentabanco?: number | string | null;
 }
 
 /** Fila de function_solicitudcobro_listar (Control de Gastos) */

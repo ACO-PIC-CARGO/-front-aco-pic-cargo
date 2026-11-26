@@ -1422,6 +1422,32 @@ const solicitudPagoCliente = ref<SolicitudCobro | null>(null);
 const soportePagoCliente = ref<SoporteCobro | null>(null);
 const adminPagoCliente = ref<AdminCredentials | null>(null);
 
+// Deuda del correlativo en su moneda: en PEN (u otra) el Op del listado es el equivalente en USD; el monto
+// a cobrar es el de la cuenta del banco (saldo de la BD, function_solicitudcobro_saldo)
+const saldosLocales = ref<Record<string, number>>({});
+const claveSaldoHouse = (h: Partial<HouseIngreso>) => `${Number(h.id_house)}-${Number(h.id_correlativo || 0)}`;
+const esCorrelativoDolar = (h: HouseIngreso) =>
+  (h.ingresos ?? []).every((i) => !Number(i.total_op || 0) || ["USD", "$"].includes(String(i.acronym || i.symbol || "USD").trim().toUpperCase()));
+function deudaCobro(house: HouseIngreso) {
+  const local = saldosLocales.value[claveSaldoHouse(house)];
+  return local ?? Number(getDeudaActual(house));
+}
+async function cargarSaldosLocales(houses: HouseIngreso[]) {
+  const otras = houses.filter((h) => h.id_house && !esCorrelativoDolar(h));
+  const saldos: Record<string, number> = {};
+  await Promise.all(otras.map(async (h) => {
+    const r = await request<{ saldo: number | string; monedas: number }>({
+      method: "get",
+      url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_saldo",
+      params: { id_house: h.id_house, id_correlativo: h.id_correlativo || undefined },
+    });
+    const fila = r.estadoflag ? r.data[0] : undefined;
+    if (fila && Number(fila.monedas) === 1) saldos[claveSaldoHouse(h)] = Number(fila.saldo || 0);
+  }));
+  saldosLocales.value = saldos;
+}
+watch(masterHouses, (houses) => void cargarSaldosLocales(houses ?? []), { immediate: true });
+
 async function cargarSolicitudesCobro() {
   if (idMasterCobro.value) await solicitudesMasterStore.cargarCobros(idMasterCobro.value);
 }
@@ -1515,7 +1541,7 @@ function solicitudDeSoporte(house: HouseIngreso, soporte: SoporteCobro) {
 }
 // saldo para cargar más pagos: la deuda actual menos lo ya cargado y aún no registrado en Bancos
 function saldoCobro(house: HouseIngreso) {
-  return Math.max(Math.round(((Number(getDeudaActual(house)) || 0) - comprometidoCobro(house)) * 100) / 100, 0);
+  return Math.max(Math.round(((Number(deudaCobro(house)) || 0) - comprometidoCobro(house)) * 100) / 100, 0);
 }
 
 // soporte: el pago a editar; nuevo = "Agregar otro soporte de ingreso"
@@ -1560,7 +1586,7 @@ async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro
     cliente: house.consigner ?? "",
     correlativo: house.correlativo ?? null,
     // solicitud nueva: lo que queda después de los pagos ya cargados y sin registrar
-    deuda: s ? getDeudaActual(house) : saldoCobro(house),
+    deuda: s ? deudaCobro(house) : saldoCobro(house),
     id_coins: monedaCorrelativo(house),
   };
   solicitudPagoCliente.value = s;

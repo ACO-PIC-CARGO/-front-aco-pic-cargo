@@ -12,6 +12,7 @@ import SolicitudCobroCardMovil from "@/components/folderBilling/SolicitudCobroCa
 import ConfirmarCobroDialog from "@/components/folderBilling/ConfirmarCobroDialog.vue";
 import RechazarSolicitudDialog from "@/components/folderBilling/RechazarSolicitudDialog.vue";
 import SoportesCobroDialog from "@/components/folderBilling/SoportesCobroDialog.vue";
+import SolicitudCobroVerDialog from "@/components/folderBilling/SolicitudCobroVerDialog.vue";
 import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
 import type { SolicitudConfirmar } from "@/components/folderBilling/ConfirmarCobroDialog.vue";
 import { usePermissions } from "@/composables/usePermissions";
@@ -363,6 +364,14 @@ const vigente = (s: SolicitudCobroBandeja) => !["ELIMINADA", "COBRADO"].includes
 // la vista recarga las tres.
 defineExpose({ cargar });
 onMounted(cargar);
+
+// ojo del soporte del cliente: abre Ver solicitud de cobro en la pestaña Voucher (todos los archivos del cliente)
+const dialogVouchers = ref(false);
+const codigoVouchers = ref<string | null>(null);
+function verVouchers(codigo: string) {
+  codigoVouchers.value = codigo;
+  dialogVouchers.value = true;
+}
 </script>
 
 <template>
@@ -579,7 +588,7 @@ onMounted(cargar);
               title="Ver soporte de pago del cliente"
               aria-label="Ver soporte de pago del cliente"
               data-modo-ver="permitido"
-              @click="abrir(item.voucher_path)"
+              @click="verVouchers(item.codigo)"
             />
             <v-btn
               icon="mdi-download"
@@ -823,6 +832,7 @@ onMounted(cargar);
                 @rechazar="abrirRechazo(item.codigo, item.codigo_estado)"
                 @ver-rechazo="motivoDe(item)"
                 @ver-soportes="verSoportes(item)"
+                @ver-vouchers="verVouchers(item.codigo)"
                 @registrar="registrarEnBancos(item)"
                 @confirmar="abrirConfirmar(item)"
                 @eliminar-confirmacion="eliminarConfirmacion(item)"
@@ -977,6 +987,12 @@ onMounted(cargar);
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <!-- ojo del soporte del cliente: todos sus archivos (como el Ver de Control de Gastos) -->
+    <SolicitudCobroVerDialog
+      v-model="dialogVouchers"
+      :codigo="codigoVouchers"
+      tab-inicial="voucher"
+    />
   </div>
 </template>
 

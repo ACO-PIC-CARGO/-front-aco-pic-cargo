@@ -62,7 +62,7 @@ test("a user who may only look at houses can open them but not comment, edit or 
   await mountList("listHouse", ["VER"]);
 
   expect(rowControls()).toEqual({ comentar: false, editar: false });
-  expect(wrapper!.find(".mdi-eye").exists()).toBe(true);
+  expect(wrapper!.find(".mdi-eye-outline").exists()).toBe(true);
   expect(await savesFolder()).toBe(false);
 });
 

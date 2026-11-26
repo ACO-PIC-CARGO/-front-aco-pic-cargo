@@ -37,6 +37,8 @@ const emit = defineEmits<{
   rechazar: [];
   "ver-rechazo": [];
   "ver-soportes": [];
+  // todos los archivos del cliente (pestaña Voucher de Ver solicitud de cobro)
+  "ver-vouchers": [];
   registrar: [];
   confirmar: [];
   "eliminar-confirmacion": [];
@@ -243,7 +245,7 @@ function abrir(url: string | null | undefined) {
             prepend-icon="mdi-eye-outline"
             :disabled="!s.voucher_path"
             data-modo-ver="permitido"
-            @click="abrir(s.voucher_path)"
+            @click="emit('ver-vouchers')"
           >
             Ver pago del cliente
           </v-btn>
@@ -396,7 +398,7 @@ function abrir(url: string | null | undefined) {
         prepend-icon="mdi-eye-outline"
         :disabled="!s.voucher_path"
         data-modo-ver="permitido"
-        @click="abrir(s.voucher_path)"
+        @click="emit('ver-vouchers')"
       >
         Ver voucher
       </v-btn>

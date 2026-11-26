@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
+import { conceptoEnMoneda, monedaPricing, montoOpMoneda } from "@/utils/montoMoneda";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
 import { useAppStore } from "@/stores/app";
@@ -162,12 +163,18 @@ const monedaInvoice = computed(() => {
   const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
   return [acronimo, moneda?.name].filter(Boolean).join(" - ") || "—";
 });
-// "USD 220.00": totales del proveedor (Pricing / Operaciones) en el modal Cargar documento
+// Total Operaciones del proveedor en la moneda de sus conceptos (PEN: monto de la cuenta del banco, no
+// el equivalente en USD): tope de las facturas / proformas que se cargan
+const totalOpMonedaEgreso = computed(() =>
+  Math.round((egreso.value?.detalle ?? []).reduce((suma, d) => suma + montoOpMoneda(d), 0) * 100) / 100);
+// "USD 220.00": totales del proveedor (Pricing / Operaciones) en el modal Cargar documento.
+// Operaciones en la moneda del concepto (PEN: el monto de la cuenta del banco); Pricing siempre en USD
 const montosInvoice = computed(() => {
-  const moneda = egreso.value?.detalle?.[0]?.acronym ?? "";
+  const detalle = egreso.value?.detalle ?? [];
+  const moneda = detalle[0]?.acronym ?? "";
   return {
-    pricing: montoConMoneda(egreso.value?.total_total_pr, moneda),
-    operaciones: montoConMoneda(egreso.value?.total_total_op, moneda),
+    pricing: montoConMoneda(egreso.value?.total_total_pr, monedaPricing(moneda)),
+    operaciones: montoConMoneda(totalOpMonedaEgreso.value, moneda),
   };
 });
 const egresos = ref<EgresoForm>({
@@ -1440,7 +1447,7 @@ function cargarFactura() {
     return suma + (parseFloat(String(v.monto)) || 0);
   }, 0);
 
-  if (abono == parseFloat(String(egreso.value.total_total_op))) {
+  if (Math.abs(abono - totalOpMonedaEgreso.value) < 0.005) {
     Swal.fire({
       icon: "error",
       html: `<b>No se puede cargar más facturas porque el monto de Total Operaciones es igual al total de facturas cargadas.</b>`,
@@ -1470,7 +1477,7 @@ function validarMontoFactura() {
   const total =
     (parseFloat(String(monto_factura.value ? monto_factura.value : 0)) || 0) +
     (parseFloat(String(abono)) || 0);
-  if (total > parseFloat(String(egreso.value.total_total_op))) {
+  if (total > totalOpMonedaEgreso.value + 0.004) {
     Swal.fire({
       icon: "error",
       html: `<b>La suma del monto de las facturas cargadas debe ser menor o igual al monto del Total Operaciones para el proveedor. Verifique el monto de la factura.</b>`,
@@ -1733,7 +1740,8 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
   const esCodigo = tipoPagoSeleccionado.value === "02";
   const master = controlGastosStore.listControlGastos[0]!;
   const cuenta = (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]).find((c) => c.id === f.id_cuenta);
-  const totalPagar = item.detalle.reduce((suma, d) => suma + Number(d.total_op || 0), 0);
+  // en la moneda del concepto (PEN: el monto de la cuenta del banco, no el equivalente en USD)
+  const totalPagar = item.detalle.reduce((suma, d) => suma + montoOpMoneda(d), 0);
   return {
     nameProveedor: item.nombre_proveedor,
     nameConsignatario: clientesDeSolicitud(item),
@@ -1743,7 +1751,8 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
     totalProveedores: masterEgresos.value.map((e) => ({
       nameProveedor: e.nombre_proveedor,
       total_pr: Number(e.total_total_pr || 0).toFixed(2),
-      total_op: Number(e.total_total_op || 0).toFixed(2),
+      // en la moneda de los conceptos del proveedor (igual que "Ver solicitud de pago")
+      total_op: e.detalle.reduce((suma, d) => suma + montoOpMoneda(d), 0).toFixed(2),
       pagado: e.detalle.length > 0 && e.detalle.every((d) => !!d.pagado),
       actual: claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo),
     })),
@@ -1754,7 +1763,7 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
     codigo_master: "",
     cuentas: !esCodigo && cuenta ? [cuenta] : [],
     operador: appStore.dataHouse_operador,
-    conceptos: item.detalle,
+    conceptos: item.detalle.map((d) => ({ ...d, total_op: montoOpMoneda(d) })),
     selected: [],
     totalSelected: totalPagar.toFixed(2),
     number,
@@ -1858,7 +1867,7 @@ async function generarPdfPago(enviar: boolean) {
       data: {
         id_proveedor: item.id_proveedor,
         conceptos: item.detalle,
-        monto: item.detalle.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
+        monto: item.detalle.reduce((suma, d) => suma + montoOpMoneda(d), 0),
         id_correlativo: item.id_correlativo,
         id_master: item.id_master,
         status: 1,
@@ -2013,9 +2022,9 @@ const conceptosModalSolicitudPago = computed(() =>
       id: c.id_egreso,
       concepto: c.concepto,
       acronym: solicitudPagoActual.value?.moneda ?? "",
-      total_op: c.total_op,
+      total_op: conceptoEnMoneda(c, solicitudPagoActual.value?.moneda).total,
     }))
-    : conceptosSolicitudPago.value.map((c) => ({ id: c.id, concepto: c.concepto, acronym: c.acronym, total_op: c.total_op })),
+    : conceptosSolicitudPago.value.map((c) => ({ id: c.id, concepto: c.concepto, acronym: c.acronym, total_op: montoOpMoneda(c) })),
 );
 const totalModalSolicitudPago = computed(() =>
   modoSolicitudPago.value === "ver" && solicitudPagoActual.value
@@ -2027,7 +2036,7 @@ const monedaModalSolicitudPago = computed(
   () => conceptosModalSolicitudPago.value.find((c) => c.acronym)?.acronym || solicitudPagoActual.value?.moneda || "",
 );
 const totalSolicitudPago = computed(() =>
-  conceptosSolicitudPago.value.reduce((suma, d) => suma + Number(d.total_op || 0), 0),
+  conceptosSolicitudPago.value.reduce((suma, d) => suma + montoOpMoneda(d), 0),
 );
 // moneda de los conceptos (Op) del correlativo del proveedor: solo cuentas del proveedor en esa moneda
 const monedaSolicitudPago = computed(() => {
