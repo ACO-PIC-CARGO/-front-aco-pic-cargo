@@ -5,6 +5,7 @@ import type { ApiResponse } from "@/types/api";
 import type { BancoGastoDetalle, TotalMasterAgrupado, TotalMasterMes } from "@/types/finanzas";
 import { sessionBranchId } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
+import { requestQuoteReport } from "@/utils/quoteReportSocket";
 
 export const useReportesStore = defineStore("reportes", () => {
   const listDetalle = ref<BancoGastoDetalle[]>([]);
@@ -20,6 +21,14 @@ export const useReportesStore = defineStore("reportes", () => {
     await downloadPdf(
       { method: "post", url: import.meta.env.VITE_URL_MAIN + "createdPDF", data: filtros },
       "REPORTE_CONTROL_FILE.pdf",
+    );
+  }
+  // Lista de Control de Gastos > EXPORTAR: PDF de los masters que se ven en el listado, generado en segundo plano
+  // (igual que el reporte de pricing: se descarga solo cuando está listo).
+  async function exportControlGastos(ids: number[], filtros: Record<string, unknown>): Promise<void> {
+    await requestQuoteReport(
+      { method: "post", url: import.meta.env.VITE_URL_MAIN + "export_control_gastos_pdf", data: { ids, filtros } },
+      "CONTROL_EXPEDIENTES.pdf",
     );
   }
   async function getListarBancosgastosDetalles(data: Record<string, unknown>): Promise<void> {
@@ -155,6 +164,7 @@ export const useReportesStore = defineStore("reportes", () => {
     totalMasterAgrupado,
     totalMasterPorMes,
     exportReporteFile,
+    exportControlGastos,
     getListarBancosgastosDetalles,
     getTotalesMasterAgrupado,
     printTotalesMasterPorMes,

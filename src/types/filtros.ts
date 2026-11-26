@@ -7,6 +7,14 @@ export interface FiltroBarra {
   hasta?: string | null;
   fechadesde?: string | null;
   fechahasta?: string | null;
+  fechadisponibilidaddesde?: string | null;
+  fechadisponibilidadhasta?: string | null;
+  fechaetddesde?: string | null;
+  fechaetdhasta?: string | null;
+  fechaetadesde?: string | null;
+  fechaetahasta?: string | null;
+  fechalibrealmacenajedesde?: string | null;
+  fechalibrealmacenajehasta?: string | null;
   id_proveedor?: Valor;
   id_consigner?: Valor;
   id_cliente?: Valor;

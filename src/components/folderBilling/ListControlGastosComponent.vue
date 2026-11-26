@@ -7,10 +7,14 @@ import GuardarUrlMaster from "../comun/GuardarUrlMaster.vue";
 import Swal from "sweetalert2";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { usePricingStore } from "@/stores/pricing";
+import { useReportesStore } from "@/stores/reportes";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type { MasterListadoControlGasto } from "@/types/billing";
 import { sessionBranchId } from "@/utils/sesion";
 import { usePermissions } from "@/composables/usePermissions";
+import BarraFiltro from "@/components/BarraMostrarFiltro/BarraFiltro.vue";
+import { RANGOS_CONTROL_GASTOS, problemaRangoExportar } from "@/utils/controlGastosFechas";
+import type { FiltroBarra } from "@/types/filtros";
 
 defineProps<{ statusReport?: boolean }>();
 
@@ -19,6 +23,7 @@ const router = useRouter();
 const { can } = usePermissions();
 const pricingStore = usePricingStore();
 const masterusuariosStore = useMasterusuariosStore();
+const reportesStore = useReportesStore();
 
 const dialogUrl = ref(false);
 const url_folderonedrive = ref("");
@@ -45,10 +50,65 @@ const headers = [
   { title: "Fecha Etd", key: "fecha_etd" },
   { title: "Fecha Eta", key: "fecha_eta" },
 
-  { title: "Acciones", key: "actions" },
+  { title: "Acciones", key: "actions", sortable: false, align: "center" },
+] as const;
+const page = ref(1);
+const itemsPerPage = ref(10);
+const itemsPerPageOptions = [
+  { value: 10, title: "10" },
+  { value: 25, title: "25" },
+  { value: 50, title: "50" },
+  { value: 100, title: "100" },
 ];
 
 const itemsDataControlList = computed<MasterListadoControlGasto[]>(() => appStore.itemsDataControlList);
+
+// Mismos registros que muestra la tabla con la búsqueda escrita: es lo que se exporta.
+const SEARCH_KEYS = headers.map((header) => header.key).filter((key) => key !== "actions");
+const itemsVisibles = computed(() => {
+  const text = search.value.trim().toLowerCase();
+  if (!text) return itemsDataControlList.value;
+  return itemsDataControlList.value.filter((item) =>
+    SEARCH_KEYS.some((key) => String(item[key] ?? "").toLowerCase().includes(text)),
+  );
+});
+
+const STATUS_LABELS: Record<string, string> = { "0": "Abiertos", "1": "Cerrados" };
+// Solo las fechas del filtro: la barra "Filtro Por" muestra las que tienen valor.
+const fechasFiltro = computed(() => {
+  const filtro = appStore.controlgastosfiltro;
+  return Object.fromEntries(
+    RANGOS_CONTROL_GASTOS.flatMap((rango) => [
+      [rango.desde, filtro[rango.desde] ?? null],
+      [rango.hasta, filtro[rango.hasta] ?? null],
+    ]),
+  ) as FiltroBarra;
+});
+
+const exportando = ref(false);
+async function exportar() {
+  const filtro = appStore.controlgastosfiltro;
+  const problema = problemaRangoExportar(filtro);
+  if (problema) {
+    Swal.fire({ icon: "info", text: problema });
+    return;
+  }
+  const sentido = appStore.itemsModality.find((modality: { id: unknown }) => modality.id == filtro.id_sentido);
+  exportando.value = true;
+  try {
+    await reportesStore.exportControlGastos(
+      itemsVisibles.value.map((item) => item.id),
+      {
+        sentido: sentido?.name ?? null,
+        status_operativo: STATUS_LABELS[String(filtro.status_operativo)] ? filtro.status_operativo : null,
+        status_administrativo: STATUS_LABELS[String(filtro.status_administrativo)] ? filtro.status_administrativo : null,
+        ...fechasFiltro.value,
+      },
+    );
+  } finally {
+    exportando.value = false;
+  }
+}
 
 onMounted(async () => {
   await Promise.all([
@@ -109,36 +169,55 @@ function verControlGasto(master: MasterListadoControlGasto) {
 
 <template>
   <div>
-    <v-card elevation="5">
-      <v-card-title class="d-flex align-center flex-wrap">
-        <v-btn
-          v-if="can('listControlGastos', 'NUEVO')"
-          color="primary"
-          elevation="0"
-          rounded
-          class="mb-2 ml-5"
-          @click="statusDialog = !statusDialog"
-        >
-          NUEVO CONTROL
-        </v-btn>
-        <v-btn
-          color="success"
-          class="mb-2 ml-5"
-          rounded
-          @click="appStore.cg_filtrarData = true"
-        >
-          Filtar
-        </v-btn>
-        <v-spacer />
+    <BarraFiltro
+      :filtro="fechasFiltro"
+      class="mb-2"
+    />
+    <v-card elevation="0">
+      <v-card-text class="pt-4 pb-2">
+        <div class="d-flex align-center flex-wrap ga-4">
+          <v-text-field
+            v-model="search"
+            placeholder="Buscar"
+            variant="solo-filled"
+            flat
+            density="compact"
+            hide-details
+            prepend-icon="mdi-magnify"
+            class="list-control__search"
+            @update:model-value="page = 1"
+          />
+          <v-btn
+            color="primary"
+            elevation="0"
+            @click="appStore.cg_filtrarData = true"
+          >
+            FILTRAR
+          </v-btn>
+          <v-btn
+            v-if="can('listControlGastos', 'EXPORTAR')"
+            color="primary"
+            variant="outlined"
+            prepend-icon="mdi-file-pdf-box"
+            :loading="exportando"
+            :disabled="!appStore.dataGastos || !itemsVisibles.length"
+            @click="exportar"
+          >
+            EXPORTAR
+          </v-btn>
+          <v-spacer />
+          <v-btn
+            v-if="can('listControlGastos', 'NUEVO')"
+            color="primary"
+            elevation="0"
+            prepend-icon="mdi-plus"
+            @click="statusDialog = !statusDialog"
+          >
+            NUEVO CONTROL
+          </v-btn>
+        </div>
+      </v-card-text>
 
-        <v-text-field
-          v-model="search"
-          append-inner-icon="mdi-magnify"
-          label="Buscar"
-          single-line
-          hide-details
-        />
-      </v-card-title>
       <v-container
         v-if="!appStore.dataGastos"
         style="height: 400px"
@@ -148,11 +227,11 @@ function verControlGasto(master: MasterListadoControlGasto) {
             class="text-body-large text-center"
             cols="12"
           >
-            Cargando informacíon
+            Cargando información
           </v-col>
           <v-col cols="6">
             <v-progress-linear
-              color="deep-purple-accent-4"
+              color="primary"
               indeterminate
               rounded
               height="6"
@@ -162,43 +241,71 @@ function verControlGasto(master: MasterListadoControlGasto) {
       </v-container>
       <v-data-table
         v-if="appStore.dataGastos"
+        class="list-control"
         :headers="headers"
         :items="itemsDataControlList"
         :search="search"
+        v-model:page="page"
+        v-model:items-per-page="itemsPerPage"
+        :items-per-page-options="itemsPerPageOptions"
+        density="compact"
+        hover
       >
+        <template #[`item.code_master`]="{ item }">
+          <span class="font-weight-medium text-no-wrap">{{ item.code_master }}</span>
+        </template>
+
+        <template #[`item.nro_mbl`]="{ item }">
+          <span class="text-no-wrap">{{ item.nro_mbl }}</span>
+        </template>
+
+        <template #[`item.nameconsigner`]="{ item }">
+          <span class="list-control__consignatario">{{ item.nameconsigner }}</span>
+        </template>
+
+        <template #[`item.fecha_etd`]="{ item }">
+          <span class="text-no-wrap">{{ item.fecha_etd }}</span>
+        </template>
+
+        <template #[`item.fecha_eta`]="{ item }">
+          <span class="text-no-wrap">{{ item.fecha_eta }}</span>
+        </template>
+
         <template #[`item.actions`]="{ item }">
-          <v-icon
-            size="large"
-            color="blue"
-            class="mr-2"
-            @click="verControlGasto(item)"
-          >
-            mdi-eye
-          </v-icon>
-          <v-icon
-            size="large"
-            color="#FFD600"
-            class="mr-2"
-            @click="abrirCaperta(item)"
-          >
-            mdi-folder
-          </v-icon>
-          <v-icon
-            v-if="can('listControlGastos', 'MODIFICAR')"
-            size="large"
-            color="orange"
-            class="mr-2"
-            @click="editControlGasto(item)"
-          >
-            mdi-pencil
-          </v-icon>
+          <div class="d-flex align-center justify-center ga-1">
+            <v-icon
+              color="#FFD600"
+              size="small"
+              title="Carpeta"
+              @click.stop="abrirCaperta(item)"
+            >
+              mdi-folder
+            </v-icon>
+            <v-icon
+              color="primary"
+              size="small"
+              title="Ver control de gastos"
+              aria-label="Ver control de gastos"
+              @click.stop="verControlGasto(item)"
+            >
+              mdi-eye-outline
+            </v-icon>
+            <v-icon
+              v-if="can('listControlGastos', 'MODIFICAR')"
+              color="orange"
+              size="small"
+              title="Editar control de gastos"
+              @click.stop="editControlGasto(item)"
+            >
+              mdi-pencil
+            </v-icon>
+          </div>
         </template>
       </v-data-table>
-      <v-container>
+      <v-container v-if="statusReport">
         <v-row>
           <v-col>
             <v-btn
-              v-if="statusReport"
               color="primary"
               elevation="0"
             >
@@ -218,3 +325,28 @@ function verControlGasto(master: MasterListadoControlGasto) {
     />
   </div>
 </template>
+
+<style scoped>
+.list-control__search {
+  max-width: 640px;
+}
+.list-control :deep(thead th) {
+  background: #f1f3f5 !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem;
+  line-height: 1.2;
+  white-space: normal;
+}
+.list-control :deep(tbody td) {
+  font-size: 0.8rem;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+.list-control__consignatario {
+  display: block;
+  min-width: 160px;
+  max-width: 260px;
+  font-size: 0.75rem;
+  line-height: 1.25;
+}
+</style>

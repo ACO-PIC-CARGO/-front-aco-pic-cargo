@@ -50,6 +50,7 @@ import { hasFailed, request } from "@/utils/request";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { latestRequestTracker } from "@/utils/latestRequest";
 import { shareWhilePending } from "@/utils/sharedRequest";
+import { fechasPorDefecto } from "@/utils/controlGastosFechas";
 
 // getPortBegin/getPortEnd can return the selected port twice; Vuetify 4 would show it twice in the field.
 const withoutDuplicatePorts = (ports: Puerto[]): Puerto[] => {
@@ -219,7 +220,8 @@ export const useAppStore = defineStore("app", () => {
   const master_id_agente = ref<Numerico>("");
   const master_master_monto = ref<Numerico>("");
   const cg_filtrarData = ref(false);
-  const controlgastosfiltro = ref<FiltroControlGastosRaiz>({} as FiltroControlGastosRaiz);
+  // Por defecto: Fecha Disponibilidad desde el 1 de enero hasta hoy.
+  const controlgastosfiltro = ref<FiltroControlGastosRaiz>({ ...fechasPorDefecto() } as FiltroControlGastosRaiz);
   const dataControl_Numero = ref<Numerico | string[]>("");
   const dataControl_idControl = ref<Numerico>("");
   const dataControl_id_house = ref<Numerico | string[]>("");

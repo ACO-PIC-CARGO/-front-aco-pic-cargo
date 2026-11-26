@@ -78,7 +78,7 @@ const hasIcon = (selector: string) => document.body.querySelector(selector) !== 
 test("the control de gastos list starts a control with Nuevo, edits with Modificar and saves the folder with Modificar", async () => {
   const listControls = async (actions: string[]) => {
     await mountAs(ListControlGastosComponent, actions);
-    return { nuevo: shows("NUEVO CONTROL"), editar: hasIcon(".mdi-pencil"), ver: hasIcon(".mdi-eye") };
+    return { nuevo: shows("NUEVO CONTROL"), editar: hasIcon(".mdi-pencil"), ver: hasIcon(".mdi-eye-outline") };
   };
 
   expect(await listControls(["VER"])).toEqual({ nuevo: false, editar: false, ver: true });

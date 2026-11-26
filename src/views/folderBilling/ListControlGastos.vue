@@ -18,13 +18,10 @@ onMounted(() => {
     <v-navigation-drawer
       v-model="appStore.cg_filtrarData"
       location="right"
-      
-      width="20%"
+      :width="520"
       temporary
     >
-      <v-card elevation="0">
-        <FiltroControlGastos />
-      </v-card>
+      <FiltroControlGastos />
     </v-navigation-drawer>
   </div>
 </template>

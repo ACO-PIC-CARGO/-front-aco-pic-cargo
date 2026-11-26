@@ -13,6 +13,18 @@ withDefaults(defineProps<{ filtro?: FiltroBarra; cuentas?: unknown[] }>(), {
 const appStore = useAppStore();
 const balancesStore = useBalancesStore();
 
+// Rangos de fecha de expedientes (Control de Gastos): se muestran solo los que tienen valor.
+const FECHAS_RANGO = [
+  { clave: "fechadisponibilidaddesde", label: "Fecha Disponibilidad Desde" },
+  { clave: "fechadisponibilidadhasta", label: "Fecha Disponibilidad Hasta" },
+  { clave: "fechaetddesde", label: "Fecha ETD Desde" },
+  { clave: "fechaetdhasta", label: "Fecha ETD Hasta" },
+  { clave: "fechaetadesde", label: "Fecha ETA Desde" },
+  { clave: "fechaetahasta", label: "Fecha ETA Hasta" },
+  { clave: "fechalibrealmacenajedesde", label: "Libre Almacenaje Desde" },
+  { clave: "fechalibrealmacenajehasta", label: "Libre Almacenaje Hasta" },
+] as const satisfies readonly { clave: keyof FiltroBarra; label: string }[];
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function formatearFecha(fecha: string) {
   if (!fecha) return "";
@@ -130,6 +142,27 @@ function formatearFecha(fecha: string) {
           :disabled="true"
         />
       </v-col>
+      <template
+        v-for="campo in FECHAS_RANGO"
+        :key="campo.clave"
+      >
+        <v-col
+          v-if="filtro[campo.clave]"
+          cols="12"
+          md="2"
+          class="py-1"
+        >
+          <FormatFecha
+            :dense="true"
+            :outlined="true"
+            :label="campo.label"
+            :id="`filtro_${campo.clave}`"
+            v-model="filtro[campo.clave]"
+            :hide-details="true"
+            :disabled="true"
+          />
+        </v-col>
+      </template>
       <v-col
         cols="12"
         md="2"
