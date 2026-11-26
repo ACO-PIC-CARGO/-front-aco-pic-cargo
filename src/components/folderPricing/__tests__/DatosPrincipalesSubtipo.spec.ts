@@ -27,9 +27,16 @@ Object.defineProperty(window, "visualViewport", {
 
 const LCL = { id: 3, embarque: "Marítimo / LCL" };
 const FCL = { id: 4, embarque: "Marítimo / FCL" };
+const subtype = (id: number, codigo: string, id_shipment: number, name: string) => ({
+  id, codigo, id_shipment, shipment: "", name, created_at: null, updated_at: null,
+});
+const LCL_GRUPAL = 1;
+const LCL_INDIVIDUAL = 2;
+const FCL_INDIVIDUAL = 5;
 const SUBTYPES = [
-  { id: 1, codigo: "001", id_shipment: 3, shipment: "Marítimo / LCL", name: "Grupal", created_at: null, updated_at: null },
-  { id: 2, codigo: "002", id_shipment: 3, shipment: "Marítimo / LCL", name: "Individual", created_at: null, updated_at: null },
+  subtype(LCL_GRUPAL, "001", 3, "Grupal"),
+  subtype(LCL_INDIVIDUAL, "002", 3, "Individual"),
+  subtype(FCL_INDIVIDUAL, "002", 4, "Individual"),
 ];
 
 let wrapper: VueWrapper | undefined;
@@ -44,12 +51,18 @@ beforeEach(() => {
 
 afterEach(() => wrapper?.unmount());
 
-async function openNewQuote(shipment: typeof LCL | null, subtype: number | null = null) {
+async function openNewQuote(shipment: typeof LCL | null, subtypeId: number | null = null, grupal = false) {
   const pinia = createPinia();
   setActivePinia(pinia);
   const pricing = usePricingStore();
   pricing.listShipment = [LCL, FCL] as never;
-  pricing.datosPrincipales = { idsentido: 1, idtipocarga: shipment ?? "", id_shipment_subtype: subtype } as never;
+  pricing.datosPrincipales = {
+    idsentido: 1,
+    idtipocarga: shipment ?? "",
+    id_shipment_subtype: subtypeId,
+    esgrupalflag: grupal,
+    esindividualflag: !grupal,
+  } as never;
   wrapper = mount(
     defineComponent({ components: { DatosPrincipales }, template: "<v-app><DatosPrincipales /></v-app>" }),
     { global: { plugins: [createVuetify({ components, directives }), pinia] }, attachTo: document.body },
@@ -63,36 +76,60 @@ const subtypeField = () =>
 const shipmentField = () =>
   wrapper!.findAllComponents({ name: "VAutocomplete" }).find((field) => field.props("label") === "Tipo de Embarque")!;
 
-test("a shipment type with subtypes shows them, and only them, in a required field", async () => {
-  await openNewQuote(LCL);
+async function choose(id: number) {
+  subtypeField()!.vm.$emit("update:modelValue", id);
+  await flushPromises();
+}
+
+test("LCL offers its subtypes in a required field, INDIVIDUAL first", async () => {
+  await openNewQuote(LCL, LCL_INDIVIDUAL);
 
   const field = subtypeField()!;
-  expect(field.props("items").map((item: { name: string }) => item.name)).toEqual(["Grupal", "Individual"]);
+  expect(field.props("items").map((item: { name: string }) => item.name)).toEqual(["Individual", "Grupal"]);
   expect(field.props("rules")[0](null)).toBe("Dato requerido");
 });
 
-test("a shipment type without subtypes shows no subtype field, so it never blocks saving", async () => {
-  await openNewQuote(FCL);
+test("a quote without subtype shows INDIVIDUAL", async () => {
+  const pricing = await openNewQuote(LCL);
 
-  expect(subtypeField()).toBeUndefined();
+  expect(pricing.datosPrincipales.id_shipment_subtype).toBe(LCL_INDIVIDUAL);
 });
 
-test("a quote loaded with only the shipment id still offers its subtypes", async () => {
-  await openNewQuote({ id: 3 } as typeof LCL, 2);
-  const pricing = usePricingStore();
-  pricing.datosPrincipales.idtipocarga = 3;
-  await flushPromises();
+test("before Datos de Carga is open, choosing GRUPAL switches the quote to grupal at once", async () => {
+  const pricing = await openNewQuote(LCL, LCL_INDIVIDUAL);
 
-  expect(subtypeField()!.props("modelValue")).toBe(2);
+  await choose(LCL_GRUPAL);
+
+  expect(pricing.datosPrincipales).toMatchObject({ id_shipment_subtype: LCL_GRUPAL, esgrupalflag: true, esindividualflag: false });
+  expect(pricing.solicitudSubTipo).toBeNull();
 });
 
-test("changing to a shipment type the chosen subtype does not belong to clears it", async () => {
-  const pricing = await openNewQuote(LCL, 1);
+test("with Datos de Carga open, choosing GRUPAL asks it to confirm and reload the costs", async () => {
+  const pricing = await openNewQuote(LCL, LCL_INDIVIDUAL);
+  pricing.datosCargaActiva = true;
+
+  await choose(LCL_GRUPAL);
+
+  expect(pricing.solicitudSubTipo).toEqual({ grupal: true, anterior: LCL_INDIVIDUAL });
+  expect(pricing.datosPrincipales.esgrupalflag).toBe(false);
+});
+
+test("choosing the subtype the quote already is does not ask again", async () => {
+  const pricing = await openNewQuote(LCL, LCL_GRUPAL, true);
+  pricing.datosCargaActiva = true;
+
+  await choose(LCL_GRUPAL);
+
+  expect(pricing.solicitudSubTipo).toBeNull();
+});
+
+test("a new shipment type starts as its INDIVIDUAL subtype", async () => {
+  const pricing = await openNewQuote(LCL, LCL_GRUPAL, true);
 
   pricing.datosPrincipales.idtipocarga = FCL as never;
   shipmentField().vm.$emit("update:modelValue", FCL);
   await flushPromises();
 
-  expect(pricing.datosPrincipales.id_shipment_subtype).toBeNull();
-  expect(subtypeField()).toBeUndefined();
+  expect(pricing.datosPrincipales).toMatchObject({ id_shipment_subtype: FCL_INDIVIDUAL, esgrupalflag: false, esindividualflag: true });
+  expect(subtypeField()!.props("items").map((item: { name: string }) => item.name)).toEqual(["Individual"]);
 });

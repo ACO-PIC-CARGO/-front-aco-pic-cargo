@@ -9,6 +9,7 @@ import { usePermissions } from "@/composables/usePermissions";
 import { usePricingStore } from "@/stores/pricing";
 import { useShipmentSubtypeStore } from "@/stores/shipmentSubtype";
 import type { ShipmentSubtype, ShipmentSubtypeForm } from "@/types/shipmentSubtype";
+import { esSubTipoDelSistema } from "@/types/shipmentSubtype";
 import { hasFailed, notifySuccess } from "@/utils/request";
 
 const SCREEN = "lstShipmentSubtype";
@@ -34,6 +35,8 @@ const shipmentFilter = ref<number | null>(null);
 const dialog = shallowRef(false);
 const viewing = ref<ShipmentSubtype | null>(null);
 const draft = ref<ShipmentSubtypeForm>({ id: null, id_shipment: null, name: "" });
+const draftCodigo = ref<string | null>(null);
+const esDelSistema = computed(() => Boolean(draftCodigo.value && esSubTipoDelSistema(draftCodigo.value)));
 const form = useTemplateRef("form");
 const { saving, serverError, save } = useDialogSave(dialog, form, persist);
 const isEditing = computed(() => Boolean(draft.value.id));
@@ -66,6 +69,7 @@ async function openDialog(subtype: ShipmentSubtype | null) {
   draft.value = subtype
     ? { id: subtype.id, id_shipment: subtype.id_shipment, name: subtype.name }
     : { id: null, id_shipment: shipmentFilter.value, name: "" };
+  draftCodigo.value = subtype?.codigo ?? null;
   serverError.value = "";
   dialog.value = true;
   await nextTick();
@@ -149,7 +153,7 @@ onMounted(() => Promise.all([load(), pricingStore.listShipment.length ? null : p
             @click="openDialog(item)"
           />
           <v-btn
-            v-if="canDelete"
+            v-if="canDelete && !esSubTipoDelSistema(item.codigo)"
             icon="mdi-delete"
             variant="text"
             size="small"
@@ -183,6 +187,9 @@ onMounted(() => Promise.all([load(), pricingStore.listShipment.length ? null : p
               item-value="id"
               label="Tipo de embarque"
               :rules="shipmentRules"
+              :readonly="esDelSistema"
+              :hint="esDelSistema ? 'Individual y Grupal son del sistema: solo puedes cambiar su nombre.' : ''"
+              persistent-hint
             />
             <v-text-field
               id="shipment-subtype-name"

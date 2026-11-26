@@ -128,6 +128,10 @@ export const usePricingStore = defineStore("pricing", () => {
   const listadoFilesDrive = ref<ArchivoDrive[]>([]);
   const selectedFile = ref<ArchivoDrive[]>([]);
   const actualizarCostosFlag = ref(true);
+  // Datos de Carga is on screen and takes over the Individual / Grupal switch (costs, notes, taxes).
+  const datosCargaActiva = ref(false);
+  // A subtype change from Datos Principales that Datos de Carga still has to confirm and apply.
+  const solicitudSubTipo = ref<{ grupal: boolean; anterior: number | null } | null>(null);
   const costoflag = ref(false);
   const impuestoflag = ref(false);
   const mostrarBtnActualizarFlag = ref(true);
@@ -1746,6 +1750,9 @@ export const usePricingStore = defineStore("pricing", () => {
         // id_status: res.statusquote,
         amount: res.monto,
         pricing_notes: null,
+        // The calculator quote is seen as Individual or Grupal per the request, which also picks its subtype.
+        esgrupalflag: data.esgrupalflag === true,
+        esindividualflag: data.esgrupalflag !== true,
       };
       // state.nro_exp = res.nro_exp;
       listServices.value = res.servicios;
@@ -7006,6 +7013,8 @@ export const usePricingStore = defineStore("pricing", () => {
     listadoFilesDrive,
     selectedFile,
     actualizarCostosFlag,
+    datosCargaActiva,
+    solicitudSubTipo,
     costoflag,
     impuestoflag,
     mostrarBtnActualizarFlag,

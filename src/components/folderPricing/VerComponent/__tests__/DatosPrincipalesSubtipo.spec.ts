@@ -26,6 +26,7 @@ Object.defineProperty(window, "visualViewport", {
 
 const SUBTYPES = [
   { id: 1, codigo: "001", id_shipment: 3, shipment: "Marítimo / LCL", name: "Grupal", created_at: null, updated_at: null },
+  { id: 2, codigo: "002", id_shipment: 3, shipment: "Marítimo / LCL", name: "Individual", created_at: null, updated_at: null },
 ];
 
 let wrapper: VueWrapper | undefined;
@@ -68,11 +69,13 @@ test("a subtype deleted from the catalog after it was saved still shows its name
   expect(subtypeField()!.text()).toContain("Antiguo");
 });
 
-test("a quote of a shipment type with subtypes but none chosen still shows the field, empty", async () => {
-  await viewQuote({ idtipocarga: 3, id_shipment_subtype: null, shipment_subtype: null });
+test.each([
+  ["Individual", { esindividualflag: true, esgrupalflag: false }, 2],
+  ["Grupal", { esindividualflag: false, esgrupalflag: true }, 1],
+])("a quote without a saved subtype, like a calculator quote, shows %s from its flags", async (_mode, flags, shown) => {
+  await viewQuote({ idtipocarga: 3, id_shipment_subtype: null, shipment_subtype: null, ...flags });
 
-  expect(subtypeField()!.props("modelValue")).toBeNull();
-  expect(subtypeField()!.props("placeholder")).toBe("Sin sub tipo");
+  expect(subtypeField()!.props("modelValue")).toBe(shown);
 });
 
 test("a shipment type without subtypes shows no field", async () => {

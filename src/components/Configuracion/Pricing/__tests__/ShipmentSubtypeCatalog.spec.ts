@@ -35,6 +35,7 @@ const GRUPAL = {
   created_at: "2026-11-19 00:36:50",
   updated_at: null,
 };
+const EXPRESS = { ...GRUPAL, id: 9, codigo: "003", name: "Express" };
 const saved = (mensaje: string) => ({ ...accepted([{ id: 1, codigo: "001" }]), mensaje });
 
 let wrapper: VueWrapper | undefined;
@@ -88,10 +89,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: true } as never);
   respondBy({
-    "get shipment_subtype": accepted([GRUPAL]),
+    "get shipment_subtype": accepted([GRUPAL, EXPRESS]),
     "post shipment_subtype": saved("Se guardó el sub tipo de embarque 003."),
     "put shipment_subtype/1": saved("Se guardó el sub tipo de embarque 001."),
-    "delete shipment_subtype/1": saved("Se eliminó el sub tipo de embarque."),
+    "delete shipment_subtype/9": saved("Se eliminó el sub tipo de embarque."),
   });
 });
 
@@ -149,10 +150,19 @@ test("deleting asks first, then removes the subtype and reloads the list", { tim
   await mountCatalog();
   httpMock.mockClear();
 
-  await click(labelled("Eliminar Grupal"));
+  await click(labelled("Eliminar Express"));
 
-  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ titleText: expect.stringContaining("Grupal") });
-  expect(requests()).toEqual(["delete shipment_subtype/1", "get shipment_subtype"]);
+  expect(vi.mocked(Swal.fire).mock.calls[0]![0]).toMatchObject({ titleText: expect.stringContaining("Express") });
+  expect(requests()).toEqual(["delete shipment_subtype/9", "get shipment_subtype"]);
+});
+
+test("Grupal and Individual cannot be deleted, and only their name can be edited", { timeout: 15_000 }, async () => {
+  await mountCatalog();
+
+  expect(labelled("Eliminar Grupal")).toBeNull();
+  await click(labelled("Editar Grupal"));
+  const shipment = wrapper!.findAllComponents({ name: "VAutocomplete" }).find((field) => field.props("label") === "Tipo de embarque")!;
+  expect(shipment.props("readonly")).toBe(true);
 });
 
 test("a user who may only look sees the eye but not edit, delete or create", { timeout: 15_000 }, async () => {
@@ -160,6 +170,6 @@ test("a user who may only look sees the eye but not edit, delete or create", { t
 
   expect(labelled("Ver Grupal")).not.toBeNull();
   expect(labelled("Editar Grupal")).toBeNull();
-  expect(labelled("Eliminar Grupal")).toBeNull();
+  expect(labelled("Eliminar Express")).toBeNull();
   expect(buttonNamed("Nuevo sub tipo")).toBeUndefined();
 });

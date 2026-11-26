@@ -14,7 +14,7 @@ import { positiveInteger } from "@/components/folderPricing/quoteRules";
 import SpecialRateNoticeBox from "@/components/folderPricing/SpecialRateNoticeBox.vue";
 import { cargoMeasuresOf, isVisible } from "@/components/folderPricing/specialRateNotice";
 import { useSpecialRateNotice } from "@/components/folderPricing/useSpecialRateNotice";
-import { sessionIsoPais, sessionSucursal } from "@/utils/sesion";
+import { sessionIsoPais } from "@/utils/sesion";
 import type { TipoContenedor } from "@/types/catalogos";
 import type {
   Costo,
@@ -49,8 +49,32 @@ const masterusuariosStore = useMasterusuariosStore();
 const townStore = useTownStore();
 const { calcularFac } = useCotizacionCalculos();
 
+// The Individual / Grupal checks are gone: the "Sub Tipo de Embarque" combo of Datos Principales asks for the
+// switch, and this component confirms it and reloads costs, notes and taxes exactly as the checks did.
+let subTipoAnterior: number | null = null;
+
 onMounted(() => {
+  pricingStore.datosCargaActiva = true;
 });
+
+onBeforeUnmount(() => {
+  pricingStore.datosCargaActiva = false;
+  pricingStore.solicitudSubTipo = null;
+});
+
+watch(
+  () => pricingStore.solicitudSubTipo,
+  (solicitud) => {
+    if (!solicitud) return;
+    pricingStore.solicitudSubTipo = null;
+    subTipoAnterior = solicitud.anterior;
+    confirmarCambio(solicitud.grupal ? "grupal" : "individual", true);
+  },
+);
+
+function restaurarSubTipo() {
+  pricingStore.datosPrincipales.id_shipment_subtype = subTipoAnterior;
+}
 
 const dialogCambiarPercepcionAduana = ref(false);
 const dialogSeleccionDistrito = ref(false);
@@ -196,41 +220,6 @@ const pesoCargable = computed(() => {
   if (!chargeable || !isFinite(chargeable)) return null;
   return parseFloat(chargeable.toFixed(2));
 });
-const proxyIndividual = computed({
-  get() {
-    return pricingStore.datosPrincipales.esindividualflag;
-  },
-  set(valor) {
-    if (pricingStore.datosPrincipales.id || valor) {
-      confirmarCambio("individual", valor);
-    } else {
-      keepModeChecked("esindividualflag");
-    }
-  },
-});
-const proxyGrupal = computed({
-  get() {
-    return pricingStore.datosPrincipales.esgrupalflag;
-  },
-  set(valor) {
-    if (pricingStore.datosPrincipales.id || valor) {
-      confirmarCambio("grupal", valor);
-    } else {
-      keepModeChecked("esgrupalflag");
-      pricingStore.datosPrincipales.id_percepcionaduana =
-        masterusuariosStore.lstPercepcionAduana.find((v) => v.codigo == "02")?.id;
-      changeImportType();
-    }
-  },
-});
-
-function keepModeChecked(mode: "esindividualflag" | "esgrupalflag") {
-  pricingStore.datosPrincipales[mode] = false;
-  nextTick(() => {
-    pricingStore.datosPrincipales[mode] = true;
-  });
-}
-
 watch(
   () => props.abrirModalContenedorRecargar,
   () => {
@@ -467,18 +456,6 @@ function cambiarNotasIndividualGrupal({
       ...newNotas.map((v) => ({ ...v, id: null, estado: 1 })),
     ];
   });
-}
-function esFobFlag() {
-  const valBranch = [1, 2, "1", "2"];
-  const branch = sessionSucursal();
-
-  if (!valBranch.includes(branch.id)) return false;
-  return true;
-  // return this.$store.state.pricing.listIncoterms.some(
-  //   (v) =>
-  //     v.id == this.$store.state.pricing.datosPrincipales.idincoterms &&
-  //     v.name == "FOB",
-  // );
 }
 function obtenerFleteOpcion(item: Costo) {
   const datoFlete: FleteOpcionCosto = { monto: 0, tienefleteflag: false, fechavigencia: null };
@@ -820,7 +797,7 @@ async function aceptar() {
     Swal.fire({
       icon: "warning",
       title: "Tipo de Cotización",
-      text: "Por favor seleccione, el tipo de cotización.",
+      text: "Elige el Sub Tipo de Embarque en Datos Principales.",
     });
     return;
   }
@@ -1158,11 +1135,9 @@ async function confirmarCambio(tipo: string, nuevoValor: boolean | undefined) {
         cambiarGrupalIndividual();
       }, 100);
     } else {
-      pricingStore.datosPrincipales.esgrupalflag = true;
-      nextTick(() => {
-        pricingStore.datosPrincipales.esgrupalflag = false;
-        pricingStore.datosPrincipales.esindividualflag = true;
-      });
+      pricingStore.datosPrincipales.esgrupalflag = false;
+      pricingStore.datosPrincipales.esindividualflag = true;
+      restaurarSubTipo();
     }
   }
 
@@ -1202,11 +1177,9 @@ async function confirmarCambio(tipo: string, nuevoValor: boolean | undefined) {
         dialogCambiarPercepcionAduana.value = true;
       }, 200);
     } else {
-      pricingStore.datosPrincipales.esindividualflag = true;
-      nextTick(() => {
-        pricingStore.datosPrincipales.esindividualflag = false;
-        pricingStore.datosPrincipales.esgrupalflag = true;
-      });
+      pricingStore.datosPrincipales.esindividualflag = false;
+      pricingStore.datosPrincipales.esgrupalflag = true;
+      restaurarSubTipo();
     }
   }
 }
@@ -1317,37 +1290,6 @@ function finalizarSeleccionDistrito() {
                 @update:model-value="changeDestinationPort"
                 @update:search="recargarPuertoDestino"
               />
-            </v-col>
-
-            <v-col
-              cols="12"
-              lg="6"
-              xl="6"
-              class="py-1 rows"
-              v-if="esFobFlag()"
-            >
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-checkbox
-                    label="Individual"
-                    v-model="proxyIndividual"
-                    density="compact"
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-checkbox
-                    label="Grupal"
-                    v-model="proxyGrupal"
-                    density="compact"
-                  />
-                </v-col>
-              </v-row>
             </v-col>
 
             <v-col

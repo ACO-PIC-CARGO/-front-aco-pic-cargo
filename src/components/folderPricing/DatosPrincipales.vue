@@ -72,13 +72,44 @@ const shipmentSubtypes = computed(() =>
   ),
 );
 
-function cambiarTipoEmbarque() {
-  const chosen = pricingStore.datosPrincipales.id_shipment_subtype;
-  if (chosen && !shipmentSubtypeStore.ofShipment(shipmentId.value).some((subtype) => subtype.id === chosen)) {
-    pricingStore.datosPrincipales.id_shipment_subtype = null;
+// The combo replaces the Individual / Grupal checks: GRUPAL (code 001) is grupal, any other subtype is individual.
+// Once Datos de Carga is on screen it confirms the switch and reloads costs, notes and taxes, as the checks did.
+function aplicarSubTipo(anterior: number | null) {
+  const datos = pricingStore.datosPrincipales;
+  const grupal = shipmentSubtypeStore.isGrupal(datos.id_shipment_subtype);
+  if (Boolean(datos.esgrupalflag) === grupal && Boolean(datos.esindividualflag) === !grupal) return;
+  if (pricingStore.datosCargaActiva) {
+    pricingStore.solicitudSubTipo = { grupal, anterior };
+    return;
   }
+  datos.esgrupalflag = grupal;
+  datos.esindividualflag = !grupal;
+}
+
+function cambiarSubTipo(id: number | null) {
+  const anterior = pricingStore.datosPrincipales.id_shipment_subtype ?? null;
+  pricingStore.datosPrincipales.id_shipment_subtype = id;
+  aplicarSubTipo(anterior);
+}
+
+// A new shipment type starts as INDIVIDUAL unless the chosen subtype also belongs to it.
+function cambiarTipoEmbarque() {
+  const anterior = pricingStore.datosPrincipales.id_shipment_subtype ?? null;
+  if (!shipmentSubtypeStore.ofShipment(shipmentId.value).some((subtype) => subtype.id === anterior)) {
+    pricingStore.datosPrincipales.id_shipment_subtype = shipmentSubtypeStore.individualOf(shipmentId.value)?.id ?? null;
+  }
+  aplicarSubTipo(anterior);
   recargarServiciosCostos();
 }
+
+// A quote without subtype counts as INDIVIDUAL: show it so, once the catalog is loaded.
+watch([shipmentId, () => shipmentSubtypeStore.subtypes], () => {
+  if (pricingStore.datosPrincipales.id_shipment_subtype || !shipmentId.value) return;
+  const individual = shipmentSubtypeStore.individualOf(shipmentId.value);
+  if (individual && !shipmentSubtypeStore.isGrupal(individual.id) && !pricingStore.datosPrincipales.esgrupalflag) {
+    pricingStore.datosPrincipales.id_shipment_subtype = individual.id;
+  }
+});
 
 const listMarketingActivos = computed(() => {
   const list = pricingStore.listMarketing || [];
@@ -614,7 +645,8 @@ function recargarNuevo(id_incoterms?: number | string) {
                   :items="shipmentSubtypes"
                   item-title="name"
                   item-value="id"
-                  v-model="pricingStore.datosPrincipales.id_shipment_subtype"
+                  :model-value="pricingStore.datosPrincipales.id_shipment_subtype"
+                  @update:model-value="cambiarSubTipo"
                 />
               </v-col>
               <v-col

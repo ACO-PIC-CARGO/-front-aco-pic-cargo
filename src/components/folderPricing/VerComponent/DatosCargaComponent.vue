@@ -277,42 +277,6 @@ function mostrarComboPercepcionAduana() {
               cols="12"
               lg="6"
               xl="6"
-              class="py-1 rows"
-            >
-              <v-row>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-checkbox
-                    label="Individual"
-                    v-model="
-                      pricingStore.datosPrincipales.esindividualflag
-                    "
-                    :value="true"
-                    density="compact"
-                    disabled
-                  />
-                </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                >
-                  <v-checkbox
-                    label="Grupal"
-                    v-model="pricingStore.datosPrincipales.esgrupalflag"
-                    :value="true"
-                    density="compact"
-                    disabled
-                  />
-                </v-col>
-              </v-row>
-            </v-col>
-
-            <v-col
-              cols="12"
-              lg="6"
-              xl="6"
               class="py-1"
               v-if="mostrarComboPercepcionAduana()"
             >

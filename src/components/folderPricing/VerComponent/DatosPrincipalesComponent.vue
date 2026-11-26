@@ -37,6 +37,15 @@ const subTiposEmbarque = computed(() =>
 );
 // Shown when the quote has a subtype, or when its shipment type has subtypes even if none was chosen yet.
 const mostrarSubTipoFlag = computed(() => subTiposEmbarque.value.length > 0);
+// Without a saved subtype (e.g. a calculator quote not yet sent to Pricing) it follows the Individual / Grupal flags.
+const subTipoMostrado = computed(() => {
+  const datos = pricingStore.datosPrincipales;
+  return (
+    datos.id_shipment_subtype ??
+    shipmentSubtypeStore.byMode(datos.idtipocarga as number | string | null, datos.esgrupalflag && !datos.esindividualflag)?.id ??
+    null
+  );
+});
 
 const buscarClienteDialog = ref(false);
 const form = useTemplateRef("form");
@@ -227,7 +236,7 @@ function mostrarProveedorFlag() {
             :items="subTiposEmbarque"
             item-title="name"
             item-value="id"
-            v-model="pricingStore.datosPrincipales.id_shipment_subtype"
+            :model-value="subTipoMostrado"
             placeholder="Sin sub tipo"
             persistent-placeholder
             readonly

@@ -13,10 +13,8 @@ vi.mock("@/router", () => ({ default: { push, currentRoute: { value: { params: {
 vi.mock("@/api/http", () => ({ default: Object.assign(vi.fn().mockResolvedValue({ data: { estadoflag: false, data: [] } }), { post: vi.fn() }) }));
 vi.mock("sweetalert2", () => ({ default: { fire: vi.fn() } }));
 
-interface ModeSwitches {
-  proxyIndividual: boolean;
-  proxyGrupal: boolean;
-}
+// The mode now comes from the "Sub Tipo de Embarque" combo: Datos Principales asks, Datos de Carga confirms.
+const PREVIOUS_SUBTYPE = 2;
 
 const modalTitles = () => vi.mocked(Swal.fire).mock.calls.map(([options]) => String((options as { title?: string }).title ?? ""));
 
@@ -33,7 +31,10 @@ async function openNewQuote({ grupal = false } = {}) {
   const wrapper = shallowMount(DatosCargaComponent, { global: { plugins: [pinia] } });
   await flushPromises();
   vi.mocked(Swal.fire).mockClear();
-  return { pricing, switches: wrapper.vm as unknown as ModeSwitches };
+  const switchTo = (mode: "Grupal" | "Individual") => {
+    pricing.solicitudSubTipo = { grupal: mode === "Grupal", anterior: PREVIOUS_SUBTYPE };
+  };
+  return { pricing, switchTo, wrapper };
 }
 
 beforeEach(() => {
@@ -42,9 +43,9 @@ beforeEach(() => {
 });
 
 test("a new quote asks before switching to Grupal and switches when confirmed", async () => {
-  const { pricing, switches } = await openNewQuote();
+  const { pricing, switchTo } = await openNewQuote();
 
-  switches.proxyGrupal = true;
+  switchTo("Grupal");
   await flushPromises();
 
   expect(modalTitles()).toEqual([expect.stringContaining("¿Cambiar a modalidad grupal?")]);
@@ -52,32 +53,22 @@ test("a new quote asks before switching to Grupal and switches when confirmed", 
 });
 
 test("a new quote asks before switching to Individual", async () => {
-  const { switches } = await openNewQuote({ grupal: true });
+  const { switchTo } = await openNewQuote({ grupal: true });
 
-  switches.proxyIndividual = true;
+  switchTo("Individual");
   await flushPromises();
 
   expect(modalTitles()).toEqual([expect.stringContaining("¿Cambiar a modalidad individual?")]);
 });
 
-test("cancelling the question keeps a new quote in its mode", async () => {
+test("cancelling the question keeps a new quote in its mode and puts its subtype back", async () => {
   vi.mocked(Swal.fire).mockResolvedValue({ isConfirmed: false } as never);
-  const { pricing, switches } = await openNewQuote();
+  const { pricing, switchTo } = await openNewQuote();
 
-  switches.proxyGrupal = true;
+  switchTo("Grupal");
   await flushPromises();
 
-  expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true });
-});
-
-test("clicking the mode a new quote already has keeps it without asking", async () => {
-  const { pricing, switches } = await openNewQuote();
-
-  switches.proxyIndividual = false;
-  await flushPromises();
-
-  expect(modalTitles()).toEqual([]);
-  expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true });
+  expect(pricing.datosPrincipales).toMatchObject({ esgrupalflag: false, esindividualflag: true, id_shipment_subtype: PREVIOUS_SUBTYPE });
 });
 
 // Los shippers se eligen en el instructivo: Datos de la carga ya no pide proveedor.
@@ -97,39 +88,13 @@ test.each([
 ])("confirming the switch to %s asks the costs tab to recalculate its totals", async (mode, startsGrupal) => {
   vi.useFakeTimers();
   try {
-    const { pricing, switches } = await openNewQuote({ grupal: startsGrupal });
+    const { pricing, switchTo } = await openNewQuote({ grupal: startsGrupal });
     const before = pricing.actualizarCostosFlag;
 
-    if (mode === "Grupal") switches.proxyGrupal = true;
-    else switches.proxyIndividual = true;
+    switchTo(mode as "Grupal" | "Individual");
     await vi.advanceTimersByTimeAsync(1000);
 
     expect(pricing.actualizarCostosFlag).toBe(!before);
-  } finally {
-    vi.useRealTimers();
-  }
-});
-
-test.each([
-  ["Grupal", true, 2],
-  ["Individual", false, 1],
-])("clicking %s again on a new quote keeps its transport, district and notes", async (_mode, grupal, importType) => {
-  vi.useFakeTimers();
-  try {
-    const { pricing, switches } = await openNewQuote({ grupal });
-    pricing.listServices = [{ code_service: "14", status: 1 }] as never;
-    pricing.listNotasQuote = [{ id: 1, description: "Nota base", grupalflag: true, individualflag: true }] as never;
-    pricing.opcionCostos = [{ nro_propuesta: 1, listCostos: [], listImpuestos: [], listNotasQuote: [{ id: 9, description: "Nota editada", estado: 1 }] }] as never;
-    Object.assign(pricing.datosPrincipales, { id_town: 5, id_percepcionaduana: 1 });
-    const notes = pricing.opcionCostos[0]!.listNotasQuote;
-
-    if (grupal) switches.proxyGrupal = false;
-    else switches.proxyIndividual = false;
-    await vi.advanceTimersByTimeAsync(1000);
-
-    expect(pricing.listServices[0]!.status).toBe(1);
-    expect(pricing.datosPrincipales).toMatchObject({ id_town: 5, id_percepcionaduana: importType, esgrupalflag: grupal, esindividualflag: !grupal });
-    expect(pricing.opcionCostos[0]!.listNotasQuote).toBe(notes);
   } finally {
     vi.useRealTimers();
   }
