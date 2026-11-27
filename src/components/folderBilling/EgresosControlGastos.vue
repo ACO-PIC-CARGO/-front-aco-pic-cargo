@@ -1926,6 +1926,8 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
     nameProveedor: item.nombre_proveedor,
     nameConsignatario: clientesDeSolicitud(item),
     totalPagar,
+    // moneda de los conceptos (PEN, USD...): la del monto a pagar
+    moneda: item.detalle.find((d) => d.acronym)?.acronym || "USD",
     expediente: master.master_nromaster,
     fecha: currentDate(),
     totalProveedores: masterEgresos.value.map((e) => ({
@@ -1935,6 +1937,7 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
       total_op: e.detalle
         .reduce((suma, d) => suma + montoOpMoneda(d), 0)
         .toFixed(2),
+      moneda: e.detalle.find((d) => d.acronym)?.acronym || "USD",
       pagado: e.detalle.length > 0 && e.detalle.every((d) => !!d.pagado),
       actual:
         claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) ===
