@@ -319,6 +319,9 @@ export interface ArchivosInstructivoSolicitud {
   nro_factura: string | null;
   captura: ArchivoPago | null;
   factura: ArchivoPago | null;
+  /** datos de la transferencia del instructivo */
+  codigo_swift?: string | null;
+  beneficiario?: string | null;
 }
 interface FilaArchivosInstructivo {
   id_solicitudpago: number;
@@ -327,6 +330,8 @@ interface FilaArchivosInstructivo {
   captura_nombre: string | null;
   factura_ruta: string | null;
   factura_nombre: string | null;
+  codigo_swift?: string | null;
+  beneficiario?: string | null;
 }
 export async function archivosInstructivoPorSolicitud(ids: number[]): Promise<Record<number, ArchivosInstructivoSolicitud>> {
   const unicos = [...new Set(ids.filter((id) => Number(id) > 0))];
@@ -341,6 +346,8 @@ export async function archivosInstructivoPorSolicitud(ids: number[]): Promise<Re
         nro_factura: fila.nro_factura,
         captura: fila.captura_ruta ? { ruta: fila.captura_ruta, name: fila.captura_nombre || "Datos bancarios" } : null,
         factura: fila.factura_ruta ? { ruta: fila.factura_ruta, name: fila.factura_nombre || "Factura del proveedor" } : null,
+        codigo_swift: fila.codigo_swift ?? null,
+        beneficiario: fila.beneficiario ?? null,
       };
     }
     return porSolicitud;

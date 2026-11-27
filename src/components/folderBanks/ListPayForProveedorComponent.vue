@@ -12,7 +12,11 @@ import { useBalancesStore } from "@/stores/balances";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
 import { useIngresosStore } from "@/stores/ingresos";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import type { CuentaBancariaPic } from "@/types/operaciones";
 import type { TipoBalance } from "@/types/finanzas";
 import type {
@@ -44,19 +48,26 @@ let dialogPayControlGasto: boolean | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let name_proveedor: string | undefined;
 
-const registrosEgreso = computed(() => bankStore.list as unknown as PagoEgresoFila[]);
+const registrosEgreso = computed(
+  () => bankStore.list as unknown as PagoEgresoFila[]
+);
 // "Pago proveedor": datos del instructivo de las salidas que pagan un "Pago a Proveedor" de una aprobación
-const pagosInstructivoSalida = ref<Record<number, PagoProveedorInstructivo[]>>({});
+const pagosInstructivoSalida = ref<Record<number, PagoProveedorInstructivo[]>>(
+  {}
+);
 const dialogPagoInstructivo = ref(false);
 const pagosInstructivoVer = ref<PagoProveedorInstructivo[]>([]);
 watch(
   () => registrosEgreso.value.map((fila) => Number(fila.id)).join(","),
   async (ids) => {
-    pagosInstructivoSalida.value = await pagosInstructivoPorSalida(ids ? ids.split(",").map(Number) : []);
+    pagosInstructivoSalida.value = await pagosInstructivoPorSalida(
+      ids ? ids.split(",").map(Number) : []
+    );
   },
-  { immediate: true },
+  { immediate: true }
 );
-const pagosInstructivoDe = (fila: { id?: unknown }) => pagosInstructivoSalida.value[Number(fila.id)] ?? [];
+const pagosInstructivoDe = (fila: { id?: unknown }) =>
+  pagosInstructivoSalida.value[Number(fila.id)] ?? [];
 function verPagoInstructivo(fila: { id?: unknown }) {
   pagosInstructivoVer.value = pagosInstructivoDe(fila);
   dialogPagoInstructivo.value = true;
@@ -168,9 +179,15 @@ function confirmarEliminar(pago: PagoEgresoFila) {
 async function eliminar(pago: PagoEgresoFila) {
   payfile.value = null;
   Ingreso.value.id_path = null;
-  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoEgresoEliminar
+  );
   if (!admin) return;
-  await bankStore.eliminarRegistroEgresos({ ...pago, ...withAuthorization(admin) });
+  await bankStore.eliminarRegistroEgresos({
+    ...pago,
+    ...withAuthorization(admin),
+  });
   await bankStore.getRegistroEgresos(filtro.value);
 }
 async function editar(pago: PagoEgresoFila) {
@@ -295,9 +312,7 @@ async function verPagosControlEgresos(item: PagoEgresoFila) {
   const config = {
     method: "get",
     url:
-      import.meta.env.VITE_URL_MAIN +
-      "ver_pagoscontrol_egresos?id=" +
-      item.id,
+      import.meta.env.VITE_URL_MAIN + "ver_pagoscontrol_egresos?id=" + item.id,
 
     headers: {
       "Content-Type": "application/json",
@@ -455,10 +470,9 @@ async function getListBanksDetailsCargar() {
 }
 function filtarSubGasto() {
   if (!!tipogastos) {
-    tiposubgastosFilter =
-      balancesStore.tiposubgastos.filter(
-        (v) => v.id_gasto == filtro.value.tipogastos,
-      );
+    tiposubgastosFilter = balancesStore.tiposubgastos.filter(
+      (v) => v.id_gasto == filtro.value.tipogastos
+    );
   } else {
     tiposubgastosFilter = balancesStore.tiposubgastos;
   }
@@ -470,9 +484,12 @@ function mostrarComisionBancaria(table_comisionbancaria?: unknown[] | null) {
   return cantRegistros > 0;
 }
 
-watch(() => tipogastos, () => {
-  filtarSubGasto();
-});
+watch(
+  () => tipogastos,
+  () => {
+    filtarSubGasto();
+  }
+);
 
 onMounted(async () => {
   filtro.value.desde = moment().format("YYYY-01-01");
@@ -499,14 +516,8 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-card
-    min-height="80vh"
-    elevation="0"
-  >
-    <BarraFiltro
-      :filtro="filtro"
-      :cuentas="cuentas"
-    />
+  <v-card min-height="80vh" elevation="0">
+    <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
     <v-card-title class="pt-0 d-flex align-center flex-wrap">
       <v-text-field
         class="mx-2"
@@ -529,9 +540,7 @@ onMounted(async () => {
         v-if="can('listBankCxP', 'NUEVO')"
         @click="nuevo"
       >
-        NUEVO PAGO <v-icon size="small">
-          mdi-plus
-        </v-icon>
+        NUEVO PAGO <v-icon size="small"> mdi-plus </v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
@@ -541,9 +550,7 @@ onMounted(async () => {
         @click="exportar()"
         :loading="loading"
       >
-        EXCEL <v-icon size="small">
-          mdi-file-excel
-        </v-icon>
+        EXCEL <v-icon size="small"> mdi-file-excel </v-icon>
       </v-btn>
       <v-btn
         class="mr-2"
@@ -551,18 +558,10 @@ onMounted(async () => {
         size="small"
         @click="dialogFiltro = !dialogFiltro"
       >
-        Filtrar <v-icon size="small">
-          mdi-filter
-        </v-icon>
+        Filtrar <v-icon size="small"> mdi-filter </v-icon>
       </v-btn>
-      <v-btn
-        size="small"
-        color="default"
-        @click="Limpiar"
-      >
-        <v-icon size="small">
-          mdi-close
-        </v-icon> Limpiar
+      <v-btn size="small" color="default" @click="Limpiar">
+        <v-icon size="small"> mdi-close </v-icon> Limpiar
       </v-btn>
 
       <!-- <v-btn class="mr-2" color="default" small @click="limpiar()">
@@ -657,10 +656,7 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="i in item.detalles"
-                  :key="i.id"
-                >
+                <tr v-for="i in item.detalles" :key="i.id">
                   <td>{{ i.tipo }}</td>
                   <td>{{ i.code_master }}</td>
                   <td>{{ i.nro_factura }}</td>
@@ -690,10 +686,7 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="i in item.table_comisionbancaria"
-                  :key="i.id"
-                >
+                <tr v-for="i in item.table_comisionbancaria" :key="i.id">
                   <td>{{ i.concepto }}</td>
                   <td>{{ i.montodolar }}</td>
                   <td>{{ i.monto }}</td>
@@ -733,18 +726,10 @@ onMounted(async () => {
       transition="dialog-transition"
     >
       <v-card>
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           {{ verflag ? "Ver " : "Editar" }}
           <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="dialog = !dialog"
-          >
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -802,11 +787,7 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="success"
-            variant="text"
-            @click="actualizarCGEgreso()"
-          >
+          <v-btn color="success" variant="text" @click="actualizarCGEgreso()">
             Guardar
           </v-btn>
           <v-btn
@@ -827,13 +808,8 @@ onMounted(async () => {
       width="20%"
       v-if="dialogFiltro"
     >
-      <v-card
-        height="100%"
-        elevation="5"
-      >
-        <v-card-title primary-title>
-          Filtrar Gastos
-        </v-card-title>
+      <v-card height="100%" elevation="5">
+        <v-card-title primary-title> Filtrar Gastos </v-card-title>
         <v-card-text>
           <v-select
             :items="cuentas"
@@ -921,28 +897,17 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="success"
-            size="small"
-            @click="filtrar()"
-          >
+          <v-btn color="success" size="small" @click="filtrar()">
             Filtrar
           </v-btn>
-          <v-btn
-            color="red"
-            size="small"
-            @click="dialogFiltro = !dialogFiltro"
-          >
+          <v-btn color="red" size="small" @click="dialogFiltro = !dialogFiltro">
             Cancelar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>
 
-    <v-dialog
-      v-model="dialogFacturas"
-      width="30%"
-    >
+    <v-dialog v-model="dialogFacturas" width="30%">
       <v-card class="py-5">
         <v-card-text>
           <v-textarea

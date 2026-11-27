@@ -1,8 +1,16 @@
 import { ref } from "vue";
 import Swal from "sweetalert2";
 import type { AdminCredentials } from "@/types/seguridad";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
-import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
+import {
+  CONNECTION_ERROR_MESSAGE,
+  notifySuccess,
+  request,
+} from "@/utils/request";
 import {
   avisoSolicitudConSoporte,
   confirmarEliminarSolicitudPago,
@@ -36,43 +44,61 @@ export interface SolicitudPagoAccion {
 }
 
 const tieneAprobaciones = (s: SolicitudPagoAccion) =>
-  !!(s.aprobadoadministracionflag || s.aprobadogerenciaflag || s.usuario_aprobadoadministracion || s.usuario_aprobadogerencia);
+  !!(
+    s.aprobadoadministracionflag ||
+    s.aprobadogerenciaflag ||
+    s.usuario_aprobadoadministracion ||
+    s.usuario_aprobadogerencia
+  );
 
 // Con soporte de pago cargado
-export const tieneSoporteSolicitud = (s: SolicitudPagoAccion) => !!(s.pagadoflag || s.soporte_path);
+export const tieneSoporteSolicitud = (s: SolicitudPagoAccion) =>
+  !!(s.pagadoflag || s.soporte_path);
 
 // Con aprobaciones (Administración o Gerencia) o con soporte de pago, editar o eliminar pide la clave de un administrador
-export const tieneAprobacionesSolicitud = (s: SolicitudPagoAccion) => tieneAprobaciones(s) || tieneSoporteSolicitud(s);
+export const tieneAprobacionesSolicitud = (s: SolicitudPagoAccion) =>
+  tieneAprobaciones(s) || tieneSoporteSolicitud(s);
 
 // Con salida registrada en Bancos no se edita ni elimina hasta eliminar ese movimiento
-export const tieneSalidaBancosSolicitud = (s: SolicitudPagoAccion) => !!s.id_pagoegreso;
+export const tieneSalidaBancosSolicitud = (s: SolicitudPagoAccion) =>
+  !!s.id_pagoegreso;
 
 export function avisarSalidaBancosSolicitud(s: SolicitudPagoAccion) {
   if (!tieneSalidaBancosSolicitud(s)) return false;
   Swal.fire({
     icon: "warning",
     title: "Ya está pagada en Bancos",
-    html: `La solicitud de pago N° <b>${s.id}</b> ya tiene la salida${s.numerooperacion_pago ? ` N° <b>${s.numerooperacion_pago}</b>` : ""} en Bancos.<br><br>
+    html: `La solicitud de pago N° <b>${s.id}</b> ya tiene la salida${
+      s.numerooperacion_pago ? ` N° <b>${s.numerooperacion_pago}</b>` : ""
+    } en Bancos.<br><br>
       Elimine primero ese movimiento en <b>Bancos &gt; Salidas</b>.`,
   });
   return true;
 }
 
-export const mensajeClaveSolicitud = (s: SolicitudPagoAccion, accion: "editarla" | "eliminarla") =>
+export const mensajeClaveSolicitud = (
+  s: SolicitudPagoAccion,
+  accion: "editarla" | "eliminarla"
+) =>
   tieneSoporteSolicitud(s)
-    ? `La solicitud ya tiene soporte de pago (ya se pagó). Para ${accion}, escribe el usuario y la clave del Super administrador.`
+    ? `La solicitud ya tiene soporte de pago (ya se pagó). Para ${accion}, escribe el usuario y la clave del Super administrador o de un usuario con permiso en este módulo.`
     : `La solicitud ya tiene aprobación de Administración o Gerencia. Para ${accion}, escribe el usuario y la clave de un administrador.`;
 
 /**
  * Confirmación antes de eliminar: proveedor, monto, aprobaciones y soporte de pago.
  * Con aprobaciones o soporte avisa que se pedirá la clave del Super administrador.
  */
-export function confirmarEliminarSolicitud(s: SolicitudPagoAccion, proveedor = s.proveedor) {
+export function confirmarEliminarSolicitud(
+  s: SolicitudPagoAccion,
+  proveedor = s.proveedor
+) {
   return confirmarEliminarSolicitudPago({
     proveedor: proveedor ?? "",
     idProveedor: s.id_proveedor,
     monto: montoConMoneda(s.monto, s.moneda),
-    aprobadaAdministracion: !!(s.aprobadoadministracionflag || s.usuario_aprobadoadministracion),
+    aprobadaAdministracion: !!(
+      s.aprobadoadministracionflag || s.usuario_aprobadoadministracion
+    ),
     aprobadaGerencia: !!(s.aprobadogerenciaflag || s.usuario_aprobadogerencia),
     usuarioAdministracion: s.usuario_aprobadoadministracion,
     usuarioGerencia: s.usuario_aprobadogerencia,
@@ -81,20 +107,36 @@ export function confirmarEliminarSolicitud(s: SolicitudPagoAccion, proveedor = s
   });
 }
 
-const pedirClave = (s: SolicitudPagoAccion, accion: "editarla" | "eliminarla") => askAdminCredentials(mensajeClaveSolicitud(s, accion));
+const pedirClave = (
+  s: SolicitudPagoAccion,
+  accion: "editarla" | "eliminarla"
+) =>
+  askAdminCredentials(
+    mensajeClaveSolicitud(s, accion),
+    accion === "editarla"
+      ? PERMISOS_AUTORIZA.solicitudPagoEditar
+      : PERMISOS_AUTORIZA.solicitudPagoEliminar
+  );
 
 const pedirClaveSoporte = () =>
-  askAdminCredentials("Ya se pagó: para eliminar el soporte de pago, escribe el usuario y la clave del Super administrador.");
+  askAdminCredentials(
+    "Ya se pagó: para eliminar el soporte de pago, escribe el usuario y la clave del Super administrador o de un usuario con permiso en este módulo.",
+    PERMISOS_AUTORIZA.solicitudPagoEliminar
+  );
 
 /** Elimina el soporte de pago con la clave ya validada; true si se eliminó */
 async function borrarSoporte(s: SolicitudPagoAccion, admin: AdminCredentials) {
   const response = await request({
     method: "put",
-    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_soporte_eliminar/" + s.id,
+    url:
+      import.meta.env.VITE_URL_MAIN + "solicitud_pago_soporte_eliminar/" + s.id,
     data: withAuthorization(admin),
   });
   if (!response.estadoflag) {
-    Swal.fire({ icon: "warning", text: response.mensaje || CONNECTION_ERROR_MESSAGE });
+    Swal.fire({
+      icon: "warning",
+      text: response.mensaje || CONNECTION_ERROR_MESSAGE,
+    });
     return false;
   }
   notifySuccess(response.mensaje);
@@ -107,14 +149,25 @@ async function borrarSoporte(s: SolicitudPagoAccion, admin: AdminCredentials) {
  * Devuelve la solicitud ya sin soporte y la clave validada (sirve también para eliminar la solicitud),
  * o null si no se debe seguir.
  */
-export async function quitarSoporteAntesDeEliminar<T extends SolicitudPagoAccion>(
-  s: T,
-): Promise<{ solicitud: T; admin?: AdminCredentials; soporteEliminado: boolean } | null> {
-  if (!tieneSoporteSolicitud(s)) return { solicitud: s, soporteEliminado: false };
+export async function quitarSoporteAntesDeEliminar<
+  T extends SolicitudPagoAccion
+>(
+  s: T
+): Promise<{
+  solicitud: T;
+  admin?: AdminCredentials;
+  soporteEliminado: boolean;
+} | null> {
+  if (!tieneSoporteSolicitud(s))
+    return { solicitud: s, soporteEliminado: false };
   if (!(await avisoSolicitudConSoporte())) return null;
   const admin = await pedirClaveSoporte();
   if (!admin || !(await borrarSoporte(s, admin))) return null;
-  return { solicitud: { ...s, pagadoflag: false, soporte_path: null }, admin, soporteEliminado: true };
+  return {
+    solicitud: { ...s, pagadoflag: false, soporte_path: null },
+    admin,
+    soporteEliminado: true,
+  };
 }
 
 /** Editar / eliminar una solicitud de pago con las mismas reglas en todos los listados */
@@ -160,7 +213,10 @@ export function useAccionesSolicitudPago(alTerminar: () => unknown) {
     });
     eliminando.value = null;
     if (!response.estadoflag) {
-      Swal.fire({ icon: "warning", text: response.mensaje || CONNECTION_ERROR_MESSAGE });
+      Swal.fire({
+        icon: "warning",
+        text: response.mensaje || CONNECTION_ERROR_MESSAGE,
+      });
       if (previo.soporteEliminado) await alTerminar();
       return;
     }
@@ -186,5 +242,14 @@ export function useAccionesSolicitudPago(alTerminar: () => unknown) {
     if (ok) await alTerminar();
   }
 
-  return { dialogEditar, solicitudEditar, adminEditar, eliminando, editar, eliminar, eliminandoSoporte, eliminarSoporte };
+  return {
+    dialogEditar,
+    solicitudEditar,
+    adminEditar,
+    eliminando,
+    editar,
+    eliminar,
+    eliminandoSoporte,
+    eliminarSoporte,
+  };
 }

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { defineAsyncComponent, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  defineAsyncComponent,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useRoute } from "vue-router";
 import router from "@/router";
 import { useAppStore } from "@/stores/app";
@@ -19,7 +25,10 @@ import { useCalculadorasStore } from "@/stores/calculadoras";
 import { usePricingStore } from "@/stores/pricing";
 import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { isApprovedQuote } from "@/utils/quoteApproval";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { returnToQuoteList } from "@/utils/quoteScreen";
 import type { OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
@@ -28,7 +37,10 @@ import BottomBarsSpacer from "@/components/folderPricing/BottomBarsSpacer.vue";
 import InternalCommunicationBar from "@/components/folderPricing/InternalCommunication/InternalCommunicationBar.vue";
 
 const QuoteClientHistoryPanel = defineAsyncComponent(
-  () => import("@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"),
+  () =>
+    import(
+      "@/components/folderPricing/QuoteClientHistory/QuoteClientHistoryPanel.vue"
+    )
 );
 
 const route = useRoute();
@@ -80,6 +92,7 @@ onMounted(async () => {
   if (isApprovedQuote({ aprobadoflag: pricingStore.aprobadoflag })) {
     const admin = await askAdminCredentials(
       "Esta cotización ya está aprobada. Para editarla, escribe el usuario y la clave de un administrador. Al guardar quedará pendiente de aprobar otra vez.",
+      PERMISOS_AUTORIZA.pricingEditar
     );
     if (!admin) {
       await router.push({ name: "lstQuote" });
@@ -91,7 +104,7 @@ onMounted(async () => {
   appStore.mainTitle = `EDITAR  COTIZACIÓN - ${pricingStore.nro_quote}`;
 
   const idTransport = pricingStore.listShipment.find(
-    (v) => v.id == pricingStore.datosPrincipales.idtipocarga,
+    (v) => v.id == pricingStore.datosPrincipales.idtipocarga
   )?.id_transport;
   //
   const opciones = [...pricingStore.opcionCostos];
@@ -146,12 +159,14 @@ onMounted(async () => {
     calculadorasStore.obtenerFleteCalculadora({
       shipment: pricingStore.listShipment.find((v) => v.id == idTipoCarga)
         ?.code,
-      puerto_origen: pricingStore.listPortBegin.find(
-        (v) => v.id_port == pricingStore.datosPrincipales.idorigen,
-      )?.puerto ?? undefined,
-      puerto_destino: pricingStore.listPortEnd.find(
-        (v) => v.id_port == pricingStore.datosPrincipales.iddestino,
-      )?.puerto ?? undefined,
+      puerto_origen:
+        pricingStore.listPortBegin.find(
+          (v) => v.id_port == pricingStore.datosPrincipales.idorigen
+        )?.puerto ?? undefined,
+      puerto_destino:
+        pricingStore.listPortEnd.find(
+          (v) => v.id_port == pricingStore.datosPrincipales.iddestino
+        )?.puerto ?? undefined,
       volumen: pricingStore.datosPrincipales.volumen,
       peso: pricingStore.datosPrincipales.peso,
     }),
@@ -165,8 +180,7 @@ onMounted(async () => {
   ]);
   const puertoDestino = pricingStore.listPortEnd.find(
     (puerto) =>
-      String(puerto.id_port) ===
-      String(pricingStore.datosPrincipales.iddestino),
+      String(puerto.id_port) === String(pricingStore.datosPrincipales.iddestino)
   );
   if (puertoDestino) {
     await townStore.cargarTownParaPricing({ id_pais: puertoDestino.id_pais! });
@@ -202,7 +216,7 @@ async function activarServicios() {
       v.id_incoterms == pricingStore.datosPrincipales.idincoterms &&
       v.id_modality == pricingStore.datosPrincipales.idsentido &&
       v.id_shipment ==
-        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id,
+        (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id
   );
   pricingStore.listServices = serv;
   await pricingStore.getTipoCostos();
@@ -220,7 +234,7 @@ function recargarServicios() {
       v.id_shipment ==
         (typeof pricingStore.datosPrincipales.idtipocarga === "object"
           ? pricingStore.datosPrincipales.idtipocarga.id
-          : pricingStore.datosPrincipales.idtipocarga),
+          : pricingStore.datosPrincipales.idtipocarga)
   );
 
   let IdServices: (number | string | undefined)[] = serv.map((v) => v.id);
@@ -229,7 +243,7 @@ function recargarServicios() {
     .forEach((servicios) => {
       if (!IdServices.includes(servicios.id)) {
         const index = pricingStore.listServices.findIndex(
-          (v) => v.code_service == servicios.code_service,
+          (v) => v.code_service == servicios.code_service
         );
         pricingStore.listServices.splice(index, 1);
       }
@@ -251,7 +265,7 @@ async function activarLlenadoCostos() {
   const codeServicesActivos = new Set(
     pricingStore.listServices
       .filter((v) => v.status === true || v.status === 1)
-      .map((v) => v.code_service),
+      .map((v) => v.code_service)
   );
 
   const costos = [...pricingStore.preCostos];
@@ -262,7 +276,7 @@ async function activarLlenadoCostos() {
       v.id_modality == pricingStore.datosPrincipales.idsentido &&
       v.id_shipment ==
         (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id &&
-      codeServicesActivos.has(Number(v.code_service)),
+      codeServicesActivos.has(Number(v.code_service))
   );
 
   let idContainer: (number | string | undefined)[] = [];
@@ -326,7 +340,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   const codeServicesActivos = new Set(
     pricingStore.listServices
       .filter((v) => v.status === true || v.status === 1)
-      .map((v) => v.code_service),
+      .map((v) => v.code_service)
   );
   const costos = [...pricingStore.preCostos];
   const c = costos.filter(
@@ -335,7 +349,7 @@ function anadirNuevaOpcion(nro_propuesta: number) {
       v.id_modality == pricingStore.datosPrincipales.idsentido &&
       v.id_shipment ==
         (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id &&
-      codeServicesActivos.has(Number(v.code_service)),
+      codeServicesActivos.has(Number(v.code_service))
   );
   let idContainer: (number | string | undefined)[] = [];
   if (pricingStore.datosPrincipales.containers!.length > 0) {
@@ -402,7 +416,7 @@ async function recargarCostos(event = true) {
   const codeServicesActivos = new Set(
     pricingStore.listServices
       .filter((v) => v.status === true || v.status === 1)
-      .map((v) => v.code_service),
+      .map((v) => v.code_service)
   );
 
   let id_shipment = pricingStore.datosPrincipales.idtipocarga;
@@ -415,13 +429,13 @@ async function recargarCostos(event = true) {
       v.id_incoterms === pricingStore.datosPrincipales.idincoterms &&
       v.id_modality === pricingStore.datosPrincipales.idsentido &&
       v.id_shipment === id_shipment &&
-      codeServicesActivos.has(Number(v.code_service)),
+      codeServicesActivos.has(Number(v.code_service))
   );
 
   let idContainer: (number | string | undefined)[] = [];
   if (pricingStore.datosPrincipales.containers!.length > 0) {
     idContainer = pricingStore.datosPrincipales.containers!.map(
-      (v) => v.id_containers,
+      (v) => v.id_containers
     );
   }
 
@@ -475,7 +489,7 @@ async function recargarCostos(event = true) {
     const costosValidos = listCostosActual.filter(
       (costo) =>
         !costo.code_cost ||
-        cDuplicado.some((nuevo) => nuevo.code_cost === costo.code_cost),
+        cDuplicado.some((nuevo) => nuevo.code_cost === costo.code_cost)
     );
 
     const nuevosCostos = cDuplicado
@@ -484,8 +498,8 @@ async function recargarCostos(event = true) {
           !costosValidos.some(
             (costo) =>
               costo.code_cost === nuevo.code_cost &&
-              costo.id_multiplicador === nuevo.id_multiplicador,
-          ),
+              costo.id_multiplicador === nuevo.id_multiplicador
+          )
       )
       .map((nuevo) => ({
         ...nuevo,
@@ -513,8 +527,7 @@ async function recargarCostos(event = true) {
       v.id ==
         ((pricingStore.datosPrincipales.idtipocarga as TipoCarga).id
           ? (pricingStore.datosPrincipales.idtipocarga as TipoCarga).id
-          : pricingStore.datosPrincipales.idtipocarga) &&
-      v.code == "FCL",
+          : pricingStore.datosPrincipales.idtipocarga) && v.code == "FCL"
   );
   Swal.fire({
     icon: "success",
@@ -526,7 +539,8 @@ async function recargarCostos(event = true) {
     pricingStore.actualizarComparativa = !pricingStore.actualizarComparativa;
     if (res.isConfirmed) {
       if (isFCL && event) {
-        abrirModalContenedorRecargar.value = !abrirModalContenedorRecargar.value;
+        abrirModalContenedorRecargar.value =
+          !abrirModalContenedorRecargar.value;
       }
     }
   });
@@ -542,15 +556,8 @@ function irANotas() {
 </script>
 
 <template>
-  <v-container
-    fluid
-    class="pt-0 px-0"
-    v-if="mostrar"
-  >
-    <v-stepper
-      v-model="step"
-      class="pt-0"
-    >
+  <v-container fluid class="pt-0 px-0" v-if="mostrar">
+    <v-stepper v-model="step" class="pt-0">
       <v-stepper-header>
         <v-stepper-item
           :complete="step > 1"
@@ -584,21 +591,11 @@ function irANotas() {
       </v-stepper-header>
 
       <v-stepper-window>
-        <v-stepper-window-item
-          :value="1"
-          eager
-        >
+        <v-stepper-window-item :value="1" eager>
           <v-row class="my-1">
-            <v-col
-              cols="12"
-              md="6"
-              class="pt-0"
-            >
+            <v-col cols="12" md="6" class="pt-0">
               <v-row>
-                <v-col
-                  cols="12"
-                  class="my-0 py-0"
-                >
+                <v-col cols="12" class="my-0 py-0">
                   <DatosPrincipales
                     @recargar-servicios-costos="recargar"
                     @activar-datos-carga="activarDatosCarga"
@@ -608,11 +605,7 @@ function irANotas() {
                 </v-col>
               </v-row>
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-              class="my-0 py-0"
-            >
+            <v-col cols="12" md="6" class="my-0 py-0">
               <DatosCargaComponent
                 @activar-servicios="activarServicios"
                 @recargar-costos="recargarCostos"
@@ -640,11 +633,7 @@ function irANotas() {
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="2"
-          eager
-          v-if="mostrarCostos"
-        >
+        <v-stepper-window-item :value="2" eager v-if="mostrarCostos">
           <DatosCostosComponent
             :key="indexCostos"
             :mostrar-btn="false"
@@ -663,29 +652,22 @@ function irANotas() {
           />
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="3"
-          eager
-        >
+        <v-stepper-window-item :value="3" eager>
           <ComparativaComponent
             @ir-venta-cliente="irVentaCliente"
             v-if="mostrarStepS"
           />
         </v-stepper-window-item>
-        <v-stepper-window-item
-          :value="4"
-          eager
-        >
-          <NotasComponent
-            :editable="editableStep4"
-            v-if="mostrarStepS"
-          />
+        <v-stepper-window-item :value="4" eager>
+          <NotasComponent :editable="editableStep4" v-if="mostrarStepS" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>
     <BottomBarsSpacer />
     <InternalCommunicationBar :quote-id="Number(route.params.id) || null" />
-    <QuoteClientHistoryPanel :client-id="pricingStore.datosPrincipales.id_entitie" />
+    <QuoteClientHistoryPanel
+      :client-id="pricingStore.datosPrincipales.id_entitie"
+    />
   </v-container>
 </template>
 

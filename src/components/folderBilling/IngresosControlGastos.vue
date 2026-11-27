@@ -37,7 +37,11 @@ import type { ApiResponse } from "@/types/api";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { usePermissions } from "@/composables/usePermissions";
 import type { AdminCredentials } from "@/types/seguridad";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import CargarPagoClienteDialog from "./CargarPagoClienteDialog.vue";
 import SoportesCobroDialog from "./SoportesCobroDialog.vue";
 import type { SoporteDeSolicitud } from "./SoportesCobroDialog.vue";
@@ -53,7 +57,11 @@ import {
   soporteEditadoCobro,
   useSolicitudCobro,
 } from "@/composables/useSolicitudCobro";
-import type { DestinoPagoCliente, SolicitudCobro, SoporteCobro } from "@/types/solicitudCobro";
+import type {
+  DestinoPagoCliente,
+  SolicitudCobro,
+  SoporteCobro,
+} from "@/types/solicitudCobro";
 import { shortDate } from "@/utils/dates";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 
@@ -76,7 +84,7 @@ const componentProps = withDefaults(
     ingreso_op: 0,
     editable: true,
     master_houses: undefined,
-  },
+  }
 );
 const emit = defineEmits<{
   recalcularProfit: [];
@@ -302,16 +310,24 @@ const id_quote = ref<number | null>(null);
 let payPath: number | string | undefined;
 const warnIfRefused = (response: ApiResponse) => {
   if (response.estadoflag) return false;
-  Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje });
+  Swal.fire({
+    icon: response.tipomensaje === "TMSGERR" ? "error" : "warning",
+    text: response.mensaje,
+  });
   return true;
 };
-const masterHouses = computed(() => componentProps.master_houses as unknown as HouseIngreso[]);
+const masterHouses = computed(
+  () => componentProps.master_houses as unknown as HouseIngreso[]
+);
 const datosManuales = undefined as unknown as Record<string, unknown>;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let ingreso: object | undefined;
 let id: number | undefined;
 
-function abrirModalRegistroDocumentoHouse(datosInstructivoManual: DatosInstructivoManual, idQuote: number) {
+function abrirModalRegistroDocumentoHouse(
+  datosInstructivoManual: DatosInstructivoManual,
+  idQuote: number
+) {
   datosinstructivomanual.value = datosInstructivoManual;
   listaDocumentos.value = datosInstructivoManual.listaDocumentos
     ? datosInstructivoManual.listaDocumentos
@@ -319,7 +335,10 @@ function abrirModalRegistroDocumentoHouse(datosInstructivoManual: DatosInstructi
   id_quote.value = idQuote;
   dialogCargarArchivoCotizacion.value = true;
 }
-function cargarArchivoDinamico(datoEmit: { archivo: unknown }, doc: DocumentoQuote) {
+function cargarArchivoDinamico(
+  datoEmit: { archivo: unknown },
+  doc: DocumentoQuote
+) {
   doc.file = datoEmit.archivo as ArchivoInicial | null;
   doc.flag = true;
 }
@@ -344,7 +363,9 @@ async function setDatosInstructivo() {
     title: "Datos guardados correctamente.",
     text: " Se han guardado. Recargue la página para ver los cambios reflejados.",
   }).then(async () => {
-    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+    await controlGastosStore.getListControlGastosHouses(
+      route.params.id as string
+    );
   });
 }
 function continueStep2() {
@@ -352,8 +373,11 @@ function continueStep2() {
   firstCompleteProforma.value = true;
 }
 async function reversar(houseIngreso: HouseIngreso) {
-  if (!(await reversarCotizacion(houseIngreso.id_quote, houseIngreso.quote))) return;
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  if (!(await reversarCotizacion(houseIngreso.id_quote, houseIngreso.quote)))
+    return;
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
 }
 function abrirCotizacion(id: number) {
   const routeData = appRouter.resolve({
@@ -399,10 +423,13 @@ function openDoc(path: string) {
 //   this.dialogCopiar = true;
 // },
 function abriModalCopiar(house: HouseIngreso, bloquearCopiarMontos: boolean) {
-  if (house.ingresos && house.ingresos.some((v) => (v.total_op as number) > 0)) {
+  if (
+    house.ingresos &&
+    house.ingresos.some((v) => (v.total_op as number) > 0)
+  ) {
     // Nota: en JavaScript el método correcto es .filter() en lugar de .filtro()
     const montosConMontosMayoresACero = house.ingresos.filter(
-      (v) => (v.total_op as number) > 0,
+      (v) => (v.total_op as number) > 0
     );
 
     // Generar las filas de la tabla dinámicamente con los datos obtenidos
@@ -411,16 +438,16 @@ function abriModalCopiar(house: HouseIngreso, bloquearCopiarMontos: boolean) {
         (item) => `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">${
-        item.concepto || "COMISIÓN"
-      }</td>
-          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${(item.total_pr as number).toFixed(
-        2,
-      )}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${(item.total_op as number).toFixed(
-        2,
-      )}</td>
+            item.concepto || "COMISIÓN"
+          }</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${(
+            item.total_pr as number
+          ).toFixed(2)}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${(
+            item.total_op as number
+          ).toFixed(2)}</td>
         </tr>
-      `,
+      `
       )
       .join("");
 
@@ -491,7 +518,9 @@ async function copiarMontos() {
       ...ingresos.value,
       tipocambio: ingresos.value.tipocambio || 1,
     });
-    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+    await controlGastosStore.getListControlGastosHouses(
+      route.params.id as string
+    );
     dialogCopiar.value = false;
   } finally {
     loadingCopiarMonto.value = false;
@@ -583,13 +612,15 @@ function abrirModalFacturar(houseSeleccionado: HouseIngreso) {
 }
 async function nuevoControlGasto(house: HouseIngreso) {
   await controlGastosStore.setControl(house);
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
   appStore.spiner = false;
 }
 function obtenerMoneda() {
   const monedas = [...appStore.itemsCoinsList];
   sufmoneda.value = monedas.find(
-    (v: MonedaItem) => v.id == ingresos.value.id_coins,
+    (v: MonedaItem) => v.id == ingresos.value.id_coins
   )?.symbol;
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   sufmoneda.value == "USD"
@@ -611,35 +642,45 @@ function calcularE() {
 
   // ------------------------------------------------------ montos
 
-  ingresos.value.igv_pr = parseFloat(String((ingresos.value.monto_pr as number) * igv)).toFixed(
-    2,
-  );
+  ingresos.value.igv_pr = parseFloat(
+    String((ingresos.value.monto_pr as number) * igv)
+  ).toFixed(2);
   ingresos.value.igvopcuentabanco = parseFloat(
-    String((ingresos.value.montoopcuentabanco as number) * igv),
+    String((ingresos.value.montoopcuentabanco as number) * igv)
   ).toFixed(2);
   ingresos.value.total_pr =
     parseFloat(String(ingresos.value.monto_pr)) +
     parseFloat(String((ingresos.value.monto_pr as number) * igv));
   // operaciones
   ingresos.value.totalopcuentabanco = parseFloat(
-    String(parseFloat(String(ingresos.value.montoopcuentabanco)) +
-      parseFloat(ingresos.value.igvopcuentabanco)),
+    String(
+      parseFloat(String(ingresos.value.montoopcuentabanco)) +
+        parseFloat(ingresos.value.igvopcuentabanco)
+    )
   ).toFixed(2);
   // ---------------------------------------------operaciones
   ingresos.value.montoopview = parseFloat(
-    String((ingresos.value.montoopcuentabanco as number) / (ingresos.value.tipocambio as number)),
+    String(
+      (ingresos.value.montoopcuentabanco as number) /
+        (ingresos.value.tipocambio as number)
+    )
   ).toFixed(2);
   ingresos.value.igvopview = parseFloat(
-    String((ingresos.value.montoopview as unknown as number) * igv),
+    String((ingresos.value.montoopview as unknown as number) * igv)
   ).toFixed(4);
   ingresos.value.totalopview = parseFloat(
-    String(parseFloat(ingresos.value.montoopview) +
-      parseFloat(ingresos.value.igvopview)),
+    String(
+      parseFloat(ingresos.value.montoopview) +
+        parseFloat(ingresos.value.igvopview)
+    )
   ).toFixed(4);
 }
 function calcularMontoDolar() {
   monto.value = parseFloat(
-    String(((monto_abonado.value ? monto_abonado.value : 0) as number) / (tipocambio.value as number)),
+    String(
+      ((monto_abonado.value ? monto_abonado.value : 0) as number) /
+        (tipocambio.value as number)
+    )
   ).toFixed(2);
 }
 async function _setDebsClient() {
@@ -681,7 +722,9 @@ async function _setDebsClient() {
     }
     dialogNewDebs.value = false;
     dialogDebs.value = false;
-    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+    await controlGastosStore.getListControlGastosHouses(
+      route.params.id as string
+    );
     cleandData();
     Swal.fire({
       icon: "success",
@@ -694,7 +737,9 @@ async function _setDebsClient() {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function listControlGasto() {
   appStore.spiner = true;
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
   appStore.spiner = false;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -807,7 +852,9 @@ async function _delDebsClient(id: number) {
     },
   };
   if (warnIfRefused(await request(config))) return;
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
   dialogDebs.value = false;
 }
 async function editIngresos() {
@@ -818,12 +865,12 @@ async function editIngresos() {
   const house = masterHouses.value.find(
     (v) =>
       v.id_house == ingresos.value.id_house &&
-      v.id_correlativo == ingresos.value.id_correlativo,
+      v.id_correlativo == ingresos.value.id_correlativo
   );
 
   if (!!house) {
     const exiteOtraMoneda = house.ingresos.some(
-      (v) => v.id_coins != ingresos.value.id_coins,
+      (v) => v.id_coins != ingresos.value.id_coins
     );
     if (exiteOtraMoneda) {
       Swal.fire({
@@ -844,15 +891,19 @@ async function editIngresos() {
     // tipocambio: this.tipocambio,git status
   };
   if (!(await controlGastosStore.actualizarIngresos(data))) return;
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
   statusBtn.value = 1;
   dialogIngreso.value = false;
   emit("recalcularProfit");
 }
 async function delIngreso(item: IngresoDetalle, house: HouseIngreso) {
   const deuda = getDeudaActual(house);
-  const hasPayment = (house.total_total_op_ingresos as number) > (deuda as number);
-  if (!hasPayment && can("listControlGastos", "ELIMINAR")) return continuarEliminar(item.id);
+  const hasPayment =
+    (house.total_total_op_ingresos as number) > (deuda as number);
+  if (!hasPayment && can("listControlGastos", "ELIMINAR"))
+    return continuarEliminar(item.id);
   if (hasPayment) {
     const { isConfirmed } = await Swal.fire({
       width: "430px",
@@ -949,11 +1000,17 @@ async function delIngreso(item: IngresoDetalle, house: HouseIngreso) {
     });
     if (!isConfirmed) return;
   }
-  const admin = await askAdminCredentials("Para eliminar este ingreso, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar este ingreso, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.controlGastosEliminar
+  );
   if (!admin) return;
   await continuarEliminar(item.id, admin);
 }
-async function continuarEliminar(id: number | undefined, admin?: AdminCredentials) {
+async function continuarEliminar(
+  id: number | undefined,
+  admin?: AdminCredentials
+) {
   Swal.fire({
     icon: "question",
     title: "Eliminar",
@@ -968,7 +1025,9 @@ async function continuarEliminar(id: number | undefined, admin?: AdminCredential
         id: id as number,
       };
       if (!(await controlGastosStore.eliminarIngreso(data, admin))) return;
-      await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+      await controlGastosStore.getListControlGastosHouses(
+        route.params.id as string
+      );
       emit("recalcularProfit");
     }
   });
@@ -980,12 +1039,12 @@ async function setIngresos() {
   const houseExistente = masterHouses.value.find(
     (v) =>
       v.id_orders == ingresos.value.id_orders &&
-      v.id_correlativo == ingresos.value.id_correlativo,
+      v.id_correlativo == ingresos.value.id_correlativo
   );
 
   if (!!houseExistente) {
     const exiteOtraMoneda = houseExistente.ingresos.some(
-      (v) => v.id_coins != ingresos.value.id_coins,
+      (v) => v.id_coins != ingresos.value.id_coins
     );
     if (exiteOtraMoneda) {
       Swal.fire({
@@ -1056,7 +1115,9 @@ async function actualizar() {
       if (result.isConfirmed) {
         dialogDebsEdit.value = false;
         dialogDebs.value = false;
-        await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+        await controlGastosStore.getListControlGastosHouses(
+          route.params.id as string
+        );
       }
     });
   }
@@ -1090,7 +1151,10 @@ async function generarDocumento() {
   nombreProforma.value = "PROFORMA";
   obtenerDatosHouse.value = false;
 }
-async function registrarFactura(proforma: { nro_factura: string; path: string }) {
+async function registrarFactura(proforma: {
+  nro_factura: string;
+  path: string;
+}) {
   const [first] = selected.value;
   const response = await request({
     method: "post",
@@ -1106,7 +1170,9 @@ async function registrarFactura(proforma: { nro_factura: string; path: string })
   });
   if (warnIfRefused(response)) return;
   window.open(import.meta.env.VITE_URL_MAIN + proforma.path, "_blank");
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
 }
 function isBotonEmitirProformaDisabled(house: Partial<HouseIngreso> = {}) {
   let disabled = false;
@@ -1130,7 +1196,9 @@ function getDeudaActual(data: Partial<HouseIngreso> = {}) {
 
   return deuda != 0 ? deuda.toFixed(2) : 0;
 }
-async function abrirModalFacturasFiscales(houseSeleccionado: Partial<HouseIngreso> = {}) {
+async function abrirModalFacturasFiscales(
+  houseSeleccionado: Partial<HouseIngreso> = {}
+) {
   house.value = houseSeleccionado as HouseIngreso;
   dialogFacturasFiscales.value = true;
 
@@ -1186,7 +1254,9 @@ async function registrarProformaFiscal() {
       appStore.spiner = true;
       await Promise.all([
         housesStore.getFacturasFiscales(house.value),
-        controlGastosStore.getListControlGastosHouses(route.params.id as string),
+        controlGastosStore.getListControlGastosHouses(
+          route.params.id as string
+        ),
       ]);
       appStore.spiner = false;
     } else {
@@ -1242,7 +1312,9 @@ async function eliminarProformaFiscal(id: number | string = "") {
             appStore.spiner = true;
             await Promise.all([
               housesStore.getFacturasFiscales(house.value),
-              controlGastosStore.getListControlGastosHouses(route.params.id as string),
+              controlGastosStore.getListControlGastosHouses(
+                route.params.id as string
+              ),
             ]);
             isDataTableLoading.value = false;
             appStore.spiner = false;
@@ -1304,7 +1376,9 @@ async function verProformas(item: HouseIngreso) {
 function abrirPdf(url: string) {
   window.open(url, "_blank");
 }
-async function abrirModalCambiarExpediente(houseSeleccionado: Partial<HouseIngreso> = {}) {
+async function abrirModalCambiarExpediente(
+  houseSeleccionado: Partial<HouseIngreso> = {}
+) {
   house.value = houseSeleccionado as HouseIngreso;
 
   flagCambiarExpediente.value = true;
@@ -1315,14 +1389,12 @@ async function abrirModalCambiarExpediente(houseSeleccionado: Partial<HouseIngre
 }
 async function aplicarCambioExpediente() {
   if (!house.value || !selectedNuevoExpediente.value) return;
-  if (
-    Number(selectedNuevoExpediente.value) === Number(route.params.id)
-  ) {
+  if (Number(selectedNuevoExpediente.value) === Number(route.params.id)) {
     dialogCambiarExpediente.value = false;
     return;
   }
   const targetLabel = appStore.itemsMasterList.find(
-    (x: ExpedienteItem) => x.id === selectedNuevoExpediente.value,
+    (x: ExpedienteItem) => x.id === selectedNuevoExpediente.value
   )!.code_master;
   const res = await Swal.fire({
     icon: "question",
@@ -1352,7 +1424,9 @@ async function aplicarCambioExpediente() {
     const response = await axios(config);
     flagCambiarExpediente.value = false;
     dialogCambiarExpediente.value = false;
-    await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+    await controlGastosStore.getListControlGastosHouses(
+      route.params.id as string
+    );
     if (response && response.data && response.data.estadoflag) {
       await Swal.fire({ icon: "success", text: "Expediente actualizado" });
       dialogCambiarExpediente.value = false;
@@ -1375,7 +1449,10 @@ async function aplicarCambioExpediente() {
 }
 async function eliminarFactura(item: number) {
   dialogFacturaEmitidas.value = false;
-  const admin = await askAdminCredentials("Para anular esta factura, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para anular esta factura, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.facturaAnular
+  );
   if (!admin) return;
 
   const { value: motivo } = await Swal.fire({
@@ -1386,7 +1463,8 @@ async function eliminarFactura(item: number) {
     showCancelButton: true,
     confirmButtonText: "Anular factura",
     cancelButtonText: "Cancelar",
-    inputValidator: (text) => (text.trim() ? null : "Escribe el motivo de la anulación."),
+    inputValidator: (text) =>
+      text.trim() ? null : "Escribe el motivo de la anulación.",
   });
   if (!motivo) return;
 
@@ -1396,16 +1474,20 @@ async function eliminarFactura(item: number) {
     data: { id: item, motivo, ...withAuthorization(admin) },
   });
   if (warnIfRefused(response)) return;
-  await Swal.fire({ icon: "success", title: "Factura anulada", text: response.mensaje });
-  await controlGastosStore.getListControlGastosHouses(route.params.id as string);
+  await Swal.fire({
+    icon: "success",
+    title: "Factura anulada",
+    text: response.mensaje,
+  });
+  await controlGastosStore.getListControlGastosHouses(
+    route.params.id as string
+  );
 }
 function bloquearCopiarMontos(ingresos: IngresoDetalle[]) {
   return ingresos.some((v) => v.facturado);
 }
 function mostrarMontoOperativos(ingresos: IngresoDetalle[]) {
-  const existeMonedaDiferenteADolar = ingresos.some(
-    (v) => v.acronym !== "USD",
-  );
+  const existeMonedaDiferenteADolar = ingresos.some((v) => v.acronym !== "USD");
 
   return existeMonedaDiferenteADolar;
 }
@@ -1414,7 +1496,9 @@ function mostrarMontoOperativos(ingresos: IngresoDetalle[]) {
 // mismos datos que la sección "Solicitudes de Cobro": una sola llamada para las dos
 const solicitudesMasterStore = useSolicitudesMasterStore();
 const idMasterCobro = computed(() => Number(route.params.id) || 0);
-const solicitudesCobro = computed<SolicitudCobro[]>(() => solicitudesMasterStore.cobros[idMasterCobro.value] ?? []);
+const solicitudesCobro = computed<SolicitudCobro[]>(
+  () => solicitudesMasterStore.cobros[idMasterCobro.value] ?? []
+);
 const dialogPagoCliente = ref(false);
 const destinoPagoCliente = ref<DestinoPagoCliente | null>(null);
 const solicitudPagoCliente = ref<SolicitudCobro | null>(null);
@@ -1425,9 +1509,18 @@ const adminPagoCliente = ref<AdminCredentials | null>(null);
 // Deuda del correlativo en su moneda: en PEN (u otra) el Op del listado es el equivalente en USD; el monto
 // a cobrar es el de la cuenta del banco (saldo de la BD, function_solicitudcobro_saldo)
 const saldosLocales = ref<Record<string, number>>({});
-const claveSaldoHouse = (h: Partial<HouseIngreso>) => `${Number(h.id_house)}-${Number(h.id_correlativo || 0)}`;
+const claveSaldoHouse = (h: Partial<HouseIngreso>) =>
+  `${Number(h.id_house)}-${Number(h.id_correlativo || 0)}`;
 const esCorrelativoDolar = (h: HouseIngreso) =>
-  (h.ingresos ?? []).every((i) => !Number(i.total_op || 0) || ["USD", "$"].includes(String(i.acronym || i.symbol || "USD").trim().toUpperCase()));
+  (h.ingresos ?? []).every(
+    (i) =>
+      !Number(i.total_op || 0) ||
+      ["USD", "$"].includes(
+        String(i.acronym || i.symbol || "USD")
+          .trim()
+          .toUpperCase()
+      )
+  );
 function deudaCobro(house: HouseIngreso) {
   const local = saldosLocales.value[claveSaldoHouse(house)];
   return local ?? Number(getDeudaActual(house));
@@ -1435,21 +1528,30 @@ function deudaCobro(house: HouseIngreso) {
 async function cargarSaldosLocales(houses: HouseIngreso[]) {
   const otras = houses.filter((h) => h.id_house && !esCorrelativoDolar(h));
   const saldos: Record<string, number> = {};
-  await Promise.all(otras.map(async (h) => {
-    const r = await request<{ saldo: number | string; monedas: number }>({
-      method: "get",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_saldo",
-      params: { id_house: h.id_house, id_correlativo: h.id_correlativo || undefined },
-    });
-    const fila = r.estadoflag ? r.data[0] : undefined;
-    if (fila && Number(fila.monedas) === 1) saldos[claveSaldoHouse(h)] = Number(fila.saldo || 0);
-  }));
+  await Promise.all(
+    otras.map(async (h) => {
+      const r = await request<{ saldo: number | string; monedas: number }>({
+        method: "get",
+        url: import.meta.env.VITE_URL_MAIN + "solicitud_cobro_saldo",
+        params: {
+          id_house: h.id_house,
+          id_correlativo: h.id_correlativo || undefined,
+        },
+      });
+      const fila = r.estadoflag ? r.data[0] : undefined;
+      if (fila && Number(fila.monedas) === 1)
+        saldos[claveSaldoHouse(h)] = Number(fila.saldo || 0);
+    })
+  );
   saldosLocales.value = saldos;
 }
-watch(masterHouses, (houses) => void cargarSaldosLocales(houses ?? []), { immediate: true });
+watch(masterHouses, (houses) => void cargarSaldosLocales(houses ?? []), {
+  immediate: true,
+});
 
 async function cargarSolicitudesCobro() {
-  if (idMasterCobro.value) await solicitudesMasterStore.cargarCobros(idMasterCobro.value);
+  if (idMasterCobro.value)
+    await solicitudesMasterStore.cargarCobros(idMasterCobro.value);
 }
 const cobro = useSolicitudCobro(cargarSolicitudesCobro);
 const cobroProcesando = cobro.procesando;
@@ -1458,11 +1560,15 @@ const cobroProcesando = cobro.procesando;
 // no queda deuda; si queda, lo que falta se carga en una solicitud nueva.
 function solicitudCobroDe(house: HouseIngreso) {
   const delHouse = solicitudesCobro.value.filter(
-    (s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""),
+    (s) =>
+      s.id_house === Number(house.id_house) &&
+      String(s.id_correlativo ?? "") === String(house.id_correlativo ?? "")
   );
   // primero la que se sigue armando (sin confirmar); luego la confirmada pendiente de registrar en Bancos
-  const abierta = delHouse.find((s) => s.codigo_estado !== "COBRADO" && s.codigo_estado !== "CONFIRMADO")
-    ?? delHouse.find((s) => s.codigo_estado === "CONFIRMADO");
+  const abierta =
+    delHouse.find(
+      (s) => s.codigo_estado !== "COBRADO" && s.codigo_estado !== "CONFIRMADO"
+    ) ?? delHouse.find((s) => s.codigo_estado === "CONFIRMADO");
   if (abierta) return abierta;
   // Editada en Bancos (abono parcial): su tarjeta se sigue viendo aunque quede saldo, como en Costos
   const editada = delHouse.find((s) => soporteEditadoCobro(s));
@@ -1472,7 +1578,11 @@ function solicitudCobroDe(house: HouseIngreso) {
 // pagos cargados del correlativo que aún no tienen su ingreso en Bancos (en cualquier solicitud abierta)
 function comprometidoCobro(house: HouseIngreso) {
   return solicitudesCobro.value
-    .filter((s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""))
+    .filter(
+      (s) =>
+        s.id_house === Number(house.id_house) &&
+        String(s.id_correlativo ?? "") === String(house.id_correlativo ?? "")
+    )
     .flatMap((s) => s.soportes ?? [])
     .filter((sop) => !sop.id_pagoingreso)
     .reduce((acc, sop) => acc + Number(sop.monto || 0), 0);
@@ -1493,19 +1603,26 @@ const ICONO_ESTADO_COBRO: Record<string, string> = {
 };
 // fecha con el helper de FormatFecha (DD/MMM/YYYY) y la hora
 function fechaCobro(fecha: string | null) {
-  return fecha ? `${shortDate(fecha.slice(0, 10))} ${fecha.slice(11, 16)}`.trim() : "";
+  return fecha
+    ? `${shortDate(fecha.slice(0, 10))} ${fecha.slice(11, 16)}`.trim()
+    : "";
 }
 
 // moneda de los ingresos (Op) del correlativo: la cuenta donde depositó el cliente debe ser de esa moneda
 function monedaCorrelativo(house: HouseIngreso): number | null {
-  const ingreso = (house.ingresos ?? []).find((i) => i.id_coins && Number(i.total_op || 0) !== 0) ?? house.ingresos?.find((i) => i.id_coins);
+  const ingreso =
+    (house.ingresos ?? []).find(
+      (i) => i.id_coins && Number(i.total_op || 0) !== 0
+    ) ?? house.ingresos?.find((i) => i.id_coins);
   return ingreso?.id_coins ? Number(ingreso.id_coins) : null;
 }
 // pagos cargados del correlativo y lo que falta para completar el monto a cobrar
 // solicitudes del correlativo (puede haber varias: una confirmada y otra con el saldo)
 function solicitudesCobroDe(house: HouseIngreso) {
   return solicitudesCobro.value.filter(
-    (s) => s.id_house === Number(house.id_house) && String(s.id_correlativo ?? "") === String(house.id_correlativo ?? ""),
+    (s) =>
+      s.id_house === Number(house.id_house) &&
+      String(s.id_correlativo ?? "") === String(house.id_correlativo ?? "")
   );
 }
 // todos los pagos cargados del correlativo, cada uno con su solicitud (estado y confirmación)
@@ -1524,37 +1641,65 @@ function soportesCobro(house: HouseIngreso): SoporteDeSolicitud[] {
         fecha_confirmacion: s.fecha_confirmacion,
         editable: true,
       },
-    })),
+    }))
   );
 }
 // pagos del correlativo que aún no tienen su ingreso en Bancos (los ya cobrados no se muestran en el resumen)
 function solicitudesPendientesCobro(house: HouseIngreso) {
-  return filasPorSoporte(solicitudesCobroDe(house)).filter((f) => f.codigo_estado !== "COBRADO");
+  return filasPorSoporte(solicitudesCobroDe(house)).filter(
+    (f) => f.codigo_estado !== "COBRADO"
+  );
 }
 // la confirmada que falta registrar en Bancos (puede no ser la que se está armando)
 function confirmadaPorRegistrar(house: HouseIngreso) {
-  return solicitudesCobroDe(house).find((s) => s.codigo_estado === "CONFIRMADO" && faltaRegistrarCobro(s));
+  return solicitudesCobroDe(house).find(
+    (s) => s.codigo_estado === "CONFIRMADO" && faltaRegistrarCobro(s)
+  );
 }
 // la solicitud dueña de un pago
 function solicitudDeSoporte(house: HouseIngreso, soporte: SoporteCobro) {
-  return solicitudesCobroDe(house).find((s) => (s.soportes ?? []).some((x) => x.codigo === soporte.codigo));
+  return solicitudesCobroDe(house).find((s) =>
+    (s.soportes ?? []).some((x) => x.codigo === soporte.codigo)
+  );
 }
 // saldo para cargar más pagos: la deuda actual menos lo ya cargado y aún no registrado en Bancos
 function saldoCobro(house: HouseIngreso) {
-  return Math.max(Math.round(((Number(deudaCobro(house)) || 0) - comprometidoCobro(house)) * 100) / 100, 0);
+  return Math.max(
+    Math.round(
+      ((Number(deudaCobro(house)) || 0) - comprometidoCobro(house)) * 100
+    ) / 100,
+    0
+  );
 }
 
 // soporte: el pago a editar; nuevo = "Agregar otro soporte de ingreso"
-async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro | null = null, nuevo = false) {
+async function abrirCargarPagoCliente(
+  house: HouseIngreso,
+  soporte: SoporteCobro | null = null,
+  nuevo = false
+) {
   // editar un pago: su propia solicitud
-  const abierta = (soporte ? solicitudDeSoporte(house, soporte) : null) ?? solicitudCobroDe(house) ?? null;
+  const abierta =
+    (soporte ? solicitudDeSoporte(house, soporte) : null) ??
+    solicitudCobroDe(house) ??
+    null;
   // la pedida desde el reporte solo se edita ahí (Administración)
-  if (abierta && !nuevo && avisarOrigenSolicitud(abierta, "cg", "editar", "cobro")) return;
+  if (
+    abierta &&
+    !nuevo &&
+    avisarOrigenSolicitud(abierta, "cg", "editar", "cobro")
+  )
+    return;
   if (abierta && !nuevo && avisarIngresoBancosCobro(abierta)) return;
   // pago nuevo con la solicitud ya confirmada (aún sin registrar en Bancos): va en una solicitud nueva
   // por el saldo disponible; la confirmada no se toca
   // la editada en Bancos ya está cerrada: el saldo va en una solicitud nueva
-  const s = nuevo && (abierta?.codigo_estado === "CONFIRMADO" || (abierta && soporteEditadoCobro(abierta))) ? null : abierta;
+  const s =
+    nuevo &&
+    (abierta?.codigo_estado === "CONFIRMADO" ||
+      (abierta && soporteEditadoCobro(abierta)))
+      ? null
+      : abierta;
   // varios pagos: se elige cuál editar en la lista de soportes
   if (s && !nuevo && !soporte) {
     const lista = s.soportes ?? [];
@@ -1565,7 +1710,10 @@ async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro
     soporte = lista[0] ?? null;
   }
   if (nuevo && saldoCobro(house) <= 0) {
-    Swal.fire({ icon: "info", text: "El monto ya está completo: no hace falta otro soporte de ingreso." });
+    Swal.fire({
+      icon: "info",
+      text: "El monto ya está completo: no hace falta otro soporte de ingreso.",
+    });
     return;
   }
   adminPagoCliente.value = null;
@@ -1597,7 +1745,9 @@ async function abrirCargarPagoCliente(house: HouseIngreso, soporte: SoporteCobro
 // "Ver todos los soportes de ingreso"
 const dialogSoportesCobro = ref(false);
 const houseSoportes = ref<HouseIngreso | null>(null);
-const solicitudSoportes = computed(() => (houseSoportes.value ? solicitudCobroDe(houseSoportes.value) ?? null : null));
+const solicitudSoportes = computed(() =>
+  houseSoportes.value ? solicitudCobroDe(houseSoportes.value) ?? null : null
+);
 function verSoportesCobro(house: HouseIngreso) {
   houseSoportes.value = house;
   dialogSoportesCobro.value = true;
@@ -1608,9 +1758,15 @@ function editarSoporteCobro(soporte: SoporteCobro) {
   abrirCargarPagoCliente(houseSoportes.value, soporte);
 }
 async function eliminarSoporteCobro(soporte: SoporteCobro) {
-  const s = houseSoportes.value ? solicitudDeSoporte(houseSoportes.value, soporte) : undefined;
+  const s = houseSoportes.value
+    ? solicitudDeSoporte(houseSoportes.value, soporte)
+    : undefined;
   if (!s) return;
-  if (await cobro.eliminarSoporte(s, soporte) && houseSoportes.value && !soportesCobro(houseSoportes.value).length) {
+  if (
+    (await cobro.eliminarSoporte(s, soporte)) &&
+    houseSoportes.value &&
+    !soportesCobro(houseSoportes.value).length
+  ) {
     dialogSoportesCobro.value = false;
   }
 }
@@ -1620,7 +1776,11 @@ const totalSoportesCobro = computed(() => {
   const registrado = soportesCobro(houseSoportes.value)
     .filter((sop) => sop.id_pagoingreso)
     .reduce((acc, sop) => acc + Number(sop.monto || 0), 0);
-  return Math.round(((Number(getDeudaActual(houseSoportes.value)) || 0) + registrado) * 100) / 100;
+  return (
+    Math.round(
+      ((Number(getDeudaActual(houseSoportes.value)) || 0) + registrado) * 100
+    ) / 100
+  );
 });
 // el tacho: con un solo pago elimina la solicitud; con varios se elige en la lista
 function eliminarPagoCobro(house: HouseIngreso) {
@@ -1635,7 +1795,10 @@ function eliminarPagoCobro(house: HouseIngreso) {
 function enviarAdministracionCobro(house: HouseIngreso) {
   const s = solicitudCobroDe(house);
   if (!s) {
-    Swal.fire({ icon: "info", text: "Primero carga el pago del cliente (voucher)." });
+    Swal.fire({
+      icon: "info",
+      text: "Primero carga el pago del cliente (voucher).",
+    });
     return;
   }
   if (soportesCobro(house).length > 1) {
@@ -1646,7 +1809,9 @@ function enviarAdministracionCobro(house: HouseIngreso) {
 }
 // "Enviar solicitud" de un pago en el listado: solo ese pago
 function enviarSoporteCobro(soporte: SoporteCobro) {
-  const s = houseSoportes.value ? solicitudDeSoporte(houseSoportes.value, soporte) : undefined;
+  const s = houseSoportes.value
+    ? solicitudDeSoporte(houseSoportes.value, soporte)
+    : undefined;
   if (s) cobro.enviar(s, soporte);
 }
 
@@ -1659,8 +1824,12 @@ const dialogVerReporte = ref(false);
 const solicitudCobroReporteVer = ref<SolicitudCobro | null>(null);
 const entidadCobroReporteVer = computed(() =>
   solicitudCobroReporteVer.value
-    ? { id: Number(solicitudCobroReporteVer.value.id_cliente), nombre: solicitudCobroReporteVer.value.cliente }
-    : null);
+    ? {
+        id: Number(solicitudCobroReporteVer.value.id_cliente),
+        nombre: solicitudCobroReporteVer.value.cliente,
+      }
+    : null
+);
 function verSolicitud(s: { codigo: string; multiexpedienteflag?: boolean }) {
   if (s.multiexpedienteflag) {
     solicitudCobroReporteVer.value = s as SolicitudCobro;
@@ -1672,9 +1841,13 @@ function verSolicitud(s: { codigo: string; multiexpedienteflag?: boolean }) {
 }
 
 onMounted(async () => {
-  if (idMasterCobro.value) solicitudesMasterStore.asegurarCobros(idMasterCobro.value);
+  if (idMasterCobro.value)
+    solicitudesMasterStore.asegurarCobros(idMasterCobro.value);
   const branch = String(route.params.id_branch ?? "");
-  if (!enterprisesStore.impuestoCargado || (branch && enterprisesStore.impuestoBranch !== branch)) {
+  if (
+    !enterprisesStore.impuestoCargado ||
+    (branch && enterprisesStore.impuestoBranch !== branch)
+  ) {
     await enterprisesStore.obtenerImpuestoXEmpresa(branch || null);
   }
 });
@@ -1696,7 +1869,7 @@ watch(
       columnasImpuestoQuitadas = true;
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 </script>
 
@@ -1707,28 +1880,24 @@ watch(
       {{ formatUsd(ingreso_pr) }} / ------- Operaciones:
       {{ formatUsd(ingreso_op) }}
     </h3>
-    <div
-      v-else
-      class="cg-seccion"
-    >
+    <div v-else class="cg-seccion">
       <h3 class="cg-seccion__titulo">
-        <v-icon color="success">
-          mdi-cash-plus
-        </v-icon>
+        <v-icon color="success"> mdi-cash-plus </v-icon>
         Ingresos <small>(Venta al cliente)</small>
       </h3>
       <div class="cg-seccion__totales">
-        <span class="cg-total cg-total--pr">Pricing: <b>{{ formatUsd(ingreso_pr) }}</b></span>
-        <span class="cg-total cg-total--op">Operaciones: <b>{{ formatUsd(ingreso_op) }}</b></span>
+        <span class="cg-total cg-total--pr"
+          >Pricing: <b>{{ formatUsd(ingreso_pr) }}</b></span
+        >
+        <span class="cg-total cg-total--op"
+          >Operaciones: <b>{{ formatUsd(ingreso_op) }}</b></span
+        >
       </div>
     </div>
     <!-- <v-btn @click="nuevoIngreso()" color="blue" dark small>
       Nuevo Control Gastos Ingresos
     </v-btn> -->
-    <v-expansion-panels
-      v-model="openedPanel"
-      variant="accordion"
-    >
+    <v-expansion-panels v-model="openedPanel" variant="accordion">
       <v-expansion-panel
         v-for="(houseIngreso, index) in masterHouses || []"
         :key="index"
@@ -1747,71 +1916,28 @@ watch(
             <thead>
               <tr>
                 <!-- <th width="10%">House</th> -->
-                <th width="22%">
-                  Consignatario
-                </th>
-                <th width="10%">
-                  Cotización
-                </th>
-                <th
-                  width="12%"
-                  style="background: #d6f4ff"
-                >
-                  Total Pricing
-                </th>
-                <th
-                  width="12%"
-                  style="background: #ffd6d6"
-                >
+                <th width="22%">Consignatario</th>
+                <th width="10%">Cotización</th>
+                <th width="12%" style="background: #d6f4ff">Total Pricing</th>
+                <th width="12%" style="background: #ffd6d6">
                   Total Operaciones
                 </th>
-                <th
-                  width="12%"
-                  style="background: #fff9c4"
-                >
-                  Total Deuda
-                </th>
-                <th
-                  v-if="editable"
-                  width="6%"
-                >
-                  Acción
-                </th>
+                <th width="12%" style="background: #fff9c4">Total Deuda</th>
+                <th v-if="editable" width="6%">Acción</th>
                 <!-- <th v-if="editable" width="6%">Abonos</th> -->
-                <th
-                  v-if="editable"
-                  width="12%"
-                >
-                  Envíos / Administración
-                </th>
-                <th
-                  v-if="editable"
-                  width="8%"
-                >
-                  Más acciones
-                </th>
+                <th v-if="editable" width="12%">Envíos / Administración</th>
+                <th v-if="editable" width="8%">Más acciones</th>
                 <th>Ver Proformas</th>
-                <th
-                  v-if="editable"
-                  width="8%"
-                >
-                  Facturas y Proformas
-                </th>
+                <th v-if="editable" width="8%">Facturas y Proformas</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <!-- <td>{{ house.code_house }} - {{ house.correlativo }}</td> -->
-                <td
-                  data-label="Consignatario"
-                  class="cg-full cg-titulo"
-                >
+                <td data-label="Consignatario" class="cg-full cg-titulo">
                   {{ houseIngreso.consigner }} - {{ houseIngreso.correlativo }}
                 </td>
-                <td
-                  data-label="Cotización"
-                  class="cg-full"
-                >
+                <td data-label="Cotización" class="cg-full">
                   {{ houseIngreso.quote }}
                   <v-btn
                     data-modo-ver="permitido"
@@ -1829,7 +1955,10 @@ watch(
                     size="x-small"
                     class="text-none my-1"
                     prepend-icon="mdi-undo-variant"
-                    v-if="houseIngreso.id_quote && can('listControlGastos', 'MODIFICAR')"
+                    v-if="
+                      houseIngreso.id_quote &&
+                      can('listControlGastos', 'MODIFICAR')
+                    "
                     @click="reversar(houseIngreso)"
                   >
                     Reversar aprobación
@@ -1849,11 +1978,14 @@ watch(
                     variant="text"
                     color="default"
                     icon
-                    v-if="!houseIngreso.ruta_cotizacion && can('listControlGastos', 'MODIFICAR')"
+                    v-if="
+                      !houseIngreso.ruta_cotizacion &&
+                      can('listControlGastos', 'MODIFICAR')
+                    "
                     @click="
                       abrirModalRegistroDocumentoHouse(
                         houseIngreso.datosinstructivomanual,
-                        houseIngreso.id_quote,
+                        houseIngreso.id_quote
                       )
                     "
                   >
@@ -1861,29 +1993,16 @@ watch(
                   </v-btn>
                 </td>
 
-                <td
-                  data-label="Total Pricing"
-                  class="cg-pr"
-                >
+                <td data-label="Total Pricing" class="cg-pr">
                   {{ houseIngreso.total_total_pr_ingresos }}
                 </td>
-                <td
-                  data-label="Total Operaciones"
-                  class="cg-op"
-                >
+                <td data-label="Total Operaciones" class="cg-op">
                   {{ houseIngreso.total_total_op_ingresos }}
                 </td>
-                <td
-                  data-label="Total Deuda"
-                  class="cg-deuda"
-                >
+                <td data-label="Total Deuda" class="cg-deuda">
                   {{ getDeudaActual(houseIngreso) }}
                 </td>
-                <td
-                  data-label="Acción"
-                  class="cg-full"
-                  v-if="editable"
-                >
+                <td data-label="Acción" class="cg-full" v-if="editable">
                   <template v-if="can('listControlGastos', 'NUEVO')">
                     <v-btn
                       v-if="houseIngreso.id_orders"
@@ -1914,14 +2033,13 @@ watch(
                       <template #activator="{ props }">
                         <!-- @vue-expect-error the click passes the income rows where a house is expected -->
                         <v-btn
-                         
                           v-bind="props"
                           color="success"
                           size="x-small"
                           @click="
                             abriModalCopiar(
                               houseIngreso.ingresos,
-                              bloquearCopiarMontos(houseIngreso.ingresos),
+                              bloquearCopiarMontos(houseIngreso.ingresos)
                             )
                           "
                         >
@@ -1939,7 +2057,7 @@ watch(
                       @click="
                         abriModalCopiar(
                           houseIngreso,
-                          bloquearCopiarMontos(houseIngreso.ingresos),
+                          bloquearCopiarMontos(houseIngreso.ingresos)
                         )
                       "
                     >
@@ -1985,13 +2103,22 @@ watch(
                       :class="`cobreq--${sol.codigo_estado.toLowerCase()}`"
                     >
                       <span class="cobreq-resumen__estado">
-                        <v-icon size="14">{{ ICONO_ESTADO_COBRO[sol.codigo_estado] ?? "mdi-email-check-outline" }}</v-icon>
+                        <v-icon size="14">{{
+                          ICONO_ESTADO_COBRO[sol.codigo_estado] ??
+                          "mdi-email-check-outline"
+                        }}</v-icon>
                         {{ sol.estado }}
                       </span>
-                      <span class="cobreq-resumen__monto">{{ montoCobro(montoCobrado(sol), sol.moneda) }}</span>
+                      <span class="cobreq-resumen__monto">{{
+                        montoCobro(montoCobrado(sol), sol.moneda)
+                      }}</span>
                     </div>
                     <SolicitudOrigenNota
-                      v-if="solicitudesPendientesCobro(houseIngreso).some((sol) => sol.multiexpedienteflag)"
+                      v-if="
+                        solicitudesPendientesCobro(houseIngreso).some(
+                          (sol) => sol.multiexpedienteflag
+                        )
+                      "
                       origen="adm"
                       tipo="cobro"
                     />
@@ -2011,26 +2138,39 @@ watch(
                         type="button"
                         class="cobreq__info"
                         title="Ver solicitud de cobro"
-                        @click="verSolicitud(solicitudCobroEnviada(houseIngreso)!)"
+                        @click="
+                          verSolicitud(solicitudCobroEnviada(houseIngreso)!)
+                        "
                       >
                         <span class="cobreq__badge">
                           <v-icon size="18">
                             {{
-                              soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)
+                              soporteEditadoCobro(
+                                solicitudCobroEnviada(houseIngreso)!
+                              )
                                 ? "mdi-pencil-circle-outline"
-                                : ICONO_ESTADO_COBRO[solicitudCobroEnviada(houseIngreso)!.codigo_estado] ?? "mdi-email-check-outline"
+                                : ICONO_ESTADO_COBRO[
+                                    solicitudCobroEnviada(houseIngreso)!
+                                      .codigo_estado
+                                  ] ?? "mdi-email-check-outline"
                             }}
                           </v-icon>
                         </span>
                         <span class="cobreq__text">
-                          <span class="cobreq__title">{{ estadoCobro(solicitudCobroEnviada(houseIngreso)!) }}</span>
+                          <span class="cobreq__title">{{
+                            estadoCobro(solicitudCobroEnviada(houseIngreso)!)
+                          }}</span>
                           <!-- Editado en Bancos: el motivo del error en lugar de la fecha -->
                           <span
                             v-if="soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)"
                             class="cobreq__date cobreq__motivo"
                             :title="soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)!.motivo_edicion ?? undefined"
                           >
-                            {{ soporteEditadoCobro(solicitudCobroEnviada(houseIngreso)!)!.motivo_edicion || "Sin motivo" }}
+                            {{
+                              soporteEditadoCobro(
+                                solicitudCobroEnviada(houseIngreso)!
+                              )!.motivo_edicion || "Sin motivo"
+                            }}
                           </span>
                           <span
                             v-else
@@ -2038,14 +2178,27 @@ watch(
                             :title="solicitudCobroEnviada(houseIngreso)!.codigo_estado === 'RECHAZADA' ? solicitudCobroEnviada(houseIngreso)!.motivo_rechazo ?? undefined : undefined"
                           >
                             {{
-                              solicitudCobroEnviada(houseIngreso)!.codigo_estado === "RECHAZADA"
-                                ? solicitudCobroEnviada(houseIngreso)!.motivo_rechazo || "Sin motivo"
-                                : fechaCobro(solicitudCobroEnviada(houseIngreso)!.fechasolicitud)
+                              solicitudCobroEnviada(houseIngreso)!
+                                .codigo_estado === "RECHAZADA"
+                                ? solicitudCobroEnviada(houseIngreso)!
+                                    .motivo_rechazo || "Sin motivo"
+                                : fechaCobro(
+                                    solicitudCobroEnviada(houseIngreso)!
+                                      .fechasolicitud
+                                  )
                             }}
                           </span>
                           <!-- una sola solicitud: su monto debajo -->
                           <span class="cobreq__monto">
-                            Monto: {{ montoCobro(montoCobrado(solicitudCobroEnviada(houseIngreso)!), solicitudCobroEnviada(houseIngreso)!.moneda) }}
+                            Monto:
+                            {{
+                              montoCobro(
+                                montoCobrado(
+                                  solicitudCobroEnviada(houseIngreso)!
+                                ),
+                                solicitudCobroEnviada(houseIngreso)!.moneda
+                              )
+                            }}
                           </span>
                           <!-- pedida desde el Reporte de Cuentas por Cobrar (Administración) -->
                           <SolicitudOrigenNota
@@ -2065,7 +2218,9 @@ watch(
                           color="blue"
                           title="Ver solicitud de cobro"
                           aria-label="Ver solicitud de cobro"
-                          @click="verSolicitud(solicitudCobroEnviada(houseIngreso)!)"
+                          @click="
+                            verSolicitud(solicitudCobroEnviada(houseIngreso)!)
+                          "
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'NUEVO')"
@@ -2097,14 +2252,22 @@ watch(
                       :solicitud="solicitudCobroEnviada(houseIngreso)!"
                     />
                     <v-btn
-                      v-if="solicitudesPendientesCobro(houseIngreso).length < 2 && confirmadaPorRegistrar(houseIngreso) && can('registroPayForCliente', 'NUEVO')"
+                      v-if="
+                        solicitudesPendientesCobro(houseIngreso).length < 2 &&
+                        confirmadaPorRegistrar(houseIngreso) &&
+                        can('registroPayForCliente', 'NUEVO')
+                      "
                       size="small"
                       variant="flat"
                       color="success"
                       prepend-icon="mdi-bank-transfer-in"
                       class="cobreq__registrar"
                       :loading="cobroProcesando === confirmadaPorRegistrar(houseIngreso)!.codigo"
-                      @click="cobro.registrarEnBancos(confirmadaPorRegistrar(houseIngreso)!)"
+                      @click="
+                        cobro.registrarEnBancos(
+                          confirmadaPorRegistrar(houseIngreso)!
+                        )
+                      "
                     >
                       REGISTRAR EN BANCO
                     </v-btn>
@@ -2118,12 +2281,16 @@ watch(
                         class="cobro-pasos__btn"
                         :disabled="!can('listControlGastos', 'NUEVO')"
                         @mousedown.stop
-                        @click.stop="abrirCargarPagoCliente(houseIngreso, null, true)"
+                        @click.stop="
+                          abrirCargarPagoCliente(houseIngreso, null, true)
+                        "
                       >
                         Agregar otro soporte de ingreso
                       </v-btn>
                       <div class="cobro-pasos__falta">
-                        Saldo pendiente: {{ saldoCobro(houseIngreso).toFixed(2) }} {{ solicitudCobroEnviada(houseIngreso)!.moneda ?? "" }}
+                        Saldo pendiente:
+                        {{ saldoCobro(houseIngreso).toFixed(2) }}
+                        {{ solicitudCobroEnviada(houseIngreso)!.moneda ?? "" }}
                       </div>
                     </template>
                     <!-- v-btn (no <button> nativo): la fila está dentro del título del panel, que también es un botón -->
@@ -2137,24 +2304,42 @@ watch(
                       @mousedown.stop
                       @click.stop="verSoportesCobro(houseIngreso)"
                     >
-                      Ver todos los soportes de ingreso ({{ soportesCobro(houseIngreso).length }})
+                      Ver todos los soportes de ingreso ({{
+                        soportesCobro(houseIngreso).length
+                      }})
                     </v-btn>
                   </div>
-                  <div
-                    v-else
-                    class="cobro-pasos"
-                  >
+                  <div v-else class="cobro-pasos">
                     <v-btn
                       size="small"
                       variant="flat"
-                      :color="solicitudCobroDe(houseIngreso) ? 'green-darken-2' : 'grey'"
-                      :prepend-icon="solicitudCobroDe(houseIngreso) ? 'mdi-check-circle-outline' : 'mdi-cloud-upload'"
+                      :color="
+                        solicitudCobroDe(houseIngreso)
+                          ? 'green-darken-2'
+                          : 'grey'
+                      "
+                      :prepend-icon="
+                        solicitudCobroDe(houseIngreso)
+                          ? 'mdi-check-circle-outline'
+                          : 'mdi-cloud-upload'
+                      "
                       class="cobro-pasos__btn"
-                      :disabled="!houseIngreso.id_orders || !can('listControlGastos', 'NUEVO')"
-                      :title="solicitudCobroDe(houseIngreso) ? 'Pago cargado: clic para editar' : 'Cargar el voucher del cliente (pago total o parcial)'"
+                      :disabled="
+                        !houseIngreso.id_orders ||
+                        !can('listControlGastos', 'NUEVO')
+                      "
+                      :title="
+                        solicitudCobroDe(houseIngreso)
+                          ? 'Pago cargado: clic para editar'
+                          : 'Cargar el voucher del cliente (pago total o parcial)'
+                      "
                       @click="abrirCargarPagoCliente(houseIngreso)"
                     >
-                      {{ solicitudCobroDe(houseIngreso) ? "Pago Cliente Cargado" : "Cargar Pago Cliente" }}
+                      {{
+                        solicitudCobroDe(houseIngreso)
+                          ? "Pago Cliente Cargado"
+                          : "Cargar Pago Cliente"
+                      }}
                     </v-btn>
                     <div
                       v-if="solicitudCobroDe(houseIngreso)"
@@ -2178,13 +2363,27 @@ watch(
                     <v-btn
                       size="small"
                       variant="flat"
-                      :color="solicitudCobroDe(houseIngreso) ? 'primary' : 'grey-darken-1'"
+                      :color="
+                        solicitudCobroDe(houseIngreso)
+                          ? 'primary'
+                          : 'grey-darken-1'
+                      "
                       prepend-icon="mdi-send"
                       class="cobro-pasos__btn"
-                      :disabled="!solicitudCobroDe(houseIngreso) || !can('listControlGastos', 'NUEVO')"
+                      :disabled="
+                        !solicitudCobroDe(houseIngreso) ||
+                        !can('listControlGastos', 'NUEVO')
+                      "
                       :loading="!!solicitudCobroDe(houseIngreso) && cobroProcesando === solicitudCobroDe(houseIngreso)!.codigo"
-                      :title="!solicitudCobroDe(houseIngreso) ? 'Primero carga el pago del cliente'
-                        : saldoCobro(houseIngreso) > 0 ? `Se envía como pago parcial (saldo pendiente ${saldoCobro(houseIngreso).toFixed(2)})` : 'Enviar a Administración'"
+                      :title="
+                        !solicitudCobroDe(houseIngreso)
+                          ? 'Primero carga el pago del cliente'
+                          : saldoCobro(houseIngreso) > 0
+                          ? `Se envía como pago parcial (saldo pendiente ${saldoCobro(
+                              houseIngreso
+                            ).toFixed(2)})`
+                          : 'Enviar a Administración'
+                      "
                       @click="enviarAdministracionCobro(houseIngreso)"
                     >
                       Enviar a Administración
@@ -2199,24 +2398,23 @@ watch(
                         prepend-icon="mdi-plus"
                         class="cobro-pasos__btn"
                         :disabled="!can('listControlGastos', 'NUEVO')"
-                        @click="abrirCargarPagoCliente(houseIngreso, null, true)"
+                        @click="
+                          abrirCargarPagoCliente(houseIngreso, null, true)
+                        "
                       >
                         Agregar otro soporte de ingreso
                       </v-btn>
-                      <div
-                        v-else
-                        class="cobro-pasos__completo"
-                      >
-                        <v-icon size="16">
-                          mdi-check-circle
-                        </v-icon>
+                      <div v-else class="cobro-pasos__completo">
+                        <v-icon size="16"> mdi-check-circle </v-icon>
                         Monto completo: ya puedes enviar a Administración.
                       </div>
                       <div
                         v-if="saldoCobro(houseIngreso) > 0"
                         class="cobro-pasos__falta"
                       >
-                        Saldo pendiente: {{ saldoCobro(houseIngreso).toFixed(2) }} {{ solicitudCobroDe(houseIngreso)!.moneda ?? "" }}
+                        Saldo pendiente:
+                        {{ saldoCobro(houseIngreso).toFixed(2) }}
+                        {{ solicitudCobroDe(houseIngreso)!.moneda ?? "" }}
                       </div>
                       <!-- v-btn (no <button> nativo): la fila está dentro del título del panel, que también es un botón -->
                       <v-btn
@@ -2229,17 +2427,19 @@ watch(
                         @mousedown.stop
                         @click.stop="verSoportesCobro(houseIngreso)"
                       >
-                        Ver todos los soportes de ingreso ({{ soportesCobro(houseIngreso).length }})
+                        Ver todos los soportes de ingreso ({{
+                          soportesCobro(houseIngreso).length
+                        }})
                       </v-btn>
                     </template>
                   </div>
                 </td>
-                <td
-                  data-label="Más acciones"
-                  v-if="editable"
-                >
+                <td data-label="Más acciones" v-if="editable">
                   <v-btn
-                    v-if="houseIngreso.id_orders && can('listControlGastos', 'MODIFICAR')"
+                    v-if="
+                      houseIngreso.id_orders &&
+                      can('listControlGastos', 'MODIFICAR')
+                    "
                     color="indigo"
                     size="small"
                     class="mb-1"
@@ -2265,7 +2465,9 @@ watch(
                   v-if="editable"
                 >
                   <v-btn
-                    :color="!houseIngreso.tienefacturafiscal ? '#616161' : 'primary'"
+                    :color="
+                      !houseIngreso.tienefacturafiscal ? '#616161' : 'primary'
+                    "
                     size="small"
                     @click.stop="abrirModalFacturasFiscales(houseIngreso)"
                   >
@@ -2276,7 +2478,10 @@ watch(
                     }}
                   </v-btn>
                   <v-btn
-                    v-if="houseIngreso.id_orders && can('listControlGastos', 'NUEVO')"
+                    v-if="
+                      houseIngreso.id_orders &&
+                      can('listControlGastos', 'NUEVO')
+                    "
                     color="pink"
                     size="small"
                     class="mt-1"
@@ -2291,30 +2496,21 @@ watch(
             </tbody>
           </v-table>
           <!-- celular: indica que el panel tiene detalle (al tocarlo se abre / cierra) -->
-          <div
-            v-if="smAndDown"
-            class="cg-verdetalle"
-          >
-            <span class="cg-verdetalle__ver"><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle</span>
-            <span class="cg-verdetalle__ocultar"><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle</span>
+          <div v-if="smAndDown" class="cg-verdetalle">
+            <span class="cg-verdetalle__ver"
+              ><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle</span
+            >
+            <span class="cg-verdetalle__ocultar"
+              ><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle</span
+            >
           </div>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <v-table
-            density="compact"
-            class="cg-resp--detalle"
-          >
+          <v-table density="compact" class="cg-resp--detalle">
             <thead>
               <tr>
-                <th class="text-left">
-                  Descripción
-                </th>
-                <th
-                  style="background: #d6f4ff"
-                  class="text-left"
-                >
-                  Monto Pr
-                </th>
+                <th class="text-left">Descripción</th>
+                <th style="background: #d6f4ff" class="text-left">Monto Pr</th>
                 <th
                   style="background: #d6f4ff"
                   class="text-left"
@@ -2322,18 +2518,8 @@ watch(
                 >
                   {{ enterprisesStore.impuesto.nombre_impuesto }} Pr
                 </th>
-                <th
-                  style="background: #d6f4ff"
-                  class="text-left"
-                >
-                  Total Pr
-                </th>
-                <th
-                  style="background: #ffd6d6"
-                  class="text-left"
-                >
-                  Monto Op
-                </th>
+                <th style="background: #d6f4ff" class="text-left">Total Pr</th>
+                <th style="background: #ffd6d6" class="text-left">Monto Op</th>
                 <th
                   style="background: #ffd6d6"
                   class="text-left"
@@ -2341,12 +2527,7 @@ watch(
                 >
                   {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                 </th>
-                <th
-                  style="background: #ffd6d6"
-                  class="text-left"
-                >
-                  Total Op
-                </th>
+                <th style="background: #ffd6d6" class="text-left">Total Op</th>
                 <th
                   style="background: #d8ffde"
                   class="text-left"
@@ -2359,8 +2540,8 @@ watch(
                   class="text-left"
                   v-if="mostrarMontoOperativos(houseIngreso.ingresos)"
                 >
-                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
-                  Cuenta Banco
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op Cuenta
+                  Banco
                 </th>
                 <th
                   style="background: #d8ffde"
@@ -2376,32 +2557,16 @@ watch(
                 >
                   Tipo Cambio Cuenta Banco
                 </th>
-                <th class="text-center">
-                  Facturado
-                </th>
-                <th
-                  v-if="editable"
-                  class="text-left"
-                >
-                  Acciones
-                </th>
+                <th class="text-center">Facturado</th>
+                <th v-if="editable" class="text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="item of houseIngreso.ingresos"
-                :key="item.id"
-              >
-                <td
-                  data-label="Descripción"
-                  class="cg-full cg-titulo"
-                >
+              <tr v-for="item of houseIngreso.ingresos" :key="item.id">
+                <td data-label="Descripción" class="cg-full cg-titulo">
                   {{ item.concepto }}
                 </td>
-                <td
-                  data-label="Monto Pr"
-                  style="background: #d6f4ff"
-                >
+                <td data-label="Monto Pr" style="background: #d6f4ff">
                   {{ parseFloat(String(item.monto_pr)).toFixed(2) }}
                 </td>
                 <td
@@ -2411,16 +2576,10 @@ watch(
                 >
                   {{ parseFloat(String(item.igv_pr)).toFixed(2) }}
                 </td>
-                <td
-                  data-label="Total Pr"
-                  style="background: #d6f4ff"
-                >
+                <td data-label="Total Pr" style="background: #d6f4ff">
                   {{ parseFloat(String(item.total_pr)).toFixed(2) }}
                 </td>
-                <td
-                  data-label="Monto Op"
-                  style="background: #ffd6d6"
-                >
+                <td data-label="Monto Op" style="background: #ffd6d6">
                   {{ parseFloat(String(item.monto_op)).toFixed(2) }}
                 </td>
                 <td
@@ -2430,10 +2589,7 @@ watch(
                 >
                   {{ parseFloat(String(item.igv_op)).toFixed(2) }}
                 </td>
-                <td
-                  data-label="Total Op"
-                  style="background: #ffd6d6"
-                >
+                <td data-label="Total Op" style="background: #ffd6d6">
                   {{ parseFloat(String(item.total_op)).toFixed(2) }}
                 </td>
                 <!-- Monto Op Cuenta Banco -->
@@ -2450,7 +2606,8 @@ watch(
                   :data-label="`${enterprisesStore.impuesto.nombre_impuesto} Op Cuenta Banco`"
                   style="background: #d8ffde"
                   v-if="
-                    mostrarImpuesto && mostrarMontoOperativos(houseIngreso.ingresos)
+                    mostrarImpuesto &&
+                    mostrarMontoOperativos(houseIngreso.ingresos)
                   "
                 >
                   {{ parseFloat(String(item.igvopcuentabanco)).toFixed(2) }}
@@ -2490,17 +2647,14 @@ watch(
                   >
                     No
                   </v-chip>
-                  <br>
+                  <br />
 
                   <span v-if="item.verFactura">
-                    Nro Factura: <br>
+                    Nro Factura: <br />
                     {{ item.nro_factura }}
                   </span>
                 </td>
-                <td
-                  data-label="Acciones"
-                  v-if="editable"
-                >
+                <td data-label="Acciones" v-if="editable">
                   <v-icon
                     data-modo-ver="permitido"
                     color="info"
@@ -2512,7 +2666,9 @@ watch(
                   <v-icon
                     color="orange"
                     @click="editIngreso(item)"
-                    v-if="item.pagado == 0 && can('listControlGastos', 'MODIFICAR')"
+                    v-if="
+                      item.pagado == 0 && can('listControlGastos', 'MODIFICAR')
+                    "
                   >
                     mdi-pencil
                   </v-icon>
@@ -2525,10 +2681,7 @@ watch(
                     mdi-delete
                   </v-icon>
 
-                  <v-chip
-                    v-if="item.pagado == 1"
-                    color="success"
-                  >
+                  <v-chip v-if="item.pagado == 1" color="success">
                     Pagado
                   </v-chip>
                 </td>
@@ -2547,7 +2700,9 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Datos del servicio
           <v-spacer />
           <v-btn
@@ -2564,11 +2719,7 @@ watch(
           <v-container>
             <v-form ref="frmIngreso">
               <v-row>
-                <v-col
-                  cols="12"
-                  xl="3"
-                  lg="3"
-                >
+                <v-col cols="12" xl="3" lg="3">
                   <!-- @change="activarSeccion3" -->
                   <v-autocomplete
                     :items="controlGastosStore.listCorrelativo"
@@ -2587,21 +2738,14 @@ watch(
 
                     <!-- Cada opción del dropdown -->
                     <template #item="{ item, props }">
-                      <v-list-item
-                        v-bind="props"
-                        role="option"
-                        class="py-3"
-                      >
+                      <v-list-item v-bind="props" role="option" class="py-3">
                         <template #title>
                           <span class="correlativo-code">
                             {{ item.code }}
                           </span>
                         </template>
 
-                        <template
-                          v-if="item.description"
-                          #subtitle
-                        >
+                        <template v-if="item.description" #subtitle>
                           <span class="correlativo-descripcion">
                             <v-icon
                               v-if="item.mdi_icon"
@@ -2638,10 +2782,7 @@ watch(
                 </v-col>
               </v-row>
               <v-row>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsCoinsList"
                     v-model="ingresos.id_coins"
@@ -2654,11 +2795,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-if="
@@ -2680,11 +2817,7 @@ watch(
                 </v-col>
               </v-row>
               <v-row>
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     v-model="ingresos.montoopcuentabanco"
                     @keyup="calcularE()"
@@ -2695,11 +2828,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     readonly
                     v-model="ingresos.igvopcuentabanco"
@@ -2714,11 +2843,7 @@ watch(
                   </p>
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     v-model="ingresos.totalopcuentabanco"
                     type="number"
@@ -2728,11 +2853,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag"
-                >
+                <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     v-model="ingresos.monto_pr"
                     @keyup="calcularE()"
@@ -2743,11 +2864,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag && mostrarImpuesto"
-                >
+                <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
                     readonly
                     v-model="ingresos.igv_pr"
@@ -2757,11 +2874,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag"
-                >
+                <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     v-model="ingresos.total_pr"
                     type="number"
@@ -2770,11 +2883,7 @@ watch(
                   />
                 </v-col>
                 <!--  -->
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="ingresos.montoopview"
@@ -2785,11 +2894,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag && mostrarImpuesto"
-                >
+                <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
                     density="compact"
                     v-model="ingresos.igvopview"
@@ -2800,11 +2905,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="ingresos.totalopview"
@@ -2851,7 +2952,9 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Abonos del cliente
           <v-spacer />
 
@@ -2865,10 +2968,7 @@ watch(
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-data-table
-            :headers="headersdebs"
-            :items="house.debscliente"
-          >
+          <v-data-table :headers="headersdebs" :items="house.debscliente">
             <template #[`item.accion`]="{ item }">
               <v-icon
                 data-modo-ver="permitido"
@@ -2907,9 +3007,7 @@ watch(
                 color="success"
                 variant="outlined"
               >
-                <v-icon start>
-                  mdi-check
-                </v-icon>
+                <v-icon start> mdi-check </v-icon>
                 Confirmado
               </v-chip>
               <v-chip
@@ -2920,9 +3018,7 @@ watch(
                 color="orange"
                 variant="outlined"
               >
-                <v-icon start>
-                  mdi-warning
-                </v-icon>
+                <v-icon start> mdi-warning </v-icon>
                 Por Confirmar
               </v-chip>
             </template>
@@ -2937,10 +3033,7 @@ watch(
           >
             CARGAR NUEVO ABONO
           </v-btn>
-          <v-btn
-            color="error"
-            @click="dialogDebs = !dialogDebs"
-          >
+          <v-btn color="error" @click="dialogDebs = !dialogDebs">
             Cerrar
           </v-btn>
         </v-card-actions>
@@ -2954,7 +3047,9 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Cargar un Nuevo abonos
           <v-spacer />
           <v-btn
@@ -2970,10 +3065,7 @@ watch(
           <v-container>
             <v-form ref="frmNuevoAbono">
               <v-row density="compact">
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
                     prepend-icon="mdi-calendar"
@@ -2982,10 +3074,7 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="number"
                     label="No. Operación del Voucher"
@@ -2995,10 +3084,7 @@ watch(
               </v-row>
               <v-divider />
               <v-row>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsCoinsList"
                     v-model="id_coins"
@@ -3009,11 +3095,7 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                  v-if="sufmoneda != 'USD'"
-                >
+                <v-col cols="12" md="3" v-if="sufmoneda != 'USD'">
                   <v-text-field
                     v-model="tipocambio"
                     type="number"
@@ -3023,10 +3105,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="monto_abonado"
                     type="number"
@@ -3036,11 +3115,7 @@ watch(
                     :prefix="sufmoneda"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                  v-if="sufmoneda != 'USD'"
-                >
+                <v-col cols="12" md="3" v-if="sufmoneda != 'USD'">
                   <v-text-field
                     v-model="monto"
                     type="number"
@@ -3054,10 +3129,7 @@ watch(
               <v-divider />
               <!--  -->
               <v-row>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsDataBanksList"
                     v-model="id_banks"
@@ -3067,14 +3139,11 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-select
                     :items="
                       (bancosStore.cuentas || []).filter(
-                        (v) => v.symbol == sufmoneda,
+                        (v) => v.symbol == sufmoneda
                       )
                     "
                     v-model="id_cuenta_pic"
@@ -3085,10 +3154,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-textarea
                     auto-grow
                     rows="1"
@@ -3098,10 +3164,7 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  md="12"
-                  cols="12"
-                >
+                <v-col md="12" cols="12">
                   <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
                 </v-col>
               </v-row>
@@ -3119,21 +3182,14 @@ watch(
             GUARDAR ABONO
           </v-btn>
 
-          <v-btn
-            color="red"
-            @click="dialogNewDebs = !dialogNewDebs"
-          >
+          <v-btn color="red" @click="dialogNewDebs = !dialogNewDebs">
             Cerrar
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
     <!--  -->
-    <v-dialog
-      max-width="80%"
-      v-model="dialogDebsEdit"
-      :fullscreen="smAndDown"
-    >
+    <v-dialog max-width="80%" v-model="dialogDebsEdit" :fullscreen="smAndDown">
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
           Cargar un nuevo abono
@@ -3143,10 +3199,7 @@ watch(
           <v-container>
             <v-form ref="frmNuevoAbono">
               <v-row density="compact">
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     label="Fecha de Operación"
                     prepend-icon="mdi-calendar"
@@ -3155,10 +3208,7 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="number"
                     label="No. Operación"
@@ -3166,10 +3216,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="monto"
                     type="number"
@@ -3180,10 +3227,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="tipocambio"
                     type="number"
@@ -3195,10 +3239,7 @@ watch(
               </v-row>
               <!--  -->
               <v-row>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsDataBanksList"
                     v-model="id_banks"
@@ -3208,14 +3249,11 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-select
                     :items="
                       (bancosStore.cuentas || []).filter(
-                        (v) => v.symbol == sufmoneda,
+                        (v) => v.symbol == sufmoneda
                       )
                     "
                     v-model="id_cuenta_pic"
@@ -3226,10 +3264,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsCoinsList"
                     v-model="id_coins"
@@ -3241,10 +3276,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-text-field
                     v-model="monto_abonado"
                     type="number"
@@ -3254,10 +3286,7 @@ watch(
                     :prefix="sufmoneda"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="12"
-                >
+                <v-col cols="12" md="12">
                   <v-textarea
                     rows="2"
                     v-model="comentario"
@@ -3265,10 +3294,7 @@ watch(
                     :rules="[(v) => !!v || 'Dato Requerido']"
                   />
                 </v-col>
-                <v-col
-                  md="12"
-                  cols="12"
-                >
+                <v-col md="12" cols="12">
                   <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
                 </v-col>
                 <v-col cols="3">
@@ -3282,9 +3308,7 @@ watch(
                     @click="filesStore._uploadFile()"
                   >
                     Subir
-                    <v-icon end>
-                      mdi-cloud-upload
-                    </v-icon>
+                    <v-icon end> mdi-cloud-upload </v-icon>
                   </v-btn>
                 </v-col>
               </v-row>
@@ -3322,10 +3346,7 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           GENERAR PROFORMA
           <v-spacer />
           <v-btn
@@ -3339,10 +3360,7 @@ watch(
           </v-btn>
         </v-card-title>
         <v-card-text>
-          <v-stepper-vertical
-            v-model="stepProforma"
-            hide-actions
-          >
+          <v-stepper-vertical v-model="stepProforma" hide-actions>
             <v-stepper-vertical-item
               :value="1"
               :complete="stepProforma > 1"
@@ -3354,18 +3372,10 @@ watch(
                 label="Nombre a Imprimir"
                 :rules="[(v) => !!v || 'Dato Requerido']"
               />
-              <v-btn
-                color="primary"
-                @click="continueStep2"
-              >
-                Continue
-              </v-btn>
+              <v-btn color="primary" @click="continueStep2"> Continue </v-btn>
             </v-stepper-vertical-item>
 
-            <v-stepper-vertical-item
-              :value="2"
-              title="Conceptos a Facturar"
-            >
+            <v-stepper-vertical-item :value="2" title="Conceptos a Facturar">
               <v-row>
                 <v-col cols="12">
                   <v-data-table
@@ -3460,18 +3470,14 @@ watch(
             :loading="isDataTableLoading"
           >
             <template #[`item.originalname`]="{ item }">
-              <v-icon
-                v-if="item.type == 'pdf'"
-                color="red"
-                class="mr-2"
-              >
+              <v-icon v-if="item.type == 'pdf'" color="red" class="mr-2">
                 mdi-file-pdf-box
               </v-icon>
               <v-icon
                 v-if="
                   item.type == 'png' ||
-                    item.type == 'jpg' ||
-                    item.type == 'jpeg'
+                  item.type == 'jpg' ||
+                  item.type == 'jpeg'
                 "
                 color="blue-grey-darken-1"
                 class="mr-2"
@@ -3482,8 +3488,8 @@ watch(
                 item.tipo_pago == 1
                   ? "FACTURA"
                   : String("") || item.tipo_pago == 2
-                    ? "PERFORMANCE"
-                    : "OTRO"
+                  ? "PERFORMANCE"
+                  : "OTRO"
               }}
               -
               {{ item.nro_factura }}
@@ -3496,11 +3502,7 @@ watch(
                 size="small"
                 @click="openDoc(item.path!)"
               >
-                <v-icon
-                  class="btn_add mr-2"
-                  size="large"
-                  color="grey"
-                >
+                <v-icon class="btn_add mr-2" size="large" color="grey">
                   mdi-eye
                 </v-icon>
               </v-btn>
@@ -3513,11 +3515,7 @@ watch(
                 size="small"
                 @click="eliminarProformaFiscal(item.id)"
               >
-                <v-icon
-                  class="btn_add mr-2"
-                  size="large"
-                  color="red"
-                >
+                <v-icon class="btn_add mr-2" size="large" color="red">
                   mdi-delete
                 </v-icon>
               </v-btn>
@@ -3540,32 +3538,14 @@ watch(
         <v-card-text>
           <v-container>
             <v-row density="compact">
-              <v-col
-                cols="12"
-                md="12"
-              >
-                <v-radio-group
-                  v-model="proformaFiscal.tipo_pago"
-                  inline
-                >
-                  <v-radio
-                    label="Factura"
-                    value="1"
-                  />
-                  <v-radio
-                    label="Performance"
-                    value="2"
-                  />
-                  <v-radio
-                    label="Otro"
-                    value="3"
-                  />
+              <v-col cols="12" md="12">
+                <v-radio-group v-model="proformaFiscal.tipo_pago" inline>
+                  <v-radio label="Factura" value="1" />
+                  <v-radio label="Performance" value="2" />
+                  <v-radio label="Otro" value="3" />
                 </v-radio-group>
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
+              <v-col cols="12" md="6">
                 <v-text-field
                   label="Fecha de Operación"
                   prepend-icon="mdi-calendar"
@@ -3574,25 +3554,19 @@ watch(
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
+              <v-col cols="12" md="6">
                 <v-text-field
                   v-model="proformaFiscal.nro_factura"
                   :label="`Nro de ${
                     proformaFiscal.tipo_pago == 1
                       ? 'Factura'
                       : String('') || proformaFiscal.tipo_pago == 2
-                        ? 'Performance'
-                        : 'Otro'
+                      ? 'Performance'
+                      : 'Otro'
                   }`"
                 />
               </v-col>
-              <v-col
-                md="12"
-                cols="12"
-              >
+              <v-col md="12" cols="12">
                 <ArrastraYSolarComponent @id-archivo-cargado="recibirId" />
               </v-col>
             </v-row>
@@ -3609,8 +3583,8 @@ watch(
               proformaFiscal.tipo_pago == 1
                 ? "Factura"
                 : String("") || proformaFiscal.tipo_pago == 2
-                  ? "Performance"
-                  : "Otro"
+                ? "Performance"
+                : "Otro"
             }}
           </v-btn>
           <v-spacer />
@@ -3652,19 +3626,13 @@ watch(
               </tr>
             </thead>
             <tbody>
-              <tr
-                v-for="(item, index) in lstFacturasEmitidas"
-                :key="index"
-              >
+              <tr v-for="(item, index) in lstFacturasEmitidas" :key="index">
                 <td>{{ index + 1 }}</td>
                 <td style="text-align: center">
                   {{ item.nro_factura }}
                 </td>
                 <td style="text-align: center">
-                  <v-icon
-                    color="red"
-                    @click="abrirPdf(item.url_documento)"
-                  >
+                  <v-icon color="red" @click="abrirPdf(item.url_documento)">
                     mdi-file-pdf-box
                   </v-icon>
                 </td>
@@ -3678,10 +3646,7 @@ watch(
                   {{ item.total }}
                 </td>
                 <td>
-                  <v-icon
-                    color="red"
-                    @click="eliminarFactura(item.id)"
-                  >
+                  <v-icon color="red" @click="eliminarFactura(item.id)">
                     mdi-delete
                   </v-icon>
                 </td>
@@ -3689,9 +3654,7 @@ watch(
             </tbody>
           </v-table>
           <v-list-subheader class="blinking">
-            <v-icon color="warning">
-              mdi-alert
-            </v-icon> PARA EDITAR , DEBES
+            <v-icon color="warning"> mdi-alert </v-icon> PARA EDITAR , DEBES
             ELIMINAR Y VOLVER A GENERAR LA PROFORMA
           </v-list-subheader>
         </v-card-text>
@@ -3706,12 +3669,11 @@ watch(
       </v-card>
     </v-dialog>
     <!-- CAMBIAR EXPEDIENTE (HOUSE CODE) -->
-    <v-dialog
-      v-model="dialogCambiarExpediente"
-      max-width="500"
-    >
+    <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Cambiar expediente (House)
           <v-spacer />
           <v-btn
@@ -3737,9 +3699,7 @@ watch(
             variant="outlined"
             class="my-5"
           />
-          <p class="text-body-small mb-0">
-            Actual: {{ house.code_house }}
-          </p>
+          <p class="text-body-small mb-0">Actual: {{ house.code_house }}</p>
         </v-card-text>
         <v-card-actions>
           <v-spacer />
@@ -3769,7 +3729,9 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Cargar Documentos de Cotización
           <v-spacer />
           <v-btn
@@ -3786,16 +3748,12 @@ watch(
             <tbody>
               <tr
                 v-for="(doc, index) in listaDocumentos.filter(
-                  (v) => v.key == 'cotizacion',
+                  (v) => v.key == 'cotizacion'
                 )"
                 :key="index"
               >
                 <td width="5%">
-                  <v-checkbox
-                    v-model="doc.flag"
-                    color="success"
-                    hide-details
-                  />
+                  <v-checkbox v-model="doc.flag" color="success" hide-details />
                 </td>
 
                 <td width="45%">
@@ -3911,10 +3869,7 @@ watch(
       :entidad="entidadCobroReporteVer"
       :solicitud="solicitudCobroReporteVer"
     />
-    <SolicitudCobroVerDialog
-      v-model="dialogVer"
-      :codigo="codigoVer"
-    />
+    <SolicitudCobroVerDialog v-model="dialogVer" :codigo="codigoVer" />
     <CargarPagoClienteDialog
       v-model="dialogPagoCliente"
       :destino="destinoPagoCliente"
@@ -4220,5 +4175,5 @@ watch(
 
 .correlativo-descripcion .v-icon {
   color: #64748b;
-} 
+}
 </style>

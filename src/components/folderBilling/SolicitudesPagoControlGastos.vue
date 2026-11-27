@@ -104,6 +104,12 @@ function etiquetaProveedor(s: SolicitudPagoControl) {
   return s.proveedor;
 }
 
+// del instructivo (6.3): SWIFT, beneficiario y N.° de factura comercial
+const instructivoDe = (s: SolicitudPagoControl) => archivosInstructivo.value[Number(s.id)] ?? null;
+// beneficiario de la cuenta de la solicitud o, si no tiene, el del instructivo
+function beneficiarioDe(s: SolicitudPagoControl) {
+  return s.beneficiario?.trim() || instructivoDe(s)?.beneficiario || "";
+}
 function cuentaOCodigo(s: SolicitudPagoControl) {
   return s.codigo_tipopago === "02" ? s.codigopago || "" : s.nrocuenta || "";
 }
@@ -280,9 +286,13 @@ defineExpose({ cargar });
             <th>Expediente</th>
             <th>Proveedor</th>
             <th>Monto</th>
-            <th>Banco</th>
+            <!-- datos para pagar: Método de pago, Banco, SWIFT (del instructivo), Beneficiario, Cuenta y N.° de Factura Comercial -->
             <th>Método de pago</th>
+            <th>Banco</th>
+            <th>SWIFT</th>
+            <th>Beneficiario</th>
             <th>Código / N° de cuenta</th>
+            <th>N.° Factura Comercial</th>
             <th class="text-center">
               Cliente Pagó
             </th>
@@ -311,7 +321,7 @@ defineExpose({ cargar });
         <tbody>
           <tr v-if="!solicitudes.length">
             <td
-              colspan="14"
+              colspan="17"
               class="solpago__empty"
             >
               {{ cargando ? "Cargando solicitudes..." : "No hay solicitudes de pago registradas." }}
@@ -369,10 +379,52 @@ defineExpose({ cargar });
                 <v-icon>mdi-content-copy</v-icon>
               </v-btn>
             </td>
+            <td>{{ s.tipopago }}</td>
             <td class="font-weight-bold">
               {{ s.banco || "—" }}
             </td>
-            <td>{{ s.tipopago }}</td>
+            <td>
+              <div
+                v-if="instructivoDe(s)?.codigo_swift"
+                class="solpago__cuenta"
+              >
+                <span>{{ instructivoDe(s)?.codigo_swift }}</span>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="x-small"
+                  color="primary"
+                  title="Copiar"
+                  :aria-label="'Copiar código SWIFT'"
+                  data-modo-ver="permitido"
+                  @click="copiar(instructivoDe(s)?.codigo_swift ?? null)"
+                >
+                  <v-icon>mdi-content-copy</v-icon>
+                </v-btn>
+              </div>
+              <span v-else>—</span>
+            </td>
+            <td>
+              <div
+                v-if="beneficiarioDe(s)"
+                class="solpago__cuenta"
+              >
+                <span>{{ beneficiarioDe(s) }}</span>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="x-small"
+                  color="primary"
+                  title="Copiar"
+                  :aria-label="'Copiar beneficiario'"
+                  data-modo-ver="permitido"
+                  @click="copiar(beneficiarioDe(s))"
+                >
+                  <v-icon>mdi-content-copy</v-icon>
+                </v-btn>
+              </div>
+              <span v-else>—</span>
+            </td>
             <td>
               <div class="solpago__cuenta">
                 <span>{{ cuentaOCodigo(s) || "—" }}</span>
@@ -389,6 +441,27 @@ defineExpose({ cargar });
                   <v-icon>mdi-content-copy</v-icon>
                 </v-btn>
               </div>
+            </td>
+            <td>
+              <div
+                v-if="instructivoDe(s)?.nro_factura"
+                class="solpago__cuenta"
+              >
+                <span>{{ instructivoDe(s)?.nro_factura }}</span>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="x-small"
+                  color="primary"
+                  title="Copiar"
+                  :aria-label="'Copiar N.° de factura comercial'"
+                  data-modo-ver="permitido"
+                  @click="copiar(instructivoDe(s)?.nro_factura ?? null)"
+                >
+                  <v-icon>mdi-content-copy</v-icon>
+                </v-btn>
+              </div>
+              <span v-else>—</span>
             </td>
             <td class="text-center">
               <!-- varios expedientes: cada uno tiene su "Cliente Pagó" en Ver Detalle -->

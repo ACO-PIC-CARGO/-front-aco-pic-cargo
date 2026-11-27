@@ -27,13 +27,18 @@ import { usePermissions } from "@/composables/usePermissions";
 import { provideHouseScreen } from "@/composables/useHouseScreen";
 import TrafficFileBar from "@/components/folderTraffic/TrafficFileBar.vue";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { trafficEditLocked } from "@/utils/trafficSend";
 import type { HouseNotice, NotificacionHouse } from "@/types/operaciones";
 import type { TrafficFileOfHouse } from "@/types/traffic";
 
-const FORMAT_ERROR = "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
-const SENT_FILE_EDIT_REASON = "Este embarque ya se envió a Operaciones. Para editarlo desde Tráfico, un administrador debe autorizarlo.";
+const FORMAT_ERROR =
+  "No pudimos generar el formato. Intenta de nuevo en unos minutos.";
+const SENT_FILE_EDIT_REASON =
+  "Este embarque ya se envió a Operaciones. Para editarlo desde Tráfico, un administrador debe autorizarlo.";
 
 const appStore = useAppStore();
 const route = useRoute();
@@ -51,12 +56,27 @@ provideHouseScreen(() => permissionScreen);
 const houseEdit = useHouseEditStore();
 const { can } = usePermissions();
 const adminAuthorization = useAdminAuthorizationStore();
-const trafficFile = shallowRef<TrafficFileOfHouse | null | undefined>(isTrafficFile ? undefined : null);
-const editLocked = computed(() => trafficEditLocked(trafficFile.value, Boolean(adminAuthorization.credentials)));
-const editIcon = computed(() => (trafficFile.value?.sent ? "mdi-pencil-lock" : "mdi-pencil"));
-const isEditing = computed(() => route.name === editRoute && can(permissionScreen, "MODIFICAR") && !editLocked.value);
-const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) => can(permissionScreen, action));
-const hasHeaderTarget = ref(Boolean(document.querySelector("#house-header-actions")));
+const trafficFile = shallowRef<TrafficFileOfHouse | null | undefined>(
+  isTrafficFile ? undefined : null
+);
+const editLocked = computed(() =>
+  trafficEditLocked(trafficFile.value, Boolean(adminAuthorization.credentials))
+);
+const editIcon = computed(() =>
+  trafficFile.value?.sent ? "mdi-pencil-lock" : "mdi-pencil"
+);
+const isEditing = computed(
+  () =>
+    route.name === editRoute &&
+    can(permissionScreen, "MODIFICAR") &&
+    !editLocked.value
+);
+const hasHouseActions = ["MODIFICAR", "ELIMINAR", "EXPORTAR"].some((action) =>
+  can(permissionScreen, action)
+);
+const hasHeaderTarget = ref(
+  Boolean(document.querySelector("#house-header-actions"))
+);
 
 // On a full reload the app bar mounts after this view, so wait for its slot.
 function waitForHeaderTarget(attempts = 50) {
@@ -69,8 +89,12 @@ function waitForHeaderTarget(attempts = 50) {
 }
 
 function showTitle() {
-  const heading = isTrafficFile ? "Expediente de tráfico" : `N° BL House ${housesStore.house?.nro_hbl || ""}`;
-  appStore.mainTitle = `${heading} - ${housesStore.house?.consigner || ""} [${isEditing.value ? "EDITAR" : "VER"}]`;
+  const heading = isTrafficFile
+    ? "Expediente de tráfico"
+    : `N° BL House ${housesStore.house?.nro_hbl || ""}`;
+  appStore.mainTitle = `${heading} - ${housesStore.house?.consigner || ""} [${
+    isEditing.value ? "EDITAR" : "VER"
+  }]`;
 }
 
 async function reloadHouse() {
@@ -79,7 +103,10 @@ async function reloadHouse() {
 
 async function startEditing() {
   if (trafficFile.value?.sent && !adminAuthorization.credentials) {
-    const admin = await askAdminCredentials(SENT_FILE_EDIT_REASON);
+    const admin = await askAdminCredentials(
+      SENT_FILE_EDIT_REASON,
+      PERMISOS_AUTORIZA.houseEditar
+    );
     if (!admin) return;
     adminAuthorization.credentials = admin;
   }
@@ -120,7 +147,9 @@ async function loadTracking() {
 const noticeDialog = ref(false);
 const pendingNotice = ref<HouseNotice | null>(null);
 const pendingNoticeDate = ref<string | null>(null);
-const notificacionesHouseRef = ref<InstanceType<typeof NotificacionesHouse> | null>(null);
+const notificacionesHouseRef = ref<InstanceType<
+  typeof NotificacionesHouse
+> | null>(null);
 const requiredDataDialog = ref(false);
 const pendingRequiredNotice = ref<NotificacionHouse | null>(null);
 const clientDialog = ref(false);
@@ -143,12 +172,18 @@ async function downloadFormat(url: string, prefix: string) {
     });
     const blob = response.data as Blob;
     if (blob.type.includes("json")) {
-      Swal.fire({ icon: "warning", text: JSON.parse(await blob.text()).mensaje || FORMAT_ERROR });
+      Swal.fire({
+        icon: "warning",
+        text: JSON.parse(await blob.text()).mensaje || FORMAT_ERROR,
+      });
       return;
     }
     const link = document.createElement("a");
     link.href = window.URL.createObjectURL(blob);
-    link.download = `${prefix}_${new Date().toISOString().replace(/[:.]/g, "-").slice(0, -5)}.xlsx`;
+    link.download = `${prefix}_${new Date()
+      .toISOString()
+      .replace(/[:.]/g, "-")
+      .slice(0, -5)}.xlsx`;
     link.click();
     window.URL.revokeObjectURL(link.href);
   } catch (err) {
@@ -159,8 +194,10 @@ async function downloadFormat(url: string, prefix: string) {
   }
 }
 
-const exportarFormatoAWB = () => downloadFormat("generar_formato_awb", "formato_awb");
-const exportarFormatoHBL = () => downloadFormat("generar_formato_bl", "formato_bl");
+const exportarFormatoAWB = () =>
+  downloadFormat("generar_formato_awb", "formato_awb");
+const exportarFormatoHBL = () =>
+  downloadFormat("generar_formato_bl", "formato_bl");
 
 async function eliminarHouse() {
   const answer = await Swal.fire({
@@ -177,7 +214,11 @@ async function eliminarHouse() {
 }
 
 function shipmentCode() {
-  return itemsShipment.value.find((v: { id: number; code: string }) => v.id == housesStore.house.id_shipment)?.code ?? "";
+  return (
+    itemsShipment.value.find(
+      (v: { id: number; code: string }) => v.id == housesStore.house.id_shipment
+    )?.code ?? ""
+  );
 }
 
 function isAereo() {
@@ -189,7 +230,10 @@ function missingNoticeData() {
 }
 
 function loadNotices() {
-  return housesStore.getListadoNotificacionesHouse({ id_house: houseId.value, id_modality: housesStore.house.id_modality });
+  return housesStore.getListadoNotificacionesHouse({
+    id_house: houseId.value,
+    id_modality: housesStore.house.id_modality,
+  });
 }
 
 function requestHouseNotification(notification: NotificacionHouse) {
@@ -211,22 +255,39 @@ async function requiredDataSaved() {
     await Swal.fire({
       icon: "warning",
       title: "No pudimos actualizar todos los datos",
-      text: `Revisa estos campos y vuelve a guardar: ${missing.map(({ label }) => label).join(", ")}.`,
+      text: `Revisa estos campos y vuelve a guardar: ${missing
+        .map(({ label }) => label)
+        .join(", ")}.`,
     });
     requiredDataDialog.value = true;
     return;
   }
   pendingRequiredNotice.value = null;
-  const refreshedNotification = housesStore.ListadoNotificacionesHouse.find((item) => item.id == notification.id) ?? notification;
+  const refreshedNotification =
+    housesStore.ListadoNotificacionesHouse.find(
+      (item) => item.id == notification.id
+    ) ?? notification;
   notificacionesHouseRef.value?.requestSend(refreshedNotification);
 }
 
-function sendHouseNotification({ notification, fecha }: { notification: NotificacionHouse; fecha: string }) {
+function sendHouseNotification({
+  notification,
+  fecha,
+}: {
+  notification: NotificacionHouse;
+  fecha: string;
+}) {
   if (!fecha) {
-    Swal.fire({ icon: "warning", text: "La fecha es obligatoria para enviar la notificación." });
+    Swal.fire({
+      icon: "warning",
+      text: "La fecha es obligatoria para enviar la notificación.",
+    });
     return;
   }
-  pendingNotice.value = { id: notification.id, title: notification.descripcion || notification.codigo || "Notificación" };
+  pendingNotice.value = {
+    id: notification.id,
+    title: notification.descripcion || notification.codigo || "Notificación",
+  };
   pendingNoticeDate.value = fecha;
   noticeDialog.value = true;
 }
@@ -239,11 +300,19 @@ onMounted(async () => {
   waitForHeaderTarget();
   appStore.spiner = true;
   // On the House screens trafficHouseGuard already loaded this house before the screen opened.
-  if (isTrafficFile || housesStore.house.id !== houseId.value) await housesStore.verHouse({ id: houseId.value });
-  await Promise.all([loadTracking(), branchTimeZoneStore.load(), loadNotices()]);
+  if (isTrafficFile || housesStore.house.id !== houseId.value)
+    await housesStore.verHouse({ id: houseId.value });
+  await Promise.all([
+    loadTracking(),
+    branchTimeZoneStore.load(),
+    loadNotices(),
+  ]);
   await pricingStore.getCargarEjecutivo();
   showTitle();
-  clientDialog.value = isEditing.value && Boolean(route.params.activar) && !housesStore.house.id_consigner;
+  clientDialog.value =
+    isEditing.value &&
+    Boolean(route.params.activar) &&
+    !housesStore.house.id_consigner;
   if (isEditing.value) await houseEdit.start(housesStore.house);
   appStore.spiner = false;
 });
@@ -252,16 +321,8 @@ onUnmounted(() => (adminAuthorization.credentials = null));
 </script>
 
 <template>
-  <v-theme-provider
-    theme="aco"
-    with-background
-    class="aco-ui house-file"
-  >
-    <Teleport
-      v-if="hasHeaderTarget"
-      to="#house-header-actions"
-      defer
-    >
+  <v-theme-provider theme="aco" with-background class="aco-ui house-file">
+    <Teleport v-if="hasHeaderTarget" to="#house-header-actions" defer>
       <v-btn
         v-if="!isEditing && can(permissionScreen, 'MODIFICAR')"
         color="light-green-lighten-1"
@@ -283,10 +344,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
         Guardar
       </v-btn>
     </Teleport>
-    <v-form
-      ref="formControlHouse"
-      :readonly="!isEditing"
-    >
+    <v-form ref="formControlHouse" :readonly="!isEditing">
       <v-container fluid>
         <TrafficFileBar
           v-if="isTrafficFile"
@@ -294,11 +352,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
           @loaded="trafficFile = $event"
         />
         <v-row density="compact">
-          <v-col
-            cols="12"
-            md="8"
-            lg="9"
-          >
+          <v-col cols="12" md="8" lg="9">
             <div class="d-flex flex-column ga-3">
               <v-row density="compact">
                 <v-col
@@ -307,12 +361,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
                   class="house-data d-flex flex-column ga-3"
                 >
                   <v-defaults-provider :defaults="COMPACT_FIELDS">
-                    <v-card
-                      variant="flat"
-                      border
-                      rounded="lg"
-                      class="pa-3"
-                    >
+                    <v-card variant="flat" border rounded="lg" class="pa-3">
                       <dataGen :editing="isEditing" />
                     </v-card>
                     <v-card
@@ -322,22 +371,16 @@ onUnmounted(() => (adminAuthorization.credentials = null));
                       rounded="lg"
                       class="pa-3"
                     >
-                      <HouseMasterDates :master-id="housesStore.house.id_master" />
+                      <HouseMasterDates
+                        :master-id="housesStore.house.id_master"
+                      />
                     </v-card>
-                    <v-card
-                      variant="flat"
-                      border
-                      rounded="lg"
-                      class="pa-3"
-                    >
+                    <v-card variant="flat" border rounded="lg" class="pa-3">
                       <dataEmbar :editing="isEditing" />
                     </v-card>
                   </v-defaults-provider>
                   <HouseCustomsCard :editing="isEditing" />
-                  <div
-                    v-if="isEditing"
-                    class="d-flex flex-wrap ga-2"
-                  >
+                  <div v-if="isEditing" class="d-flex flex-wrap ga-2">
                     <v-btn
                       color="primary"
                       variant="flat"
@@ -368,10 +411,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
                     </v-btn>
                   </div>
                 </v-col>
-                <v-col
-                  cols="12"
-                  lg="7"
-                >
+                <v-col cols="12" lg="7">
                   <HouseStepList
                     :house-id="houseId"
                     :load-error="trackingError"
@@ -387,11 +427,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
               </v-row>
             </div>
           </v-col>
-          <v-col
-            cols="12"
-            md="4"
-            lg="3"
-          >
+          <v-col cols="12" md="4" lg="3">
             <ClientTrackingPreview :house-id="houseId" />
           </v-col>
         </v-row>
@@ -404,17 +440,9 @@ onUnmounted(() => (adminAuthorization.credentials = null));
             content-class="acciones-dial"
           >
             <template #activator="{ props }">
-              <v-btn
-                v-bind="props"
-                color="info"
-                icon
-              >
-                <v-icon v-if="fab">
-                  mdi-close
-                </v-icon>
-                <v-icon v-else>
-                  mdi-tools
-                </v-icon>
+              <v-btn v-bind="props" color="info" icon>
+                <v-icon v-if="fab"> mdi-close </v-icon>
+                <v-icon v-else> mdi-tools </v-icon>
               </v-btn>
             </template>
 
@@ -425,9 +453,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
               :loading="loadingBotonEliminarHouse"
               @click="eliminarHouse()"
             >
-              <v-icon start>
-                mdi-delete
-              </v-icon>
+              <v-icon start> mdi-delete </v-icon>
               Eliminar
             </v-btn>
             <v-btn
@@ -436,12 +462,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
               :style="{ backgroundColor: 'rgb(92, 116, 137)', color: 'white' }"
               @click="abrirModalFormato()"
             >
-              <v-icon
-                start
-                style="color: white"
-              >
-                mdi-printer
-              </v-icon>
+              <v-icon start style="color: white"> mdi-printer </v-icon>
               Imprimir BL
             </v-btn>
 
@@ -464,18 +485,13 @@ onUnmounted(() => (adminAuthorization.credentials = null));
               :disabled="houseEdit.loadingLists"
               @click="saveChanges"
             >
-              <v-icon start>
-                mdi-content-save-outline
-              </v-icon>
+              <v-icon start> mdi-content-save-outline </v-icon>
               Guardar
             </v-btn>
           </v-speed-dial>
         </div>
         <!-- Modal para seleccionar formato de impresión -->
-        <v-dialog
-          v-model="dialogFormato"
-          max-width="400px"
-        >
+        <v-dialog v-model="dialogFormato" max-width="400px">
           <v-card>
             <v-card-title
               primary-title
@@ -484,18 +500,10 @@ onUnmounted(() => (adminAuthorization.credentials = null));
               Imprimir Formato {{ isAereo() ? "GUÍA AÉREA" : "BL" }}
             </v-card-title>
             <v-card-text class="pt-4">
-              <p class="text-body-large mb-2">
-                ¿Imprimir con fondo?
-              </p>
+              <p class="text-body-large mb-2">¿Imprimir con fondo?</p>
               <v-radio-group v-model="formatoflag">
-                <v-radio
-                  label="Sí"
-                  :value="true"
-                />
-                <v-radio
-                  label="No"
-                  :value="false"
-                />
+                <v-radio label="Sí" :value="true" />
+                <v-radio label="No" :value="false" />
               </v-radio-group>
             </v-card-text>
             <v-card-actions>
@@ -505,26 +513,14 @@ onUnmounted(() => (adminAuthorization.credentials = null));
                 v-if="isAereo()"
                 @click="exportarFormatoAWB()"
               >
-                <v-icon start>
-                  mdi-printer
-                </v-icon>
+                <v-icon start> mdi-printer </v-icon>
                 Imprimir Guía Aérea
               </v-btn>
-              <v-btn
-                color="success"
-                v-else
-                @click="exportarFormatoHBL()"
-              >
-                <v-icon start>
-                  mdi-printer
-                </v-icon>
+              <v-btn color="success" v-else @click="exportarFormatoHBL()">
+                <v-icon start> mdi-printer </v-icon>
                 Imprimir BL
               </v-btn>
-              <v-btn
-                color="grey"
-                variant="text"
-                @click="dialogFormato = false"
-              >
+              <v-btn color="grey" variant="text" @click="dialogFormato = false">
                 Cancelar
               </v-btn>
             </v-card-actions>
@@ -544,10 +540,7 @@ onUnmounted(() => (adminAuthorization.credentials = null));
         v-model="requiredDataDialog"
         @saved="requiredDataSaved"
       />
-      <HouseClientRequiredDialog
-        v-model="clientDialog"
-        @saved="clientSaved"
-      />
+      <HouseClientRequiredDialog v-model="clientDialog" @saved="clientSaved" />
     </v-form>
   </v-theme-provider>
 </template>

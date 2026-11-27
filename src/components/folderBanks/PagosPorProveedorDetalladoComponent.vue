@@ -8,7 +8,10 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useReportesStore } from "@/stores/reportes";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import type { BancoGastoDetalle } from "@/types/finanzas";
 import type { CuentaBancariaPic } from "@/types/operaciones";
 import type { FiltroPagoProveedorDetallado } from "@/types/banksProveedor";
@@ -62,7 +65,10 @@ async function ver(pago: BancoGastoDetalle) {
   });
 }
 async function editar(item: BancoGastoDetalle) {
-  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para editar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoEgresoEditar
+  );
   if (!admin) return;
   adminAuthorization.credentials = admin;
   router.push({
@@ -131,21 +137,12 @@ onMounted(async () => {
 </script>
 
 <template>
-  <v-container
-    fluid
-    class="contenedor-scroll"
-  >
+  <v-container fluid class="contenedor-scroll">
     <v-row>
       <v-col cols="12">
-        <BarraFiltro
-          :filtro="filtro"
-          :cuentas="cuentas"
-        />
+        <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
       </v-col>
-      <v-col
-        cols="12"
-        class="pt-0"
-      >
+      <v-col cols="12" class="pt-0">
         <v-row class="align-center">
           <v-col cols="6">
             <v-text-field
@@ -162,24 +159,11 @@ onMounted(async () => {
           </v-col>
           <v-spacer />
           <v-col cols="auto">
-            <v-btn
-              size="small"
-              color="info"
-              class="mr-2"
-              @click="abrirFiltro"
-            >
-              <v-icon size="small">
-                mdi-filter
-              </v-icon> Filtrar
+            <v-btn size="small" color="info" class="mr-2" @click="abrirFiltro">
+              <v-icon size="small"> mdi-filter </v-icon> Filtrar
             </v-btn>
-            <v-btn
-              size="small"
-              color="default"
-              @click="Limpiar"
-            >
-              <v-icon size="small">
-                mdi-close
-              </v-icon> Limpiar
+            <v-btn size="small" color="default" @click="Limpiar">
+              <v-icon size="small"> mdi-close </v-icon> Limpiar
             </v-btn>
           </v-col>
         </v-row>
@@ -237,13 +221,8 @@ onMounted(async () => {
       width="20%"
       v-if="dialogFiltro"
     >
-      <v-card
-        height="100%"
-        elevation="5"
-      >
-        <v-card-title primary-title>
-          Filtrar Gastos
-        </v-card-title>
+      <v-card height="100%" elevation="5">
+        <v-card-title primary-title> Filtrar Gastos </v-card-title>
         <v-card-text>
           <v-select
             :items="cuentas"
@@ -316,17 +295,8 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="success"
-            @click="filtrar()"
-          >
-            Filtrar
-          </v-btn>
-          <v-btn
-            color="red"
-            class="mr-2"
-            @click="dialogFiltro = !dialogFiltro"
-          >
+          <v-btn color="success" @click="filtrar()"> Filtrar </v-btn>
+          <v-btn color="red" class="mr-2" @click="dialogFiltro = !dialogFiltro">
             Cancelar
           </v-btn>
         </v-card-actions>

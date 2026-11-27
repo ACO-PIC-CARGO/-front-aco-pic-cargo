@@ -31,7 +31,11 @@ import type {
 import type { PersonaRol } from "@/types/seguridad";
 import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { showRejectedResponse } from "@/utils/rejectedResponse";
-import { ADMIN_CREDENTIAL_INPUTS, verifiedAdminCredentials } from "@/utils/adminCredentials";
+import {
+  ADMIN_CREDENTIAL_INPUTS,
+  PERMISOS_AUTORIZA,
+  verifiedAdminCredentials,
+} from "@/utils/adminCredentials";
 import { CONNECTION_ERROR_MESSAGE, request } from "@/utils/request";
 import { sessionBranchId } from "@/utils/sesion";
 // import { isReadonly } from "vue";
@@ -41,7 +45,8 @@ const CLIENT_HAS_MOVEMENTS = "warning";
 
 const EMAIL_PATTERN =
   /^(([^<>()[\]\\.,;:\s@']+(\.[^<>()\\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-const isInvalidEmail = (email: string | null | undefined) => Boolean(email) && !EMAIL_PATTERN.test(email!);
+const isInvalidEmail = (email: string | null | undefined) =>
+  Boolean(email) && !EMAIL_PATTERN.test(email!);
 const INVALID_PROVIDER_STEP_MESSAGES: Record<number, string> = {
   1: "Completa el nombre, el tipo de proveedor, si es nacional o extranjero y el país del proveedor, y revisa su correo antes de guardar.",
   2: "Completa el tipo y el número de cada teléfono, y el nombre, el tipo y el número de cada contacto antes de guardar.",
@@ -49,10 +54,14 @@ const INVALID_PROVIDER_STEP_MESSAGES: Record<number, string> = {
   4: "Completa la cuenta, el CCI, el banco y la moneda de cada cuenta bancaria; si el proveedor es extranjero, también el SWIFT y el intermediario.",
 };
 
-const phoneTypeText = (phoneType: unknown) => (phoneType == null ? "" : String(phoneType));
+const phoneTypeText = (phoneType: unknown) =>
+  phoneType == null ? "" : String(phoneType);
 
 const emailsToSave = (emails: EmailEntidad[]) =>
-  emails.filter((email) => email.id || (email.estado !== false && email.email && email.email.trim()));
+  emails.filter(
+    (email) =>
+      email.id || (email.estado !== false && email.email && email.email.trim())
+  );
 
 export const useEntitiesStore = defineStore("entities", () => {
   const dataEntitiePost = ref<unknown[]>([]);
@@ -186,7 +195,9 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function CargarPersona(): Promise<void> {
     await axios<ApiResponse<Persona[]>>({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `cargar_persona?id_branch=${sessionBranchId()}`,
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        `cargar_persona?id_branch=${sessionBranchId()}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -208,7 +219,9 @@ export const useEntitiesStore = defineStore("entities", () => {
   async function ListarPersonaTipoPersona(): Promise<void> {
     await axios<ApiResponse<PersonaRol[]>>({
       method: "get",
-      url: import.meta.env.VITE_URL_MAIN + `listar_persona_tipo_persona?id_branch=${sessionBranchId()}`,
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        `listar_persona_tipo_persona?id_branch=${sessionBranchId()}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -318,9 +331,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
-        `validar_documento?id_branch=${sessionBranchId()}&id_tipodocumento=${proveedor.value.id_tipodocumento}&documento=${
-          proveedor.value.nro_documento
-        }`,
+        `validar_documento?id_branch=${sessionBranchId()}&id_tipodocumento=${
+          proveedor.value.id_tipodocumento
+        }&documento=${proveedor.value.nro_documento}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -433,7 +446,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function guardarProveedor(): Promise<Partial<ApiResponse<EntidadRegistrada[]>>> {
+  async function guardarProveedor(): Promise<
+    Partial<ApiResponse<EntidadRegistrada[]>>
+  > {
     let res: Partial<ApiResponse<EntidadRegistrada[]>> = {};
     proveedor.value.id_branch = sessionBranchId();
     proveedor.value.lstTelefonos = lstTelefonos.value;
@@ -505,7 +520,7 @@ export const useEntitiesStore = defineStore("entities", () => {
   function firstInvalidProviderStep(): number {
     const provider = proveedor.value;
     const isInternational = useMasterusuariosStore().lstTipoTransaccion.some(
-      (v) => v.codigo == "02" && v.id == provider.id_tipotransaccion,
+      (v) => v.codigo == "02" && v.id == provider.id_tipotransaccion
     );
     if (
       !(provider.nombrecompleto && provider.nombrecompleto.trim()) ||
@@ -518,13 +533,23 @@ export const useEntitiesStore = defineStore("entities", () => {
     }
     if (
       lstTelefonos.value.some((v) => !v.id_tipotelefono || !v.telefono) ||
-      lstContactos.value.some((v) => !v.nombre || !v.id_tipotelefono || !v.telefono)
+      lstContactos.value.some(
+        (v) => !v.nombre || !v.id_tipotelefono || !v.telefono
+      )
     ) {
       return 2;
     }
     if (
-      lstConvenios.value.some((v) => !v.fecha || v.dias_credito < 0 || isInvalidEmail(v.email_soporte)) ||
-      lstTarifas.value.some((v) => !v.fecha || !v.codigo || v.tarifa < 0 || isInvalidEmail(v.email_soporte))
+      lstConvenios.value.some(
+        (v) => !v.fecha || v.dias_credito < 0 || isInvalidEmail(v.email_soporte)
+      ) ||
+      lstTarifas.value.some(
+        (v) =>
+          !v.fecha ||
+          !v.codigo ||
+          v.tarifa < 0 ||
+          isInvalidEmail(v.email_soporte)
+      )
     ) {
       return 3;
     }
@@ -535,7 +560,10 @@ export const useEntitiesStore = defineStore("entities", () => {
           !v.cci ||
           !v.id_banco ||
           !v.id_coins ||
-          (isInternational && (!v.nro_swift || !v.id_intermediario || !v.nro_cuenta_intermediario)),
+          (isInternational &&
+            (!v.nro_swift ||
+              !v.id_intermediario ||
+              !v.nro_cuenta_intermediario))
       )
     ) {
       return 4;
@@ -549,7 +577,12 @@ export const useEntitiesStore = defineStore("entities", () => {
     isStep2Valid.value = step !== 2;
     isStep3Valid.value = step !== 3;
     isStep4Valid.value = step !== 4;
-    if (step) Swal.fire({ icon: "warning", title: "Aviso", text: INVALID_PROVIDER_STEP_MESSAGES[step] });
+    if (step)
+      Swal.fire({
+        icon: "warning",
+        title: "Aviso",
+        text: INVALID_PROVIDER_STEP_MESSAGES[step],
+      });
     return step !== 0;
   }
 
@@ -609,10 +642,15 @@ export const useEntitiesStore = defineStore("entities", () => {
     return saved;
   }
 
-  async function eliminarPersona(data: { id: number }, asClient = false): Promise<void> {
+  async function eliminarPersona(
+    data: { id: number },
+    asClient = false
+  ): Promise<void> {
     await axios<ApiResponse>({
       method: "put",
-      url: import.meta.env.VITE_URL_MAIN + (asClient ? "eliminar_cliente" : "eliminar_proveedor"),
+      url:
+        import.meta.env.VITE_URL_MAIN +
+        (asClient ? "eliminar_cliente" : "eliminar_proveedor"),
       headers: {
         "Content-Type": "application/json",
       },
@@ -671,7 +709,9 @@ export const useEntitiesStore = defineStore("entities", () => {
   }
 
   const statusFilter = () =>
-    filtro.value.status == 1 || filtro.value.status == 0 ? filtro.value.status : "";
+    filtro.value.status == 1 || filtro.value.status == 0
+      ? filtro.value.status
+      : "";
 
   const clientFilters = () => ({
     correlativo: filtro.value.correlativo || "",
@@ -697,32 +737,55 @@ export const useEntitiesStore = defineStore("entities", () => {
 
   async function exportFailureMessage(error: unknown): Promise<string> {
     const { response } = error as { response?: { data?: unknown } };
-    if (!(response && response.data instanceof Blob)) return CONNECTION_ERROR_MESSAGE;
+    if (!(response && response.data instanceof Blob))
+      return CONNECTION_ERROR_MESSAGE;
     try {
-      return (JSON.parse(await response.data.text()) as ApiResponse).mensaje || CONNECTION_ERROR_MESSAGE;
+      return (
+        (JSON.parse(await response.data.text()) as ApiResponse).mensaje ||
+        CONNECTION_ERROR_MESSAGE
+      );
     } catch {
       return CONNECTION_ERROR_MESSAGE;
     }
   }
 
-  async function downloadEntityList(path: string, filters: object, fileName: string): Promise<void> {
+  async function downloadEntityList(
+    path: string,
+    filters: object,
+    fileName: string
+  ): Promise<void> {
     try {
-      const { data } = await axios.post<Blob>(import.meta.env.VITE_URL_MAIN + path, filters, { responseType: "blob" });
+      const { data } = await axios.post<Blob>(
+        import.meta.env.VITE_URL_MAIN + path,
+        filters,
+        { responseType: "blob" }
+      );
       const url = window.URL.createObjectURL(data);
       const link = document.createElement("a");
       link.href = url;
-      link.setAttribute("download", `${fileName} ${moment().format("DD-MM-YYYY HH-mm-ss")}.xlsx`);
+      link.setAttribute(
+        "download",
+        `${fileName} ${moment().format("DD-MM-YYYY HH-mm-ss")}.xlsx`
+      );
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      Swal.fire({ icon: "error", title: "Aviso", text: await exportFailureMessage(error) });
+      Swal.fire({
+        icon: "error",
+        title: "Aviso",
+        text: await exportFailureMessage(error),
+      });
     }
   }
 
   function exportListProveedor(): Promise<void> {
-    return downloadEntityList("export_list_proveedor", providerFilters(), "Listado Proveedor");
+    return downloadEntityList(
+      "export_list_proveedor",
+      providerFilters(),
+      "Listado Proveedor"
+    );
   }
 
   async function validarNombreProveedor(): Promise<void> {
@@ -800,9 +863,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
-        `validar_documento?id_branch=${sessionBranchId()}&id_tipodocumento=${cliente.value.id_tipodocumento}&documento=${
-          cliente.value.nro_documento
-        }`,
+        `validar_documento?id_branch=${sessionBranchId()}&id_tipodocumento=${
+          cliente.value.id_tipodocumento
+        }&documento=${cliente.value.nro_documento}`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -842,7 +905,12 @@ export const useEntitiesStore = defineStore("entities", () => {
       return false;
     }
     if (!data.estadoflag) {
-      Swal.fire({ icon: "error", title: "No se registró el cliente", text: data.mensaje, allowOutsideClick: false });
+      Swal.fire({
+        icon: "error",
+        title: "No se registró el cliente",
+        text: data.mensaje,
+        allowOutsideClick: false,
+      });
       return false;
     }
 
@@ -884,7 +952,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       method: "get",
       url:
         import.meta.env.VITE_URL_MAIN +
-        `ver_cliente?id=${idCliente ? idCliente : router.currentRoute.value.params.id}`,
+        `ver_cliente?id=${
+          idCliente ? idCliente : router.currentRoute.value.params.id
+        }`,
       headers: {
         "Content-Type": "application/json",
       },
@@ -983,17 +1053,31 @@ export const useEntitiesStore = defineStore("entities", () => {
       data: { ...cliente.value, rute: nombreRuta },
     });
     if (!response.estadoflag) {
-      Swal.fire({ icon: "error", title: "No se guardaron los cambios del cliente", text: response.mensaje, allowOutsideClick: false });
+      Swal.fire({
+        icon: "error",
+        title: "No se guardaron los cambios del cliente",
+        text: response.mensaje,
+        allowOutsideClick: false,
+      });
       return false;
     }
 
     await verCliente(cliente.value.id);
-    Swal.fire({ icon: "success", title: "Cliente actualizado", text: response.mensaje, allowOutsideClick: false });
+    Swal.fire({
+      icon: "success",
+      title: "Cliente actualizado",
+      text: response.mensaje,
+      allowOutsideClick: false,
+    });
     return true;
   }
 
   function exportListClientes(): Promise<void> {
-    return downloadEntityList("export_list_cliente", clientFilters(), "Listado Cliente");
+    return downloadEntityList(
+      "export_list_cliente",
+      clientFilters(),
+      "Listado Cliente"
+    );
   }
 
   async function validarNombreCliente(): Promise<void> {
@@ -1048,7 +1132,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  async function cargarDatosTatifasEntite(data: { id: unknown }): Promise<void> {
+  async function cargarDatosTatifasEntite(data: {
+    id: unknown;
+  }): Promise<void> {
     await axios<ApiResponse<{ datos: DatoTarifaProveedor[] }[]>>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `entitie/cargar_datos_tarifas`,
@@ -1071,7 +1157,9 @@ export const useEntitiesStore = defineStore("entities", () => {
       });
   }
 
-  function validarClienteTieneMovimientos(data: { id: number }): Promise<ApiResponse> {
+  function validarClienteTieneMovimientos(data: {
+    id: number;
+  }): Promise<ApiResponse> {
     return request({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + `entities/validar_eliminar_cliente`,
@@ -1092,14 +1180,15 @@ export const useEntitiesStore = defineStore("entities", () => {
       title: "Se necesita un administrador",
       html:
         `<p>${movements.mensaje}</p>` +
-        "<p>Este cliente ya tiene movimientos. Para editarlo, pide a un administrador que ingrese su usuario y contraseña.</p>" +
+        "<p>Este cliente ya tiene movimientos. Para editarlo, pide al Super administrador o a un usuario con permiso en este módulo que ingrese su usuario y contraseña.</p>" +
         ADMIN_CREDENTIAL_INPUTS,
       showCancelButton: true,
       confirmButtonText: "Autorizar",
       cancelButtonText: "Cancelar",
       allowOutsideClick: false,
       focusConfirm: false,
-      preConfirm: verifiedAdminCredentials,
+      preConfirm: () =>
+        verifiedAdminCredentials(PERMISOS_AUTORIZA.clienteEditar),
     });
     return isConfirmed;
   }

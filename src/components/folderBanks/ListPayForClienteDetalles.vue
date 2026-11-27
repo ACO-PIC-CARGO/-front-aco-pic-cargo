@@ -11,7 +11,10 @@ import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useBalancesStore } from "@/stores/balances";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import type {
   CuentaDestinoCliente,
   DatoIngresoCliente,
@@ -209,9 +212,7 @@ async function getListBanksDetailsCxC() {
     method: "get",
     url:
       import.meta.env.VITE_URL_MAIN +
-      `getListarPayForCustomerDetalle?id_branch=${
-        sessionBranchId()
-      }&nro_operacion=${
+      `getListarPayForCustomerDetalle?id_branch=${sessionBranchId()}&nro_operacion=${
         filtro.value.nro_operacion ? filtro.value.nro_operacion : ""
       }&monto=${filtro.value.monto ? filtro.value.monto : ""}&fechadesde=${
         filtro.value.fechadesde ? filtro.value.fechadesde : ""
@@ -241,10 +242,12 @@ async function getListBanksDetailsCxC() {
     .then(function (response) {
       const data = response.data;
       if (data.estadoflag) {
-        listado.value = data.data.map((element: IngresoCliente, index: number) => ({
-          ...element,
-          index,
-        }));
+        listado.value = data.data.map(
+          (element: IngresoCliente, index: number) => ({
+            ...element,
+            index,
+          })
+        );
         dataList.value = true;
       } else {
         listado.value = [];
@@ -401,8 +404,8 @@ async function exportar() {
       link.setAttribute(
         "download",
         `Reporte Bancos - Ingresos ${moment().format(
-          "DD_MM_YYYY_h_mm_ss",
-        )} .xlsx`,
+          "DD_MM_YYYY_h_mm_ss"
+        )} .xlsx`
       );
       document.body.appendChild(link);
       link.click();
@@ -431,10 +434,9 @@ async function obtenerListado() {
 }
 function filtarSubIngreso() {
   if (!!filtro.value.tipoingreso) {
-    tiposubingresoFilter =
-      balancesStore.tiposubingreso.filter(
-        (v) => v.id_ingreso == filtro.value.tipoingreso,
-      );
+    tiposubingresoFilter = balancesStore.tiposubingreso.filter(
+      (v) => v.id_ingreso == filtro.value.tipoingreso
+    );
   } else {
     tiposubingresoFilter = balancesStore.tiposubingreso;
   }
@@ -459,7 +461,10 @@ async function ActualizarIngreso() {
 async function editar(item: IngresoCliente) {
   payfile.value = null;
   Ingreso.value.id_path = null;
-  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para editar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoIngresoEditar
+  );
   if (!admin) return;
   adminAuthorization.credentials = admin;
   router.push({
@@ -468,9 +473,12 @@ async function editar(item: IngresoCliente) {
   });
 }
 
-watch(() => filtro.value.tipoingreso, () => {
-  filtarSubIngreso();
-});
+watch(
+  () => filtro.value.tipoingreso,
+  () => {
+    filtarSubIngreso();
+  }
+);
 
 onMounted(async () => {
   usuario.value = sessionUser().usuario as string;
@@ -495,14 +503,8 @@ onMounted(async () => {
 
 <template>
   <v-container fluid>
-    <v-card
-      min-height="80vh"
-      elevation="0"
-    >
-      <BarraFiltro
-        :filtro="filtro"
-        :cuentas="cuentas"
-      />
+    <v-card min-height="80vh" elevation="0">
+      <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
       <v-card-title class="pt-0 d-flex align-center flex-wrap">
         <v-text-field
           class="mx-2"
@@ -557,10 +559,7 @@ onMounted(async () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    v-for="(i, index) in item.detalles"
-                    :key="index"
-                  >
+                  <tr v-for="(i, index) in item.detalles" :key="index">
                     <td>{{ i.banco }}</td>
                     <td>{{ i.cuenta_destino }}</td>
                     <!-- <td>{{ i.tipo }}</td> -->
@@ -642,14 +641,8 @@ onMounted(async () => {
         width="20%"
         v-if="dialogFiltro"
       >
-        <v-card
-          height="100%"
-          elevation="5"
-        >
-          <v-card-title
-            class="d-flex align-center flex-wrap"
-            primary-title
-          >
+        <v-card height="100%" elevation="5">
+          <v-card-title class="d-flex align-center flex-wrap" primary-title>
             Filtrar Ingresos
             <v-spacer />
             <v-btn
@@ -781,18 +774,8 @@ onMounted(async () => {
           </v-card-text>
           <v-card-actions>
             <v-spacer />
-            <v-btn
-              color="success"
-              @click="filtrar()"
-            >
-              Aceptar
-            </v-btn>
-            <v-btn
-              color="error"
-              @click="limpiar()"
-            >
-              Limpiar
-            </v-btn>
+            <v-btn color="success" @click="filtrar()"> Aceptar </v-btn>
+            <v-btn color="error" @click="limpiar()"> Limpiar </v-btn>
           </v-card-actions>
         </v-card>
       </v-navigation-drawer>

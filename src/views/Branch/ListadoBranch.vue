@@ -4,7 +4,10 @@ import Swal from "sweetalert2";
 import { useBranchStore } from "@/stores/branch";
 import { usePermissions } from "@/composables/usePermissions";
 import type { SucursalListado } from "@/types/seguridad";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { confirmsCompanyName } from "./companyNameConfirmation";
 
 const branchStore = useBranchStore();
@@ -28,7 +31,11 @@ onMounted(() => {
   branchStore.ListadoSucursal();
 });
 
-async function confirmThen(text: string, confirmButtonText: string, change: () => Promise<boolean>) {
+async function confirmThen(
+  text: string,
+  confirmButtonText: string,
+  change: () => Promise<boolean>
+) {
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
     text,
@@ -45,17 +52,20 @@ const inactivar = (id: number) =>
   confirmThen(
     "¿Inactivar esta empresa? Sus usuarios no podrán iniciar sesión hasta que la reactives.",
     "Sí, inactivar",
-    () => branchStore.inactivarSucursal(id),
+    () => branchStore.inactivarSucursal(id)
   );
 const reactivar = (id: number) =>
   confirmThen(
     "¿Reactivar esta empresa? Sus usuarios podrán volver a iniciar sesión.",
     "Sí, reactivar",
-    () => branchStore.reactivarSucursal(id),
+    () => branchStore.reactivarSucursal(id)
   );
 
 async function eliminar(company: SucursalListado) {
-  const admin = await askAdminCredentials("Para eliminar una empresa, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar una empresa, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.empresaEliminar
+  );
   if (!admin) return;
   const { isConfirmed } = await Swal.fire({
     icon: "warning",
@@ -67,7 +77,9 @@ async function eliminar(company: SucursalListado) {
     confirmButtonText: "Eliminar para siempre",
     cancelButtonText: "Cancelar",
     inputValidator: (typed) =>
-      confirmsCompanyName(typed, company.trade_name) ? null : "Escribe el nombre exacto de la empresa para eliminarla.",
+      confirmsCompanyName(typed, company.trade_name)
+        ? null
+        : "Escribe el nombre exacto de la empresa para eliminarla.",
   });
   if (isConfirmed && (await branchStore.eliminarSucursal(company.id, admin))) {
     await branchStore.ListadoSucursal();
@@ -82,9 +94,7 @@ async function eliminar(company: SucursalListado) {
         <v-col cols="4">
           <v-text-field v-model="search" />
         </v-col>
-        <v-col cols="4">
-          filtros
-        </v-col>
+        <v-col cols="4"> filtros </v-col>
         <v-col cols="12">
           <v-data-table
             :headers="header"
@@ -94,25 +104,17 @@ async function eliminar(company: SucursalListado) {
             :search="search"
           >
             <template #[`item.status`]="{ item }">
-              <v-chip
-                v-if="item.status == 1"
-                class="ma-2"
-                color="green"
-              >
+              <v-chip v-if="item.status == 1" class="ma-2" color="green">
                 Activo
               </v-chip>
-              <v-chip
-                v-else
-                class="ma-2"
-                color="red"
-              >
-                Inactivo
-              </v-chip>
+              <v-chip v-else class="ma-2" color="red"> Inactivo </v-chip>
             </template>
 
             <template #[`item.action`]="{ item }">
               <v-btn
-                v-if="item.status == 1 && can('lstEnterpriseRegister', 'ELIMINAR')"
+                v-if="
+                  item.status == 1 && can('lstEnterpriseRegister', 'ELIMINAR')
+                "
                 variant="text"
                 icon="mdi-cancel"
                 color="red"

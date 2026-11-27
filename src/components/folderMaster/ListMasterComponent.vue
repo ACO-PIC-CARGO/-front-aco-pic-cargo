@@ -15,9 +15,17 @@ import { usePermissions } from "@/composables/usePermissions";
 import type { RegistroConUrlCarpeta } from "@/types/archivos";
 import type { CotizacionListado } from "@/types/cotizacion";
 import type { MasterListado } from "@/types/operacionesMaster";
-import { isEtaBeforeEtd, isMasterClosed, masterRowClass } from "@/utils/masters";
+import {
+  isEtaBeforeEtd,
+  isMasterClosed,
+  masterRowClass,
+} from "@/utils/masters";
 import { hasFailed, request } from "@/utils/request";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { sessionBranchId, sessionUserIdOrEmpty } from "@/utils/sesion";
 
 const appStore = useAppStore();
@@ -92,7 +100,10 @@ async function reactivarMaster({
   abriroperativo?: boolean | null;
   abriradministrativo?: boolean | null;
 }) {
-  const admin = await askAdminCredentials("Para reactivar este master, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para reactivar este master, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.masterReactivar
+  );
   if (!admin) return;
   appStore.spiner = true;
   const answer = await mastersStore.controlGastosReactivar({
@@ -104,7 +115,10 @@ async function reactivarMaster({
   });
   await appStore._getMasterList();
   appStore.spiner = false;
-  Swal.fire({ icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info", text: answer.mensaje });
+  Swal.fire({
+    icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info",
+    text: answer.mensaje,
+  });
 }
 // validarUsuarioAdmin
 // controlGastosReactivar
@@ -122,7 +136,10 @@ function editFechas(item: MasterListado) {
 }
 async function guardarFechas() {
   if (isEtaBeforeEtd(exp.value.fecha_etd, exp.value.fecha_eta)) {
-    Swal.fire({ icon: "warning", text: "La fecha de llegada (ETA) no puede ser anterior a la de salida (ETD). Corrige una de las dos." });
+    Swal.fire({
+      icon: "warning",
+      text: "La fecha de llegada (ETA) no puede ser anterior a la de salida (ETD). Corrige una de las dos.",
+    });
     return;
   }
   loading.value = true;
@@ -140,7 +157,10 @@ async function guardarFechas() {
     },
   });
   loading.value = false;
-  Swal.fire({ icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info", text: answer.mensaje });
+  Swal.fire({
+    icon: answer.estadoflag ? "success" : hasFailed(answer) ? "error" : "info",
+    text: answer.mensaje,
+  });
   if (!answer.estadoflag) return;
   dialogFecha.value = false;
   await appStore._getMasterList();
@@ -462,10 +482,7 @@ onMounted(async () => {
           </v-form>
         </v-card-text>
         <v-card-actions>
-          <v-btn
-            color="success"
-            @click="redireccionarQuote()"
-          >
+          <v-btn color="success" @click="redireccionarQuote()">
             REDIRECCIONAR
           </v-btn>
           <v-btn
@@ -477,10 +494,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-card
-      elevation="0"
-      class="master-list"
-    >
+    <v-card elevation="0" class="master-list">
       <div class="master-list__toolbar">
         <v-text-field
           v-model="search"
@@ -498,8 +512,7 @@ onMounted(async () => {
           variant="flat"
           class="master-list__btn"
           @click="
-            mastersStore.master_filtrarData =
-              !mastersStore.master_filtrarData
+            mastersStore.master_filtrarData = !mastersStore.master_filtrarData
           "
         >
           FILTRAR
@@ -515,9 +528,13 @@ onMounted(async () => {
         </v-btn>
         <v-spacer />
         <div class="master-list__legend">
-          <span class="master-list__legend-dot master-list__legend-dot--llego" />
+          <span
+            class="master-list__legend-dot master-list__legend-dot--llego"
+          />
           Cargas Llegadas
-          <span class="master-list__legend-dot master-list__legend-dot--llegar" />
+          <span
+            class="master-list__legend-dot master-list__legend-dot--llegar"
+          />
           Cargas a 5 días de llegar
         </div>
       </div>
@@ -560,7 +577,7 @@ onMounted(async () => {
               v-if="
                 (item.list_comentarios.length > 0 ||
                   item.list_houses.length > 0) &&
-                  item.status != 0
+                item.status != 0
               "
             >
               <v-table v-if="item.list_comentarios.length > 0">
@@ -611,9 +628,7 @@ onMounted(async () => {
                         color="primary"
                         @click="redirectHouseVer(i.id_house)"
                       >
-                        <v-icon class="mx-1">
-                          mdi-eye
-                        </v-icon>
+                        <v-icon class="mx-1"> mdi-eye </v-icon>
                       </v-btn>
                       <v-btn
                         variant="text"
@@ -621,9 +636,7 @@ onMounted(async () => {
                         color="#FFD600"
                         @click="redirectHouse(i.id_house)"
                       >
-                        <v-icon class="mx-1">
-                          mdi-pencil
-                        </v-icon>
+                        <v-icon class="mx-1"> mdi-pencil </v-icon>
                       </v-btn>
                     </td>
                     <td>{{ i.code_house }}</td>
@@ -656,20 +669,14 @@ onMounted(async () => {
           <label
             v-if="item.status == 0"
             style="color: red; font-weight: 700 !important"
-          >{{ item.code_master }}</label>
-          <label
-            v-if="item.status == 1"
-            class="master-list__code"
-          >{{
+            >{{ item.code_master }}</label
+          >
+          <label v-if="item.status == 1" class="master-list__code">{{
             item.code_master
           }}</label>
         </template>
         <template #[`item.actions`]="{ item }">
-          <v-menu
-            location="top"
-            :persistent="!(true)"
-            v-if="item.status == 1"
-          >
+          <v-menu location="top" :persistent="!true" v-if="item.status == 1">
             <template #activator="{ props }">
               <v-btn
                 variant="text"
@@ -679,44 +686,27 @@ onMounted(async () => {
                 aria-label="Más acciones"
                 v-bind="props"
               >
-                <v-icon>
-                  mdi-menu
-                </v-icon>
+                <v-icon> mdi-menu </v-icon>
               </v-btn>
             </template>
 
             <v-list>
               <v-list-item
                 class="itemMenu"
-                v-if="!isMasterClosed(item) && item.status == 1 && can('listMaster', 'MODIFICAR')"
+                v-if="
+                  !isMasterClosed(item) &&
+                  item.status == 1 &&
+                  can('listMaster', 'MODIFICAR')
+                "
               >
-                <v-list-item-title
-                  small
-                  @click="editMaster(item.id)"
-                  icon
-                >
-                  <v-icon
-                    class="mx-1"
-                    color="#FFD600"
-                  >
-                    mdi-pencil
-                  </v-icon>
+                <v-list-item-title small @click="editMaster(item.id)" icon>
+                  <v-icon class="mx-1" color="#FFD600"> mdi-pencil </v-icon>
                   Editar Master
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-if="item.status == 1"
-              >
-                <v-list-item-title
-                  icon
-                  small
-                  @click="irControlGastos(item.id)"
-                >
-                  <v-icon
-                    class="mx-1"
-                    color="#01579B"
-                  >
+              <v-list-item class="itemMenu" v-if="item.status == 1">
+                <v-list-item-title icon small @click="irControlGastos(item.id)">
+                  <v-icon class="mx-1" color="#01579B">
                     mdi-truck-cargo-container
                   </v-icon>
                   Ir Control Gastos
@@ -727,25 +717,13 @@ onMounted(async () => {
                   class="itemMenu"
                   v-if="can('listMaster', 'MODIFICAR')"
                 >
-                  <v-list-item-title
-                    icon
-                    small
-                    @click="_lockMaster(item.id)"
-                  >
-                    <v-icon
-                      class="mx-1"
-                      color="#E65100"
-                    >
-                      mdi-lock
-                    </v-icon> Cerrar
-                    Expediente Operativo
+                  <v-list-item-title icon small @click="_lockMaster(item.id)">
+                    <v-icon class="mx-1" color="#E65100"> mdi-lock </v-icon>
+                    Cerrar Expediente Operativo
                   </v-list-item-title>
                 </v-list-item>
               </template>
-              <v-list-item
-                class="itemMenu"
-                v-else
-              >
+              <v-list-item class="itemMenu" v-else>
                 <v-list-item-title
                   icon
                   small
@@ -756,10 +734,7 @@ onMounted(async () => {
                     })
                   "
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
-                  >
+                  <v-icon class="mx-1" color="#E65100">
                     mdi-lock-open-alert
                   </v-icon>
                   Abrir Expediente Operativo
@@ -775,20 +750,12 @@ onMounted(async () => {
                     @click="_lockMasterAdm(item.id)"
                     small
                   >
-                    <v-icon
-                      class="mx-1"
-                      color="#E65100"
-                    >
-                      mdi-lock
-                    </v-icon>Cerrar
-                    Expediente Administrativo
+                    <v-icon class="mx-1" color="#E65100"> mdi-lock </v-icon
+                    >Cerrar Expediente Administrativo
                   </v-list-item-title>
                 </v-list-item>
               </template>
-              <v-list-item
-                class="itemMenu"
-                v-else
-              >
+              <v-list-item class="itemMenu" v-else>
                 <v-list-item-title
                   icon
                   @click="
@@ -799,31 +766,16 @@ onMounted(async () => {
                   "
                   small
                 >
-                  <v-icon
-                    class="mx-1"
-                    color="#E65100"
-                  >
+                  <v-icon class="mx-1" color="#E65100">
                     mdi-lock-open-alert
                   </v-icon>
                   Abrir Expediente Administrativo
                 </v-list-item-title>
               </v-list-item>
-              <v-list-item
-                class="itemMenu"
-                v-if="item.status == 1"
-              >
-                <v-list-item-title
-                  icon
-                  small
-                  @click="abrirCaperta(item)"
-                >
-                  <v-icon
-                    class="mx-1"
-                    color="#FFD600"
-                  >
-                    mdi-folder
-                  </v-icon>Abrir
-                  Carpeta
+              <v-list-item class="itemMenu" v-if="item.status == 1">
+                <v-list-item-title icon small @click="abrirCaperta(item)">
+                  <v-icon class="mx-1" color="#FFD600"> mdi-folder </v-icon
+                  >Abrir Carpeta
                 </v-list-item-title>
               </v-list-item>
 
@@ -831,17 +783,8 @@ onMounted(async () => {
                 class="itemMenu"
                 v-if="item.status == 1 && can('listMaster', 'ELIMINAR')"
               >
-                <v-list-item-title
-                  icon
-                  small
-                  @click="_nullMaster(item.id)"
-                >
-                  <v-icon
-                    class="mx-1"
-                    color="#D50000"
-                  >
-                    mdi-cancel
-                  </v-icon>
+                <v-list-item-title icon small @click="_nullMaster(item.id)">
+                  <v-icon class="mx-1" color="#D50000"> mdi-cancel </v-icon>
                   Anular
                 </v-list-item-title>
               </v-list-item>
@@ -875,15 +818,17 @@ onMounted(async () => {
               })
             "
           >
-            <v-icon class="mx-1">
-              mdi-delete-empty
-            </v-icon>Activar
+            <v-icon class="mx-1"> mdi-delete-empty </v-icon>Activar
           </v-btn>
           <v-tooltip location="top">
             <template #activator="{ props }">
               <v-btn
                 variant="text"
-                v-if="!isMasterClosed(item) && item.status == 1 && can('listMaster', 'MODIFICAR')"
+                v-if="
+                  !isMasterClosed(item) &&
+                  item.status == 1 &&
+                  can('listMaster', 'MODIFICAR')
+                "
                 color="#fb8c00"
                 size="small"
                 icon
@@ -891,9 +836,7 @@ onMounted(async () => {
                 v-bind="props"
                 @click="editFechas(item)"
               >
-                <v-icon>
-                  mdi-calendar-edit
-                </v-icon>
+                <v-icon> mdi-calendar-edit </v-icon>
               </v-btn>
             </template>
             <span>Editar Fechas</span>
@@ -927,9 +870,7 @@ onMounted(async () => {
                 aria-label="Ver master"
                 @click="viewMaster(item.id)"
               >
-                <v-icon>
-                  mdi-eye-outline
-                </v-icon>
+                <v-icon> mdi-eye-outline </v-icon>
               </v-btn>
             </template>
             <span>Ver Master</span>
@@ -998,9 +939,7 @@ onMounted(async () => {
                 size="small"
                 aria-label="Abrir carpeta"
               >
-                <v-icon>
-                  mdi-folder
-                </v-icon>
+                <v-icon> mdi-folder </v-icon>
               </v-btn>
             </template>
             <span>Abrir Carpeta</span>
@@ -1062,34 +1001,18 @@ onMounted(async () => {
         </template>
       </v-data-table>
     </v-card>
-    <v-dialog
-      v-model="dialog"
-      persistent
-      width="50%"
-    >
+    <v-dialog v-model="dialog" persistent width="50%">
       <v-card>
         <v-card-title class="d-flex align-center flex-wrap">
           Registro de Estado/ Comentario - {{ master.code_master }}
           <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="dialog = !dialog"
-          >
-            <v-icon class="mx-1">
-              mdi-close
-            </v-icon>
+          <v-btn variant="text" icon color="default" @click="dialog = !dialog">
+            <v-icon class="mx-1"> mdi-close </v-icon>
           </v-btn>
         </v-card-title>
         <v-card-text>
           <v-form ref="frmComentario">
-            <v-text-field
-              label="Fecha"
-              v-model="fecha"
-              type="date"
-              readonly
-            />
+            <v-text-field label="Fecha" v-model="fecha" type="date" readonly />
             <v-autocomplete
               label="Ejecutivo"
               class="my-1"
@@ -1121,10 +1044,7 @@ onMounted(async () => {
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="dialogFecha"
-      width="45%"
-    >
+    <v-dialog v-model="dialogFecha" width="45%">
       <v-card>
         <v-card-title primary-title>
           {{ exp.code_master }} - Editar Fechas
@@ -1145,10 +1065,7 @@ onMounted(async () => {
               />
             </v-col>
             <v-col cols="5">
-              <v-checkbox
-                label="Salida Confirmada"
-                v-model="exp.salidaflag"
-              />
+              <v-checkbox label="Salida Confirmada" v-model="exp.salidaflag" />
             </v-col>
 
             <v-col cols="7">

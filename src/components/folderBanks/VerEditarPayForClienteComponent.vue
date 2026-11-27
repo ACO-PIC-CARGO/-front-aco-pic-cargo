@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { computed, defineAsyncComponent, mergeProps, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  mergeProps,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useRoute, useRouter } from "vue-router";
 import { useAppStore } from "@/stores/app";
@@ -9,7 +17,11 @@ import { useBancosStore } from "@/stores/bancos";
 import { useBankStore } from "@/stores/bank";
 import { useFilesStore } from "@/stores/files";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { depositMatches, depositTotal } from "@/utils/bankDeposit";
 import type {
   CuentaIngreso,
@@ -30,9 +42,12 @@ const filesStore = useFilesStore();
 const adminAuthorization = useAdminAuthorizationStore();
 const clientes = computed(() => appStore.clientes);
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
-const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
-const ArrastraYSolarComponent = defineAsyncComponent(() =>
-  import("../comun/ArrastraYSolarComponent.vue"));
+const FormatFecha = defineAsyncComponent(
+  () => import("../comun/FormatFecha.vue")
+);
+const ArrastraYSolarComponent = defineAsyncComponent(
+  () => import("../comun/ArrastraYSolarComponent.vue")
+);
 
 const urlfile = ref<string | null>("");
 const tipocambio = ref<number | string>(1);
@@ -53,7 +68,10 @@ const cliente = ref<number | null>(null);
 // Abre la ficha del cliente en una pestaña nueva
 function verDatosCliente() {
   if (!cliente.value) return;
-  window.open(router.resolve({ name: "verCliente", params: { id: cliente.value } }).href, "_blank");
+  window.open(
+    router.resolve({ name: "verCliente", params: { id: cliente.value } }).href,
+    "_blank"
+  );
 }
 const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
@@ -133,7 +151,9 @@ const totalGeneralAbonado = computed(() => {
     .toFixed(2);
 });
 const itemsOrdenados = computed(() => {
-  const items = [...bankStore.deudaAProveedor] as unknown as DetalleIngresoRegistrado[];
+  const items = [
+    ...bankStore.deudaAProveedor,
+  ] as unknown as DetalleIngresoRegistrado[];
   return items.sort((a, b) => {
     const aSeleccionado = selected.value.some((sel) => sel.id === a.id);
     const bSeleccionado = selected.value.some((sel) => sel.id === b.id);
@@ -169,9 +189,17 @@ function confirmarEliminar() {
   });
 }
 async function eliminar() {
-  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoIngresoEliminar
+  );
   if (!admin) return;
-  if (await bankStore.eliminarRegistroIngresos({ id: route.params.id, ...withAuthorization(admin) })) {
+  if (
+    await bankStore.eliminarRegistroIngresos({
+      id: route.params.id,
+      ...withAuthorization(admin),
+    })
+  ) {
     router.push({ name: "listBankCxC" });
   }
 }
@@ -183,7 +211,13 @@ function esImagen(url: string | null) {
   return limpiaUrl.match(/\.(jpeg|jpg|gif|png|webp|svg)$/) !== null;
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onItemSelected({ item, value }: { item: DetalleIngresoRegistrado; value: boolean }) {
+function onItemSelected({
+  item,
+  value,
+}: {
+  item: DetalleIngresoRegistrado;
+  value: boolean;
+}) {
   if (value) {
     // Si se selecciona, por defecto es Abono Completo (false) y carga el saldo
     item.parcialflag = false;
@@ -196,7 +230,13 @@ function onItemSelected({ item, value }: { item: DetalleIngresoRegistrado; value
   calcularTotal();
 }
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function onSelectAll({ items, value }: { items: DetalleIngresoRegistrado[]; value: boolean }) {
+function onSelectAll({
+  items,
+  value,
+}: {
+  items: DetalleIngresoRegistrado[];
+  value: boolean;
+}) {
   items.forEach((item) => {
     if (value) {
       item.parcialflag = false;
@@ -326,12 +366,21 @@ function calcularTotal() {
   const total = selected.value.reduce((acc: number, item) => {
     let valorFila = 0;
     if (item.parcialflag) {
-      const maximo = parseFloat(String((item.montoparcial as number) / (item.tipocambio as number))) || 0;
-      const escrito = parseFloat(String((item.montoparcial as number) / (item.tipocambio as number))) || 0;
+      const maximo =
+        parseFloat(
+          String((item.montoparcial as number) / (item.tipocambio as number))
+        ) || 0;
+      const escrito =
+        parseFloat(
+          String((item.montoparcial as number) / (item.tipocambio as number))
+        ) || 0;
 
       valorFila = escrito > maximo ? maximo : escrito;
     } else {
-      valorFila = parseFloat(String((item.montoparcial as number) / (item.tipocambio as number))) || 0;
+      valorFila =
+        parseFloat(
+          String((item.montoparcial as number) / (item.tipocambio as number))
+        ) || 0;
     }
     return acc + valorFila;
   }, 0);
@@ -349,7 +398,13 @@ async function finalizarOperacion() {
     Swal.fire({
       icon: "warning",
       title: "El monto en banco no cuadra",
-      text: `El monto en banco (${symbol.value} ${Number(monto_local.value).toFixed(2)}) debe ser la suma de los montos más la comisión bancaria (${symbol.value} ${depositTotal(montos, montogastobancario.value).toFixed(2)}). Corrige el monto en banco o los montos y vuelve a guardar.`,
+      text: `El monto en banco (${symbol.value} ${Number(
+        monto_local.value
+      ).toFixed(2)}) debe ser la suma de los montos más la comisión bancaria (${
+        symbol.value
+      } ${depositTotal(montos, montogastobancario.value).toFixed(
+        2
+      )}). Corrige el monto en banco o los montos y vuelve a guardar.`,
     });
     return false;
   }
@@ -392,14 +447,16 @@ function fn_totalAbonado(item: DetalleIngresoRegistrado) {
   if (item.symbol == "USD") {
     return `${item.symbol} ${monto.toFixed(2)}`;
   } else {
-    return `${symbol.value} ${(monto / (tipocambio.value as number)).toFixed(2)}`;
+    return `${symbol.value} ${(monto / (tipocambio.value as number)).toFixed(
+      2
+    )}`;
   }
 }
 
 watch(id_cuenta, (newVal) => {
   const id_coins = newVal.id_coins;
   const coins = appStore.itemsCoinsList.find(
-    (coin: { id: number }) => coin.id === id_coins,
+    (coin: { id: number }) => coin.id === id_coins
   );
   symbol.value = coins ? coins.symbol : "USD";
 });
@@ -410,11 +467,15 @@ watch(fecha_operacion, (newVal) => {
     errorMesage.value.fecha_operacion = "Fecha de Operación es requerida";
   }
 });
-watch(selected, () => {
-  calcularTotal();
-}, {
-  deep: true, // Esto detecta cambios en las propiedades internas de los items
-});
+watch(
+  selected,
+  () => {
+    calcularTotal();
+  },
+  {
+    deep: true, // Esto detecta cambios en las propiedades internas de los items
+  }
+);
 
 onBeforeUnmount(() => {
   adminAuthorization.credentials = null;
@@ -430,7 +491,13 @@ onMounted(async () => {
     bancosStore.getListBanksDetailsCargar(),
     appStore._getBanksList(),
     bankStore.verRegistroIngresos({ id: route.params.id }), // <-- Entra al paralelo
-  ])) as unknown as [unknown, unknown, unknown, unknown, RegistroIngresoCliente];
+  ])) as unknown as [
+    unknown,
+    unknown,
+    unknown,
+    unknown,
+    RegistroIngresoCliente
+  ];
 
   // await Promise.all([
   //   this.cargarClientes(),
@@ -453,10 +520,11 @@ onMounted(async () => {
   payPath.value = data.payPath;
   filename.value = data.filename;
   originalname.value = data.originalname;
-  bankStore.deudaAProveedor = data.detalle as unknown as typeof bankStore.deudaAProveedor;
+  bankStore.deudaAProveedor =
+    data.detalle as unknown as typeof bankStore.deudaAProveedor;
   selected.value = data.detalle;
   monto.value = data.totaldolar;
-  console.log('totalmonedalocal',data.totalmonedalocal)
+  console.log("totalmonedalocal", data.totalmonedalocal);
   monto_local.value = data.totalmonedalocal;
   tipocambio.value = data.tipocambio;
   conceptogastobancario.value =
@@ -470,11 +538,7 @@ onMounted(async () => {
   <v-card>
     <v-container fluid>
       <v-row>
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-        >
+        <v-col cols="12" md="2" class="pb-0">
           Cliente:
           <div class="d-flex align-center">
             <v-autocomplete
@@ -505,11 +569,7 @@ onMounted(async () => {
             />
           </div>
         </v-col>
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-        >
+        <v-col cols="12" md="2" class="pb-0">
           Monto Depositado En Banco:
           <!-- <v-icon @click="snackbar = true">mdi-information</v-icon> -->
           <v-text-field
@@ -524,15 +584,11 @@ onMounted(async () => {
               monto_local
                 ? (errorMesage.monto_local = '')
                 : (errorMesage.monto_local =
-                  'Monto de Depósito en banco es requerido')
+                    'Monto de Depósito en banco es requerido')
             "
           />
         </v-col>
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-        >
+        <v-col cols="12" md="2" class="pb-0">
           Total Factura Seleccionada:
           <v-text-field
             variant="outlined"
@@ -544,11 +600,7 @@ onMounted(async () => {
           />
         </v-col>
 
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-        >
+        <v-col cols="12" md="2" class="pb-0">
           Tipo Cambio:
           <v-text-field
             variant="outlined"
@@ -581,17 +633,21 @@ onMounted(async () => {
             color="red"
             class="mt-5 ml-3"
             v-if="verflag && can('listBankCxC', 'EXPORTAR')"
-            @click="bankStore.imprimirComprobanteIngreso({ id: route.params.id })"
+            @click="
+              bankStore.imprimirComprobanteIngreso({ id: route.params.id })
+            "
           >
-            <v-icon class="mx-2">
-              mdi-file-pdf-box
-            </v-icon> Imprimir
+            <v-icon class="mx-2"> mdi-file-pdf-box </v-icon> Imprimir
           </v-btn>
 
           <v-btn
             class="mt-5 ml-3"
             color="success"
-            v-if="!verflag && (can('listBankCxC', 'MODIFICAR') || adminAuthorization.credentials)"
+            v-if="
+              !verflag &&
+              (can('listBankCxC', 'MODIFICAR') ||
+                adminAuthorization.credentials)
+            "
             :loading="loading"
             @click="finalizarOperacion()"
           >
@@ -617,15 +673,9 @@ onMounted(async () => {
             color="#000000"
             bg-color="#C8E6C9"
           >
-            <v-tab key="detallesPago">
-              Detalles de Pago
-            </v-tab>
-            <v-tab key="datosPrincipales">
-              Datos Principales
-            </v-tab>
-            <v-tab key="gastoBancario">
-              Resumen y Comisión Bancario
-            </v-tab>
+            <v-tab key="detallesPago"> Detalles de Pago </v-tab>
+            <v-tab key="datosPrincipales"> Datos Principales </v-tab>
+            <v-tab key="gastoBancario"> Resumen y Comisión Bancario </v-tab>
           </v-tabs>
 
           <v-tabs-window v-model="pasos">
@@ -642,10 +692,7 @@ onMounted(async () => {
                   >
                     <template #body.append>
                       <tr class="bg-grey-lighten-4 font-weight-bold">
-                        <td
-                          :colspan="headers.length - 1"
-                          class="text-right"
-                        >
+                        <td :colspan="headers.length - 1" class="text-right">
                           Total General Seleccionado ({{ symbol }}):
                         </td>
                         <td class="text-left">
@@ -708,11 +755,7 @@ onMounted(async () => {
             </v-tabs-window-item>
             <v-tabs-window-item key="datosPrincipales">
               <v-row class="mt-1">
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-select
                     :items="appStore.itemsDataBanksList"
                     v-model="id_banco_origen"
@@ -726,11 +769,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="bancosStore.cuentas"
                     item-title="label"
@@ -745,11 +784,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     readonly
                     v-model="id_cuenta.banco"
@@ -760,11 +795,7 @@ onMounted(async () => {
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     readonly
                     v-model="id_cuenta.cuenta"
@@ -774,11 +805,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     readonly
                     v-model="id_cuenta.cci"
@@ -788,11 +815,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <FormatFecha
                     :outlined="true"
                     :dense="true"
@@ -802,11 +825,7 @@ onMounted(async () => {
                     :verflag="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     readonly
                     v-model="id_cuenta.moneda"
@@ -816,11 +835,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     label="Número de Operación"
                     variant="outlined"
@@ -832,16 +847,12 @@ onMounted(async () => {
                       nro_operacion !== ''
                         ? (errorMesage.nro_operacion = null)
                         : (errorMesage.nro_operacion =
-                          'Número de Operación es requerido')
+                            'Número de Operación es requerido')
                     "
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-textarea
                     label="Comentarios Usuario"
                     rows="1"
@@ -852,11 +863,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-textarea
                     label="Comentarios Administrativos"
                     rows="1"
@@ -867,10 +874,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  class="py-1"
-                >
+                <v-col cols="12" class="py-1">
                   <p class="my-1">
                     Soporte de Pago:
                     <v-btn
@@ -883,10 +887,7 @@ onMounted(async () => {
                       Eliminar Soporte de Pago
                     </v-btn>
                   </p>
-                  <div
-                    v-if="urlfile"
-                    class="d-inline-block"
-                  >
+                  <div v-if="urlfile" class="d-inline-block">
                     <!-- CASO 1: SI ES IMAGEN (Miniatura + Visualizador al hacer clic) -->
                     <template v-if="esImagen(urlfile)">
                       <v-dialog max-width="800px">
@@ -897,14 +898,8 @@ onMounted(async () => {
                               class="d-inline-block rounded-circle elevation-2 position-relative cursor-zoom-in"
                               :class="{ 'white--overlay': isHovering }"
                             >
-                              <v-avatar
-                                size="120"
-                                class="flex-shrink-0"
-                              >
-                                <v-img
-                                  :src="urlfile"
-                                  alt="Miniatura"
-                                >
+                              <v-avatar size="120" class="flex-shrink-0">
+                                <v-img :src="urlfile" alt="Miniatura">
                                   <template #placeholder>
                                     <v-row
                                       class="fill-height ma-0 align-center justify-center"
@@ -928,10 +923,7 @@ onMounted(async () => {
                                 class="rounded-circle align-center justify-center"
                                 z-index="1"
                               >
-                                <v-icon
-                                  color="grey-darken-2"
-                                  size="24"
-                                >
+                                <v-icon color="grey-darken-2" size="24">
                                   mdi-magnify
                                 </v-icon>
                               </v-overlay>
@@ -939,15 +931,8 @@ onMounted(async () => {
                           </v-hover>
                         </template>
 
-                        <v-card
-                          flat
-                          color="transparent"
-                          class="text-center"
-                        >
-                          <v-img
-                            :src="urlfile"
-                            max-height="85vh"
-                          />
+                        <v-card flat color="transparent" class="text-center">
+                          <v-img :src="urlfile" max-height="85vh" />
                         </v-card>
                       </v-dialog>
                     </template>
@@ -961,10 +946,7 @@ onMounted(async () => {
                         :href="urlfile"
                         target="_blank"
                       >
-                        <v-icon
-                          color="red"
-                          size="50"
-                        >
+                        <v-icon color="red" size="50">
                           mdi-file-pdf-box
                         </v-icon>
                       </v-btn>
@@ -1016,10 +998,7 @@ onMounted(async () => {
                   </v-data-table>
                 </v-col>
 
-                <v-col
-                  cols="2"
-                  offset="7"
-                >
+                <v-col cols="2" offset="7">
                   <v-text-field
                     variant="outlined"
                     density="compact"
@@ -1041,10 +1020,7 @@ onMounted(async () => {
                     :disabled="verflag"
                   />
                 </v-col>
-                <v-col
-                  cols="3"
-                  offset="9"
-                >
+                <v-col cols="3" offset="9">
                   <v-text-field
                     variant="outlined"
                     density="compact"
@@ -1076,11 +1052,7 @@ onMounted(async () => {
       Monto en moneda {{ symbol }} para realizar el pago. El tipo de cambio se
       calculará automáticamente al ingresar el monto en moneda local.
       <template #actions>
-        <v-btn
-          color="red"
-          variant="text"
-          @click="snackbar = false"
-        >
+        <v-btn color="red" variant="text" @click="snackbar = false">
           Close
         </v-btn>
       </template>

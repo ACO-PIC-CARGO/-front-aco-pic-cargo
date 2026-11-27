@@ -257,8 +257,11 @@ const headers = computed(() => [
   columna("Expediente", "expediente"),
   columna("Proveedor", "proveedor"),
   columna("Monto", "monto"),
-  columna("Banco", "banco"),
+  // datos para pagar: Método de pago, Banco, SWIFT (del instructivo), Beneficiario, Cuenta y N.° de Factura Comercial
   columna("Método de pago", "tipopago"),
+  columna("Banco", "banco"),
+  columna("SWIFT", "swift"),
+  columna("Beneficiario", "beneficiario"),
   columna("Código / N° de cuenta", "cuenta"),
   columna("N.° Factura Comercial", "nro_factura"),
   columna("Cliente Pagó", "cliente_pago"),
@@ -395,6 +398,10 @@ function proveedor(s: SolicitudPagoBandeja) {
   // en el listado de solicitudes va solo el nombre (sin el id del proveedor)
   return s.proveedor;
 }
+// beneficiario de la cuenta de la solicitud o, si no tiene, el del instructivo (6.3)
+function beneficiarioDe(s: SolicitudPagoBandeja) {
+  return s.beneficiario?.trim() || s.instructivo?.beneficiario || "";
+}
 function cuentaOCodigo(s: SolicitudPagoBandeja) {
   return (s.codigo_tipopago === "02" ? s.codigopago : s.nrocuenta) || "";
 }
@@ -452,14 +459,7 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
     accion: () => verSolicitud(item),
   }];
   if (item.pago_instructivoflag) {
-    lista.push({
-      titulo: "Pago proveedor",
-      detalle: "Pago al proveedor del instructivo (6.3).",
-      icono: "mdi-eye-outline",
-      color: "azul",
-      soloVer: true,
-      accion: () => verPagoInstructivo(item),
-    });
+    // "Pago proveedor" oculto en web por ahora (sigue en la tarjeta del celular)
     const archivos = item.instructivo;
     if (archivos?.captura) {
       const captura = archivos.captura;
@@ -749,6 +749,48 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
             </v-icon>
             {{ item.tipopago || "—" }}
           </span>
+        </template>
+        <template #[`item.swift`]="{ item }">
+          <div
+            v-if="item.instructivo?.codigo_swift"
+            class="spb__cuenta"
+          >
+            <span>{{ item.instructivo.codigo_swift }}</span>
+            <v-btn
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar"
+              aria-label="Copiar código SWIFT"
+              @click="copiar(item.instructivo.codigo_swift)"
+            />
+          </div>
+          <span
+            v-else
+            class="spb__muted"
+          >—</span>
+        </template>
+        <template #[`item.beneficiario`]="{ item }">
+          <div
+            v-if="beneficiarioDe(item)"
+            class="spb__cuenta spb__benef"
+          >
+            <span>{{ beneficiarioDe(item) }}</span>
+            <v-btn
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar"
+              aria-label="Copiar beneficiario"
+              @click="copiar(beneficiarioDe(item))"
+            />
+          </div>
+          <span
+            v-else
+            class="spb__muted"
+          >—</span>
         </template>
         <template #[`item.cuenta`]="{ item }">
           <div class="spb__cuenta">
@@ -1445,6 +1487,15 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
   color: var(--spb-muted);
 }
 .spb__provrow,
+/* beneficiario: hasta 3 líneas */
+.spb__benef span {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 200px;
+}
 .spb__cuenta,
 .spb__monto,
 .spb__soporte {

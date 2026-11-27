@@ -13,8 +13,14 @@ import { useMasterusuariosStore } from "@/stores/masterusuarios";
 import { useEnterprisesStore } from "@/stores/enterprises";
 import { usePricingStore } from "@/stores/pricing";
 import { useAduanaStore } from "@/stores/aduana";
-import { ADUANA_NOT_FOUND_MESSAGE, returnToAduanaList } from "@/utils/aduanaScreen";
-import { askAdminCredentials } from "@/utils/adminCredentials";
+import {
+  ADUANA_NOT_FOUND_MESSAGE,
+  returnToAduanaList,
+} from "@/utils/aduanaScreen";
+import {
+  askAdminCredentials,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import router from "@/router";
 import type { Costo, OpcionCosto, TipoCarga } from "@/types/cotizacion";
 
@@ -54,6 +60,7 @@ onMounted(async () => {
   if (aduanaStore.aprobadoflag) {
     const admin = await askAdminCredentials(
       "Esta cotización de aduana ya está aprobada. Para editarla, escribe el usuario y la clave de un administrador.",
+      PERMISOS_AUTORIZA.aduanaEditar
     );
     if (!admin) return router.push({ name: "lstQuoteAduanaAduana" });
     aduanaStore.approvedEditAdmin = admin;
@@ -132,10 +139,8 @@ async function activarServicios() {
   const services = [...aduanaStore.preServices];
   const serv = services.filter(
     (v) =>
-      v.id_incoterms ==
-        aduanaStore.datosPrincipales.idincoterms &&
-      v.id_modality ==
-        aduanaStore.datosPrincipales.idsentido &&
+      v.id_incoterms == aduanaStore.datosPrincipales.idincoterms &&
+      v.id_modality == aduanaStore.datosPrincipales.idsentido &&
       v.id_shipment ==
         (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id
   );
@@ -150,13 +155,10 @@ function recargarServicios() {
   }
   const serv = services.filter(
     (v) =>
-      v.id_incoterms ==
-        aduanaStore.datosPrincipales.idincoterms &&
-      v.id_modality ==
-        aduanaStore.datosPrincipales.idsentido &&
+      v.id_incoterms == aduanaStore.datosPrincipales.idincoterms &&
+      v.id_modality == aduanaStore.datosPrincipales.idsentido &&
       v.id_shipment ==
-        (typeof aduanaStore.datosPrincipales.idtipocarga ===
-        "object"
+        (typeof aduanaStore.datosPrincipales.idtipocarga === "object"
           ? aduanaStore.datosPrincipales.idtipocarga.id
           : aduanaStore.datosPrincipales.idtipocarga)
   );
@@ -173,9 +175,7 @@ function recargarServicios() {
       }
     });
 
-  IdServices = aduanaStore.listServices.map(
-    (v) => v.code_service
-  );
+  IdServices = aduanaStore.listServices.map((v) => v.code_service);
 
   serv.forEach((servicios) => {
     if (!IdServices.includes(servicios.code_service)) {
@@ -198,10 +198,8 @@ async function activarLlenadoCostos() {
 
   const c = costos.filter(
     (v) =>
-      v.id_incoterms ==
-        aduanaStore.datosPrincipales.idincoterms &&
-      v.id_modality ==
-        aduanaStore.datosPrincipales.idsentido &&
+      v.id_incoterms == aduanaStore.datosPrincipales.idincoterms &&
+      v.id_modality == aduanaStore.datosPrincipales.idsentido &&
       v.id_shipment ==
         (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id &&
       codeServicesActivos.has(Number(v.code_service))
@@ -209,9 +207,7 @@ async function activarLlenadoCostos() {
 
   let idContainer: (number | string | null | undefined)[] = [];
   if (aduanaStore.datosPrincipales.containers!.length > 0) {
-    idContainer = aduanaStore.datosPrincipales.containers!.map(
-      (v) => v.id
-    );
+    idContainer = aduanaStore.datosPrincipales.containers!.map((v) => v.id);
   }
 
   const cFiltrado = c.filter((v) => {
@@ -261,8 +257,12 @@ async function activarLlenadoCostos() {
   });
 
   aduanaStore.opcionCostos[0]!.listCostos = cDuplicado as Costo[];
-  aduanaStore.opcionCostos[0]!.listImpuestos = aduanaStore.listImpuestos.map((impuesto) => ({ ...impuesto, id: undefined }));
-  aduanaStore.opcionCostos[0]!.listNotasQuote = aduanaStore.listNotasQuote.map((nota) => ({ ...nota, id: undefined }));
+  aduanaStore.opcionCostos[0]!.listImpuestos = aduanaStore.listImpuestos.map(
+    (impuesto) => ({ ...impuesto, id: undefined })
+  );
+  aduanaStore.opcionCostos[0]!.listNotasQuote = aduanaStore.listNotasQuote.map(
+    (nota) => ({ ...nota, id: undefined })
+  );
 
   step.value = 2;
   editableStep2.value = true;
@@ -278,19 +278,15 @@ function anadirNuevaOpcion(nro_propuesta: number) {
   const costos = [...aduanaStore.preCostos];
   const c = costos.filter(
     (v) =>
-      v.id_incoterms ==
-        aduanaStore.datosPrincipales.idincoterms &&
-      v.id_modality ==
-        aduanaStore.datosPrincipales.idsentido &&
+      v.id_incoterms == aduanaStore.datosPrincipales.idincoterms &&
+      v.id_modality == aduanaStore.datosPrincipales.idsentido &&
       v.id_shipment ==
         (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id &&
       codeServicesActivos.has(Number(v.code_service))
   );
   let idContainer: (number | string | null | undefined)[] = [];
   if (aduanaStore.datosPrincipales.containers!.length > 0) {
-    idContainer = aduanaStore.datosPrincipales.containers!.map(
-      (v) => v.id
-    );
+    idContainer = aduanaStore.datosPrincipales.containers!.map((v) => v.id);
   }
   const cFiltrado = c.filter((v) => {
     if (v.escontenedorflag) {
@@ -366,10 +362,8 @@ async function recargarCostos(event = true) {
 
   const c = aduanaStore.preCostos.filter(
     (v) =>
-      v.id_incoterms ===
-        aduanaStore.datosPrincipales.idincoterms &&
-      v.id_modality ===
-        aduanaStore.datosPrincipales.idsentido &&
+      v.id_incoterms === aduanaStore.datosPrincipales.idincoterms &&
+      v.id_modality === aduanaStore.datosPrincipales.idsentido &&
       v.id_shipment === id_shipment &&
       codeServicesActivos.has(Number(v.code_service))
   );
@@ -469,8 +463,7 @@ async function recargarCostos(event = true) {
       v.id ==
         ((aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id
           ? (aduanaStore.datosPrincipales.idtipocarga as TipoCarga).id
-          : aduanaStore.datosPrincipales.idtipocarga) &&
-      v.code == "FCL"
+          : aduanaStore.datosPrincipales.idtipocarga) && v.code == "FCL"
   );
   Swal.fire({
     icon: "success",
@@ -479,8 +472,7 @@ async function recargarCostos(event = true) {
     allowEnterKey: false,
     allowOutsideClick: false,
   }).then((res) => {
-    aduanaStore.actualizarComparativa =
-      !aduanaStore.actualizarComparativa;
+    aduanaStore.actualizarComparativa = !aduanaStore.actualizarComparativa;
     if (res.isConfirmed) {
       if (isFCL && event) {
         abrirModalContenedorRecargar.value =
@@ -500,15 +492,8 @@ function irANotas() {
 </script>
 
 <template>
-  <v-container
-    fluid
-    class="pt-0 px-0"
-    v-if="mostrar"
-  >
-    <v-stepper
-      v-model="step"
-      class="pt-0"
-    >
+  <v-container fluid class="pt-0 px-0" v-if="mostrar">
+    <v-stepper v-model="step" class="pt-0">
       <v-stepper-header>
         <v-stepper-item
           :complete="step > 1"
@@ -526,61 +511,33 @@ function irANotas() {
         >
           <template #title>
             <span v-if="mostrarStepS"> costos de la Cotización </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            />
+            <v-progress-circular v-else indeterminate color="primary" />
           </template>
         </v-stepper-item>
 
         <v-divider />
 
-        <v-stepper-item
-          :value="3"
-          :editable="mostrarStepS"
-        >
+        <v-stepper-item :value="3" :editable="mostrarStepS">
           <template #title>
             <span v-if="mostrarStepS"> Comparativa </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            />
+            <v-progress-circular v-else indeterminate color="primary" />
           </template>
         </v-stepper-item>
         <v-divider />
-        <v-stepper-item
-          :value="4"
-          :editable="mostrarStepS"
-        >
+        <v-stepper-item :value="4" :editable="mostrarStepS">
           <template #title>
             <span v-if="mostrarStepS"> Notas y Enviar a Cliente </span>
-            <v-progress-circular
-              v-else
-              indeterminate
-              color="primary"
-            />
+            <v-progress-circular v-else indeterminate color="primary" />
           </template>
         </v-stepper-item>
       </v-stepper-header>
 
       <v-stepper-window>
-        <v-stepper-window-item
-          :value="1"
-          eager
-        >
+        <v-stepper-window-item :value="1" eager>
           <v-row class="my-1">
-            <v-col
-              cols="12"
-              md="6"
-              class="pt-0"
-            >
+            <v-col cols="12" md="6" class="pt-0">
               <v-row>
-                <v-col
-                  cols="12"
-                  class="my-0 py-0"
-                >
+                <v-col cols="12" class="my-0 py-0">
                   <DatosPrincipales
                     @recargar-servicios-costos="recargar"
                     @activar-datos-carga="activarDatosCarga"
@@ -590,11 +547,7 @@ function irANotas() {
                 </v-col>
               </v-row>
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-              class="my-0 py-0"
-            >
+            <v-col cols="12" md="6" class="my-0 py-0">
               <DatosCargaComponent
                 @activar-servicios="activarServicios"
                 @recargar-costos="recargarCostos"
@@ -616,10 +569,7 @@ function irANotas() {
           <v-btn text> Cancel </v-btn> -->
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="2"
-          eager
-        >
+        <v-stepper-window-item :value="2" eager>
           <DatosCostosComponent
             :key="indexCostos"
             :mostrar-btn="false"
@@ -631,23 +581,14 @@ function irANotas() {
           />
         </v-stepper-window-item>
 
-        <v-stepper-window-item
-          :value="3"
-          eager
-        >
+        <v-stepper-window-item :value="3" eager>
           <ComparativaComponent
             @ir-venta-cliente="irVentaCliente"
             v-if="mostrarStepS"
           />
         </v-stepper-window-item>
-        <v-stepper-window-item
-          :value="4"
-          eager
-        >
-          <NotasComponent
-            :editable="editableStep4"
-            v-if="mostrarStepS"
-          />
+        <v-stepper-window-item :value="4" eager>
+          <NotasComponent :editable="editableStep4" v-if="mostrarStepS" />
         </v-stepper-window-item>
       </v-stepper-window>
     </v-stepper>

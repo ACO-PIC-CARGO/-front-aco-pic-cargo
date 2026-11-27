@@ -2,7 +2,11 @@
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue";
 import ExpedienteVarios from "@/components/folderRequests/ExpedienteVarios.vue";
 import { avisarOrigenSolicitud } from "@/utils/solicitudOrigen";
-import { conceptoEnMoneda, monedaPricing, montoOpMoneda } from "@/utils/montoMoneda";
+import {
+  conceptoEnMoneda,
+  monedaPricing,
+  montoOpMoneda,
+} from "@/utils/montoMoneda";
 import SolicitudOrigenNota from "@/components/comun/SolicitudOrigenNota.vue";
 import SolicitudReporteDialog from "@/components/folderRequests/SolicitudReporteDialog.vue";
 import { useAppStore } from "@/stores/app";
@@ -42,14 +46,26 @@ import { sessionBranchId, sessionUser } from "@/utils/sesion";
 import { downloadPdf } from "@/utils/pdfDownload";
 import { usePermissions } from "@/composables/usePermissions";
 import type { ApiResponse } from "@/types/api";
-import { CONNECTION_ERROR_MESSAGE, notifySuccess, request } from "@/utils/request";
+import {
+  CONNECTION_ERROR_MESSAGE,
+  notifySuccess,
+  request,
+} from "@/utils/request";
 import type { AdminCredentials } from "@/types/seguridad";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 import PagoProveedorInstructivoDialog from "./PagoProveedorInstructivoDialog.vue";
 import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 import type { PagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
-import { avisoDocumentoConSolicitud, avisoSolicitudEnviada, montoConMoneda } from "@/utils/solicitudPagoAvisos";
+import {
+  avisoDocumentoConSolicitud,
+  avisoSolicitudEnviada,
+  montoConMoneda,
+} from "@/utils/solicitudPagoAvisos";
 import {
   quitarSoporteAntesDeEliminar,
   confirmarEliminarSolicitud,
@@ -78,7 +94,7 @@ const componentProps = withDefaults(
     egreso_op: 0,
     editable: true,
     master_egresos: undefined,
-  },
+  }
 );
 const emit = defineEmits<{
   recalcularProfit: [];
@@ -97,7 +113,10 @@ const undeclaredAppState = appStore as typeof appStore & {
 };
 const warnIfRefused = (response: ApiResponse) => {
   if (response.estadoflag) return false;
-  Swal.fire({ icon: response.tipomensaje === "TMSGERR" ? "error" : "warning", text: response.mensaje });
+  Swal.fire({
+    icon: response.tipomensaje === "TMSGERR" ? "error" : "warning",
+    text: response.mensaje,
+  });
   return true;
 };
 const route = useRoute();
@@ -157,23 +176,37 @@ function partesProveedor(texto: string, idProveedor: unknown) {
     correlativo: m?.[3]?.trim() ?? "",
   };
 }
-const proveedorInvoice = computed(() => partesProveedor(nameproveedor.value ?? "", egreso.value?.id_proveedor));
+const proveedorInvoice = computed(() =>
+  partesProveedor(nameproveedor.value ?? "", egreso.value?.id_proveedor)
+);
 const monedaInvoice = computed(() => {
   const acronimo = egreso.value?.detalle?.[0]?.acronym ?? "";
-  const moneda = (appStore.itemsCoinsList as (MonedaItem & { name?: string })[]).find((c) => c.acronym === acronimo);
+  const moneda = (
+    appStore.itemsCoinsList as (MonedaItem & { name?: string })[]
+  ).find((c) => c.acronym === acronimo);
   return [acronimo, moneda?.name].filter(Boolean).join(" - ") || "—";
 });
 // Total Operaciones del proveedor en la moneda de sus conceptos (PEN: monto de la cuenta del banco, no
 // el equivalente en USD): tope de las facturas / proformas que se cargan
-const totalOpMonedaEgreso = computed(() =>
-  Math.round((egreso.value?.detalle ?? []).reduce((suma, d) => suma + montoOpMoneda(d), 0) * 100) / 100);
+const totalOpMonedaEgreso = computed(
+  () =>
+    Math.round(
+      (egreso.value?.detalle ?? []).reduce(
+        (suma, d) => suma + montoOpMoneda(d),
+        0
+      ) * 100
+    ) / 100
+);
 // "USD 220.00": totales del proveedor (Pricing / Operaciones) en el modal Cargar documento.
 // Operaciones en la moneda del concepto (PEN: el monto de la cuenta del banco); Pricing siempre en USD
 const montosInvoice = computed(() => {
   const detalle = egreso.value?.detalle ?? [];
   const moneda = detalle[0]?.acronym ?? "";
   return {
-    pricing: montoConMoneda(egreso.value?.total_total_pr, monedaPricing(moneda)),
+    pricing: montoConMoneda(
+      egreso.value?.total_total_pr,
+      monedaPricing(moneda)
+    ),
     operaciones: montoConMoneda(totalOpMonedaEgreso.value, moneda),
   };
 });
@@ -301,7 +334,9 @@ let id_tipotransaccion: number | string | undefined;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 let itemsInvoice: unknown;
 let paymentsProvider: EgresoProveedor | undefined;
-const masterEgresos = computed(() => componentProps.master_egresos as unknown as EgresoProveedor[]);
+const masterEgresos = computed(
+  () => componentProps.master_egresos as unknown as EgresoProveedor[]
+);
 const ingreso_pr = undefined as unknown as number;
 const ingreso_op = undefined as unknown as number;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -322,7 +357,8 @@ const listHouses = computed(() => {
   // el combo necesita un house por orden, sin repetir item-value.
   const unicos = new Map<unknown, ControlGastoHouse>();
   for (const house of controlGastosStore.master_houses) {
-    if (house.id_orders && !unicos.has(house.id_orders)) unicos.set(house.id_orders, house);
+    if (house.id_orders && !unicos.has(house.id_orders))
+      unicos.set(house.id_orders, house);
   }
   return [
     {
@@ -335,8 +371,7 @@ const listHouses = computed(() => {
 const nombreCodigoPago = computed(() => {
   const shipment =
     (controlGastosStore.listControlGastos[0] &&
-      controlGastosStore.listControlGastos[0]
-        .master_shipment) ||
+      controlGastosStore.listControlGastos[0].master_shipment) ||
     "";
   let codigoPago = "";
   switch (shipment) {
@@ -415,7 +450,9 @@ async function functionMoverCostos() {
     await mastersStore.moverCostos(data);
     loading.value = false;
     dialogCambiarExp.value = false;
-    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    await controlGastosStore.getListControlGastosMaster(
+      route.params.id as string
+    );
   }
 }
 function clienteKey(egreso: EgresoProveedor, grupo: GrupoCliente) {
@@ -438,7 +475,10 @@ function groupDetallePorCliente(detalle: EgresoDetalle[]) {
     return [];
   }
 
-  const gruposMap = new Map<string, GrupoCliente & { items: EgresoDetalle[] }>();
+  const gruposMap = new Map<
+    string,
+    GrupoCliente & { items: EgresoDetalle[] }
+  >();
 
   const masterHouses = controlGastosStore.master_houses || [];
 
@@ -453,7 +493,7 @@ function groupDetallePorCliente(detalle: EgresoDetalle[]) {
     // intentamos obtenerlo desde master_houses.
     if (!consigner && id_house !== null && id_house !== undefined) {
       const house = masterHouses.find(
-        (h) => h.id_house == id_house || h.id == id_house,
+        (h) => h.id_house == id_house || h.id == id_house
       );
       if (house && house.consigner) {
         consigner = house.consigner as string;
@@ -504,8 +544,7 @@ function nuevoEngreso(item: Partial<EgresoProveedor> = {}) {
   egresos.value.monto_pr = 0;
   egresos.value.igv_pr = 0;
   egresos.value.total_pr = 0;
-  id_correlativo.value =
-    Object.keys(item).length > 0 ? item.id_correlativo : 1;
+  id_correlativo.value = Object.keys(item).length > 0 ? item.id_correlativo : 1;
   egresos.value.id_proveedor =
     Object.keys(item).length > 0 ? item.id_proveedor! : null;
   egresos.value.montoopcuentabanco = 0;
@@ -530,7 +569,7 @@ function obtenerMoneda() {
     id_coins.value !== null
   ) {
     const monedaSeleccionada = appStore.itemsCoinsList.find(
-      (v: MonedaItem) => v.id == id_coins.value,
+      (v: MonedaItem) => v.id == id_coins.value
     );
 
     if (monedaSeleccionada) {
@@ -553,43 +592,68 @@ function calcularE() {
   if (egresos.value.statusCalcula) {
     // pricing
     egresos.value.igv_pr = parseFloat(
-      String(((egresos.value.monto_pr as number) *
-        (enterprisesStore.impuesto.impuesto as number)) /
-        100),
+      String(
+        ((egresos.value.monto_pr as number) *
+          (enterprisesStore.impuesto.impuesto as number)) /
+          100
+      )
     ).toFixed(2);
     egresos.value.total_pr =
-      parseFloat(String(egresos.value.monto_pr)) + parseFloat(egresos.value.igv_pr);
+      parseFloat(String(egresos.value.monto_pr)) +
+      parseFloat(egresos.value.igv_pr);
     // op
     egresos.value.igvopcuentabanco = parseFloat(
-      String(((egresos.value.montoopcuentabanco as number) *
-        (enterprisesStore.impuesto.impuesto as number)) /
-        100),
+      String(
+        ((egresos.value.montoopcuentabanco as number) *
+          (enterprisesStore.impuesto.impuesto as number)) /
+          100
+      )
     ).toFixed(2);
     egresos.value.totalopcuentabanco = parseFloat(
-      String(parseFloat(String(egresos.value.montoopcuentabanco)) +
-        parseFloat(
-          String(((egresos.value.montoopcuentabanco as number) *
-            (enterprisesStore.impuesto.impuesto as number)) /
-            100),
-        )),
+      String(
+        parseFloat(String(egresos.value.montoopcuentabanco)) +
+          parseFloat(
+            String(
+              ((egresos.value.montoopcuentabanco as number) *
+                (enterprisesStore.impuesto.impuesto as number)) /
+                100
+            )
+          )
+      )
     ).toFixed(2);
     egresos.value.monto_op = parseFloat(
-      String((egresos.value.montoopcuentabanco as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.montoopcuentabanco as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(4);
     egresos.value.montoopview = parseFloat(
-      String((egresos.value.montoopcuentabanco as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.montoopcuentabanco as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(2);
     egresos.value.igv_op = parseFloat(
-      String((egresos.value.igvopcuentabanco as unknown as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.igvopcuentabanco as unknown as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(4);
     egresos.value.total_op = parseFloat(
-      String(parseFloat(egresos.value.monto_op) + parseFloat(egresos.value.igv_op)),
+      String(
+        parseFloat(egresos.value.monto_op) + parseFloat(egresos.value.igv_op)
+      )
     ).toFixed(4);
     egresos.value.igvopview = parseFloat(
-      String((egresos.value.igvopcuentabanco as unknown as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.igvopcuentabanco as unknown as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(2);
     egresos.value.totalopview = parseFloat(
-      String(parseFloat(egresos.value.monto_op) + parseFloat(egresos.value.igv_op)),
+      String(
+        parseFloat(egresos.value.monto_op) + parseFloat(egresos.value.igv_op)
+      )
     ).toFixed(2);
   } else {
     // pr
@@ -599,23 +663,31 @@ function calcularE() {
     // op
     egresos.value.igvopcuentabanco = 0.0;
     egresos.value.totalopcuentabanco = parseFloat(
-      String(parseFloat(String(egresos.value.montoopcuentabanco))),
+      String(parseFloat(String(egresos.value.montoopcuentabanco)))
     ).toFixed(2);
     egresos.value.monto_op = parseFloat(
-      String((egresos.value.montoopcuentabanco as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.montoopcuentabanco as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(4);
     egresos.value.montoopview = parseFloat(
-      String((egresos.value.montoopcuentabanco as number) / (tipocambio.value as number)),
+      String(
+        (egresos.value.montoopcuentabanco as number) /
+          (tipocambio.value as number)
+      )
     ).toFixed(2);
     egresos.value.igv_op = parseFloat(
-      String(egresos.value.igvopcuentabanco / (tipocambio.value as number)),
+      String(egresos.value.igvopcuentabanco / (tipocambio.value as number))
     ).toFixed(4);
     egresos.value.igvopview = parseFloat(
-      String(egresos.value.igvopcuentabanco / (tipocambio.value as number)),
+      String(egresos.value.igvopcuentabanco / (tipocambio.value as number))
     ).toFixed(2);
-    egresos.value.total_op = parseFloat(String(parseFloat(egresos.value.monto_op)));
+    egresos.value.total_op = parseFloat(
+      String(parseFloat(egresos.value.monto_op))
+    );
     egresos.value.totalopview = parseFloat(
-      String(parseFloat(egresos.value.monto_op)),
+      String(parseFloat(egresos.value.monto_op))
     );
   }
 }
@@ -672,16 +744,16 @@ async function _setData() {
   const master = masterEgresos.value.find(
     (v) =>
       v.id_proveedor == egresos.value.id_proveedor &&
-      v.id_correlativo == id_correlativo.value,
+      v.id_correlativo == id_correlativo.value
   );
 
   if (!!master) {
     const moneda = appStore.itemsCoinsList.find(
-      (v: MonedaItem) => v.id == id_coins.value,
+      (v: MonedaItem) => v.id == id_coins.value
     );
 
     const exiteOtraMoneda = master.detalle.some(
-      (v) => v.acronym != moneda!.acronym,
+      (v) => v.acronym != moneda!.acronym
     );
     if (exiteOtraMoneda) {
       Swal.fire({
@@ -716,8 +788,19 @@ async function _setData() {
     tipocambio: tipocambio.value,
   };
 
-  if (warnIfRefused(await request({ method: "post", url: import.meta.env.VITE_URL_MAIN + "setEgresos", data }))) return;
-  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  if (
+    warnIfRefused(
+      await request({
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "setEgresos",
+        data,
+      })
+    )
+  )
+    return;
+  await controlGastosStore.getListControlGastosMaster(
+    route.params.id as string
+  );
   dialog.value = false;
   emit("recalcularProfit");
 }
@@ -730,9 +813,8 @@ async function _setInvoice(generarPdf = false) {
   });
 
   const data = {
-    id_house: controlGastosStore.master_houses.filter(
-      (v) => v.id_house,
-    )[0]!.id_house,
+    id_house: controlGastosStore.master_houses.filter((v) => v.id_house)[0]!
+      .id_house,
     id_proveedor: egreso.value.id_proveedor,
     id_path: filesStore.payPath,
     type_pago: radio.value,
@@ -756,7 +838,9 @@ async function _setInvoice(generarPdf = false) {
   const response = await request(config);
   if (warnIfRefused(response)) return;
   itemsInvoice = response.data;
-  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  await controlGastosStore.getListControlGastosMaster(
+    route.params.id as string
+  );
   dialogInvoice.value = false;
   if (generarPdf) {
     Swal.close();
@@ -840,7 +924,9 @@ async function InsertarActualizarPorcentajeProveedor() {
       cuotas: cuotas,
     };
     await controlGastosStore.guardarCuotasCgeTipoProveedor(data);
-    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    await controlGastosStore.getListControlGastosMaster(
+      route.params.id as string
+    );
     frmPorcentajeProveedor.value!.reset();
     loadingPorcentaje.value = false;
     dialogPorcentajeProveedor.value = false;
@@ -853,8 +939,7 @@ async function _getAccountsNumber() {
 
   const config = {
     method: "post",
-    url:
-      import.meta.env.VITE_URL_MAIN + "getAccountsNumber/" + proveedorId,
+    url: import.meta.env.VITE_URL_MAIN + "getAccountsNumber/" + proveedorId,
     headers: {
       "Content-Type": "application/json",
     },
@@ -863,8 +948,7 @@ async function _getAccountsNumber() {
 
   await axios(config)
     .then(function (response) {
-      appStore.itemsDataAccountsNumberList =
-        response.data.data || [];
+      appStore.itemsDataAccountsNumberList = response.data.data || [];
     })
     .catch(function (error) {
       console.error(error);
@@ -892,7 +976,8 @@ function _editEgreso(egreso: EgresoDetalle) {
 }
 async function _delEngreso(item: EgresoDetalle, egreso: EgresoProveedor) {
   const hasPayment = egreso.total_total_op > egreso.monto_pagar_op;
-  if (!hasPayment && can("listControlGastos", "ELIMINAR")) return continuarEliminar(item);
+  if (!hasPayment && can("listControlGastos", "ELIMINAR"))
+    return continuarEliminar(item);
   if (hasPayment) {
     const { isConfirmed } = await Swal.fire({
       width: "430px",
@@ -989,11 +1074,17 @@ async function _delEngreso(item: EgresoDetalle, egreso: EgresoProveedor) {
     });
     if (!isConfirmed) return;
   }
-  const admin = await askAdminCredentials("Para eliminar este gasto, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar este gasto, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.controlGastosEliminar
+  );
   if (!admin) return;
   continuarEliminar(item, admin);
 }
-function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }, admin?: AdminCredentials) {
+function continuarEliminar(
+  item: EgresoDetalle & { nombre_proveedor?: string },
+  admin?: AdminCredentials
+) {
   Swal.fire({
     icon: "question",
     title: "Advertencia",
@@ -1023,7 +1114,9 @@ function continuarEliminar(item: EgresoDetalle & { nombre_proveedor?: string }, 
               text: res.mensaje,
             });
             appStore.spiner = false;
-            await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+            await controlGastosStore.getListControlGastosMaster(
+              route.params.id as string
+            );
           } else {
             Swal.fire({
               icon: "warning",
@@ -1071,7 +1164,9 @@ async function _getSPaymentPro(egreso: EgresoProveedor | number | undefined) {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function listControlGasto() {
   appStore.spiner = true;
-  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  await controlGastosStore.getListControlGastosMaster(
+    route.params.id as string
+  );
   appStore.spiner = false;
 }
 function activarSeccion3() {
@@ -1095,12 +1190,12 @@ async function _editEgresos() {
   const master = masterEgresos.value.find(
     (v) =>
       v.id_proveedor == egresos.value.id_proveedor &&
-      v.id_correlativo == id_correlativo.value,
+      v.id_correlativo == id_correlativo.value
   );
 
   if (!!master) {
     const exiteOtraMoneda = master.detalle.some(
-      (v) => v.id_coins != egresos.value.id_coins,
+      (v) => v.id_coins != egresos.value.id_coins
     );
     if (exiteOtraMoneda) {
       Swal.fire({
@@ -1114,8 +1209,19 @@ async function _editEgresos() {
     }
   }
 
-  if (warnIfRefused(await request({ method: "post", url: import.meta.env.VITE_URL_MAIN + "editEgreso/" + egresos.value.id, data }))) return;
-  await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+  if (
+    warnIfRefused(
+      await request({
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "editEgreso/" + egresos.value.id,
+        data,
+      })
+    )
+  )
+    return;
+  await controlGastosStore.getListControlGastosMaster(
+    route.params.id as string
+  );
   dialog.value = false;
   emit("recalcularProfit");
 }
@@ -1123,7 +1229,7 @@ async function _editEgresos() {
 async function imprimirControl() {
   const master = controlGastosStore.listControlGastos[0];
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const data = {
     bultos: master!.master_volumen,
     peso: master!.master_peso,
@@ -1131,8 +1237,12 @@ async function imprimirControl() {
     puerto_destino: master!.master_port_end,
     tipo_embarque: master!.master_shipment,
     volumen: master!.master_volumen,
-    gananciapr: parseFloat(String(ingreso_pr - componentProps.egreso_pr)).toFixed(2),
-    gananciaop: parseFloat(String(ingreso_op - componentProps.egreso_op)).toFixed(2),
+    gananciapr: parseFloat(
+      String(ingreso_pr - componentProps.egreso_pr)
+    ).toFixed(2),
+    gananciaop: parseFloat(
+      String(ingreso_op - componentProps.egreso_op)
+    ).toFixed(2),
     exp: codigo_master.value,
     sentido: master!.master_modality,
     itemsTotalesProveedores: masterEgresos.value.map((element) => {
@@ -1150,25 +1260,25 @@ async function imprimirControl() {
           consigner: element.consigner,
           code_house: element.code_house,
           total_igv_op_ingresos: parseFloat(
-            String(element.total_igv_op_ingresos),
+            String(element.total_igv_op_ingresos)
           ).toFixed(2),
           total_igv_pr_ingresos: parseFloat(
-            String(element.total_igv_pr_ingresos),
+            String(element.total_igv_pr_ingresos)
           ).toFixed(2),
           total_monto_op_ingresos: parseFloat(
-            String(element.total_monto_op_ingresos),
+            String(element.total_monto_op_ingresos)
           ).toFixed(2),
           total_monto_pr_ingresos: parseFloat(
-            String(element.total_monto_pr_ingresos),
+            String(element.total_monto_pr_ingresos)
           ).toFixed(2),
           total_total_op_ingresos: parseFloat(
-            String(element.total_total_op_ingresos),
+            String(element.total_total_op_ingresos)
           ).toFixed(2),
           total_total_pr_ingresos: parseFloat(
-            String(element.total_total_pr_ingresos),
+            String(element.total_total_pr_ingresos)
           ).toFixed(2),
         };
-      },
+      }
     ),
   };
 }
@@ -1185,9 +1295,7 @@ function sendAdmin(id: number) {
     /* Read more about isConfirmed, isDenied below */
     if (result.isConfirmed) {
       const data = {
-        fecha_sol: new Date(
-          Date.now() - new Date().getTimezoneOffset() * 60000,
-        )
+        fecha_sol: new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
           .toISOString()
           .substr(0, 10),
         status: 2,
@@ -1208,7 +1316,9 @@ function sendAdmin(id: number) {
           title: "Solicitud enviada",
           text: response.mensaje,
         });
-        await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+        await controlGastosStore.getListControlGastosMaster(
+          route.params.id as string
+        );
         _getSPaymentPro(paymentsProvider);
         dataList.value = true;
       });
@@ -1252,7 +1362,9 @@ async function eliminar(id: number, avisar = true): Promise<boolean> {
         if (result.isConfirmed) {
           dialogPayment.value = false;
           appStore.spiner = true;
-          await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+          await controlGastosStore.getListControlGastosMaster(
+            route.params.id as string
+          );
           appStore.spiner = false;
         }
       });
@@ -1294,7 +1406,7 @@ async function uploadFile() {
     loadingFile = true;
     await filesStore._uploadFile(payfile.value);
     loadingFile = false;
-// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     filesStore.payPath
       ? (msgfile = "Archivo cargado")
       : (errfile = "Comuniquese con el admistrador");
@@ -1306,7 +1418,10 @@ async function uploadFile() {
 const abriendoFacturas = ref<string | null>(null);
 const claveFacturas = (e: EgresoProveedor, boton: "cargar" | "ver") =>
   `${boton}-${e.id_master}-${e.id_proveedor}-${e.id_correlativo ?? 0}`;
-async function openInvoice(egresoSeleccionado: EgresoProveedor, boton: "cargar" | "ver" = "cargar") {
+async function openInvoice(
+  egresoSeleccionado: EgresoProveedor,
+  boton: "cargar" | "ver" = "cargar"
+) {
   msgFile.value = null;
   loading.value = true;
   abriendoFacturas.value = claveFacturas(egresoSeleccionado, boton);
@@ -1358,7 +1473,7 @@ function openDoc(path: string) {
 }
 function isProveedorInternacional() {
   const val = masterusuariosStore.lstTipoTransaccion.some(
-    (v) => v.codigo == "02" && v.id == id_tipotransaccion,
+    (v) => v.codigo == "02" && v.id == id_tipotransaccion
   );
   return val;
 }
@@ -1434,7 +1549,8 @@ function getDeudaActual(data: Partial<EgresoProveedor> = {}) {
     return v.pagado ? suma + (parseFloat(String(v.total_op)) || 0) : suma;
   }, 0);
 
-  const deuda = parseFloat(String(total_total_op)) - parseFloat(abono.toFixed(2));
+  const deuda =
+    parseFloat(String(total_total_op)) - parseFloat(abono.toFixed(2));
 
   return deuda != 0 ? deuda.toFixed(2) : 0;
 }
@@ -1504,11 +1620,17 @@ function bloquearCopiarMontos(detalle: EgresoDetalle[]) {
 //   this.egreso = egreso;
 //   this.dialogCopiar = true;
 // },
-function abriModalCopiar(egresoSeleccionado: EgresoProveedor, bloquearCopiarMontos: boolean) {
-  if (egresoSeleccionado.detalle && egresoSeleccionado.detalle.some((v) => (v.total_op as number) > 0)) {
+function abriModalCopiar(
+  egresoSeleccionado: EgresoProveedor,
+  bloquearCopiarMontos: boolean
+) {
+  if (
+    egresoSeleccionado.detalle &&
+    egresoSeleccionado.detalle.some((v) => (v.total_op as number) > 0)
+  ) {
     // Nota: en JavaScript el método correcto es .filter() en lugar de .filtro()
     const montosConMontosMayoresACero = egresoSeleccionado.detalle.filter(
-      (v) => (v.total_op as number) > 0,
+      (v) => (v.total_op as number) > 0
     );
 
     // Generar las filas de la tabla dinámicamente con los datos obtenidos
@@ -1517,16 +1639,16 @@ function abriModalCopiar(egresoSeleccionado: EgresoProveedor, bloquearCopiarMont
         (item) => `
         <tr>
           <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">${
-        item.concepto || "COMISIÓN"
-      }</td>
-          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${(item.total_pr as number).toFixed(
-        2,
-      )}</td>
-          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${(item.total_op as number).toFixed(
-        2,
-      )}</td>
+            item.concepto || "COMISIÓN"
+          }</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; color: #212529;">$${(
+            item.total_pr as number
+          ).toFixed(2)}</td>
+          <td style="padding: 10px; border-bottom: 1px solid #dee2e6; font-weight: bold; color: #212529;">$${(
+            item.total_op as number
+          ).toFixed(2)}</td>
         </tr>
-      `,
+      `
       )
       .join("");
 
@@ -1598,61 +1720,75 @@ async function copiarMontos() {
       ...egreso.value,
       tipocambio: egreso.value.tipocambio || 1,
     });
-    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    await controlGastosStore.getListControlGastosMaster(
+      route.params.id as string
+    );
     dialogCopiar.value = false;
   } finally {
     loadingCopiarMonto.value = false;
   }
 }
 
-watch(egresos, (newValue) => {
-  if (newValue.id_proveedor && showSeccion2NuevoEgreso.value === false) {
-    showSeccion2NuevoEgreso.value = true;
-  }
+watch(
+  egresos,
+  (newValue) => {
+    if (newValue.id_proveedor && showSeccion2NuevoEgreso.value === false) {
+      showSeccion2NuevoEgreso.value = true;
+    }
 
-  if (
-    newValue.concepto &&
-    id_correlativo.value &&
-    (!newValue.statusCalcula || newValue.statusCalcula) &&
-    showSeccion3NuevoEgreso.value === false
-  ) {
-    showSeccion3NuevoEgreso.value = true;
-  }
+    if (
+      newValue.concepto &&
+      id_correlativo.value &&
+      (!newValue.statusCalcula || newValue.statusCalcula) &&
+      showSeccion3NuevoEgreso.value === false
+    ) {
+      showSeccion3NuevoEgreso.value = true;
+    }
 
-  if (newValue.montoopcuentabanco || newValue.monto_pr) {
-    isBotonGuardarEgresoDisabled.value = false;
-  } else {
-    isBotonGuardarEgresoDisabled.value = true;
-  }
-}, { deep: true });
-watch(id_correlativo, (newValue) => {
-  if (
-    newValue &&
-    egresos.value.concepto &&
-    egresos.value.statusCalcula &&
-    showSeccion3NuevoEgreso.value === false
-  ) {
-    showSeccion3NuevoEgreso.value = true;
-  }
-}, { immediate: true });
-watch(id_coins, (newValue) => {
-  if (
-    newValue &&
-    tipocambio.value &&
-    showSeccion4NuevoEgreso.value === false
-  ) {
-    showSeccion4NuevoEgreso.value = true;
-  }
-}, { immediate: true });
-watch(tipocambio, (newValue) => {
-  if (
-    newValue &&
-    id_coins.value &&
-    showSeccion4NuevoEgreso.value === false
-  ) {
-    showSeccion4NuevoEgreso.value = true;
-  }
-}, { immediate: true });
+    if (newValue.montoopcuentabanco || newValue.monto_pr) {
+      isBotonGuardarEgresoDisabled.value = false;
+    } else {
+      isBotonGuardarEgresoDisabled.value = true;
+    }
+  },
+  { deep: true }
+);
+watch(
+  id_correlativo,
+  (newValue) => {
+    if (
+      newValue &&
+      egresos.value.concepto &&
+      egresos.value.statusCalcula &&
+      showSeccion3NuevoEgreso.value === false
+    ) {
+      showSeccion3NuevoEgreso.value = true;
+    }
+  },
+  { immediate: true }
+);
+watch(
+  id_coins,
+  (newValue) => {
+    if (
+      newValue &&
+      tipocambio.value &&
+      showSeccion4NuevoEgreso.value === false
+    ) {
+      showSeccion4NuevoEgreso.value = true;
+    }
+  },
+  { immediate: true }
+);
+watch(
+  tipocambio,
+  (newValue) => {
+    if (newValue && id_coins.value && showSeccion4NuevoEgreso.value === false) {
+      showSeccion4NuevoEgreso.value = true;
+    }
+  },
+  { immediate: true }
+);
 
 // ------------------------- SOLICITUD DE PAGO (table_solitudpago) -------------------------
 const dialogSolicitudPagoNueva = ref(false);
@@ -1667,17 +1803,33 @@ const solicitudPagoForm = ref({
 const guardandoSolicitudPago = ref(false);
 // Una sola solicitud por master / proveedor / correlativo
 const solicitudesMasterStore = useSolicitudesMasterStore();
-const solicitudesExistentes = computed(() => new Map(
-  mastersEgresos.value.flatMap((id) =>
-    (solicitudesMasterStore.pagos[id] ?? []).map((x) => [claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo), x] as const)),
-));
+const solicitudesExistentes = computed(
+  () =>
+    new Map(
+      mastersEgresos.value.flatMap((id) =>
+        (solicitudesMasterStore.pagos[id] ?? []).map(
+          (x) =>
+            [
+              claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo),
+              x,
+            ] as const
+        )
+      )
+    )
+);
 // nuevo: primera vez | editar: rechazada | ver: enviada, solo lectura
 const modoSolicitudPago = ref<"nuevo" | "editar" | "ver">("nuevo");
 const solicitudPagoActual = ref<SolicitudPagoControl | null>(null);
-const claveSolicitud = (id_master: unknown, id_proveedor: unknown, id_correlativo: unknown) =>
+const claveSolicitud = (
+  id_master: unknown,
+  id_proveedor: unknown,
+  id_correlativo: unknown
+) =>
   `${Number(id_master)}-${Number(id_proveedor)}-${Number(id_correlativo || 0)}`;
 const solicitudPagoDe = (e: EgresoProveedor) =>
-  solicitudesExistentes.value.get(claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo));
+  solicitudesExistentes.value.get(
+    claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo)
+  );
 
 // Ojo de la tarjeta: la pedida desde el Reporte de Cuentas por Pagar no tiene PDF de pago de Control de Gastos,
 // se ve en el mismo modal del reporte (paso 2, solo lectura); la de Control de Gastos abre su PDF de pago
@@ -1685,8 +1837,12 @@ const dialogVerSolicitudPago = ref(false);
 const solicitudPagoReporteVer = ref<SolicitudPagoControl | null>(null);
 const entidadPagoReporteVer = computed(() =>
   solicitudPagoReporteVer.value
-    ? { id: Number(solicitudPagoReporteVer.value.id_proveedor), nombre: solicitudPagoReporteVer.value.proveedor }
-    : null);
+    ? {
+        id: Number(solicitudPagoReporteVer.value.id_proveedor),
+        nombre: solicitudPagoReporteVer.value.proveedor,
+      }
+    : null
+);
 function verSolicitudPagoReporte(sol: SolicitudPagoControl) {
   solicitudPagoReporteVer.value = sol;
   dialogVerSolicitudPago.value = true;
@@ -1718,20 +1874,39 @@ const pdfGeneradoEnModal = ref(false);
 const egresoSolicitudPago = computed(() => {
   const item = solicitudPagoProveedor.value;
   if (!item) return null;
-  const clave = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
-  return (masterEgresos.value || []).find((e) => claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === clave) ?? item;
+  const clave = claveSolicitud(
+    item.id_master,
+    item.id_proveedor,
+    item.id_correlativo
+  );
+  return (
+    (masterEgresos.value || []).find(
+      (e) =>
+        claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === clave
+    ) ?? item
+  );
 });
 // ya tiene PDF de pago (table_spaymentpro): habilita "Enviar solicitud" y el botón pasa a "Eliminar y Generar PDF"
-const tienePdfPago = computed(() => Number(egresoSolicitudPago.value?.solicitudes || 0) > 0);
+const tienePdfPago = computed(
+  () => Number(egresoSolicitudPago.value?.solicitudes || 0) > 0
+);
 
 // Cliente(s) del PDF: solo los de los costos que se pagan (sin repetir). Costo global del expediente
 // (sin house): todos los clientes del master.
 function clientesDeSolicitud(item: EgresoProveedor) {
   const houses = controlGastosStore.master_houses || [];
   const deCostos = item.detalle
-    .map((d) => d.consigner || houses.find((h) => d.id_house && (h.id_house == d.id_house || h.id == d.id_house))?.consigner)
+    .map(
+      (d) =>
+        d.consigner ||
+        houses.find(
+          (h) => d.id_house && (h.id_house == d.id_house || h.id == d.id_house)
+        )?.consigner
+    )
     .filter((c): c is string => !!c);
-  const clientes = deCostos.length ? deCostos : houses.map((h) => h.consigner as string);
+  const clientes = deCostos.length
+    ? deCostos
+    : houses.map((h) => h.consigner as string);
   return [...new Set(clientes.filter(Boolean))].join(", ");
 }
 // Los datos del PDF salen del formulario de Enviar a Administración (tipo de pago por código, no por id)
@@ -1739,9 +1914,14 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
   const f = solicitudPagoForm.value;
   const esCodigo = tipoPagoSeleccionado.value === "02";
   const master = controlGastosStore.listControlGastos[0]!;
-  const cuenta = (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]).find((c) => c.id === f.id_cuenta);
+  const cuenta = (
+    appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[]
+  ).find((c) => c.id === f.id_cuenta);
   // en la moneda del concepto (PEN: el monto de la cuenta del banco, no el equivalente en USD)
-  const totalPagar = item.detalle.reduce((suma, d) => suma + montoOpMoneda(d), 0);
+  const totalPagar = item.detalle.reduce(
+    (suma, d) => suma + montoOpMoneda(d),
+    0
+  );
   return {
     nameProveedor: item.nombre_proveedor,
     nameConsignatario: clientesDeSolicitud(item),
@@ -1752,9 +1932,13 @@ function datosPdfPago(item: EgresoProveedor, number: number | null) {
       nameProveedor: e.nombre_proveedor,
       total_pr: Number(e.total_total_pr || 0).toFixed(2),
       // en la moneda de los conceptos del proveedor (igual que "Ver solicitud de pago")
-      total_op: e.detalle.reduce((suma, d) => suma + montoOpMoneda(d), 0).toFixed(2),
+      total_op: e.detalle
+        .reduce((suma, d) => suma + montoOpMoneda(d), 0)
+        .toFixed(2),
       pagado: e.detalle.length > 0 && e.detalle.every((d) => !!d.pagado),
-      actual: claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) === claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo),
+      actual:
+        claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo) ===
+        claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo),
     })),
     comentarios: f.comentario,
     tipo_pago: esCodigo ? "CODIGO" : "BANCO",
@@ -1829,7 +2013,12 @@ async function validarGenerarPdfPago(item: EgresoProveedor) {
 // Paso 2: vista previa con el mismo HTML del PDF (pdf-solicitud.ejs)
 async function abrirPreviewPdfPago() {
   const item = egresoSolicitudPago.value;
-  if (!item || !solicitudPagoValida.value || !(await validarGenerarPdfPago(item))) return;
+  if (
+    !item ||
+    !solicitudPagoValida.value ||
+    !(await validarGenerarPdfPago(item))
+  )
+    return;
   cargandoPreviewPdfPago.value = true;
   const response = await request<{ html: string }>({
     method: "post",
@@ -1841,7 +2030,7 @@ async function abrirPreviewPdfPago() {
   // en la vista previa no va la ola azul del pie de página (el PDF generado sí la lleva)
   previewPdfPago.value = (response.data[0]?.html ?? "").replace(
     "</head>",
-    "<style>.ola { display: none !important; } body { padding-bottom: 0.6cm !important; }</style></head>",
+    "<style>.ola { display: none !important; } body { padding-bottom: 0.6cm !important; }</style></head>"
   );
   pasoSolicitudPago.value = "preview";
 }
@@ -1877,10 +2066,16 @@ async function generarPdfPago(enviar: boolean) {
     if (warnIfRefused(creado)) return;
     const datos = datosPdfPago(item, creado.data[0]!.number);
     const pdfGenerado = await downloadPdf(
-      { method: "post", url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud", data: datos },
-      `SOLICITUD_EXPEDIENTE_${datos.expediente}_${datos.number}.pdf`,
+      {
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "pdfSolicitud",
+        data: datos,
+      },
+      `SOLICITUD_EXPEDIENTE_${datos.expediente}_${datos.number}.pdf`
     );
-    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    await controlGastosStore.getListControlGastosMaster(
+      route.params.id as string
+    );
     pasoSolicitudPago.value = "datos";
     if (!pdfGenerado) return;
     pdfGeneradoEnModal.value = true;
@@ -1902,7 +2097,8 @@ async function generarPdfPago(enviar: boolean) {
 }
 
 // PDF de pago guardado sin solicitud enviada: "Listo para Enviar a Administración"
-const listoParaEnviar = (e: EgresoProveedor) => !solicitudPagoDe(e) && Number(e.solicitudes || 0) > 0;
+const listoParaEnviar = (e: EgresoProveedor) =>
+  !solicitudPagoDe(e) && Number(e.solicitudes || 0) > 0;
 
 // Lo que se envía a Administración (y se guarda con el PDF para enviarlo después)
 function datosFormularioSolicitud() {
@@ -1920,11 +2116,17 @@ const egresoFacturas = computed(() => {
   const e = egreso.value as EgresoProveedor | undefined;
   if (!e?.id_proveedor) return null;
   const clave = claveSolicitud(e.id_master, e.id_proveedor, e.id_correlativo);
-  return (masterEgresos.value || []).find((x) => claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo) === clave) ?? e;
+  return (
+    (masterEgresos.value || []).find(
+      (x) =>
+        claveSolicitud(x.id_master, x.id_proveedor, x.id_correlativo) === clave
+    ) ?? e
+  );
 });
 const accionFacturasSolicitud = computed(() => {
   const e = egresoFacturas.value;
-  if (!e || !can("listControlGastos", "NUEVO") || solicitudPagoDe(e)) return null;
+  if (!e || !can("listControlGastos", "NUEVO") || solicitudPagoDe(e))
+    return null;
   return listoParaEnviar(e)
     ? { texto: "ENVIAR A ADMINISTRACIÓN", icono: "mdi-send-outline" }
     : { texto: "GENERAR PDF DE PAGO", icono: "mdi-file-pdf-box" };
@@ -1948,7 +2150,11 @@ async function eliminarPdfGuardado(item: EgresoProveedor) {
     confirmButtonColor: "#d33",
   });
   if (!isConfirmed) return;
-  eliminandoPdfGuardado.value = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
+  eliminandoPdfGuardado.value = claveSolicitud(
+    item.id_master,
+    item.id_proveedor,
+    item.id_correlativo
+  );
   try {
     await _getSPaymentPro(item);
     let eliminados = 0;
@@ -1957,7 +2163,9 @@ async function eliminarPdfGuardado(item: EgresoProveedor) {
       eliminados++;
     }
     if (eliminados) notifySuccess("Solicitud guardada eliminada.");
-    await controlGastosStore.getListControlGastosMaster(route.params.id as string);
+    await controlGastosStore.getListControlGastosMaster(
+      route.params.id as string
+    );
   } finally {
     eliminandoPdfGuardado.value = null;
   }
@@ -1968,12 +2176,20 @@ const abriendoPdfPago = ref<string | null>(null);
 async function verPdfPago(item: EgresoProveedor) {
   // la pestaña se abre antes de la petición para que el navegador no la bloquee
   const ventana = window.open("", "_blank");
-  abriendoPdfPago.value = claveSolicitud(item.id_master, item.id_proveedor, item.id_correlativo);
+  abriendoPdfPago.value = claveSolicitud(
+    item.id_master,
+    item.id_proveedor,
+    item.id_correlativo
+  );
   try {
     const { data } = await axios<Blob>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "pdfSolicitudVer",
-      params: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+      params: {
+        id_master: item.id_master,
+        id_proveedor: item.id_proveedor,
+        id_correlativo: item.id_correlativo,
+      },
       responseType: "blob",
     });
     if (data.type.includes("pdf")) {
@@ -1984,8 +2200,14 @@ async function verPdfPago(item: EgresoProveedor) {
       return;
     }
     ventana?.close();
-    const respuesta = JSON.parse(await data.text()) as { mensaje?: string; tipomensaje?: string };
-    Swal.fire({ icon: respuesta.tipomensaje === "TMSGERR" ? "error" : "info", text: respuesta.mensaje || CONNECTION_ERROR_MESSAGE });
+    const respuesta = JSON.parse(await data.text()) as {
+      mensaje?: string;
+      tipomensaje?: string;
+    };
+    Swal.fire({
+      icon: respuesta.tipomensaje === "TMSGERR" ? "error" : "info",
+      text: respuesta.mensaje || CONNECTION_ERROR_MESSAGE,
+    });
   } catch {
     ventana?.close();
     Swal.fire({ icon: "error", text: CONNECTION_ERROR_MESSAGE });
@@ -1996,100 +2218,181 @@ async function verPdfPago(item: EgresoProveedor) {
 
 // Las solicitudes del expediente salen del store compartido con "Solicitudes de Pagos Administración":
 // una sola llamada para las dos secciones (antes eran tres al entrar)
-const mastersEgresos = computed(() =>
-  [...new Set((masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean))]);
+const mastersEgresos = computed(() => [
+  ...new Set(
+    (masterEgresos.value || []).map((e) => Number(e.id_master)).filter(Boolean)
+  ),
+]);
 async function cargarSolicitudesExistentes(soloSiFalta = false) {
-  await Promise.all(mastersEgresos.value.map((id) =>
-    (soloSiFalta ? solicitudesMasterStore.asegurarPagos(id) : solicitudesMasterStore.cargarPagos(id)).then(() => undefined)));
+  await Promise.all(
+    mastersEgresos.value.map((id) =>
+      (soloSiFalta
+        ? solicitudesMasterStore.asegurarPagos(id)
+        : solicitudesMasterStore.cargarPagos(id)
+      ).then(() => undefined)
+    )
+  );
 }
 
 const proveedorSolicitud = computed(() =>
-  partesProveedor(solicitudPagoProveedor.value?.nombre_proveedor ?? "", solicitudPagoProveedor.value?.id_proveedor));
+  partesProveedor(
+    solicitudPagoProveedor.value?.nombre_proveedor ?? "",
+    solicitudPagoProveedor.value?.id_proveedor
+  )
+);
 const tipoPagoSeleccionado = computed(
-  () => tiposPagoSolicitud.value.find((t) => t.id === solicitudPagoForm.value.id_tipopago)?.codigo,
+  () =>
+    tiposPagoSolicitud.value.find(
+      (t) => t.id === solicitudPagoForm.value.id_tipopago
+    )?.codigo
 );
 const conceptosSolicitudPago = computed(() =>
-  (solicitudPagoProveedor.value?.detalle || []).filter((d) => !d.pagado),
+  (solicitudPagoProveedor.value?.detalle || []).filter((d) => !d.pagado)
 );
 // La cuenta de salida (empresa) se elige al cargar el soporte de pago, no al solicitar
-const soloLecturaSolicitudPago = computed(() => modoSolicitudPago.value === "ver");
+const soloLecturaSolicitudPago = computed(
+  () => modoSolicitudPago.value === "ver"
+);
 // campos bloqueados: modo ver o PDF ya generado en este modal
-const formularioSolicitudBloqueado = computed(() => soloLecturaSolicitudPago.value || pdfGeneradoEnModal.value);
+const formularioSolicitudBloqueado = computed(
+  () => soloLecturaSolicitudPago.value || pdfGeneradoEnModal.value
+);
 // En "ver" se muestran los conceptos guardados en la solicitud
 const conceptosModalSolicitudPago = computed(() =>
   modoSolicitudPago.value === "ver" && solicitudPagoActual.value
     ? solicitudPagoActual.value.conceptos.map((c) => ({
-      id: c.id_egreso,
-      concepto: c.concepto,
-      acronym: solicitudPagoActual.value?.moneda ?? "",
-      total_op: conceptoEnMoneda(c, solicitudPagoActual.value?.moneda).total,
-    }))
-    : conceptosSolicitudPago.value.map((c) => ({ id: c.id, concepto: c.concepto, acronym: c.acronym, total_op: montoOpMoneda(c) })),
+        id: c.id_egreso,
+        concepto: c.concepto,
+        acronym: solicitudPagoActual.value?.moneda ?? "",
+        total_op: conceptoEnMoneda(c, solicitudPagoActual.value?.moneda).total,
+      }))
+    : conceptosSolicitudPago.value.map((c) => ({
+        id: c.id,
+        concepto: c.concepto,
+        acronym: c.acronym,
+        total_op: montoOpMoneda(c),
+      }))
 );
 const totalModalSolicitudPago = computed(() =>
   modoSolicitudPago.value === "ver" && solicitudPagoActual.value
     ? Number(solicitudPagoActual.value.monto || 0)
-    : totalSolicitudPago.value,
+    : totalSolicitudPago.value
 );
 // la moneda siempre va a la derecha del monto: "329.63 USD"
 const monedaModalSolicitudPago = computed(
-  () => conceptosModalSolicitudPago.value.find((c) => c.acronym)?.acronym || solicitudPagoActual.value?.moneda || "",
+  () =>
+    conceptosModalSolicitudPago.value.find((c) => c.acronym)?.acronym ||
+    solicitudPagoActual.value?.moneda ||
+    ""
 );
 const totalSolicitudPago = computed(() =>
-  conceptosSolicitudPago.value.reduce((suma, d) => suma + montoOpMoneda(d), 0),
+  conceptosSolicitudPago.value.reduce((suma, d) => suma + montoOpMoneda(d), 0)
 );
 // moneda de los conceptos (Op) del correlativo del proveedor: solo cuentas del proveedor en esa moneda
 const monedaSolicitudPago = computed(() => {
   const detalle = solicitudPagoProveedor.value?.detalle ?? [];
-  const egreso = detalle.find((d) => d.id_coins && Number(d.total_op || 0) !== 0) ?? detalle.find((d) => d.id_coins);
+  const egreso =
+    detalle.find((d) => d.id_coins && Number(d.total_op || 0) !== 0) ??
+    detalle.find((d) => d.id_coins);
   return egreso?.id_coins ? Number(egreso.id_coins) : null;
 });
 const cuentasSolicitudPago = computed(() =>
   (appStore.itemsDataAccountsNumberList as CuentaBancariaProveedor[])
-    .filter((c) => !monedaSolicitudPago.value || !c.id_coins || Number(c.id_coins) === monedaSolicitudPago.value)
+    .filter(
+      (c) =>
+        !monedaSolicitudPago.value ||
+        !c.id_coins ||
+        Number(c.id_coins) === monedaSolicitudPago.value
+    )
     .map((c) => ({
-    title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${c.accountnumber ?? ""}${c.beneficiario ? " · " + c.beneficiario : ""}`,
-    value: c.id,
-    // búsqueda por sigla (BG), nombre del banco (Banco General), moneda, número o beneficiario
-    buscar: [c.namebanks, c.namebanksfull, c.namecoins, c.accountnumber, c.beneficiario].filter(Boolean).join(" "),
-  })),
+      title: `${c.namebanks ?? ""} · ${c.namecoins ?? ""} · ${
+        c.accountnumber ?? ""
+      }${c.beneficiario ? " · " + c.beneficiario : ""}`,
+      value: c.id,
+      // búsqueda por sigla (BG), nombre del banco (Banco General), moneda, número o beneficiario
+      buscar: [
+        c.namebanks,
+        c.namebanksfull,
+        c.namecoins,
+        c.accountnumber,
+        c.beneficiario,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    }))
 );
 // Enviar a Administración (nuevo): pasos con el actual resaltado
 const pasosGuiaSolicitud = computed(() => {
   const datosListos = solicitudPagoValida.value;
   return [
-    { titulo: "Llena los datos", detalle: "Tipo de pago y cuenta o código", estado: datosListos ? "hecho" : "actual" },
-    { titulo: "Generar PDF", detalle: "Revisa la vista previa", estado: datosListos ? "actual" : "pendiente" },
-    { titulo: "Guarda o envía", detalle: "Guardar solicitud o Guardar y enviar", estado: "pendiente" },
+    {
+      titulo: "Llena los datos",
+      detalle: "Tipo de pago y cuenta o código",
+      estado: datosListos ? "hecho" : "actual",
+    },
+    {
+      titulo: "Generar PDF",
+      detalle: "Revisa la vista previa",
+      estado: datosListos ? "actual" : "pendiente",
+    },
+    {
+      titulo: "Guarda o envía",
+      detalle: "Guardar solicitud o Guardar y enviar",
+      estado: "pendiente",
+    },
   ] as const;
 });
 const solicitudPagoValida = computed(() => {
   const f = solicitudPagoForm.value;
   if (!f.id_tipopago) return false;
   // Transferencia: cuenta del proveedor | Código de pago: solo el código
-  return tipoPagoSeleccionado.value === "02" ? !!f.codigopago.trim() : !!f.id_cuenta;
+  return tipoPagoSeleccionado.value === "02"
+    ? !!f.codigopago.trim()
+    : !!f.id_cuenta;
 });
 
 async function cargarTiposPagoSolicitud() {
   if (tiposPagoSolicitud.value.length) return;
   const response = await request<TipoPagoSolicitud>({
     method: "get",
-    url: import.meta.env.VITE_URL_MAIN + "cargar_master_detalle_tipo_pago_solicitud",
+    url:
+      import.meta.env.VITE_URL_MAIN +
+      "cargar_master_detalle_tipo_pago_solicitud",
   });
   tiposPagoSolicitud.value = response.estadoflag ? response.data : [];
 }
 
 // Con aprobaciones (Administración o Gerencia) o soporte de pago, editar o eliminar pide la clave de un administrador
-const tieneAprobaciones = (s: SolicitudPagoControl) => tieneAprobacionesSolicitud(s);
+const tieneAprobaciones = (s: SolicitudPagoControl) =>
+  tieneAprobacionesSolicitud(s);
 // Con salida registrada en Bancos ya no se edita ni elimina
 const tieneSalidaBancos = (s: SolicitudPagoControl) => !!s.id_pagoegreso;
 // Tarjeta "Solicitar a Administración": mismo estándar que Ingresos
 // (Registrado en Bancos / Editado en Bancos cuando ya tiene la salida)
 function estadoTarjetaPago(s: SolicitudPagoControl) {
-  if (s.codigo_estado === "RECHAZADA") return { titulo: "Solicitud Rechazada", icono: "mdi-email-remove-outline", clase: "rechazada" };
-  if (s.id_pagoegreso && s.editadobancoflag) return { titulo: "Editado en Bancos", icono: "mdi-pencil-circle-outline", clase: "editada" };
-  if (s.id_pagoegreso) return { titulo: "Registrado en Bancos", icono: "mdi-bank-check", clase: "registrada" };
-  return { titulo: "Solicitado a Administración", icono: "mdi-email-check-outline", clase: "enviada" };
+  if (s.codigo_estado === "RECHAZADA")
+    return {
+      titulo: "Solicitud Rechazada",
+      icono: "mdi-email-remove-outline",
+      clase: "rechazada",
+    };
+  if (s.id_pagoegreso && s.editadobancoflag)
+    return {
+      titulo: "Editado en Bancos",
+      icono: "mdi-pencil-circle-outline",
+      clase: "editada",
+    };
+  if (s.id_pagoegreso)
+    return {
+      titulo: "Registrado en Bancos",
+      icono: "mdi-bank-check",
+      clase: "registrada",
+    };
+  return {
+    titulo: "Solicitado a Administración",
+    icono: "mdi-email-check-outline",
+    clase: "enviada",
+  };
 }
 const adminEdicionSolicitud = ref<AdminCredentials | null>(null);
 // Pagada en Bancos (salida registrada): no se edita ni elimina hasta eliminar ese movimiento
@@ -2099,7 +2402,9 @@ function avisarSalidaBancos(item: EgresoProveedor) {
   Swal.fire({
     icon: "warning",
     title: "Ya está pagada en Bancos",
-    html: `La solicitud de pago N° <b>${s.id}</b> ya tiene la salida${s.numerooperacion_pago ? ` N° <b>${s.numerooperacion_pago}</b>` : ""} en Bancos.<br><br>
+    html: `La solicitud de pago N° <b>${s.id}</b> ya tiene la salida${
+      s.numerooperacion_pago ? ` N° <b>${s.numerooperacion_pago}</b>` : ""
+    } en Bancos.<br><br>
       Elimine primero ese movimiento en <b>Bancos &gt; Salidas</b>.`,
   });
   return true;
@@ -2112,14 +2417,23 @@ async function clientePagoDe(item: EgresoProveedor): Promise<string | null> {
     const respuesta = await request<{ cliente_pago: string | null }>({
       method: "get",
       url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_cliente_pago",
-      params: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+      params: {
+        id_master: item.id_master,
+        id_proveedor: item.id_proveedor,
+        id_correlativo: item.id_correlativo,
+      },
     });
-    return respuesta.estadoflag ? respuesta.data?.[0]?.cliente_pago ?? null : null;
+    return respuesta.estadoflag
+      ? respuesta.data?.[0]?.cliente_pago ?? null
+      : null;
   } catch {
     return null;
   }
 }
-const confirmarPagoProveedor = ref<{ estado: "NO" | "PARCIAL"; resolver: (ok: boolean) => void } | null>(null);
+const confirmarPagoProveedor = ref<{
+  estado: "NO" | "PARCIAL";
+  resolver: (ok: boolean) => void;
+} | null>(null);
 function confirmarPagoSinCobro(estado: "NO" | "PARCIAL") {
   return new Promise<boolean>((resolver) => {
     confirmarPagoProveedor.value = { estado, resolver };
@@ -2143,11 +2457,20 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
     verSolicitudPagoReporte(existente);
     return;
   }
-  const modo = !existente ? "nuevo" : (editar || existente.codigo_estado === "RECHAZADA") && !tieneSalidaBancos(existente) ? "editar" : "ver";
+  const modo = !existente
+    ? "nuevo"
+    : (editar || existente.codigo_estado === "RECHAZADA") &&
+      !tieneSalidaBancos(existente)
+    ? "editar"
+    : "ver";
   // antes de solicitar el pago: si el cliente no nos pagó (o pagó una parte), confirmar
   if (modo === "nuevo") {
     const estado = await clientePagoDe(item);
-    if ((estado === "NO" || estado === "PARCIAL") && !(await confirmarPagoSinCobro(estado))) return;
+    if (
+      (estado === "NO" || estado === "PARCIAL") &&
+      !(await confirmarPagoSinCobro(estado))
+    )
+      return;
     // "Pago a Proveedor" de una aprobación: se revisan los datos del instructivo y se solicita directo
     if (pagosInstructivoDe(item).length) {
       await abrirSolicitudInstructivo(item);
@@ -2156,7 +2479,10 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   }
   adminEdicionSolicitud.value = null;
   if (modo === "editar" && existente && tieneAprobaciones(existente)) {
-    const admin = await askAdminCredentials(mensajeClaveSolicitud(existente, "editarla"));
+    const admin = await askAdminCredentials(
+      mensajeClaveSolicitud(existente, "editarla"),
+      PERMISOS_AUTORIZA.solicitudPagoEditar
+    );
     if (!admin) return;
     adminEdicionSolicitud.value = admin;
   }
@@ -2168,16 +2494,27 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   solicitudPagoProveedor.value = item;
   proveedorId = item.id_proveedor;
   id_tipotransaccion =
-    (appStore.itemsProveedorList.find((v: ProveedorItem) => v.id == item.id_proveedor) || {})
-      .id_tipotransaccion || "";
-  solicitudPagoForm.value = { id_tipopago: null, id_cuenta: null, codigopago: "", comentario: "" };
+    (
+      appStore.itemsProveedorList.find(
+        (v: ProveedorItem) => v.id == item.id_proveedor
+      ) || {}
+    ).id_tipotransaccion || "";
+  solicitudPagoForm.value = {
+    id_tipopago: null,
+    id_cuenta: null,
+    codigopago: "",
+    comentario: "",
+  };
   appStore.itemsDataAccountsNumberList = [];
   dialogSolicitudPagoNueva.value = true;
   await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
   if (existente) {
     solicitudPagoForm.value = {
       // los ids bigint llegan como texto: se toma el id tal cual viene en el listado de tipos
-      id_tipopago: tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(existente.id_tipopago))?.id ?? null,
+      id_tipopago:
+        tiposPagoSolicitud.value.find(
+          (t) => Number(t.id) === Number(existente.id_tipopago)
+        )?.id ?? null,
       id_cuenta: existente.id_cuenta ?? null,
       codigopago: existente.codigopago ?? "",
       comentario: existente.comentario ?? "",
@@ -2189,8 +2526,15 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
   // Con el lápiz (editar) el formulario queda libre para "Eliminar y Generar PDF".
   if (!tienePdfPago.value) return;
   await _getSPaymentPro(item);
-  const guardado = itemsSPayment.value.find((x) => x.id)?.solicitud_datos as Partial<typeof solicitudPagoForm.value> | null | undefined;
-  const tipo = guardado && tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(guardado.id_tipopago));
+  const guardado = itemsSPayment.value.find((x) => x.id)?.solicitud_datos as
+    | Partial<typeof solicitudPagoForm.value>
+    | null
+    | undefined;
+  const tipo =
+    guardado &&
+    tiposPagoSolicitud.value.find(
+      (t) => Number(t.id) === Number(guardado.id_tipopago)
+    );
   if (!guardado || !tipo) return;
   solicitudPagoForm.value = {
     id_tipopago: tipo.id,
@@ -2204,43 +2548,62 @@ async function abrirSolicitudPagoNueva(item: EgresoProveedor, editar = false) {
 // confirmar=false: viene de "Generar PDF" en la vista previa (ya se confirmó ahí)
 async function registrarSolicitudPago(confirmar = true) {
   const item = solicitudPagoProveedor.value;
-  if (!item || !solicitudPagoValida.value || modoSolicitudPago.value === "ver") return;
-  const editando = modoSolicitudPago.value === "editar" && !!solicitudPagoActual.value;
-  const { isConfirmed } = !confirmar ? { isConfirmed: true } : await Swal.fire({
-    icon: "question",
-    html: editando
-      ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?` +
-        (tieneAprobaciones(solicitudPagoActual.value!) ? "<br><br>Las aprobaciones y el soporte de pago se reiniciarán." : "")
-      : `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
-    showCancelButton: true,
-    confirmButtonText: "Sí, enviar",
-    cancelButtonText: "Cancelar",
-    confirmButtonColor: "#1e5bd8",
-  });
+  if (!item || !solicitudPagoValida.value || modoSolicitudPago.value === "ver")
+    return;
+  const editando =
+    modoSolicitudPago.value === "editar" && !!solicitudPagoActual.value;
+  const { isConfirmed } = !confirmar
+    ? { isConfirmed: true }
+    : await Swal.fire({
+        icon: "question",
+        html: editando
+          ? `¿Guardar los cambios y volver a enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?` +
+            (tieneAprobaciones(solicitudPagoActual.value!)
+              ? "<br><br>Las aprobaciones y el soporte de pago se reiniciarán."
+              : "")
+          : `¿Enviar la solicitud de pago de <b>${item.nombre_proveedor}</b>?`,
+        showCancelButton: true,
+        confirmButtonText: "Sí, enviar",
+        cancelButtonText: "Cancelar",
+        confirmButtonColor: "#1e5bd8",
+      });
   if (!isConfirmed) return;
 
   guardandoSolicitudPago.value = true;
   const datos = datosFormularioSolicitud();
   const response = editando
     ? await request({
-      method: "put",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_editar/" + solicitudPagoActual.value!.id,
-      data: { ...datos, ...withAuthorization(adminEdicionSolicitud.value) },
-    })
+        method: "put",
+        url:
+          import.meta.env.VITE_URL_MAIN +
+          "solicitud_pago_editar/" +
+          solicitudPagoActual.value!.id,
+        data: { ...datos, ...withAuthorization(adminEdicionSolicitud.value) },
+      })
     : await request({
-      method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_insertar",
-      data: { ...datos, id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
-    });
+        method: "post",
+        url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_insertar",
+        data: {
+          ...datos,
+          id_master: item.id_master,
+          id_proveedor: item.id_proveedor,
+          id_correlativo: item.id_correlativo,
+        },
+      });
   guardandoSolicitudPago.value = false;
   if (warnIfRefused(response)) return;
   // el monto se toma antes de cerrar el modal (conceptos de la solicitud)
-  const monto = montoConMoneda(totalModalSolicitudPago.value, monedaModalSolicitudPago.value);
+  const monto = montoConMoneda(
+    totalModalSolicitudPago.value,
+    monedaModalSolicitudPago.value
+  );
   dialogSolicitudPagoNueva.value = false;
   pdfGeneradoEnModal.value = false;
   // aviso final del flujo: proveedor y monto de la solicitud enviada
   avisoSolicitudEnviada({
-    titulo: editando ? "Solicitud reenviada a Administración" : "Solicitud enviada a Administración",
+    titulo: editando
+      ? "Solicitud reenviada a Administración"
+      : "Solicitud enviada a Administración",
     proveedor: item.nombre_proveedor ?? "",
     monto,
   });
@@ -2254,14 +2617,21 @@ function formatoFechaSolicitud(valor: string | null) {
   const [fecha = "", hora = ""] = valor.split(" ");
   const [anio, mes, dia] = fecha.split("-");
   if (!hora) return `${dia}/${mes}/${anio}`;
-  const [hh = 0, mm = "00"] = hora.split(":").map((v, i) => (i === 0 ? Number(v) : v)) as [number, string];
+  const [hh = 0, mm = "00"] = hora
+    .split(":")
+    .map((v, i) => (i === 0 ? Number(v) : v)) as [number, string];
   const h12 = hh % 12 || 12;
-  return `${dia}/${mes}/${anio} – ${String(h12).padStart(2, "0")}:${mm} ${hh < 12 ? "a. m." : "p. m."}`;
+  return `${dia}/${mes}/${anio} – ${String(h12).padStart(2, "0")}:${mm} ${
+    hh < 12 ? "a. m." : "p. m."
+  }`;
 }
 
 const eliminandoSolicitudPago = ref<number | null>(null);
 // continuar=true: viene de eliminar la factura; avisa con una notificación y sigue con la factura
-async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): Promise<boolean> {
+async function eliminarSolicitudPago(
+  item: EgresoProveedor,
+  continuar = false
+): Promise<boolean> {
   const existente = solicitudPagoDe(item);
   // la pedida desde el reporte solo se elimina ahí (Administración)
   if (avisarOrigenSolicitud(existente, "cg", "eliminar", "pago")) return false;
@@ -2270,20 +2640,29 @@ async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): 
   const previo = await quitarSoporteAntesDeEliminar(existente);
   if (!previo) return false;
   const solicitud = previo.solicitud;
-  if (!(await confirmarEliminarSolicitud(solicitud, partesProveedor(item.nombre_proveedor ?? "", item.id_proveedor).nombre))) {
+  if (
+    !(await confirmarEliminarSolicitud(
+      solicitud,
+      partesProveedor(item.nombre_proveedor ?? "", item.id_proveedor).nombre
+    ))
+  ) {
     if (previo.soporteEliminado) await cargarSolicitudesExistentes();
     return false;
   }
   // con aprobaciones se pide la clave de un administrador (la del soporte, si ya se dio, sirve)
   let admin = previo.admin;
   if (!admin && tieneAprobaciones(solicitud)) {
-    admin = await askAdminCredentials(mensajeClaveSolicitud(solicitud, "eliminarla"));
+    admin = await askAdminCredentials(
+      mensajeClaveSolicitud(solicitud, "eliminarla"),
+      PERMISOS_AUTORIZA.solicitudPagoEliminar
+    );
     if (!admin) return false;
   }
   eliminandoSolicitudPago.value = solicitud.id;
   const response = await request({
     method: "put",
-    url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_eliminar/" + solicitud.id,
+    url:
+      import.meta.env.VITE_URL_MAIN + "solicitud_pago_eliminar/" + solicitud.id,
     data: withAuthorization(admin),
   });
   eliminandoSolicitudPago.value = null;
@@ -2291,7 +2670,10 @@ async function eliminarSolicitudPago(item: EgresoProveedor, continuar = false): 
   if (continuar) notifySuccess(response.mensaje);
   else Swal.fire({ icon: "success", text: response.mensaje });
   // también se eliminó el PDF de pago: se recarga el listado (ojo desactivado y vuelve "Generar PDF")
-  await Promise.all([cargarSolicitudesExistentes(), controlGastosStore.getListControlGastosMaster(route.params.id as string)]);
+  await Promise.all([
+    cargarSolicitudesExistentes(),
+    controlGastosStore.getListControlGastosMaster(route.params.id as string),
+  ]);
   emit("solicitudPagoRegistrada");
   return true;
 }
@@ -2302,16 +2684,23 @@ const pagosInstructivo = ref<PagoProveedorInstructivo[]>([]);
 const dialogPagoInstructivo = ref(false);
 const pagosInstructivoVer = ref<PagoProveedorInstructivo[]>([]);
 async function cargarPagosInstructivo() {
-  const listas = await Promise.all(mastersEgresos.value.map((id) => listarPagosInstructivo({ id_master: id }).then((lista) => [...lista])));
+  const listas = await Promise.all(
+    mastersEgresos.value.map((id) =>
+      listarPagosInstructivo({ id_master: id }).then((lista) => [...lista])
+    )
+  );
   pagosInstructivo.value = listas.flat();
 }
 const pagosInstructivoDe = (e: EgresoProveedor) =>
-  pagosInstructivo.value.filter((p) =>
-    Number(p.id_master) === Number(e.id_master)
-    && Number(p.id_proveedor) === Number(e.id_proveedor)
-    && Number(p.id_correlativo ?? 0) === Number(e.id_correlativo ?? 0));
+  pagosInstructivo.value.filter(
+    (p) =>
+      Number(p.id_master) === Number(e.id_master) &&
+      Number(p.id_proveedor) === Number(e.id_proveedor) &&
+      Number(p.id_correlativo ?? 0) === Number(e.id_correlativo ?? 0)
+  );
 // "Solicitar" desactivado: falta cargar la factura o proforma
-const MENSAJE_SIN_DOCUMENTO = "Para solicitar, necesita cargar una factura o proforma";
+const MENSAJE_SIN_DOCUMENTO =
+  "Para solicitar, necesita cargar una factura o proforma";
 function verPagoInstructivo(e: EgresoProveedor) {
   egresoSolicitudInstructivo.value = null;
   pagosInstructivoVer.value = pagosInstructivoDe(e);
@@ -2326,7 +2715,9 @@ async function abrirSolicitudInstructivo(item: EgresoProveedor) {
   const { isConfirmed } = await Swal.fire({
     icon: "info",
     title: "Verifique que los datos son correctos",
-    html: `Se mostrarán los datos del pago a <b>${item.nombre_proveedor ?? "el proveedor"}</b> del instructivo de la cotización.<br>
+    html: `Se mostrarán los datos del pago a <b>${
+      item.nombre_proveedor ?? "el proveedor"
+    }</b> del instructivo de la cotización.<br>
       Si están bien, presione <b>Solicitar Pago</b>.`,
     confirmButtonText: "OK",
     showCancelButton: true,
@@ -2350,22 +2741,38 @@ async function solicitarPagoInstructivo() {
   if (!(await validarGenerarPdfPago(item))) return;
   solicitandoInstructivo.value = true;
   try {
-    const preparado = await request<{ id_tipopago: number | string; id_cuenta: number | null; codigopago: string | null; comentario: string | null }>({
+    const preparado = await request<{
+      id_tipopago: number | string;
+      id_cuenta: number | null;
+      codigopago: string | null;
+      comentario: string | null;
+    }>({
       method: "post",
-      url: import.meta.env.VITE_URL_MAIN + "solicitud_pago_instructivo_preparar",
-      data: { id_master: item.id_master, id_proveedor: item.id_proveedor, id_correlativo: item.id_correlativo },
+      url:
+        import.meta.env.VITE_URL_MAIN + "solicitud_pago_instructivo_preparar",
+      data: {
+        id_master: item.id_master,
+        id_proveedor: item.id_proveedor,
+        id_correlativo: item.id_correlativo,
+      },
     });
     if (warnIfRefused(preparado)) return;
     const datos = preparado.data[0]!;
     await Promise.all([cargarTiposPagoSolicitud(), _getAccountsNumber()]);
     solicitudPagoForm.value = {
-      id_tipopago: tiposPagoSolicitud.value.find((t) => Number(t.id) === Number(datos.id_tipopago))?.id ?? null,
+      id_tipopago:
+        tiposPagoSolicitud.value.find(
+          (t) => Number(t.id) === Number(datos.id_tipopago)
+        )?.id ?? null,
       id_cuenta: datos.id_cuenta ?? null,
       codigopago: datos.codigopago ?? "",
       comentario: datos.comentario ?? "",
     };
     if (!solicitudPagoValida.value) {
-      void Swal.fire({ icon: "warning", text: "No se pudo armar la solicitud con los datos del instructivo. Usa Enviar a Administración." });
+      void Swal.fire({
+        icon: "warning",
+        text: "No se pudo armar la solicitud con los datos del instructivo. Usa Enviar a Administración.",
+      });
       return;
     }
     dialogPagoInstructivo.value = false;
@@ -2383,9 +2790,8 @@ watch(
     void cargarSolicitudesExistentes(true);
     void cargarPagosInstructivo();
   },
-  { immediate: true },
+  { immediate: true }
 );
-
 
 onMounted(async () => {
   await Promise.all([
@@ -2398,7 +2804,10 @@ onMounted(async () => {
 
   // si Control de Gastos aún no la pidió (o es de otra sucursal), se pide aquí
   const branch = String(route.params.id_branch ?? "");
-  if (!enterprisesStore.impuestoCargado || (branch && enterprisesStore.impuestoBranch !== branch)) {
+  if (
+    !enterprisesStore.impuestoCargado ||
+    (branch && enterprisesStore.impuestoBranch !== branch)
+  ) {
     await enterprisesStore.obtenerImpuestoXEmpresa(branch || null);
   }
 });
@@ -2408,10 +2817,11 @@ watch(
   () => [enterprisesStore.impuestoCargado, enterprisesStore.impuesto] as const,
   ([cargado, impuesto]) => {
     if (!cargado) return;
-    if (impuesto.nombre_impuesto) headers.value[2]!.title = impuesto.nombre_impuesto;
+    if (impuesto.nombre_impuesto)
+      headers.value[2]!.title = impuesto.nombre_impuesto;
     mostrarImpuesto.value = !!impuesto.mostrarimpuesto;
   },
-  { immediate: true },
+  { immediate: true }
 );
 </script>
 
@@ -2422,27 +2832,24 @@ watch(
       {{ parseFloat(String(egreso_pr)).toFixed(2) }} USD /------ Operaciones:
       {{ parseFloat(String(egreso_op)).toFixed(2) }} USD
       <v-spacer />
-      <v-btn
-        @click="nuevoEngreso()"
-        color="blue"
-        size="small"
-      >
+      <v-btn @click="nuevoEngreso()" color="blue" size="small">
         Nuevo Control Gastos Egresos
       </v-btn>
     </h3>
-    <div
-      v-else
-      class="cg-seccion"
-    >
+    <div v-else class="cg-seccion">
       <h3 class="cg-seccion__titulo">
-        <v-icon color="error">
-          mdi-cash-minus
-        </v-icon>
+        <v-icon color="error"> mdi-cash-minus </v-icon>
         Costos
       </h3>
       <div class="cg-seccion__totales">
-        <span class="cg-total cg-total--pr">Pricing: <b>{{ parseFloat(String(egreso_pr)).toFixed(2) }} USD</b></span>
-        <span class="cg-total cg-total--op">Operaciones: <b>{{ parseFloat(String(egreso_op)).toFixed(2) }} USD</b></span>
+        <span class="cg-total cg-total--pr"
+          >Pricing:
+          <b>{{ parseFloat(String(egreso_pr)).toFixed(2) }} USD</b></span
+        >
+        <span class="cg-total cg-total--op"
+          >Operaciones:
+          <b>{{ parseFloat(String(egreso_op)).toFixed(2) }} USD</b></span
+        >
       </div>
       <v-btn
         class="cg-seccion__btn"
@@ -2472,42 +2879,17 @@ watch(
           >
             <thead>
               <tr>
-                <th width="14%">
-                  Proveedor
-                </th>
-                <th
-                  width="9%"
-                  style="background: #d6f4ff"
-                >
-                  Total Pricing
-                </th>
-                <th
-                  width="9%"
-                  style="background: #ffd6d6"
-                >
+                <th width="14%">Proveedor</th>
+                <th width="9%" style="background: #d6f4ff">Total Pricing</th>
+                <th width="9%" style="background: #ffd6d6">
                   Total Operaciones
                 </th>
-                <th
-                  width="9%"
-                  style="background: #fff9c4"
-                >
-                  Deuda Actual
-                </th>
-                <th
-                  v-if="editable"
-                  width="16%"
-                />
-                <th
-                  v-if="editable"
-                  width="9%"
-                  class="text-left"
-                >
+                <th width="9%" style="background: #fff9c4">Deuda Actual</th>
+                <th v-if="editable" width="16%" />
+                <th v-if="editable" width="9%" class="text-left">
                   Factura o Proforma
                 </th>
-                <th
-                  width="20%"
-                  class="text-left"
-                >
+                <th width="20%" class="text-left">
                   Solicitar a Administración
                   <v-tooltip
                     location="top"
@@ -2533,44 +2915,31 @@ watch(
             </thead>
             <tbody>
               <tr>
-                <td
-                  data-label="Proveedor"
-                  class="cg-full cg-titulo"
-                >
+                <td data-label="Proveedor" class="cg-full cg-titulo">
                   {{ egresoProveedor.nombre_proveedor }}
                   <v-btn
                     variant="text"
                     icon
                     color="success"
-                    v-if="egresoProveedor.code_tipo_proveedor === '01' && can('listControlGastos', 'MODIFICAR')"
+                    v-if="
+                      egresoProveedor.code_tipo_proveedor === '01' &&
+                      can('listControlGastos', 'MODIFICAR')
+                    "
                     @click="abrirModalPorcentajeProveedor(egresoProveedor)"
                   >
                     <v-icon>mdi-percent-box-outline</v-icon>
                   </v-btn>
                 </td>
-                <td
-                  data-label="Total Pricing"
-                  class="cg-pr"
-                >
+                <td data-label="Total Pricing" class="cg-pr">
                   {{ egresoProveedor.total_total_pr }}
                 </td>
-                <td
-                  data-label="Total Operaciones"
-                  class="cg-op"
-                >
+                <td data-label="Total Operaciones" class="cg-op">
                   {{ egresoProveedor.total_total_op }}
                 </td>
-                <td
-                  data-label="Deuda Actual"
-                  class="cg-deuda"
-                >
+                <td data-label="Deuda Actual" class="cg-deuda">
                   {{ egresoProveedor.monto_pagar_op }}
                 </td>
-                <td
-                  data-label="Acciones"
-                  class="cg-full"
-                  v-if="editable"
-                >
+                <td data-label="Acciones" class="cg-full" v-if="editable">
                   <!-- uno debajo del otro -->
                   <div class="egreso-botones">
                     <v-btn
@@ -2589,11 +2958,7 @@ watch(
                         v-if="bloquearCopiarMontos(egresoProveedor.detalle)"
                       >
                         <template #activator="{ props }">
-                          <v-btn
-                            v-bind="props"
-                            color="info"
-                            size="x-small"
-                          >
+                          <v-btn v-bind="props" color="info" size="x-small">
                             Copiar Montos Pr->Op
                           </v-btn>
                         </template>
@@ -2608,7 +2973,7 @@ watch(
                         @click="
                           abriModalCopiar(
                             egresoProveedor,
-                            bloquearCopiarMontos(egresoProveedor.detalle),
+                            bloquearCopiarMontos(egresoProveedor.detalle)
                           )
                         "
                       >
@@ -2619,30 +2984,37 @@ watch(
                       color="indigo"
                       size="x-small"
                       class="my-1 mx-1"
-                      v-if="mostrarBotonCambiarExpAsociado(egresoProveedor) && can('listControlGastos', 'MODIFICAR')"
+                      v-if="
+                        mostrarBotonCambiarExpAsociado(egresoProveedor) &&
+                        can('listControlGastos', 'MODIFICAR')
+                      "
                       @click.stop="abrirModalCambiarExpediente(egresoProveedor)"
                     >
                       Cambiar expediente
                     </v-btn>
                   </div>
                 </td>
-                <td
-                  data-label="Factura o Proforma"
-                  v-if="editable"
-                >
+                <td data-label="Factura o Proforma" v-if="editable">
                   <!-- Paso 1: cargar factura o proforma (solo mientras no tenga ninguna);
                        con facturas se desactiva y se activa el ojo -->
                   <div class="egreso-acciones">
                     <span
                       class="d-inline-block"
-                      :title="egresoProveedor.docs > 0 ? 'Ya tiene factura o proforma: véala con el ojo' : 'Cargar factura o proforma'"
+                      :title="
+                        egresoProveedor.docs > 0
+                          ? 'Ya tiene factura o proforma: véala con el ojo'
+                          : 'Cargar factura o proforma'
+                      "
                       @click.stop
                     >
                       <v-btn
                         variant="text"
                         icon
                         size="small"
-                        :loading="abriendoFacturas === claveFacturas(egresoProveedor, 'cargar')"
+                        :loading="
+                          abriendoFacturas ===
+                          claveFacturas(egresoProveedor, 'cargar')
+                        "
                         color="blue"
                         :disabled="egresoProveedor.docs > 0"
                         aria-label="Cargar factura o proforma"
@@ -2653,7 +3025,11 @@ watch(
                     </span>
                     <span
                       class="d-inline-block"
-                      :title="egresoProveedor.docs > 0 ? 'Ver facturas o proformas' : 'Aún no hay facturas o proformas'"
+                      :title="
+                        egresoProveedor.docs > 0
+                          ? 'Ver facturas o proformas'
+                          : 'Aún no hay facturas o proformas'
+                      "
                       @click.stop
                     >
                       <v-btn
@@ -2663,7 +3039,10 @@ watch(
                         size="small"
                         color="blue"
                         :disabled="!(egresoProveedor.docs > 0)"
-                        :loading="abriendoFacturas === claveFacturas(egresoProveedor, 'ver')"
+                        :loading="
+                          abriendoFacturas ===
+                          claveFacturas(egresoProveedor, 'ver')
+                        "
                         aria-label="Ver facturas o proformas"
                         @click.stop="openInvoice(egresoProveedor, 'ver')"
                       >
@@ -2679,7 +3058,10 @@ watch(
                 >
                   <div
                     class="solreq-fila"
-                    :class="{ 'solreq-fila--pago': pagosInstructivoDe(egresoProveedor).length }"
+                    :class="{
+                      'solreq-fila--pago':
+                        pagosInstructivoDe(egresoProveedor).length,
+                    }"
                   >
                     <!-- pago al proveedor del instructivo de Pricing (6.3): método, datos y archivos -->
                     <v-btn
@@ -2715,12 +3097,20 @@ watch(
                       >
                         <span class="solreq__badge">
                           <v-icon size="18">
-                            {{ estadoTarjetaPago(solicitudPagoDe(egresoProveedor)!).icono }}
+                            {{
+                              estadoTarjetaPago(
+                                solicitudPagoDe(egresoProveedor)!
+                              ).icono
+                            }}
                           </v-icon>
                         </span>
                         <span class="solreq__text">
                           <span class="solreq__title">
-                            {{ estadoTarjetaPago(solicitudPagoDe(egresoProveedor)!).titulo }}
+                            {{
+                              estadoTarjetaPago(
+                                solicitudPagoDe(egresoProveedor)!
+                              ).titulo
+                            }}
                           </span>
                           <!-- Editado en Bancos: el motivo del error en lugar de la fecha -->
                           <span
@@ -2728,17 +3118,20 @@ watch(
                             class="solreq__date solreq__motivo"
                             :title="solicitudPagoDe(egresoProveedor)!.motivo_edicion_banco ?? undefined"
                           >
-                            {{ solicitudPagoDe(egresoProveedor)!.motivo_edicion_banco || "Sin motivo" }}
+                            {{
+                              solicitudPagoDe(egresoProveedor)!
+                                .motivo_edicion_banco || "Sin motivo"
+                            }}
                           </span>
-                          <span
-                            v-else
-                            class="solreq__date"
-                          >
+                          <span v-else class="solreq__date">
                             {{
                               formatoFechaSolicitud(
-                                solicitudPagoDe(egresoProveedor)!.codigo_estado === "RECHAZADA"
-                                  ? solicitudPagoDe(egresoProveedor)!.fecha_rechazo ?? null
-                                  : solicitudPagoDe(egresoProveedor)!.fechasolicitud,
+                                solicitudPagoDe(egresoProveedor)!
+                                  .codigo_estado === "RECHAZADA"
+                                  ? solicitudPagoDe(egresoProveedor)!
+                                      .fecha_rechazo ?? null
+                                  : solicitudPagoDe(egresoProveedor)!
+                                      .fechasolicitud
                               )
                             }}
                           </span>
@@ -2764,7 +3157,14 @@ watch(
                           :disabled="!puedeVerSolicitudPago(egresoProveedor)"
                           :title="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag ? 'Ver solicitud de pago' : egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
                           :aria-label="solicitudPagoDe(egresoProveedor)!.multiexpedienteflag ? 'Ver solicitud de pago' : 'Ver PDF de pago'"
-                          :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          :loading="
+                            abriendoPdfPago ===
+                            claveSolicitud(
+                              egresoProveedor.id_master,
+                              egresoProveedor.id_proveedor,
+                              egresoProveedor.id_correlativo
+                            )
+                          "
                           @click="verSolicitudPagoCard(egresoProveedor)"
                         />
                         <v-btn
@@ -2778,7 +3178,9 @@ watch(
                             ? 'Ya está pagada en Bancos: elimine primero el movimiento'
                             : tieneAprobaciones(solicitudPagoDe(egresoProveedor)!) ? 'Editar solicitud de pago (requiere clave de administrador)' : 'Editar solicitud de pago'"
                           aria-label="Editar solicitud de pago"
-                          @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
+                          @click="
+                            abrirSolicitudPagoNueva(egresoProveedor, true)
+                          "
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'ELIMINAR')"
@@ -2822,7 +3224,9 @@ watch(
                           <v-icon size="18">mdi-file-check-outline</v-icon>
                         </span>
                         <span class="solreq__text">
-                          <span class="solreq__title">Listo para Enviar a Administración</span>
+                          <span class="solreq__title"
+                            >Listo para Enviar a Administración</span
+                          >
                           <span class="solreq__date">PDF de pago guardado</span>
                         </span>
                       </button>
@@ -2836,7 +3240,14 @@ watch(
                           color="blue"
                           title="Ver PDF de pago"
                           aria-label="Ver PDF de pago"
-                          :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          :loading="
+                            abriendoPdfPago ===
+                            claveSolicitud(
+                              egresoProveedor.id_master,
+                              egresoProveedor.id_proveedor,
+                              egresoProveedor.id_correlativo
+                            )
+                          "
                           @click="verPdfPago(egresoProveedor)"
                         />
                         <v-btn
@@ -2848,7 +3259,9 @@ watch(
                           color="primary"
                           title="Cambiar los datos y generar un nuevo PDF"
                           aria-label="Editar solicitud guardada"
-                          @click="abrirSolicitudPagoNueva(egresoProveedor, true)"
+                          @click="
+                            abrirSolicitudPagoNueva(egresoProveedor, true)
+                          "
                         />
                         <v-btn
                           v-if="can('listControlGastos', 'ELIMINAR')"
@@ -2859,7 +3272,14 @@ watch(
                           color="error"
                           title="Eliminar solicitud guardada (PDF de pago)"
                           aria-label="Eliminar solicitud guardada"
-                          :loading="eliminandoPdfGuardado === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                          :loading="
+                            eliminandoPdfGuardado ===
+                            claveSolicitud(
+                              egresoProveedor.id_master,
+                              egresoProveedor.id_proveedor,
+                              egresoProveedor.id_correlativo
+                            )
+                          "
                           @click="eliminarPdfGuardado(egresoProveedor)"
                         />
                       </div>
@@ -2882,13 +3302,20 @@ watch(
                             v-bind="tooltipProps"
                             size="small"
                             variant="flat"
-                            :color="egresoProveedor.docs > 0 ? 'primary' : undefined"
+                            :color="
+                              egresoProveedor.docs > 0 ? 'primary' : undefined
+                            "
                             prepend-icon="mdi-send-outline"
                             class="solreq__btn"
-                            :class="{ 'solreq__btn--off': !(egresoProveedor.docs > 0) }"
+                            :class="{
+                              'solreq__btn--off': !(egresoProveedor.docs > 0),
+                            }"
                             :aria-disabled="!(egresoProveedor.docs > 0)"
                             :ripple="egresoProveedor.docs > 0"
-                            @click="egresoProveedor.docs > 0 && abrirSolicitudPagoNueva(egresoProveedor)"
+                            @click="
+                              egresoProveedor.docs > 0 &&
+                                abrirSolicitudPagoNueva(egresoProveedor)
+                            "
                           >
                             Solicitar
                           </v-btn>
@@ -2914,15 +3341,19 @@ watch(
                         </template>
                       </v-tooltip>
                     </span>
-                    <span
-                      v-else
-                      class="text-medium-emphasis"
-                    >—</span>
+                    <span v-else class="text-medium-emphasis">—</span>
                     <!-- ojo: el último PDF de pago generado (sin solicitud; con solicitud va dentro de la tarjeta) -->
                     <span
-                      v-if="!solicitudPagoDe(egresoProveedor) && !listoParaEnviar(egresoProveedor)"
+                      v-if="
+                        !solicitudPagoDe(egresoProveedor) &&
+                        !listoParaEnviar(egresoProveedor)
+                      "
                       class="d-inline-block"
-                      :title="egresoProveedor.solicitudes > 0 ? 'Ver PDF de pago' : 'Aún no se ha generado el PDF de pago'"
+                      :title="
+                        egresoProveedor.solicitudes > 0
+                          ? 'Ver PDF de pago'
+                          : 'Aún no se ha generado el PDF de pago'
+                      "
                     >
                       <v-btn
                         data-modo-ver="permitido"
@@ -2931,7 +3362,14 @@ watch(
                         icon
                         color="blue"
                         :disabled="!(egresoProveedor.solicitudes > 0)"
-                        :loading="abriendoPdfPago === claveSolicitud(egresoProveedor.id_master, egresoProveedor.id_proveedor, egresoProveedor.id_correlativo)"
+                        :loading="
+                          abriendoPdfPago ===
+                          claveSolicitud(
+                            egresoProveedor.id_master,
+                            egresoProveedor.id_proveedor,
+                            egresoProveedor.id_correlativo
+                          )
+                        "
                         aria-label="Ver PDF de pago"
                         @click="verPdfPago(egresoProveedor)"
                       >
@@ -2944,33 +3382,24 @@ watch(
             </tbody>
           </v-table>
           <!-- celular: indica que el panel tiene detalle (al tocarlo se abre / cierra) -->
-          <div
-            v-if="smAndDown"
-            class="cg-verdetalle"
-          >
-            <span class="cg-verdetalle__ver"><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle cliente</span>
-            <span class="cg-verdetalle__ocultar"><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle cliente</span>
+          <div v-if="smAndDown" class="cg-verdetalle">
+            <span class="cg-verdetalle__ver"
+              ><v-icon size="18">mdi-chevron-down</v-icon> Ver detalle
+              cliente</span
+            >
+            <span class="cg-verdetalle__ocultar"
+              ><v-icon size="18">mdi-chevron-up</v-icon> Ocultar detalle
+              cliente</span
+            >
           </div>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <v-table
-            density="compact"
-            class="cg-resp--detalle"
-          >
+          <v-table density="compact" class="cg-resp--detalle">
             <thead>
               <tr>
-                <th class="text-left">
-                  Proveedor
-                </th>
-                <th class="text-left">
-                  Descripción
-                </th>
-                <th
-                  style="background: #d6f4ff"
-                  class="text-left"
-                >
-                  Monto Pr
-                </th>
+                <th class="text-left">Proveedor</th>
+                <th class="text-left">Descripción</th>
+                <th style="background: #d6f4ff" class="text-left">Monto Pr</th>
                 <th
                   style="background: #d6f4ff"
                   class="text-left"
@@ -2978,18 +3407,8 @@ watch(
                 >
                   {{ enterprisesStore.impuesto.nombre_impuesto }} Pr
                 </th>
-                <th
-                  style="background: #d6f4ff"
-                  class="text-left"
-                >
-                  Total Pr
-                </th>
-                <th
-                  style="background: #ffd6d6"
-                  class="text-left"
-                >
-                  Monto Op
-                </th>
+                <th style="background: #d6f4ff" class="text-left">Total Pr</th>
+                <th style="background: #ffd6d6" class="text-left">Monto Op</th>
                 <th
                   style="background: #ffd6d6"
                   class="text-left"
@@ -2997,12 +3416,7 @@ watch(
                 >
                   {{ enterprisesStore.impuesto.nombre_impuesto }} Op
                 </th>
-                <th
-                  style="background: #ffd6d6"
-                  class="text-left"
-                >
-                  Total Op
-                </th>
+                <th style="background: #ffd6d6" class="text-left">Total Op</th>
                 <th
                   style="background: #d8ffde"
                   class="text-left"
@@ -3015,11 +3429,11 @@ watch(
                   class="text-left"
                   v-if="
                     mostrarImpuesto &&
-                      mostrarColumnaMonedaDiferenteDolar(egresoProveedor)
+                    mostrarColumnaMonedaDiferenteDolar(egresoProveedor)
                   "
                 >
-                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op
-                  Cuenta Banco
+                  {{ enterprisesStore.impuesto.nombre_impuesto }} Op Cuenta
+                  Banco
                 </th>
                 <th
                   style="background: #d8ffde"
@@ -3035,29 +3449,17 @@ watch(
                 >
                   Tipo Cambio Cuenta Banco
                 </th>
-                <th class="text-center">
-                  Enviado a Admin.
-                </th>
-                <th
-                  width="10%"
-                  class="text-center"
-                >
-                  Fecha Pago.
-                </th>
-                <th class="text-center">
-                  Status
-                </th>
-                <th
-                  v-if="editable"
-                  class="text-left"
-                >
-                  Acciones
-                </th>
+                <th class="text-center">Enviado a Admin.</th>
+                <th width="10%" class="text-center">Fecha Pago.</th>
+                <th class="text-center">Status</th>
+                <th v-if="editable" class="text-left">Acciones</th>
               </tr>
             </thead>
             <tbody>
               <template
-                v-for="(grupo, idx) in groupDetallePorCliente(egresoProveedor.detalle)"
+                v-for="(grupo, idx) in groupDetallePorCliente(
+                  egresoProveedor.detalle
+                )"
                 :key="`header-${
                   grupo.id_house || grupo.code_house || grupo.consigner || idx
                 }`"
@@ -3081,8 +3483,16 @@ watch(
                       v-if="smAndDown"
                       class="cg-verdetalle cg-verdetalle--cliente"
                     >
-                      <v-icon size="18">{{ isClienteAbierto(egresoProveedor, grupo) ? "mdi-chevron-up" : "mdi-chevron-down" }}</v-icon>
-                      {{ isClienteAbierto(egresoProveedor, grupo) ? "Ocultar concepto de costos" : "Ver concepto de costos" }}
+                      <v-icon size="18">{{
+                        isClienteAbierto(egresoProveedor, grupo)
+                          ? "mdi-chevron-up"
+                          : "mdi-chevron-down"
+                      }}</v-icon>
+                      {{
+                        isClienteAbierto(egresoProveedor, grupo)
+                          ? "Ocultar concepto de costos"
+                          : "Ver concepto de costos"
+                      }}
                     </span>
                   </td>
                 </tr>
@@ -3096,22 +3506,13 @@ watch(
                       item.id
                     }`"
                   >
-                    <td
-                      data-label="Proveedor"
-                      class="cg-full"
-                    >
+                    <td data-label="Proveedor" class="cg-full">
                       {{ item.nombre_proveedor }}
                     </td>
-                    <td
-                      data-label="Descripción"
-                      class="cg-full cg-titulo"
-                    >
+                    <td data-label="Descripción" class="cg-full cg-titulo">
                       {{ item.concepto }}
                     </td>
-                    <td
-                      data-label="Monto Pr"
-                      style="background: #d6f4ff"
-                    >
+                    <td data-label="Monto Pr" style="background: #d6f4ff">
                       {{ parseFloat(String(item.monto_pr)).toFixed(2) }}
                     </td>
                     <td
@@ -3121,16 +3522,10 @@ watch(
                     >
                       {{ parseFloat(String(item.igv_pr)).toFixed(2) }}
                     </td>
-                    <td
-                      data-label="Total Pr"
-                      style="background: #d6f4ff"
-                    >
+                    <td data-label="Total Pr" style="background: #d6f4ff">
                       {{ parseFloat(String(item.total_pr)).toFixed(2) }}
                     </td>
-                    <td
-                      data-label="Monto Op"
-                      style="background: #ffd6d6"
-                    >
+                    <td data-label="Monto Op" style="background: #ffd6d6">
                       {{ parseFloat(String(item.monto_op)).toFixed(2) }}
                     </td>
                     <td
@@ -3143,10 +3538,7 @@ watch(
                     <!-- <td style="background: #ffd6d6">
                       {{ parseFloat(item.igv_op).toFixed(2) }}
                     </td> -->
-                    <td
-                      data-label="Total Op"
-                      style="background: #ffd6d6"
-                    >
+                    <td data-label="Total Op" style="background: #ffd6d6">
                       {{ parseFloat(String(item.total_op)).toFixed(2) }}
                     </td>
                     <td
@@ -3154,7 +3546,9 @@ watch(
                       style="background: #d8ffde"
                       v-if="mostrarColumnaMonedaDiferenteDolar(egresoProveedor)"
                     >
-                      {{ parseFloat(String(item.montoopcuentabanco)).toFixed(2) }}
+                      {{
+                        parseFloat(String(item.montoopcuentabanco)).toFixed(2)
+                      }}
                       {{ item.acronym }}
                     </td>
                     <td
@@ -3162,7 +3556,7 @@ watch(
                       style="background: #d8ffde"
                       v-if="
                         mostrarImpuesto &&
-                          mostrarColumnaMonedaDiferenteDolar(egresoProveedor)
+                        mostrarColumnaMonedaDiferenteDolar(egresoProveedor)
                       "
                     >
                       {{ parseFloat(String(item.igvopcuentabanco)).toFixed(2) }}
@@ -3173,7 +3567,9 @@ watch(
                       style="background: #d8ffde"
                       v-if="mostrarColumnaMonedaDiferenteDolar(egresoProveedor)"
                     >
-                      {{ parseFloat(String(item.totalopcuentabanco)).toFixed(2) }}
+                      {{
+                        parseFloat(String(item.totalopcuentabanco)).toFixed(2)
+                      }}
                       {{ item.acronym }}
                     </td>
                     <td
@@ -3183,10 +3579,7 @@ watch(
                     >
                       {{ item.tipocambio == 1 ? "No Aplica" : item.tipocambio }}
                     </td>
-                    <td
-                      data-label="Enviado a Admin."
-                      class="text-center"
-                    >
+                    <td data-label="Enviado a Admin." class="text-center">
                       <v-chip
                         v-if="item.statusadmin == 1 && item.pagado == 1"
                         size="small"
@@ -3206,10 +3599,7 @@ watch(
                         SI
                       </v-chip>
                     </td>
-                    <td
-                      data-label="Fecha Pago"
-                      class="text-center"
-                    >
+                    <td data-label="Fecha Pago" class="text-center">
                       {{ item.fecha_pago_letra }}
                     </td>
                     <td data-label="Status">
@@ -3223,11 +3613,7 @@ watch(
                         Pagado
                       </v-chip>
                     </td>
-                    <td
-                      data-label="Acciones"
-                      class="cg-full"
-                      v-if="editable"
-                    >
+                    <td data-label="Acciones" class="cg-full" v-if="editable">
                       <v-btn
                         v-if="can('listControlGastos', 'MODIFICAR')"
                         variant="text"
@@ -3236,9 +3622,7 @@ watch(
                         size="small"
                         @click="_editEgreso(item)"
                       >
-                        <v-icon>
-                          mdi-pencil
-                        </v-icon>
+                        <v-icon> mdi-pencil </v-icon>
                       </v-btn>
                       <v-btn
                         variant="text"
@@ -3248,9 +3632,7 @@ watch(
                         v-if="!item.statusadmin && item.pagado == 0"
                         @click="_delEngreso(item, egresoProveedor)"
                       >
-                        <v-icon>
-                          mdi-delete
-                        </v-icon>
+                        <v-icon> mdi-delete </v-icon>
                       </v-btn>
                     </td>
                   </tr>
@@ -3278,11 +3660,7 @@ watch(
           {{ getNameModalNuevoEditar }}
 
           <v-spacer />
-          <v-btn
-            color="default"
-            variant="text"
-            @click="dialog = false"
-          >
+          <v-btn color="default" variant="text" @click="dialog = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -3314,11 +3692,7 @@ watch(
               </v-row>
 
               <v-row v-show="showSeccion2NuevoEgreso">
-                <v-col
-                  cols="12"
-                  xl="6"
-                  lg="6"
-                >
+                <v-col cols="12" xl="6" lg="6">
                   <v-text-field
                     density="compact"
                     v-model="egresos.concepto"
@@ -3327,11 +3701,7 @@ watch(
                     :disabled="!!egresos.pagado"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  xl="3"
-                  lg="3"
-                >
+                <v-col cols="12" xl="3" lg="3">
                   <v-autocomplete
                     :items="controlGastosStore.listCorrelativo"
                     v-model="id_correlativo"
@@ -3344,11 +3714,7 @@ watch(
                     :disabled="!!egresos.pagado"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  xl="3"
-                  lg="3"
-                >
+                <v-col cols="12" xl="3" lg="3">
                   <v-switch
                     v-if="mostrarImpuesto"
                     density="compact"
@@ -3365,10 +3731,7 @@ watch(
               </v-row>
 
               <v-row v-show="showSeccion3NuevoEgreso">
-                <v-col
-                  cols="12"
-                  md="3"
-                >
+                <v-col cols="12" md="3">
                   <v-autocomplete
                     :items="appStore.itemsCoinsList"
                     v-model="id_coins"
@@ -3382,11 +3745,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="3"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="3" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-if="sufmoneda != 'USD'"
@@ -3405,11 +3764,7 @@ watch(
               </v-row>
 
               <v-row v-show="showSeccion4NuevoEgreso">
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.montoopcuentabanco"
@@ -3422,11 +3777,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag && mostrarImpuesto"
-                >
+                <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
                     density="compact"
                     v-model="egresos.igvopcuentabanco"
@@ -3438,11 +3789,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.totalopcuentabanco"
@@ -3454,11 +3801,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag"
-                >
+                <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.monto_pr"
@@ -3470,11 +3813,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag && mostrarImpuesto"
-                >
+                <v-col cols="12" md="4" v-if="prFlag && mostrarImpuesto">
                   <v-text-field
                     density="compact"
                     v-model="egresos.igv_pr"
@@ -3485,11 +3824,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="prFlag"
-                >
+                <v-col cols="12" md="4" v-if="prFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.total_pr"
@@ -3499,11 +3834,7 @@ watch(
                     :disabled="!!egresos.pagado"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.montoopview"
@@ -3515,11 +3846,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag && mostrarImpuesto"
-                >
+                <v-col cols="12" md="4" v-if="opFlag && mostrarImpuesto">
                   <v-text-field
                     density="compact"
                     v-model="egresos.igvopview"
@@ -3531,11 +3858,7 @@ watch(
                   />
                 </v-col>
 
-                <v-col
-                  cols="12"
-                  md="4"
-                  v-if="opFlag"
-                >
+                <v-col cols="12" md="4" v-if="opFlag">
                   <v-text-field
                     density="compact"
                     v-model="egresos.totalopview"
@@ -3585,17 +3908,19 @@ watch(
       <v-card class="inv-card fac-card">
         <div class="inv-header fac-header">
           <div class="inv-header-icon">
-            <v-icon size="32">
-              mdi-file-pdf-box
-            </v-icon>
+            <v-icon size="32"> mdi-file-pdf-box </v-icon>
           </div>
           <div class="inv-header-text">
-            <h3 class="inv-title">
-              FACTURAS Y PROFORMAS
-            </h3>
+            <h3 class="inv-title">FACTURAS Y PROFORMAS</h3>
             <span class="fac-prov">
               <v-icon size="18">mdi-storefront-outline</v-icon>
-              PROVEEDOR: {{ proveedorInvoice.nombre }} ({{ proveedorInvoice.id }}){{ proveedorInvoice.correlativo ? ` - ${proveedorInvoice.correlativo}` : "" }}
+              PROVEEDOR: {{ proveedorInvoice.nombre }} ({{
+                proveedorInvoice.id
+              }}){{
+                proveedorInvoice.correlativo
+                  ? ` - ${proveedorInvoice.correlativo}`
+                  : ""
+              }}
             </span>
           </div>
           <v-btn
@@ -3611,10 +3936,7 @@ watch(
         </div>
 
         <v-card-text class="inv-body fac-body">
-          <div
-            v-if="can('listControlGastos', 'NUEVO')"
-            class="fac-toolbar"
-          >
+          <div v-if="can('listControlGastos', 'NUEVO')" class="fac-toolbar">
             <v-btn
               variant="tonal"
               color="primary"
@@ -3644,13 +3966,26 @@ watch(
                   :color="item.type == 'pdf' ? 'red' : 'blue-grey-darken-1'"
                   size="20"
                 >
-                  {{ item.type == "pdf" ? "mdi-file-pdf-box" : "mdi-file-image" }}
+                  {{
+                    item.type == "pdf" ? "mdi-file-pdf-box" : "mdi-file-image"
+                  }}
                 </v-icon>
-                {{ item.type_pago == 1 ? "FACTURA" : item.type_pago == 2 ? "PROFORMA" : "OTRO" }}{{ item.number ? ` - ${item.number}` : "" }}
+                {{
+                  item.type_pago == 1
+                    ? "FACTURA"
+                    : item.type_pago == 2
+                    ? "PROFORMA"
+                    : "OTRO"
+                }}{{ item.number ? ` - ${item.number}` : "" }}
               </span>
             </template>
             <template #[`item.monto`]="{ item }">
-              <span class="fac-monto">{{ Number(item.monto || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}</span>
+              <span class="fac-monto">{{
+                Number(item.monto || 0).toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              }}</span>
             </template>
             <template #[`item.path`]="{ item }">
               <v-btn
@@ -3703,23 +4038,17 @@ watch(
       </v-card>
     </v-dialog>
     <!-- --------------------------- -->
-    <v-dialog
-      max-width="620"
-      v-model="dialogInvoice"
-      scrollable
-    >
+    <v-dialog max-width="620" v-model="dialogInvoice" scrollable>
       <v-card class="inv-card">
         <div class="inv-header">
           <div class="inv-header-icon">
-            <v-icon size="32">
-              mdi-file-upload-outline
-            </v-icon>
+            <v-icon size="32"> mdi-file-upload-outline </v-icon>
           </div>
           <div class="inv-header-text">
-            <h3 class="inv-title">
-              CARGAR DOCUMENTO A PAGAR
-            </h3>
-            <span class="inv-subtitle">ADJUNTA LA FACTURA, PROFORMA U OTRO DOCUMENTO.</span>
+            <h3 class="inv-title">CARGAR DOCUMENTO A PAGAR</h3>
+            <span class="inv-subtitle"
+              >ADJUNTA LA FACTURA, PROFORMA U OTRO DOCUMENTO.</span
+            >
           </div>
           <!-- fuera del orden de tabulación: el primer Tab va al Tipo de documento -->
           <v-btn
@@ -3738,16 +4067,19 @@ watch(
         <v-card-text class="inv-body">
           <div class="inv-prov">
             <div class="inv-prov-row">
-              <v-icon class="inv-prov-icon">
-                mdi-storefront-outline
-              </v-icon>
+              <v-icon class="inv-prov-icon"> mdi-storefront-outline </v-icon>
               <span class="inv-prov-label">ID PROVEEDOR:</span>
-              <span class="inv-prov-value">{{ proveedorInvoice.id }}{{ proveedorInvoice.correlativo ? ` - ${proveedorInvoice.correlativo}` : "" }}</span>
+              <span class="inv-prov-value"
+                >{{ proveedorInvoice.id
+                }}{{
+                  proveedorInvoice.correlativo
+                    ? ` - ${proveedorInvoice.correlativo}`
+                    : ""
+                }}</span
+              >
             </div>
             <div class="inv-prov-row">
-              <v-icon class="inv-prov-icon">
-                mdi-account-outline
-              </v-icon>
+              <v-icon class="inv-prov-icon"> mdi-account-outline </v-icon>
               <span class="inv-prov-label">NOMBRE:</span>
               <span class="inv-prov-value">{{ proveedorInvoice.nombre }}</span>
             </div>
@@ -3766,10 +4098,9 @@ watch(
             </div>
           </div>
 
-          <label
-            class="inv-label"
-            for="inv-tipo"
-          >TIPO DE DOCUMENTO <span class="inv-req">*</span></label>
+          <label class="inv-label" for="inv-tipo"
+            >TIPO DE DOCUMENTO <span class="inv-req">*</span></label
+          >
           <v-select
             id="inv-tipo"
             ref="invTipoRef"
@@ -3786,17 +4117,13 @@ watch(
             :rules="[(v) => !!v || 'Selecciona el tipo de documento']"
           >
             <template #item="{ props: itemProps, item }">
-              <v-list-item
-                v-bind="itemProps"
-                :prepend-icon="item.icon"
-              />
+              <v-list-item v-bind="itemProps" :prepend-icon="item.icon" />
             </template>
           </v-select>
 
-          <label
-            class="inv-label"
-            for="inv-fecha"
-          >FECHA DE DOCUMENTO <span class="inv-req">*</span></label>
+          <label class="inv-label" for="inv-fecha"
+            >FECHA DE DOCUMENTO <span class="inv-req">*</span></label
+          >
           <FormatFecha
             id="inv-fecha"
             v-model="date"
@@ -3810,10 +4137,13 @@ watch(
             :rules="[(v) => !!v || 'Dato Requerido']"
           />
 
-          <label
-            class="inv-label"
-            for="inv-numero"
-          >N° DE {{ radio == 2 ? "PROFORMA" : radio == 3 ? "DOCUMENTO" : "FACTURA" }} / REFERENCIA</label>
+          <label class="inv-label" for="inv-numero"
+            >N° DE
+            {{
+              radio == 2 ? "PROFORMA" : radio == 3 ? "DOCUMENTO" : "FACTURA"
+            }}
+            / REFERENCIA</label
+          >
           <v-text-field
             id="inv-numero"
             v-model="nro_invoice"
@@ -3827,10 +4157,9 @@ watch(
 
           <div class="inv-row">
             <div>
-              <label
-                class="inv-label"
-                for="inv-moneda"
-              >MONEDA <span class="inv-req">*</span></label>
+              <label class="inv-label" for="inv-moneda"
+                >MONEDA <span class="inv-req">*</span></label
+              >
               <!-- el documento se registra en la moneda de los conceptos del proveedor -->
               <v-text-field
                 id="inv-moneda"
@@ -3845,10 +4174,9 @@ watch(
               />
             </div>
             <div>
-              <label
-                class="inv-label"
-                for="inv-monto"
-              >MONTO <span class="inv-req">*</span></label>
+              <label class="inv-label" for="inv-monto"
+                >MONTO <span class="inv-req">*</span></label
+              >
               <v-text-field
                 id="inv-monto"
                 v-model="monto_factura"
@@ -3915,46 +4243,49 @@ watch(
       persistent
       scrollable
     >
-      <v-card
-        v-if="solicitudPagoProveedor"
-        class="solnueva inv-card"
-      >
+      <v-card v-if="solicitudPagoProveedor" class="solnueva inv-card">
         <div class="inv-header">
           <div class="inv-header-icon">
             <v-icon size="32">
-              {{ pasoSolicitudPago === "preview" ? "mdi-file-eye-outline" : "mdi-cash-fast" }}
+              {{
+                pasoSolicitudPago === "preview"
+                  ? "mdi-file-eye-outline"
+                  : "mdi-cash-fast"
+              }}
             </v-icon>
           </div>
           <!-- vista previa del PDF de pago -->
-          <div
-            v-if="pasoSolicitudPago === 'preview'"
-            class="inv-header-text"
-          >
-            <h3 class="inv-title">
-              PREVISUALIZACIÓN DE PDF A GENERAR
-            </h3>
+          <div v-if="pasoSolicitudPago === 'preview'" class="inv-header-text">
+            <h3 class="inv-title">PREVISUALIZACIÓN DE PDF A GENERAR</h3>
             <span class="inv-subtitle">
-              REVISA EL PDF DE PAGO: GUÁRDALO O GUÁRDALO Y ENVÍALO A ADMINISTRACIÓN.
+              REVISA EL PDF DE PAGO: GUÁRDALO O GUÁRDALO Y ENVÍALO A
+              ADMINISTRACIÓN.
             </span>
           </div>
-          <div
-            v-else
-            class="inv-header-text"
-          >
+          <div v-else class="inv-header-text">
             <h3 class="inv-title">
-              {{ modoSolicitudPago === "editar" ? "EDITAR SOLICITUD DE PAGO" : "ENVIAR A ADMINISTRACIÓN" }}<template v-if="solicitudPagoActual">
+              {{
+                modoSolicitudPago === "editar"
+                  ? "EDITAR SOLICITUD DE PAGO"
+                  : "ENVIAR A ADMINISTRACIÓN"
+              }}<template v-if="solicitudPagoActual">
                 N° {{ solicitudPagoActual.id }}
               </template>
             </h3>
             <span class="inv-subtitle">
-              {{ modoSolicitudPago === "ver" ? "DETALLE DE LA SOLICITUD ENVIADA A ADMINISTRACIÓN." : "SOLICITA A ADMINISTRACIÓN EL PAGO AL PROVEEDOR." }}
+              {{
+                modoSolicitudPago === "ver"
+                  ? "DETALLE DE LA SOLICITUD ENVIADA A ADMINISTRACIÓN."
+                  : "SOLICITA A ADMINISTRACIÓN EL PAGO AL PROVEEDOR."
+              }}
             </span>
           </div>
           <span
             v-if="solicitudPagoActual"
             class="solnueva__estado"
             :class="`solnueva__estado--${solicitudPagoActual.codigo_estado}`"
-          >{{ solicitudPagoActual.estado }}</span>
+            >{{ solicitudPagoActual.estado }}</span
+          >
           <v-btn
             icon
             variant="text"
@@ -3968,24 +4299,26 @@ watch(
           </v-btn>
         </div>
 
-        <v-card-text
-          v-if="pasoSolicitudPago === 'datos'"
-          class="inv-body"
-        >
+        <v-card-text v-if="pasoSolicitudPago === 'datos'" class="inv-body">
           <div class="inv-prov">
             <div class="inv-prov-row">
-              <v-icon class="inv-prov-icon">
-                mdi-storefront-outline
-              </v-icon>
+              <v-icon class="inv-prov-icon"> mdi-storefront-outline </v-icon>
               <span class="inv-prov-label">ID PROVEEDOR:</span>
-              <span class="inv-prov-value">{{ proveedorSolicitud.id }}{{ proveedorSolicitud.correlativo ? ` - ${proveedorSolicitud.correlativo}` : "" }}</span>
+              <span class="inv-prov-value"
+                >{{ proveedorSolicitud.id
+                }}{{
+                  proveedorSolicitud.correlativo
+                    ? ` - ${proveedorSolicitud.correlativo}`
+                    : ""
+                }}</span
+              >
             </div>
             <div class="inv-prov-row">
-              <v-icon class="inv-prov-icon">
-                mdi-account-outline
-              </v-icon>
+              <v-icon class="inv-prov-icon"> mdi-account-outline </v-icon>
               <span class="inv-prov-label">NOMBRE:</span>
-              <span class="inv-prov-value">{{ proveedorSolicitud.nombre }}</span>
+              <span class="inv-prov-value">{{
+                proveedorSolicitud.nombre
+              }}</span>
             </div>
           </div>
           <v-alert
@@ -3995,8 +4328,14 @@ watch(
             density="compact"
             class="mb-3"
           >
-            Rechazada por {{ solicitudPagoActual.area_rechazo === "ADM" ? "Administración" : "Gerencia" }}
-            ({{ solicitudPagoActual.usuario_rechazo }} · {{ solicitudPagoActual.fecha_rechazo }}).
+            Rechazada por
+            {{
+              solicitudPagoActual.area_rechazo === "ADM"
+                ? "Administración"
+                : "Gerencia"
+            }}
+            ({{ solicitudPagoActual.usuario_rechazo }} ·
+            {{ solicitudPagoActual.fecha_rechazo }}).
             <div v-if="solicitudPagoActual.motivo_rechazo">
               <b>Motivo:</b> {{ solicitudPagoActual.motivo_rechazo }}
             </div>
@@ -4009,7 +4348,9 @@ watch(
               class="solnueva__concepto"
             >
               <span>{{ c.concepto }}</span>
-              <span>{{ Number(c.total_op || 0).toFixed(2) }} {{ c.acronym }}</span>
+              <span
+                >{{ Number(c.total_op || 0).toFixed(2) }} {{ c.acronym }}</span
+              >
             </div>
             <div
               v-if="!conceptosModalSolicitudPago.length"
@@ -4019,25 +4360,37 @@ watch(
             </div>
             <div class="solnueva__total">
               <span>Total a pagar</span>
-              <span>{{ totalModalSolicitudPago.toFixed(2) }} {{ monedaModalSolicitudPago }}</span>
+              <span
+                >{{ totalModalSolicitudPago.toFixed(2) }}
+                {{ monedaModalSolicitudPago }}</span
+              >
             </div>
           </div>
 
-          <h4 class="mt-4 mb-2">
-            Tipo de pago
-          </h4>
+          <h4 class="mt-4 mb-2">Tipo de pago</h4>
           <div class="solnueva__tipos">
             <button
               v-for="t in tiposPagoSolicitud"
               :key="t.id"
               type="button"
               class="solnueva__tipo"
-              :class="{ 'solnueva__tipo--active': solicitudPagoForm.id_tipopago === t.id }"
+              :class="{
+                'solnueva__tipo--active':
+                  solicitudPagoForm.id_tipopago === t.id,
+              }"
               :disabled="formularioSolicitudBloqueado"
               @click="solicitudPagoForm.id_tipopago = t.id"
             >
-              <v-icon :color="solicitudPagoForm.id_tipopago === t.id ? 'primary' : 'grey'">
-                {{ solicitudPagoForm.id_tipopago === t.id ? "mdi-radiobox-marked" : "mdi-radiobox-blank" }}
+              <v-icon
+                :color="
+                  solicitudPagoForm.id_tipopago === t.id ? 'primary' : 'grey'
+                "
+              >
+                {{
+                  solicitudPagoForm.id_tipopago === t.id
+                    ? "mdi-radiobox-marked"
+                    : "mdi-radiobox-blank"
+                }}
               </v-icon>
               <v-icon color="primary">
                 {{ t.codigo === "01" ? "mdi-bank-transfer" : "mdi-barcode" }}
@@ -4047,10 +4400,7 @@ watch(
           </div>
 
           <!-- con Código de pago no se pide la cuenta del proveedor -->
-          <div
-            v-if="tipoPagoSeleccionado !== '02'"
-            class="mt-4"
-          >
+          <div v-if="tipoPagoSeleccionado !== '02'" class="mt-4">
             <div class="d-flex align-center mb-1">
               <b>Cuenta bancaria del proveedor</b>
               <v-spacer />
@@ -4106,8 +4456,9 @@ watch(
             density="compact"
             class="mt-4"
           >
-            El PDF de pago ya se generó con estos datos, por eso están bloqueados. Envía la solicitud a Administración
-            o, para cambiarlos, usa el lápiz y genera un nuevo PDF.
+            El PDF de pago ya se generó con estos datos, por eso están
+            bloqueados. Envía la solicitud a Administración o, para cambiarlos,
+            usa el lápiz y genera un nuevo PDF.
           </v-alert>
           <!-- guía del flujo: el paso actual resaltado; el 1 se marca al completar los datos -->
           <div
@@ -4116,9 +4467,7 @@ watch(
             role="note"
           >
             <div class="solguia__head">
-              <v-icon size="20">
-                mdi-map-marker-path
-              </v-icon>
+              <v-icon size="20"> mdi-map-marker-path </v-icon>
               ¿Cómo enviar la solicitud?
             </div>
             <ol class="solguia__pasos">
@@ -4129,10 +4478,9 @@ watch(
                 :class="`solguia__paso--${p.estado}`"
               >
                 <span class="solguia__num">
-                  <v-icon
-                    v-if="p.estado === 'hecho'"
-                    size="16"
-                  >mdi-check-bold</v-icon>
+                  <v-icon v-if="p.estado === 'hecho'" size="16"
+                    >mdi-check-bold</v-icon
+                  >
                   <template v-else>{{ i + 1 }}</template>
                 </span>
                 <span class="solguia__texto">
@@ -4145,10 +4493,7 @@ watch(
         </v-card-text>
 
         <!-- vista previa: el mismo HTML del PDF de pago (pdf-solicitud.ejs) -->
-        <v-card-text
-          v-else
-          class="solnueva__preview"
-        >
+        <v-card-text v-else class="solnueva__preview">
           <iframe
             :srcdoc="previewPdfPago"
             title="Vista previa del PDF de pago"
@@ -4156,10 +4501,7 @@ watch(
           />
         </v-card-text>
 
-        <v-card-actions
-          v-if="pasoSolicitudPago === 'datos'"
-          class="px-6 pb-5"
-        >
+        <v-card-actions v-if="pasoSolicitudPago === 'datos'" class="px-6 pb-5">
           <v-spacer />
           <v-btn
             variant="outlined"
@@ -4171,35 +4513,53 @@ watch(
           </v-btn>
           <!-- nuevo: Generar PDF -> vista previa -> PDF de pago + solicitud enviada -->
           <v-btn
-            v-if="modoSolicitudPago === 'nuevo' && !pdfGeneradoEnModal && can('listControlGastos', 'NUEVO')"
+            v-if="
+              modoSolicitudPago === 'nuevo' &&
+              !pdfGeneradoEnModal &&
+              can('listControlGastos', 'NUEVO')
+            "
             color="primary"
             variant="flat"
             rounded="lg"
-            :prepend-icon="tienePdfPago ? 'mdi-file-document-remove' : 'mdi-file-pdf-box'"
+            :prepend-icon="
+              tienePdfPago ? 'mdi-file-document-remove' : 'mdi-file-pdf-box'
+            "
             :loading="cargandoPreviewPdfPago"
-            :disabled="!solicitudPagoValida || !conceptosSolicitudPago.length || guardandoSolicitudPago"
+            :disabled="
+              !solicitudPagoValida ||
+              !conceptosSolicitudPago.length ||
+              guardandoSolicitudPago
+            "
             @click="abrirPreviewPdfPago"
           >
             {{ tienePdfPago ? "Eliminar y Generar PDF" : "Generar PDF" }}
           </v-btn>
           <!-- editar (rechazada) o reintento del envío cuando el PDF ya se generó en este modal -->
           <v-btn
-            v-if="(modoSolicitudPago === 'editar' || pdfGeneradoEnModal) && can('listControlGastos', 'NUEVO')"
+            v-if="
+              (modoSolicitudPago === 'editar' || pdfGeneradoEnModal) &&
+              can('listControlGastos', 'NUEVO')
+            "
             color="primary"
             variant="flat"
             rounded="lg"
             prepend-icon="mdi-send"
             :loading="guardandoSolicitudPago"
-            :disabled="!tienePdfPago || !solicitudPagoValida || !conceptosSolicitudPago.length"
+            :disabled="
+              !tienePdfPago ||
+              !solicitudPagoValida ||
+              !conceptosSolicitudPago.length
+            "
             @click="registrarSolicitudPago()"
           >
-            {{ modoSolicitudPago === "editar" ? "Reenviar solicitud" : "Enviar a Administración" }}
+            {{
+              modoSolicitudPago === "editar"
+                ? "Reenviar solicitud"
+                : "Enviar a Administración"
+            }}
           </v-btn>
         </v-card-actions>
-        <v-card-actions
-          v-else
-          class="px-6 pb-5"
-        >
+        <v-card-actions v-else class="px-6 pb-5">
           <v-spacer />
           <v-btn
             variant="outlined"
@@ -4238,16 +4598,9 @@ watch(
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      width="80%"
-      v-model="dialogPayment"
-      :fullscreen="smAndDown"
-    >
+    <v-dialog width="80%" v-model="dialogPayment" :fullscreen="smAndDown">
       <v-card class="mx-auto">
-        <v-toolbar
-          color="cyan"
-          class="text-white"
-        >
+        <v-toolbar color="cyan" class="text-white">
           <v-toolbar-title>SOLICITUDES GENERADAS</v-toolbar-title>
 
           <v-spacer />
@@ -4262,22 +4615,12 @@ watch(
             hide-details
           />
         </v-card-title>
-        <v-container
-          v-if="!dataList"
-          style="height: 400px"
-        >
+        <v-container v-if="!dataList" style="height: 400px">
           <v-row class="fill-height align-content-center justify-center">
-            <v-col
-              class="text-body-large text-center"
-              cols="12"
-            >
+            <v-col class="text-body-large text-center" cols="12">
               Cargando informacíon
             </v-col>
-            <v-col
-              cols="12"
-              xl="6"
-              lg="6"
-            >
+            <v-col cols="12" xl="6" lg="6">
               <v-progress-linear
                 color="deep-purple-accent-4"
                 indeterminate
@@ -4350,17 +4693,9 @@ watch(
       :fullscreen="smAndDown"
     >
       <v-card>
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Registrar División de Pagos <v-spacer />
-          <v-btn
-            variant="text"
-            icon
-            color="default"
-            @click="cerrarModal()"
-          >
+          <v-btn variant="text" icon color="default" @click="cerrarModal()">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -4378,11 +4713,7 @@ watch(
                   :rules="[(v) => !!v || 'Dato Requerido']"
                 />
               </v-col>
-              <v-col
-                cols="6"
-                v-for="n in Number(appStore.nro_cuotas)"
-                :key="n"
-              >
+              <v-col cols="6" v-for="n in Number(appStore.nro_cuotas)" :key="n">
                 <v-row>
                   <v-col cols="4">
                     <v-text-field
@@ -4616,11 +4947,7 @@ watch(
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="dialogCambiarExp"
-      persistent
-      max-width="500px"
-    >
+    <v-dialog v-model="dialogCambiarExp" persistent max-width="500px">
       <v-card>
         <v-card-title class="text-headline-medium bg-grey-lighten-2">
           Mover {{ egreso.nombre_proveedor ? egreso.nombre_proveedor : null }}
@@ -4660,12 +4987,11 @@ watch(
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <v-dialog
-      v-model="dialogCambiarExpediente"
-      max-width="500"
-    >
+    <v-dialog v-model="dialogCambiarExpediente" max-width="500">
       <v-card>
-        <v-card-title class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap">
+        <v-card-title
+          class="text-headline-medium bg-grey-lighten-2 d-flex align-center flex-wrap"
+        >
           Cambiar expediente
           <v-spacer />
           <v-btn
@@ -4729,16 +5055,15 @@ watch(
     >
       <v-card class="cpp">
         <div class="cpp__head">
-          <v-icon
-            size="44"
-            color="error"
-          >
-            mdi-alert-outline
-          </v-icon>
+          <v-icon size="44" color="error"> mdi-alert-outline </v-icon>
           <span class="cpp__title">¿Pagar al proveedor?</span>
         </div>
         <div class="cpp__msg">
-          {{ confirmarPagoProveedor?.estado === "PARCIAL" ? "El cliente solo ha pagado una parte." : "El cliente aún no ha pagado." }}
+          {{
+            confirmarPagoProveedor?.estado === "PARCIAL"
+              ? "El cliente solo ha pagado una parte."
+              : "El cliente aún no ha pagado."
+          }}
         </div>
         <div class="cpp__actions">
           <v-btn
@@ -6002,12 +6327,23 @@ watch(
   color: #fff;
 }
 @keyframes solguia-pulso {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(30, 91, 216, 0.45); }
-  50% { box-shadow: 0 0 0 6px rgba(30, 91, 216, 0); }
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(30, 91, 216, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(30, 91, 216, 0);
+  }
 }
 @keyframes solguia-entrada {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .solguia,

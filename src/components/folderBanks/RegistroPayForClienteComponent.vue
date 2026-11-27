@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import "@/styles/bank-form.css";
-import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onMounted,
+  ref,
+  useTemplateRef,
+  watch,
+} from "vue";
 import { useRouter } from "vue-router";
 import { useSelectModel } from "@/composables/useSelectModel";
 import { useAppStore } from "@/stores/app";
@@ -15,9 +22,16 @@ import type {
   FacturaPorCobrar,
   OperacionSimilar,
 } from "@/types/banks";
-import type { SolicitudCobroActiva, SolicitudCobroTransferencia } from "@/types/solicitudCobro";
+import type {
+  SolicitudCobroActiva,
+  SolicitudCobroTransferencia,
+} from "@/types/solicitudCobro";
 import { request } from "@/utils/request";
-import { askAdminEdicionBancos, type EdicionBancos } from "@/utils/adminCredentials";
+import {
+  askAdminEdicionBancos,
+  type EdicionBancos,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import { sessionSucursal } from "@/utils/sesion";
 
 // token: Nuevo ingreso desde una Solicitud de Cobro confirmada (Ingresos pendientes por confirmar).
@@ -39,25 +53,38 @@ const desdeSolicitud = computed(() => !!props.token);
 // habilita Abono Parcial, el monto (máximo: la deuda del expediente) y el monto depositado
 // (la cuenta sigue siendo la del depósito del cliente)
 const edicionBancos = ref<EdicionBancos | null>(null);
-const bloqueadoSolicitud = computed(() => !!solicitud.value && !edicionBancos.value);
+const bloqueadoSolicitud = computed(
+  () => !!solicitud.value && !edicionBancos.value
+);
 async function editarSolicitudBancos() {
-  const edicion = await askAdminEdicionBancos("Para pasar a Abono Parcial o cambiar el monto de la solicitud de cobro se necesita la clave de un administrador.");
+  const edicion = await askAdminEdicionBancos(
+    "Para pasar a Abono Parcial o cambiar el monto de la solicitud de cobro se necesita la clave de un administrador.",
+    PERMISOS_AUTORIZA.registroCobroEditar
+  );
   if (edicion) edicionBancos.value = edicion;
 }
 // Sin token: correlativos del cliente con solicitud de cobro activa (se cobran solo con el token)
 const solicitudesActivas = ref<SolicitudCobroActiva[]>([]);
-function solicitudActivaDe(item: FacturaPorCobrar & { id_correlativo?: number | null }) {
+function solicitudActivaDe(
+  item: FacturaPorCobrar & { id_correlativo?: number | null }
+) {
   if (solicitud.value || item.admin_invoice_id) return undefined;
   return solicitudesActivas.value.find(
-    (s) => s.id_house === item.registro_id && String(s.id_correlativo ?? "") === String(item.id_correlativo ?? ""),
+    (s) =>
+      s.id_house === item.registro_id &&
+      String(s.id_correlativo ?? "") === String(item.id_correlativo ?? "")
   );
 }
 function avisarSolicitudActiva(s: SolicitudCobroActiva) {
   Swal.fire({
     icon: "warning",
     title: "Tiene una solicitud de cobro",
-    html: `El expediente <b>${s.expediente}</b>${s.correlativo ? ` (correlativo <b>${s.correlativo}</b>)` : ""} tiene la solicitud de cobro
-      (${s.estado}).<br><br>Regístrala desde <b>Ingresos pendientes por confirmar</b> o elimina la solicitud.`,
+    html: `El expediente <b>${s.expediente}</b>${
+      s.correlativo ? ` (correlativo <b>${s.correlativo}</b>)` : ""
+    } tiene la solicitud de cobro
+      (${
+        s.estado
+      }).<br><br>Regístrala desde <b>Ingresos pendientes por confirmar</b> o elimina la solicitud.`,
   });
 }
 async function cargarSolicitudesActivas() {
@@ -73,9 +100,12 @@ async function cargarSolicitudesActivas() {
 
 const validacionDatosPrincipales = useTemplateRef("validacionDatosPrincipales");
 //  opciones: () => import("@/components/comun/opcionesRegistro.vue"),
-const FormatFecha = defineAsyncComponent(() => import("../comun/FormatFecha.vue"));
-const ArrastraYSolarComponent = defineAsyncComponent(() =>
-  import("../comun/ArrastraYSolarComponent.vue"));
+const FormatFecha = defineAsyncComponent(
+  () => import("../comun/FormatFecha.vue")
+);
+const ArrastraYSolarComponent = defineAsyncComponent(
+  () => import("../comun/ArrastraYSolarComponent.vue")
+);
 
 const dialogLlenarMontoDepositadoBanco = ref(false);
 const esDuplicado = ref(false);
@@ -96,7 +126,10 @@ const cliente = ref<number | null>(null);
 const router = useRouter();
 function verDatosCliente() {
   if (!cliente.value) return;
-  window.open(router.resolve({ name: "verCliente", params: { id: cliente.value } }).href, "_blank");
+  window.open(
+    router.resolve({ name: "verCliente", params: { id: cliente.value } }).href,
+    "_blank"
+  );
 }
 const symbol = ref("USD");
 const id_cuenta = ref<CuentaIngreso>({} as CuentaIngreso);
@@ -219,14 +252,18 @@ const tipocambio = computed(() => {
   return Number(tc.toFixed(4));
 });
 const itemsOrdenados = computed(() => {
-  let items = [...bankStore.deudaACliente] as unknown as (FacturaPorCobrar & { id_correlativo?: number | null })[];
+  let items = [...bankStore.deudaACliente] as unknown as (FacturaPorCobrar & {
+    id_correlativo?: number | null;
+  })[];
   const sol = solicitud.value;
   if (sol) {
     // solicitud del Reporte de Cuentas por Cobrar: todos los house / correlativos amarrados
     items = items.filter((i) =>
       sol.multiexpedienteflag
         ? !!expedienteSolicitud(i)
-        : !i.admin_invoice_id && i.registro_id === sol.id_house && String(i.id_correlativo ?? "") === String(sol.id_correlativo ?? ""),
+        : !i.admin_invoice_id &&
+          i.registro_id === sol.id_house &&
+          String(i.id_correlativo ?? "") === String(sol.id_correlativo ?? "")
     );
   }
   return items.sort((a, b) => {
@@ -269,22 +306,29 @@ function checkDeshabilitado(item: FacturaPorCobrar) {
   return item.editaflag === false || !!solicitudActivaDe(item);
 }
 // "1,465.68" o 1465.68 -> 1465.68
-const aNumero = (valor: unknown) => Math.round(Number(String(valor ?? 0).replace(/,/g, "")) * 100) / 100 || 0;
+const aNumero = (valor: unknown) =>
+  Math.round(Number(String(valor ?? 0).replace(/,/g, "")) * 100) / 100 || 0;
 // Desde una solicitud de cobro se cobra el monto del pago del cliente: si es menor que la deuda del
 // correlativo, es un Abono Parcial por ese monto (no el total)
 // solicitud del Reporte: el expediente amarrado de esa fila (con su monto solicitado)
-function expedienteSolicitud(item: FacturaPorCobrar & { id_correlativo?: number | null }) {
+function expedienteSolicitud(
+  item: FacturaPorCobrar & { id_correlativo?: number | null }
+) {
   const sol = solicitud.value;
   if (!sol?.multiexpedienteflag || item.admin_invoice_id) return undefined;
   return (sol.expedientes ?? []).find(
-    (e) => Number(e.id_house) === Number(item.registro_id) && Number(e.id_correlativo ?? 0) === Number(item.id_correlativo ?? 0),
+    (e) =>
+      Number(e.id_house) === Number(item.registro_id) &&
+      Number(e.id_correlativo ?? 0) === Number(item.id_correlativo ?? 0)
   );
 }
 // monto a cobrar de la fila: el del pago del cliente o, en la solicitud del Reporte, el de su expediente
 function montoSolicitudDe(item: FacturaPorCobrar): number {
   const sol = solicitud.value;
   if (!sol) return 0;
-  return sol.multiexpedienteflag ? aNumero(expedienteSolicitud(item)?.monto) : aNumero(sol.monto);
+  return sol.multiexpedienteflag
+    ? aNumero(expedienteSolicitud(item)?.monto)
+    : aNumero(sol.monto);
 }
 function aplicarMontoSolicitud(item: FacturaPorCobrar): boolean {
   const sol = solicitud.value;
@@ -297,7 +341,13 @@ function aplicarMontoSolicitud(item: FacturaPorCobrar): boolean {
   item.montoparcial = parcial ? montoPago.toFixed(2) : item.total_mon_local;
   return true;
 }
-async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: boolean }) {
+async function onItemSelected({
+  item,
+  value,
+}: {
+  item: FacturaPorCobrar;
+  value: boolean;
+}) {
   // Si está intentando seleccionar
   if (value) {
     // con solicitud de cobro activa solo se cobra desde Ingresos pendientes por confirmar
@@ -349,10 +399,18 @@ async function onItemSelected({ item, value }: { item: FacturaPorCobrar; value: 
 
   calcularTotal();
 }
-function onSelectAll({ items, value }: { items: FacturaPorCobrar[]; value: boolean }) {
+function onSelectAll({
+  items,
+  value,
+}: {
+  items: FacturaPorCobrar[];
+  value: boolean;
+}) {
   const bloqueadas = items.filter((i) => solicitudActivaDe(i));
   if (value && bloqueadas.length) {
-    selected.value = selected.value.filter((i) => !bloqueadas.some((b) => b.id === i.id));
+    selected.value = selected.value.filter(
+      (i) => !bloqueadas.some((b) => b.id === i.id)
+    );
     avisarSolicitudActiva(solicitudActivaDe(bloqueadas[0]!)!);
   }
   items.forEach((item) => {
@@ -416,7 +474,10 @@ async function obtenerListado() {
     appStore.spiner = true;
 
     try {
-      await Promise.all([bankStore.getDeudaDeClientePorSucursal(cliente.value), cargarSolicitudesActivas()]);
+      await Promise.all([
+        bankStore.getDeudaDeClientePorSucursal(cliente.value),
+        cargarSolicitudesActivas(),
+      ]);
     } finally {
       appStore.spiner = false;
     }
@@ -551,19 +612,23 @@ function continuarGastoBancario() {
 async function finalizarOperacion() {
   // editada en Bancos: ningún monto supera la deuda del expediente
   const excedido = edicionBancos.value
-    ? selected.value.find((i) => aNumero(i.montoparcial) > aNumero(i.total_mon_local) + 0.004 || aNumero(i.montoparcial) <= 0)
+    ? selected.value.find(
+        (i) =>
+          aNumero(i.montoparcial) > aNumero(i.total_mon_local) + 0.004 ||
+          aNumero(i.montoparcial) <= 0
+      )
     : undefined;
   if (excedido) {
     Swal.fire({
       icon: "warning",
       title: "Monto no válido",
-      html: `El monto debe ser mayor a 0 y no puede superar la deuda del expediente: <b>${excedido.symbol} ${aNumero(excedido.total_mon_local).toFixed(2)}</b>.`,
+      html: `El monto debe ser mayor a 0 y no puede superar la deuda del expediente: <b>${
+        excedido.symbol
+      } ${aNumero(excedido.total_mon_local).toFixed(2)}</b>.`,
     });
     return;
   }
-  if (
-    Number(totalGeneralAbonadoMonLocal.value) !== Number(monto_local.value)
-  ) {
+  if (Number(totalGeneralAbonadoMonLocal.value) !== Number(monto_local.value)) {
     Swal.fire({
       icon: "warning",
       title: "Discrepancia en los Montos",
@@ -575,15 +640,15 @@ async function finalizarOperacion() {
                 <div style="flex: 1; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px;">
                     <span style="display: block; font-size: 11px; color: #adb5bd; text-transform: uppercase; font-weight: bold;">Registrado en Banco</span>
                     <span style="font-size: 15px; font-weight: bold; color: #495057;">${
-                  symbol.value
-                } ${Number(monto_local.value).toFixed(2)}</span>
+                      symbol.value
+                    } ${Number(monto_local.value).toFixed(2)}</span>
                 </div>
                 <div style="flex: 1; background: #fff5f5; border: 1px solid #ffe3e3; border-radius: 8px; padding: 12px;">
                     <span style="display: block; font-size: 11px; color: #e03131; text-transform: uppercase; font-weight: bold;">Total a Pagar</span>
                     <span style="font-size: 15px; font-weight: bold; color: #c92a2a;">${
-                  symbol.value
-                } ${Number(totalGeneralAbonadoMonLocal.value).toFixed(
-        2,
+                      symbol.value
+                    } ${Number(totalGeneralAbonadoMonLocal.value).toFixed(
+        2
       )}</span>
                 </div>
             </div>
@@ -619,7 +684,12 @@ async function finalizarOperacion() {
     await bankStore.setRegistroIngresosSolicitud({
       ...data,
       token: props.token,
-      ...(edicionBancos.value ? { motivo_edicion: edicionBancos.value.motivo, autorizacion: edicionBancos.value.admin } : {}),
+      ...(edicionBancos.value
+        ? {
+            motivo_edicion: edicionBancos.value.motivo,
+            autorizacion: edicionBancos.value.admin,
+          }
+        : {}),
     });
   } else {
     await bankStore.setRegistroIgresos(data);
@@ -676,7 +746,7 @@ function buscarOperacionAlEscribir() {
     }
     // CAMBIO CLAVE: Evaluamos toda la lista. Si CUALQUIERA es duplicado exacto, bloqueamos.
     esDuplicado.value = operacionesSimilares.value.some(
-      (op) => op.es_duplicado_exacto === true,
+      (op) => op.es_duplicado_exacto === true
     );
 
     // Opcional: Si es duplicado, inyectamos el error directamente en el v-text-field
@@ -686,7 +756,7 @@ function buscarOperacionAlEscribir() {
 
     console.log(
       "Operaciones similares encontradas:",
-      operacionesSimilares.value,
+      operacionesSimilares.value
     );
   }, 300);
 }
@@ -701,7 +771,7 @@ watch(id_cuenta, (newVal, oldVal) => {
     }
     const id_coins = newVal.id_coins;
     const coins = appStore.itemsCoinsList.find(
-      (coin: { id: number }) => coin.id === id_coins,
+      (coin: { id: number }) => coin.id === id_coins
     );
     symbol.value = coins ? coins.symbol : "USD";
 
@@ -721,27 +791,43 @@ watch(fecha_operacion, (newVal) => {
     errorMesage.value.fecha_operacion = "Fecha de Operación es requerida";
   }
 });
-watch(selected, () => {
-  // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente (salvo editada en Bancos)
-  if (solicitud.value && !edicionBancos.value) {
-    selected.value.forEach((item) => {
-      const montoPago = montoSolicitudDe(item);
-      const parcial = montoPago > 0 && montoPago < aNumero(item.total_mon_local);
-      if (item.parcialflag !== parcial || (parcial && aNumero(item.montoparcial) !== montoPago)) aplicarMontoSolicitud(item);
-    });
+watch(
+  selected,
+  () => {
+    // desde una solicitud de cobro la fila siempre va por el monto del pago del cliente (salvo editada en Bancos)
+    if (solicitud.value && !edicionBancos.value) {
+      selected.value.forEach((item) => {
+        const montoPago = montoSolicitudDe(item);
+        const parcial =
+          montoPago > 0 && montoPago < aNumero(item.total_mon_local);
+        if (
+          item.parcialflag !== parcial ||
+          (parcial && aNumero(item.montoparcial) !== montoPago)
+        )
+          aplicarMontoSolicitud(item);
+      });
+    }
+    calcularTotal();
+  },
+  {
+    deep: true, // Esto detecta cambios en las propiedades internas de los items
   }
-  calcularTotal();
-}, {
-  deep: true, // Esto detecta cambios en las propiedades internas de los items
-});
+);
 
 // cobro con excedente (el cliente pagó más que la deuda): la diferencia va como gasto bancario,
 // así el detalle + gasto suma lo depositado. Se llena solo y no se edita.
 const CONCEPTO_EXCEDENTE = "EXCEDENTE DEL CLIENTE";
 const excedenteSolicitud = computed(() => {
-  if (!solicitud.value || !selected.value.length || edicionBancos.value) return 0;
-  const detalle = selected.value.reduce((acc, item) => acc + aNumero(item.montoparcial), 0);
-  return Math.max(Math.round((aNumero(solicitud.value.monto) - detalle) * 100) / 100, 0);
+  if (!solicitud.value || !selected.value.length || edicionBancos.value)
+    return 0;
+  const detalle = selected.value.reduce(
+    (acc, item) => acc + aNumero(item.montoparcial),
+    0
+  );
+  return Math.max(
+    Math.round((aNumero(solicitud.value.monto) - detalle) * 100) / 100,
+    0
+  );
 });
 watch(excedenteSolicitud, (excedente, anterior) => {
   if (excedente > 0) {
@@ -749,14 +835,17 @@ watch(excedenteSolicitud, (excedente, anterior) => {
     conceptogastobancario.value = CONCEPTO_EXCEDENTE;
   } else if (anterior && anterior > 0) {
     montogastobancario.value = 0;
-    if (conceptogastobancario.value === CONCEPTO_EXCEDENTE) conceptogastobancario.value = "";
+    if (conceptogastobancario.value === CONCEPTO_EXCEDENTE)
+      conceptogastobancario.value = "";
   }
 });
 
 // "Banco y cuenta de destino (EMPRESA)": la sucursal en sesión
 const nombreEmpresa = computed(() => {
   try {
-    return (sessionSucursal().trade_name || "").toUpperCase() || "NUESTRA EMPRESA";
+    return (
+      (sessionSucursal().trade_name || "").toUpperCase() || "NUESTRA EMPRESA"
+    );
   } catch {
     return "NUESTRA EMPRESA";
   }
@@ -774,18 +863,25 @@ async function cargarSolicitud() {
   const sol = response.estadoflag ? response.data[0] : undefined;
   if (!sol) {
     errorSolicitud.value = true;
-    Swal.fire({ icon: "warning", text: response.mensaje || "No se pudo cargar la solicitud de cobro." });
+    Swal.fire({
+      icon: "warning",
+      text: response.mensaje || "No se pudo cargar la solicitud de cobro.",
+    });
     return;
   }
   solicitud.value = sol;
   appStore.mainTitle = "BANCOS - NUEVO INGRESO (SOLICITUD DE COBRO)";
   cliente.value = sol.id_cliente;
   await obtenerListado();
-  const cuenta = bancosStore.cuentas.find((c) => c.id === sol.id_cuentabancaria);
+  const cuenta = bancosStore.cuentas.find(
+    (c) => c.id === sol.id_cuentabancaria
+  );
   if (cuenta) id_cuenta.value = { ...cuenta } as CuentaIngreso;
   // el correlativo de la solicitud, por el monto de este pago del cliente (puede ser un abono parcial)
   // solicitud del Reporte: todos los expedientes amarrados, cada uno por su monto
-  const filas = sol.multiexpedienteflag ? [...itemsOrdenados.value] : itemsOrdenados.value.slice(0, 1);
+  const filas = sol.multiexpedienteflag
+    ? [...itemsOrdenados.value]
+    : itemsOrdenados.value.slice(0, 1);
   filas.forEach((f) => aplicarMontoSolicitud(f));
   if (filas.length) selected.value = filas;
   // la fecha de ingreso en banco que confirmó Administración (no la del soporte del cliente)
@@ -794,7 +890,9 @@ async function cargarSolicitud() {
   // "No aplica" en la solicitud: llega vacío y se escribe aquí (obligatorio en Bancos)
   nro_operacion.value = sol.numerooperacion ?? "";
   id_path.value = sol.id_path_voucher;
-  comentarios.value = ["Solicitud de cobro", sol.comentario].filter(Boolean).join(" - ");
+  comentarios.value = ["Solicitud de cobro", sol.comentario]
+    .filter(Boolean)
+    .join(" - ");
   calcularTotal();
 }
 
@@ -820,14 +918,11 @@ onMounted(async () => {
         variant="tonal"
         density="compact"
       >
-        No se pudo cargar la solicitud de cobro. Vuelve a <b>Ingresos pendientes por confirmar</b> y presiona Registrar en Bancos.
+        No se pudo cargar la solicitud de cobro. Vuelve a
+        <b>Ingresos pendientes por confirmar</b> y presiona Registrar en Bancos.
       </v-alert>
       <v-row v-if="!desdeSolicitud || (solicitud && !errorSolicitud)">
-        <v-col
-          cols="12"
-          md="4"
-          class="pb-0"
-        >
+        <v-col cols="12" md="4" class="pb-0">
           <div class="d-flex align-center">
             <v-autocomplete
               label="Cliente"
@@ -877,16 +972,11 @@ onMounted(async () => {
               monto_local
                 ? (errorMesage.monto_local = '')
                 : (errorMesage.monto_local =
-                  'Monto de Depósito en banco es requerido')
+                    'Monto de Depósito en banco es requerido')
             "
           />
         </v-col>
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-          v-if="mostrarTipoCambio"
-        >
+        <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           <v-text-field
             variant="outlined"
             density="compact"
@@ -915,12 +1005,7 @@ onMounted(async () => {
           />
         </v-col>
         <!--  -->
-        <v-col
-          cols="12"
-          md="2"
-          class="pb-0"
-          v-if="mostrarTipoCambio"
-        >
+        <v-col cols="12" md="2" class="pb-0" v-if="mostrarTipoCambio">
           <v-text-field
             label="Tipo Cambio"
             variant="outlined"
@@ -933,11 +1018,7 @@ onMounted(async () => {
           />
         </v-col>
 
-        <v-col
-          cols="12"
-          v-if="cliente"
-          class="pt-0"
-        >
+        <v-col cols="12" v-if="cliente" class="pt-0">
           <v-tabs
             v-model="pasos"
             align-tabs="center"
@@ -946,30 +1027,18 @@ onMounted(async () => {
             slider-color="#2e7d32"
             class="ing-tabs"
           >
-            <v-tab key="detallesPago">
-              Facturas
-            </v-tab>
-            <v-tab
-              key="datosPrincipales"
-              :disabled="!editable"
-            >
+            <v-tab key="detallesPago"> Facturas </v-tab>
+            <v-tab key="datosPrincipales" :disabled="!editable">
               Detalles Bancarios
             </v-tab>
-            <v-tab
-              key="gastoBancario"
-              :disabled="!editableGastoBancario"
-            >
+            <v-tab key="gastoBancario" :disabled="!editableGastoBancario">
               Resumen y Comisión Bancario
             </v-tab>
           </v-tabs>
           <v-tabs-window v-model="pasos">
             <v-tabs-window-item key="detallesPago">
               <v-row class="mt-2">
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-autocomplete
                     :items="bancosStore.cuentas"
                     item-title="label"
@@ -987,11 +1056,7 @@ onMounted(async () => {
                     ]"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  class="py-1"
-                >
+                <v-col cols="12" md="6" class="py-1">
                   <v-text-field
                     label="Buscar"
                     v-model="searchTableDetalle"
@@ -1001,18 +1066,14 @@ onMounted(async () => {
                     density="compact"
                     v-if="
                       id_cuenta &&
-                        Object.keys(id_cuenta).length > 0 &&
-                        !!id_cuenta.id
+                      Object.keys(id_cuenta).length > 0 &&
+                      !!id_cuenta.id
                     "
                   />
                 </v-col>
               </v-row>
               <v-row class="mt-1">
-                <v-col
-                  cols="12"
-                  class="pt-0"
-                  v-if="mostrarDetalle"
-                >
+                <v-col cols="12" class="pt-0" v-if="mostrarDetalle">
                   <div class="d-flex justify-center">
                     <v-alert
                       class="mt-0"
@@ -1038,7 +1099,9 @@ onMounted(async () => {
                       icon="mdi-pencil"
                       class="edicion-bancos__nota"
                     >
-                      <b>Editado en Bancos</b> (autorizó {{ edicionBancos.admin.usuario }}): {{ edicionBancos.motivo }}
+                      <b>Editado en Bancos</b> (autorizó
+                      {{ edicionBancos.admin.usuario }}):
+                      {{ edicionBancos.motivo }}
                     </v-alert>
                   </div>
                   <!-- @vue-expect-error the current-items handler parameter has no type -->
@@ -1100,10 +1163,7 @@ onMounted(async () => {
                         class="bg-grey-lighten-4 font-weight-bold"
                         v-if="symbol !== 'USD'"
                       >
-                        <td
-                          :colspan="headers.length"
-                          class="text-right"
-                        >
+                        <td :colspan="headers.length" class="text-right">
                           Total General Seleccionado {{ symbol }}:
                         </td>
                         <td class="text-left">
@@ -1112,15 +1172,10 @@ onMounted(async () => {
                         </td>
                       </tr>
                       <tr class="bg-grey-lighten-4 font-weight-bold">
-                        <td
-                          :colspan="headers.length"
-                          class="text-right"
-                        >
+                        <td :colspan="headers.length" class="text-right">
                           Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          USD {{ totalGeneralAbonado }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template #[`item.action`]="{ item }">
@@ -1147,10 +1202,7 @@ onMounted(async () => {
                         Solicitud de cobro
                       </v-chip>
                       <!-- desde una solicitud: lápiz para editar (clave de administrador + motivo del error) -->
-                      <div
-                        v-else
-                        class="d-flex flex-nowrap align-center ga-1"
-                      >
+                      <div v-else class="d-flex flex-nowrap align-center ga-1">
                         <v-btn
                           v-if="!!solicitud && !edicionBancos"
                           size="small"
@@ -1170,7 +1222,9 @@ onMounted(async () => {
                           v-model="item.parcialflag"
                           density="compact"
                           variant="outlined"
-                          :disabled="!selected.includes(item) || bloqueadoSolicitud"
+                          :disabled="
+                            !selected.includes(item) || bloqueadoSolicitud
+                          "
                           hide-details
                           @update:model-value="verificarMontoCompleto(item)"
                           style="min-width: 175px; width: max-content"
@@ -1228,7 +1282,7 @@ onMounted(async () => {
                       <span
                         v-if="
                           selected.some(
-                            (s) => s.registro_id === item.registro_id,
+                            (s) => s.registro_id === item.registro_id
                           )
                         "
                       >
@@ -1239,7 +1293,7 @@ onMounted(async () => {
                             item.total_mon_local -
                               (item.montoparcial
                                 ? item.montoparcial
-                                : item.total_mon_local),
+                                : item.total_mon_local)
                           ).toFixed(2)
                         }}
                       </span>
@@ -1247,10 +1301,7 @@ onMounted(async () => {
                     </template>
                   </v-data-table>
                 </v-col>
-                <v-col
-                  cols="12"
-                  class="pt-1 ing-actions"
-                >
+                <v-col cols="12" class="pt-1 ing-actions">
                   <v-btn
                     class="ing-btn ing-btn--ok"
                     variant="flat"
@@ -1271,21 +1322,24 @@ onMounted(async () => {
             <v-tabs-window-item key="datosPrincipales">
               <v-form ref="validacionDatosPrincipales">
                 <v-row class="bank-form">
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
+                  <v-col cols="12" md="6" class="py-1">
                     <section class="bank-card ing-card">
                       <div class="ing-card__head">
-                        <span class="ing-card__icon"><v-icon size="30">mdi-send-outline</v-icon></span>
+                        <span class="ing-card__icon"
+                          ><v-icon size="30">mdi-send-outline</v-icon></span
+                        >
                         <div>
                           <h3>BANCO DE ORIGEN (CLIENTE)</h3>
-                          <p>Desde dónde el cliente envía el dinero (su banco).</p>
+                          <p>
+                            Desde dónde el cliente envía el dinero (su banco).
+                          </p>
                         </div>
                       </div>
                       <div class="bank-card__body">
-                        <label class="ing-label">Banco del cliente (Origen) <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >Banco del cliente (Origen)
+                          <span class="ing-req">*</span></label
+                        >
                         <v-autocomplete
                           :items="appStore.itemsDataBanksList"
                           v-model="id_banco_origen"
@@ -1297,16 +1351,24 @@ onMounted(async () => {
                           density="compact"
                           :rules="[(v) => !!v || 'Dato Requerido']"
                         />
-                        <label class="ing-label">Fecha de operación (Transferencia) <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >Fecha de operación (Transferencia)
+                          <span class="ing-req">*</span></label
+                        >
                         <FormatFecha
                           outlined
                           dense
                           label=""
                           v-model="fecha_operacion"
                           :verflag="!!solicitud && !!solicitud.fechadeposito"
-                          :rules="[(v) => !!fecha_operacion || 'Dato Requerido']"
+                          :rules="[
+                            (v) => !!fecha_operacion || 'Dato Requerido',
+                          ]"
                         />
-                        <label class="ing-label">Número de operación / Código de transferencia <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >Número de operación / Código de transferencia
+                          <span class="ing-req">*</span></label
+                        >
                         <v-text-field
                           aria-label="Número de operación / Código de transferencia"
                           variant="outlined"
@@ -1317,11 +1379,11 @@ onMounted(async () => {
                           @update:model-value="
                             nro_operacion !== ''
                               ? ((errorMesage.nro_operacion = null),
-                                 buscarOperacionAlEscribir())
+                                buscarOperacionAlEscribir())
                               : ((errorMesage.nro_operacion =
-                                   'Número de Operación es requerido'),
-                                 (operacionesSimilares = []),
-                                 (esDuplicado = false))
+                                  'Número de Operación es requerido'),
+                                (operacionesSimilares = []),
+                                (esDuplicado = false))
                           "
                         />
 
@@ -1338,10 +1400,7 @@ onMounted(async () => {
                             ⚠️ Ya existe un registro con este número exacto.
                           </p>
 
-                          <div
-                            v-else
-                            class="pl-2"
-                          >
+                          <div v-else class="pl-2">
                             <div class="d-flex flex-wrap gap-1 mt-1">
                               <v-chip
                                 v-for="(item, index) in operacionesSimilares"
@@ -1358,21 +1417,26 @@ onMounted(async () => {
                       </div>
                     </section>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                    class="py-1"
-                  >
+                  <v-col cols="12" md="6" class="py-1">
                     <section class="bank-card ing-card">
                       <div class="ing-card__head">
-                        <span class="ing-card__icon"><v-icon size="30">mdi-bank-outline</v-icon></span>
+                        <span class="ing-card__icon"
+                          ><v-icon size="30">mdi-bank-outline</v-icon></span
+                        >
                         <div>
-                          <h3>BANCO Y CUENTA DE DESTINO ({{ nombreEmpresa }})</h3>
-                          <p>Donde nosotros recibimos el dinero (nuestra cuenta).</p>
+                          <h3>
+                            BANCO Y CUENTA DE DESTINO ({{ nombreEmpresa }})
+                          </h3>
+                          <p>
+                            Donde nosotros recibimos el dinero (nuestra cuenta).
+                          </p>
                         </div>
                       </div>
                       <div class="bank-card__body">
-                        <label class="ing-label">Cuenta de destino (nuestra cuenta) <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >Cuenta de destino (nuestra cuenta)
+                          <span class="ing-req">*</span></label
+                        >
                         <v-autocomplete
                           :items="bancosStore.cuentas"
                           item-title="label"
@@ -1389,7 +1453,9 @@ onMounted(async () => {
                               'Dato Requerido',
                           ]"
                         />
-                        <label class="ing-label">Banco (destino) <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >Banco (destino) <span class="ing-req">*</span></label
+                        >
                         <v-text-field
                           readonly
                           v-model="id_cuenta.banco"
@@ -1397,7 +1463,10 @@ onMounted(async () => {
                           variant="outlined"
                           density="compact"
                         />
-                        <label class="ing-label">N° de cuenta (destino) <span class="ing-req">*</span></label>
+                        <label class="ing-label"
+                          >N° de cuenta (destino)
+                          <span class="ing-req">*</span></label
+                        >
                         <v-text-field
                           readonly
                           v-model="id_cuenta.cuenta"
@@ -1408,14 +1477,9 @@ onMounted(async () => {
                       </div>
                     </section>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    class="py-1"
-                  >
+                  <v-col cols="12" class="py-1">
                     <section class="bank-card ing-card">
-                      <h3 class="ing-card__simple">
-                        Comentarios
-                      </h3>
+                      <h3 class="ing-card__simple">Comentarios</h3>
                       <div class="bank-card__body bank-card__row">
                         <v-textarea
                           label="Comentario del Departamento Operativo"
@@ -1439,10 +1503,7 @@ onMounted(async () => {
                       </div>
                     </section>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    class="py-1 bank-drop"
-                  >
+                  <v-col cols="12" class="py-1 bank-drop">
                     <ArrastraYSolarComponent
                       v-if="solicitud"
                       :initial-url="solicitud.voucher_path || undefined"
@@ -1458,10 +1519,7 @@ onMounted(async () => {
                       ]"
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    class="ing-actions"
-                  >
+                  <v-col cols="12" class="ing-actions">
                     <v-btn
                       class="ing-btn ing-btn--cancel"
                       variant="outlined"
@@ -1513,9 +1571,7 @@ onMounted(async () => {
                         >
                           Total General Seleccionado (USD):
                         </td>
-                        <td class="text-left">
-                          USD {{ totalGeneralAbonado }}
-                        </td>
+                        <td class="text-left">USD {{ totalGeneralAbonado }}</td>
                       </tr>
                     </template>
                     <template #[`item.parcialflag`]="{ item }">
@@ -1537,17 +1593,14 @@ onMounted(async () => {
                           item.total_mon_local -
                             (item.montoparcial
                               ? item.montoparcial
-                              : item.total_mon_local),
+                              : item.total_mon_local)
                         ).toFixed(2)
                       }}
                     </template>
                   </v-data-table>
                 </v-col>
 
-                <v-col
-                  cols="2"
-                  offset="7"
-                >
+                <v-col cols="2" offset="7">
                   <v-text-field
                     variant="outlined"
                     density="compact"
@@ -1567,14 +1620,15 @@ onMounted(async () => {
                     :prefix="symbol"
                     v-model="montogastobancario"
                     :readonly="excedenteSolicitud > 0"
-                    :hint="excedenteSolicitud > 0 ? 'Excedente pagado por el cliente' : undefined"
+                    :hint="
+                      excedenteSolicitud > 0
+                        ? 'Excedente pagado por el cliente'
+                        : undefined
+                    "
                     :persistent-hint="excedenteSolicitud > 0"
                   />
                 </v-col>
-                <v-col
-                  cols="3"
-                  offset="9"
-                >
+                <v-col cols="3" offset="9">
                   <v-text-field
                     variant="outlined"
                     density="compact"
@@ -1585,10 +1639,7 @@ onMounted(async () => {
                     v-model="totalGeneralAbonadoMonLocal"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  class="ing-actions"
-                >
+                <v-col cols="12" class="ing-actions">
                   <v-btn
                     class="ing-btn ing-btn--ok"
                     variant="flat"
@@ -1613,12 +1664,8 @@ onMounted(async () => {
     >
       <v-card class="pa-2">
         <v-card-title class="text-headline-medium pb-2">
-          <v-icon
-            start
-            color="primary"
-          >
-            mdi-hand-coin
-          </v-icon> Confirmar Depósito
+          <v-icon start color="primary"> mdi-hand-coin </v-icon> Confirmar
+          Depósito
         </v-card-title>
 
         <v-card-text class="pt-2">
@@ -1630,11 +1677,7 @@ onMounted(async () => {
             class="bg-amber-lighten-5 mb-4 rounded-lg"
           >
             <template #prepend>
-              <v-icon
-                size="36"
-                color="amber-darken-2"
-                class="mr-3"
-              >
+              <v-icon size="36" color="amber-darken-2" class="mr-3">
                 mdi-alert
               </v-icon>
             </template>
@@ -1666,19 +1709,10 @@ onMounted(async () => {
 
         <v-card-actions class="pa-4 pt-0">
           <v-spacer />
-          <v-btn
-            color="error"
-            @click="cancelarllenadoDeMonto()"
-            variant="text"
-          >
+          <v-btn color="error" @click="cancelarllenadoDeMonto()" variant="text">
             Cancelar
           </v-btn>
-          <v-btn
-            color="primary"
-            @click="confirmarDeposito"
-          >
-            CONTINUAR
-          </v-btn>
+          <v-btn color="primary" @click="confirmarDeposito"> CONTINUAR </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

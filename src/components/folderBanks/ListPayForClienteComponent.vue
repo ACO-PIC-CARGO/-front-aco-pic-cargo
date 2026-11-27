@@ -12,7 +12,11 @@ import { useBalancesStore } from "@/stores/balances";
 import { useBankStore } from "@/stores/bank";
 import { useIngresosStore } from "@/stores/ingresos";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import type {
   CuentaDestinoCliente,
   DatoIngresoCliente,
@@ -31,7 +35,9 @@ const balancesStore = useBalancesStore();
 const ingresosStore = useIngresosStore();
 const adminAuthorization = useAdminAuthorizationStore();
 const formInvoice = ref<{ validate: () => Promise<{ valid: boolean }> }>();
-const registrosIngreso = computed(() => bankStore.list as unknown as RegistroIngreso[]);
+const registrosIngreso = computed(
+  () => bankStore.list as unknown as RegistroIngreso[]
+);
 let tiposubingresoFilter: TipoBalance[] | undefined;
 // Not defined anywhere, so calling it throws.
 const getListBanksDetailsCxC = undefined as unknown as () => Promise<void>;
@@ -154,9 +160,15 @@ function confirmarEliminar(pago: RegistroIngreso) {
 async function eliminar(pago: RegistroIngreso) {
   payfile.value = null;
   Ingreso.value.id_path = null;
-  const admin = await askAdminCredentials("Para eliminar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoIngresoEliminar
+  );
   if (!admin) return;
-  await bankStore.eliminarRegistroIngresos({ ...pago, ...withAuthorization(admin) });
+  await bankStore.eliminarRegistroIngresos({
+    ...pago,
+    ...withAuthorization(admin),
+  });
   await bankStore.getRegistroIngresos(filtro.value);
 }
 
@@ -197,7 +209,10 @@ function nuevo() {
 async function editar(item: RegistroIngreso) {
   payfile.value = null;
   Ingreso.value.id_path = null;
-  const admin = await askAdminCredentials("Para editar este pago, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para editar este pago, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.bancoIngresoEditar
+  );
   if (!admin) return;
   adminAuthorization.credentials = admin;
   router.push({
@@ -365,8 +380,8 @@ async function exportar() {
       link.setAttribute(
         "download",
         `Reporte Bancos - Ingresos ${moment().format(
-          "DD_MM_YYYY_h_mm_ss",
-        )} .xlsx`,
+          "DD_MM_YYYY_h_mm_ss"
+        )} .xlsx`
       );
       document.body.appendChild(link);
       link.click();
@@ -395,10 +410,9 @@ async function obtenerListado() {
 }
 function filtarSubIngreso() {
   if (!!filtro.value.tipoingreso) {
-    tiposubingresoFilter =
-      balancesStore.tiposubingreso.filter(
-        (v) => v.id_ingreso == filtro.value.tipoingreso,
-      );
+    tiposubingresoFilter = balancesStore.tiposubingreso.filter(
+      (v) => v.id_ingreso == filtro.value.tipoingreso
+    );
   } else {
     tiposubingresoFilter = balancesStore.tiposubingreso;
   }
@@ -412,9 +426,12 @@ async function ActualizarIngreso() {
   EditarIngresoFlag.value = false;
 }
 
-watch(() => filtro.value.tipoingreso, () => {
-  filtarSubIngreso();
-});
+watch(
+  () => filtro.value.tipoingreso,
+  () => {
+    filtarSubIngreso();
+  }
+);
 
 onMounted(async () => {
   usuario.value = sessionUser().usuario as string;
@@ -439,11 +456,8 @@ onMounted(async () => {
 
 <template>
   <v-card min-height="80vh">
-    <BarraFiltro
-      :filtro="filtro"
-      :cuentas="cuentas"
-    />
-    
+    <BarraFiltro :filtro="filtro" :cuentas="cuentas" />
+
     <v-card-title class="pt-0 d-flex align-center flex-wrap">
       <v-text-field
         class="mx-2"
@@ -464,9 +478,7 @@ onMounted(async () => {
         size="small"
         class="mx-1"
       >
-        NUEVO INGRESO <v-icon size="small">
-          mdi-plus
-        </v-icon>
+        NUEVO INGRESO <v-icon size="small"> mdi-plus </v-icon>
       </v-btn>
       <v-btn
         color="success"
@@ -476,9 +488,7 @@ onMounted(async () => {
         size="small"
         class="mx-1"
       >
-        EXCEL <v-icon size="small">
-          mdi-file-excel
-        </v-icon>
+        EXCEL <v-icon size="small"> mdi-file-excel </v-icon>
       </v-btn>
       <v-btn
         color="info"
@@ -486,9 +496,7 @@ onMounted(async () => {
         @click="dialogFiltro = !dialogFiltro"
         class="mx-1"
       >
-        Filtrar <v-icon size="small">
-          mdi-filter
-        </v-icon>
+        Filtrar <v-icon size="small"> mdi-filter </v-icon>
       </v-btn>
       <v-btn
         color="red"
@@ -497,9 +505,7 @@ onMounted(async () => {
         @click="limpiarFiltro"
         class="mx-1"
       >
-        LIMPIAR <v-icon size="small">
-          mdi-filter-remove
-        </v-icon>
+        LIMPIAR <v-icon size="small"> mdi-filter-remove </v-icon>
       </v-btn>
     </v-card-title>
     <v-data-table
@@ -571,18 +577,15 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="(i, index) in item.detalle"
-                  :key="index"
-                >
+                <tr v-for="(i, index) in item.detalle" :key="index">
                   <td>{{ i.code_master }}</td>
                   <td>{{ i.nro_factura }}</td>
                   <td>{{ i.nro_serie }}</td>
                   <td>{{ i.montodolar }}</td>
                   <td>{{ i.montomonedalocal }}</td>
                 </tr>
-              </tbody>
-            </v-table><v-table
+              </tbody> </v-table
+            ><v-table
               style="width: 100%"
               v-if="item.comisionbancaria.length > 0"
             >
@@ -596,10 +599,7 @@ onMounted(async () => {
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="i in item.comisionbancaria"
-                  :key="i.id"
-                >
+                <tr v-for="i in item.comisionbancaria" :key="i.id">
                   <td>{{ i.concepto }}</td>
                   <td>{{ i.montodolar }}</td>
                   <td>{{ i.monto }}</td>
@@ -644,14 +644,8 @@ onMounted(async () => {
       width="20%"
       v-if="dialogFiltro"
     >
-      <v-card
-        height="100%"
-        elevation="5"
-      >
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+      <v-card height="100%" elevation="5">
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtrar Ingresos
           <v-spacer />
           <v-btn
@@ -773,18 +767,8 @@ onMounted(async () => {
         </v-card-text>
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="success"
-            @click="filtrar()"
-          >
-            Aceptar
-          </v-btn>
-          <v-btn
-            color="error"
-            @click="limpiarFiltro()"
-          >
-            Limpiar
-          </v-btn>
+          <v-btn color="success" @click="filtrar()"> Aceptar </v-btn>
+          <v-btn color="error" @click="limpiarFiltro()"> Limpiar </v-btn>
         </v-card-actions>
       </v-card>
     </v-navigation-drawer>

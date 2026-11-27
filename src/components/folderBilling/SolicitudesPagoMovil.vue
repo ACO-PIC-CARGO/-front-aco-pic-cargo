@@ -21,6 +21,7 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   codigo_estado: string;
   estado: string;
   banco: string | null;
+  beneficiario?: string | null;
   tipopago: string | null;
   fechasolicitud: string;
   usuario_solicitud: string | null;
@@ -119,6 +120,8 @@ const grupos = computed(() =>
 const iconoEstado = (codigo: string) => ESTADOS.find((e) => e.codigo === codigo)?.icono ?? "mdi-circle-outline";
 // en el listado de solicitudes va solo el nombre (sin el id del proveedor)
 const etiquetaProveedor = (s: SolicitudPagoMovilItem) => s.proveedor;
+// beneficiario de la cuenta de la solicitud o, si no tiene, el del instructivo (6.3)
+const beneficiarioDe = (s: SolicitudPagoMovilItem) => s.beneficiario?.trim() || s.instructivo?.beneficiario || "";
 const cuentaOCodigo = (s: SolicitudPagoMovilItem) => (s.codigo_tipopago === "02" ? s.codigopago || "" : s.nrocuenta || "");
 const eliminada = (s: SolicitudPagoMovilItem) => s.codigo_estado === "ELIMINADA" || !!s.fecha_anulado;
 const formatoMonto = (v: number | string) =>
@@ -359,6 +362,22 @@ function abrir(url: string | null | undefined) {
                       mdi-database
                     </v-icon>
                     <span class="mov__xmontoval">{{ formatoMonto(s.monto) }} {{ s.moneda || "USD" }}</span>
+                    <!-- el monto que se paga, para pegarlo en el banco -->
+                    <v-btn
+                      icon
+                      variant="tonal"
+                      size="small"
+                      color="primary"
+                      class="mov__xmontocopy"
+                      title="Copiar monto"
+                      aria-label="Copiar monto"
+                      data-modo-ver="permitido"
+                      @click="copiar(Number(s.monto || 0).toFixed(2))"
+                    >
+                      <v-icon size="18">
+                        mdi-content-copy
+                      </v-icon>
+                    </v-btn>
                   </div>
 
                   <div
@@ -419,20 +438,69 @@ function abrir(url: string | null | undefined) {
                     </v-btn>
                   </div>
 
+                  <!-- datos para pagar: Método de pago, Banco, SWIFT (del instructivo), Beneficiario, Cuenta, N.° de Factura Comercial -->
                   <div class="mov__detail">
                     <dl>
-                      <dt>
-                        <v-icon size="18">
-                          mdi-bank-outline
-                        </v-icon> Banco:
-                      </dt>
-                      <dd>{{ s.banco || "—" }}</dd>
                       <dt>
                         <v-icon size="18">
                           mdi-credit-card-outline
                         </v-icon> Método de pago:
                       </dt>
-                      <dd>{{ s.tipopago || "—" }}</dd>
+                      <dd class="mov__cuenta">
+                        <span>{{ s.tipopago || "—" }}</span>
+                      </dd>
+                      <dt>
+                        <v-icon size="18">
+                          mdi-bank-outline
+                        </v-icon> Banco:
+                      </dt>
+                      <dd class="mov__cuenta">
+                        <span>{{ s.banco || "—" }}</span>
+                      </dd>
+                      <template v-if="s.instructivo?.codigo_swift">
+                        <dt>
+                          <v-icon size="18">
+                            mdi-web
+                          </v-icon> SWIFT:
+                        </dt>
+                        <dd class="mov__cuenta">
+                          <span>{{ s.instructivo?.codigo_swift || "—" }}</span>
+                          <v-btn
+                            v-if="s.instructivo?.codigo_swift"
+                            icon
+                            variant="text"
+                            size="x-small"
+                            color="primary"
+                            title="Copiar"
+                            data-modo-ver="permitido"
+                            @click="copiar(s.instructivo?.codigo_swift)"
+                          >
+                            <v-icon>mdi-content-copy</v-icon>
+                          </v-btn>
+                        </dd>
+                      </template>
+                      <template v-if="beneficiarioDe(s)">
+                        <dt>
+                          <v-icon size="18">
+                            mdi-account-outline
+                          </v-icon> Beneficiario:
+                        </dt>
+                        <dd class="mov__cuenta">
+                          <span>{{ beneficiarioDe(s) || "—" }}</span>
+                          <v-btn
+                            v-if="beneficiarioDe(s)"
+                            icon
+                            variant="text"
+                            size="x-small"
+                            color="primary"
+                            title="Copiar"
+                            data-modo-ver="permitido"
+                            @click="copiar(beneficiarioDe(s))"
+                          >
+                            <v-icon>mdi-content-copy</v-icon>
+                          </v-btn>
+                        </dd>
+                      </template>
                       <dt>
                         <v-icon size="18">
                           mdi-wallet-outline
@@ -461,15 +529,16 @@ function abrir(url: string | null | undefined) {
                           </v-icon> N.° de Factura Comercial:
                         </dt>
                         <dd class="mov__cuenta">
-                          <span>{{ s.instructivo.nro_factura }}</span>
+                          <span>{{ s.instructivo?.nro_factura || "—" }}</span>
                           <v-btn
+                            v-if="s.instructivo?.nro_factura"
                             icon
                             variant="text"
                             size="x-small"
                             color="primary"
                             title="Copiar"
                             data-modo-ver="permitido"
-                            @click="copiar(s.instructivo.nro_factura)"
+                            @click="copiar(s.instructivo?.nro_factura)"
                           >
                             <v-icon>mdi-content-copy</v-icon>
                           </v-btn>
@@ -1215,6 +1284,19 @@ function abrir(url: string | null | undefined) {
   margin: 0;
   font-weight: 600;
   word-break: break-word;
+}
+/* una línea entre cada dato (menos el último) */
+.mov__detail dl {
+  row-gap: 0;
+}
+.mov__detail dt,
+.mov__detail dd {
+  padding: 8px 0;
+  border-bottom: 1px solid #dfe6f2;
+}
+.mov__detail dt:last-of-type,
+.mov__detail dd:last-of-type {
+  border-bottom: 0;
 }
 /* copiar: siempre a la derecha */
 .mov__cuenta {

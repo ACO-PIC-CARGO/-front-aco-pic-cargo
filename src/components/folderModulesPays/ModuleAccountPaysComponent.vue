@@ -10,7 +10,11 @@ import FormatFecha from "../comun/FormatFecha.vue";
 import BarraFiltro from "../BarraMostrarFiltro/BarraFiltro.vue";
 import { useAdminAuthorizationStore } from "@/stores/adminAuthorization";
 import { hasFailed, request } from "@/utils/request";
-import { askAdminCredentials, withAuthorization } from "@/utils/adminCredentials";
+import {
+  askAdminCredentials,
+  withAuthorization,
+  PERMISOS_AUTORIZA,
+} from "@/utils/adminCredentials";
 import type { CuentaListado } from "@/types/modulesPays";
 import type { AdminCredentials } from "@/types/seguridad";
 
@@ -92,7 +96,6 @@ const headersFacturas = [
   },
 ];
 
-
 const filtro = computed(() => {
   return {
     id_proveedor: id_proveedor.value,
@@ -125,7 +128,10 @@ function penPro(id: number) {
   router.push({ name: "EditAccountPays", params: { id: id } });
 }
 async function penProConClaveAdmin(id: number) {
-  const admin = await askAdminCredentials("Para editar esta cuenta pagada, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para editar esta cuenta pagada, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.cuentasPagarEditar
+  );
   if (!admin) return;
   useAdminAuthorizationStore().credentials = admin;
   router.push({ name: "EditAccountPays", params: { id: id } });
@@ -179,7 +185,10 @@ async function _getInvoiceAdmin() {
   filtroflag.value = false;
 }
 async function delPro(id: number) {
-  const admin = await askAdminCredentials("Para eliminar esta cuenta, escribe el usuario y la clave de un administrador.");
+  const admin = await askAdminCredentials(
+    "Para eliminar esta cuenta, escribe el usuario y la clave de un administrador.",
+    PERMISOS_AUTORIZA.cuentasPagarEliminar
+  );
   if (!admin) return;
   await EliminarCuenta(id, admin);
 }
@@ -211,11 +220,7 @@ onMounted(async () => {
       <v-col cols="12">
         <BarraFiltro :filtro="filtro" />
       </v-col>
-      <v-col
-        cols="12"
-        md="3"
-        class="pt-0"
-      >
+      <v-col cols="12" md="3" class="pt-0">
         <v-text-field
           hide-details
           v-model="searchFactura"
@@ -227,19 +232,9 @@ onMounted(async () => {
           append-inner-icon="mdi-text-search"
         />
       </v-col>
-      <v-col
-        cols="12"
-        md="9"
-        class="text-right pt-0"
-      >
-        <v-btn
-          class="mx-1"
-          @click="filtroflag = true"
-          color="default"
-        >
-          <v-icon size="small">
-            mdi-filter
-          </v-icon> Filtro
+      <v-col cols="12" md="9" class="text-right pt-0">
+        <v-btn class="mx-1" @click="filtroflag = true" color="default">
+          <v-icon size="small"> mdi-filter </v-icon> Filtro
         </v-btn>
         <v-btn
           class="mx-1"
@@ -247,19 +242,10 @@ onMounted(async () => {
           @click="toPageAdd()"
           color="primary"
         >
-          <v-icon size="small">
-            mdi-plus
-          </v-icon> NUEVA FACTURA
+          <v-icon size="small"> mdi-plus </v-icon> NUEVA FACTURA
         </v-btn>
-        <v-btn
-          class="mx-1"
-          @click="limpiar()"
-          color="red"
-          variant="outlined"
-        >
-          <v-icon size="small">
-            mdi-filter-remove
-          </v-icon> LIMPIAR
+        <v-btn class="mx-1" @click="limpiar()" color="red" variant="outlined">
+          <v-icon size="small"> mdi-filter-remove </v-icon> LIMPIAR
         </v-btn>
       </v-col>
       <v-col cols="12">
@@ -288,10 +274,7 @@ onMounted(async () => {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr
-                      v-for="(detalle, index) in item.detalle"
-                      :key="index"
-                    >
+                    <tr v-for="(detalle, index) in item.detalle" :key="index">
                       <td>{{ detalle.concepto }}</td>
                       <td>
                         {{ item.namecoins }}
@@ -305,9 +288,13 @@ onMounted(async () => {
                         {{ item.namecoins }}
                         {{ parseFloat(detalle.total).toFixed(2) }}
                       </td>
-                      <td>USD {{ parseFloat(detalle.montodolar).toFixed(2) }}</td>
+                      <td>
+                        USD {{ parseFloat(detalle.montodolar).toFixed(2) }}
+                      </td>
                       <td>USD {{ parseFloat(detalle.igvdolar).toFixed(2) }}</td>
-                      <td>USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}</td>
+                      <td>
+                        USD {{ parseFloat(detalle.totaldolar).toFixed(2) }}
+                      </td>
                     </tr>
                   </tbody>
                 </v-table>
@@ -327,12 +314,7 @@ onMounted(async () => {
             >
               Pendiente
             </v-chip>
-            <v-chip
-              block
-              class=""
-              color="success"
-              v-if="item.status == 2"
-            >
+            <v-chip block class="" color="success" v-if="item.status == 2">
               Pagado
             </v-chip>
           </template>
@@ -359,7 +341,9 @@ onMounted(async () => {
               <v-icon
                 class="btn_add mr-2"
                 icon
-                v-if="item.status == 1 && can('controlAccountPays', 'MODIFICAR')"
+                v-if="
+                  item.status == 1 && can('controlAccountPays', 'MODIFICAR')
+                "
                 color="blue"
                 @click="penPro(item.id)"
               >
@@ -394,23 +378,15 @@ onMounted(async () => {
     <v-navigation-drawer
       v-model="filtroflag"
       location="right"
-      
       width="40%"
       temporary
       class="filtro-container"
     >
       <v-card min-height="800px">
-        <v-card-title
-          class="d-flex align-center flex-wrap"
-          primary-title
-        >
+        <v-card-title class="d-flex align-center flex-wrap" primary-title>
           Filtro Para Facturas
           <v-spacer />
-          <v-btn
-            color="default"
-            variant="text"
-            @click="filtroflag = false"
-          >
+          <v-btn color="default" variant="text" @click="filtroflag = false">
             <v-icon>mdi-close</v-icon>
           </v-btn>
         </v-card-title>
@@ -457,16 +433,10 @@ onMounted(async () => {
         <v-divider />
         <v-card-actions>
           <v-spacer />
-          <v-btn
-            color="info"
-            @click="_getInvoiceAdmin()"
-          >
+          <v-btn color="info" @click="_getInvoiceAdmin()">
             <v-icon>mdi-filter-check-outline</v-icon> Filtrar
           </v-btn>
-          <v-btn
-            color="danger"
-            @click="limpiar()"
-          >
+          <v-btn color="danger" @click="limpiar()">
             <v-icon>mdi-filter-remove-outline</v-icon> Limpiar
           </v-btn>
         </v-card-actions>
