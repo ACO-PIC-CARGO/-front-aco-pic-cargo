@@ -1285,16 +1285,20 @@ function abrir(url: string | null | undefined) {
   font-weight: 600;
   word-break: break-word;
 }
-/* una línea entre cada dato (menos el último) */
+/* uno debajo del otro: la etiqueta arriba y el dato abajo (todo el ancho, copiar a la derecha),
+   con una línea entre cada dato (menos el último) */
 .mov__detail dl {
+  grid-template-columns: 1fr;
   row-gap: 0;
 }
-.mov__detail dt,
-.mov__detail dd {
-  padding: 8px 0;
-  border-bottom: 1px solid #dfe6f2;
+.mov__detail dt {
+  padding: 8px 0 2px;
 }
-.mov__detail dt:last-of-type,
+.mov__detail dd {
+  padding: 0 0 8px;
+  border-bottom: 1px solid #dfe6f2;
+  font-size: 0.95rem;
+}
 .mov__detail dd:last-of-type {
   border-bottom: 0;
 }
