@@ -15,7 +15,7 @@ import type { AreaRevision } from "@/composables/useRevisionSolicitudPago";
 import SoportePagoDialog from "@/components/folderBilling/SoportePagoDialog.vue";
 import SolicitudPagoVerDialog from "@/components/folderBilling/SolicitudPagoVerDialog.vue";
 import PagoProveedorInstructivoDialog from "@/components/folderBilling/PagoProveedorInstructivoDialog.vue";
-import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
+import { archivosInstructivoPorSolicitud, usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 import SolicitudesPagoMovil from "@/components/folderBilling/SolicitudesPagoMovil.vue";
 import RechazarSolicitudDialog from "@/components/folderBilling/RechazarSolicitudDialog.vue";
 import { useRechazoSolicitud, verMotivoRechazo } from "@/composables/useRechazoSolicitud";
@@ -260,6 +260,7 @@ const headers = computed(() => [
   columna("Banco", "banco"),
   columna("Método de pago", "tipopago"),
   columna("Código / N° de cuenta", "cuenta"),
+  columna("N.° Factura Comercial", "nro_factura"),
   columna("Cliente Pagó", "cliente_pago"),
   columna("Estado", "estado"),
   columna("Administración", "adm"),
@@ -310,6 +311,15 @@ async function cargar() {
   filas.value = response.estadoflag ? response.data : [];
   total.value = filas.value.length ? Number(filas.value[0]!.total) : 0;
   emit("total", total.value);
+  void cargarArchivosInstructivo(consulta);
+}
+// N.° de factura comercial, captura de datos bancarios y factura del proveedor (instructivo 6.3)
+async function cargarArchivosInstructivo(consulta: number) {
+  const ids = filas.value.filter((fila) => fila.pago_instructivoflag).map((fila) => Number(fila.id));
+  if (!ids.length) return;
+  const porSolicitud = await archivosInstructivoPorSolicitud(ids);
+  if (consulta !== ultimaConsulta) return;
+  for (const fila of filas.value) fila.instructivo = porSolicitud[Number(fila.id)] ?? null;
 }
 
 function irPrimeraPagina() {
@@ -450,6 +460,29 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
       soloVer: true,
       accion: () => verPagoInstructivo(item),
     });
+    const archivos = item.instructivo;
+    if (archivos?.captura) {
+      const captura = archivos.captura;
+      lista.push({
+        titulo: "Captura de datos del proveedor",
+        detalle: "Abre la captura / datos de transferencia del proveedor.",
+        icono: "mdi-bank-outline",
+        color: "morado",
+        soloVer: true,
+        accion: () => abrirArchivo(captura.ruta, captura.name),
+      });
+    }
+    if (archivos?.factura) {
+      const factura = archivos.factura;
+      lista.push({
+        titulo: "Factura del proveedor",
+        detalle: "Abre la Factura Comercial / Proforma del instructivo.",
+        icono: "mdi-file-document-outline",
+        color: "azul",
+        soloVer: true,
+        accion: () => abrirArchivo(factura.ruta, factura.name),
+      });
+    }
   }
   const viva = !anuladaSolicitud(item);
   if (puedeEditarSolicitud.value && viva && !item.multiexpedienteflag) {
@@ -731,6 +764,27 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
               @click="copiar(cuentaOCodigo(item))"
             />
           </div>
+        </template>
+        <template #[`item.nro_factura`]="{ item }">
+          <div
+            v-if="item.instructivo?.nro_factura"
+            class="spb__cuenta"
+          >
+            <span>{{ item.instructivo.nro_factura }}</span>
+            <v-btn
+              icon="mdi-content-copy"
+              variant="text"
+              size="x-small"
+              color="primary"
+              title="Copiar"
+              aria-label="Copiar N.° de factura comercial"
+              @click="copiar(item.instructivo.nro_factura)"
+            />
+          </div>
+          <span
+            v-else
+            class="spb__muted"
+          >—</span>
         </template>
         <template #[`item.cliente_pago`]="{ item }">
           <!-- varios expedientes: cada uno tiene su "Cliente Pagó" en Ver Detalle -->

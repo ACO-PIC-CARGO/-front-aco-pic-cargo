@@ -312,3 +312,40 @@ export async function pagosInstructivoPorSalida(ids: number[]): Promise<Record<n
     return {};
   }
 }
+
+// Bancos > Solicitudes de pago y Control de Gastos: de cada solicitud que viene del instructivo, el N.° de factura
+// comercial, la "Captura de los datos bancarios" y la "Factura del proveedor" (para abrir el archivo directo).
+export interface ArchivosInstructivoSolicitud {
+  nro_factura: string | null;
+  captura: ArchivoPago | null;
+  factura: ArchivoPago | null;
+}
+interface FilaArchivosInstructivo {
+  id_solicitudpago: number;
+  nro_factura: string | null;
+  captura_ruta: string | null;
+  captura_nombre: string | null;
+  factura_ruta: string | null;
+  factura_nombre: string | null;
+}
+export async function archivosInstructivoPorSolicitud(ids: number[]): Promise<Record<number, ArchivosInstructivoSolicitud>> {
+  const unicos = [...new Set(ids.filter((id) => Number(id) > 0))];
+  if (!unicos.length) return {};
+  try {
+    const { data } = await axios.get<ApiResponse<FilaArchivosInstructivo[]>>(`${URL}solicitud_pago_instructivo_archivos`, {
+      params: { ids: unicos.join(",") },
+    });
+    const porSolicitud: Record<number, ArchivosInstructivoSolicitud> = {};
+    for (const fila of data.estadoflag ? (data.data ?? []) : []) {
+      porSolicitud[Number(fila.id_solicitudpago)] = {
+        nro_factura: fila.nro_factura,
+        captura: fila.captura_ruta ? { ruta: fila.captura_ruta, name: fila.captura_nombre || "Datos bancarios" } : null,
+        factura: fila.factura_ruta ? { ruta: fila.factura_ruta, name: fila.factura_nombre || "Factura del proveedor" } : null,
+      };
+    }
+    return porSolicitud;
+  } catch (error) {
+    console.error(error);
+    return {};
+  }
+}

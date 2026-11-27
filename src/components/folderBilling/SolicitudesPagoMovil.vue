@@ -14,6 +14,7 @@ import { notifySuccess } from "@/utils/request";
 import { operacionBanco, usuarioCorto } from "@/utils/solicitudVista";
 import { descargarArchivo } from "@/utils/descargarArchivo";
 import type { ClientePagoEstado } from "@/types/billingEntries";
+import type { ArchivosInstructivoSolicitud } from "@/composables/usePagoProveedorInstructivo";
 
 export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   expediente: string;
@@ -42,6 +43,8 @@ export interface SolicitudPagoMovilItem extends SolicitudPagoAccion {
   total_op?: number | string | null;
   /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
   pago_instructivoflag?: boolean | null;
+  // del instructivo (6.3): N.° de factura comercial, captura de datos bancarios y factura del proveedor
+  instructivo?: ArchivosInstructivoSolicitud | null;
   /** fecha de la salida en Bancos y su N° de operación */
   fecha_pago_banco?: string | null;
   numerooperacion_pago?: string | null;
@@ -82,6 +85,13 @@ const emit = defineEmits<{
   // "Captura de los datos bancarios": solo esa sección del pago al proveedor
 "ver-datos-bancarios": [s: SolicitudPagoMovilItem];
 }>();
+
+// "Captura de los datos bancarios": abre el archivo directo; sin archivo, la sección de datos bancarios
+function verCapturaDatos(s: SolicitudPagoMovilItem) {
+  const captura = s.instructivo?.captura;
+  if (captura) abrirArchivo(captura.ruta, captura.name);
+  else emit("ver-datos-bancarios", s);
+}
 
 const ESTADOS = [
   { codigo: "LISTO", titulo: "Listo para transferir", icono: "mdi-check-circle" },
@@ -444,6 +454,27 @@ function abrir(url: string | null | undefined) {
                           <v-icon>mdi-content-copy</v-icon>
                         </v-btn>
                       </dd>
+                      <template v-if="s.instructivo?.nro_factura">
+                        <dt>
+                          <v-icon size="18">
+                            mdi-pound-box-outline
+                          </v-icon> N.° de Factura Comercial:
+                        </dt>
+                        <dd class="mov__cuenta">
+                          <span>{{ s.instructivo.nro_factura }}</span>
+                          <v-btn
+                            icon
+                            variant="text"
+                            size="x-small"
+                            color="primary"
+                            title="Copiar"
+                            data-modo-ver="permitido"
+                            @click="copiar(s.instructivo.nro_factura)"
+                          >
+                            <v-icon>mdi-content-copy</v-icon>
+                          </v-btn>
+                        </dd>
+                      </template>
                     </dl>
                   </div>
 
@@ -712,9 +743,23 @@ function abrir(url: string | null | undefined) {
                       prepend-icon="mdi-bank-outline"
                       class="mov__captura"
                       data-modo-ver="permitido"
-                      @click="emit('ver-datos-bancarios', s)"
+                      @click="verCapturaDatos(s)"
                     >
                       Captura de los datos bancarios
+                    </v-btn>
+                    <!-- Factura Comercial / Proforma que se subió en el 6.3: se abre directo -->
+                    <v-btn
+                      v-if="s.instructivo?.factura"
+                      size="small"
+                      variant="tonal"
+                      color="success"
+                      rounded="pill"
+                      prepend-icon="mdi-file-document-outline"
+                      class="mov__captura"
+                      data-modo-ver="permitido"
+                      @click="abrirArchivo(s.instructivo.factura.ruta, s.instructivo.factura.name)"
+                    >
+                      Factura del proveedor
                     </v-btn>
                     <!-- la que viene del instructivo se ve con "Pago proveedor" (sin Ver solicitud) -->
                     <v-btn

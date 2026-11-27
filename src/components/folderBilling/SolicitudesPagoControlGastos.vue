@@ -29,7 +29,8 @@ import type { ApiResponse } from "@/types/api";
 import type { SolicitudPagoControl } from "@/types/billingEntries";
 import { useSolicitudesMasterStore } from "@/stores/solicitudesMaster";
 import PagoProveedorInstructivoDialog from "./PagoProveedorInstructivoDialog.vue";
-import { usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
+import { archivosInstructivoPorSolicitud, usePagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
+import type { ArchivosInstructivoSolicitud } from "@/composables/usePagoProveedorInstructivo";
 
 const props = defineProps<{ idMaster?: number | null }>();
 // ya no emite "actualizado": Costos lee las mismas solicitudes del store compartido
@@ -54,8 +55,21 @@ const filtroPagoInstructivo = ref<{ id_proveedor: number; id_correlativo: number
 const pagosInstructivoDe = (s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">) =>
   pagosInstructivoMaster.value.filter((p) => p.id_proveedor === s.id_proveedor && (s.id_correlativo == null || p.id_correlativo === s.id_correlativo));
 const pagosInstructivoVer = computed(() => (filtroPagoInstructivo.value ? pagosInstructivoDe(filtroPagoInstructivo.value) : []));
+// N.° de factura comercial, captura de datos bancarios y factura del proveedor (instructivo 6.3)
+const archivosInstructivo = ref<Record<number, ArchivosInstructivoSolicitud>>({});
+watch(
+  () => solicitudes.value.filter((s) => pagosInstructivoDe(s).length).map((s) => Number(s.id)).join(","),
+  async (ids) => {
+    archivosInstructivo.value = ids ? await archivosInstructivoPorSolicitud(ids.split(",").map(Number)) : {};
+  },
+  { immediate: true },
+);
 const solicitudesMovil = computed(() =>
-  solicitudes.value.map((s) => ({ ...s, pago_instructivoflag: pagosInstructivoDe(s).length > 0 })));
+  solicitudes.value.map((s) => ({
+    ...s,
+    pago_instructivoflag: pagosInstructivoDe(s).length > 0,
+    instructivo: archivosInstructivo.value[Number(s.id)] ?? null,
+  })));
 // soloDatos: "Captura de los datos bancarios" (solo esa sección del pago al proveedor)
 const soloDatosBancarios = ref(false);
 function verPagoInstructivo(s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">, soloDatos = false) {

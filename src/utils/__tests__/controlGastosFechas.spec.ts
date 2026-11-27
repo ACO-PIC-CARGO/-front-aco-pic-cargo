@@ -3,9 +3,19 @@ import { fechasPorDefecto, problemaRangoExportar } from "@/utils/controlGastosFe
 
 const vacio = { ...fechasPorDefecto(), fechadisponibilidaddesde: null, fechadisponibilidadhasta: null };
 
+describe("fechasPorDefecto", () => {
+  it("cubre 3 años: del 1 de enero del año pasado al 31 de diciembre del siguiente", () => {
+    const year = new Date().getFullYear();
+    expect(fechasPorDefecto()).toMatchObject({
+      fechadisponibilidaddesde: `${year - 1}-01-01`,
+      fechadisponibilidadhasta: `${year + 1}-12-31`,
+    });
+  });
+});
+
 describe("problemaRangoExportar", () => {
-  it("acepta el rango por defecto (1 de enero a hoy)", () => {
-    expect(problemaRangoExportar(fechasPorDefecto())).toBeNull();
+  it("pide reducir el rango por defecto de 3 años antes de exportar", () => {
+    expect(problemaRangoExportar(fechasPorDefecto())).toMatch(/1 año/);
   });
   it("exige al menos un rango", () => {
     expect(problemaRangoExportar(vacio)).toMatch(/elige un rango/);
@@ -19,7 +29,13 @@ describe("problemaRangoExportar", () => {
   });
   it("valida cada rango lleno aunque otro esté bien", () => {
     expect(
-      problemaRangoExportar({ ...fechasPorDefecto(), fechaetddesde: "2024-01-01", fechaetdhasta: "2026-01-01" }),
+      problemaRangoExportar({
+        ...vacio,
+        fechadisponibilidaddesde: "2026-01-01",
+        fechadisponibilidadhasta: "2026-06-30",
+        fechaetddesde: "2024-01-01",
+        fechaetdhasta: "2026-01-01",
+      }),
     ).toMatch(/Fecha ETD/);
   });
 });

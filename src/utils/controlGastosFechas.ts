@@ -1,6 +1,5 @@
 import moment from "moment";
 import type { FiltroControlGastosRaiz } from "@/types/app";
-import { yearToDate } from "@/utils/dates";
 
 type Fechas = Pick<
   FiltroControlGastosRaiz,
@@ -22,9 +21,10 @@ export const RANGOS_CONTROL_GASTOS = [
   { nombre: "Fecha Libre de Almacenaje", desde: "fechalibrealmacenajedesde", hasta: "fechalibrealmacenajehasta" },
 ] as const satisfies readonly { nombre: string; desde: keyof Fechas; hasta: keyof Fechas }[];
 
-// Por defecto: disponibilidad desde el 1 de enero hasta hoy; el resto sin límite.
+// Por defecto: disponibilidad de 3 años (año pasado, actual y siguiente); el resto sin límite.
 export const fechasPorDefecto = (): Fechas => {
-  const { desde, hasta } = yearToDate();
+  const desde = moment().subtract(1, "year").startOf("year").format("YYYY-MM-DD");
+  const hasta = moment().add(1, "year").endOf("year").format("YYYY-MM-DD");
   return {
     fechadisponibilidaddesde: desde,
     fechadisponibilidadhasta: hasta,

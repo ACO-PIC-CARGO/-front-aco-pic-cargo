@@ -1,5 +1,6 @@
 import type { ExpedienteAmarrado } from "@/types/solicitudReporte";
 import type { ArchivoInicial } from "@/types/archivos";
+import type { ArchivosInstructivoSolicitud } from "@/composables/usePagoProveedorInstructivo";
 
 export type Monto = number | string;
 
@@ -320,6 +321,8 @@ export interface ConceptoSolicitudPago {
 export type ClientePagoEstado = "SI" | "PARCIAL" | "NO";
 
 export interface SolicitudPagoControl {
+  // del instructivo (6.3): N.° de factura comercial, captura de datos bancarios y factura del proveedor
+  instructivo?: ArchivosInstructivoSolicitud | null;
   /** solicitud del Reporte de Cuentas con varios expedientes: sus datos no se editan */
   multiexpedienteflag?: boolean;
   /** expedientes amarrados a la solicitud (solo la del reporte) */
@@ -512,6 +515,8 @@ export interface SolicitudPagoBandeja {
   id_pagoegreso: number | string | null;
   /** tiene el detalle del pago al proveedor del instructivo de Pricing (6.3) */
   pago_instructivoflag?: boolean | null;
+  // del instructivo (6.3): N.° de factura comercial, captura de datos bancarios y factura del proveedor
+  instructivo?: ArchivosInstructivoSolicitud | null;
   /** totales del proveedor en el expediente (tarjeta móvil) */
   total_pr?: number | string | null;
   total_op?: number | string | null;
