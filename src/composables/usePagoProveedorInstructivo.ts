@@ -220,6 +220,49 @@ export function detallePagoProveedor(datos: Record<string, unknown>, metodo?: st
   };
 }
 
+// "Captura de los datos bancarios": solo la sección de datos bancarios del proveedor (captura + transferencia)
+export function datosBancariosProveedor(datos: Record<string, unknown>): DetallePago {
+  const d = datos ?? {};
+  const captura = documento("Captura de los Datos Bancarios del Proveedor", "mdi-image-outline", d.capturaDatosBancarios);
+  const comprobante = documento("Comprobante / Datos de Transferencia", "mdi-swap-horizontal", d.comprobantePago);
+  const codigo = texto(d.metodoPagoCodigo);
+  // Alipay no tiene datos bancarios: sus datos de pago son el QR y los montos
+  if (codigo === CODIGO_METODO_PAGO.ALIPAY) {
+    return {
+      titulo: "Datos de pago Alipay / WeChat Pay",
+      subtitulo: "",
+      plataforma: null,
+      icono: "mdi-qrcode",
+      campos: [
+        documento("QR de pago (Alipay / WeChat Pay)", "mdi-qrcode", d.qrPagoProveedor),
+        { label: "Monto a transferir (CNY)", icon: "mdi-currency-cny", valor: montoTexto(d.montoCNY, "CNY") },
+        { label: "Equivalente en dólares (USD)", icon: "mdi-currency-usd", valor: montoTexto(d.montoUSD, "USD") },
+      ],
+    };
+  }
+  // la sección solo existe con transferencia (Alibaba / Made in China con transferencia y Transferencia Internacional)
+  const conTransferencia = ([
+    CODIGO_METODO_PAGO.ALIBABA_TRANSFERENCIA,
+    CODIGO_METODO_PAGO.MADE_IN_CHINA_TRANSFERENCIA,
+    CODIGO_METODO_PAGO.TRANSFERENCIA_INTERNACIONAL,
+  ] as string[]).includes(codigo);
+  if (!conTransferencia) {
+    return { titulo: "Datos de la Transferencia Internacional", subtitulo: "", plataforma: null, icono: "mdi-bank-outline", campos: [] };
+  }
+  return {
+    titulo: "Datos de la Transferencia Internacional",
+    subtitulo: "(datos bancarios del proveedor)",
+    plataforma: null,
+    icono: "mdi-bank-outline",
+    campos: [
+      ...(captura.archivo || captura.sinArchivo ? [captura] : []),
+      ...CAMPOS_TRANSFERENCIA.map((campo) => ({ label: campo.label, icon: campo.icon, valor: texto(d[campo.key]) })),
+      // comprobante de la transferencia (Alibaba / Made in China con transferencia y registros anteriores)
+      ...(comprobante.archivo || comprobante.sinArchivo ? [comprobante] : []),
+    ],
+  };
+}
+
 const URL = import.meta.env.VITE_URL_MAIN;
 
 export function usePagoProveedorInstructivo() {

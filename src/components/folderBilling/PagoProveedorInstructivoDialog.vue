@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import { notifySuccess } from "@/utils/request";
 import LogoPlataformaPago from "@/components/comun/LogoPlataformaPago.vue";
 import { abrirArchivo } from "@/composables/useVisorArchivo";
-import { detalleClientePago, detallePagoProveedor } from "@/composables/usePagoProveedorInstructivo";
+import { datosBancariosProveedor, detalleClientePago, detallePagoProveedor } from "@/composables/usePagoProveedorInstructivo";
 import type { CampoPago, PagoProveedorInstructivo } from "@/composables/usePagoProveedorInstructivo";
 
 // Detalle (solo lectura) del pago al proveedor del instructivo de Pricing (paso 6.3), con el mismo
@@ -18,8 +18,10 @@ const props = withDefaults(
     // "Solicitar" del Pago a Proveedor de una aprobación: pie con Cancelar / Solicitar Pago
     solicitar?: boolean;
     solicitando?: boolean;
+    // "Captura de los datos bancarios": solo la sección de datos bancarios del proveedor
+    soloDatosBancarios?: boolean;
   }>(),
-  { cargando: false, solicitar: false, solicitando: false },
+  { cargando: false, solicitar: false, solicitando: false, soloDatosBancarios: false },
 );
 const emit = defineEmits<{ "update:modelValue": [valor: boolean]; solicitar: [] }>();
 
@@ -31,8 +33,8 @@ const abierto = computed({
 const detalles = computed(() =>
   props.pagos.map((pago) => ({
     pago,
-    cliente: detalleClientePago(pago.datos),
-    detalle: detallePagoProveedor(pago.datos, pago.metodo),
+    cliente: props.soloDatosBancarios ? null : detalleClientePago(pago.datos),
+    detalle: props.soloDatosBancarios ? datosBancariosProveedor(pago.datos) : detallePagoProveedor(pago.datos, pago.metodo),
   })),
 );
 function verArchivo(campo: CampoPago) {
@@ -62,7 +64,7 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
       <div class="ppi__head">
         <span class="ppi__head-icon"><v-icon size="22">mdi-bank-transfer-out</v-icon></span>
         <div class="ppi__head-text">
-          <span class="ppi__head-title">Pago al proveedor (instructivo)</span>
+          <span class="ppi__head-title">{{ soloDatosBancarios ? "Datos bancarios del proveedor" : "Pago al proveedor (instructivo)" }}</span>
           <span
             v-if="proveedor"
             class="ppi__head-sub"
@@ -187,13 +189,26 @@ const proveedor = computed(() => props.pagos[0]?.proveedor ?? "");
             ><v-icon size="22">{{ detalle.icono }}</v-icon></span>
           </header>
 
-          <div class="ppi__meta">
+          <div
+            v-if="!soloDatosBancarios"
+            class="ppi__meta"
+          >
             <span v-if="pago.nro_quote">Cotización <b>{{ pago.nro_quote }}</b></span>
             <span v-if="pago.correlativo">Correlativo <b>{{ pago.correlativo }}</b></span>
             <span>Registro <b>{{ pago.codigo }}</b></span>
           </div>
 
-          <div class="ppi__form">
+          <!-- "Captura de los datos bancarios" de un método sin esa sección (tarjeta, Otros) -->
+          <div
+            v-if="soloDatosBancarios && !detalle.campos.length"
+            class="ppi__empty"
+          >
+            El método de pago{{ pago.metodo ? ` (${pago.metodo})` : "" }} no tiene datos bancarios del proveedor.
+          </div>
+          <div
+            v-else
+            class="ppi__form"
+          >
             <div
               v-for="campo in detalle.campos"
               :key="campo.label"

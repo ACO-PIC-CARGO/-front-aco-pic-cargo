@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { archivoDe, detalleClientePago, detallePagoProveedor } from "@/composables/usePagoProveedorInstructivo";
+import { archivoDe, datosBancariosProveedor, detalleClientePago, detallePagoProveedor } from "@/composables/usePagoProveedorInstructivo";
 
 const archivo = { name: "captura.png", ruta: "https://files.test/uploads/captura.png", insertid: 10 };
 
@@ -109,5 +109,42 @@ describe("detalle del pago al proveedor del instructivo (6.3)", () => {
     expect(archivoDe({ archivo: { ruta: "https://x/a.pdf", name: "https://x/a.pdf" } })?.name).toBe("a.pdf");
     expect(archivoDe({ flag: true, file: null })).toBeNull();
     expect(archivoDe(null)).toBeNull();
+  });
+});
+
+describe("datosBancariosProveedor (Captura de los datos bancarios)", () => {
+  const archivo = (name: string) => ({ ruta: `https://x/${name}`, name });
+  const transferencia = {
+    nombreBeneficiario: "Shenyang Zoom-Lon", direccionBeneficiario: "51 Bras Basah", bancoBenbeficiario: "CITIBANK",
+    direccionBancoBeneficiario: "5 Changi", codigoSwift: "CITISGSG", numeroCuentaBeneficiario: "1063 1402 431",
+  };
+  const etiquetas = (d: Record<string, unknown>) => datosBancariosProveedor(d).campos.map((c) => c.label);
+
+  it("Alibaba / Made in China con transferencia: datos de la transferencia y el comprobante (PDF)", () => {
+    for (const codigo of ["02", "05"]) {
+      const campos = datosBancariosProveedor({ metodoPagoCodigo: codigo, ...transferencia, comprobantePago: { file: archivo("pago.pdf") } }).campos;
+      expect(campos.map((c) => c.label)).toEqual([
+        "Beneficiario", "Dirección del beneficiario", "Banco beneficiario", "Dirección del banco", "Código SWIFT", "N.° de cuenta",
+        "Comprobante / Datos de Transferencia",
+      ]);
+      expect(campos.at(-1)?.archivo?.name).toBe("pago.pdf");
+    }
+  });
+
+  it("Transferencia internacional: la captura de datos bancarios y los datos de la transferencia", () => {
+    const campos = datosBancariosProveedor({ metodoPagoCodigo: "03", ...transferencia, capturaDatosBancarios: archivo("captura.png"),
+      comprobantePago: { file: null, flag: false } }).campos;
+    expect(campos[0]).toMatchObject({ label: "Captura de los Datos Bancarios del Proveedor", archivo: { name: "captura.png" } });
+    expect(campos).toHaveLength(7);
+  });
+
+  it("Alipay: el QR y los montos", () => {
+    expect(etiquetas({ metodoPagoCodigo: "04", qrPagoProveedor: archivo("qr.png"), montoCNY: 100, montoUSD: 14 }))
+      .toEqual(["QR de pago (Alipay / WeChat Pay)", "Monto a transferir (CNY)", "Equivalente en dólares (USD)"]);
+  });
+
+  it("tarjeta y Otros: sin datos bancarios", () => {
+    expect(etiquetas({ metodoPagoCodigo: "01", ...transferencia })).toEqual([]);
+    expect(etiquetas({ metodoPagoCodigo: "07" })).toEqual([]);
   });
 });

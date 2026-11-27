@@ -4,7 +4,7 @@ import { storeToRefs } from "pinia";
 import { useBancosStore } from "@/stores/bancos";
 import { useHousesStore } from "@/stores/houses";
 import { notifySuccess } from "@/utils/request";
-import type { CuentaBancariaPic, HouseNotice } from "@/types/operaciones";
+import type { CuentaBancariaPic, HouseNotice, HouseNoticePreview } from "@/types/operaciones";
 
 const props = defineProps<{ houseId: number; modality?: string; notice?: HouseNotice | null; fecha?: string | null }>();
 const emit = defineEmits<{ sent: [] }>();
@@ -21,6 +21,9 @@ const noticeType = ref<string | null>(null);
 const accountIds = ref<number[]>([]);
 const search = ref("");
 const sending = ref(false);
+const loadingPreview = ref(false);
+// The client's email is shown before it goes out; sending only happens from this preview.
+const preview = ref<HouseNoticePreview | null>(null);
 const errorMessage = ref("");
 const notices = computed(() => (props.modality === "Exportación" ? EXPORT_NOTICES : IMPORT_NOTICES));
 
@@ -49,6 +52,7 @@ watch(
     accountIds.value = [];
     search.value = "";
     errorMessage.value = "";
+    preview.value = null;
     bancosStore.getListBanksDetailsCargar();
   },
   { immediate: true },
@@ -70,13 +74,33 @@ function toggleAllVisible() {
     : [...new Set([...accountIds.value, ...visibleIds])];
 }
 
-async function send() {
+const chosenNotice = () => ({ id: props.notice?.id ?? null, title: noticeType.value! });
+
+async function showPreview() {
   if (!noticeType.value || !accountIds.value.length) {
     errorMessage.value = MISSING_CHOICE;
     return;
   }
+  errorMessage.value = "";
+  loadingPreview.value = true;
+  const response = await housesStore.previewArrivalNotice(props.houseId, chosenNotice(), accountIds.value, props.fecha ?? null);
+  loadingPreview.value = false;
+  if (!response.estadoflag || !response.data?.[0]) {
+    errorMessage.value = response.mensaje;
+    return;
+  }
+  preview.value = response.data[0];
+}
+
+function backToAccounts() {
+  preview.value = null;
+  errorMessage.value = "";
+}
+
+async function send() {
+  if (!preview.value || !noticeType.value || !accountIds.value.length) return;
   sending.value = true;
-  const notice = { id: props.notice?.id ?? null, title: noticeType.value };
+  const notice = chosenNotice();
   const response = await housesStore.sendArrivalNotice(props.houseId, notice, accountIds.value, props.fecha ?? null);
   sending.value = false;
   if (!response.estadoflag) {
@@ -119,100 +143,129 @@ async function send() {
       </header>
 
       <v-card-text class="notice-dialog__body">
-        <div class="notice-dialog__info">
-          <v-icon
-            icon="mdi-information"
-            color="#1a5fd0"
-            size="26"
-          />
-          Seleccione las cuentas bancarias que desea enviar en el {{ notice ? notice.title.toLowerCase() : "aviso" }}.
-        </div>
-
-        <v-select
-          v-if="!notice"
-          v-model="noticeType"
-          :items="notices"
-          label="Aviso"
-          variant="outlined"
-          density="comfortable"
-          hide-details
-          class="mb-4"
-          :readonly="false"
-        />
-
-        <v-text-field
-          v-model="search"
-          placeholder="Buscar cuenta, banco o moneda..."
-          aria-label="Buscar cuenta, banco o moneda"
-          prepend-inner-icon="mdi-magnify"
-          variant="outlined"
-          density="comfortable"
-          clearable
-          hide-details
-          :readonly="false"
-          class="mb-4"
-        />
-
-        <div
-          v-if="noticeAccounts.length"
-          class="notice-list"
+        <section
+          v-if="preview"
+          class="notice-preview"
+          aria-label="Vista previa del correo"
         >
-          <div class="notice-list__head">
-            <span class="notice-check">
-              <v-checkbox-btn
-                :model-value="allVisibleSelected"
-                :indeterminate="someVisibleSelected"
-                :disabled="!visibleAccounts.length"
-                aria-label="Seleccionar todas"
-                color="#1a5fd0"
-                :readonly="false"
-                @update:model-value="toggleAllVisible"
-              />
-            </span>
-            <span class="notice-list__head-label">Seleccionar todas</span>
-            <v-spacer />
-            <span class="notice-list__count">
-              {{ visibleAccounts.length }} {{ visibleAccounts.length === 1 ? "cuenta encontrada" : "cuentas encontradas" }}
-            </span>
+          <dl class="notice-preview__meta">
+            <dt>De</dt>
+            <dd>{{ preview.remitente }}</dd>
+            <dt>Para</dt>
+            <dd>{{ preview.email }}</dd>
+            <template v-if="preview.responder_a">
+              <dt>Responder a</dt>
+              <dd>{{ preview.responder_a }}</dd>
+            </template>
+            <dt>Asunto</dt>
+            <dd class="font-weight-bold">
+              {{ preview.asunto }}
+            </dd>
+          </dl>
+          <iframe
+            class="notice-preview__mail"
+            title="Correo que recibirá el cliente"
+            sandbox="allow-popups allow-popups-to-escape-sandbox"
+            :srcdoc="preview.html"
+          />
+        </section>
+
+        <template v-else>
+          <div class="notice-dialog__info">
+            <v-icon
+              icon="mdi-information"
+              color="#1a5fd0"
+              size="26"
+            />
+            Seleccione las cuentas bancarias que desea enviar en el {{ notice ? notice.title.toLowerCase() : "aviso" }}.
           </div>
 
-          <div class="notice-list__rows">
-            <label
-              v-for="account in visibleAccounts"
-              :key="account.id"
-              class="notice-row"
-              :class="{ 'notice-row--selected': accountIds.includes(account.id) }"
-            >
+          <v-select
+            v-if="!notice"
+            v-model="noticeType"
+            :items="notices"
+            label="Aviso"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            class="mb-4"
+            :readonly="false"
+          />
+
+          <v-text-field
+            v-model="search"
+            placeholder="Buscar cuenta, banco o moneda..."
+            aria-label="Buscar cuenta, banco o moneda"
+            prepend-inner-icon="mdi-magnify"
+            variant="outlined"
+            density="comfortable"
+            clearable
+            hide-details
+            :readonly="false"
+            class="mb-4"
+          />
+
+          <div
+            v-if="noticeAccounts.length"
+            class="notice-list"
+          >
+            <div class="notice-list__head">
               <span class="notice-check">
                 <v-checkbox-btn
-                  :model-value="accountIds.includes(account.id)"
-                  :aria-label="accountTitle(account)"
+                  :model-value="allVisibleSelected"
+                  :indeterminate="someVisibleSelected"
+                  :disabled="!visibleAccounts.length"
+                  aria-label="Seleccionar todas"
                   color="#1a5fd0"
                   :readonly="false"
-                  @update:model-value="toggleAccount(account.id)"
+                  @update:model-value="toggleAllVisible"
                 />
               </span>
-              <span class="notice-row__main">
-                <span class="notice-row__title">{{ accountTitle(account) }}</span>
-                <span class="notice-row__number">N° Cuenta: {{ account.cuenta }}</span>
+              <span class="notice-list__head-label">Seleccionar todas</span>
+              <v-spacer />
+              <span class="notice-list__count">
+                {{ visibleAccounts.length }} {{ visibleAccounts.length === 1 ? "cuenta encontrada" : "cuentas encontradas" }}
               </span>
-              <span class="notice-row__cci">CCI: {{ hasCci(account) ? account.cci : "—" }}</span>
-              <span class="notice-row__coin">{{ account.symbol }}</span>
-            </label>
-            <p
-              v-if="!visibleAccounts.length"
-              class="notice-list__empty"
-            >
-              Ninguna cuenta coincide con la búsqueda.
-            </p>
+            </div>
+
+            <div class="notice-list__rows">
+              <label
+                v-for="account in visibleAccounts"
+                :key="account.id"
+                class="notice-row"
+                :class="{ 'notice-row--selected': accountIds.includes(account.id) }"
+              >
+                <span class="notice-check">
+                  <v-checkbox-btn
+                    :model-value="accountIds.includes(account.id)"
+                    :aria-label="accountTitle(account)"
+                    color="#1a5fd0"
+                    :readonly="false"
+                    @update:model-value="toggleAccount(account.id)"
+                  />
+                </span>
+                <span class="notice-row__main">
+                  <span class="notice-row__title">{{ accountTitle(account) }}</span>
+                  <span class="notice-row__number">N° Cuenta: {{ account.cuenta }}</span>
+                </span>
+                <span class="notice-row__cci">CCI: {{ hasCci(account) ? account.cci : "—" }}</span>
+                <span class="notice-row__coin">{{ account.symbol }}</span>
+              </label>
+              <p
+                v-if="!visibleAccounts.length"
+                class="notice-list__empty"
+              >
+                Ninguna cuenta coincide con la búsqueda.
+              </p>
+            </div>
           </div>
-        </div>
-        <p
-          v-else
-          class="notice-list__empty"
-        >
-          Tu empresa no tiene cuentas bancarias marcadas para avisos. Márcalas en Bancos para poder enviar el aviso.
-        </p>
+          <p
+            v-else
+            class="notice-list__empty"
+          >
+            Tu empresa no tiene cuentas bancarias marcadas para avisos. Márcalas en Bancos para poder enviar el aviso.
+          </p>
+        </template>
 
         <v-alert
           v-if="errorMessage"
@@ -224,7 +277,10 @@ async function send() {
       </v-card-text>
 
       <footer class="notice-dialog__footer">
-        <div class="notice-dialog__selected">
+        <div
+          v-if="!preview"
+          class="notice-dialog__selected"
+        >
           <v-icon
             icon="mdi-check-circle"
             color="#1a5fd0"
@@ -232,27 +288,51 @@ async function send() {
           />
           {{ accountIds.length }} {{ accountIds.length === 1 ? "cuenta seleccionada" : "cuentas seleccionadas" }}
         </div>
-        <v-btn
-          class="notice-dialog__action"
-          variant="outlined"
-          size="large"
-          prepend-icon="mdi-close"
-          :disabled="sending"
-          @click="open = false"
-        >
-          Cancelar
-        </v-btn>
-        <v-btn
-          class="notice-dialog__action"
-          color="#103f7f"
-          variant="flat"
-          size="large"
-          prepend-icon="mdi-send"
-          :loading="sending"
-          @click="send"
-        >
-          Enviar Aviso
-        </v-btn>
+        <template v-if="preview">
+          <v-btn
+            class="notice-dialog__action"
+            variant="outlined"
+            size="large"
+            prepend-icon="mdi-arrow-left"
+            :disabled="sending"
+            @click="backToAccounts"
+          >
+            Volver
+          </v-btn>
+          <v-btn
+            class="notice-dialog__action"
+            color="#103f7f"
+            variant="flat"
+            size="large"
+            prepend-icon="mdi-send"
+            :loading="sending"
+            @click="send"
+          >
+            Enviar Aviso
+          </v-btn>
+        </template>
+        <template v-else>
+          <v-btn
+            class="notice-dialog__action"
+            variant="outlined"
+            size="large"
+            prepend-icon="mdi-close"
+            @click="open = false"
+          >
+            Cancelar
+          </v-btn>
+          <v-btn
+            class="notice-dialog__action"
+            color="#103f7f"
+            variant="flat"
+            size="large"
+            prepend-icon="mdi-eye-outline"
+            :loading="loadingPreview"
+            @click="showPreview"
+          >
+            Vista previa
+          </v-btn>
+        </template>
       </footer>
     </v-card>
   </v-dialog>
@@ -432,6 +512,39 @@ async function send() {
   background: #e3eefc;
   color: #1a5fd0;
   font-weight: 600;
+}
+
+.notice-preview__meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 16px;
+  margin: 0 0 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #f6faff;
+  color: #14264e;
+}
+
+.notice-preview__meta dt {
+  color: #6b7a93;
+}
+
+.notice-preview__meta dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.notice-preview__mail {
+  display: block;
+  width: 100%;
+  height: min(60vh, 560px);
+  border: 1px solid #dbe7f7;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.notice-dialog__footer:has(.notice-dialog__action:first-child) {
+  justify-content: flex-end;
 }
 
 .notice-dialog__action {

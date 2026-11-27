@@ -433,6 +433,86 @@ onMounted(async () => {
               </tbody>
             </v-table>
           </div>
+          <!-- Celular: una tarjeta por house en lugar de la tabla -->
+          <div class="master-houses__cards">
+            <div
+              v-for="(item, index) in displayedItems"
+              :key="item.id ?? index"
+              class="master-houses__card"
+              role="button"
+              tabindex="0"
+              @click="showHouse(item.id)"
+              @keydown.enter="showHouse(item.id)"
+            >
+              <div class="master-houses__card-head">
+                <span class="master-houses__card-num">{{ Number(index) + 1 }}</span>
+                <span class="master-houses__card-code">{{ item.nro_hbl || item.code_house || "-" }}</span>
+                <v-spacer />
+                <span class="master-houses__card-inco">{{ getIncotermName(item) }}</span>
+              </div>
+              <div class="master-houses__card-client">
+                {{
+                  item.cliente_nombre ||
+                    item.nameconsigner ||
+                    item.cliente ||
+                    item.consigner ||
+                    "-"
+                }}
+              </div>
+              <div class="master-houses__card-metrics">
+                <div>
+                  <span>Peso</span>
+                  <strong>{{ formatNumber(item.peso) }} kg</strong>
+                </div>
+                <div>
+                  <span>Volumen</span>
+                  <strong>{{ formatNumber(item.volumen) }} m³</strong>
+                </div>
+                <div v-if="esAereo">
+                  <span>P. volumétrico</span>
+                  <strong>{{ formatNumber(computePesoVolumetrico(item)) }} kg</strong>
+                </div>
+                <div v-if="esAereo">
+                  <span>P. cargable</span>
+                  <strong>{{ formatNumber(computePesoCargable(item)) }} kg</strong>
+                </div>
+              </div>
+              <div class="master-houses__card-actions">
+                <v-btn
+                  variant="text"
+                  icon
+                  size="small"
+                  color="info"
+                  aria-label="Abrir house"
+                  @click.stop="showHouse(item.id)"
+                >
+                  <v-icon>mdi-open-in-new</v-icon>
+                </v-btn>
+                <v-btn
+                  v-if="!isViewMode && can('listMaster', 'ELIMINAR')"
+                  variant="text"
+                  icon
+                  size="small"
+                  color="red"
+                  aria-label="Eliminar house"
+                  @click.stop="eliminar(item.id)"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+                <v-btn
+                  v-if="!isViewMode && can('listMaster', 'MODIFICAR')"
+                  variant="text"
+                  icon
+                  size="small"
+                  color="#F57F17"
+                  aria-label="Cambiar expediente"
+                  @click.stop="abrirModalCambiarExpediente(item)"
+                >
+                  <v-icon>mdi-folder-arrow-up-down</v-icon>
+                </v-btn>
+              </div>
+            </div>
+          </div>
           <div
             v-if="(appStore.itemsHouseList?.length ?? 0) > HOUSES_PREVIEW"
             class="text-center pa-2"
@@ -671,5 +751,93 @@ onMounted(async () => {
 }
 .master-houses__table :deep(tbody td) {
   font-size: 13px;
+}
+
+.master-houses__cards {
+  display: none;
+}
+.master-houses__card {
+  padding: 10px 12px;
+  border: 1px solid #e5ebf2;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+}
+.master-houses__card + .master-houses__card {
+  margin-top: 8px;
+}
+.master-houses__card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.master-houses__card-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #eef2f6;
+  font-size: 12px;
+  font-weight: 700;
+}
+.master-houses__card-code {
+  font-size: 14px;
+  font-weight: 700;
+  color: #111827;
+}
+.master-houses__card-inco {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f1fb;
+  color: #1e6fd9;
+  font-size: 12px;
+  font-weight: 700;
+}
+.master-houses__card-client {
+  margin: 6px 0;
+  font-size: 13px;
+  color: #374151;
+}
+.master-houses__card-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;
+}
+.master-houses__card-metrics span {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+}
+.master-houses__card-metrics strong {
+  font-size: 13px;
+  color: #111827;
+}
+.master-houses__card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+
+@media (max-width: 600px) {
+  .master-houses__kpis {
+    margin: 4px 8px;
+  }
+  .master-houses__kpi {
+    padding: 8px;
+  }
+  .master-houses__kpi + .master-houses__kpi {
+    border-left: 0;
+    border-top: 1px solid #e5ebf2;
+  }
+  .master-houses__table-wrap {
+    display: none;
+  }
+  .master-houses__cards {
+    display: block;
+    /* deja espacio para el botón flotante */
+    margin: 0 8px 72px;
+  }
 }
 </style>

@@ -56,7 +56,10 @@ const pagosInstructivoDe = (s: Pick<SolicitudPagoControl, "id_proveedor" | "id_c
 const pagosInstructivoVer = computed(() => (filtroPagoInstructivo.value ? pagosInstructivoDe(filtroPagoInstructivo.value) : []));
 const solicitudesMovil = computed(() =>
   solicitudes.value.map((s) => ({ ...s, pago_instructivoflag: pagosInstructivoDe(s).length > 0 })));
-function verPagoInstructivo(s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">) {
+// soloDatos: "Captura de los datos bancarios" (solo esa sección del pago al proveedor)
+const soloDatosBancarios = ref(false);
+function verPagoInstructivo(s: Pick<SolicitudPagoControl, "id_proveedor" | "id_correlativo">, soloDatos = false) {
+  soloDatosBancarios.value = soloDatos;
   filtroPagoInstructivo.value = { id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo };
   dialogPagoInstructivo.value = true;
 }
@@ -555,7 +558,9 @@ defineExpose({ cargar });
                   :loading="eliminandoSolicitud === s.id"
                   @click="eliminarSolicitudCg(s)"
                 />
+                <!-- la que viene del instructivo se ve con "Pago proveedor" (sin Ver solicitud) -->
                 <v-btn
+                  v-if="!pagosInstructivoDe(s).length"
                   icon="mdi-eye-outline"
                   variant="tonal"
                   size="small"
@@ -637,6 +642,7 @@ defineExpose({ cargar });
       @eliminar="eliminarSolicitudCg"
       @ver="(sol) => verSolicitud(sol as SolicitudPagoControl)"
       @ver-pago-instructivo="(sol) => verPagoInstructivo(sol as SolicitudPagoControl)"
+      @ver-datos-bancarios="(sol) => verPagoInstructivo(sol as SolicitudPagoControl, true)"
     >
       <template #vacio>
         No hay solicitudes de pago en este expediente. Se crean con <b>Solicitar</b> en Costos.
@@ -667,6 +673,7 @@ defineExpose({ cargar });
       v-model="dialogPagoInstructivo"
       :pagos="pagosInstructivoVer"
       :cargando="cargandoPagoInstructivo"
+      :solo-datos-bancarios="soloDatosBancarios"
     />
     <SolicitudPagoVerDialog
       v-model="dialogVer"

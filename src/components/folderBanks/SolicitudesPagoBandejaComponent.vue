@@ -85,7 +85,10 @@ function verSolicitud(s: SolicitudPagoBandeja) {
 // Detalle del pago al proveedor del instructivo de Pricing (6.3) del expediente / proveedor / correlativo
 const { pagos: pagosInstructivo, cargando: cargandoPagoInstructivo, listar: listarPagosInstructivo } = usePagoProveedorInstructivo();
 const dialogPagoInstructivo = ref(false);
-function verPagoInstructivo(s: Pick<SolicitudPagoBandeja, "id_master" | "id_proveedor" | "id_correlativo">) {
+// soloDatos: "Captura de los datos bancarios" (solo esa sección del pago al proveedor)
+const soloDatosBancarios = ref(false);
+function verPagoInstructivo(s: Pick<SolicitudPagoBandeja, "id_master" | "id_proveedor" | "id_correlativo">, soloDatos = false) {
+  soloDatosBancarios.value = soloDatos;
   pagosInstructivo.value = [];
   dialogPagoInstructivo.value = true;
   void listarPagosInstructivo({ id_master: s.id_master, id_proveedor: s.id_proveedor, id_correlativo: s.id_correlativo });
@@ -429,7 +432,8 @@ interface AccionFila {
   accion: () => void;
 }
 function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
-  const lista: AccionFila[] = [{
+  // la que viene del instructivo se ve con "Pago proveedor" (sin Ver solicitud)
+  const lista: AccionFila[] = item.pago_instructivoflag ? [] : [{
     titulo: "Ver solicitud",
     detalle: "Facturas cargadas y la solicitud de pago.",
     icono: "mdi-eye-outline",
@@ -611,6 +615,7 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
         @eliminar="eliminarSolicitud"
         @ver="(sol) => verSolicitud(sol as SolicitudPagoBandeja)"
         @ver-pago-instructivo="(sol) => verPagoInstructivo(sol as SolicitudPagoBandeja)"
+        @ver-datos-bancarios="(sol) => verPagoInstructivo(sol as SolicitudPagoBandeja, true)"
       />
       <v-pagination
         v-if="paginasMovil > 1"
@@ -1018,6 +1023,7 @@ function accionesMenu(item: SolicitudPagoBandeja): AccionFila[] {
       v-model="dialogPagoInstructivo"
       :pagos="pagosInstructivo"
       :cargando="cargandoPagoInstructivo"
+      :solo-datos-bancarios="soloDatosBancarios"
     />
     <SolicitudPagoEditarDialog
       v-model="dialogEditarSolicitud"

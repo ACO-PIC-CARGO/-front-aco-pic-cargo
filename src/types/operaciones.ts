@@ -194,6 +194,15 @@ export interface HouseNotice {
   title: string;
 }
 
+/** Notice email as the client will receive it, built for the session branch. */
+export interface HouseNoticePreview {
+  html: string;
+  email: string;
+  asunto: string;
+  remitente: string;
+  responder_a: string | null;
+}
+
 export interface NotificacionHouse {
   estadoflag: boolean;
   mensaje: string;

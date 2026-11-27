@@ -79,6 +79,8 @@ const emit = defineEmits<{
   "eliminar-soporte": [s: SolicitudPagoMovilItem];
   ver: [s: SolicitudPagoMovilItem];
   "ver-pago-instructivo": [s: SolicitudPagoMovilItem];
+  // "Captura de los datos bancarios": solo esa sección del pago al proveedor
+"ver-datos-bancarios": [s: SolicitudPagoMovilItem];
 }>();
 
 const ESTADOS = [
@@ -710,11 +712,13 @@ function abrir(url: string | null | undefined) {
                       prepend-icon="mdi-bank-outline"
                       class="mov__captura"
                       data-modo-ver="permitido"
-                      @click="emit('ver-pago-instructivo', s)"
+                      @click="emit('ver-datos-bancarios', s)"
                     >
                       Captura de los datos bancarios
                     </v-btn>
+                    <!-- la que viene del instructivo se ve con "Pago proveedor" (sin Ver solicitud) -->
                     <v-btn
+                      v-if="!s.pago_instructivoflag"
                       size="small"
                       variant="flat"
                       color="primary"

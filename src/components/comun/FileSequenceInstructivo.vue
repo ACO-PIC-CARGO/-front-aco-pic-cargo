@@ -1058,13 +1058,31 @@ async function guardarYContinuarPago() {
     guardandoPago.value = false;
   }
 }
-// Al cambiar "Debemos pagar" o el método, los pasos siguientes se vuelven a recorrer (y validar).
+// Al cambiar "Debemos pagar" o el método, los pasos siguientes se bloquean y se vuelven a recorrer (y validar).
+// Si vuelve a lo que tenía (fue una confusión), se desbloquean hasta donde había llegado.
+let respaldoPasos: { pagar: unknown; metodo: unknown; maximo: number } | null = null;
 watch(
   () => [datosManuales.value.pagarProveedor, datosManuales.value.metodoPagoCodigo],
-  () => {
-    if (!cambiandoProveedor && !restaurandoPaso && pasoMaximo.value > e6.value) pasoMaximo.value = e6.value;
+  ([pagar, metodo], [pagarAntes, metodoAntes]) => {
+    if (cambiandoProveedor || restaurandoPaso) {
+      respaldoPasos = null;
+      return;
+    }
+    if (respaldoPasos && pagar === respaldoPasos.pagar && metodo === respaldoPasos.metodo) {
+      if (respaldoPasos.maximo > pasoMaximo.value) pasoMaximo.value = respaldoPasos.maximo;
+      respaldoPasos = null;
+      return;
+    }
+    if (pasoMaximo.value > e6.value) {
+      if (!respaldoPasos) respaldoPasos = { pagar: pagarAntes, metodo: metodoAntes, maximo: pasoMaximo.value };
+      pasoMaximo.value = e6.value;
+    }
   },
 );
+// si con el método nuevo ya llegó igual de lejos, el respaldo ya no aplica
+watch(pasoMaximo, (maximo) => {
+  if (respaldoPasos && maximo >= respaldoPasos.maximo) respaldoPasos = null;
+});
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function cargarArchivo(datoEmit: { id?: unknown; archivo?: unknown } | null | undefined, name: string) {
   if (datoEmit) {

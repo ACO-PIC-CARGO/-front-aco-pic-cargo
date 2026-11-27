@@ -15,6 +15,7 @@ import type {
   HouseDetalle,
   HouseFacturable,
   HouseNotice,
+  HouseNoticePreview,
   NotificacionHouse,
 } from "@/types/operaciones";
 import { localDateAtAppLoad } from "@/utils/appLoad";
@@ -178,6 +179,19 @@ export const useHousesStore = defineStore("houses", () => {
     return request({
       method: "post",
       url: import.meta.env.VITE_URL_MAIN + "sendNotificacionHouse",
+      data: { id: houseId, notificacion: notice, cuentasBancarias: accountIds, fecha },
+    });
+  }
+
+  function previewArrivalNotice(
+    houseId: number,
+    notice: HouseNotice,
+    accountIds: number[],
+    fecha: string | null = null,
+  ): Promise<ApiResponse<HouseNoticePreview[]>> {
+    return request<HouseNoticePreview>({
+      method: "post",
+      url: import.meta.env.VITE_URL_MAIN + "previewNotificacionHouse",
       data: { id: houseId, notificacion: notice, cuentasBancarias: accountIds, fecha },
     });
   }
@@ -418,6 +432,7 @@ export const useHousesStore = defineStore("houses", () => {
     insertComentarioHouse,
     deleteHouse,
     sendArrivalNotice,
+    previewArrivalNotice,
     updateHouseNotificationData,
     getFacturasFiscales,
     copy_house,

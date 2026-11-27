@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import AcoStatusChip from "@/components/aco/AcoStatusChip.vue";
-import { reactive, ref, watch } from "vue";
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
-import FormatFecha from "@/components/comun/FormatFecha.vue";
 import { useHousesStore } from "@/stores/houses";
 import { useBranchTimeZoneStore } from "@/stores/branchTimeZone";
-import { calendarDateLabel, fromDateAndTime, toDateAndTime } from "@/components/HouseFile/houseTrackingFormat";
-import { isDateOnlyHouseNotice } from "@/components/HouseFile/houseNoticeDate";
+import { calendarDateLabel, todayIn } from "@/components/HouseFile/houseTrackingFormat";
 import type { NotificacionHouse } from "@/types/operaciones";
 
 const housesStore = useHousesStore();
@@ -16,145 +14,12 @@ const emit = defineEmits<{
   "request-send": [notification: NotificacionHouse];
   send: [payload: { notification: NotificacionHouse; fecha: string }];
 }>();
-const fechas = reactive<Record<string, string>>({});
-const horas = reactive<Record<string, string>>({});
-const erroresFecha = reactive<Record<string, string>>({});
-const dateDialogOpen = ref(false);
-const selectedNotification = ref<NotificacionHouse | null>(null);
-const dateDraft = ref<string | null>(null);
-const timeDraft = ref("");
-const dateDialogError = ref("");
-const pendingSend = ref(false);
-const MONTHS = {
-  jan: 1, ene: 1,
-  feb: 2,
-  mar: 3,
-  apr: 4, abr: 4,
-  may: 5,
-  jun: 6,
-  jul: 7,
-  aug: 8, ago: 8,
-  sep: 9, sept: 9, set: 9,
-  oct: 10,
-  nov: 11,
-  dec: 12, dic: 12,
-} as const;
 
-function idKey(item: NotificacionHouse): string {
-  return String(item.id);
-}
-
-function dateTimeInputValue(value: string | null): { date: string; time: string } {
-  if (!value) return { date: "", time: "" };
-  const dbTimestamp = value.match(/^(\d{4})-([A-Za-zÀ-ÿ.]+)-(\d{1,2})\s+(\d{2}):(\d{2}):(\d{2})$/);
-  if (dbTimestamp) {
-    const [, yearText, monthText, dayText, hour, minute] = dbTimestamp;
-    const monthKey = monthText!.normalize("NFD").replace(/[\u0300-\u036f.]/g, "").toLowerCase();
-    const month = MONTHS[monthKey as keyof typeof MONTHS];
-    const year = Number(yearText);
-    const day = Number(dayText);
-    if (month) {
-      const date = new Date(year, month - 1, day);
-      if (date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day) {
-        return {
-          date: `${yearText}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`,
-          time: `${hour}:${minute}`,
-        };
-      }
-    }
-  }
-  const parsed = toDateAndTime(value, timeZone.value);
-  const hasTime = /[T ]\d{2}:\d{2}/.test(value);
-  return { date: parsed.date, time: hasTime ? parsed.time : "" };
-}
-
-function normalizeTime(value: string): string | null {
-  const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?$/);
-  if (!match) return null;
-  const hour = Number(match[1]);
-  const minute = Number(match[2] ?? "0");
-  if (hour > 23 || minute > 59) return null;
-  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-}
-
-watch(
-  () => [housesStore.ListadoNotificacionesHouse, timeZone.value] as const,
-  ([notifications]) => {
-    notifications.forEach((item) => {
-      const { date, time } = dateTimeInputValue(item.fecha);
-      fechas[idKey(item)] = date;
-      horas[idKey(item)] = time;
-      delete erroresFecha[idKey(item)];
-    });
-  },
-  { immediate: true },
-);
-
-watch(dateDialogOpen, (isOpen) => {
-  if (!isOpen) pendingSend.value = false;
-});
-
-function sendNotification(item: NotificacionHouse): void {
-  const id = idKey(item);
-  const fecha = fechas[id] ?? "";
-  const hora = horas[id] ?? "";
-  const dateOnly = isDateOnlyHouseNotice(item);
-  if (!fecha || (!dateOnly && !hora)) {
-    erroresFecha[id] = dateOnly ? "La fecha es obligatoria para enviar la notificación." : "La fecha y la hora son obligatorias para enviar la notificación.";
-    openDateDialog(item, true);
-    return;
-  }
-  delete erroresFecha[id];
-  emit("send", { notification: item, fecha: dateOnly ? fecha : fromDateAndTime(fecha, hora, timeZone.value) });
-}
-
-function openDateDialog(item: NotificacionHouse, sendAfterSave = false): void {
-  selectedNotification.value = item;
-  const id = idKey(item);
-  dateDraft.value = fechas[id] || null;
-  timeDraft.value = horas[id] || "";
-  dateDialogError.value = "";
-  pendingSend.value = sendAfterSave;
-  dateDialogOpen.value = true;
-}
-
-function saveDate(): void {
-  if (!selectedNotification.value) return;
-  const item = selectedNotification.value;
-  const dateOnly = isDateOnlyHouseNotice(item);
-  const date = dateDraft.value;
-  if (!date) {
-    dateDialogError.value = dateOnly ? "La fecha es obligatoria." : "La fecha y la hora son obligatorias.";
-    return;
-  }
-  const id = idKey(item);
-  let time = "";
-  let fecha = date;
-  if (!dateOnly) {
-    const normalizedTime = normalizeTime(timeDraft.value);
-    if (!normalizedTime) {
-      dateDialogError.value = "Ingresa una hora válida, por ejemplo 10 o 10:30.";
-      return;
-    }
-    time = normalizedTime;
-    fecha = fromDateAndTime(date, normalizedTime, timeZone.value);
-  }
-  const shouldSend = pendingSend.value;
-  fechas[id] = date;
-  horas[id] = time;
-  delete erroresFecha[id];
-  pendingSend.value = false;
-  dateDialogOpen.value = false;
-  if (shouldSend) emit("send", { notification: item, fecha });
-}
-
-function cancelDate(): void {
-  pendingSend.value = false;
-  dateDialogOpen.value = false;
-}
+// A pending notice always goes out today; the server records the exact date and time when it is sent.
+const today = computed(() => todayIn(timeZone.value));
 
 function requestSend(item: NotificacionHouse): void {
-  sendNotification(item);
+  emit("send", { notification: item, fecha: today.value });
 }
 
 defineExpose({ requestSend });
@@ -234,32 +99,12 @@ defineExpose({ requestSend });
             >
               {{ item.fecha || "—" }}
             </span>
-            <div
+            <span
               v-else
-              class="d-flex flex-column align-start"
+              class="text-no-wrap text-medium-emphasis"
             >
-              <v-btn
-                variant="text"
-                size="small"
-                :color="fechas[idKey(item)] ? undefined : 'primary'"
-                :class="['text-none px-1', { 'text-medium-emphasis': fechas[idKey(item)] }]"
-                :prepend-icon="fechas[idKey(item)] ? undefined : 'mdi-calendar-plus'"
-                :aria-label="fechas[idKey(item)] ? `Cambiar fecha de ${item.descripcion || item.codigo}` : `Poner fecha a ${item.descripcion || item.codigo}`"
-                @click="openDateDialog(item)"
-              >
-                {{
-                  fechas[idKey(item)] && (isDateOnlyHouseNotice(item) || horas[idKey(item)])
-                    ? `${calendarDateLabel(fechas[idKey(item)])}${isDateOnlyHouseNotice(item) ? "" : ` ${horas[idKey(item)]}`}`
-                    : "Poner fecha"
-                }}
-              </v-btn>
-              <span
-                v-if="erroresFecha[idKey(item)]"
-                class="text-error text-body-small"
-              >
-                {{ erroresFecha[idKey(item)] }}
-              </span>
-            </div>
+              {{ calendarDateLabel(today) }}
+            </span>
           </td>
           <td class="px-1">
             <AcoStatusChip
@@ -284,55 +129,4 @@ defineExpose({ requestSend });
       </tbody>
     </v-table>
   </v-card>
-  <v-dialog
-    v-model="dateDialogOpen"
-    max-width="460"
-  >
-    <v-card>
-      <v-card-title>
-        Fecha de «{{ selectedNotification?.descripcion || selectedNotification?.codigo }}»
-      </v-card-title>
-      <v-card-text>
-        <FormatFecha
-          v-model="dateDraft"
-          label="Fecha"
-        />
-        <v-text-field
-          v-if="selectedNotification && !isDateOnlyHouseNotice(selectedNotification)"
-          v-model="timeDraft"
-          type="time"
-          step="60"
-          label="Hora"
-          prepend-icon="mdi-clock-outline"
-          :hint="`Zona horaria: ${timeZone}`"
-          persistent-hint
-          variant="outlined"
-          :readonly="false"
-        />
-        <v-alert
-          v-if="dateDialogError"
-          type="error"
-          variant="tonal"
-          class="mt-2"
-          :text="dateDialogError"
-        />
-      </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          @click="cancelDate"
-        >
-          Cancelar
-        </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          @click="saveDate"
-        >
-          Guardar fecha
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 </template>
