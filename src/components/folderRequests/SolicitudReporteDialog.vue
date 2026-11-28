@@ -1050,13 +1050,13 @@ async function enviar() {
                 role="cell"
                 data-label="Monto según Pricing"
                 class="solrep__c solrep__c--monto solrep__c--pr"
-              >{{ e.moneda }} {{ formatoMonto(e.monto_pricing ?? 0) }}</span>
+              ><!-- Pricing siempre en dólares -->USD {{ formatoMonto(e.monto_pricing ?? 0) }}</span>
               <span
                 role="cell"
                 data-label="Ganancia del Expediente"
                 class="solrep__c solrep__c--monto solrep__c--gan"
                 :class="{ 'solrep__c--neg': Number(e.ganancia ?? 0) < 0 }"
-              >{{ e.ganancia == null ? "-" : `${e.moneda ?? ""} ${formatoMonto(e.ganancia)}`.trim() }}</span>
+              >{{ e.ganancia == null ? "-" : `USD ${formatoMonto(e.ganancia)}` }}</span>
               <span
                 role="cell"
                 data-label="Chequeado OK"

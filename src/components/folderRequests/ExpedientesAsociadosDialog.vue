@@ -33,6 +33,9 @@ const entidad = computed(() => {
 });
 const moneda = computed(() => cabecera.value?.moneda ?? "");
 const num = (v: number | string | null | undefined) => Number(v ?? 0) || 0;
+// Pricing y Ganancia siempre en dólares; Operaciones en la moneda de la solicitud
+const formatoUsd = (v: number | string | null | undefined) =>
+  `${num(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
 const formato = (v: number | string | null | undefined) =>
   `${num(v).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${moneda.value}`.trim();
 const suma = (campo: "monto_pricing" | "monto_operaciones" | "ganancia" | "monto_solicitado") =>
@@ -220,7 +223,7 @@ watch(abierto, (visible) => {
                 role="cell"
                 data-label="Monto según Pricing"
                 class="text-right"
-              >{{ formato(f.monto_pricing) }}</span>
+              >{{ formatoUsd(f.monto_pricing) }}</span>
               <span
                 role="cell"
                 data-label="Monto según Operaciones"
@@ -240,7 +243,7 @@ watch(abierto, (visible) => {
                 <span
                   class="expas__ganancia"
                   :class="{ 'expas__ganancia--neg': num(f.ganancia) < 0 }"
-                >{{ formato(f.ganancia) }}</span>
+                >{{ formatoUsd(f.ganancia) }}</span>
               </span>
               <!-- comentario del expediente escrito al solicitar desde el reporte (columna propia) -->
               <span
@@ -277,7 +280,7 @@ watch(abierto, (visible) => {
                 role="cell"
                 data-label="Monto según Pricing"
                 class="text-right"
-              >{{ formato(totales.pricing) }}</span>
+              >{{ formatoUsd(totales.pricing) }}</span>
               <span
                 role="cell"
                 data-label="Monto según Operaciones"
@@ -297,7 +300,7 @@ watch(abierto, (visible) => {
                 <span
                   class="expas__ganancia expas__ganancia--total"
                   :class="{ 'expas__ganancia--neg': totales.ganancia < 0 }"
-                >{{ formato(totales.ganancia) }}</span>
+                >{{ formatoUsd(totales.ganancia) }}</span>
               </span>
               <span
                 role="cell"

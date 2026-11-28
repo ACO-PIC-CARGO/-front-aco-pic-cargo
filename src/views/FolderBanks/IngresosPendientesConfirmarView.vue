@@ -18,7 +18,8 @@ const TABS: { valor: TabBandejaSolicitudCobro; titulo: string; icono: string; co
   { valor: "REC", titulo: "Rechazadas", icono: "mdi-close-circle-outline", color: "error" },
   { valor: "HIS", titulo: "Histórico", icono: "mdi-history", color: "grey-darken-1" },
   // 4.ª pestaña: pasaron las validaciones y solo falta registrarlas en Bancos
-  { valor: "PPG", titulo: "Pendiente por Registrar en banco", icono: "mdi-cash-clock", color: "warning" },
+  // 4.ª pestaña "Pendiente por Registrar en banco" (PPG): oculta por ahora (la bandeja la sigue soportando)
+  // { valor: "PPG", titulo: "Pendiente por Registrar en banco", icono: "mdi-cash-clock", color: "warning" },
   // 5.ª pestaña: ya pasaron por Bancos (salida / ingreso registrado)
   { valor: "PAG", titulo: "Solicitudes Pagadas", icono: "mdi-cash-check", color: "success" },
 ];
@@ -120,7 +121,7 @@ onMounted(async () => {
 <style scoped>
 .spbv-tabs {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   margin-bottom: 14px;
   padding: 4px;

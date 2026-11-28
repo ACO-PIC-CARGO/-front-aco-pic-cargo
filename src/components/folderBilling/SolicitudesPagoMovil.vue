@@ -276,7 +276,7 @@ function abrir(url: string | null | undefined) {
                   class="mov__montos"
                 >
                   <div>
-                    <span class="mov__montolabel"><v-icon size="16">mdi-tag-outline</v-icon> Pricing ({{ s.moneda || "USD" }})</span>
+                    <span class="mov__montolabel"><v-icon size="16">mdi-tag-outline</v-icon> Pricing (USD)</span>
                     <b>{{ formatoMonto(s.total_pr ?? 0) }}</b>
                   </div>
                   <div>
@@ -558,7 +558,8 @@ function abrir(url: string | null | undefined) {
                       mdi-database
                     </v-icon>
                     <span class="mov__xpricinglabel">Monto según Pricing:</span>
-                    <b>{{ formatoMonto(s.total_pr) }} {{ s.moneda || "USD" }}</b>
+                    <!-- Pricing siempre en dólares (la moneda cambia solo en Operaciones) -->
+                    <b>{{ formatoMonto(s.total_pr) }} USD</b>
                   </div>
 
                   <!-- seguimiento: etiqueta arriba y "fecha | usuario" debajo -->
